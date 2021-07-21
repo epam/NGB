@@ -408,7 +408,7 @@ public class FeatureIndexManager {
     }
 
     public IndexSearchResult<GeneIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
-                                                                       final long referenceId) throws IOException {
+                                                                    final long referenceId) throws IOException {
         final List<? extends FeatureFile> files = getGeneFilesForReference(referenceId, filterForm.getFileIds());
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>();
@@ -416,26 +416,28 @@ public class FeatureIndexManager {
         return getGeneSearchResult(filterForm, files);
     }
 
-    public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId, ItemsByProject fileIdsByProjectId) {
+    public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId,
+                                                         final ItemsByProject fileIdsByProjectId) {
         final List<? extends FeatureFile> files =
                 getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
                 .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
         if (CollectionUtils.isEmpty(files)) {
             return GeneFilterInfo.builder().build();
         }
-        return featureIndexDao.getAvailableFieldsToSearch(
-                files);
+        return featureIndexDao.getAvailableFieldsToSearch(files);
     }
 
-    public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
+    public Set<String> getAvailableFieldValues(final Long referenceId,
+                                               final ItemsByProject fileIdsByProjectId,
                                                final String fieldName) {
-        final List<Long> fileIds = Optional.ofNullable(fileIdsByProjectId)
-                .map(ItemsByProject::getFileIds).orElse(Collections.emptyList());
-        if (CollectionUtils.isEmpty(fileIds)) {
+        final List<? extends FeatureFile> files = getGeneFilesForReference(referenceId,
+                Optional.ofNullable(fileIdsByProjectId)
+                        .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
+        if (CollectionUtils.isEmpty(files)) {
             return Collections.emptySet();
         }
         return featureIndexDao.getAvailableFieldValues(
-                getGeneFilesForReference(referenceId, fileIds), fieldName);
+                files, fieldName);
     }
 
     private List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {
