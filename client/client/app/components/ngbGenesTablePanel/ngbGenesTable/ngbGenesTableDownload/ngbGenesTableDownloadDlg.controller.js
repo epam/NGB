@@ -1,5 +1,6 @@
 export default class ngbGenesTableDownloadDlgController {
 
+    isLoading = false;
     includeHeader = false;
     formatList = [
         {
@@ -26,6 +27,7 @@ export default class ngbGenesTableDownloadDlgController {
     }
 
     download(event) {
+        this.isLoading = true;
         this.ngbGenesTableService.downloadFile(
             this.projectContext.reference.id,
             this.downloadFormat.name,
@@ -51,6 +53,7 @@ export default class ngbGenesTableDownloadDlgController {
                 // eslint-disable-next-line no-console
                 console.error(ex);
             }
+            this.isLoading = false;
         });
         event.stopImmediatePropagation();
         return false;

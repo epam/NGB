@@ -1,5 +1,5 @@
 const DEFAULT_GENES_COLUMNS = [
-    'chr', 'gene', 'gene_id', 'type', 'start', 'end', 'strand', 'info'//, 'molecularView'
+    'chr', 'gene', 'gene_id', 'type', 'start', 'end', 'strand', 'info'
 ];
 const OPTIONAL_GENE_COLUMNS = [
     'featureFileId', 'source', 'score', 'frame'
@@ -7,11 +7,19 @@ const OPTIONAL_GENE_COLUMNS = [
 const DEFAULT_ORDERBY_GENES_COLUMNS = {
     'chr': 'CHROMOSOME_NAME',
     'gene': 'FEATURE_NAME',
-    'gene_id': 'FEATURE_ID',
+    'gene_id': 'gene_id',
     'type': 'FEATURE_TYPE',
     'start': 'START_INDEX',
     'end': 'END_INDEX',
     'strand': 'strand'
+};
+
+const SERVER_COLUMN_NAMES = {
+    'type': 'feature',
+    'start': 'startIndex',
+    'end': 'endIndex',
+    'chr': 'chromosome',
+    'gene': 'featureName'
 };
 const GENES_COLUMN_TITLES = {
     chr: 'Chr',
@@ -297,14 +305,22 @@ export default class ngbGenesTableService {
     }
 
     downloadFile(reference, format, includeHeader) {
-        return {};
-        // return this.genomeDataService.downloadGenes(
-        //     reference,
-        //     {
-        //         format: format,
-        //         header: includeHeader,
-        //         ...this.getRequestFilter(false)
-        //     });
+        const exportFields = this.genesTableColumns
+            .filter(column => column !== 'info')
+            .map(column => SERVER_COLUMN_NAMES[column] || column);
+        const filter = this.getRequestFilter(false);
+        delete filter.pointer;
+        return this.genomeDataService.downloadGenes(
+            reference,
+            {
+                format: format,
+                includeHeader: includeHeader
+            },
+            {
+                exportFields: exportFields,
+                ...filter
+            }
+        );
     }
 
     getGenesGridColumns() {

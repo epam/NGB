@@ -44,7 +44,7 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectIdDescription(projectId) {
-        return this.downloadFile(`project/${+projectId}/description`, undefined, {customResponseType: 'arraybuffer'});
+        return this.downloadFile('get', `project/${+projectId}/description`, undefined, {customResponseType: 'arraybuffer'});
     }
 
     /**
@@ -124,9 +124,10 @@ export class ProjectDataService extends DataService {
         });
     }
 
-    downloadVcf(data) {
+    downloadVcf(reference, getParams, data) {
         return new Promise((resolve, reject) => {
-            this.downloadFile('filter', data, {customResponseType: 'arraybuffer'})
+            this.downloadFile('post', `filter/export?format=${getParams.format}&includeHeader=${getParams.includeHeader}`,
+                data, {customResponseType: 'arraybuffer'})
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -261,7 +262,7 @@ export class ProjectDataService extends DataService {
 
     downloadBlastResults(blastSearchId) {
         return new Promise((resolve, reject) => {
-            this.downloadFile(`task/${blastSearchId}/raw`, undefined, {customResponseType: 'arraybuffer'})
+            this.downloadFile('get', `task/${blastSearchId}/raw`, undefined, {customResponseType: 'arraybuffer'})
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

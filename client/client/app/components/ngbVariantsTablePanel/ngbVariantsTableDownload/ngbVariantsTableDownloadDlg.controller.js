@@ -1,5 +1,6 @@
 export default class ngbVariantsTableDownloadDlgController {
 
+    isLoading = false;
     includeHeader = false;
     formatList = [
         {
@@ -25,6 +26,7 @@ export default class ngbVariantsTableDownloadDlgController {
     }
 
     download(event) {
+        this.isLoading = true;
         this.projectContext.downloadVcfTable(
             this.projectContext.reference.id,
             this.downloadFormat.name,
@@ -50,6 +52,7 @@ export default class ngbVariantsTableDownloadDlgController {
                 // eslint-disable-next-line no-console
                 console.error(ex);
             }
+            this.isLoading = false;
         });
         event.stopImmediatePropagation();
         return false;

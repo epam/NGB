@@ -31,8 +31,13 @@
         </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-        <md-button class="md-primary" ng-click="ctrl.download($event)">
-            Download
+        <md-button class="md-primary" ng-click="!ctrl.isLoading && ctrl.download($event)" ng-disabled="ctrl.isLoading">
+            <span ng-hide="ctrl.isLoading">Download</span>
+            <md-progress-circular
+                    md-diameter="16"
+                    md-mode="indeterminate"
+                    ng-show="ctrl.isLoading">
+            </md-progress-circular>
         </md-button>
         <md-button ng-click="ctrl.close()" style="margin-right:20px;">
             Cancel
