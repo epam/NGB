@@ -1,4 +1,3 @@
-import {EventGeneInfo} from '../../../shared/utils/events';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
@@ -99,6 +98,7 @@ export default class ngbGenesTableController extends baseController {
         this.geneLoadError = null;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbGenesTable_row.tpl.html'),
             columnDefs: this.ngbGenesTableService.getGenesGridColumns(),
             paginationPageSize: this.ngbGenesTableService.genesPageSize,
             onRegisterApi: (gridApi) => {
@@ -330,21 +330,6 @@ export default class ngbGenesTableController extends baseController {
             title: entity.featureType
         };
         this.dispatcher.emitSimpleEvent('feature:info:select', data);
-        event.stopImmediatePropagation();
-    }
-
-    openMolecularView(entity, event) {
-        const layoutChange = this.appLayout.Panels.molecularViewer;
-        layoutChange.displayed = true;
-        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
-        const data = new EventGeneInfo({
-            startIndex: entity.start,
-            endIndex: entity.end,
-            geneId: entity.gene_id,
-            highlight: false,
-            transcriptId: entity.transcript_id
-        });
-        this.dispatcher.emitSimpleEvent('miew:show:structure', data);
         event.stopImmediatePropagation();
     }
 }
