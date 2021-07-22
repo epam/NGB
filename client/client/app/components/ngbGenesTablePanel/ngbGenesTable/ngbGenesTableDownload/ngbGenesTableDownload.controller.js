@@ -13,7 +13,7 @@ export default class ngbGenesTableDownloadController {
     openDlg() {
         this.$mdDialog.show({
             clickOutsideToClose: true,
-            controller: 'ngbVariantsTableDownloadDlgController',
+            controller: 'ngbGenesTableDownloadDlgController',
             controllerAs: 'ctrl',
             parent: angular.element(document.body),
             template: require('./ngbGenesTableDownloadDlg.tpl.html')

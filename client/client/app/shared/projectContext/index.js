@@ -2241,12 +2241,22 @@ export default class projectContext {
     }
 
     downloadVcfTable(reference, format, includeHeader) {
-        return {};
-        // return this.projectDataService.downloadVcf({
-        //     format: format,
-        //     header: includeHeader,
-        //     ...this.getVcfRequestFilter(1)
-        // });
+        const exportFields = this.vcfColumns
+            .filter(column => column !== 'info');
+            // .map(column => VCF_SERVER_COLUMN_NAMES[column] || column);
+        const filter = this.getVcfRequestFilter(false);
+        delete filter.pointer;
+        return this.projectDataService.downloadVcf(
+            reference,
+            {
+                format: format,
+                includeHeader: includeHeader
+            },
+            {
+                exportFields: exportFields,
+                ...filter
+            }
+        );
     }
 
     get layoutPanels() {

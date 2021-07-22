@@ -87,8 +87,8 @@ export class DataService {
             });
     }
 
-    downloadFile(url, data, ...rest) {
-        return $http('get', this._serverUrl + url, data, ...rest)
+    downloadFile(method, url, data, ...rest) {
+        return $http(method, this._serverUrl + url, data, ...rest)
             .then((xhr) => {
                 if (xhr.status === AUTH_ERROR_CODE) {
                     this.handleAuthenticationError();
