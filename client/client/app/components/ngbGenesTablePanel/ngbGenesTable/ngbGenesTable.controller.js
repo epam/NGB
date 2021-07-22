@@ -353,12 +353,11 @@ export default class ngbGenesTableController extends baseController {
     }
 
     restoreState() {
+        this.ngbGenesTableService.genesTableColumns = [];
+        this.ngbGenesTableService.orderByGenes = null;
         if (!this.gridApi) {
             return;
         }
-        this.ngbGenesTableService.genesTableColumns = [];
         this.gridApi.saveState.restore(this.$scope, this.defaultState);
-        this.saveColumnsState();
-        this.ngbGenesTableService.resetGenesFilter();
     }
 }

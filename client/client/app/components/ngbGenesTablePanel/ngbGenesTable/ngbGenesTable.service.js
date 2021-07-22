@@ -466,7 +466,6 @@ export default class ngbGenesTableService {
     }
 
     resetGenesFilter() {
-        this.orderByGenes = null;
         if (!this.projectContext.genesFilterIsDefault) {
             this.clearGenesFilter();
         }
