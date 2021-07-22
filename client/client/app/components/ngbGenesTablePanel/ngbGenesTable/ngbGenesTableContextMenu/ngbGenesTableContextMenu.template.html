@@ -1,0 +1,24 @@
+<div class="ngb-genes-table-context-menu">
+    <md-list class="md-dense">
+        <md-list-item>
+            <md-button ng-click="ctrl.blastSearch('blastn', $event)">
+                BLASTn search
+            </md-button>
+        </md-list-item>
+        <md-list-item>
+            <md-button ng-click="ctrl.entity.gene && ctrl.blastSearch('blastp', $event)"
+                       ng-disabled="!ctrl.entity.gene">
+                BLASTp search
+                <div class="ngb-context-menu-warning" ng-if="!ctrl.entity.gene">
+                    <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
+                        Feature name is missing
+                </div>
+            </md-button>
+        </md-list-item>
+        <md-list-item>
+            <md-button ng-click="ctrl.openMolecularView($event)">
+                Show 3D structure
+            </md-button>
+        </md-list-item>
+    </md-list>
+</div>

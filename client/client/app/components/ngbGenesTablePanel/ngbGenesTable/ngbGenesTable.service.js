@@ -367,6 +367,7 @@ export default class ngbGenesTableService {
                     sortDirection = columnSortingConfiguration.ascending ? 'asc' : 'desc';
                 }
             }
+            // ngb-context-menu data-target="ngbDataSetContextMenu" locals="node"
             switch (column) {
                 case 'info': {
                     columnSettings = {
