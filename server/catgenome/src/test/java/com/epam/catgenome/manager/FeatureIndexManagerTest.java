@@ -1460,7 +1460,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void testExportGeneTable() throws IOException {
         final GeneExportFilterForm geneFilterForm = new GeneExportFilterForm();
         geneFilterForm.setFeatureId("ENSFCAG000000");
-        geneFilterForm.setExportFields(Arrays.asList("source", "featureId", "gene_version", "gene_source"));
+        geneFilterForm.setExportFields(Arrays.asList("source", "featureId", "gene_version", "gene_source", "empty"));
 
         assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
     }
@@ -1666,7 +1666,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final VcfExportFilterForm form = new VcfExportFilterForm();
         form.setVcfFileIdsByProject(Collections.singletonMap(testProject.getId(),
                 Collections.singletonList(samplesVcf.getId())));
-        form.setExportFields(Arrays.asList("variationType", "featureType", "chromosome"));
+        form.setExportFields(Arrays.asList("variationType", "featureType", "chromosome", "empty"));
 
         final byte[] exportResult = exportManager.exportVariations(form, ExportFormat.CSV, true);
         assertNotNull(exportResult);
