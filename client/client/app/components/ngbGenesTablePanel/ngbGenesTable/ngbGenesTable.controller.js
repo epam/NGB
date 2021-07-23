@@ -2,6 +2,10 @@ import {EventGeneInfo} from '../../../shared/utils/events';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
+const SOURCE_LIST = {
+    INITIALIZE: 0,
+    RELOAD: 1
+};
 
 export default class ngbGenesTableController extends baseController {
     dispatcher;
@@ -47,11 +51,10 @@ export default class ngbGenesTableController extends baseController {
     viewDataLength;
     maxViewDataLength;
     events = {
-        'genes:refresh': this.reloadGenes.bind(this),
+        'genes:refresh': this.reloadGenes.bind(this, SOURCE_LIST.INITIALIZE),
         'display:genes:filter': this.refreshScope.bind(this),
-        'reference:change': this.initialize.bind(this),
         'genes:values:loaded': this.initialize.bind(this),
-        'dataset:selection:change': this.initialize.bind(this),
+        'dataset:selection:change': this.reloadGenes.bind(this, SOURCE_LIST.RELOAD),
     };
 
     constructor(
@@ -115,14 +118,16 @@ export default class ngbGenesTableController extends baseController {
                 this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.getDataUp.bind(this));
             }
         });
-        this.reloadGenes();
+        this.reloadGenes(SOURCE_LIST.INITIALIZE);
     }
 
-    async reloadGenes() {
+    async reloadGenes(source) {
         if (this.isLoading) {
             return;
         }
-        this.isProgressShown = true;
+        if (source === SOURCE_LIST.INITIALIZE) {
+            this.isProgressShown = true;
+        }
         this.errorMessageList = [];
         this.geneLoadError = undefined;
         this.isEmptyResults = false;
@@ -316,7 +321,7 @@ export default class ngbGenesTableController extends baseController {
                 columnDef.sort = sortingConfig.sort;
             }
         });
-        this.reloadGenes();
+        this.reloadGenes(SOURCE_LIST.INITIALIZE);
     }
 
     showInfo(entity, event) {

@@ -6,7 +6,7 @@ export default class ngbGenesTableFilterController {
 
     constructor(projectContext, projectDataService, ngbGenesTableService) {
         switch (this.column.field) {
-            case 'gene': {
+            case 'featureName': {
                 this.isList = true;
                 this.list = async (searchText) => {
                     if (!searchText || searchText.length < 2) {
@@ -27,12 +27,12 @@ export default class ngbGenesTableFilterController {
                 };
                 break;
             }
-            case 'type': {
+            case 'featureType': {
                 this.isList = true;
                 this.list = ngbGenesTableService.geneTypeList.map(d => d.value.toUpperCase());
                 break;
             }
-            case 'chr': {
+            case 'chromosome': {
                 this.isList = true;
                 this.list = projectContext.chromosomes.map(d => d.name.toUpperCase());
                 break;

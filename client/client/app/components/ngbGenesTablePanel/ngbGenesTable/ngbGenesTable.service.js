@@ -1,34 +1,30 @@
 const DEFAULT_GENES_COLUMNS = [
-    'chr', 'gene', 'gene_id', 'type', 'start', 'end', 'strand', 'info'
+    'chromosome', 'featureName', 'featureId', 'featureType', 'startIndex', 'endIndex', 'strand'
 ];
+const SERVICE_GENES_COLUMNS = ['info'];
 const OPTIONAL_GENE_COLUMNS = [
     'featureFileId', 'source', 'score', 'frame'
 ];
 const DEFAULT_ORDERBY_GENES_COLUMNS = {
-    'chr': 'CHROMOSOME_NAME',
-    'gene': 'FEATURE_NAME',
-    'gene_id': 'gene_id',
-    'type': 'FEATURE_TYPE',
-    'start': 'START_INDEX',
-    'end': 'END_INDEX',
+    'chromosome': 'CHROMOSOME_NAME',
+    'featureName': 'FEATURE_NAME',
+    'featureId': 'FEATURE_ID',
+    'featureType': 'FEATURE_TYPE',
+    'startIndex': 'START_INDEX',
+    'endIndex': 'END_INDEX',
     'strand': 'strand'
 };
 
 const SERVER_COLUMN_NAMES = {
-    'type': 'feature',
-    'start': 'startIndex',
-    'end': 'endIndex',
-    'chr': 'chromosome',
-    'gene': 'featureName'
 };
 const GENES_COLUMN_TITLES = {
-    chr: 'Chr',
-    gene: 'Name',
-    gene_id: 'Id',
-    source: 'Gene Source',
-    type: 'Type',
-    start: 'Start',
-    end: 'End',
+    chromosome: 'Chr',
+    featureName: 'Name',
+    featureId: 'Id',
+    source: 'source',
+    featureType: 'Type',
+    startIndex: 'Start',
+    endIndex: 'End',
     strand: 'Strand',
     info: 'Info',
     molecularView: 'Molecular View'
@@ -169,12 +165,12 @@ export default class ngbGenesTableService {
     }
 
     get defaultGenesColumns() {
-        return DEFAULT_GENES_COLUMNS;
+        return DEFAULT_GENES_COLUMNS.concat(SERVICE_GENES_COLUMNS);
     }
 
     get genesTableColumns() {
         if (!localStorage.getItem('genesTableColumns')) {
-            localStorage.setItem('genesTableColumns', JSON.stringify(DEFAULT_GENES_COLUMNS));
+            localStorage.setItem('genesTableColumns', JSON.stringify(this.defaultGenesColumns));
         }
         return JSON.parse(localStorage.getItem('genesTableColumns'));
     }
@@ -214,6 +210,9 @@ export default class ngbGenesTableService {
         }
         this.genomeDataService.getGenesInfo(this.projectContext.reference.id).then(data => {
             this._optionalGenesColumns = OPTIONAL_GENE_COLUMNS.concat(data.availableFilters);
+            this.genesTableColumns = DEFAULT_GENES_COLUMNS
+                .concat(this.genesTableColumns.filter(c => this._optionalGenesColumns.includes(c)))
+                .concat(SERVICE_GENES_COLUMNS);
             this.dispatcher.emit('genes:info:loaded');
         });
         this.genomeDataService.filterGeneValues(this.projectContext.reference.id, 'featureType').then(data => {
@@ -236,11 +235,11 @@ export default class ngbGenesTableService {
     getRequestFilter(isScrollTop) {
         const filter = {
             chromosomeIds: this.genesFilter.chromosome || [],
-            startIndex: this.genesFilter.start,
-            endIndex: this.genesFilter.end,
-            featureNames: this.genesFilter.gene || [],
-            featureId: this.genesFilter.gene_id,
-            featureTypes: this.genesFilter.type || [],
+            startIndex: this.genesFilter.startIndex,
+            endIndex: this.genesFilter.endIndex,
+            featureNames: this.genesFilter.featureName || [],
+            featureId: this.genesFilter.featureId,
+            featureTypes: this.genesFilter.featureType || [],
             additionalFilters: this.genesFilter.additionalFilters || {},
             attributesFields: this.genesTableColumns.filter(c => !this.defaultGenesColumns.includes(c)),
             pageSize: this.genesPageSize,
@@ -375,7 +374,7 @@ export default class ngbGenesTableService {
                         enableHiding: false,
                         enableFiltering: false,
                         enableColumnMenu: false,
-                        field: 'id',
+                        field: '',
                         maxWidth: 70,
                         minWidth: 60,
                         name: this.genesColumnTitleMap[column]
@@ -396,13 +395,13 @@ export default class ngbGenesTableService {
                     };
                     break;
                 }
-                case 'type': {
+                case 'featureType': {
                     columnSettings = {
                         cellTemplate: `<div class="md-label variation-type"
                                     ng-style="grid.appScope.$ctrl.getStyle(COL_FIELD)"
                                     ng-class="COL_FIELD CUSTOM_FILTERS" >{{row.entity.feature}}</div>`,
                         enableHiding: false,
-                        field: 'type',
+                        field: 'featureType',
                         filter: {
                             selectOptions: this.geneTypeList,
                             term: '',
@@ -462,12 +461,7 @@ export default class ngbGenesTableService {
         const result = {
             ...search,
             ...search.attributes,
-            chr: search.chromosome ? search.chromosome.name : undefined,
-            gene: search.featureName,
-            gene_id: search.featureId,
-            start: search.startIndex,
-            end: search.endIndex,
-            type: search.featureType
+            chromosome: search.chromosome ? search.chromosome.name : undefined
         };
         delete result.attributes;
         return result;
