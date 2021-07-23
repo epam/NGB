@@ -29,6 +29,9 @@
                 </div>
             </md-checkbox>
         </div>
+        <div class="row" ng-show="ctrl.error">
+            <div class="download-dlb-error">{{ctrl.error}}</div>
+        </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
         <md-button class="md-primary" ng-click="!ctrl.isLoading && ctrl.download($event)" ng-disabled="ctrl.isLoading">
