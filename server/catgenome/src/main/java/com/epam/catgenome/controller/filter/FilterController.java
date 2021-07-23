@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -217,9 +217,9 @@ public class FilterController extends AbstractRESTController {
         produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
     public void exportVcf(@RequestBody final VcfExportFilterForm filterForm,
-                          final ExportFormat format,
-                          final boolean includeHeader,
-                          final HttpServletResponse response) throws IOException {
+                          @RequestParam final ExportFormat format,
+                          @RequestParam final boolean includeHeader,
+                          HttpServletResponse response) throws IOException {
         byte[] bytes = featureIndexSecurityService.exportVariations(filterForm, format, includeHeader);
         response.getOutputStream().write(bytes);
         response.flushBuffer();

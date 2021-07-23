@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,8 @@ import static com.epam.catgenome.util.Utils.NEW_LINE;
 
 @Service
 public class ExportManager {
+
+    private static final String EMPTY_FIELD_VALUE = ".";
 
     @Value("${export.page.size:100}")
     private int exportPageSize;
@@ -57,8 +60,7 @@ public class ExportManager {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         List<String> exportFields = filterForm.getExportFields();
         if (includeHeader) {
-            String header = String.join(format.getSeparator(), exportFields) + NEW_LINE;
-            outputStream.write(header.getBytes());
+            outputStream.write(getGeneFileHeader(exportFields, format.getSeparator()).getBytes());
         }
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
@@ -82,8 +84,7 @@ public class ExportManager {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         List<String> exportFields = filterForm.getExportFields();
         if (includeHeader) {
-            String header = String.join(format.getSeparator(), exportFields) + NEW_LINE;
-            outputStream.write(header.getBytes());
+            outputStream.write(getVcfFileHeader(exportFields, format.getSeparator()).getBytes());
         }
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
@@ -106,9 +107,10 @@ public class ExportManager {
             List<String> fieldValues = new ArrayList<>();
             Map<String, String> attributes = MapUtils.emptyIfNull(indexEntry.getAttributes());
             for (String exportField: exportFields) {
-                fieldValues.add(GeneField.getByField(exportField) != null ?
+                String value = GeneField.getByField(exportField) != null ?
                         GeneField.getByField(exportField).getGetter().apply(indexEntry) :
-                        attributes.getOrDefault(exportField, null));
+                        attributes.getOrDefault(exportField, EMPTY_FIELD_VALUE);
+                fieldValues.add(value != null ? value : EMPTY_FIELD_VALUE);
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
             outputStream.write(line.getBytes());
@@ -123,9 +125,10 @@ public class ExportManager {
             List<String> fieldValues = new ArrayList<>();
             Map<String, Object> attributes = MapUtils.emptyIfNull(indexEntry.getInfo());
             for (String exportField: exportFields) {
-                fieldValues.add(VcfField.getByField(exportField) != null ?
+                String value = VcfField.getByField(exportField) != null ?
                         VcfField.getByField(exportField).getGetter().apply(indexEntry) :
-                        (String) attributes.getOrDefault(exportField, null));
+                        (String) attributes.getOrDefault(exportField, EMPTY_FIELD_VALUE);
+                fieldValues.add(value != null ? value : EMPTY_FIELD_VALUE);
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
             outputStream.write(line.getBytes());
@@ -150,5 +153,29 @@ public class ExportManager {
             }
         }
         filterForm.setInfoFields(attributesFields);
+    }
+
+    private String getGeneFileHeader(final List<String> exportFields, final String separator) {
+        List<String> header = new LinkedList<>();
+        for (String exportField: exportFields) {
+            if (GeneField.getByField(exportField) != null) {
+                header.add(GeneField.getByField(exportField).getName());
+            } else {
+                header.add(exportField);
+            }
+        }
+        return String.join(separator, header) + NEW_LINE;
+    }
+
+    private String getVcfFileHeader(final List<String> exportFields, final String separator) {
+        List<String> header = new LinkedList<>();
+        for (String exportField: exportFields) {
+            if (VcfField.getByField(exportField) != null) {
+                header.add(VcfField.getByField(exportField).getName());
+            } else {
+                header.add(exportField);
+            }
+        }
+        return String.join(separator, header) + NEW_LINE;
     }
 }

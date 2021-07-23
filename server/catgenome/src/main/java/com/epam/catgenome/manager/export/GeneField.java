@@ -30,20 +30,21 @@ import java.util.Map;
 import java.util.function.Function;
 
 public enum GeneField {
-    SOURCE("source", GeneIndexEntry::getSource),
-    SCORE("score", o -> String.valueOf(o.getScore())),
-    STRAND("strand", GeneIndexEntry::getStrand),
-    FRAME("frame", o -> String.valueOf(o.getFrame())),
-    FEATURE("feature", GeneIndexEntry::getFeature),
-    START_INDEX("startIndex", o -> String.valueOf(o.getStartIndex())),
-    END_INDEX("endIndex", o -> String.valueOf(o.getEndIndex())),
-    FEATURE_ID("featureId", o -> String.valueOf(o.getFeatureId())),
-    CHROMOSOME("chromosome", o -> o.getChromosome().getName()),
-    FEATURE_TYPE("featureType", o -> o.getFeatureType().getFileValue()),
-    FEATURE_FILE_ID("featureFileId", o -> String.valueOf(o.getFeatureFileId())),
-    FEATURE_NAME("featureName", GeneIndexEntry::getFeatureName);
+    SOURCE("source", "Source", GeneIndexEntry::getSource),
+    SCORE("score", "Score", o -> String.valueOf(o.getScore())),
+    STRAND("strand", "Strand", GeneIndexEntry::getStrand),
+    FRAME("frame", "Frame", o -> String.valueOf(o.getFrame())),
+    FEATURE("feature", "Feature", GeneIndexEntry::getFeature),
+    START_INDEX("startIndex", "Position From", o -> String.valueOf(o.getStartIndex())),
+    END_INDEX("endIndex", "Position To", o -> String.valueOf(o.getEndIndex())),
+    FEATURE_ID("featureId", "Id", o -> String.valueOf(o.getFeatureId())),
+    CHROMOSOME("chromosome", "Chr", o -> o.getChromosome().getName()),
+    FEATURE_TYPE("featureType", "Type", o -> o.getFeatureType().getFileValue()),
+    FEATURE_FILE_ID("featureFileId", "File Id", o -> String.valueOf(o.getFeatureFileId())),
+    FEATURE_NAME("featureName", "Name", GeneIndexEntry::getFeatureName);
 
     private final String field;
+    private final String name;
     private final Function<GeneIndexEntry, String> getter;
     private static final Map<String, GeneField> MAP = new HashMap<>();
 
@@ -62,8 +63,9 @@ public enum GeneField {
         MAP.put(FEATURE_NAME.field, FEATURE_NAME);
     }
 
-    GeneField(final String field, final Function<GeneIndexEntry, String> getter) {
+    GeneField(final String field, final String name, final Function<GeneIndexEntry, String> getter) {
         this.field = field;
+        this.name = name;
         this.getter = getter;
     }
 
@@ -73,5 +75,9 @@ public enum GeneField {
 
     public Function<GeneIndexEntry, String> getGetter() {
         return getter;
+    }
+
+    public String getName() {
+        return name;
     }
 }
