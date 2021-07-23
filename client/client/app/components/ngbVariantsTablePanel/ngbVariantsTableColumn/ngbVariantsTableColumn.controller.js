@@ -9,19 +9,14 @@ export default class ngbVariantTableColumnController extends baseController {
     projectContext;
     displayVariantsFilter;
 
-    constructor(dispatcher, projectContext, $scope, $timeout, $rootScope) {
+    constructor(dispatcher, projectContext, $scope, $timeout) {
         super(dispatcher);
 
         Object.assign(this, {
-            $rootScope,
             $scope,
             $timeout,
             dispatcher,
             projectContext
-        });
-
-        this.$rootScope.$on('restoreTables', () => {
-            this.onVariantsRestoreViewClick();
         });
 
         this.displayVariantsFilter = this.projectContext.displayVariantsFilter;
@@ -50,6 +45,7 @@ export default class ngbVariantTableColumnController extends baseController {
     onVariantsRestoreViewClick() {
         this.projectContext.vcfColumns = [];
         this.projectContext.orderByVariations = null;
+        this.projectContext.setDisplayVariantsFilter(false, false);
         this.addColumnToTable();
         this.dispatcher.emitSimpleEvent('reference:change');
     }

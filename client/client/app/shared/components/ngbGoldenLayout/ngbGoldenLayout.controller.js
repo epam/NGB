@@ -27,7 +27,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, appLayout, $rootScope) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, appLayout) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -37,8 +37,7 @@ export default class ngbGoldenLayoutController extends baseController {
             dispatcher,
             projectContext,
             appLayout,
-            ngbViewActions: ngbViewActionsConstant,
-            $rootScope
+            ngbViewActions: ngbViewActionsConstant
         });
         this.$element = $element.find('[ngb-golden-layout-container]');
         this.service = ngbGoldenLayoutService;
@@ -236,6 +235,7 @@ export default class ngbGoldenLayoutController extends baseController {
             const eventFilter = this.goldenLayout.isSubWindow
                 ? this.eventsNotForShareFromSub
                 : this.eventsNotForShareFromParent;
+
 
             this.emitHubEvent = (event) => {
                 if (eventFilter.indexOf(event.name) < 0) {
@@ -523,7 +523,6 @@ export default class ngbGoldenLayoutController extends baseController {
         const layout = null;
         this.projectContext.layout = layout;
         this.initLayout();
-        this.$rootScope.$broadcast('restoreTables');
     }
 
     loadLayout(layout) {

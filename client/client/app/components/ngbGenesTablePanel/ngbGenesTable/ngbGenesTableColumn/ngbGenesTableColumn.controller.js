@@ -10,19 +10,14 @@ export default class ngbGenesTableColumnController extends baseController {
         'display:genes:filter' : ::this.updateDisplayGenesFilterValue
     };
 
-    constructor(dispatcher, ngbGenesTableService, $scope, $timeout, $rootScope) {
+    constructor(dispatcher, ngbGenesTableService, $scope, $timeout) {
         super(dispatcher);
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
-            ngbGenesTableService,
-            $rootScope
-        });
-
-        this.$rootScope.$on('restoreTables', () => {
-            this.onGenesRestoreViewClick();
+            ngbGenesTableService
         });
 
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
