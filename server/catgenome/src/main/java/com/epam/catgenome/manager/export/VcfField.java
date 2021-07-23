@@ -34,7 +34,7 @@ public enum VcfField {
     GENE("gene", "Gene", VcfIndexEntry::getGene),
     GENE_IDS("geneIds", "Gene Ids", VcfIndexEntry::getGeneIds),
     GENE_NAME("geneName", "Name", VcfIndexEntry::getGeneName),
-    GENE_NAMES("geneNames", "Names", VcfIndexEntry::getGeneNames),
+    GENE_NAMES("geneNames", "Gene", VcfIndexEntry::getGeneNames),
     FAILED_FILTER("failedFilter", "Failed Filter", VcfIndexEntry::getFailedFilter),
     IMPACT("impact", "Impact", o -> String.valueOf(o.getImpact())),
     EFFECT("effect", "Effect", o -> String.valueOf(o.getEffect())),
@@ -57,7 +57,8 @@ public enum VcfField {
         MAP.put(VARIATION_TYPE.field, VARIATION_TYPE);
         MAP.put(GENE.field, GENE);
         MAP.put(GENE_IDS.field, GENE_IDS);
-        MAP.put(GENE_NAME.field, START_INDEX);
+        MAP.put(GENE_NAME.field, GENE_NAME);
+        MAP.put(GENE_NAMES.field, GENE_NAMES);
         MAP.put(FAILED_FILTER.field, FAILED_FILTER);
         MAP.put(IMPACT.field, IMPACT);
         MAP.put(EFFECT.field, EFFECT);
