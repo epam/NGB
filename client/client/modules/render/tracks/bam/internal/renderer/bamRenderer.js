@@ -672,7 +672,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 } break;
             }
         } else {
-            this._alignmentsRenderProcessor.container.visible = true;
+            if (this._alignmentsRenderProcessor && this._alignmentsRenderProcessor.container) {
+                this._alignmentsRenderProcessor.container.visible = true;
+            }
             if (this._lastHoveredFeature && this._lastHoveredFeature.type === HOVERED_ITEM_TYPE_REGION) {
                 this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems);
             }
