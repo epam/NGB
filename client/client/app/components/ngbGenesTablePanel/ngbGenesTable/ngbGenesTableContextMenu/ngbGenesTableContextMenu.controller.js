@@ -35,12 +35,13 @@ export default class NgbGenesTableContextMenuController {
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
         const data = new EventGeneInfo({
-            startIndex: this.entity.start,
-            endIndex: this.entity.end,
-            geneId: this.entity.gene_id,
-            highlight: false,
-            transcriptId: this.entity.transcript_id,
-            geneTracks: this.projectContext.geneTracks
+            startIndex: this.entity.startIndex,
+            endIndex: this.entity.endIndex,
+            geneId: this.entity.featureId,
+            geneTracks: [{
+                id: this.entity.featureFileId,
+                chromosomeId: this.entity.chromosome ? +this.entity.chromosome.id : undefined
+            }]
         });
         this.dispatcher.emitSimpleEvent('miew:show:structure', data);
         event.stopImmediatePropagation();
