@@ -36,3 +36,33 @@
   text-align: right;
   border: 0;
 }
+
+.unremovable {
+  margin-left: 11px;
+}
+
+.editable {
+  height: 15px;
+  border: none;
+  border-bottom: 1px solid #666;
+  padding-bottom: 6px;
+}
+
+.remove-btn {
+  border: 1px #679edb solid;
+  border-radius: 15px;
+  min-width: 11px;
+  max-width: 11px;
+  min-height: 11px;
+  max-height: 11px;
+  margin: 9px 0px;
+  padding: 0px;
+}
+
+.add-button {
+  font-size: 14px;
+  color: #679edb;
+  margin: 0px;
+  padding: 0px;
+  margin-top: 5px;
+}

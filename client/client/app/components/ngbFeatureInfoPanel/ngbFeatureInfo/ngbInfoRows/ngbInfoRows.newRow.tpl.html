@@ -1,0 +1,31 @@
+<div layout="row"
+     layout-wrap
+     class="property-row"
+     style="display: flex; width: 100%;"
+    >
+    <div layout="row"
+         layout-wrap
+         style="display: flex; width: 30%;"
+    >
+        <div style="display: flex;">
+            <md-button
+                class="remove-btn"
+                ng-click="$ctrl.onClickRemoveProperty(property)"
+                style="min-width: 9px; max-width: 9px; min-height: 9px; max-height: 9px; margin-right: 5px;"
+                aria-label="Remove">
+                <hr style="margin-top: 4px;"/>
+            </md-button>
+        </div>
+        <div style="display: flex; width: 90%;">
+            <input type="string"
+                   ng-required="true"
+                   style="width: 100px; padding-left: 2px;"
+                   class="property property-value editable" />
+        </div>
+    </div>
+    <div style="display: flex; width: 70%;">
+        <input type="string"
+               ng-required="true"
+               class="property property-value editable" />
+    </div>
+</div>

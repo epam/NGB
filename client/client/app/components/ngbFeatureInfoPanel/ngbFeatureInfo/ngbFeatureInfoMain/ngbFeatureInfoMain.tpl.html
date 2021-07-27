@@ -23,13 +23,7 @@
                     ng-click="$ctrl.onClickCancelBtn()">
                     Cancel
                 </md-button>
-                <ngb-info-rows properties="$ctrl.properties"></ngb-info-rows>
-                <md-button
-                    class="add-button"
-                    ng-if="$ctrl.showBtnsGroup"
-                    ng-click="$ctrl.onClickAddBtn()">
-                    Add
-                </md-button>
+                <ngb-info-rows properties="$ctrl.properties" editable="$ctrl.showBtnsGroup"></ngb-info-rows>
                 <div ng-hide="$ctrl.isReadLoadingis" >
                     <div ng-if="$ctrl.sequenceWithQualities">
                         <div class="title-unit">Sequence</div>

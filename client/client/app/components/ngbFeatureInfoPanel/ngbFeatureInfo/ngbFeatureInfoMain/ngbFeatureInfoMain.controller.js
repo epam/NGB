@@ -112,8 +112,4 @@ export default class ngbFeatureInfoMainController {
     onClickCancelBtn () {
         this.showBtnsGroup = false;
     }
-
-    onClickAddBtn () {
-        console.log('new attribute');
-    }
 }
