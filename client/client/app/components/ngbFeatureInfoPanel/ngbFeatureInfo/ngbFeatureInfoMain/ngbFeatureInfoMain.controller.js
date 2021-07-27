@@ -8,6 +8,7 @@ export default class ngbFeatureInfoMainController {
     sequenceProgress = 0;
     isSequenceLoading = true;
     error = null;
+    showBtnsGroup = false;
 
     constructor($scope, genomeDataService, bamDataService, $anchorScroll) {
         Object.assign(this, {$scope, genomeDataService, bamDataService, $anchorScroll});
@@ -100,4 +101,19 @@ export default class ngbFeatureInfoMainController {
         this.$anchorScroll(id);
     }
 
+    onClickEditBtn () {
+        this.showBtnsGroup = true;
+    }
+
+    onClickSaveBtn () {
+        this.showBtnsGroup = false;
+    }
+
+    onClickCancelBtn () {
+        this.showBtnsGroup = false;
+    }
+
+    onClickAddBtn () {
+        console.log('new attribute');
+    }
 }
