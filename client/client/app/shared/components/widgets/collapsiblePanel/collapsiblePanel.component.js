@@ -10,7 +10,8 @@ export default {
         open: '=?isOpen',
         closeExpandOther: '<?',
         disableOthers: '<?',
-        tooltip: '<'
+        tooltip: '<',
+        disabled: '=?'
     },
     controller: function() {
         this.$onInit = function() {

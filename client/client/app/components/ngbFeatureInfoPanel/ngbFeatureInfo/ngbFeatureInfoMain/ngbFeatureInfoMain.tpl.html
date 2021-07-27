@@ -1,11 +1,42 @@
 <div layout="column">
     <collapsible>
-        <collapsible-panel is-open="true">
+        <collapsible-panel is-open="true" disabled="$ctrl.editMode">
             <collapsible-panel-title>
                 General information
             </collapsible-panel-title>
             <collapsible-panel-content>
-                <ngb-info-rows properties="$ctrl.properties"></ngb-info-rows>
+                <md-button
+                    class="general-information-buttons edit-button"
+                    ng-class="{'with-tab': $ctrl.tabs}"
+                    ng-if="$ctrl.uuid && $ctrl.editable && !$ctrl.editMode"
+                    ng-click="$ctrl.onClickEditBtn()">
+                    Edit
+                </md-button>
+                <md-button
+                    class="general-information-buttons save-button"
+                    ng-if="$ctrl.editMode"
+                    ng-click="$ctrl.onClickSaveBtn()"
+                    ng-class="{'with-tab': $ctrl.tabs}"
+                    ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
+                    Save
+                </md-button>
+                <md-button
+                    class="general-information-buttons cancel-button"
+                    ng-if="$ctrl.editMode"
+                    ng-class="{'with-tab': $ctrl.tabs}"
+                    ng-click="$ctrl.onClickCancelBtn()">
+                    Cancel
+                </md-button>
+                <div ng-if="$ctrl.saveInProgress">
+                    <div class="progress save-info" layout-align="center center" style="height: 20px;">
+                        <span style="line-height: 0px;">Saving...</span>
+                    </div>
+                    <md-progress-linear md-mode="query"></md-progress-linear>
+                </div>
+                <div ng-if="$ctrl.saveError" class="md-padding">
+                    <ngb-panel-error-list message-list="$ctrl.saveError"></ngb-panel-error-list>
+                </div>
+                <ngb-info-rows properties="$ctrl.properties" editmode="$ctrl.editMode"></ngb-info-rows>
                 <div ng-hide="$ctrl.isReadLoadingis" >
                     <div ng-if="$ctrl.sequenceWithQualities">
                         <div class="title-unit">Sequence</div>

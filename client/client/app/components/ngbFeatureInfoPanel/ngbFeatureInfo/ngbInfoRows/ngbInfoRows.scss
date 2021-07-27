@@ -36,3 +36,62 @@
   text-align: right;
   border: 0;
 }
+
+.unremovable {
+  margin-left: 15px;
+}
+
+.editable {
+  height: 15px;
+  border: none;
+  border-bottom: 1px solid #666;
+  padding-bottom: 6px;
+}
+
+.md-button {
+  line-height: 0px;
+}
+
+.remove-btn-container {
+  height: 15px;
+  padding-bottom: 11px;
+  padding-top: 3px;
+}
+
+.remove-btn {
+  min-width: 15px;
+  min-height: 15px;
+  margin: auto;
+  padding: 0px;
+}
+
+.add-button {
+  font-size: 14px;
+  color: #679edb;
+  margin: 0px;
+  padding: 0px;
+  margin-top: 5px;
+}
+
+.property-name.editable {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+.ng-invalid.ng-touched {
+  border-color: #F00;
+}
+
+.isEmpty {
+  color: #F00;
+}
+
+.property-attribute {
+  margin-right: 5px;
+  font-size: x-small;
+  padding: 2px;
+  background-color: #fafafa;
+  border: 1px solid #dddddd;
+  border-radius: 2px;
+  font-weight: normal;
+}

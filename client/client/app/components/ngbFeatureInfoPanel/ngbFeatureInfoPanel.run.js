@@ -1,4 +1,4 @@
-export default function run($mdDialog, dispatcher) {
+export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
 
 
     const displayFeatureInfoCallback = (data) => {
@@ -6,6 +6,7 @@ export default function run($mdDialog, dispatcher) {
 
             template: require('./ngbFeatureInfoPanelDlg.tpl.html'),
             controller: function ($scope) {
+                $scope.editable = data.editable;
                 $scope.properties = data.properties;
                 $scope.referenceId = data.referenceId;
                 $scope.chromosomeId = data.chromosomeId;
@@ -13,6 +14,9 @@ export default function run($mdDialog, dispatcher) {
                 $scope.endIndex = data.endIndex;
                 $scope.geneId = data.geneId;
                 $scope.read = data.read;
+                $scope.fileId = data.fileId;
+                $scope.feature = data.feature;
+                $scope.uuid = data.uuid;
                 if (data.read && data.read.name) {
                     $scope.name = data.read.name;
                 } else if (data.name) {
@@ -21,10 +25,15 @@ export default function run($mdDialog, dispatcher) {
                 $scope.infoForRead = data.infoForRead;
                 $scope.panelTitle = data.title;
                 $scope.close = () => {
+                    if (ngbFeatureInfoPanelService.editMode) {
+                        return;
+                    }
+                    ngbFeatureInfoPanelService.editMode = false;
                     $mdDialog.hide();
                 };
+                $scope.disableCloseBtn = false;
             },
-            clickOutsideToClose: true
+            clickOutsideToClose: false
         });
 
     };
