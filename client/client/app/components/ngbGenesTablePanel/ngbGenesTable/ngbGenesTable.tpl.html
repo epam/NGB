@@ -1,5 +1,5 @@
 <div class="md-padding"
-     ng-if="!$ctrl.projectContext.reference">
+     ng-if="!$ctrl.isInitialized && !$ctrl.isProgressShown">
     <md-content flex
                 class="select-reference-warning">
         <span>Select a dataset to browse genes</span>
@@ -14,7 +14,7 @@
 </div>
 <div class="ui-grid-container"
      ng-hide="$ctrl.errorMessageList.length"
-     ng-if="!$ctrl.isEmptyResults && $ctrl.projectContext.reference && !$ctrl.isProgressShown">
+     ng-if="!$ctrl.isEmptyResults && $ctrl.isInitialized && !$ctrl.isProgressShown">
     <div class="variants-load-error-container" ng-if="$ctrl.geneLoadError">
         <small>{{$ctrl.geneLoadError}}</small>
     </div>

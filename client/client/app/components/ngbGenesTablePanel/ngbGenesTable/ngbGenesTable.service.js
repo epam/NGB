@@ -461,7 +461,8 @@ export default class ngbGenesTableService {
         const result = {
             ...search,
             ...search.attributes,
-            chromosome: search.chromosome ? search.chromosome.name : undefined
+            chromosome: search.chromosome ? search.chromosome.name : undefined,
+            chromosomeObj: search.chromosome
         };
         delete result.attributes;
         return result;
