@@ -38,7 +38,7 @@
 }
 
 .unremovable {
-  margin-left: 11px;
+  margin-left: 15px;
 }
 
 .editable {
@@ -48,14 +48,20 @@
   padding-bottom: 6px;
 }
 
+.md-button {
+  line-height: 0px;
+}
+
+.remove-btn-container {
+  height: 15px;
+  padding-bottom: 11px;
+  padding-top: 3px;
+}
+
 .remove-btn {
-  border: 1px #679edb solid;
-  border-radius: 15px;
-  min-width: 11px;
-  max-width: 11px;
-  min-height: 11px;
-  max-height: 11px;
-  margin: 9px 0px;
+  min-width: 15px;
+  min-height: 15px;
+  margin: auto;
   padding: 0px;
 }
 

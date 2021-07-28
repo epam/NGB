@@ -34,12 +34,13 @@
                  layout="row"
                  layout-wrap
             >
-                <div flex="3">
+                <div flex="3" class="remove-btn-container">
                     <md-button
                         class="remove-btn"
                         ng-click="$ctrl.onClickRemoveProperty(property)"
-                        aria-label="Remove">
-                        <hr style="margin: 0px;"/>
+                        aria-label="Remove"
+                        title="Remove attribute">
+                        <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;"></ng-md-icon>
                     </md-button>
                 </div>
                 <div flex="27"
