@@ -1,7 +1,7 @@
 export default class ngbFeatureInfoPanelService {
 
-    _isGeneInfoEdited = false;
-    _isGeneInfoHistory = false;
+    _isInfoBeingEdited = false;
+    _hasInfoHistory = false;
 
     static instance() {
         return new ngbFeatureInfoPanelService();
@@ -9,19 +9,19 @@ export default class ngbFeatureInfoPanelService {
 
     constructor() {}
 
-    get isGeneInfoEdited () {
-        return this._isGeneInfoEdited;
+    get isInfoBeingEdited () {
+        return this._isInfoBeingEdited;
     }
 
-    set isGeneInfoEdited (value) {
-        this._isGeneInfoEdited = value;
+    set isInfoBeingEdited (value) {
+        this._isInfoBeingEdited = value;
     }
 
-    get isGeneInfoHistory () {
-        return this._isGeneInfoHistory;
+    get hasInfoHistory () {
+        return this._hasInfoHistory;
     }
 
-    set isGeneInfoHistory (value) {
-        this._isGeneInfoHistory = value;
+    set hasInfoHistory (value) {
+        this._hasInfoHistory = value;
     }
 }

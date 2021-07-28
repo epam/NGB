@@ -21,10 +21,10 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
                 $scope.infoForRead = data.infoForRead;
                 $scope.panelTitle = data.title;
                 $scope.close = () => {
-                    if (ngbFeatureInfoPanelService.isGeneInfoEdited) {
+                    if (ngbFeatureInfoPanelService.isInfoBeingEdited) {
                         return;
                     }
-                    ngbFeatureInfoPanelService.isGeneInfoEdited = false;
+                    ngbFeatureInfoPanelService.isInfoBeingEdited = false;
                     $mdDialog.hide();
                 };
                 $scope.disableCloseBtn = false;

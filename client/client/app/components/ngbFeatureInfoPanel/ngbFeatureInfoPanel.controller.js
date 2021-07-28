@@ -16,12 +16,12 @@ export default class ngbFeatureInfoPanelController {
         this.dispatcher.emitGlobalEvent(`feature:info:select:${db}`, {db, featureId: this.geneId});
     }
 
-    get isGeneInfoEdited() {
-        this.$scope.$parent.disableCloseBtn = this.ngbFeatureInfoPanelService.isGeneInfoEdited;
-        return this.ngbFeatureInfoPanelService.isGeneInfoEdited;
+    get isInfoBeingEdited() {
+        this.$scope.$parent.disableCloseBtn = this.ngbFeatureInfoPanelService.isInfoBeingEdited;
+        return this.ngbFeatureInfoPanelService.isInfoBeingEdited;
     }
 
-    get isGeneInfoHistory() {
-        return this.ngbFeatureInfoPanelService.isGeneInfoHistory;
+    get hasInfoHistory() {
+        return this.ngbFeatureInfoPanelService.hasInfoHistory;
     }
 }

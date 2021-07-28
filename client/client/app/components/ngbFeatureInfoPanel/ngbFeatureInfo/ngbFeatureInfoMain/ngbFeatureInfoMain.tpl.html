@@ -1,29 +1,29 @@
 <div layout="column">
     <collapsible>
-        <collapsible-panel is-open="true" disabled="$ctrl.showBtnsGroup">
+        <collapsible-panel is-open="true" disabled="$ctrl.isInfoBeingEdited">
             <collapsible-panel-title>
                 General information
             </collapsible-panel-title>
             <collapsible-panel-content>
                 <md-button
                     class="general-information-buttons edit-button"
-                    ng-if="!$ctrl.showBtnsGroup"
+                    ng-if="!$ctrl.isInfoBeingEdited"
                     ng-click="$ctrl.onClickEditBtn()">
                     Edit
                 </md-button>
                 <md-button
                     class="general-information-buttons save-button"
-                    ng-if="$ctrl.showBtnsGroup"
+                    ng-if="$ctrl.isInfoBeingEdited"
                     ng-click="$ctrl.onClickSaveBtn()">
                     Save
                 </md-button>
                 <md-button
                     class="general-information-buttons cancel-button"
-                    ng-if="$ctrl.showBtnsGroup"
+                    ng-if="$ctrl.isInfoBeingEdited"
                     ng-click="$ctrl.onClickCancelBtn()">
                     Cancel
                 </md-button>
-                <ngb-info-rows properties="$ctrl.properties" editable="$ctrl.showBtnsGroup"></ngb-info-rows>
+                <ngb-info-rows properties="$ctrl.properties" editable="$ctrl.isInfoBeingEdited"></ngb-info-rows>
                 <div ng-hide="$ctrl.isReadLoadingis" >
                     <div ng-if="$ctrl.sequenceWithQualities">
                         <div class="title-unit">Sequence</div>
