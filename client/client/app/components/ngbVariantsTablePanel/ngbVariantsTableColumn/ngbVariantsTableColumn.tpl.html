@@ -4,18 +4,19 @@
     </md-button>
     <md-menu-content width="4" >
         <md-menu-item>
+            <div class="for-md-tooltip-work restore_view_button"
+                 ng-click="$ctrl.onVariantsRestoreViewClick()">
+                Restore view
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item>
             <div class="for-md-tooltip-work">
                 <md-checkbox flex layout="row" class="text__sm"
                              ng-change="$ctrl.onDisplayVariantsFilterChange()"
                              ng-model="$ctrl.displayVariantsFilter">
                     Show filters
                 </md-checkbox>
-            </div>
-        </md-menu-item>
-        <md-menu-item>
-            <div class="for-md-tooltip-work restore_view_button"
-                 ng-click="$ctrl.onVariantsRestoreViewClick()">
-                Restore view
             </div>
         </md-menu-item>
         <md-divider></md-divider>

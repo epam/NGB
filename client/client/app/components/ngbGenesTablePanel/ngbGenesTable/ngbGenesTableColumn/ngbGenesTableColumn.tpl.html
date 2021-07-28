@@ -4,18 +4,19 @@
     </md-button>
     <md-menu-content width="4" class="ngb-genes-table-columns-configuration">
         <md-menu-item>
+            <div class="for-md-tooltip-work restore_view_button"
+                 ng-click="$ctrl.onGenesRestoreViewClick()">
+                Restore view
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item>
             <div class="for-md-tooltip-work">
                 <md-checkbox class="text__sm" flex layout="row"
                              ng-change="$ctrl.onDisplayGenesFilterChange()"
                              ng-model="$ctrl.displayGenesFilter">
                     Show filters
                 </md-checkbox>
-            </div>
-        </md-menu-item>
-        <md-menu-item>
-            <div class="for-md-tooltip-work restore_view_button"
-                 ng-click="$ctrl.onGenesRestoreViewClick()">
-                Restore view
             </div>
         </md-menu-item>
         <md-divider></md-divider>
