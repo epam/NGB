@@ -170,6 +170,8 @@ export default class ngbGenesTableController extends baseController {
                 this.geneLoadError = this.ngbGenesTableService.genesTableError;
                 this.gridOptions.data = [];
                 this.isEmptyResults = false;
+                this.isProgressShown = false;
+                this.isInitialized = true;
             } else if (data.length) {
                 this.geneLoadError = null;
                 this.gridOptions.columnDefs = this.ngbGenesTableService.getGenesGridColumns();
@@ -191,6 +193,8 @@ export default class ngbGenesTableController extends baseController {
                 }
             } else if (!this.gridOptions.data.length) {
                 this.isEmptyResults = true;
+                this.isProgressShown = false;
+                this.isInitialized = true;
             }
             if (this.isInitialized) {
                 this.isProgressShown = false;
@@ -227,6 +231,7 @@ export default class ngbGenesTableController extends baseController {
             }
         } catch (errorObj) {
             this.isProgressShown = false;
+            this.isInitialized = true;
             this.onError(errorObj.message);
             this.$timeout(::this.$scope.$apply);
             return this.gridApi.infiniteScroll.dataLoaded();

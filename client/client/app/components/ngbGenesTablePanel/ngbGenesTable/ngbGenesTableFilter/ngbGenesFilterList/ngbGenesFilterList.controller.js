@@ -15,6 +15,7 @@ export default class ngbGenesFilterListController {
         this.scope = $scope;
         this.ngbGenesTableService = ngbGenesTableService;
         this.projectContext = projectContext;
+        this.defaultPrefix = this.ngbGenesTableService.defaultPrefix;
         this.input = $element.find('.ngb-filter-input')[0];
         this.listElements = new ListElements(this.list, {
             onSearchFinishedCallback: ::this.searchFinished
@@ -25,7 +26,7 @@ export default class ngbGenesFilterListController {
             });
         });
         switch (this.field.field) {
-            case 'chromosome': {
+            case `${this.defaultPrefix}chromosome`: {
                 if (this.ngbGenesTableService.genesFilter.chromosome) {
                     this.selectedItems = this.projectContext.chromosomes
                         .filter(chr => this.ngbGenesTableService.genesFilter.chromosome.indexOf(chr.id) >= 0).map(chr => chr.name);
@@ -33,14 +34,14 @@ export default class ngbGenesFilterListController {
                 }
                 break;
             }
-            case 'featureName': {
+            case `${this.defaultPrefix}featureName`: {
                 if (this.ngbGenesTableService.genesFilter.featureName) {
                     this.selectedItems = (this.ngbGenesTableService.genesFilter.featureName || []).map(t => t);
                     this.displayText = [...this.selectedItems].join(', ');
                 }
                 break;
             }
-            case 'featureType': {
+            case `${this.defaultPrefix}featureType`: {
                 if (this.ngbGenesTableService.genesFilter.featureType) {
                     this.selectedItems = (this.ngbGenesTableService.genesFilter.featureType || []).map(t => t);
                     this.displayText = [...this.selectedItems].join(', ');
@@ -155,7 +156,7 @@ export default class ngbGenesFilterListController {
             return;
         }
         switch (this.field.field) {
-            case 'chromosome': {
+            case `${this.defaultPrefix}chromosome`: {
                 const selectedItemsLowerCase = this.selectedItems.map(i => i.toLowerCase());
                 const prevValue = (this.ngbGenesTableService.genesFilter.chromosome || []);
                 prevValue.sort();
@@ -170,7 +171,7 @@ export default class ngbGenesFilterListController {
                 }
                 break;
             }
-            case 'featureName': {
+            case `${this.defaultPrefix}featureName`: {
                 const prevValue = (this.ngbGenesTableService.genesFilter.featureName || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
@@ -183,7 +184,7 @@ export default class ngbGenesFilterListController {
                 }
                 break;
             }
-            case 'featureType': {
+            case `${this.defaultPrefix}featureType`: {
                 const prevValue = (this.ngbGenesTableService.genesFilter.featureType || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();

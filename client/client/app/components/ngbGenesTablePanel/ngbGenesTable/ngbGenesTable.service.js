@@ -15,8 +15,7 @@ const DEFAULT_ORDERBY_GENES_COLUMNS = {
     'strand': 'strand'
 };
 
-const SERVER_COLUMN_NAMES = {
-};
+const SERVER_COLUMN_NAMES = {};
 const GENES_COLUMN_TITLES = {
     chromosome: 'Chr',
     featureName: 'Name',
@@ -32,6 +31,7 @@ const GENES_COLUMN_TITLES = {
 const PAGE_SIZE = 100;
 const MAX_VISIBLE_PAGES = 3;
 const blockFilterGenesTimeout = 500;
+const DEFAULT_PREFIX = 'ngb_default_';
 
 export default class ngbGenesTableService {
 
@@ -166,6 +166,17 @@ export default class ngbGenesTableService {
 
     get defaultGenesColumns() {
         return DEFAULT_GENES_COLUMNS.concat(SERVICE_GENES_COLUMNS);
+    }
+
+    get defaultPrefix() {
+        return DEFAULT_PREFIX;
+    }
+
+    getColumnName(column) {
+        return this.defaultGenesColumns.includes(column) ? this.defaultPrefix + column : column;
+    }
+    getColumnOriginalName(column) {
+        return column.startsWith(this.defaultPrefix) ? column.substring(this.defaultPrefix.length) : column;
     }
 
     get genesTableColumns() {
@@ -348,7 +359,6 @@ export default class ngbGenesTableService {
 
     getGenesGridColumns() {
         const infoCell = require('./ngbGenesTable_info.tpl.html');
-        const molecularViewCell = require('./ngbGenesTable_molecularView.tpl.html');
         const headerCells = require('./ngbGenesTable_header.tpl.html');
 
         const result = [];
@@ -366,7 +376,6 @@ export default class ngbGenesTableService {
                     sortDirection = columnSortingConfiguration.ascending ? 'asc' : 'desc';
                 }
             }
-            // ngb-context-menu data-target="ngbDataSetContextMenu" locals="node"
             switch (column) {
                 case 'info': {
                     columnSettings = {
@@ -382,36 +391,23 @@ export default class ngbGenesTableService {
                     };
                     break;
                 }
-                case 'molecularView': {
-                    columnSettings = {
-                        cellTemplate: molecularViewCell,
-                        enableSorting: false,
-                        enableHiding: false,
-                        enableFiltering: false,
-                        enableColumnMenu: false,
-                        field: 'id',
-                        maxWidth: 70,
-                        minWidth: 60,
-                        name: this.genesColumnTitleMap[column]
-                    };
-                    break;
-                }
                 case 'featureType': {
                     columnSettings = {
                         cellTemplate: `<div class="md-label variation-type"
                                     ng-style="grid.appScope.$ctrl.getStyle(COL_FIELD)"
                                     ng-class="COL_FIELD CUSTOM_FILTERS" >{{row.entity.feature}}</div>`,
                         enableHiding: false,
-                        field: 'featureType',
+                        field: `${this.defaultPrefix}featureType`,
                         filter: {
                             selectOptions: this.geneTypeList,
                             term: '',
                             type: this.uiGridConstants.filter.SELECT
                         },
                         headerCellTemplate: headerCells,
+                        headerTooltip: 'Type',
                         maxWidth: 104,
                         minWidth: 104,
-                        name: 'Type',
+                        displayName: 'Type',
                         filterApplied: () => this.genesFieldIsFiltered(column),
                         menuItems: [
                             {
@@ -424,14 +420,17 @@ export default class ngbGenesTableService {
                     break;
                 }
                 default: {
+                    const columnName = this.getColumnName(column);
+                    const displayName = this.getColumnDisplayName(columnName, column);
                     columnSettings = {
                         enableHiding: !this.defaultGenesColumns.includes(column),
                         enableFiltering: true,
                         enableSorting: true,
-                        field: column,
+                        field: columnName,
                         headerCellTemplate: headerCells,
+                        headerTooltip: displayName,
                         minWidth: 40,
-                        name: this.genesColumnTitleMap[column] || column,
+                        displayName: displayName,
                         filterApplied: () => this.genesFieldIsFiltered(column),
                         menuItems: [
                             {
@@ -458,15 +457,28 @@ export default class ngbGenesTableService {
         return result;
     }
 
+    getColumnDisplayName(columnName, column) {
+        let result = this.genesColumnTitleMap[column] || column;
+        if (this.optionalGenesColumns.includes(columnName)) {
+            result += ' (attr)';
+        }
+        return result;
+    }
+
     _formatServerToClient(search) {
-        const result = {
-            ...search,
+        const result = {};
+        for (const key in search) {
+            if (search.hasOwnProperty(key)) {
+                result[DEFAULT_GENES_COLUMNS.includes(key) ? this.defaultPrefix + key : key] = search[key];
+            }
+        }
+        delete result.attributes;
+        result[`${this.defaultPrefix}chromosome`] = search.chromosome ? search.chromosome.name : undefined;
+        return {
+            ...result,
             ...search.attributes,
-            chromosome: search.chromosome ? search.chromosome.name : undefined,
             chromosomeObj: search.chromosome
         };
-        delete result.attributes;
-        return result;
     }
 
     refreshGenesFilterEmptyStatus() {
@@ -478,13 +490,13 @@ export default class ngbGenesTableService {
 
     genesFieldIsFiltered(fieldName) {
         return this.defaultGenesColumns.includes(fieldName)
-            ? this.genesFilter[fieldName] !== undefined
+            ? this.genesFilter[this.defaultPrefix + fieldName] !== undefined
             : this.genesFilter.additionalFilters[fieldName] !== undefined;
     }
 
     clearGeneFieldFilter(fieldName) {
         if (this.defaultGenesColumns.includes(fieldName)) {
-            this.genesFilter[fieldName] = undefined;
+            this.genesFilter[this.defaultPrefix + fieldName] = undefined;
         } else {
             this.genesFilter.additionalFilters[fieldName] = undefined;
         }
