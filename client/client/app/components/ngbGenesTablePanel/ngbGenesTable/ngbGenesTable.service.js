@@ -169,7 +169,7 @@ export default class ngbGenesTableService {
     }
 
     get genesTableColumns() {
-        if (!localStorage.getItem('genesTableColumns')) {
+        if (!localStorage.getItem('genesTableColumns') || localStorage.getItem('genesTableColumns') === '[]') {
             localStorage.setItem('genesTableColumns', JSON.stringify(this.defaultGenesColumns));
         }
         return JSON.parse(localStorage.getItem('genesTableColumns'));
@@ -366,6 +366,7 @@ export default class ngbGenesTableService {
                     sortDirection = columnSortingConfiguration.ascending ? 'asc' : 'desc';
                 }
             }
+            // ngb-context-menu data-target="ngbDataSetContextMenu" locals="node"
             switch (column) {
                 case 'info': {
                     columnSettings = {

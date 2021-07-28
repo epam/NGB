@@ -66,7 +66,8 @@ export default class ngbGenesTableController extends baseController {
             } else {
                 this.isProgressShown = false;
             }
-        }
+        },
+        'genes:restore': this.restoreState.bind(this)
     };
 
     constructor(
@@ -114,6 +115,7 @@ export default class ngbGenesTableController extends baseController {
         this.geneLoadError = null;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbGenesTable_row.tpl.html'),
             columnDefs: this.ngbGenesTableService.getGenesGridColumns(),
             paginationPageSize: this.ngbGenesTableService.genesPageSize,
             onRegisterApi: (gridApi) => {
@@ -184,6 +186,9 @@ export default class ngbGenesTableController extends baseController {
                 }
                 this.viewDataLength = viewData.length;
                 this.gridOptions.data = viewData;
+                if (!this.defaultState && this.gridApi) {
+                    this.defaultState = this.gridApi.saveState.save();
+                }
             } else if (!this.gridOptions.data.length) {
                 this.isEmptyResults = true;
             }
@@ -345,5 +350,16 @@ export default class ngbGenesTableController extends baseController {
         };
         this.dispatcher.emitSimpleEvent('feature:info:select', data);
         event.stopImmediatePropagation();
+    }
+
+    restoreState() {
+        this.ngbGenesTableService.genesTableColumns = [];
+        this.ngbGenesTableService.orderByGenes = null;
+        this.ngbGenesTableService.resetGenesFilter();
+        this.ngbGenesTableService.setDisplayGenesFilter(false, false);
+        if (!this.gridApi || !this.defaultState) {
+            return;
+        }
+        this.gridApi.saveState.restore(this.$scope, this.defaultState);
     }
 }

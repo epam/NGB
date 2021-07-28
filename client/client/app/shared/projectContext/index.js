@@ -10,6 +10,9 @@ const DEFAULT_ORDERBY_VCF_COLUMNS = {
     'geneNames': 'GENE_NAME',
     'startIndex': 'START_INDEX'
 };
+const VCF_SERVER_COLUMN_NAMES = {
+    'chrName': 'chromosome'
+};
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 50;
 const FIRST_CHROMOSOME_SELECTOR = '{first-chromosome}';
@@ -2261,9 +2264,9 @@ export default class projectContext {
 
     downloadVcfTable(reference, format, includeHeader) {
         const exportFields = this.vcfColumns
-            .filter(column => column !== 'info');
-            // .map(column => VCF_SERVER_COLUMN_NAMES[column] || column);
-        const filter = this.getVcfRequestFilter(false);
+            .filter(column => column !== 'info')
+            .map(column => VCF_SERVER_COLUMN_NAMES[column] || column);
+        const filter = this.getVcfRequestFilter(1);
         delete filter.pointer;
         return this.projectDataService.downloadVcf(
             reference,

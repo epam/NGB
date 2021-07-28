@@ -1,0 +1,40 @@
+.ngb-genes-table-context-menu {
+  background-color: white;
+  box-shadow: 0 0 1em #999;
+  border: 1px solid #ccc;
+  z-index: 100;
+  min-width: 200px;
+
+  .title {
+    font-size: small;
+    font-weight: bold;
+  }
+
+  .md-button {
+    width: 100%;
+    text-align: left;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+    font-size: 13px;
+    text-transform: inherit;
+  }
+
+  md-list {
+    padding: 0;
+  }
+
+  .ngb-context-menu-warning {
+    font-size: small;
+    color: rgba(0, 0, 0, 0.25);
+    width: auto;
+  }
+  .ngb-context-menu-warning-icon {
+    fill: currentColor;
+  }
+
+}
+
+.ngb-context-menu-opened {
+  background-color: #efefef !important;
+}
