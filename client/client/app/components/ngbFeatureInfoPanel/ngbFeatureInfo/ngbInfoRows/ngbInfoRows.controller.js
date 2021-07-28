@@ -9,8 +9,12 @@ export default class ngbInfoRowsController {
 
     saveRequest = {};
 
-    constructor($scope) {
-        Object.assign(this, {$scope});
+    constructor($scope, ngbFeatureInfoPanelService) {
+        Object.assign(this, {$scope, ngbFeatureInfoPanelService});
+    }
+
+    get attributes () {
+        return this.ngbFeatureInfoPanelService.newAttributes;
     }
 
     isEditable (property) {
@@ -21,9 +25,12 @@ export default class ngbInfoRowsController {
         return !UNREMOVABLE.includes(property[0]);
     }
 
-    onClickRemoveProperty (property) {
-        const index = this.properties.indexOf(property);
-        this.properties.splice(index, 1);
+    onClickRemoveAttribute (property) {
+        this.ngbFeatureInfoPanelService.removeAttribute(property);
+    }
+
+    onChangeAttribute (property) {
+        this.ngbFeatureInfoPanelService.changeAttribute(property);
     }
 
     onClickAddBtn () {

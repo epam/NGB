@@ -106,14 +106,17 @@ export default class ngbFeatureInfoMainController {
 
     onClickEditBtn () {
         this.ngbFeatureInfoPanelService.isInfoBeingEdited = true;
+        this.ngbFeatureInfoPanelService.newAttributes = this.properties;
     }
 
     onClickSaveBtn () {
         this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
         this.ngbFeatureInfoPanelService.hasInfoHistory = true;
+        this.properties = this.ngbFeatureInfoPanelService.newAttributes;
     }
 
     onClickCancelBtn () {
         this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
+        this.ngbFeatureInfoPanelService.newAttributes = null;
     }
 }
