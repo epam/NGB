@@ -61,7 +61,6 @@ public class FeatureIndexEntry implements Serializable {
     protected String featureName;
 
     private UUID uuid;
-    private Integer docId;
 
     public FeatureIndexEntry() {
         // no-op
@@ -75,7 +74,6 @@ public class FeatureIndexEntry implements Serializable {
         endIndex = origin.getEndIndex();
         featureName = origin.getFeatureName();
         uuid = origin.getUuid();
-        docId = origin.getDocId();
     }
 
     @Override

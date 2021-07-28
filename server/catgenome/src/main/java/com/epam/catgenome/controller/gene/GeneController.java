@@ -69,6 +69,7 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -399,7 +400,7 @@ public class GeneController extends AbstractRESTController {
                 query.getStartIndex(), query.getEndIndex(), query.getIntronLength(), query.getProjectId()));
     }
 
-    @GetMapping("/gene/{fileId}/doc/{docId}")
+    @GetMapping("/gene/{fileId}/doc")
     @ResponseBody
     @ApiOperation(
             value = "Loads specific gene feature content",
@@ -408,8 +409,23 @@ public class GeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<GeneHighLevel> loadGeneFeatureByDocId(@PathVariable(value = "fileId") final Long fileId,
-                                                        @PathVariable(value = "docId") final Integer docId) {
-        return Result.success(geneSecurityService.loadGeneFeatureByDocumentId(fileId, docId));
+    public Result<GeneHighLevel> loadGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
+                                                      @RequestParam(value = "uid") final String uid) {
+        return Result.success(geneSecurityService.loadGeneFeatureByUid(fileId, uid));
+    }
+
+    @PutMapping("/gene/{fileId}/doc")
+    @ResponseBody
+    @ApiOperation(
+            value = "Updates specific gene feature content",
+            notes = "Updates specific gene feature content",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<GeneHighLevel> updateGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
+                                                        @RequestParam(value = "uid") final String uid,
+                                                        @RequestBody final GeneHighLevel geneContent) {
+        return Result.success(geneSecurityService.updateGeneFeatureByUid(fileId, uid, geneContent));
     }
 }

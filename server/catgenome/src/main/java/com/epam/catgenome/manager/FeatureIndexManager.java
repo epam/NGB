@@ -344,16 +344,16 @@ public class FeatureIndexManager {
     }
 
     /**
-     * Loads Gene feature content by Lucene document id
+     * Loads Gene feature content by 'uid' Lucene document field
      *
      * @param fileId {@link GeneFile} id
-     * @param docId Lucene document id
+     * @param uid Lucene document field
      * @return gene content
      */
-    public GeneHighLevel loadGeneFeatureByDocumentId(final Long fileId, final Integer docId) {
+    public GeneHighLevel loadGeneFeatureByUid(final Long fileId, final String uid) {
         try {
-            final GeneIndexEntry entry = featureIndexDao
-                    .searchGeneFeatureByDocumentId(geneFileManager.load(fileId), docId);
+            final GeneIndexEntry entry = featureIndexDao.searchGeneFeatureByUid(
+                    geneFileManager.load(fileId), uid);
             if (Objects.isNull(entry)) {
                 return null;
             }
@@ -362,11 +362,29 @@ public class FeatureIndexManager {
             geneHighLevel.setEndIndex(entry.getEndIndex());
             geneHighLevel.setFrame(entry.getFrame());
             geneHighLevel.setSource(entry.getSource());
+            geneHighLevel.setScore(entry.getScore());
             geneHighLevel.setStrand(StrandSerializable.forValue(entry.getStrand()));
             geneHighLevel.setFeature(entry.getFeature());
-            geneHighLevel.setSeqName(entry.getFeatureName());
             geneHighLevel.setAttributes(entry.getAttributes());
             return geneHighLevel;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Updates Gene feature content by 'uid' Lucene document field
+     *
+     * @param fileId {@link GeneFile} id
+     * @param uid Lucene document field
+     * @param geneContent a new gene content
+     * @return gene content
+     */
+    public GeneHighLevel updateGeneFeatureByUid(final Long fileId, final String uid, final GeneHighLevel geneContent) {
+        try {
+            final GeneFile geneFile = geneFileManager.load(fileId);
+            final Gene.Origin geneFileType = AbstractGeneReader.getOrigin(geneFile);
+            return featureIndexDao.updateGeneFeatureByUid(geneFile, uid, geneContent, geneFileType);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

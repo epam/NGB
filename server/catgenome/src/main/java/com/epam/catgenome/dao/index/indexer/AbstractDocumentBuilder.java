@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.dao.index.indexer;
 
+import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
@@ -44,12 +45,17 @@ import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * An abstract class, whose extensions are responsible for building Lucene documents form
@@ -68,18 +74,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         document.add(new SortedStringField(FeatureIndexFields.FEATURE_ID.getFieldName(),
                 entry.getFeatureId()));
 
-        FieldType fieldType = new FieldType();
-        fieldType.setOmitNorms(true);
-        fieldType.setIndexOptions(IndexOptions.DOCS);
-        fieldType.setStored(true);
-        fieldType.setTokenized(false);
-        fieldType.setDocValuesType(DocValuesType.SORTED);
-        fieldType.freeze();
-        Field field = new Field(FeatureIndexFields.CHROMOSOME_ID.getFieldName(),
-                entry.getChromosome() != null ?
-                        new BytesRef(entry.getChromosome().getId().toString()) :
-                        new BytesRef(""), fieldType);
-        document.add(field);
+        final String chromosomeId = entry.getChromosome() != null ? entry.getChromosome().getId().toString() : "";
+        document.add(buildChromosomeIdField(chromosomeId));
         document.add(new SortedStringField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 entry.getChromosome().getName(), true));
 
@@ -135,10 +131,10 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         Set<String> requiredFields = getRequiredFields();
         Document doc = searcher.doc(docId, requiredFields);
 
-        return buildEntryFromDocument(docId, doc);
+        return buildEntry(doc);
     }
 
-    public E buildEntryFromDocument(final int docId, final Document doc) {
+    public E buildEntry(final Document doc) {
         FeatureType featureType =
                 FeatureType.forValue(doc.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
         E entry = createSpecificEntry(doc);
@@ -168,12 +164,44 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                             .utf8ToString());
         }
 
-        entry.setDocId(docId);
+        final String uuid = findFieldValue(doc, FeatureIndexFields.UID);
+        entry.setUuid(uuid == null ? null : UUID.fromString(uuid));
         return entry;
     }
 
-    public Document getDocumentById(final IndexSearcher searcher, final int docId) throws IOException {
-        return searcher.doc(docId);
+    public Integer findDocumentIdByUid(final IndexSearcher searcher, final Term uidTerm) throws IOException {
+        final TopDocs topDocs = searcher.search(new TermQuery(uidTerm), 1);
+        if (topDocs.totalHits != 1 || Objects.isNull(topDocs.scoreDocs)
+                || topDocs.scoreDocs.length != 1) {
+            throw new IllegalStateException("Unexpected total hints count");
+        }
+        return topDocs.scoreDocs[0].doc;
+    }
+
+    protected Document copyDocument(final Document oldDocument) {
+        final Document newDocument = new Document();
+
+        newDocument.add(buildChromosomeIdField(findFieldValue(oldDocument, FeatureIndexFields.CHROMOSOME_ID)));
+        newDocument.add(new SortedSetDocValuesFacetField(FeatureIndexDao.FeatureIndexFields.CHR_ID.getFieldName(),
+                findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID)));
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
+                findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME), true));
+
+        final Integer startIndex = Integer.parseInt(findFieldValue(oldDocument, FeatureIndexFields.START_INDEX));
+        newDocument.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
+        newDocument.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
+        newDocument.add(new SortedDocValuesField(FeatureIndexFields.START_INDEX.getGroupName(),
+                new BytesRef(String.valueOf(startIndex))));
+
+        final Integer endIndex = Integer.parseInt(findFieldValue(oldDocument, FeatureIndexFields.END_INDEX));
+        newDocument.add(new SortedIntPoint(FeatureIndexFields.END_INDEX.getFieldName(), endIndex));
+        newDocument.add(new StoredField(FeatureIndexFields.END_INDEX.getFieldName(), endIndex));
+        newDocument.add(new SortedDocValuesField(FeatureIndexFields.END_INDEX.getGroupName(),
+                new BytesRef(String.valueOf(endIndex))));
+
+        newDocument.add(new StringField(FeatureIndexFields.FILE_ID.getFieldName(),
+                findFieldValue(oldDocument, FeatureIndexFields.FILE_ID), Field.Store.YES));
+        return newDocument;
     }
 
     protected abstract Set<String> getRequiredFields();
@@ -251,5 +279,21 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
             default:
                 return new DefaultDocumentBuilder();
         }
+    }
+
+    public String findFieldValue(final Document document, final FeatureIndexFields fieldName) {
+        final BytesRef binaryValue = document.getBinaryValue(fieldName.getFieldName());
+        return Objects.isNull(binaryValue) ? document.get(fieldName.getFieldName()) : binaryValue.utf8ToString();
+    }
+
+    private Field buildChromosomeIdField(final String chromosomeId) {
+        final FieldType fieldType = new FieldType();
+        fieldType.setOmitNorms(true);
+        fieldType.setIndexOptions(IndexOptions.DOCS);
+        fieldType.setStored(true);
+        fieldType.setTokenized(false);
+        fieldType.setDocValuesType(DocValuesType.SORTED);
+        fieldType.freeze();
+        return new Field(FeatureIndexFields.CHROMOSOME_ID.getFieldName(), new BytesRef(chromosomeId), fieldType);
     }
 }

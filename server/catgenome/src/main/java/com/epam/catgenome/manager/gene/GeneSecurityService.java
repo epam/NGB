@@ -146,7 +146,12 @@ public class GeneSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public GeneHighLevel loadGeneFeatureByDocumentId(final Long fileId, final Integer docId) {
-        return featureIndexManager.loadGeneFeatureByDocumentId(fileId, docId);
+    public GeneHighLevel loadGeneFeatureByUid(final Long fileId, final String uid) {
+        return featureIndexManager.loadGeneFeatureByUid(fileId, uid);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public GeneHighLevel updateGeneFeatureByUid(final Long fileId, final String uid, final GeneHighLevel geneContent) {
+        return featureIndexManager.updateGeneFeatureByUid(fileId, uid, geneContent);
     }
 }
