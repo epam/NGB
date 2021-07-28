@@ -10,8 +10,8 @@ export default class ngbFeatureInfoMainController {
     error = null;
     showBtnsGroup = false;
 
-    constructor($scope, genomeDataService, bamDataService, $anchorScroll) {
-        Object.assign(this, {$scope, genomeDataService, bamDataService, $anchorScroll});
+    constructor($scope, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
+        Object.assign(this, {$scope, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
 
         if (!this.read) {
             (async() => {this.loadSequence();})();
@@ -103,13 +103,17 @@ export default class ngbFeatureInfoMainController {
 
     onClickEditBtn () {
         this.showBtnsGroup = true;
+        this.ngbFeatureInfoPanelService.isGeneInfoEdited = true;
     }
 
     onClickSaveBtn () {
         this.showBtnsGroup = false;
+        this.ngbFeatureInfoPanelService.isGeneInfoEdited = false;
+        this.ngbFeatureInfoPanelService.isGeneInfoHistory = true;
     }
 
     onClickCancelBtn () {
         this.showBtnsGroup = false;
+        this.ngbFeatureInfoPanelService.isGeneInfoEdited = false;
     }
 }

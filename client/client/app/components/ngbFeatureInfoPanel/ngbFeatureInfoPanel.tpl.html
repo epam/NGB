@@ -21,22 +21,31 @@
                                       flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')">
+        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')" ng-disabled="$ctrl.isGeneInfoEdited">
             <md-tab-label>NCBI</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ncbi"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')">
+        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')" ng-disabled="$ctrl.isGeneInfoEdited">
             <md-tab-label>Ensembl</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ensembl"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')">
+        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')" ng-disabled="$ctrl.isGeneInfoEdited">
             <md-tab-label>Uniprot</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="uniprot"></ngb-feature-info>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="history"
+            md-on-select="$ctrl.selectTab('history')"
+            ng-disabled="$ctrl.isGeneInfoEdited"
+            ng-if="$ctrl.isGeneInfoHistory">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+                <!-- <ngb-feature-info flex feature-id="$ctrl.geneId"></ngb-feature-info> -->
             </md-tab-body>
         </md-tab>
     </md-tabs>

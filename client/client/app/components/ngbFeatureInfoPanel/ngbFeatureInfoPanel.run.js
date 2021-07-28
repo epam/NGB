@@ -1,4 +1,4 @@
-export default function run($mdDialog, dispatcher) {
+export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
 
 
     const displayFeatureInfoCallback = (data) => {
@@ -21,10 +21,15 @@ export default function run($mdDialog, dispatcher) {
                 $scope.infoForRead = data.infoForRead;
                 $scope.panelTitle = data.title;
                 $scope.close = () => {
+                    if (ngbFeatureInfoPanelService.isGeneInfoEdited) {
+                        return;
+                    }
+                    ngbFeatureInfoPanelService.isGeneInfoEdited = false;
                     $mdDialog.hide();
                 };
+                $scope.disableCloseBtn = false;
             },
-            clickOutsideToClose: true
+            clickOutsideToClose: false
         });
 
     };

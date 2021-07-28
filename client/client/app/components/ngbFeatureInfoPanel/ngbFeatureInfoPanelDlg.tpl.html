@@ -4,7 +4,10 @@
             <h2 ng-show="name">{{name}}</h2>
             <h2 ng-hide="name">Feature info</h2>
             <span flex></span>
-            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+            <md-button class="md-icon-button"
+                       ng-click="close()"
+                       ng-disabled="disableCloseBtn"
+                       aria-label="Close">
                 <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
             </md-button>
         </div>
