@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -98,10 +99,9 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                 new BytesRef(entry.getStartIndex().toString())));
 
         document.add(new StringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : entry.getCustomFeatureType(),
-                Field.Store.YES));
+                buildFeatureTypeFieldValue(entry), Field.Store.YES));
         document.add(new SortedStringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : entry.getCustomFeatureType()));
+                buildFeatureTypeFieldValue(entry)));
         document.add(
                 new StringField(FeatureIndexFields.FILE_ID.getFieldName(), featureFileId.toString(),
                         Field.Store.YES));
@@ -242,5 +242,11 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
             default:
                 return new DefaultDocumentBuilder();
         }
+    }
+
+    private String buildFeatureTypeFieldValue(final E entry) {
+        return StringUtils.upperCase(entry.getFeatureType() != null
+                ? entry.getFeatureType().getFileValue()
+                : entry.getCustomFeatureType());
     }
 }

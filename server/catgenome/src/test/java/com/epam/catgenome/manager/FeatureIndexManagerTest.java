@@ -1310,7 +1310,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 .getEntries();
         assertEquals(ONE, entries.size());
         assertEquals(FeatureType.GENERIC_GENE_FEATURE, entries.get(ZERO).getFeatureType());
-        assertEquals("region_feature", entries.get(ZERO).getFeature());
+        assertEquals("REGION_FEATURE", entries.get(ZERO).getFeature());
     }
 
     @Test

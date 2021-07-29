@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.entity.index;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -178,6 +180,6 @@ public enum FeatureType {
     }
 
     public String getFileValue() {
-        return fileValue;
+        return StringUtils.upperCase(fileValue);
     }
 }
