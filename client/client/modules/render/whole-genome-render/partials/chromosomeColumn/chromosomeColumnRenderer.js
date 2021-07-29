@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {PixiTextSize} from '../../../utilities';
 import  {Subject} from 'rx';
 
@@ -222,7 +222,7 @@ export class ChromosomeColumnRenderer {
                     const actualChromosomeHeight = Math.ceil(chromosomeHeightPx / config.gridSize) * config.gridSize;
                     const onMousemove = (event) => {
                         const { x: mouseX, y: mouseY} = graphics.toLocal(event.data.global);
-                             
+
                         if (
                             (mouseX >= 0 && mouseX <= graphics.width) &&
                             (mouseY >= 0 && mouseY <= graphics.height)
@@ -230,7 +230,7 @@ export class ChromosomeColumnRenderer {
                             const hoveredHit = this.hoveredHit;
                             this.hoveredHit = null;
                             const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed) || [];
-                            if (mouseY <= actualChromosomeHeight) {  
+                            if (mouseY <= actualChromosomeHeight) {
                                 for (const hit of chromosomeHits) {
                                     if (
                                         (hit.x_area.from <= mouseX && hit.x_area.to >= mouseX) &&
@@ -286,7 +286,7 @@ export class ChromosomeColumnRenderer {
                     };
                     graphics.clear();
                     this.renderChromosome(graphics, chr, options);
-                }           
+                }
             } else if (this.chromosomesGraphics[chr.id]) {
                 const graphics = this.chromosomesGraphics[chr.id];
                 graphics.removeAllListeners();

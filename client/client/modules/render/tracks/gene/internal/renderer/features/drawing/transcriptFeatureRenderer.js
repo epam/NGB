@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from './strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';

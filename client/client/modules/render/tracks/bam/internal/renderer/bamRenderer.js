@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import {
     AlignmentsRenderProcessor,
     BP_OFFSET,
@@ -13,7 +14,6 @@ import {
     renderSpliceJunctions
 } from './features';
 import CoverageArea from '../../../wig/wigArea.js';
-import PIXI from 'pixi.js';
 import {readsViewTypes} from '../../modes';
 
 const Math = window.Math;

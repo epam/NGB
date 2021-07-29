@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import { CachedTrackRenderer } from '../../core';
-import PIXI from 'pixi.js';
 import {ColorProcessor} from '../../utilities';
 
 const Math = window.Math;

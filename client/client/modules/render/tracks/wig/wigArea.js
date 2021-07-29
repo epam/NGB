@@ -1,7 +1,7 @@
-import {Viewport, drawingConfiguration} from '../../core';
+import * as PIXI from 'pixi.js';
 import * as ScaleModes from './modes/scaleModes';
+import {Viewport, drawingConfiguration} from '../../core';
 import wigConfig from './wigConfig';
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 
@@ -129,7 +129,7 @@ export default class WIGArea{
             this._area.addChild(axis);
             if (divider.value !== 0) {
                 const value = coordinateSystem.isLogScale ? Math.pow(10, divider.value)  : divider.value;
-                const label = new PIXI.Text(value, {font: '30px'});
+                const label = new PIXI.Text(value, {fontSize: '7pt'});
                 label.resolution = drawingConfiguration.resolution;
                 label.x = 0;
                 label.y = Math.round(this.height - y - label.height);

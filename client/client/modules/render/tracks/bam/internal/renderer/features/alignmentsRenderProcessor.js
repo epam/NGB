@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import {AlignmentsRenderer, BP_OFFSET} from './alignmentsRenderer';
-import PIXI from 'pixi.js';
 import {Line} from '../../cache/line';
 import {drawingConfiguration} from '../../../../../core';
 
@@ -37,14 +37,14 @@ export class AlignmentsRenderProcessor {
         for (const letter of ['A', 'G', 'C', 'T', 'N']) {
             const text = new PIXI.Text(letter, {
                 fill: 0xFFFFFF,
-                font: 'normal 6pt arial'
+                fontFamily: 'arial',
+                fontSize: '6pt',
+                fontWeight: 'normal'
             });
             text.resolution = drawingConfiguration.resolution;
-            const texture = text.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+            const texture = text.texture;
             texture.offsetX = Math.round(text.width / 2);
             texture.offsetY = Math.round(text.height / 2);
-            texture.width = text.width;
-            texture.height = text.height;
             if (texture.baseTexture) {
                 this._lettersCache[letter] = texture;
             }

@@ -1,10 +1,10 @@
+import * as PIXI from 'pixi.js';
 import {
     BTOPPartType,
     parseBtop
 } from '../../../../app/shared/blastContext';
 import {CachedTrackRenderer} from '../../core';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
-import PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../core/configuration';
 
 class BLASTAlignmentRenderer extends CachedTrackRenderer {

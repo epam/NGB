@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {PixiTextSize} from '../../utilities';
 import {drawingConfiguration} from '../../core';
 import getRulerHeight from './rulerHeightManager';

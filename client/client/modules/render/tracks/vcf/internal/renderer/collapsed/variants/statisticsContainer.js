@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import {NumberFormatter} from '../../../../../../utilities';
-import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import {drawingConfiguration} from '../../../../../../core';
 

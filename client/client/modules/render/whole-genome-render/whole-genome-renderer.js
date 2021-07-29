@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import $ from 'jquery';
 
 import {
@@ -23,7 +23,7 @@ export default class WholeGenomeRenderer {
         this._range = maxChromosomeSize;
         this._chromosomes = chromosomes;
         this._blastResult = blastResult;
-       
+
         this._canvas = canvas;
         this._width = canvas.clientWidth;
         this._height = canvas.clientHeight;

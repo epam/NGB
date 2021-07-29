@@ -4,7 +4,9 @@ export default {
         margin: 2,
         label: {
             fill: 0x000000,
-            font: 'bold 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'bold'
         }
     },
     gene: {
@@ -12,7 +14,9 @@ export default {
         margin: 0,
         label: {
             fill: 0x273F70,
-            font: 'bold 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'bold'
         }
     },
     breakpoint: {
@@ -67,7 +71,9 @@ export default {
         margin: 2,
         label: {
             fill: 0x000000,
-            font: 'normal 6pt arial'
+            fontFamily: 'arial',
+            fontSize: '6pt',
+            fontWeight: 'normal'
         }
     },
     strand: {
@@ -90,11 +96,15 @@ export default {
         margin: 2,
         label: {
             fill: 0x000000,
-            font: 'normal 6pt arial'
+            fontFamily: 'arial',
+            fontSize: '6pt',
+            fontWeight: 'normal'
         },
         mainLabel: {
             fill: 0x777777,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         radio: {
             margin: 10,
@@ -105,7 +115,9 @@ export default {
         height: 12,
         label: {
             fill: 0x273F70,
-            font: 'normal 6pt arial'
+            fontFamily: 'arial',
+            fontSize: '6pt',
+            fontWeight: 'normal'
         }
     },
     transcriptLabel: {
@@ -120,11 +132,15 @@ export default {
         margin: 2,
         label: {
             fill: 0x000000,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         mainLabel: {
             fill: 0x777777,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         }
     },
     legendsLabel: {

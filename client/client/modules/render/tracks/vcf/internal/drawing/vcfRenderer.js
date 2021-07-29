@@ -1,6 +1,6 @@
+import * as PIXI from 'pixi.js';
 import {StatisticsContainer, initializeContainer} from './variants';
 import {CachedTrackRenderer} from '../../../../core';
-import PIXI from 'pixi.js';
 import {VcfTransformer} from '../data/vcfTransformer';
 import {ZonesManager} from '../../../../utilities';
 

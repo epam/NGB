@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../../core';
 import {ColorProcessor} from '../../../../../utilities';
 import {partTypes} from '../../../modes';
@@ -47,7 +47,7 @@ export class AlignmentsRenderer {
 
     finishRender(renderer) {
         this._graphics.endFill();
-        const bamTexture = this._container.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+        const bamTexture = renderer.generateTexture(this._container, drawingConfiguration.scale, drawingConfiguration.resolution);
         const bamSprite = new PIXI.Sprite(bamTexture);
         bamSprite.position.x = this._textureStartX;
         bamSprite.position.y = this._textureStartY;

@@ -1,7 +1,7 @@
+import * as PIXI from 'pixi.js';
 import {CachedTrackRenderer, drawingConfiguration} from '../../../../core';
 import {FeatureRenderer, GeneHistogram} from './features';
 import {GeneTransformer} from '../data/geneTransformer';
-import PIXI from 'pixi.js';
 
 export default class GeneRenderer extends CachedTrackRenderer {
 
@@ -127,17 +127,24 @@ export default class GeneRenderer extends CachedTrackRenderer {
             const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
+                    if (this.graphicsSprite && !this.graphicsSprite._destroyed) {
+                        this.graphicsSprite.destroy(true);
+                    }
                     let temporaryContainer = new PIXI.Container();
                     if (highlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(highlightGraphics);
                     }
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
-                    const sprite = new PIXI.Sprite(texture);
-                    sprite.position.x = coordinates.x;
-                    sprite.position.y = coordinates.y;
-                    this.dataContainer.addChild(sprite);
+                    const texture = this._pixiRenderer.generateTexture(
+                        temporaryContainer,
+                        drawingConfiguration.scale,
+                        drawingConfiguration.resolution
+                    );
+                    this.graphicsSprite = new PIXI.Sprite(texture);
+                    this.graphicsSprite.position.x = coordinates.x;
+                    this.graphicsSprite.position.y = coordinates.y;
+                    this.dataContainer.addChild(this.graphicsSprite);
                     graphics.clear();
                     temporaryContainer = null;
                 } else {
@@ -148,17 +155,24 @@ export default class GeneRenderer extends CachedTrackRenderer {
             if (hoveredGraphics !== null) {
                 this._hoveredItemContainer.removeChildren();
                 if (this.needConvertGraphicsToTexture) {
+                    if (this.hoveredGraphicsSprite && !this.hoveredGraphicsSprite._destroyed) {
+                        this.hoveredGraphicsSprite.destroy(true);
+                    }
                     let temporaryContainer = new PIXI.Container();
                     if (hoveredHighlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(hoveredHighlightGraphics);
                     }
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
-                    const sprite = new PIXI.Sprite(texture);
-                    sprite.position.x = coordinates.x;
-                    sprite.position.y = coordinates.y;
-                    this._hoveredItemContainer.addChild(sprite);
+                    const texture = this._pixiRenderer.generateTexture(
+                        temporaryContainer,
+                        drawingConfiguration.scale,
+                        drawingConfiguration.resolution
+                    );
+                    this.hoveredGraphicsSprite = new PIXI.Sprite(texture);
+                    this.hoveredGraphicsSprite.position.x = coordinates.x;
+                    this.hoveredGraphicsSprite.position.y = coordinates.y;
+                    this._hoveredItemContainer.addChild(this.hoveredGraphicsSprite);
                     hoveredGraphics.clear();
                     temporaryContainer = null;
                 } else {

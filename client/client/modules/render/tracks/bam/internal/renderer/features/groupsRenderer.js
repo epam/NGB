@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../../core';
 import {groupModes} from '../../../modes';
 
@@ -65,9 +65,9 @@ export function renderGroups(features, groups, drawingConfig) {
         labelsPositions.push(label);
         return label;
     };
-    
+
     const BP_OFFSET = 0.5;
-    
+
     for (let i = 0; i < groups.length; i++) {
         const group = groups[i];
         const label = labels[i];

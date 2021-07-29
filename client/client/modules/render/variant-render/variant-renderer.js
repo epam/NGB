@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {getRenderer} from '../core';
 import {VariantBaseRenderer, ShortVariantRenderer, StructuralVariantRenderer} from './renderers';
 import $ from 'jquery';

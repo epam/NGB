@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../core';
-import PIXI from 'pixi.js';
 import getRulerHeight from './rulerHeightManager';
 
 const Math = window.Math;

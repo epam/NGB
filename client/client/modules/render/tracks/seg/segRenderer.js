@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import {CachedTrackRenderer, drawingConfiguration} from '../../core';
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 

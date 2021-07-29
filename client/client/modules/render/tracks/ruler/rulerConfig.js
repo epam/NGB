@@ -32,7 +32,9 @@ export default {
             height: 10,
             label:{
                 fill: 0x000000,
-                font: 'bold 9pt arial',
+                fontFamily: 'arial',
+                fontSize: '9pt',
+                fontWeight: 'bold'
             },
             notch:{
                 color: 0x6f6f6f,
@@ -77,7 +79,9 @@ export default {
             height: 0,
             label: {
                 fill: 0x000000,
-                font: 'normal 7pt arial'
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             margin: 0,
             thickness: 1
@@ -109,7 +113,9 @@ export default {
             height: 5,
             label: {
                 fill: 0xffffff,
-                font: 'normal 7pt arial'
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             margin: 2,
             thickness: 1
@@ -119,7 +125,9 @@ export default {
             height: 5,
             label: {
                 fill: 0x000000,
-                font: 'normal 7pt arial'
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             margin: 2,
             thickness: 1

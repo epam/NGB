@@ -1,6 +1,6 @@
+import * as PIXI from 'pixi.js';
 import {drawDashLine, drawZygosityBar} from './internalDrawing';
 import {NumberFormatter} from '../../../../../../utilities';
-import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import VcfAnalyzer from '../../../../../../../../dataServices/vcf/vcf-analyzer';
 import {drawingConfiguration} from '../../../../../../core';

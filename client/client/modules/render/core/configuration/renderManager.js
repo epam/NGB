@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import drawingConfiguration from './drawingConfiguration';
 
 export default function getRenderer(size, opts = null) {
@@ -9,11 +9,13 @@ export default function getRenderer(size, opts = null) {
         };
     }
     const {backgroundColor} = opts;
-    const renderer = new PIXI.CanvasRenderer(width, height, {
+    const renderer = new PIXI.CanvasRenderer({
+        width,
+        height,
         antialias: drawingConfiguration.antialias,
         preserveDrawingBuffer: true,
         resolution: drawingConfiguration.resolution,
-        transparent: false
+        transparent: true
     });
     renderer.backgroundColor = backgroundColor;
     return renderer;

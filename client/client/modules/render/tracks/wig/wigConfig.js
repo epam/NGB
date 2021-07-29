@@ -34,7 +34,9 @@ export default {
         fill: 0x92AEE7,
         label: {
             fill: 0xFFFFFF,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         margin: 1,
         padding: 2,

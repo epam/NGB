@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../modules/render/core';
-import PIXI from 'pixi.js';
 
 export default class ngbTracksViewBookmarkCamera {
     getTitle;

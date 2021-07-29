@@ -1,7 +1,8 @@
+import * as PIXI from 'pixi.js';
 import * as modes from './reference.modes';
 import {aminoAcidsConst, CachedTrackRenderer, drawingConfiguration} from '../../core';
+import destroyPixiDisplayObjects from '../../utilities/destroyPixiDisplayObjects';
 
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 
@@ -24,7 +25,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         for (const letter of ['A', 'G', 'C', 'T', 'N', 'a', 'g', 'c', 't', 'n']) {
             const text = new PIXI.Text(letter, this._config.largeScale.labelStyle);
             text.resolution = drawingConfiguration.resolution;
-            const texture = text.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+            const texture = text.texture;
             if (texture.baseTexture) {
                 this._lettersCache[letter] = {texture, width: text.width, height: text.height};
             }
@@ -44,7 +45,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             const {key, value} = aminoacidsDictionary[a];
             const textOdd = new PIXI.Text(value, this._getLabelStyle(key, true).labelStyle);
             textOdd.resolution = drawingConfiguration.resolution;
-            const textureOdd = textOdd.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+            const textureOdd = textOdd.texture;
             if (textureOdd.baseTexture) {
                 this._aminoAcidOddCache[key] = {
                     height: textOdd.height,
@@ -54,7 +55,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             }
             const textEven = new PIXI.Text(value, this._getLabelStyle(key, false).labelStyle);
             textEven.resolution = drawingConfiguration.resolution;
-            const textureEven = textOdd.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+            const textureEven = textEven.texture;
             if (textureEven.baseTexture) {
                 this._aminoAcidEvenCache[key] = {
                     height: textEven.height,
@@ -330,7 +331,9 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
     _changeReferenceGraph(viewport, reference) {
         if (reference === null || reference === undefined)
             return;
-        this.dataContainer.removeChildren();
+        const removed = this.dataContainer.removeChildren();
+        destroyPixiDisplayObjects(removed, {children: true});
+
         this._updateNoGCContentLable(viewport, reference);
         switch (reference.mode) {
             case modes.gcContent:

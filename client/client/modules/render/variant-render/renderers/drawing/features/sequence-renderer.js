@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js';
 import {BaseViewport, drawingConfiguration} from '../../../../core';
 import {PixiTextSize} from '../../../../utilities';
 

@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import {
     AminoacidFeatureRenderer,
     FeatureBaseRenderer,
@@ -6,7 +7,6 @@ import {
     ZONES_MANAGER_DEFAULT_ZONE_NAME
 } from './drawing';
 import {Sorting, ZonesManager} from '../../../../../utilities';
-import PIXI from 'pixi.js';
 import {Viewport} from '../../../../../core';
 
 const Math = window.Math;
