@@ -5,16 +5,9 @@
         <span>Select a dataset to browse genes</span>
     </md-content>
 </div>
-<div class="md-padding"
-     ng-if="$ctrl.isEmptyResults">
-    <md-content flex
-                class="no-records-warning">
-        <span>No records found.</span>
-    </md-content>
-</div>
 <div class="ui-grid-container"
      ng-hide="$ctrl.errorMessageList.length"
-     ng-if="!$ctrl.isEmptyResults && $ctrl.isInitialized && !$ctrl.isProgressShown">
+     ng-if="$ctrl.isInitialized && !$ctrl.isProgressShown">
     <div class="genes-load-error-container" ng-if="$ctrl.geneLoadError">
         <small>{{$ctrl.geneLoadError}}</small>
     </div>
@@ -31,6 +24,13 @@
          ui-grid-save-state
          ui-grid-selection
     ></div>
+    <div class="genes-empty-result-container"
+         ng-if="$ctrl.isEmptyResults">
+        <md-content class="no-records-warning"
+                    flex>
+            <span>No records found.</span>
+        </md-content>
+    </div>
 </div>
 
 <div class="md-padding" ng-if="$ctrl.errorMessageList.length">

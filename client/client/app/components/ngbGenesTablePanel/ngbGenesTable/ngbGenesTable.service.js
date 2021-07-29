@@ -358,7 +358,7 @@ export default class ngbGenesTableService {
 
     downloadFile(reference, format, includeHeader) {
         const exportFields = this.genesTableColumns
-            .filter(column => this.prefixColumns(SERVICE_GENES_COLUMNS).includes(column))
+            .filter(column => !this.prefixColumns(SERVICE_GENES_COLUMNS).includes(column))
             .map(column => {
                 const c = this.getColumnOriginalName(column);
                 return SERVER_COLUMN_NAMES[c] || c;
