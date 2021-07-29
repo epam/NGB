@@ -268,8 +268,9 @@ export default class ngbGenesTableService {
             featureNames: this.genesFilter[`${this.defaultPrefix}featureName`] || [],
             featureId: this.genesFilter[`${this.defaultPrefix}featureId`],
             featureTypes: this.genesFilter[`${this.defaultPrefix}featureType`] || [],
+            featureFileId: this.genesFilter[`${this.defaultPrefix}featureFileId`],
             additionalFilters: this.genesFilter.additionalFilters || {},
-            attributesFields: this.genesTableColumns.filter(c => !this.prefixedDefaultGenesColumns.includes(c)),
+            attributesFields: this.genesTableColumns.filter(c => !this.prefixedNonAttributeColumns.includes(c)),
             pageSize: this.genesPageSize,
             pointer: isScrollTop ? this.prevPagePointer : this.nextPagePointer,
             orderBy: (this.orderByGenes || []).map(config => ({
@@ -277,14 +278,14 @@ export default class ngbGenesTableService {
                 desc: !config.ascending
             }))
         };
-        if (this.genesFilter.frame) {
-            filter.frames = [this.genesFilter.frame];
+        if (this.genesFilter[`${this.defaultPrefix}frame`]) {
+            filter.frames = [this.genesFilter[`${this.defaultPrefix}frame`]];
         }
-        if (this.genesFilter.source) {
-            filter.sources = [this.genesFilter.source];
+        if (this.genesFilter[`${this.defaultPrefix}source`]) {
+            filter.sources = [this.genesFilter[`${this.defaultPrefix}source`]];
         }
-        if (this.genesFilter.strand) {
-            switch (this.genesFilter.strand) {
+        if (this.genesFilter[`${this.defaultPrefix}strand`]) {
+            switch (this.genesFilter[`${this.defaultPrefix}strand`]) {
                 case '+': {
                     filter.strands = ['POSITIVE'];
                     break;
@@ -295,10 +296,10 @@ export default class ngbGenesTableService {
                 }
             }
         }
-        if (this.genesFilter.score) {
+        if (this.genesFilter[`${this.defaultPrefix}score`]) {
             filter.score = {
-                left: this.genesFilter.score[0],
-                right: this.genesFilter.score[1]
+                left: this.genesFilter[`${this.defaultPrefix}score`][0],
+                right: this.genesFilter[`${this.defaultPrefix}score`][1]
             };
         }
         const tracks = (this.projectContext.tracks || []).filter(track => track.format === 'GENE');
