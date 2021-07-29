@@ -1,1 +1,0 @@
-export {StatisticsContainer, VariantContainer} from './variants';

@@ -9,7 +9,9 @@ export default {
     fitHeightFactor: 1,
     label: {
         fill: 0x273F70,
-        font: 'normal 7pt arial'
+        fontFamily: 'arial',
+        fontSize: '7pt',
+        fontWeight: 'normal'
     },
     rowHeight: 20,
     scroll:{

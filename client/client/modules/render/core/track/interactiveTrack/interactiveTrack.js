@@ -110,11 +110,11 @@ export default class InteractiveTrack extends Track {
     }
 
     _onMouseOver() {
-        window.jQuery(document.body)
+        window.jQuery(this.domElement)
             .on(`mousewheel.${this._trackSystemName}`, ::this._onMouseWheel);
         const self = this;
         this._removeWheelEventListener = function() {
-            window.jQuery(document.body)
+            window.jQuery(this.domElement)
                 .off(`mousewheel.${self._trackSystemName}`);
         };
         this.onMouseOver();

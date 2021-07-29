@@ -2,8 +2,8 @@ import WIGRenderer from '../../../../wig/wigRenderer';
 import {renderSashimiPlot} from './spliceJunctions';
 
 export class SashimiRenderer extends WIGRenderer {
-    constructor(config, bamConfig) {
-        super(config.coverage, bamConfig);
+    constructor(config, bamConfig, track) {
+        super(config.coverage, bamConfig, track);
         this._globalConfig = config;
     }
 
@@ -28,7 +28,8 @@ export class SashimiRenderer extends WIGRenderer {
                 sashimi: true,
                 shouldRender,
                 y
-            }
+            },
+            this.labelsManager
         );
     }
 }

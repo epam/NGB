@@ -1,7 +1,7 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {CachedTrackRendererWithVerticalScroll} from '../../../../core';
 import BarChartSourceRenderer from './bar-chart/bar-chart-source-renderer';
-import {PlaceholderRenderer} from './features/placeholderRenderer';
+import {PlaceholderRenderer} from '../../../../utilities';
 
 export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalScroll {
     get config() {
@@ -9,7 +9,7 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
     }
 
     constructor(track, config, pixiRenderer) {
-        super();
+        super(track);
         this._track = track;
         this._config = config;
         this._pixiRenderer = pixiRenderer;
@@ -21,11 +21,12 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
         this.container.addChild(this.dataContainer);
         // to ensure z-index:
         this.container.addChild(this.verticalScroll);
-        this.placeholder = new PlaceholderRenderer();
-        this.noSourcesPlaceholder = new PlaceholderRenderer();
+        this.placeholder = new PlaceholderRenderer(this._track);
+        this.noSourcesPlaceholder = new PlaceholderRenderer(this._track);
         this.container.addChild(this.placeholder.container);
         this.container.addChild(this.noSourcesPlaceholder.container);
         this.sourceRenderers = [];
+        this.initializeCentralLine();
     }
 
     registerGroupAutoScaleManager(manager) {
@@ -342,14 +343,15 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
             const {disabled = false} = data[source] || {};
             if (!disabled && !this.sourceIsDisabled(source)) {
                 const renderer = this.getSourceRenderer(source, true);
-                renderer.render(
+                renderer.renderData(
                     viewport,
                     items,
                     coordinateSystem,
                     {
                         height: this.subTrackHeight,
                         singleColors: this.singleColors,
-                        grayScaleColors: this.grayScaleColors
+                        grayScaleColors: this.grayScaleColors,
+                        renderBottomBorder: sources.length > 1
                     }
                 );
             }

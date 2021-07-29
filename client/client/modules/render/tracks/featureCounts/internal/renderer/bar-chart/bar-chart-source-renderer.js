@@ -1,7 +1,6 @@
+import * as PIXI from 'pixi.js-legacy';
 import {ColorProcessor} from '../../../../../utilities';
 import CoordinateSystem from '../../../../common/coordinateSystemRenderer';
-import PIXI from 'pixi.js';
-import {drawingConfiguration} from '../../../../../core';
 import ensureEmptyValue from '../../../../../utilities/ensureEmptyValue';
 
 const white = 0xffffff;
@@ -22,14 +21,17 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         this.dataContainer.addChild(this.lineGraphics);
         this.dataContainer.addChild(this.hoveredLineGraphics);
         this.coordinateSystemRenderer = new CoordinateSystem(track);
-        this.sourceNameLabel = new PIXI.Text(source, config.barChart.title);
-        this.sourceNameLabel.resolution = drawingConfiguration.resolution;
         this.background = new PIXI.Graphics();
         this.groupAutoScaleIndicator = new PIXI.Graphics();
         this.addChild(this.background);
         this.addChild(this.dataContainer);
         this.addChild(this.coordinateSystemRenderer);
-        this.addChild(this.sourceNameLabel);
+        if (this.track && this.track.labelsManager) {
+            this.sourceNameLabel = this.track.labelsManager.getLabel(source, config.barChart.title.font);
+            if (this.sourceNameLabel) {
+                this.addChild(this.sourceNameLabel);
+            }
+        }
         this.addChild(this.groupAutoScaleIndicator);
         this.featurePositions = [];
     }
@@ -56,9 +58,9 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         if (!this.sourceNameLabel) {
             return {
                 x1: 0,
-                x2: 0,
+                x2: 100,
                 y1: 0,
-                y2: 0
+                y2: 20
             };
         }
         const horizontalMargin = this.sourceNameLabel.x;
@@ -114,10 +116,13 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         };
     };
 
-    render (viewport, data, coordinateSystem, options) {
+    renderData (viewport, data, coordinateSystem, options) {
         this.featurePositions = [];
         this.translate();
-        const {height = 0} = options || {};
+        const {
+            height = 0,
+            renderBottomBorder = false
+        } = options || {};
         this.renderGroupAutoScaleIndicator(coordinateSystem, height);
         this.background
             .clear()
@@ -129,20 +134,29 @@ export default class BarChartSourceRenderer extends PIXI.Container {
                 height
             )
             .endFill();
+        if (renderBottomBorder && this.config.barChart.bottomBorder !== undefined) {
+            this.background
+                .lineStyle(1, this.config.barChart.bottomBorder, 1)
+                .moveTo(0, height)
+                .lineTo(viewport.canvasSize, height);
+        }
         const barChartConfig = this.config.barChart || {};
         const {top, bottom, height: drawingHeight} = this.getDrawingArea(height);
-        this.sourceNameLabel.x = Math.round(ensureEmptyValue(barChartConfig.title.margin));
-        this.sourceNameLabel.y = Math.round(top + ensureEmptyValue(barChartConfig.title.margin));
-        this.coordinateSystemRenderer.render(
+        if (this.sourceNameLabel) {
+            this.sourceNameLabel.x = Math.round(ensureEmptyValue(barChartConfig.title.margin));
+            this.sourceNameLabel.y = Math.round(top + ensureEmptyValue(barChartConfig.title.margin));
+        }
+        this.coordinateSystemRenderer.renderCoordinateSystem(
             viewport,
             coordinateSystem,
             drawingHeight,
             {
                 yBoundaries: {
-                    top: this.sourceNameLabel.y +
-                        this.sourceNameLabel.height +
-                        ensureEmptyValue(barChartConfig.title.margin) -
-                        top
+                    top: (
+                        this.sourceNameLabel
+                            ? (this.sourceNameLabel.y + this.sourceNameLabel.height)
+                            : 0
+                        ) + ensureEmptyValue(barChartConfig.title.margin) - top
                 }
             }
         );
@@ -187,7 +201,7 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         graphics.clear();
         lineGraphics.clear();
         if (!data || !coordinateSystem) {
-            return;
+            return [];
         }
         const top = ensureEmptyValue(this.config.barChart.margin.top);
         const bottom = height - ensureEmptyValue(this.config.barChart.margin.bottom);

@@ -6,5 +6,8 @@ export default function linearDimensionsConflict(a1, a2, b1, b2, margin = 0) {
     const o1size = Math.abs(o1p2 - o1p1);
     const o2size = Math.abs(o2p2 - o2p1);
     const oSize = Math.max(o1p1, o1p2, o2p1, o2p2) - Math.min(o1p1, o1p2, o2p1, o2p2);
-    return o1size + o2size > oSize + margin;
+    if (!Number.isFinite(o1size + o2size + margin) || !Number.isFinite(oSize)) {
+        return true;
+    }
+    return o1size + o2size + margin > oSize;
 }

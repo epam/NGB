@@ -5,8 +5,8 @@ export default class FeatureCountRenderer extends FeatureRenderer {
 
     _fcFeatureRenderer = null;
 
-    constructor(track, config) {
-        super(config);
+    constructor(config, track) {
+        super(config, track);
         this._fcFeatureRenderer = new FCFeatureRenderer(
             track,
             config,

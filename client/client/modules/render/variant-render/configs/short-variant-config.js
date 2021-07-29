@@ -15,7 +15,9 @@ export default {
             'N': 0x000000
         },
         label: {
-            font: 'normal 8pt arial',
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal',
             fill: 0xFFFFFF
         },
         margin: {
@@ -39,11 +41,15 @@ export default {
         label:{
             normal: {
                 fill: 0x000000,
-                font: 'normal 8pt arial'
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'normal'
             },
             modified: {
                 fill: 0xFF0000,
-                font: 'bold 8pt arial'
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'bold'
             }
         }
     },

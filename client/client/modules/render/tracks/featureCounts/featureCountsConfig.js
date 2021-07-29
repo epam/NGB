@@ -7,10 +7,15 @@ export default {
             width: 5
         },
         background: 0xf0f0f0,
+        bottomBorder: 0x333333,
         minimumHeight: 100,
         title: {
-            fill: 0x273F70,
-            font: 'bold 8pt arial',
+            font: {
+                fill: 0x273F70,
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'bold',
+            },
             margin: 2
         },
         margin: {
@@ -26,7 +31,9 @@ export default {
             },
             label: {
                 fill: 0x333333,
-                font: 'normal 7pt arial',
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             padding: 5,
             margin: 5

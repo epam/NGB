@@ -1,5 +1,4 @@
 import {CommonVariantFeatureRenderer} from './commonVariantFeatureRenderer';
-const Math = window.Math;
 
 export default class SVFeatureRenderer extends CommonVariantFeatureRenderer {
 

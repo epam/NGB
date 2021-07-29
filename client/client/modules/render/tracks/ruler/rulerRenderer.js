@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js-legacy';
 import {drawingConfiguration} from '../../core';
-import PIXI from 'pixi.js';
 import getRulerHeight from './rulerHeightManager';
 
 const Math = window.Math;
@@ -8,21 +8,54 @@ export default class RulerRenderer {
 
     viewport;
 
-    _globalRuler = null;
-    _localRuler = null;
+    _globalRuler: PIXI.Container = null;
+    _localRuler: PIXI.Container = null;
 
-    _globalRulerBody = null;
-    _localRulerBody = null;
+    _globalRulerBody: PIXI.Graphics = null;
+    _localRulerBody: PIXI.Graphics = null;
 
-    _globalRulerTicks = null;
-    _localRulerTicks = null;
+    _globalRulerTicks: PIXI.Container = null;
+    _localRulerTicks: PIXI.Container = null;
     _localRulerBlatRegion = null;
 
-    tickConfigs = new Map();
+    _globalRulerTickLabels: PIXI.Container = null;
+    _localRulerTickLabels: PIXI.Container = null;
+
+    tickConfigs = new WeakMap();
+    /**
+     * @type {Map<object, Array<PIXI.Text>>}
+     */
+    tickLabels = new Map();
 
     constructor(viewport, config) {
         this.viewport = viewport;
         this._config = config;
+    }
+
+    clearContainers () {
+        if (this._globalRuler) {
+            this._globalRuler.removeChildren();
+            this._globalRuler = null;
+        }
+        if (this._localRuler) {
+            this._localRuler.removeChildren();
+            this._localRuler = null;
+        }
+    }
+
+    clearLabels () {
+        this.tickLabels.forEach(labelsArray => {
+            (labelsArray || []).forEach(label => {
+                label.destroy();
+            });
+        });
+        this.tickLabels.clear();
+    }
+
+    destroy () {
+        this.clearContainers();
+        this.clearLabels();
+        this.tickLabels = null;
     }
 
     get blatRegionConfig() {
@@ -38,6 +71,8 @@ export default class RulerRenderer {
     }
 
     init(ticks) {
+        this.clearContainers();
+        this.clearLabels();
         const container = new PIXI.Container();
         const _globalRulerOffsetY = this._config.brush.line.thickness;
         const _localRulerOffsetY = _globalRulerOffsetY +
@@ -48,17 +83,25 @@ export default class RulerRenderer {
         this._globalRuler = globalRulerContainers.ruler;
         this._globalRulerBody = globalRulerContainers.body;
         this._globalRulerTicks = globalRulerContainers.ticksArea;
+        this._globalRulerTickLabels = globalRulerContainers.tickLabelsArea;
 
         const localRulerContainers = this.createRuler(this._config.local, _localRulerOffsetY, true);
         this._localRuler = localRulerContainers.ruler;
         this._localRulerBody = localRulerContainers.body;
         this._localRulerTicks = localRulerContainers.ticksArea;
+        this._localRulerTickLabels = localRulerContainers.tickLabelsArea;
         this._localRulerBlatRegion = localRulerContainers.blatRegion;
 
         container.addChild(this._globalRuler);
         container.addChild(this._localRuler);
 
-        this.changeDividers(this._globalRulerTicks, ticks || [], this.viewport, true);
+        this.changeDividers(
+            this._globalRulerTicks,
+            this._globalRulerTickLabels,
+            ticks || [],
+            this.viewport,
+            true
+        );
 
         return container;
     }
@@ -74,6 +117,10 @@ export default class RulerRenderer {
         ticksArea.y = _config.tickArea.margin;
         ruler.addChild(ticksArea);
 
+        const tickLabelsArea = new PIXI.Container();
+        tickLabelsArea.y = _config.tickArea.margin;
+        ruler.addChild(tickLabelsArea);
+
         let blatRegion = null;
         if (isLocal) {
             blatRegion = new PIXI.Container();
@@ -83,9 +130,10 @@ export default class RulerRenderer {
         this.tickConfigs.set(ticksArea, _config);
 
         const res =  {
-            body: body,
-            ruler: ruler,
-            ticksArea: ticksArea
+            body,
+            ruler,
+            ticksArea,
+            tickLabelsArea
         };
 
         if (blatRegion) {
@@ -97,15 +145,31 @@ export default class RulerRenderer {
 
     render(viewport, localTicks) {
         this.viewport = viewport;
-        this.changeDividers(this._localRulerTicks, localTicks || [], viewport);
+        this.changeDividers(
+            this._localRulerTicks,
+            this._localRulerTickLabels,
+            localTicks || [],
+            viewport
+        );
         this.changeBlatRegion(this._localRulerBlatRegion, viewport);
     }
 
     rebuild(viewport, globalTicks, localTicks) {
         this.changeRulerBody(this._globalRulerBody, this._config.global);
         this.changeRulerBody(this._localRulerBody, this._config.local);
-        this.changeDividers(this._globalRulerTicks, globalTicks || [], viewport, true);
-        this.changeDividers(this._localRulerTicks, localTicks || [], viewport);
+        this.changeDividers(
+            this._globalRulerTicks,
+            this._globalRulerTickLabels,
+            globalTicks || [],
+            viewport,
+            true
+        );
+        this.changeDividers(
+            this._localRulerTicks,
+            this._localRulerTickLabels,
+            localTicks || [],
+            viewport
+        );
         this.changeBlatRegion(this._localRulerBlatRegion, viewport);
     }
 
@@ -144,17 +208,18 @@ export default class RulerRenderer {
     }
 
     renderTick(tick, graphics, configs, viewport, isGlobal) {
-        const {tickLabels, container, dividersGraphics} = graphics;
+        const {tickLabels, labelsContainer, dividersGraphics} = graphics;
         const {mainConfig, tickConfig} = configs;
         if (!tick) {
             return;
         }
-        const label = RulerRenderer.createText(
+        const label = this.createText(
             tickConfig.formatter(tick.value),
             isGlobal ?
                 viewport.project.chromoBP2pixel(tick.realValue) :
                 viewport.project.brushBP2pixel(tick.realValue),
             viewport,
+            labelsContainer,
             tickConfig
         );
         if (tick.isCenter) {
@@ -177,8 +242,10 @@ export default class RulerRenderer {
             viewport
         );
         if (RulerRenderer._canPutLabel(label, tickLabels, mainConfig.ticksMinMargin)) {
-            container.addChild(label);
+            label.visible = true;
             tickLabels.push(label);
+        } else {
+            label.visible = false;
         }
         if (tick.isCenter) {
             const white = 0xFFFFFF;
@@ -200,9 +267,20 @@ export default class RulerRenderer {
         }
     }
 
-    changeDividers(container, ticks, viewport, isGlobal = false) {
+    /**
+     *
+     * @param container {PIXI.Container}
+     * @param labelsContainer {PIXI.Container}
+     * @param ticks {Array}
+     * @param viewport {Viewport}
+     * @param isGlobal {boolean}
+     */
+    changeDividers(container, labelsContainer, ticks, viewport, isGlobal = false) {
         const _config = this.tickConfigs.get(container);
         container.removeChildren();
+        labelsContainer.children.forEach(child => {
+            child.visible = false;
+        });
         if (ticks.length > 1) {
             const dividersGraphics = new PIXI.Graphics();
             container.addChild(dividersGraphics);
@@ -213,21 +291,21 @@ export default class RulerRenderer {
             const lastTick = ticks.filter(x => x.isLast)[0];
             this.renderTick(
                 centerTick,
-                {container, dividersGraphics, tickLabels},
+                {container, labelsContainer, dividersGraphics, tickLabels},
                 {mainConfig: _config, tickConfig: _config.centerTick},
                 viewport,
                 isGlobal
             );
             this.renderTick(
                 firstTick,
-                {container, dividersGraphics, tickLabels},
+                {container, labelsContainer, dividersGraphics, tickLabels},
                 {mainConfig: _config, tickConfig: _config.tick},
                 viewport,
                 isGlobal
             );
             this.renderTick(
                 lastTick,
-                {container, dividersGraphics, tickLabels},
+                {container, labelsContainer, dividersGraphics, tickLabels},
                 {mainConfig: _config, tickConfig: _config.tick},
                 viewport,
                 isGlobal
@@ -239,7 +317,7 @@ export default class RulerRenderer {
                         continue;
                     this.renderTick(
                         tick,
-                        {container, dividersGraphics, tickLabels},
+                        {container, labelsContainer, dividersGraphics, tickLabels},
                         {mainConfig: _config, tickConfig: _config.tick},
                         viewport,
                         isGlobal
@@ -321,9 +399,36 @@ export default class RulerRenderer {
                 _config.tick.height);
     }
 
-    static createText(label, x, viewport, _config) {
-        const text = new PIXI.Text(label, _config.label);
-        text.resolution = drawingConfiguration.resolution;
+    static ticks = 0;
+
+    /**
+     * @param config {PIXI.TextStyle}
+     * @param container {PIXI.Container}
+     * @returns {PIXI.Text|unknown}
+     */
+    getInvisibleLabelFromCache (config, container) {
+        if (!this.tickLabels.has(config)) {
+            this.tickLabels.set(config, []);
+        }
+        const labels = this.tickLabels.get(config) || [];
+        const [invisibleLabel] = labels.filter(label => label.parent === container && !label.visible);
+        if (invisibleLabel) {
+            invisibleLabel.visible = true;
+            invisibleLabel.style = config;
+            return invisibleLabel;
+        }
+        const label = new PIXI.Text('', config);
+        label.resolution = drawingConfiguration.resolution;
+        label.visible = true;
+        container.addChild(label);
+        labels.push(label);
+        this.tickLabels.set(config, labels);
+        return label;
+    }
+
+    createText(label, x, viewport, container, _config) {
+        const text = this.getInvisibleLabelFromCache(_config.label, container);
+        text.text = label;
         text.y = _config.height + _config.margin;
         text.x = Math.max(0, Math.min(viewport.canvasSize - text.width, x - (text.width / 2)));
         text.x = Math.round(text.x);

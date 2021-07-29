@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 
 PIXI.Graphics.prototype.drawDashLine = function (x1, y1, x2, y2, dash = 0) {
     if (dash <= 0 || Number.isNaN(Number(dash))) {

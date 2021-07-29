@@ -9,13 +9,17 @@ export default {
         label: {
             defaultStyle: {
                 fill: 0x030E24,
-                font: 'normal 7pt arial'
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             margin: 2
         },
         number: {
             fill: 0x030E24,
-            font: 'normal 7pt arial'
+            fontFamily: 'arial',
+            fontSize: '7pt',
+            fontWeight: 'normal'
         },
         odd: {
             fill: 0x3D62AC,
@@ -48,7 +52,9 @@ export default {
         },
         label: {
             fill: 0x273F70,
-            font: 'bold 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'bold'
         },
         strand: {
             arrow: {
@@ -109,7 +115,9 @@ export default {
         marginTop: 5,
         label: {
             fill: 0x273F70,
-            font: 'normal 7pt arial',
+            fontFamily: 'arial',
+            fontSize: '7pt',
+            fontWeight: 'normal',
             marginTop: 5
         },
         strand: {

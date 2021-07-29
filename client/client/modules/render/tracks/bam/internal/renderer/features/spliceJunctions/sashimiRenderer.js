@@ -1,7 +1,5 @@
-import PIXI from 'pixi.js';
 import renderArea from './renderArea';
 import {NumberFormatter} from '../../../../../../utilities';
-import {drawingConfiguration} from '../../../../../../core/configuration';
 const Math = window.Math;
 
 const margin = 10;
@@ -14,7 +12,7 @@ function intersects(candidate, test) {
     return e - s < (end - start + candidateEnd - candidateStart + 4 * margin);
 }
 
-export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
+export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig, labelsManager) {
     const {
         config,
         graphics,
@@ -99,23 +97,26 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
                 x: (endPx + startPx) / 2,
                 y: centerLine
             };
-            const label = new PIXI.Text(
-                NumberFormatter.textWithPrefix(+count, false),
-                config.label
-            );
-            label.resolution = drawingConfiguration.resolution;
-            graphics
-                .lineStyle(0, 0x000000, 0)
-                .beginFill(0xFFFFFF, 0.5)
-                .drawEllipse(
-                    centerPoint.x,
-                    centerPoint.y + multiplier * (radius + label.height / 2.0),
-                    label.width / 2.0,
-                    label.height / 2.0)
-                .endFill();
-            label.x = Math.round(centerPoint.x -label.width / 2);
-            label.y = Math.round(centerPoint.y + multiplier * radius - (multiplier < 0 ? 1 : 0) * label.height);
-            labelsContainer.addChild(label);
+            const label = labelsManager
+                ? labelsManager.getLabel(
+                    NumberFormatter.textWithPrefix(+count, false),
+                    config.label
+                )
+                : undefined;
+            if (label) {
+                graphics
+                    .lineStyle(0, 0x000000, 0)
+                    .beginFill(0xFFFFFF, 0.5)
+                    .drawEllipse(
+                        centerPoint.x,
+                        centerPoint.y + multiplier * (radius + label.height / 2.0),
+                        label.width / 2.0,
+                        label.height / 2.0)
+                    .endFill();
+                label.x = Math.round(centerPoint.x - label.width / 2);
+                label.y = Math.round(centerPoint.y + multiplier * radius - (multiplier < 0 ? 1 : 0) * label.height);
+                labelsContainer.addChild(label);
+            }
         };
         for (let i = 0; i < sorted.length; i++) {
             const spliceJunctionItem = sorted[i];

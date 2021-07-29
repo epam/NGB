@@ -1,9 +1,8 @@
+import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';
 import drawStrandDirection, {getStrandArrowSize} from './strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
@@ -11,8 +10,8 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
     _transcriptFeatureRenderer: TranscriptFeatureRenderer = null;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, transcriptRenderer) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition);
+    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, transcriptRenderer) {
+        super(track, config, registerLabel, registerDockableElement, registerFeaturePosition, undefined);
         this._transcriptFeatureRenderer = transcriptRenderer;
     }
 
@@ -20,6 +19,24 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         return this.config && this.config.gene && this.config.gene.strand
             ? this.config.gene.strand
             : super.strandIndicatorConfig;
+    }
+
+    getFeatureKey (feature, viewport) {
+        if (!feature.name) {
+            return undefined;
+        }
+        const transcripts = feature.transcripts || [];
+        const transcriptLength = (transcripts || []).length;
+        const transcriptsKeys = [];
+        for (let i = 0; i < transcriptLength; i++) {
+            this._transcriptFeatureRenderer.gffShowNumbersAminoacid = this._opts.gffShowNumbersAminoacid;
+            this._transcriptFeatureRenderer.collapsedMode = this._opts.collapsedMode;
+            const transcriptKey = this._transcriptFeatureRenderer.getFeatureKey(transcripts[i], viewport);
+            if (transcriptKey) {
+                transcriptsKeys.push(`${transcriptKey}`);
+            }
+        }
+        return `[${feature.name}]>${transcriptsKeys.join('-')}`;
     }
 
     analyzeBoundaries(feature, viewport) {
@@ -33,9 +50,20 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label);
         }
         if (rect) {
+            rect.x2 = Math.max(rect.x2, rect.x1 + maxLabelWidth.width);
             let transcriptsHeight = 0;
             const transcripts = feature.transcripts;
             const transcriptLength = transcripts.length;
+
+            if (
+                feature.hasOwnProperty('strand') &&
+                this.shouldRenderStrandIndicatorInsteadOfGraphics(rect.x1, rect.x2)
+            ) {
+                const correctedEnd = rect.x1 +
+                    getStrandArrowSize(this.config.gene.strand.arrow.height).width +
+                    this.config.gene.strand.arrow.margin * 4;
+                rect.x2 = Math.max(rect.x2, correctedEnd);
+            }
 
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 for (let i = 0; i < transcriptLength; i++) {
@@ -48,12 +76,11 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                             height: childRect.y2 - childRect.y1,
                             width: childRect.x2 - childRect.x1
                         };
-                        maxLabelWidth.width = Math.max(maxLabelWidth.width, childSize.width);
+                        rect.x2 = Math.max(rect.x2, childRect.x2);
                         transcriptsHeight += childSize.height;
                     }
                 }
             }
-            rect.x2 = Math.max(rect.x2, rect.x1 + maxLabelWidth.width);
             rect.y2 = gene.bar.height + maxLabelWidth.height + transcriptsHeight;
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 boundaries.margin = {
@@ -62,6 +89,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 };
             }
         }
+        boundaries.key = this.getBoundariesKey(feature, viewport);
         return boundaries;
     }
 
@@ -97,18 +125,19 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         let geneNameLabelHeight = 0;
         const gene = this.config.gene;
 
-        if (feature.name) {
-            const label = new PIXI.Text(feature.name, this.config.gene.label);
-            label.resolution = drawingConfiguration.resolution;
-            label.x = Math.round(position.x);
-            label.y = Math.round(position.y);
-            dockableElementsContainer.addChild(label);
-            geneNameLabelHeight = label.height;
-            this.registerLabel(label, position, {
-                end: feature.endIndex,
-                height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
-                start: feature.startIndex
-            }, true);
+        if (feature.name && this.labelsManager) {
+            const sprite = this.labelsManager.getLabel(feature.name, this.config.gene.label, true);
+            if (sprite) {
+                geneNameLabelHeight = sprite.height;
+                sprite.x = Math.round(position.x);
+                sprite.y = Math.round(position.y);
+                dockableElementsContainer.addChild(sprite);
+                this.registerLabel(sprite, position, {
+                    end: feature.endIndex,
+                    height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
+                    start: feature.startIndex
+                }, true);
+            }
         }
 
         const geneBar = gene.bar;

@@ -1,8 +1,7 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {renderCenterLine as centerLineRenderer} from '../../../utilities';
 
-export default class CachedTrackRenderer{
-
+export default class CachedTrackRenderer {
     _labels = [];
     containerIsReady = false;
     container = new PIXI.Container();
@@ -16,32 +15,47 @@ export default class CachedTrackRenderer{
     _config = null;
     _centerLineGraphics = new PIXI.Graphics();
 
-    constructor(){
+    constructor(track) {
+        this._track = track;
         this.container.addChild(this._backgroundContainer);
         this.container.addChild(this.dataContainer);
     }
 
+    /**
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager() { return this._track ? this._track.labelsManager : undefined; }
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
+     * */
+    get pixiRenderer() { return this._track ? this._track._pixiRenderer : null; }
     get viewport() { return this._viewport; }
 
     initializeCentralLine() {
         this.container.addChild(this._centerLineGraphics);
     }
 
-    render(viewport, cache, forceRedraw = false, _gffShowNumbersAminoacid, _showCenterLine){
+    render(viewport, cache, forceRedraw = false, _showCenterLine) {
         if (cache === null || cache === undefined || cache.viewport === undefined)
             return;
         const factor = viewport.factor / cache.viewport.factor;
         const factorMaximumDelta = 0.1;
         if (!forceRedraw && this.containerIsReady && viewport && cache && cache.viewport &&
-            Math.abs(factor - 1) < factorMaximumDelta && !cache.isNew){
+            Math.abs(factor - 1) < factorMaximumDelta && !cache.isNew) {
             this.translateContainer(viewport, cache);
         } else {
+            if (this.labelsManager) {
+                this.labelsManager.startSession();
+            }
             this._viewport = cache.viewport;
             this.containerIsReady = false;
             this._labels = [];
             this.rebuildContainer(viewport, cache);
             this.containerIsReady = true;
             cache.isNew = false;
+            if (this.labelsManager) {
+                this.labelsManager.finishSession();
+            }
         }
         this.renderCenterLine(viewport, {
             config: this._config,
