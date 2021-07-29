@@ -250,6 +250,8 @@ export default class ngbGenesTableService {
             }));
             this.dispatcher.emit('genes:values:loaded');
         });
+        this.orderByGenes = null;
+        this.clearGenesFilter();
     }
 
     setDisplayGenesFilter(value, updateScope = true) {
