@@ -10,6 +10,7 @@ export default class ngbGenesFilterListController {
     displayText = '';
     listElements = null;
     _hideListIsPrevented = false;
+    defaultPrefix = '';
 
     constructor($scope, $element, ngbGenesTableService, projectContext) {
         this.scope = $scope;
@@ -27,23 +28,24 @@ export default class ngbGenesFilterListController {
         });
         switch (this.field.field) {
             case `${this.defaultPrefix}chromosome`: {
-                if (this.ngbGenesTableService.genesFilter.chromosome) {
+                if (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}chromosome`]) {
                     this.selectedItems = this.projectContext.chromosomes
-                        .filter(chr => this.ngbGenesTableService.genesFilter.chromosome.indexOf(chr.id) >= 0).map(chr => chr.name);
+                        .filter(chr => this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}chromosome`].indexOf(chr.id) >= 0)
+                        .map(chr => chr.name);
                     this.displayText = [...this.selectedItems].join(', ');
                 }
                 break;
             }
             case `${this.defaultPrefix}featureName`: {
-                if (this.ngbGenesTableService.genesFilter.featureName) {
-                    this.selectedItems = (this.ngbGenesTableService.genesFilter.featureName || []).map(t => t);
+                if (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureName`]) {
+                    this.selectedItems = (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureName`] || []).map(t => t);
                     this.displayText = [...this.selectedItems].join(', ');
                 }
                 break;
             }
             case `${this.defaultPrefix}featureType`: {
-                if (this.ngbGenesTableService.genesFilter.featureType) {
-                    this.selectedItems = (this.ngbGenesTableService.genesFilter.featureType || []).map(t => t);
+                if (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureType`]) {
+                    this.selectedItems = (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureType`] || []).map(t => t);
                     this.displayText = [...this.selectedItems].join(', ');
                 }
                 break;
@@ -158,7 +160,7 @@ export default class ngbGenesFilterListController {
         switch (this.field.field) {
             case `${this.defaultPrefix}chromosome`: {
                 const selectedItemsLowerCase = this.selectedItems.map(i => i.toLowerCase());
-                const prevValue = (this.ngbGenesTableService.genesFilter.chromosome || []);
+                const prevValue = (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}chromosome`] || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
                 const currValue = this.projectContext.chromosomes
@@ -166,33 +168,33 @@ export default class ngbGenesFilterListController {
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
-                    this.ngbGenesTableService.genesFilter.chromosome = currValue;
+                    this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}chromosome`] = currValue;
                     this.ngbGenesTableService.scheduleFilterGenes();
                 }
                 break;
             }
             case `${this.defaultPrefix}featureName`: {
-                const prevValue = (this.ngbGenesTableService.genesFilter.featureName || []);
+                const prevValue = (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureName`] || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
                 const currValue = (this.selectedItems || []);
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
-                    this.ngbGenesTableService.genesFilter.featureName = currValue;
+                    this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureName`] = currValue;
                     this.ngbGenesTableService.scheduleFilterGenes();
                 }
                 break;
             }
             case `${this.defaultPrefix}featureType`: {
-                const prevValue = (this.ngbGenesTableService.genesFilter.featureType || []);
+                const prevValue = (this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureType`] || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
                 const currValue = (this.selectedItems || []);
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
-                    this.ngbGenesTableService.genesFilter.featureType = currValue;
+                    this.ngbGenesTableService.genesFilter[`${this.defaultPrefix}featureType`] = currValue;
                     this.ngbGenesTableService.scheduleFilterGenes();
                 }
                 break;

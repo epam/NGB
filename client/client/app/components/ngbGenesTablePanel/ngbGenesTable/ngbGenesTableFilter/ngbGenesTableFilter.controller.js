@@ -3,6 +3,7 @@ export default class ngbGenesTableFilterController {
     isRange = false;
     isString = false;
     isList = false;
+    defaultPrefix = '';
 
     constructor(projectContext, projectDataService, ngbGenesTableService) {
         this.defaultPrefix = ngbGenesTableService.defaultPrefix;
@@ -38,7 +39,7 @@ export default class ngbGenesTableFilterController {
                 this.list = projectContext.chromosomes.map(d => d.name.toUpperCase());
                 break;
             }
-            case 'score':
+            case `${this.defaultPrefix}score`:
                 this.isRange = true;
                 break;
             default:

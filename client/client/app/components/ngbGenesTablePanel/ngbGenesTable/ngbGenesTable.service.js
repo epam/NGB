@@ -16,22 +16,24 @@ const DEFAULT_ORDERBY_GENES_COLUMNS = {
 };
 
 const SERVER_COLUMN_NAMES = {};
+const DEFAULT_PREFIX = 'ngb_default_';
 const GENES_COLUMN_TITLES = {
-    chromosome: 'Chr',
-    featureName: 'Name',
-    featureId: 'Id',
-    source: 'source',
-    featureType: 'Type',
-    startIndex: 'Start',
-    endIndex: 'End',
-    strand: 'Strand',
-    info: 'Info',
-    molecularView: 'Molecular View'
+    [`${DEFAULT_PREFIX}chromosome`]: 'Chr',
+    [`${DEFAULT_PREFIX}featureName`]: 'Name',
+    [`${DEFAULT_PREFIX}featureId`]: 'Id',
+    [`${DEFAULT_PREFIX}featureType`]: 'Type',
+    [`${DEFAULT_PREFIX}startIndex`]: 'Start',
+    [`${DEFAULT_PREFIX}endIndex`]: 'End',
+    [`${DEFAULT_PREFIX}strand`]: 'Strand',
+    [`${DEFAULT_PREFIX}info`]: 'Info',
+    [`${DEFAULT_PREFIX}featureFileId`]: 'FeatureFileId',
+    [`${DEFAULT_PREFIX}source`]: 'Source',
+    [`${DEFAULT_PREFIX}score`]: 'Score',
+    [`${DEFAULT_PREFIX}frame`]: 'Frame'
 };
 const PAGE_SIZE = 100;
 const MAX_VISIBLE_PAGES = 3;
 const blockFilterGenesTimeout = 500;
-const DEFAULT_PREFIX = 'ngb_default_';
 
 export default class ngbGenesTableService {
 
@@ -168,22 +170,37 @@ export default class ngbGenesTableService {
         return DEFAULT_GENES_COLUMNS.concat(SERVICE_GENES_COLUMNS);
     }
 
-    get defaultPrefix() {
-        return DEFAULT_PREFIX;
+    get prefixedDefaultGenesColumns() {
+        return this.prefixColumns(this.defaultGenesColumns);
     }
 
-    getColumnName(column) {
-        return this.defaultGenesColumns.includes(column) ? this.defaultPrefix + column : column;
+    get nonAttributeColumns() {
+        return this.defaultGenesColumns.concat(OPTIONAL_GENE_COLUMNS);
     }
-    getColumnOriginalName(column) {
-        return column.startsWith(this.defaultPrefix) ? column.substring(this.defaultPrefix.length) : column;
+
+    get prefixedNonAttributeColumns() {
+        return this.prefixColumns(this.nonAttributeColumns);
     }
 
     get genesTableColumns() {
         if (!localStorage.getItem('genesTableColumns') || localStorage.getItem('genesTableColumns') === '[]') {
-            localStorage.setItem('genesTableColumns', JSON.stringify(this.defaultGenesColumns));
+            localStorage.setItem('genesTableColumns', JSON.stringify(this.prefixedDefaultGenesColumns));
         }
         return JSON.parse(localStorage.getItem('genesTableColumns'));
+    }
+
+    get defaultPrefix() {
+        return DEFAULT_PREFIX;
+    }
+
+    getColumnOriginalName(column) {
+        return column.startsWith(this.defaultPrefix) ? column.substring(this.defaultPrefix.length) : column;
+    }
+
+    prefixColumns(columns = []) {
+        const result = [];
+        columns.forEach(c => result.push(this.nonAttributeColumns.includes(c) ? this.defaultPrefix + c : c));
+        return result;
     }
 
     set genesTableColumns(columns) {
@@ -220,10 +237,10 @@ export default class ngbGenesTableService {
             return;
         }
         this.genomeDataService.getGenesInfo(this.projectContext.reference.id).then(data => {
-            this._optionalGenesColumns = OPTIONAL_GENE_COLUMNS.concat(data.availableFilters);
-            this.genesTableColumns = DEFAULT_GENES_COLUMNS
+            this._optionalGenesColumns = this.prefixColumns(OPTIONAL_GENE_COLUMNS).concat(data.availableFilters);
+            this.genesTableColumns = this.prefixColumns(DEFAULT_GENES_COLUMNS)
                 .concat(this.genesTableColumns.filter(c => this._optionalGenesColumns.includes(c)))
-                .concat(SERVICE_GENES_COLUMNS);
+                .concat(this.prefixColumns(SERVICE_GENES_COLUMNS));
             this.dispatcher.emit('genes:info:loaded');
         });
         this.genomeDataService.filterGeneValues(this.projectContext.reference.id, 'featureType').then(data => {
@@ -245,14 +262,14 @@ export default class ngbGenesTableService {
 
     getRequestFilter(isScrollTop) {
         const filter = {
-            chromosomeIds: this.genesFilter.chromosome || [],
-            startIndex: this.genesFilter.startIndex,
-            endIndex: this.genesFilter.endIndex,
-            featureNames: this.genesFilter.featureName || [],
-            featureId: this.genesFilter.featureId,
-            featureTypes: this.genesFilter.featureType || [],
+            chromosomeIds: this.genesFilter[`${this.defaultPrefix}chromosome`] || [],
+            startIndex: this.genesFilter[`${this.defaultPrefix}startIndex`],
+            endIndex: this.genesFilter[`${this.defaultPrefix}endIndex`],
+            featureNames: this.genesFilter[`${this.defaultPrefix}featureName`] || [],
+            featureId: this.genesFilter[`${this.defaultPrefix}featureId`],
+            featureTypes: this.genesFilter[`${this.defaultPrefix}featureType`] || [],
             additionalFilters: this.genesFilter.additionalFilters || {},
-            attributesFields: this.genesTableColumns.filter(c => !this.defaultGenesColumns.includes(c)),
+            attributesFields: this.genesTableColumns.filter(c => !this.prefixedDefaultGenesColumns.includes(c)),
             pageSize: this.genesPageSize,
             pointer: isScrollTop ? this.prevPagePointer : this.nextPagePointer,
             orderBy: (this.orderByGenes || []).map(config => ({
@@ -340,8 +357,11 @@ export default class ngbGenesTableService {
 
     downloadFile(reference, format, includeHeader) {
         const exportFields = this.genesTableColumns
-            .filter(column => column !== 'info')
-            .map(column => SERVER_COLUMN_NAMES[column] || column);
+            .filter(column => this.prefixColumns(SERVICE_GENES_COLUMNS).includes(column))
+            .map(column => {
+                const c = this.getColumnOriginalName(column);
+                return SERVER_COLUMN_NAMES[c] || c;
+            });
         const filter = this.getRequestFilter(false);
         delete filter.pointer;
         return this.genomeDataService.downloadGenes(
@@ -377,7 +397,7 @@ export default class ngbGenesTableService {
                 }
             }
             switch (column) {
-                case 'info': {
+                case `${this.defaultPrefix}info`: {
                     columnSettings = {
                         cellTemplate: infoCell,
                         enableSorting: false,
@@ -391,7 +411,7 @@ export default class ngbGenesTableService {
                     };
                     break;
                 }
-                case 'featureType': {
+                case `${this.defaultPrefix}featureType`: {
                     columnSettings = {
                         cellTemplate: `<div class="md-label variation-type"
                                     ng-style="grid.appScope.$ctrl.getStyle(COL_FIELD)"
@@ -420,13 +440,12 @@ export default class ngbGenesTableService {
                     break;
                 }
                 default: {
-                    const columnName = this.getColumnName(column);
-                    const displayName = this.getColumnDisplayName(columnName, column);
+                    const displayName = this.getColumnDisplayName(column);
                     columnSettings = {
-                        enableHiding: !this.defaultGenesColumns.includes(column),
+                        enableHiding: !this.prefixedDefaultGenesColumns.includes(column),
                         enableFiltering: true,
                         enableSorting: true,
-                        field: columnName,
+                        field: column,
                         headerCellTemplate: headerCells,
                         headerTooltip: displayName,
                         minWidth: 40,
@@ -457,9 +476,9 @@ export default class ngbGenesTableService {
         return result;
     }
 
-    getColumnDisplayName(columnName, column) {
+    getColumnDisplayName(column) {
         let result = this.genesColumnTitleMap[column] || column;
-        if (this.optionalGenesColumns.includes(columnName)) {
+        if (!this.prefixedNonAttributeColumns.includes(column)) {
             result += ' (attr)';
         }
         return result;
@@ -469,7 +488,7 @@ export default class ngbGenesTableService {
         const result = {};
         for (const key in search) {
             if (search.hasOwnProperty(key)) {
-                result[DEFAULT_GENES_COLUMNS.includes(key) ? this.defaultPrefix + key : key] = search[key];
+                result[this.nonAttributeColumns.includes(key) ? this.defaultPrefix + key : key] = search[key];
             }
         }
         delete result.attributes;
@@ -489,14 +508,14 @@ export default class ngbGenesTableService {
     }
 
     genesFieldIsFiltered(fieldName) {
-        return this.defaultGenesColumns.includes(fieldName)
-            ? this.genesFilter[this.defaultPrefix + fieldName] !== undefined
+        return this.prefixedDefaultGenesColumns.includes(fieldName)
+            ? this.genesFilter[fieldName] !== undefined
             : this.genesFilter.additionalFilters[fieldName] !== undefined;
     }
 
     clearGeneFieldFilter(fieldName) {
-        if (this.defaultGenesColumns.includes(fieldName)) {
-            this.genesFilter[this.defaultPrefix + fieldName] = undefined;
+        if (this.prefixedDefaultGenesColumns.includes(fieldName)) {
+            this.genesFilter[fieldName] = undefined;
         } else {
             this.genesFilter.additionalFilters[fieldName] = undefined;
         }

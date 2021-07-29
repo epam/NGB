@@ -4,10 +4,9 @@ export default class ngbGenesFilterInputController {
 
     constructor(ngbGenesTableService) {
         this.ngbGenesTableService = ngbGenesTableService;
-        this.column = this.ngbGenesTableService.getColumnOriginalName(this.field.field);
-        this.prevValue = this.value = this.ngbGenesTableService.defaultGenesColumns.includes(this.column)
-            ? this.ngbGenesTableService.genesFilter[this.column]
-            : this.ngbGenesTableService.genesFilter.additionalFilters[this.column];
+        this.prevValue = this.value = this.ngbGenesTableService.prefixedDefaultGenesColumns.includes(this.field.field)
+            ? this.ngbGenesTableService.genesFilter[this.field.field]
+            : this.ngbGenesTableService.genesFilter.additionalFilters[this.field.field];
     }
 
     static get UID() {
@@ -20,11 +19,11 @@ export default class ngbGenesFilterInputController {
         }
         if (this.prevValue !== this.value) {
             this.prevValue = this.value;
-            if (this.ngbGenesTableService.defaultGenesColumns.includes(this.column)) {
-                this.ngbGenesTableService.genesFilter[this.column]
+            if (this.ngbGenesTableService.prefixedDefaultGenesColumns.includes(this.field.field)) {
+                this.ngbGenesTableService.genesFilter[this.field.field]
                     = (this.value && this.value.length) ? this.value : undefined;
             } else {
-                this.ngbGenesTableService.genesFilter.additionalFilters[this.column] =
+                this.ngbGenesTableService.genesFilter.additionalFilters[this.field.field] =
                     (this.value && this.value.length) ? this.value : undefined;
             }
             this.ngbGenesTableService.scheduleFilterGenes();

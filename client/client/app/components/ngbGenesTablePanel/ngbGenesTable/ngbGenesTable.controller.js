@@ -9,6 +9,7 @@ export default class ngbGenesTableController extends baseController {
     projectContext;
     isProgressShown = true;
     isInitialized = false;
+    reloading = false;
     isEmptyResult = false;
     errorMessageList = [];
     geneLoadError = null;
@@ -159,12 +160,16 @@ export default class ngbGenesTableController extends baseController {
 
     async appendData(isScrollTop, isReload) {
         try {
+            if (isReload) {
+                this.reloading = true;
+            }
             const data = await this.ngbGenesTableService.loadGenes(
                 this.projectContext.reference.id,
                 isScrollTop
             );
             if (isReload) {
                 this.gridOptions.data = [];
+                this.reloading = false;
             }
             if (this.ngbGenesTableService.genesTableError) {
                 this.geneLoadError = this.ngbGenesTableService.genesTableError;
@@ -245,11 +250,9 @@ export default class ngbGenesTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            const {
-                startIndex,
-                endIndex,
-                chromosomeObj
-            } = entity;
+            const chromosomeObj = entity.chromosomeObj,
+                endIndex = entity[`${this.ngbGenesTableService.defaultPrefix}endIndex`],
+                startIndex = entity[`${this.ngbGenesTableService.defaultPrefix}startIndex`];
             if (chromosomeObj && chromosomeObj.id && startIndex && endIndex) {
                 const range = Math.abs(endIndex - startIndex);
                 const start = Math.min(startIndex, endIndex) - range / 10.0;

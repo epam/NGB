@@ -14,3 +14,15 @@
 .no-records-warning {
   color: #999;
 }
+.genes-load-error-container {
+  background-color: #ffe1b2;
+  width: 100%;
+  padding: 5px;
+  text-align: center;
+}
+.genes-reloading-container {
+   background-color: lightgray;
+   width: 100%;
+   padding: 5px;
+   text-align: center;
+ }

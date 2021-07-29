@@ -15,8 +15,11 @@
 <div class="ui-grid-container"
      ng-hide="$ctrl.errorMessageList.length"
      ng-if="!$ctrl.isEmptyResults && $ctrl.isInitialized && !$ctrl.isProgressShown">
-    <div class="variants-load-error-container" ng-if="$ctrl.geneLoadError">
+    <div class="genes-load-error-container" ng-if="$ctrl.geneLoadError">
         <small>{{$ctrl.geneLoadError}}</small>
+    </div>
+    <div class="genes-reloading-container" ng-if="$ctrl.reloading">
+        <small>Reloading...</small>
     </div>
     <div ng-class="{'filters-not-displayed': !$ctrl.ngbGenesTableService.displayGenesFilter}"
          ui-grid="$ctrl.gridOptions"
