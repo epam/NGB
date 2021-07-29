@@ -132,13 +132,6 @@ export default class ngbGenesTableService {
     }
 
     _geneTypeList = [];
-
-    _genesFilterIsDefault = true;
-
-    get genesFilterIsDefault() {
-        return this._genesFilterIsDefault;
-    }
-
     _displayGenesFilter;
 
     get displayGenesFilter() {
@@ -505,8 +498,20 @@ export default class ngbGenesTableService {
 
     refreshGenesFilterEmptyStatus() {
         const {additionalFilters, ...defaultFilters} = this.genesFilter;
-        const additionalFiltersAreEmpty = Object.entries(additionalFilters).every(field => !field[1]);
-        const defaultFiltersAreEmpty = Object.entries(defaultFilters).every(field => field[1] === undefined);
+        const additionalFiltersAreEmpty = Object.entries(additionalFilters).every(field => {
+            if (typeof field[1] === 'object') {
+                return !Object.keys(field[1]).length;
+            } else {
+                return field[1] === undefined;
+            }
+        });
+        const defaultFiltersAreEmpty = Object.entries(defaultFilters).every(field => {
+            if (typeof field[1] === 'object') {
+                return !Object.keys(field[1]).length;
+            } else {
+                return field[1] === undefined;
+            }
+        });
         this.projectContext.genesFilterIsDefault = additionalFiltersAreEmpty && defaultFiltersAreEmpty;
     }
 
