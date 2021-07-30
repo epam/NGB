@@ -32,4 +32,4 @@ Test verifies
 | 19 | Click **Download** button||
 | 20 |Select a location on computer where to download the file and save it|The table data is automatically downloaded on computer in selected format (CSV)|
 | 21|Open downloaded file| File is successfully opened with the following format of name: **GENES-97.tsv**, <br> where '97' = 'referenceid'|
-| 22 | Look at data in the file| <li> No row headers in the file <li> Downloaded file is contained only data according all "configured" settings in 5-8 steps <li> No **Info** values in the file|
+| 22 | Look at data in the file| <li> No row headers in the file <li> Downloaded file is contained only data according all "configured" settings in 5-8 steps <li> No **Info** values in the file.|

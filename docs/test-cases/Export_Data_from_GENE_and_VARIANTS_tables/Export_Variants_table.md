@@ -32,4 +32,4 @@ Test verifies
 | 18 | Click **Download** button||
 | 19 |Select a location on computer where to download the file and save it|The table data is automatically downloaded on computer in selected format (CSV)|
 | 20|Open downloaded file| File is successfully opened with the following format of name: **VariantsTable-1.csv**, <br> where '97' = 'referenceid'|
-| 21 | Look at data in the file| <li> No row headers in the file <li> Downloaded file is contained only data according all "configured" settings in 5-8 steps <li> No **Info** values in the file|
+| 21 | Look at data in the file| <li> No row headers in the file <li> Downloaded file is contained only data according all "configured" settings in 5-8 steps <li> No **Info** values in the file.|
