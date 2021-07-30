@@ -15,6 +15,7 @@ import ngbInfoService from './ngbFeatureInfo.service';
 import ngbInfoController from './ngbFeatureInfo.controller';
 import ngbFeatureInfoComponent from './ngbFeatureInfo.component';
 import ngbFeatureInfoPanelService from  '../ngbFeatureInfoPanel.service';
+import ngbInfoNewRowComponent from './ngbInfoRows/ngbInfoNewRow.component';
 
 import dataServices from '../../../../dataServices/angular-module';
 import ngbFeatureInfoMainController from './ngbFeatureInfoMain/ngbFeatureInfoMain.controller';
@@ -32,4 +33,5 @@ export default angular.module('ngbFeatureInfo' , [ dataServices ])
     .component('ngbInfoTable', ngbInfoTable)
     .component('ngbFeatureInfoMain', ngbFeatureInfoMainComponent)
     .component('ngbFeatureInfo', ngbFeatureInfoComponent)
+    .component('ngbInfoNewRow', ngbInfoNewRowComponent)
     .name;

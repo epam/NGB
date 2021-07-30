@@ -110,13 +110,18 @@ export default class ngbFeatureInfoMainController {
     }
 
     onClickSaveBtn () {
+        this.ngbFeatureInfoPanelService.saveNewAttributes();
+        console.log(this.ngbFeatureInfoPanelService.newAttributes);
         this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
         this.ngbFeatureInfoPanelService.hasInfoHistory = true;
-        this.properties = this.ngbFeatureInfoPanelService.newAttributes;
+        this.ngbFeatureInfoPanelService.attributeDraft = null;
+        this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
+            .map(newAttribute => [newAttribute.name, newAttribute.value])];
     }
 
     onClickCancelBtn () {
         this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
         this.ngbFeatureInfoPanelService.newAttributes = null;
+        this.ngbFeatureInfoPanelService.attributeDraft = null;
     }
 }

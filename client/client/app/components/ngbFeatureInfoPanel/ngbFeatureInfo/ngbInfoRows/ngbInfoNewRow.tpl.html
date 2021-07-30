@@ -1,0 +1,36 @@
+<div layout="row"
+     layout-wrap
+     class="property-row attribute-draft"
+    >
+    <div flex="30"
+         layout="row"
+         layout-wrap
+    >
+        <div flex="3" class="remove-btn-container">
+            <md-button
+                class="remove-btn"
+                ng-click="$ctrl.onClickRemoveNewAttribute()"
+                aria-label="Remove"
+                title="Remove attribute">
+                <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;">
+                </ng-md-icon>
+            </md-button>
+        </div>
+        <div flex="27">
+            <input type="string"
+                   name="newAttributeName"
+                   ng-required="true"
+                   class="property property-name editable"
+                   ng-model="attributeName"
+                   ng-change="$ctrl.onChangeNewAttrubuteName(attributeName)"/>
+        </div>
+    </div>
+    <div flex="70">
+        <input type="string"
+               name="newAttributeValue"
+               ng-required="true"
+               ng-model="attributeValue"
+               class="property property-value editable"
+               ng-change="$ctrl.onChangeNewAttrubuteValue(attributeValue)"/>
+    </div>
+</div>

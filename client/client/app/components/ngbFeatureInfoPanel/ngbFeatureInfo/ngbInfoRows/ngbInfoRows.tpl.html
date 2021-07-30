@@ -14,7 +14,7 @@
     <form ng-if="$ctrl.editable" name="attributes" class="general-information-form">
         <div flex="100"
              ng-repeat="attribute in $ctrl.attributes"
-             ng-if="::attribute[1]"
+             ng-if="::attribute.value"
              layout="row"
              layout-wrap
              class="property-row"
@@ -26,7 +26,7 @@
             >
                 <div flex="27"
                      class="property property-name unremovable">
-                    {{attribute[0]}}
+                    {{attribute.name}}
                 </div>
             </div>
             <div flex="30"
@@ -40,21 +40,34 @@
                         ng-click="$ctrl.onClickRemoveAttribute(attribute)"
                         aria-label="Remove"
                         title="Remove attribute">
-                        <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;"></ng-md-icon>
+                        <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;">
+                        </ng-md-icon>
                     </md-button>
                 </div>
                 <div flex="27"
-                     class="property property-name">
-                    {{attribute[0]}}
+                     class="property property-name"
+                     ng-if="attribute.default">
+                    {{attribute.name}}
+                </div>
+                <div flex="27" ng-if="!attribute.default">
+                    <input type="string"
+                           required
+                           name="attributeName"
+                           class="property property-name editable"
+                           ng-model="attribute.name"
+                           ng-change="$ctrl.onChangeAttribute(attribute)"/>
+                    <span ng-show="attributes.attributeName.$error.empty">
+                        Name should not be empty
+                    </span>
                 </div>
             </div>
             <div flex="70">
                 <div ng-if="!$ctrl.isEditable(attribute)" class="property property-value">
-                    {{attribute[1]}}</div>
+                    {{attribute.value}}</div>
                 <input type="string"
                        ng-if="$ctrl.isEditable(attribute)"
-                       ng-required="true"
-                       ng-model="attribute[1]"
+                       required
+                       ng-model="attribute.value"
                        ng-change="$ctrl.onChangeAttribute(attribute)"
                        class="property property-value editable" />
             </div>
