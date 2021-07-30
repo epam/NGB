@@ -5,18 +5,22 @@ const SERVICE_GENES_COLUMNS = ['info'];
 const OPTIONAL_GENE_COLUMNS = [
     'featureFileId', 'source', 'score', 'frame'
 ];
+const DEFAULT_PREFIX = 'ngb_default_';
 const DEFAULT_ORDERBY_GENES_COLUMNS = {
-    'chromosome': 'CHROMOSOME_NAME',
-    'featureName': 'FEATURE_NAME',
-    'featureId': 'FEATURE_ID',
-    'featureType': 'FEATURE_TYPE',
-    'startIndex': 'START_INDEX',
-    'endIndex': 'END_INDEX',
-    'strand': 'strand'
+    [`${DEFAULT_PREFIX}chromosome`]: 'CHROMOSOME_NAME',
+    [`${DEFAULT_PREFIX}featureName`]: 'FEATURE_NAME',
+    [`${DEFAULT_PREFIX}featureId`]: 'FEATURE_ID',
+    [`${DEFAULT_PREFIX}featureType`]: 'FEATURE_TYPE',
+    [`${DEFAULT_PREFIX}startIndex`]: 'START_INDEX',
+    [`${DEFAULT_PREFIX}endIndex`]: 'END_INDEX',
+    [`${DEFAULT_PREFIX}strand`]: 'STRAND',
+    [`${DEFAULT_PREFIX}featureFileId`]: 'FEATURE_FILE_ID',
+    [`${DEFAULT_PREFIX}source`]: 'SOURCE',
+    [`${DEFAULT_PREFIX}score`]: 'SCORE',
+    [`${DEFAULT_PREFIX}frame`]: 'FRAME',
 };
 
 const SERVER_COLUMN_NAMES = {};
-const DEFAULT_PREFIX = 'ngb_default_';
 const GENES_COLUMN_TITLES = {
     [`${DEFAULT_PREFIX}chromosome`]: 'Chr',
     [`${DEFAULT_PREFIX}featureName`]: 'Name',

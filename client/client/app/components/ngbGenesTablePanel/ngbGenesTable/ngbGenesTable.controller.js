@@ -50,7 +50,7 @@ export default class ngbGenesTableController extends baseController {
     viewDataLength;
     maxViewDataLength;
     events = {
-        'genes:refresh': this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY),
+        'genes:refresh': this.loadGenesWithProgress.bind(this),
         'display:genes:filter': this.refreshScope.bind(this),
         'reference:change': () => {
             this.isInitialized = false;
@@ -59,15 +59,7 @@ export default class ngbGenesTableController extends baseController {
             }
         },
         'genes:values:loaded': this.initialize.bind(this),
-        'gene:files:changed': () => {
-            this.isInitialized = false;
-            if (this.projectContext.reference) {
-                this.isProgressShown = true;
-                this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
-            } else {
-                this.isProgressShown = false;
-            }
-        },
+        'gene:files:changed': this.loadGenesWithProgress.bind(this),
         'genes:restore': this.restoreState.bind(this)
     };
 
@@ -131,6 +123,16 @@ export default class ngbGenesTableController extends baseController {
             }
         });
         this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
+    }
+
+    async loadGenesWithProgress() {
+        this.isInitialized = false;
+        if (this.projectContext.reference) {
+            this.isProgressShown = true;
+            this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
+        } else {
+            this.isProgressShown = false;
+        }
     }
 
     async reloadGenes() {
