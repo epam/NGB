@@ -20,7 +20,9 @@ const DEFAULT_ORDERBY_GENES_COLUMNS = {
     [`${DEFAULT_PREFIX}frame`]: 'FRAME',
 };
 
-const SERVER_COLUMN_NAMES = {};
+const SERVER_COLUMN_NAMES = {
+    featureType: 'feature'
+};
 const GENES_COLUMN_TITLES = {
     [`${DEFAULT_PREFIX}chromosome`]: 'Chr',
     [`${DEFAULT_PREFIX}featureName`]: 'Name',
