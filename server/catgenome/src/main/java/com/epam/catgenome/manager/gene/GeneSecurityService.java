@@ -41,6 +41,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.protein.ProteinSequenceManager;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,9 @@ public class GeneSecurityService {
 
     @Autowired
     private ProteinSequenceManager proteinSequenceManager;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
@@ -139,5 +143,15 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID)
     public ProteinSequence loadProteinSequenceForFeature(final ProteinSequenceConstructRequest request) {
         return proteinSequenceManager.loadProteinSequence(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public GeneHighLevel loadGeneFeatureByUid(final Long fileId, final String uid) {
+        return featureIndexManager.loadGeneFeatureByUid(fileId, uid);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public GeneHighLevel updateGeneFeatureByUid(final Long fileId, final String uid, final GeneHighLevel geneContent) {
+        return featureIndexManager.updateGeneFeatureByUid(fileId, uid, geneContent);
     }
 }
