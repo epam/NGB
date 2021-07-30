@@ -499,7 +499,7 @@ public abstract class AbstractGeneReader {
         }
     }
 
-    private static Gene.Origin getOrigin(GeneFile geneFile) {
+    public static Gene.Origin getOrigin(GeneFile geneFile) {
         GffCodec.GffType type = GffCodec.GffType.forExt(FileManager.getGeneFileExtension(geneFile.getPath()));
         if (GffCodec.GffType.GTF.equals(type) || GffCodec.GffType.COMPRESSED_GTF.equals(type)) {
             return Gene.Origin.GTF;
