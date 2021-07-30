@@ -1,9 +1,8 @@
 export default class ngbFeatureInfoPanelService {
 
-    _isInfoBeingEdited = false;
+    _editMode = false;
     _hasInfoHistory = false;
     attributes = null;
-    _attributeDraft = null;
 
     static instance() {
         return new ngbFeatureInfoPanelService();
@@ -11,12 +10,12 @@ export default class ngbFeatureInfoPanelService {
 
     constructor() {}
 
-    get isInfoBeingEdited () {
-        return this._isInfoBeingEdited;
+    get editMode () {
+        return this._editMode;
     }
 
-    set isInfoBeingEdited (value) {
-        this._isInfoBeingEdited = value;
+    set editMode (value) {
+        this._editMode = value;
     }
 
     get hasInfoHistory () {
@@ -45,16 +44,8 @@ export default class ngbFeatureInfoPanelService {
         }
     }
 
-    get attributeDraft () {
-        return this._attributeDraft;
-    }
-
-    set attributeDraft(draft) {
-        this._attributeDraft = draft ? {...draft} : draft;
-    }
-
     isAttributeDuplicated (newAttribute) {
-        return this.attributes.some(
+        return !this.attributes.some(
             attribute => attribute.name.toLowerCase() === newAttribute.toLowerCase());
     }
 
@@ -82,42 +73,19 @@ export default class ngbFeatureInfoPanelService {
         });
     }
 
-    addAttribute() {
-        const draft = {...this.attributeDraft};
-        const attributes = this.attributes;
-        attributes.push(draft);
-        this.attributeDraft = {};
+    saveNewAttributes () {
+        this.attributes = this.attributes.filter(attribute => attribute.name && attribute.value);
     }
 
-    onChangeNewAttrubuteName(name) {
-        const attribute = {...this.attributeDraft};
-        attribute.name = name;
-        attribute.default = false;
-        this.attributeDraft = attribute;
-    }
-
-    onChangeNewAttrubuteValue(value) {
-        const attribute = {...this.attributeDraft};
-        attribute.value = value;
-        this.attributeDraft = attribute;
-    }
-
-    onClickRemoveNewAttribute() {
-        this.attributeDraft = null;
-    }
-
-    isAttributeValid () {
-        if (this.attributeDraft && this.attributeDraft.name && this.attributeDraft.value) {
-            if (!this.isAttributeDuplicated(this.attributeDraft.name)) {
+    someAttributeIsEmpty () {
+        const attributes = this.newAttributes;
+        return attributes.some(attribute => {
+            if (!attribute.name && !attribute.value) {
+                return attribute.default;
+            }
+            if (!attribute.name || !attribute.value) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    saveNewAttributes () {
-        if (this.isAttributeValid()) {
-            this.addAttribute();
-        }
+        });
     }
 }

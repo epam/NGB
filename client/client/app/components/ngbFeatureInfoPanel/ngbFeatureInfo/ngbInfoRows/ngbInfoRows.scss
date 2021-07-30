@@ -79,6 +79,10 @@
   padding-left: 0px;
 }
 
-.ng-invalid {
-  border-color: red;
+.ng-invalid.ng-dirty.ng-touched {
+  border-color: #F00;
+}
+
+.isEmpty {
+  color: #F00;
 }

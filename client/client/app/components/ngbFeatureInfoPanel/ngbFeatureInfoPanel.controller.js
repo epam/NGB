@@ -16,9 +16,9 @@ export default class ngbFeatureInfoPanelController {
         this.dispatcher.emitGlobalEvent(`feature:info:select:${db}`, {db, featureId: this.geneId});
     }
 
-    get isInfoBeingEdited() {
-        this.$scope.$parent.disableCloseBtn = this.ngbFeatureInfoPanelService.isInfoBeingEdited;
-        return this.ngbFeatureInfoPanelService.isInfoBeingEdited;
+    get editMode() {
+        this.$scope.$parent.disableCloseBtn = this.ngbFeatureInfoPanelService.editMode;
+        return this.ngbFeatureInfoPanelService.editMode;
     }
 
     get hasInfoHistory() {

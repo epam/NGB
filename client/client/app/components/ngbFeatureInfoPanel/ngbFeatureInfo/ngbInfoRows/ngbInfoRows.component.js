@@ -5,6 +5,6 @@ export default {
     controller: controller.UID,
     bindings: {
         properties: '<',
-        editable: '=?'
+        editmode: '=?'
     }
 };

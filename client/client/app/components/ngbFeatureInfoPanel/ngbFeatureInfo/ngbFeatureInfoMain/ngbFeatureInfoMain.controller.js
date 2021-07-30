@@ -100,28 +100,29 @@ export default class ngbFeatureInfoMainController {
         this.$anchorScroll(id);
     }
 
-    get isInfoBeingEdited () {
-        return this.ngbFeatureInfoPanelService.isInfoBeingEdited;
+    get editMode () {
+        return this.ngbFeatureInfoPanelService.editMode;
+    }
+
+    get someAttributeIsEmpty () {
+        return this.ngbFeatureInfoPanelService.someAttributeIsEmpty();
     }
 
     onClickEditBtn () {
-        this.ngbFeatureInfoPanelService.isInfoBeingEdited = true;
+        this.ngbFeatureInfoPanelService.editMode = true;
         this.ngbFeatureInfoPanelService.newAttributes = this.properties;
     }
 
     onClickSaveBtn () {
         this.ngbFeatureInfoPanelService.saveNewAttributes();
-        console.log(this.ngbFeatureInfoPanelService.newAttributes);
-        this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
+        this.ngbFeatureInfoPanelService.editMode = false;
         this.ngbFeatureInfoPanelService.hasInfoHistory = true;
-        this.ngbFeatureInfoPanelService.attributeDraft = null;
         this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
             .map(newAttribute => [newAttribute.name, newAttribute.value])];
     }
 
     onClickCancelBtn () {
-        this.ngbFeatureInfoPanelService.isInfoBeingEdited = false;
+        this.ngbFeatureInfoPanelService.editMode = false;
         this.ngbFeatureInfoPanelService.newAttributes = null;
-        this.ngbFeatureInfoPanelService.attributeDraft = null;
     }
 }

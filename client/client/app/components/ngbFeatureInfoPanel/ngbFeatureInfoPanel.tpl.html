@@ -21,19 +21,19 @@
                                       flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')" ng-disabled="$ctrl.isInfoBeingEdited">
+        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')" ng-disabled="$ctrl.editMode">
             <md-tab-label>NCBI</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ncbi"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')" ng-disabled="$ctrl.isInfoBeingEdited">
+        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')" ng-disabled="$ctrl.editMode">
             <md-tab-label>Ensembl</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ensembl"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')" ng-disabled="$ctrl.isInfoBeingEdited">
+        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')" ng-disabled="$ctrl.editMode">
             <md-tab-label>Uniprot</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="uniprot"></ngb-feature-info>
@@ -41,7 +41,7 @@
         </md-tab>
         <md-tab id="history"
             md-on-select="$ctrl.selectTab('history')"
-            ng-disabled="$ctrl.isInfoBeingEdited"
+            ng-disabled="$ctrl.editMode"
             ng-if="$ctrl.hasInfoHistory">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
