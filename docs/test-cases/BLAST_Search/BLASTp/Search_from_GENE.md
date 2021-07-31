@@ -42,4 +42,3 @@ Test verifies
 | 26| Look at **GRCh38_Genes** track| **UFM1** gene displays in the **GRCh38.Genes** track
 | 27| At the gene-track, select **'Collapsed'** view (if it is not set)||
 | 29| Repeat 8-9 steps for **UFM1** gene on **GRCh38_Genes** track|
-
