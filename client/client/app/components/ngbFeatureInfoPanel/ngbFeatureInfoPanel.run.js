@@ -1,7 +1,7 @@
 export default function run($mdDialog, dispatcher) {
 
 
-    const displayFeatureInfoCallback = (data)=> {
+    const displayFeatureInfoCallback = (data) => {
         $mdDialog.show({
 
             template: require('./ngbFeatureInfoPanelDlg.tpl.html'),
@@ -15,8 +15,7 @@ export default function run($mdDialog, dispatcher) {
                 $scope.read = data.read;
                 if (data.read && data.read.name) {
                     $scope.name = data.read.name;
-                }
-                else if (data.name) {
+                } else if (data.name) {
                     $scope.name = data.name;
                 }
                 $scope.infoForRead = data.infoForRead;

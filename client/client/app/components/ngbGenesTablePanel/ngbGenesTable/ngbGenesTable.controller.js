@@ -341,24 +341,50 @@ export default class ngbGenesTableController extends baseController {
     }
 
     showInfo(entity, event) {
-        const data = {
-            projectId: undefined,
-            chromosomeId: entity.chromosome ? entity.chromosome.id : undefined,
-            startIndex: entity.startIndex,
-            endIndex: entity.endIndex,
-            name: entity.featureName,
-            geneId: entity.featureId,
-            properties: [
-                entity.featureName && ['Gene', entity.featureName],
-                entity.featureId && ['Gene Id', entity.featureId],
-                ['Start', entity.startIndex],
-                ['End', entity.endIndex],
-                entity.chromosome && ['Chromosome', entity.chromosome.name]
-            ].filter(Boolean),
-            referenceId: entity.referenceId,
-            title: entity.featureType
-        };
-        this.dispatcher.emitSimpleEvent('feature:info:select', data);
+        entity.isInfoLoading = true;
+        const defaultPrefix = this.ngbGenesTableService.defaultPrefix;
+        this.ngbGenesTableService.getGeneInfo(
+            entity[`${defaultPrefix}featureFileId`],
+            entity.uuid
+        ).then(
+            data => {
+                delete entity.error;
+                const result = {
+                    projectId: undefined,
+                    chromosomeId: entity[`${defaultPrefix}chromosome`],
+                    startIndex: data.startIndex,
+                    endIndex: data.endIndex,
+                    name: data.featureName,
+                    geneId: data.featureId,
+                    properties: [
+                        ['Gene', entity[`${defaultPrefix}featureName`]],
+                        ['Gene Id', entity[`${defaultPrefix}featureId`]],
+                        ['Start', data.startIndex],
+                        ['End', data.endIndex],
+                        ['Chromosome', entity.chromosomeObj.name],
+                        ['Strand', data.strand],
+                        ['Source', data.source],
+                        ['Score', data.score],
+                        ['Frame', data.frame]
+                    ],
+                    referenceId: entity.referenceId,
+                    title: entity.feature
+                };
+                for (const attr in data.attributes) {
+                    if (data.attributes.hasOwnProperty(attr)) {
+                        result.properties.push([attr, data.attributes[attr]]);
+                    }
+                }
+                result.properties = result.properties.filter(Boolean);
+                this.dispatcher.emitSimpleEvent('feature:info:select', result);
+                entity.isInfoLoading = false;
+            },
+            errorObj => {
+                entity.error = errorObj ? errorObj.error : 'Network error';
+                entity.isInfoLoading = false;
+                this.$timeout(this.$scope.$apply);
+            }
+        );
         event.stopImmediatePropagation();
     }
 
