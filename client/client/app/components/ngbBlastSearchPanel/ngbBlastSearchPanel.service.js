@@ -18,8 +18,21 @@ function scientificNameSorter(a, b) {
 }
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
-        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService);
+    constructor(dispatcher, projectContext, bamDataService, projectDataService,
+        ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
+        Object.assign(
+            this,
+            {
+                dispatcher,
+                projectContext,
+                bamDataService,
+                projectDataService,
+                ngbBlastSearchFormConstants,
+                genomeDataService,
+                geneDataService
+            }
+        );
+        this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
     }
 
     _detailedRead = null;
@@ -44,19 +57,10 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
-        Object.assign(
-            this,
-            {
-                dispatcher,
-                bamDataService,
-                projectDataService,
-                ngbBlastSearchFormConstants,
-                genomeDataService,
-                geneDataService
-            }
-        );
-        this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
+    static instance(dispatcher, projectContext, bamDataService, projectDataService,
+        ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
+        return new ngbBlastSearchService(dispatcher, projectContext, bamDataService,
+            projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService);
     }
 
     async getOrganismList(term, selectedOrganisms = []) {
@@ -89,10 +93,20 @@ export default class ngbBlastSearchService {
             chromosomeId &&
             id
         ) {
+
+            const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
+            const maxQueryLengthProperty = 'query_max_length';
+            const MAX_SIZE = blastSettings &&
+            blastSettings.hasOwnProperty(maxQueryLengthProperty) &&
+            !Number.isNaN(Number(blastSettings[maxQueryLengthProperty]))
+                ? Number(blastSettings[maxQueryLengthProperty])
+                : Infinity;
             const size = endIndex - startIndex;
-            const MAX_SIZE = 100 * 1000;
+
             if (size > MAX_SIZE) {
-                return {};
+                return {
+                    error: `Query maximum length (${MAX_SIZE}bp) exceeded`
+                };
             }
             const blockSize = 10 * 1024; // 10kb;
             const count = Math.ceil(size / blockSize);

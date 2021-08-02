@@ -44,7 +44,7 @@ export default class ngbGenesTableColumnController extends baseController {
     onGenesRestoreViewClick() {
         this.dispatcher.emit('genes:restore');
         this.columnsList.map(
-            column => column.selection = this.ngbGenesTableService.genesTableColumns.includes(column.name));
+            column => column.selection = this.ngbGenesTableService.genesTableColumns.includes(column.value));
         this.addColumnToTable();
     }
 
@@ -59,16 +59,12 @@ export default class ngbGenesTableColumnController extends baseController {
             .filter(value => currentColumns.includes(value));
         const infoFields = this.columnsList
             .filter(column => column.selection === true)
-            .map(m => m.name);
+            .map(c => c.value);
         const [added] = infoFields.filter(i => currentOptionalColumns.indexOf(i) === -1);
         const [removed] = currentOptionalColumns.filter(c => infoFields.indexOf(c) === -1);
         if (added) {
-            if (currentColumns[currentColumns.length - 1] === 'info' || currentColumns[currentColumns.length - 1] === 'molecularView') {
-                if (currentColumns[currentColumns.length - 2] === 'info' || currentColumns[currentColumns.length - 2] === 'molecularView') {
-                    currentColumns.splice(currentColumns.length - 2, 0, added);
-                } else {
-                    currentColumns.splice(currentColumns.length - 1, 0, added);
-                }
+            if (currentColumns[currentColumns.length - 1] === `${this.ngbGenesTableService.defaultPrefix}info`) {
+                currentColumns.splice(currentColumns.length - 1, 0, added);
             } else {
                 currentColumns.push(added);
             }
@@ -87,8 +83,10 @@ export default class ngbGenesTableColumnController extends baseController {
 
     onColumnChange() {
         this.columnsList = [];
-        this.ngbGenesTableService.optionalGenesColumns.forEach(c => this.columnsList.push({name: c}));
+        this.ngbGenesTableService.optionalGenesColumns.forEach(c =>
+            this.columnsList.push({value: c, name: this.ngbGenesTableService.getColumnDisplayName(c)})
+        );
         const infoFields = this.ngbGenesTableService.genesTableColumns;
-        this.columnsList.forEach(m => m.selection = infoFields.indexOf(m.name) >= 0);
+        this.columnsList.forEach(c => c.selection = infoFields.indexOf(c.value) >= 0);
     }
 }

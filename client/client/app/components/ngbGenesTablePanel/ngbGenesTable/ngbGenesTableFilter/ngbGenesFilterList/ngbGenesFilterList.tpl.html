@@ -18,10 +18,10 @@
          ng-if="!$ctrl.listElements.isLoading" ng-repeat="(index, item) in $ctrl.listElements.preLoadedList.model track by $index">
         <md-checkbox aria-label="{{item}} checkbox" ng-checked="$ctrl.itemIsSelected(item)"
                      ng-click="$ctrl.didClickOnItem(item)"
-                     ng-if="!item.placeholder && !item.divider && $ctrl.field.field !== 'gene'">{{$ctrl.listElements.preLoadedList.view[index]}}</md-checkbox>
+                     ng-if="!item.placeholder && !item.divider && $ctrl.field.field !== $ctrl.defaultPrefix + 'featureName'">{{$ctrl.listElements.preLoadedList.view[index]}}</md-checkbox>
         <md-checkbox aria-label="{{item}} checkbox" ng-checked="$ctrl.itemIsSelected(item)"
                      ng-click="$ctrl.didClickOnItem(item)"
-                     ng-if="!item.placeholder && !item.divider && $ctrl.field.field === 'gene'">
+                     ng-if="!item.placeholder && !item.divider && $ctrl.field.field === $ctrl.defaultPrefix + 'featureName'">
             <span class="context-menu-item">{{$ctrl.listElements.preLoadedList.view[index].featureName.toUpperCase()}}</span>
             <span class="context-menu-item-subtitle">{{$ctrl.listElements.preLoadedList.view[index].featureType.toUpperCase()}}, {{$ctrl.listElements.preLoadedList.view[index].featureId.toUpperCase()}}</span>
         </md-checkbox>

@@ -100,10 +100,10 @@ export default class ngbBlastSearchFormController extends baseController {
         this.isProgressShown = true;
         const {request, error} = await this.ngbBlastSearchService.getCurrentSearch();
         this.searchRequest = request;
-        this.errorMessage = error;
-        this.getDBList();
         this.setDefaultAlgorithms();
         this.setDefaultParams();
+        await this.getDBList();
+        this.errorMessage = this.errorMessage || error;
         this.$timeout(() => this.isProgressShown = false);
     }
 
@@ -134,19 +134,18 @@ export default class ngbBlastSearchFormController extends baseController {
         this.searchRequest.threshold = this.searchRequest.threshold || this.defaultParams.evalue;
     }
 
-    getDBList() {
-        this.ngbBlastSearchService.getBlastDBList(this.ngbBlastSearchFormConstants.BLAST_TOOL_DB[this.searchRequest.tool]).then(data => {
-            if (data.error) {
-                this.errorMessage = data.message;
-            } else {
-                this.errorMessage = null;
-                this.dbList = data;
-                if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
-                    this.searchRequest.db = null;
-                }
+    async getDBList() {
+        const data = await this.ngbBlastSearchService.getBlastDBList(this.ngbBlastSearchFormConstants.BLAST_TOOL_DB[this.searchRequest.tool]);
+        if (data.error) {
+            this.errorMessage = data.message;
+        } else {
+            this.errorMessage = null;
+            this.dbList = data;
+            if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
+                this.searchRequest.db = null;
             }
-            this.$timeout(::this.$scope.$apply);
-        });
+        }
+        this.$timeout(::this.$scope.$apply);
     }
 
     onSearch() {

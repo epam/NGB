@@ -8,3 +8,14 @@
 ngb-variants-table .ui-grid-row .ui-grid-cell {
   background-color: inherit !important;
 }
+
+.variants-empty-result-container {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.25;
+  font-size: 3em;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+}

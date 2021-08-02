@@ -3,10 +3,12 @@ export default class ngbGenesTableFilterController {
     isRange = false;
     isString = false;
     isList = false;
+    defaultPrefix = '';
 
     constructor(projectContext, projectDataService, ngbGenesTableService) {
+        this.defaultPrefix = ngbGenesTableService.defaultPrefix;
         switch (this.column.field) {
-            case 'gene': {
+            case `${this.defaultPrefix}featureName`: {
                 this.isList = true;
                 this.list = async (searchText) => {
                     if (!searchText || searchText.length < 2) {
@@ -27,17 +29,17 @@ export default class ngbGenesTableFilterController {
                 };
                 break;
             }
-            case 'type': {
+            case `${this.defaultPrefix}featureType`: {
                 this.isList = true;
                 this.list = ngbGenesTableService.geneTypeList.map(d => d.value.toUpperCase());
                 break;
             }
-            case 'chr': {
+            case `${this.defaultPrefix}chromosome`: {
                 this.isList = true;
                 this.list = projectContext.chromosomes.map(d => d.name.toUpperCase());
                 break;
             }
-            case 'score':
+            case `${this.defaultPrefix}score`:
                 this.isRange = true;
                 break;
             default:

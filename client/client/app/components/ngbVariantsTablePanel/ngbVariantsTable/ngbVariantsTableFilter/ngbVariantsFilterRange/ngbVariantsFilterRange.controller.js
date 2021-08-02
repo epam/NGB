@@ -13,7 +13,7 @@ export default class ngbVariantsFilterRangeController {
 
     constructor(projectContext) {
         this.projectContext = projectContext;
-        let range = null;
+        let range;
         switch (this.field.field) {
             case 'startIndex': {
                 this.placeholderFrom = 'From';
@@ -28,8 +28,8 @@ export default class ngbVariantsFilterRangeController {
             } break;
         }
         range = range || [null, null];
-        this.prevValueFrom = this.valueFrom = range[0] || null;
-        this.prevValueTo = this.valueTo = range[1] || null;
+        this.prevValueFrom = this.valueFrom = isNaN(range[0]) || range[0] === null ? null : range[0];
+        this.prevValueTo = this.valueTo = isNaN(range[1]) || range[1] === null ? null : range[1];
     }
 
     apply() {
@@ -37,7 +37,7 @@ export default class ngbVariantsFilterRangeController {
             return;
         }
         let shouldUpdate = false;
-        let range = [this.prevValueFrom, this.prevValueTo];
+        const range = [this.prevValueFrom, this.prevValueTo];
         if (this.prevValueFrom !== this.valueFrom) {
             if (!this.valueFrom || !this.valueFrom.length) {
                 this.valueFrom = null;

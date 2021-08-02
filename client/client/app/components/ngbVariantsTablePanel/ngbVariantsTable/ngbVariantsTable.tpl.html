@@ -14,12 +14,16 @@
              ui-grid-infinite-scroll
              ng-class="{'filters-not-displayed': !$ctrl.projectContext.displayVariantsFilter}"
         ></div>
+        <div class="variants-empty-result-container"
+             ng-if="false">
+            <md-content class="no-records-warning"
+                        flex>
+                <span>No records found.</span>
+            </md-content>
+        </div>
     </div>
 
     <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
         <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
     </div>
 </div>
-
-
-

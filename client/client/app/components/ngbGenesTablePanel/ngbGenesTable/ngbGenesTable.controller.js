@@ -1,17 +1,21 @@
+import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
+const RELOAD_GENES_DELAY = 300;
 
 export default class ngbGenesTableController extends baseController {
     dispatcher;
     projectContext;
-    isLoading = false;
     isProgressShown = true;
+    isInitialized = false;
+    reloading = false;
     isEmptyResult = false;
     errorMessageList = [];
     geneLoadError = null;
     displayGenesFilter = false;
-    geneTypeColor = {};
+    oldReferenceId;
+    debounce = (new Debounce()).debounce;
     gridOptions = {
         enableFiltering: false,
         enableGridMenu: false,
@@ -46,11 +50,16 @@ export default class ngbGenesTableController extends baseController {
     viewDataLength;
     maxViewDataLength;
     events = {
-        'genes:refresh': this.reloadGenes.bind(this),
+        'genes:refresh': this.loadGenesWithProgress.bind(this),
         'display:genes:filter': this.refreshScope.bind(this),
-        'reference:change': this.initialize.bind(this),
+        'reference:change': () => {
+            this.isInitialized = false;
+            if (this.projectContext.reference) {
+                this.isProgressShown = true;
+            }
+        },
         'genes:values:loaded': this.initialize.bind(this),
-        'dataset:selection:change': this.initialize.bind(this),
+        'gene:files:changed': this.loadGenesWithProgress.bind(this),
         'genes:restore': this.restoreState.bind(this)
     };
 
@@ -78,9 +87,6 @@ export default class ngbGenesTableController extends baseController {
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
         this.initEvents();
     }
-
-    getColor = () => {
-    };
 
     static get UID() {
         return 'ngbGenesTableController';
@@ -116,51 +122,63 @@ export default class ngbGenesTableController extends baseController {
                 this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.getDataUp.bind(this));
             }
         });
-        this.reloadGenes();
+        this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
+    }
+
+    async loadGenesWithProgress() {
+        this.isInitialized = false;
+        if (this.projectContext.reference) {
+            this.isProgressShown = true;
+            this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
+        } else {
+            this.isProgressShown = false;
+        }
     }
 
     async reloadGenes() {
-        if (this.isLoading) {
-            return;
-        }
-        this.isProgressShown = true;
         this.errorMessageList = [];
         this.geneLoadError = undefined;
         this.isEmptyResults = false;
-        this.gridOptions.data = [];
         this.ngbGenesTableService.resetPagination();
         if (this.gridApi) {
             this.gridApi.infiniteScroll.setScrollDirections(false, false);
-            this.$timeout(() => {
-                this.gridApi.infiniteScroll.resetScroll(false, false);
-            });
         }
-        return this.getDataDown();
+        if (!this.projectContext.reference) {
+            this.isProgressShown = false;
+        } else {
+            this.oldReferenceId = this.projectContext.reference.id;
+            this.isInitialized = true;
+            return this.getDataDown(true);
+        }
     }
 
-    async getDataDown() {
-        return this.appendData(false);
+    async getDataDown(isReload) {
+        return this.appendData(false, isReload);
     }
 
     async getDataUp() {
         return this.appendData(true);
     }
 
-    async appendData(isScrollTop) {
-        if (!this.projectContext.reference) {
-            return;
-        }
-        this.isLoading = true;
+    async appendData(isScrollTop, isReload) {
         try {
+            if (isReload) {
+                this.reloading = true;
+            }
             const data = await this.ngbGenesTableService.loadGenes(
                 this.projectContext.reference.id,
                 isScrollTop
             );
-            this.isLoading = false;
+            if (isReload) {
+                this.gridOptions.data = [];
+                this.reloading = false;
+            }
             if (this.ngbGenesTableService.genesTableError) {
                 this.geneLoadError = this.ngbGenesTableService.genesTableError;
                 this.gridOptions.data = [];
                 this.isEmptyResults = false;
+                this.isProgressShown = false;
+                this.isInitialized = true;
             } else if (data.length) {
                 this.geneLoadError = null;
                 this.gridOptions.columnDefs = this.ngbGenesTableService.getGenesGridColumns();
@@ -176,17 +194,18 @@ export default class ngbGenesTableController extends baseController {
                     this.ngbGenesTableService.lastPage += 1;
                 }
                 this.viewDataLength = viewData.length;
-                if (this.gridApi) {
-                    this.gridApi.infiniteScroll.saveScrollPercentage();
-                }
                 this.gridOptions.data = viewData;
                 if (!this.defaultState && this.gridApi) {
                     this.defaultState = this.gridApi.saveState.save();
                 }
             } else if (!this.gridOptions.data.length) {
                 this.isEmptyResults = true;
+                this.isProgressShown = false;
+                this.isInitialized = true;
             }
-            this.isProgressShown = false;
+            if (this.isInitialized) {
+                this.isProgressShown = false;
+            }
             if (this.gridApi) {
                 return this.gridApi.infiniteScroll.dataLoaded(
                     this.ngbGenesTableService.firstPage > 0,
@@ -219,6 +238,7 @@ export default class ngbGenesTableController extends baseController {
             }
         } catch (errorObj) {
             this.isProgressShown = false;
+            this.isInitialized = true;
             this.onError(errorObj.message);
             this.$timeout(::this.$scope.$apply);
             return this.gridApi.infiniteScroll.dataLoaded();
@@ -232,17 +252,15 @@ export default class ngbGenesTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            const {
-                startIndex,
-                endIndex,
-                chromosome
-            } = entity;
-            if (chromosome && chromosome.id && startIndex && endIndex) {
+            const chromosomeObj = entity.chromosomeObj,
+                endIndex = entity[`${this.ngbGenesTableService.defaultPrefix}endIndex`],
+                startIndex = entity[`${this.ngbGenesTableService.defaultPrefix}startIndex`];
+            if (chromosomeObj && chromosomeObj.id && startIndex && endIndex) {
                 const range = Math.abs(endIndex - startIndex);
                 const start = Math.min(startIndex, endIndex) - range / 10.0;
                 const end = Math.max(startIndex, endIndex) + range / 10.0;
                 this.projectContext.changeState({
-                    chromosome,
+                    chromosome: chromosomeObj,
                     viewport: {
                         start,
                         end
@@ -302,7 +320,6 @@ export default class ngbGenesTableController extends baseController {
             this.ngbGenesTableService.orderByGenes = null;
         }
 
-        this.gridOptions.data = [];
         const sortingConfiguration = sortColumns
             .filter(column => !!column.sort)
             .map((column, priority) => ({

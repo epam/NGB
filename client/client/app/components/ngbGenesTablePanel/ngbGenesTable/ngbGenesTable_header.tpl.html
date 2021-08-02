@@ -7,6 +7,7 @@
         <div flex>
             <md-button class="ui-grid-cell-contents ui-grid-header-cell-primary-focus" col-index="renderIndex"
                        tabindex="0">
+                <md-tooltip>{{col.displayName}}</md-tooltip>
                 <span class="ui-grid-header-cell-label"
                       ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName }}</span>
                 <span aria-label="{{getSortDirectionAriaLabel()}}" ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"

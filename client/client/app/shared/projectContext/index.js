@@ -1038,7 +1038,8 @@ export default class projectContext {
                 referenceDidChange,
                 tracksStateDidChange,
                 viewportDidChange,
-                blatRegionDidChange
+                blatRegionDidChange,
+                geneFilesDidChanged
             } = result;
             let stateChanged = false;
             if (referenceDidChange) {
@@ -1073,6 +1074,9 @@ export default class projectContext {
             }
             if (datasetsUpdated) {
                 this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
+            }
+            if (geneFilesDidChanged) {
+                this.dispatcher.emitSimpleEvent('gene:files:changed', null);
             }
             if (stateChanged) {
                 emitEventFn('state:change', this.getCurrentStateObject());
@@ -1282,6 +1286,7 @@ export default class projectContext {
         const {
             referenceDidChange,
             vcfFilesChanged,
+            geneFilesDidChanged,
             recoveredTracksState
         } = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
         const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
@@ -1332,7 +1337,8 @@ export default class projectContext {
             referenceDidChange,
             tracksStateDidChange,
             viewportDidChange,
-            blatRegionDidChange
+            blatRegionDidChange,
+            geneFilesDidChanged
         };
     }
 
@@ -1353,11 +1359,13 @@ export default class projectContext {
 
     async _changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let vcfFilesChanged = false;
+        let geneFilesDidChanged = false;
         let referenceDidChange = false;
         let recoveredTracksState = undefined;
         if (reference !== undefined || tracks !== undefined || tracksState !== undefined) {
             const result = await this._loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
             vcfFilesChanged = result.vcfFilesChanged;
+            geneFilesDidChanged = result.geneFilesDidChanged;
             referenceDidChange = result.referenceDidChange;
             recoveredTracksState = result.recoveredTracksState;
         }
@@ -1371,7 +1379,7 @@ export default class projectContext {
             this._isVariantsInitialized = false;
         }
 
-        return {referenceDidChange, vcfFilesChanged, recoveredTracksState};
+        return {referenceDidChange, vcfFilesChanged, geneFilesDidChanged, recoveredTracksState};
     }
 
     async recoverTracksState(tracksState) {
@@ -1497,8 +1505,9 @@ export default class projectContext {
     async _loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let referenceDidChange = false;
         const oldVcfFiles = this.vcfTracks || [];
+        const oldGeneFiles = this.geneTracks || [];
         if (!reference && !tracks && tracksState && tracksReordering) {
-            return {referenceDidChange, vcfFilesChanged: false, recoveredTracksState: undefined};
+            return {referenceDidChange, vcfFilesChanged: false, geneFilesDidChanged: false, recoveredTracksState: undefined};
         }
         if (tracks || tracksState) {
             if (tracks) {
@@ -1706,7 +1715,17 @@ export default class projectContext {
                 }
             }
         }
-        return {referenceDidChange, vcfFilesChanged, recoveredTracksState: tracksState};
+        let geneFilesDidChanged = oldGeneFiles.length !== this.geneTracks.length;
+        if (!geneFilesDidChanged) {
+            for (let i = 0; i < oldGeneFiles.length; i++) {
+                if (this.geneTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === oldGeneFiles[i].bioDataItemId.toString().toLowerCase()
+                    && t.projectId.toLowerCase() === oldGeneFiles[i].projectId.toLowerCase()).length === 0) {
+                    geneFilesDidChanged = true;
+                    break;
+                }
+            }
+        }
+        return {referenceDidChange, vcfFilesChanged, geneFilesDidChanged, recoveredTracksState: tracksState};
     }
 
     getVcfFileIdsByProject() {
