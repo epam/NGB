@@ -1,6 +1,6 @@
 # Removing Description from Dataset
 Test verifies
- - that the Description file is not displayed in the Browser after removing it from the dataset
+ - that the Description file is not displayed in the Browser after removing it from the dataset.
 
 **Prerequisites**:
 

@@ -1,6 +1,6 @@
-# Adding description to Dataset or Displaying Dataset's Description in Browser
+# Displaying Dataset's Description in Browser
 Test verifies
- - that the Description file is displayed in the Browser when the dataset (with description) (or any file in dataset) is selected. 
+ - that the Description file is displayed in the Browser when the dataset (with description) (or any file in dataset) is selected 
 
 **Prerequisites**:
 

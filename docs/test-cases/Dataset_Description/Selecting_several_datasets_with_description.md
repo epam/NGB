@@ -1,6 +1,6 @@
 # Selecting multiple datasets with description files
 Test verifies
- - that the Description file is displayed in the Browser when the dataset (with description) (or any file in dataset) is selected 
+ - that the Description file is displayed in the Browser when the dataset (with description) (or any file in dataset) is selected. 
 
 **Prerequisites**:
 
@@ -16,5 +16,3 @@ Test verifies
 | 2 | Go to **Datasets** tab| |
 | 3 | Select **SV_Sample1** dataset| <li> Dataset is selected with all related files <li> The browser window displays info from **html** file in **Prerequisites** <li>**Description** value displays in the header of **Browser** panel|
 | 4 | Select **SV_Sample2** dataset| <li> **Summary** view with files list, variant diagrams (for VCF files) is displayed in the Browser window <li> Additional control with **Summary, Description** values don't display in the header of **Browser** panel|
-
-

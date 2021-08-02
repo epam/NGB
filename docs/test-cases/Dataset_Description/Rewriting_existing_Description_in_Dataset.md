@@ -1,6 +1,6 @@
 # Adding description filr to Dataset with  description
 Test verifies
- - that when adding one more description file to the dataset, the old file will be overwritten with the new one
+ - that when adding one more description file to the dataset, the old file will be overwritten with the new one.
 
 **Prerequisites**:
 
