@@ -33,6 +33,7 @@ export default class ngbBlastSearchService {
             }
         );
         this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
+        this.initEvents();
     }
 
     _detailedRead = null;
@@ -61,6 +62,13 @@ export default class ngbBlastSearchService {
         ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
         return new ngbBlastSearchService(dispatcher, projectContext, bamDataService,
             projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService);
+    }
+
+    initEvents() {
+        this.dispatcher.on('read:show:blast', data => {
+            this.currentSearchId = null;
+            this.currentTool = data.tool;
+        });
     }
 
     async getOrganismList(term, selectedOrganisms = []) {
