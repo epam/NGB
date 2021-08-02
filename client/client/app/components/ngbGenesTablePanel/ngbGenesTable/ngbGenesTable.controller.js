@@ -233,9 +233,9 @@ export default class ngbGenesTableController extends baseController {
                             });
                         }
                     }
-                    // this.$scope.$apply();
                 });
             }
+            this.$timeout(this.$scope.$apply);
         } catch (errorObj) {
             this.isProgressShown = false;
             this.isInitialized = true;
