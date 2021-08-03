@@ -369,7 +369,7 @@ export default class ngbGenesTableController extends baseController {
                     ],
                     referenceId: entity.referenceId,
                     title: entity.feature,
-                    fileId: entity.featureFileId,
+                    fileId: entity.ngb_default_featureFileId,
                     feature: data,
                     uuid: entity.uuid
                 };

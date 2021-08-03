@@ -98,6 +98,9 @@ export default class ngbFeatureInfoPanelService {
             if (!attribute.name && !attribute.value) {
                 return attribute.default;
             }
+            if (attribute.default && attribute.deleted && !attribute.value) {
+                return false;
+            }
             if (!attribute.name || !attribute.value) {
                 return true;
             }
@@ -155,6 +158,8 @@ export default class ngbFeatureInfoPanelService {
         return this.geneDataService.putGeneInfoEdition(request)
             .then(result => {
                 if (result) {
+                    this.saveInProgress = false;
+                    this.saveError = null;
                 }
             })
             .catch((error) => {
