@@ -138,7 +138,10 @@ export default class ngbFeatureInfoMainController {
                 return [newAttribute.name, newAttribute.value, newAttribute.deleted || false];
             })];
         const feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
-        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, feature);
+        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, feature)
+            .then(() => {
+                this.ngbFeatureInfoPanelService.saveInProgress = false;
+            });
         this.dispatcher.emitSimpleEvent('feature:info:saved');
     }
 

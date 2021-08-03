@@ -158,7 +158,6 @@ export default class ngbFeatureInfoPanelService {
         return this.geneDataService.putGeneInfoEdition(request)
             .then(result => {
                 if (result) {
-                    this.saveInProgress = false;
                     this.saveError = null;
                 }
             })
