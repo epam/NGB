@@ -134,13 +134,22 @@ export default class ngbFeatureInfoMainController {
         this.ngbFeatureInfoPanelService.saveInProgress = true;
         this.ngbFeatureInfoPanelService.saveNewAttributes();
         this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
-            .map(newAttribute => {
-                return [newAttribute.name, newAttribute.value, newAttribute.deleted || false];
-            })];
-        const feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
-        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, feature)
-            .then(() => {
+            .map(newAttribute => (
+                [
+                    newAttribute.name,
+                    newAttribute.value,
+                    newAttribute.attribute,
+                    newAttribute.deleted || false
+                ]
+            ))];
+        this.feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
+        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, this.feature)
+            .then((success) => {
                 this.ngbFeatureInfoPanelService.saveInProgress = false;
+                if (success) {
+                    this.onClickCancelBtn();
+                }
+                this.$scope.$apply();
             });
         this.dispatcher.emitSimpleEvent('feature:info:saved');
     }

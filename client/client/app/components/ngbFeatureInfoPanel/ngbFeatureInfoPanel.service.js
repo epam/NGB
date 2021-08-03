@@ -37,13 +37,14 @@ export default class ngbFeatureInfoPanelService {
 
     set newAttributes (properties) {
         if (properties) {
-            this.attributes = properties.map(property => {
-                return {
+            this.attributes = properties
+                .filter(property => property[1] !== undefined)
+                .map(property => ({
                     name: property[0],
                     value: property[1],
-                    default: true
-                };
-            });
+                    default: true,
+                    attribute: Boolean(property[2])
+                }));
         } else {
             this.attributes = properties;
         }
@@ -80,30 +81,25 @@ export default class ngbFeatureInfoPanelService {
     changeAttribute(property) {
         const attributes = this.attributes;
         if (!property.default) {
-            return attributes.some(attribute => {
-                if (
-                    attribute.default && !attribute.deleted &&
-                    attribute.name.toLowerCase() === property.name.toLowerCase()
-                ) {
-                    return true;
-                }
-            });
+            return attributes.some(attribute => attribute.default &&
+                !attribute.deleted &&
+                attribute.name.toLowerCase() === property.name.toLowerCase()
+            );
         }
         return false;
     }
 
     someAttributeIsEmpty () {
         const attributes = this.newAttributes;
+        const valueIsEmpty = value => value === undefined || value === null || value === '';
         return attributes.some(attribute => {
-            if (!attribute.name && !attribute.value) {
+            if (!attribute.name && valueIsEmpty(attribute.value)) {
                 return attribute.default;
             }
-            if (attribute.default && attribute.deleted && !attribute.value) {
+            if (attribute.default && attribute.deleted && valueIsEmpty(attribute.value)) {
                 return false;
             }
-            if (!attribute.name || !attribute.value) {
-                return true;
-            }
+            return !attribute.name || valueIsEmpty(attribute.value);
         });
     }
 
@@ -113,39 +109,23 @@ export default class ngbFeatureInfoPanelService {
     }
 
     updateFeatureInfo(feature) {
-        const changes = this.attributes;
-        const attributes = {};
-        changes.map(change => {
-            const validName = change.name[0].toLowerCase() + change.name.slice(1);
-            if (validName === 'start' || validName === 'end') {
+        const updatedFeature = {attributes: {}, ...feature};
+        this.attributes.forEach(change => {
+            if (/^(start|end|chromosome)$/i.test(change.name)) {
                 return;
             }
-            if (change.default) {
-                if (validName in feature) {
-                    if (change.deleted) {
-                        delete feature[validName];
-                    } else {
-                        feature[validName] = change.value;
-                    }
-                } else if (validName === feature.feature) {
-                    if (change.deleted) {
-                        delete feature.name;
-                    } else {
-                        feature.name = change.value;
-                    }
-                } else {
-                    if (!change.deleted) {
-                        attributes[validName] = change.value;
-                    }
-                }
-            } else {
-                if (!this.changeAttribute(change)) {
-                    attributes[validName] = change.value;
-                }
+            const obj = change.attribute
+                ? updatedFeature.attributes
+                : updatedFeature;
+            if (change.deleted && obj.hasOwnProperty(change.name)) {
+                delete obj[change.name];
+            } else if (!change.deleted) {
+                obj[change.name] = Number.isNaN(Number(change.value))
+                    ? change.value
+                    : Number(change.value);
             }
         });
-        feature.attributes = {...attributes};
-        return feature;
+        return updatedFeature;
     }
 
     sendNewGeneInfo (fileId, uuid, geneContent) {
@@ -154,16 +134,16 @@ export default class ngbFeatureInfoPanelService {
             uuid,
             geneContent
         };
-
-        return this.geneDataService.putGeneInfoEdition(request)
-            .then(result => {
-                if (result) {
+        return new Promise((resolve) => {
+            this.geneDataService.putGeneInfoEdition(request)
+                .then(() => {
                     this.saveError = null;
-                }
-            })
-            .catch((error) => {
-                this.saveError = [error];
-                this.saveInProgress = false;
-            });
+                    resolve(true);
+                })
+                .catch((error) => {
+                    this.saveError = [error.message];
+                    resolve(false);
+                });
+        });
     }
 }

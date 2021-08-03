@@ -23,11 +23,15 @@ export default class ngbInfoRowsController {
     }
 
     isEditable (property) {
-        return !UNEDITABLE.includes(property.name);
+        return !/^(start|end|chromosome|strand)$/i.test(property.name);
     }
 
     isRemovable (property) {
-        return !UNREMOVABLE.includes(property.name);
+        return !/^(start|end|chromosome)$/i.test(property.name);
+    }
+
+    valueIsEmpty (value) {
+        return value === undefined || value === '' || value === null;
     }
 
     onClickRemoveAttribute (property) {
@@ -46,7 +50,12 @@ export default class ngbInfoRowsController {
         if (this.attributes && this.attributes.length) {
             const lastAttribute = this.attributes[this.attributes.length - 1];
             if (lastAttribute.name && lastAttribute.value && !this.duplicate) {
-                this.attributes.push({name: '', value: '', default: false});
+                this.attributes.push({
+                    name: '',
+                    value: '',
+                    default: false,
+                    attribute: true
+                });
             }
         }
     }

@@ -74,9 +74,8 @@
 }
 
 .property-name.editable {
-  width: 100px;
-  margin-left: 7px;
-  padding-left: 0px;
+  margin-left: 0;
+  margin-right: 5px;
 }
 
 .ng-invalid.ng-touched {
@@ -85,4 +84,14 @@
 
 .isEmpty {
   color: #F00;
+}
+
+.property-attribute {
+  margin-right: 5px;
+  font-size: x-small;
+  padding: 2px;
+  background-color: #fafafa;
+  border: 1px solid #dddddd;
+  border-radius: 2px;
+  font-weight: normal;
 }

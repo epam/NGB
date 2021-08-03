@@ -349,6 +349,20 @@ export default class ngbGenesTableController extends baseController {
         ).then(
             data => {
                 delete entity.error;
+                const extractProperties = (o, except = []) => Object
+                    .entries(o || {})
+                    .map(([key, value]) => {
+                        if (
+                            o.hasOwnProperty(key) &&
+                            typeof o[key] !== 'object' &&
+                            except.indexOf(key) === -1 &&
+                            o[key] !== undefined
+                        ) {
+                            return [key, value, false];
+                        }
+                        return undefined;
+                    })
+                    .filter(Boolean);
                 const result = {
                     projectId: undefined,
                     chromosomeId: entity[`${defaultPrefix}chromosome`],
@@ -356,29 +370,30 @@ export default class ngbGenesTableController extends baseController {
                     endIndex: data.endIndex,
                     name: data.featureName,
                     geneId: data.featureId,
+                    editable: true,
                     properties: [
-                        ['Gene', entity[`${defaultPrefix}featureName`]],
-                        ['Gene Id', entity[`${defaultPrefix}featureId`]],
-                        ['Start', data.startIndex],
-                        ['End', data.endIndex],
-                        ['Chromosome', entity.chromosomeObj.name],
-                        ['Strand', data.strand],
-                        ['Source', data.source],
-                        ['Score', data.score],
-                        ['Frame', data.frame]
+                        ['start', data.startIndex, false],
+                        ['end', data.endIndex, false],
+                        ['chromosome', entity.chromosomeObj.name, false],
+                        ...extractProperties(data, [
+                            'start',
+                            'end',
+                            'chromosome',
+                            'startIndex',
+                            'endIndex'
+                        ]),
+                        ...Object
+                            .entries(data.attributes || {})
+                            .map(([key, value]) => ([
+                                key, value, true
+                            ]))
                     ],
                     referenceId: entity.referenceId,
                     title: entity.feature,
-                    fileId: entity.ngb_default_featureFileId,
+                    fileId: entity[`${defaultPrefix}featureFileId`],
                     feature: data,
                     uuid: entity.uuid
                 };
-                for (const attr in data.attributes) {
-                    if (data.attributes.hasOwnProperty(attr)) {
-                        result.properties.push([attr, data.attributes[attr]]);
-                    }
-                }
-                result.properties = result.properties.filter(Boolean);
                 this.dispatcher.emitSimpleEvent('feature:info:select', result);
                 entity.isInfoLoading = false;
             },

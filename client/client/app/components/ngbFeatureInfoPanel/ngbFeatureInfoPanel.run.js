@@ -6,6 +6,7 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
 
             template: require('./ngbFeatureInfoPanelDlg.tpl.html'),
             controller: function ($scope) {
+                $scope.editable = data.editable;
                 $scope.properties = data.properties;
                 $scope.referenceId = data.referenceId;
                 $scope.chromosomeId = data.chromosomeId;

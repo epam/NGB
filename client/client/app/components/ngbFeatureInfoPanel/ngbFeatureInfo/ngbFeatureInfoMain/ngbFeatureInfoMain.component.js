@@ -6,6 +6,7 @@ export default  {
         endIndex: '=',
         name: '=',
         properties: '=',
+        editable: '=',
         read: '=',
         referenceId: '=',
         startIndex: '=',

@@ -174,16 +174,19 @@ export class GeneDataService extends DataService {
     putGeneInfoEdition(request) {
         const {fileId, uuid, geneContent} = request;
         return new Promise((resolve, reject) => {
-            const message = 'Gene Data Service: error savind changes';
+            const message = 'Gene Data Service: error saving changes';
             this.put(`gene/${fileId}/doc?uid=${uuid}`, geneContent)
                 .then(data => {
-                    if (data) {
+                    if (data.error) {
+                        reject(new Error(data.error));
+                    } else if (data.payload) {
                         resolve(data.payload);
                     } else {
-                        reject(message);
-                    }})
+                        resolve();
+                    }
+                })
                 .catch(error => {
-                    reject(error || message);
+                    reject(new Error(error.message || message));
                 });
         });
     }

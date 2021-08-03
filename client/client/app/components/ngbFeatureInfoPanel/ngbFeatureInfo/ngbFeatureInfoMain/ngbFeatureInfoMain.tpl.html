@@ -8,7 +8,7 @@
                 <md-button
                     class="general-information-buttons edit-button"
                     ng-class="{'with-tab': $ctrl.tabs}"
-                    ng-if="$ctrl.uuid && !$ctrl.editMode"
+                    ng-if="$ctrl.uuid && $ctrl.editable && !$ctrl.editMode"
                     ng-click="$ctrl.onClickEditBtn()">
                     Edit
                 </md-button>
