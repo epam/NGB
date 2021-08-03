@@ -98,6 +98,9 @@ export default class ngbFeatureInfoPanelService {
             if (!attribute.name && !attribute.value) {
                 return attribute.default;
             }
+            if (attribute.default && attribute.deleted && !attribute.value) {
+                return false;
+            }
             if (!attribute.name || !attribute.value) {
                 return true;
             }
