@@ -44,6 +44,7 @@ export default class ngbVariantTableColumnController extends baseController {
 
     onVariantsRestoreViewClick() {
         this.projectContext.vcfColumns = [];
+        this.columnsList.forEach(m => m.selection = false);
         this.projectContext.orderByVariations = null;
         this.projectContext.setDisplayVariantsFilter(false, false);
         this.addColumnToTable();
