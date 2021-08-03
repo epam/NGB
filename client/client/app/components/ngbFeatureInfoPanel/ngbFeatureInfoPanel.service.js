@@ -116,18 +116,18 @@ export default class ngbFeatureInfoPanelService {
         const changes = this.attributes;
         const attributes = {};
         changes.map(change => {
-            change.name = change.name[0].toLowerCase() + change.name.slice(1);
-            if (change.name === 'start' || change.name === 'end') {
+            const validName = change.name[0].toLowerCase() + change.name.slice(1);
+            if (validName === 'start' || validName === 'end') {
                 return;
             }
             if (change.default) {
-                if (change.name in feature) {
+                if (validName in feature) {
                     if (change.deleted) {
-                        delete feature[change.name];
+                        delete feature[validName];
                     } else {
-                        feature[change.name] = change.value;
+                        feature[validName] = change.value;
                     }
-                } else if (change.name === feature.feature) {
+                } else if (validName === feature.feature) {
                     if (change.deleted) {
                         delete feature.name;
                     } else {
@@ -135,12 +135,12 @@ export default class ngbFeatureInfoPanelService {
                     }
                 } else {
                     if (!change.deleted) {
-                        attributes[change.name] = change.value;
+                        attributes[validName] = change.value;
                     }
                 }
             } else {
                 if (!this.changeAttribute(change)) {
-                    attributes[change.name] = change.value;
+                    attributes[validName] = change.value;
                 }
             }
         });
