@@ -368,7 +368,8 @@ export default class ngbGenesTableController extends baseController {
                         ['Frame', data.frame]
                     ],
                     referenceId: entity.referenceId,
-                    title: entity.feature
+                    title: entity.feature,
+                    fileId: entity.featureFileId
                 };
                 for (const attr in data.attributes) {
                     if (data.attributes.hasOwnProperty(attr)) {

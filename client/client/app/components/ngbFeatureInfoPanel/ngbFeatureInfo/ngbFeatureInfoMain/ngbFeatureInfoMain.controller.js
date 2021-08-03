@@ -25,6 +25,7 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
+        this.uuid = '81ee07f2-b5f4-47a7-b323-3e21f28b6232';
     }
 
     loadSequence() {
@@ -104,8 +105,16 @@ export default class ngbFeatureInfoMainController {
         return this.ngbFeatureInfoPanelService.editMode;
     }
 
-    get someAttributeIsEmpty () {
+    get disableSave () {
         return this.ngbFeatureInfoPanelService.someAttributeIsEmpty();
+    }
+
+    get saveError () {
+        return this.ngbFeatureInfoPanelService.saveError;
+    }
+
+    get saveInProgress () {
+        return this.ngbFeatureInfoPanelService.saveInProgress;
     }
 
     onClickEditBtn () {
@@ -114,15 +123,20 @@ export default class ngbFeatureInfoMainController {
     }
 
     onClickSaveBtn () {
+        this.ngbFeatureInfoPanelService.saveInProgress = true;
         this.ngbFeatureInfoPanelService.saveNewAttributes();
-        this.ngbFeatureInfoPanelService.editMode = false;
-        this.ngbFeatureInfoPanelService.hasInfoHistory = true;
         this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
-            .map(newAttribute => [newAttribute.name, newAttribute.value])];
+            .map(newAttribute => {
+                return [newAttribute.name, newAttribute.value, newAttribute.deleted || false];
+            })];
+        const feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
+        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, feature);
     }
 
     onClickCancelBtn () {
         this.ngbFeatureInfoPanelService.editMode = false;
         this.ngbFeatureInfoPanelService.newAttributes = null;
+        this.ngbFeatureInfoPanelService.saveInProgress = false;
+        this.ngbFeatureInfoPanelService.saveError = null;
     }
 }

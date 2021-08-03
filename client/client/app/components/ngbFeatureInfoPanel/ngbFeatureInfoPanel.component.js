@@ -11,7 +11,9 @@ export default  {
         startIndex: '=',
         geneId: '=',
         infoForRead: '=',
-        panelTitle: '='
+        panelTitle: '=',
+        fileId: '=?',
+        feature: '=?'
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoPanel.tpl.html')

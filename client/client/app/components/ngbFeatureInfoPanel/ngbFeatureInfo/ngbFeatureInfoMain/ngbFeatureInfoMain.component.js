@@ -9,7 +9,9 @@ export default  {
         read: '=',
         referenceId: '=',
         startIndex: '=',
-        infoForRead: '='
+        infoForRead: '=',
+        fileId: '=?',
+        feature: '=?'
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoMain.tpl.html')

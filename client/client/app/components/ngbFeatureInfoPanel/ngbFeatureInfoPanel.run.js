@@ -13,6 +13,8 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
                 $scope.endIndex = data.endIndex;
                 $scope.geneId = data.geneId;
                 $scope.read = data.read;
+                $scope.fileId = data.fileId;
+                $scope.feature = data.feature;
                 if (data.read && data.read.name) {
                     $scope.name = data.read.name;
                 } else if (data.name) {

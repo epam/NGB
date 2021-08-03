@@ -6,6 +6,8 @@
                            end-index="$ctrl.endIndex"
                            read="$ctrl.read"
                            name="$ctrl.name"
+                           file-id="$ctrl.fileId"
+                           feature="$ctrl.feature"
                            info-for-read="$ctrl.infoForRead" flex ng-if="!$ctrl.shouldDisplayGeneInfo"></ngb-feature-info-main>
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
         <md-tab id="gff">
@@ -18,6 +20,8 @@
                                       end-index="$ctrl.endIndex"
                                       read="$ctrl.read"
                                       name="$ctrl.name"
+                                      file-id="$ctrl.fileId"
+                                      feature="$ctrl.feature"
                                       flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>

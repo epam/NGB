@@ -8,6 +8,7 @@ export default class ngbInfoRowsController {
     }
 
     saveRequest = {};
+    duplicate = false;
 
     constructor($scope, ngbFeatureInfoPanelService, $compile) {
         Object.assign(this, {$scope, ngbFeatureInfoPanelService, $compile});
@@ -15,6 +16,10 @@ export default class ngbInfoRowsController {
 
     get attributes () {
         return this.ngbFeatureInfoPanelService.newAttributes;
+    }
+
+    get disableAddButton () {
+        return this.ngbFeatureInfoPanelService.saveInProgress;
     }
 
     isEditable (property) {
@@ -30,14 +35,19 @@ export default class ngbInfoRowsController {
     }
 
     onChangeAttribute (property) {
-        if (property.name && property.value) {
-            this.ngbFeatureInfoPanelService.changeAttribute(property);
+        if (property.name) {
+            const result = this.ngbFeatureInfoPanelService.changeAttribute(property);
+            this.duplicate = result;
+            return result;
         }
     }
 
     onClickAddBtn () {
         if (this.attributes && this.attributes.length) {
-            this.attributes.push({name: '', value: '', default: false});
+            const lastAttribute = this.attributes[this.attributes.length - 1];
+            if (lastAttribute.name && lastAttribute.value && !this.duplicate) {
+                this.attributes.push({name: '', value: '', default: false});
+            }
         }
     }
 }
