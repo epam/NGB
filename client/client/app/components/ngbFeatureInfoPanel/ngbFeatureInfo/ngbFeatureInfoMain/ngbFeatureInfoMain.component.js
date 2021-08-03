@@ -11,7 +11,9 @@ export default  {
         startIndex: '=',
         infoForRead: '=',
         fileId: '=?',
-        feature: '=?'
+        feature: '=?',
+        uuid: '=?',
+        tabs: '=?'
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoMain.tpl.html')

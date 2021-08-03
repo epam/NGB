@@ -13,7 +13,8 @@ export default  {
         infoForRead: '=',
         panelTitle: '=',
         fileId: '=?',
-        feature: '=?'
+        feature: '=?',
+        uuid: '=?'
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoPanel.tpl.html')

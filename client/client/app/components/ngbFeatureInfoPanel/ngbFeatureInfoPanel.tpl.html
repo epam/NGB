@@ -8,6 +8,8 @@
                            name="$ctrl.name"
                            file-id="$ctrl.fileId"
                            feature="$ctrl.feature"
+                           uuid="$ctrl.uuid"
+                           tabs="false"
                            info-for-read="$ctrl.infoForRead" flex ng-if="!$ctrl.shouldDisplayGeneInfo"></ngb-feature-info-main>
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
         <md-tab id="gff">
@@ -22,6 +24,8 @@
                                       name="$ctrl.name"
                                       file-id="$ctrl.fileId"
                                       feature="$ctrl.feature"
+                                      uuid="$ctrl.uuid"
+                                      tabs="true"
                                       flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>

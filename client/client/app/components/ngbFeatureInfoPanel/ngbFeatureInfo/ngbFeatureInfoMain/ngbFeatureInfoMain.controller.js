@@ -9,8 +9,8 @@ export default class ngbFeatureInfoMainController {
     isSequenceLoading = true;
     error = null;
 
-    constructor($scope, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
-        Object.assign(this, {$scope, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
+    constructor($scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
+        Object.assign(this, {$scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
 
         if (!this.read) {
             (async() => {this.loadSequence();})();
@@ -25,8 +25,16 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
-        this.uuid = '81ee07f2-b5f4-47a7-b323-3e21f28b6232';
+        if (!this.uuid) {
+            this.uuid = '81ee07f2-b5f4-47a7-b323-3e21f28b6232';
+        }
     }
+
+    events = {
+        'feature:info:saved': ::this.getUpdatedFeatureInfo,
+    };
+
+    getUpdatedFeatureInfo () {}
 
     loadSequence() {
         this.isSequenceLoading = true;
@@ -131,6 +139,7 @@ export default class ngbFeatureInfoMainController {
             })];
         const feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
         this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, feature);
+        this.dispatcher.emitSimpleEvent('feature:info:saved');
     }
 
     onClickCancelBtn () {

@@ -44,21 +44,26 @@ ngb-feature-info-main{
 
 .general-information-buttons {
   position: absolute;
-  top: 0px;
+  top: 65px;
   margin: 0px;
   font-size: 14px;
   color: #6699ff;
 }
 
 .edit-button {
+  right: 10px;
+}
+
+.cancel-button {
+  right: 10px;
+  color: #494949;
+}
+
+.with-tab {
+  top: 0px;
   right: 0px;
 }
 
 .save-button {
   right: 90px;
-}
-
-.cancel-button {
-  right: 0px;
-  color: #494949;
 }

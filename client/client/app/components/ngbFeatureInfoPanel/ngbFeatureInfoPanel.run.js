@@ -15,6 +15,7 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
                 $scope.read = data.read;
                 $scope.fileId = data.fileId;
                 $scope.feature = data.feature;
+                $scope.uuid = data.uuid;
                 if (data.read && data.read.name) {
                     $scope.name = data.read.name;
                 } else if (data.name) {
