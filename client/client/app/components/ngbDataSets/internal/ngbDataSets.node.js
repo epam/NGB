@@ -60,6 +60,7 @@ export class Node {
     isPlaceholder: Boolean;
 
     filesCount: number;
+    totalFilesCount: number;
     datasetsCount: number;
 
     hint: string;

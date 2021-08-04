@@ -31,7 +31,6 @@ function _preprocessNode(node: Node, parent: Node = null) {
         }
     }
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
-    const isEmpty = reference && node.items.length === 1 && !hasNestedProjects;
     const mapTrackFn = function (track) {
         track.isTrack = true;
         track.project = node;
@@ -44,11 +43,18 @@ function _preprocessNode(node: Node, parent: Node = null) {
         return track;
     };
     node.hint = _getProjectHint(node, reference);
-    const tracks = (node.items || []).map(mapTrackFn);
+    const tracks = (node.items || [])
+        .map(mapTrackFn);
+    const isEmpty = reference && tracks.length === 1 && !hasNestedProjects;
     node._lazyItems = [...(node.nestedProjects || []), ...tracks];
     node.items = [{isPlaceholder: true, searchFilterPassed: false}];
     node.isEmpty = isEmpty;
     node.filesCount = tracks.length - (reference ? 1 : 0);
+    node.totalFilesCount = [
+        ...(node.nestedProjects || []).map(project => project.totalFilesCount),
+        node.filesCount
+    ]
+        .reduce((r, c) => r + c, 0);
     node.datasetsCount = (node.nestedProjects || []).length;
     node.reference = reference;
     node.tracks = tracks;
@@ -178,7 +184,7 @@ export function mapTrackFn(track: Node) {
     return {
         bioDataItemId: track.name,
         duplicateId: track.duplicateId,
-        projectId: track.projectId,
+        projectId: track.projectId || '',
         isLocal: track.isLocal,
         format: track.format
     };
@@ -224,6 +230,19 @@ export function findProjectReference(project: Node) {
         }
     }
     return reference;
+}
+
+export function deSelectAllProjectReferences(datasets: Node[]) {
+    for (let i = 0; i < datasets.length; i++) {
+        const dataset = datasets[i];
+        if (dataset.isProject) {
+            const reference = findProjectReference(dataset);
+            if (reference) {
+                reference.__selected = false;
+            }
+            deSelectAllProjectReferences(dataset.nestedProjects || []);
+        }
+    }
 }
 
 export function expandNode(node: Node) {
