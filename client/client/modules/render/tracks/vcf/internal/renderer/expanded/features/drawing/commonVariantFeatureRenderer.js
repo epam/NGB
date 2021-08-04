@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {drawingConfiguration} from '../../../../../../../core';

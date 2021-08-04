@@ -8,6 +8,7 @@ import {
 } from './drawing';
 import {Sorting, ZonesManager} from '../../../../../utilities';
 import {Viewport} from '../../../../../core';
+import destroyPixiDisplayObjects from '../../../../../utilities/destroyPixiDisplayObjects';
 
 const Math = window.Math;
 
@@ -114,6 +115,7 @@ export default class FeatureRenderer {
         if (features === null || features === undefined)
             return null;
         this.prepareRenderers();
+        this.destroyRegisteredLabels();
         this._labels = [];
         this._dockableLabels = [];
         this._dockableElements = [];
@@ -373,6 +375,17 @@ export default class FeatureRenderer {
                 yDockable
             });
         }
+    }
+
+    destroyRegisteredLabels() {
+        const labelsToDestroy = [
+            ...(this._labels || []).map(i => i.label),
+            ...(this._dockableLabels || []).map(i => i.label)
+        ];
+        (labels => {
+            destroyPixiDisplayObjects(labels, {children: true});
+            labels = null;
+        })(labelsToDestroy);
     }
 
     registerDockableElement(dockableElement, range) {

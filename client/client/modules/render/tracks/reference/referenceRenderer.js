@@ -332,7 +332,10 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         if (reference === null || reference === undefined)
             return;
         const removed = this.dataContainer.removeChildren();
-        destroyPixiDisplayObjects(removed, {children: true});
+        ((items) => {
+            destroyPixiDisplayObjects(items, {children: true});
+            items = null;
+        })(removed);
 
         this._updateNoGCContentLable(viewport, reference);
         switch (reference.mode) {
