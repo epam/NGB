@@ -1,6 +1,3 @@
-const UNEDITABLE = ['Start', 'End', 'Chromosome'];
-const UNREMOVABLE = ['Start', 'End', 'Chromosome', 'Strand'];
-
 export default class ngbInfoRowsController {
 
     static get UID() {
@@ -23,10 +20,6 @@ export default class ngbInfoRowsController {
     }
 
     isEditable (property) {
-        return !/^(start|end|chromosome|strand)$/i.test(property.name);
-    }
-
-    isRemovable (property) {
         return !/^(start|end|chromosome)$/i.test(property.name);
     }
 

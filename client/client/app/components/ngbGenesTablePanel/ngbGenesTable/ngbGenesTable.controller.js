@@ -86,6 +86,7 @@ export default class ngbGenesTableController extends baseController {
         this.getStyle = this.ngbGenesTableService.getStyle(this.ngbGenesTableService);
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
         this.initEvents();
+        this.dispatcher.on('feature:info:saved', this.reloadGenes.bind(this));
     }
 
     static get UID() {
