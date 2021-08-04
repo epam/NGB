@@ -33,6 +33,7 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.externaldb.ChainMinMax;
 import com.epam.catgenome.entity.externaldb.DimEntity;
 import com.epam.catgenome.entity.externaldb.DimStructure;
@@ -60,6 +61,7 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.activity.ActivityService;
 import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import com.epam.catgenome.manager.externaldb.ExtenalDBUtils;
 import com.epam.catgenome.manager.externaldb.PdbDataManager;
@@ -176,6 +178,9 @@ public class GffManager {
 
     @Autowired
     private GenbankManager genbankManager;
+
+    @Autowired
+    private ActivityService activityService;
 
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
@@ -433,6 +438,7 @@ public class GffManager {
         Assert.isTrue(geneFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
         final GeneFile fileToDelete = geneFileManager.load(geneFileId);
 
+        activityService.deleteByFileId(geneFileId);
         geneFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
@@ -1036,6 +1042,11 @@ public class GffManager {
         final List<Record> recordList = pBDataManager.fetchRCSBEntry(pdbID).getRecord();
         final List<Alignment> alignmentList = pBDataManager.fetchPdbMapEntry(pdbID).getAlignment();
         return parseTo(recordList, alignmentList);
+    }
+
+    public List<Activity> loadGeneActivity(final Long fileId, final String uid) {
+        geneFileManager.load(fileId);
+        return activityService.getByItemIdAndUid(fileId, uid);
     }
 
     private DimStructure parseTo(final List<Record> recordList, final List<Alignment> alignmentList) {

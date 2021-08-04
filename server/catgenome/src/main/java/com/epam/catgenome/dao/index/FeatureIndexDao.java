@@ -51,6 +51,7 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.manager.gene.GeneActivityService;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -152,6 +153,9 @@ public class FeatureIndexDao {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
+
+    @Autowired
+    private GeneActivityService geneActivityService;
 
     @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 2L * 1024 * 1024 * 1024}")
     private long luceneIndexMaxSizeForGrouping;
@@ -587,18 +591,8 @@ public class FeatureIndexDao {
             final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
             final Integer docId = documentCreator.findDocumentIdByUid(searcher, uidTerm);
             final Document document = searcher.doc(docId);
-            final GeneIndexEntry entry = documentCreator.buildEntry(document);
 
-            final Set<String> featureIndexFieldNames = Arrays.stream(FeatureIndexFields.values())
-                    .map(FeatureIndexFields::getFieldName)
-                    .collect(Collectors.toSet());
-            final Map<String, String> attributes = document.getFields().stream()
-                    .map(IndexableField::name)
-                    .distinct()
-                    .filter(fieldName -> !featureIndexFieldNames.contains(fieldName))
-                    .collect(Collectors.toMap(Function.identity(), document::get));
-            entry.setAttributes(attributes);
-            return entry;
+            return buildGeneIndexEntry(documentCreator, document);
         } finally {
             for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
@@ -619,7 +613,9 @@ public class FeatureIndexDao {
                                                 final GeneHighLevel geneContent, final Gene.Origin geneFileType)
             throws IOException {
         final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
+        final GeneHighLevel newGeneContent = prepareGeneContentForDocument(geneContent);
         final SimpleFSDirectory index = fileManager.createIndexForFile(featureFile);
+        final GeneIndexEntry oldEntry;
         try (StandardAnalyzer analyzer = new StandardAnalyzer();
              MultiReader reader = openMultiReader(new SimpleFSDirectory[] {index});
              IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer)
@@ -636,18 +632,22 @@ public class FeatureIndexDao {
             if (Objects.isNull(oldDocument)) {
                 throw new IllegalStateException(String.format("Failed to find document by ID '%d'", docId));
             }
-            final String documentUid = documentCreator.findFieldValue(oldDocument, FeatureIndexFields.UID);
+            oldEntry = buildGeneIndexEntry(documentCreator, oldDocument);
+
             final String featureId = GeneUtils.getFeatureId(geneContent.getFeature(),
                     MapUtils.emptyIfNull(geneContent.getAttributes()));
             final String featureName = getFeatureName(geneFileType, geneContent.getFeature(),
                     MapUtils.emptyIfNull(geneContent.getAttributes()));
-            final Document newDocument = documentCreator.copyGeneDocument(prepareGeneContentForDocument(geneContent),
-                    oldDocument, documentUid, featureId, featureName);
+            final Document newDocument = documentCreator.copyGeneDocument(newGeneContent, oldDocument, uid,
+                    featureId, featureName);
 
             writer.updateDocument(uidTerm, facetsConfig.build(newDocument));
         } finally {
             IOUtils.closeQuietly(index);
         }
+
+        geneActivityService.saveGeneActivities(newGeneContent, oldEntry);
+
         return geneContent;
     }
 
@@ -1176,5 +1176,19 @@ public class FeatureIndexDao {
                 ? GeneUtils.getFeatureName(feature, attributes)
                 : attributes.get("Name");
         return Objects.isNull(featureName) ? StringUtils.EMPTY : featureName;
+    }
+
+    private GeneIndexEntry buildGeneIndexEntry(final GeneDocumentBuilder documentCreator, final Document document) {
+        final GeneIndexEntry entry = documentCreator.buildEntry(document);
+        final Set<String> featureIndexFieldNames = Arrays.stream(FeatureIndexFields.values())
+                .map(FeatureIndexFields::getFieldName)
+                .collect(Collectors.toSet());
+        final Map<String, String> attributes = document.getFields().stream()
+                .map(IndexableField::name)
+                .distinct()
+                .filter(fieldName -> !featureIndexFieldNames.contains(fieldName))
+                .collect(Collectors.toMap(Function.identity(), document::get));
+        entry.setAttributes(attributes);
+        return entry;
     }
 }

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.manager.gene.GeneSecurityService;
@@ -427,5 +428,19 @@ public class GeneController extends AbstractRESTController {
                                                         @RequestParam(value = "uid") final String uid,
                                                         @RequestBody final GeneHighLevel geneContent) {
         return Result.success(geneSecurityService.updateGeneFeatureByUid(fileId, uid, geneContent));
+    }
+
+    @GetMapping("/gene/{fileId}/activity")
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns gene activities by gene file ID and uid",
+            notes = "Returns gene activities by gene file ID and uid",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Activity>> loadGeneActivity(@PathVariable(value = "fileId") final Long fileId,
+                                                   @RequestParam(value = "uid") final String uid) {
+        return Result.success(geneSecurityService.loadGeneActivity(fileId, uid));
     }
 }

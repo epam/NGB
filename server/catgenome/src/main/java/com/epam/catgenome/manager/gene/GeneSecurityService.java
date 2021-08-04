@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager.gene;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.externaldb.DimStructure;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -69,7 +70,6 @@ public class GeneSecurityService {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
-
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile registerGeneFile(FeatureIndexedFileRegistrationRequest request) {
@@ -153,5 +153,10 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_USER)
     public GeneHighLevel updateGeneFeatureByUid(final Long fileId, final String uid, final GeneHighLevel geneContent) {
         return featureIndexManager.updateGeneFeatureByUid(fileId, uid, geneContent);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<Activity> loadGeneActivity(final Long fileId, final String uid) {
+        return gffManager.loadGeneActivity(fileId, uid);
     }
 }
