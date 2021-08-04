@@ -148,10 +148,10 @@ export default class ngbFeatureInfoMainController {
                 this.ngbFeatureInfoPanelService.saveInProgress = false;
                 if (success) {
                     this.onClickCancelBtn();
+                    this.dispatcher.emitSimpleEvent('feature:info:saved');
                 }
                 this.$scope.$apply();
             });
-        this.dispatcher.emitSimpleEvent('feature:info:saved');
     }
 
     onClickCancelBtn () {
