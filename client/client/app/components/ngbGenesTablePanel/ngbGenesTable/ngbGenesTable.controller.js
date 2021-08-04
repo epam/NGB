@@ -365,7 +365,7 @@ export default class ngbGenesTableController extends baseController {
                     .filter(Boolean);
                 const result = {
                     projectId: undefined,
-                    chromosomeId: entity[`${defaultPrefix}chromosome`],
+                    chromosomeId: entity.chromosomeObj.id,
                     startIndex: data.startIndex,
                     endIndex: data.endIndex,
                     name: data.featureName,
