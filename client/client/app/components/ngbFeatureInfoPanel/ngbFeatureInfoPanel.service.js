@@ -1,10 +1,22 @@
+import moment from 'moment';
+
+function dateString (date) {
+    const parsed = moment.utc(date.split(' ').join('T'));
+    if (parsed.isValid()) {
+        return moment(parsed.toDate()).format('D MMMM YYYY, HH:mm');
+    }
+    return undefined;
+}
+
 export default class ngbFeatureInfoPanelService {
 
     _editMode = false;
-    _hasInfoHistory = false;
     attributes = null;
     _saveError = null;
+    _historyError = null;
+    _historyData = [];
     _saveInProgress = false;
+    getHistoryInProgress = false;
     duplicate = false;
 
     static instance(geneDataService) {
@@ -21,14 +33,6 @@ export default class ngbFeatureInfoPanelService {
 
     set editMode (value) {
         this._editMode = value;
-    }
-
-    get hasInfoHistory () {
-        return this._hasInfoHistory;
-    }
-
-    set hasInfoHistory (value) {
-        this._hasInfoHistory = value;
     }
 
     get newAttributes () {
@@ -56,6 +60,22 @@ export default class ngbFeatureInfoPanelService {
 
     set saveError(error) {
         this._saveError = error;
+    }
+
+    get historyError() {
+        return this._historyError;
+    }
+
+    set historyError (error) {
+        this._historyError = error;
+    }
+
+    get historyData () {
+        return this._historyData;
+    }
+
+    set historyData (data) {
+        this._historyData = data;
     }
 
     get saveInProgress () {
@@ -143,6 +163,42 @@ export default class ngbFeatureInfoPanelService {
                 .catch((error) => {
                     this.saveError = [error.message];
                     resolve(false);
+                });
+        });
+    }
+
+    getGeneInfoHistory (fileId, uuid) {
+        return new Promise((resolve) => {
+            this.geneDataService.getGeneInfoHistory({fileId, uuid})
+                .then(data => {
+                    this.historyError = null;
+                    if (data) {
+                        const processed = data.map(item => ({
+                            ...item,
+                            dateParsed: moment.utc(item.datetime.split(' ').join('T')),
+                            date: dateString(item.datetime),
+                            key: `${item.username}|${dateString(item.datetime)}`
+                        }));
+                        const keys = [...new Set(processed.map(item => item.key))];
+                        const grouped = keys
+                            .map(key => processed.filter(item => item.key === key))
+                            .filter(items => items.length > 0)
+                            .map(items => ({
+                                username: items[0].username,
+                                date: items[0].date,
+                                dateParsed: items[0].dateParsed,
+                                changes: items,
+                                key: items[0].key
+                            }))
+                            .sort((a, b) => b.dateParsed - a.dateParsed);
+                        this.historyData = grouped;
+                    }
+                    resolve(true);
+                })
+                .catch(error => {
+                    this.historyError = [error.message];
+                    this.historyData = [];
+                    resolve(true);
                 });
         });
     }

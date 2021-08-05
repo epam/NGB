@@ -1,6 +1,5 @@
 export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
 
-
     const displayFeatureInfoCallback = (data) => {
         $mdDialog.show({
 

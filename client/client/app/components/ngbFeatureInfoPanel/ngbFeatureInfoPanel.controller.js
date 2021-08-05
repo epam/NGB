@@ -21,7 +21,15 @@ export default class ngbFeatureInfoPanelController {
         return this.ngbFeatureInfoPanelService.editMode;
     }
 
-    get hasInfoHistory() {
-        return this.ngbFeatureInfoPanelService.hasInfoHistory;
+    selectHistoryTab () {
+        this.ngbFeatureInfoPanelService.getHistoryInProgress = true;
+        this.ngbFeatureInfoPanelService.getGeneInfoHistory(this.fileId, this.uuid)
+            .then((success) => {
+                this.ngbFeatureInfoPanelService.getHistoryInProgress = false;
+                if (success) {
+                    return true;
+                }
+                return false;
+            });
     }
 }

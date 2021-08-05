@@ -1,19 +1,4 @@
 <div layout="column">
-    <ngb-feature-info-main properties="$ctrl.properties"
-                           editable="$ctrl.editable"
-                           reference-id="$ctrl.referenceId"
-                           chromosome-id="$ctrl.chromosomeId"
-                           start-index="$ctrl.startIndex"
-                           end-index="$ctrl.endIndex"
-                           read="$ctrl.read"
-                           name="$ctrl.name"
-                           file-id="$ctrl.fileId"
-                           feature="$ctrl.feature"
-                           uuid="$ctrl.uuid"
-                           tabs="false"
-                           info-for-read="$ctrl.infoForRead"
-                           flex
-                           ng-if="!$ctrl.shouldDisplayGeneInfo"></ngb-feature-info-main>
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
         <md-tab id="gff">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
@@ -29,7 +14,6 @@
                                        file-id="$ctrl.fileId"
                                        feature="$ctrl.feature"
                                        uuid="$ctrl.uuid"
-                                       tabs="true"
                                        flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>
@@ -52,14 +36,42 @@
             </md-tab-body>
         </md-tab>
         <md-tab id="history"
-            md-on-select="$ctrl.selectTab('history')"
+            ng-if="$ctrl.uuid"
             ng-disabled="$ctrl.editMode"
-            ng-if="$ctrl.hasInfoHistory">
+            md-on-select="$ctrl.selectHistoryTab()">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
-                <!-- <ngb-feature-info flex feature-id="$ctrl.geneId"></ngb-feature-info> -->
+                <ngb-feature-info-history flex></ngb-feature-info-history>
             </md-tab-body>
         </md-tab>
     </md-tabs>
-
+    <md-tabs md-dynamic-height ng-if="!$ctrl.shouldDisplayGeneInfo">
+        <md-tab id="gff">
+            <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-main properties="$ctrl.properties"
+                                       editable="$ctrl.editable"
+                                       reference-id="$ctrl.referenceId"
+                                       chromosome-id="$ctrl.chromosomeId"
+                                       start-index="$ctrl.startIndex"
+                                       end-index="$ctrl.endIndex"
+                                       read="$ctrl.read"
+                                       name="$ctrl.name"
+                                       file-id="$ctrl.fileId"
+                                       feature="$ctrl.feature"
+                                       uuid="$ctrl.uuid"
+                                       info-for-read="$ctrl.infoForRead"
+                                       flex></ngb-feature-info-main>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="history"
+            ng-if="$ctrl.uuid"
+            ng-disabled="$ctrl.editMode"
+            md-on-select="$ctrl.selectHistoryTab()">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-history flex></ngb-feature-info-history>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
 </div>
