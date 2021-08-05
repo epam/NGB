@@ -1,0 +1,38 @@
+.change-row {
+    border: 0;
+    word-wrap: break-word;
+    margin: 20px;
+}
+
+.change-info {
+    margin-top: 15px;
+}
+
+.change {
+    margin-top: 15px;
+    height: 35px;
+}
+
+
+.change-name {
+    font: 700 13px Arial;
+    color: #999;
+    text-transform: capitalize;
+    line-height: 3;
+}
+
+.change-value {
+    margin-left: 15px;
+    text-align: center;
+    height: 35px;
+    line-height: 3;
+    font-size: 13px;
+}
+
+.change-value-old {
+    text-decoration: line-through;
+    background-color: #ffb3b3;
+}
+.change-value-new {
+    background-color:#85e085;
+}

@@ -191,4 +191,23 @@ export class GeneDataService extends DataService {
         });
     }
 
+    getGeneInfoHistory() {
+        return new Promise((resolve, reject) => {
+            const message = 'Gene Data Service: error history';
+            this.get()
+                .then(data => {
+                    if (data.error) {
+                        reject(new Error(data.error));
+                    } else if (data.payload) {
+                        resolve(data.payload);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(error => {
+                    reject(new Error(error.message || message));
+                });
+        });
+    }
+
 }

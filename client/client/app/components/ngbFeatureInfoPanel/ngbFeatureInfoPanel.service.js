@@ -4,6 +4,8 @@ export default class ngbFeatureInfoPanelService {
     _hasInfoHistory = false;
     attributes = null;
     _saveError = null;
+    _historyError = null;
+    _historyData = null;
     _saveInProgress = false;
     duplicate = false;
 
@@ -56,6 +58,22 @@ export default class ngbFeatureInfoPanelService {
 
     set saveError(error) {
         this._saveError = error;
+    }
+
+    get historyError() {
+        return this._historyError;
+    }
+
+    set historyError (error) {
+        this._historyError = error;
+    }
+
+    get historyData () {
+        return this._historyData;
+    }
+
+    set historyData (data) {
+        this._historyData = data;
     }
 
     get saveInProgress () {
@@ -143,6 +161,26 @@ export default class ngbFeatureInfoPanelService {
                 .catch((error) => {
                     this.saveError = [error.message];
                     resolve(false);
+                });
+        });
+    }
+
+    getGeneInfoHistory () {
+        return new Promise((resolve) => {
+            this.geneDataService.getGeneInfoHistory()
+                .then(data => {
+                    this.historyError = null;
+                    if (data.length > 0) {
+                        this.historyData = data;
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    this.historyError = [error.message];
+                    this.historyData = null;
+                    resolve(true);
                 });
         });
     }

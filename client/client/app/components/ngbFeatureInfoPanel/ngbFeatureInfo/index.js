@@ -5,6 +5,7 @@ import './ngbInfoRows/ngbInfoRows.scss';
 import './ngbInfoTable/ngbInfoTable.scss';
 import './ngbFeatureInfoMain/ngbFeatureInfoMain.scss';
 import './ngbFeatureInfo.scss';
+import './ngbFeatureInfoHistory/ngbFeatureInfoHistory.scss';
 
 
 // Import internal modules
@@ -20,6 +21,8 @@ import dataServices from '../../../../dataServices/angular-module';
 import ngbFeatureInfoMainController from './ngbFeatureInfoMain/ngbFeatureInfoMain.controller';
 import ngbFeatureInfoMainComponent from './ngbFeatureInfoMain/ngbFeatureInfoMain.component';
 import ngbInfoRowsController from './ngbInfoRows/ngbInfoRows.controller';
+import ngbFeatureInfoHistoryComponent from './ngbFeatureInfoHistory/ngbFeatureInfoHistory.component';
+import ngbFeatureInfoHistoryController from './ngbFeatureInfoHistory/ngbFeatureInfoHistory.controller';
 
 export default angular.module('ngbFeatureInfo' , [ dataServices ])
     .constant('ngbFeatureInfoConstant', constant)
@@ -28,8 +31,10 @@ export default angular.module('ngbFeatureInfo' , [ dataServices ])
     .controller(ngbInfoController.UID, ngbInfoController)
     .controller(ngbFeatureInfoMainController.UID, ngbFeatureInfoMainController)
     .controller(ngbInfoRowsController.UID, ngbInfoRowsController)
+    .controller(ngbFeatureInfoHistoryController.UID, ngbFeatureInfoHistoryController)
     .component('ngbInfoRows', ngbInfoRows)
     .component('ngbInfoTable', ngbInfoTable)
     .component('ngbFeatureInfoMain', ngbFeatureInfoMainComponent)
     .component('ngbFeatureInfo', ngbFeatureInfoComponent)
+    .component('ngbFeatureInfoHistory', ngbFeatureInfoHistoryComponent)
     .name;
