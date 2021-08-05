@@ -1172,7 +1172,7 @@ public class FeatureIndexDao {
         if (Objects.isNull(feature)) {
             return StringUtils.EMPTY;
         }
-        final String featureName = Gene.Origin.GFF.equals(geneFileType)
+        final String featureName = Gene.Origin.GTF.equals(geneFileType)
                 ? GeneUtils.getFeatureName(feature, attributes)
                 : attributes.get("Name");
         return Objects.isNull(featureName) ? StringUtils.EMPTY : featureName;

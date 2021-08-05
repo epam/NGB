@@ -143,8 +143,8 @@ public class GeneDocumentBuilder extends AbstractDocumentBuilder<GeneIndexEntry>
                 featureType));
 
         newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(), featureId));
-        newDocument.add(new StringField(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(), featureName,
-                Field.Store.YES));
+        newDocument.add(new StringField(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                featureName.toLowerCase(), Field.Store.YES));
         newDocument.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
                 new BytesRef(featureName)));
 
