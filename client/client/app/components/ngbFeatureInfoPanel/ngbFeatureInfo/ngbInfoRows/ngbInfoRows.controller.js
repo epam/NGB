@@ -19,7 +19,7 @@ export default class ngbInfoRowsController {
     }
 
     isEditable (property) {
-        return !/^(start|end|chromosome)$/i.test(property.name);
+        return !/^(start|end|chromosome)$/i.test(property.name) || !property.default;
     }
 
     valueIsEmpty (value) {
