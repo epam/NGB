@@ -28,6 +28,7 @@ export default class ngbFeatureInfoMainController {
         if (!this.uuid) {
             this.uuid = '81ee07f2-b5f4-47a7-b323-3e21f28b6232';
         }
+        this.ngbFeatureInfoPanelService.defaultProperties = this.properties;
     }
 
     events = {
@@ -114,7 +115,7 @@ export default class ngbFeatureInfoMainController {
     }
 
     get disableSave () {
-        return this.ngbFeatureInfoPanelService.someAttributeIsEmpty();
+        return this.ngbFeatureInfoPanelService.someAttributeIsInvalid();
     }
 
     get saveError () {
