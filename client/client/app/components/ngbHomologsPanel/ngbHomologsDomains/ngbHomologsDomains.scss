@@ -1,0 +1,16 @@
+.homolog-domain-container {
+  display: flex;
+  height: 100%;
+  div {
+    display: inline-flex;
+    align-self: center;
+  }
+  .homolog-domain-region {
+    height: 20px;
+  }
+
+  .homolog-domain-filler {
+    display: inline-block;
+    height: 4px;
+  }
+}

@@ -1,0 +1,24 @@
+.domain-legend-container {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  padding: 5px 0;
+  margin-left: 10px;
+  div {
+    display: inline-flex;
+    height: 20px;
+  }
+  .domain-legend-color-bar {
+    width: 20px;
+  }
+  .domain-legend-text {
+    font-weight: bold;
+    margin-left: 10px;
+  }
+}
+.domain-legend-title {
+  margin-left: 10%;
+  font-weight: bold;
+  line-height: 28px;
+  font-size: 18px;
+}

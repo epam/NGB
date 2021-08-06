@@ -1,4 +1,5 @@
 import {DataService} from '../data-service';
+
 /**
  * data service for genome
  * @extends DataService
@@ -27,7 +28,7 @@ export class GenomeDataService extends DataService {
             for (let i = 0; i < reference.length; i++) {
                 const promise = new Promise((resolve, reject) => {
                     this.post('reference/track/get', reference[i])
-                        .then((data)=> {
+                        .then((data) => {
                             if (data) {
                                 resolve(data);
                             } else {
@@ -62,9 +63,11 @@ export class GenomeDataService extends DataService {
             });
         }
         return new Promise((resolve, reject) => {
-            this.post('reference/track/get', reference).catch(() => { resolve({
-                blocks: []
-            }); }).then((data)=> {
+            this.post('reference/track/get', reference).catch(() => {
+                resolve({
+                    blocks: []
+                });
+            }).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
@@ -81,7 +84,9 @@ export class GenomeDataService extends DataService {
 
     loadChromosomeByName(referenceId, name) {
         return new Promise((resolve, reject) => {
-            this.loadAllChromosomes(referenceId).catch(() => { resolve([]); }).then((data) => {
+            this.loadAllChromosomes(referenceId).catch(() => {
+                resolve([]);
+            }).then((data) => {
                 if (data) {
                     const chromosomesAreEqual = (chr1, chr2) => {
                         if (!chr1 || !chr2)
@@ -98,8 +103,7 @@ export class GenomeDataService extends DataService {
                     };
                     const [chromosome] = data.filter(chr => chromosomesAreEqual(chr.name, `${name}`));
                     resolve(chromosome);
-                }
-                else {
+                } else {
                     const code = 'Genome Data Service', message = 'Genome Data Service: error loading chromosomes';
                     reject({code, message});
                 }
@@ -187,6 +191,79 @@ export class GenomeDataService extends DataService {
                 })
                 .catch(reject);
         });
+    }
+
+    getHomologeneLoad() {
+        const length = 20;
+        const result = [];
+        for (let i = 0; i < length; i += 1) {
+            result.push(this.getHomologeneMock());
+        }
+        return result;
+    }
+
+    getHomologeneMock() {
+        return {
+            gene: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ', '),
+            protein: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ' '),
+            info: this.getRandomString(Math.round(200 * Math.random()) + 50),
+        };
+    }
+
+    getHomologeneResultLoad() {
+        const length = 20;
+        const result = [];
+        for (let i = 0; i < length; i += 1) {
+            result.push(this.getHomologeneResultMock());
+        }
+        return result;
+    }
+
+    getHomologeneResultMock() {
+        const aa = Math.round(200 * Math.random()) + 50;
+        return {
+            name: this.getRandomString(Math.round(5 * Math.random()) + 3),
+            species: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            accession_id: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            aa: aa,
+            domains: this.getRandomDomains(Math.round(Math.random()) + 3, aa)
+        };
+    }
+
+    getRandomSentence(length, separator) {
+        let result = '';
+        for (let i = 0; i < length; i += 1) {
+            result += this.getRandomString(Math.round(10 * Math.random()) + 3) + separator;
+        }
+        return result.substring(0, result.length - 2);
+    }
+
+    getRandomString(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+        for (let i = 0; i < length; i += 1) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    }
+
+    getRandomDomains(length, end) {
+        const domainName = ['A', 'B', 'C', 'D'];
+        const result = [];
+        const maxDomainLength = end / length / 1.5;
+        let lastEnd = Math.round(maxDomainLength * Math.random() + 10),
+            lastStart = Math.round(30 * Math.random());
+        for (let i = 0; i < length; i += 1) {
+            result.push({
+                id: this.getRandomString(10),
+                start: lastStart,
+                end: lastEnd,
+                name: domainName[Math.round((domainName.length - 1) * Math.random())]
+            });
+            lastStart = lastEnd + Math.round(30 * Math.random() + 10);
+            lastEnd = Math.min(lastStart + Math.round(maxDomainLength * Math.random()), end);
+        }
+        return result;
     }
 
 }

@@ -4,6 +4,7 @@ import angular from 'angular';
 
 import 'angular-ui-grid/ui-grid.min.js';
 import 'angular-ui-grid/ui-grid.min.css';
+import '../../modules/uiGridGroupColumns/ui-grid-group-columns';
 
 const deps = [
     'ui.grid',
@@ -15,7 +16,8 @@ const deps = [
     'ui.grid.grouping',
     'ui.grid.pinning',
     'ui.grid.saveState',
-    'ui.grid.infiniteScroll'
+    'ui.grid.infiniteScroll',
+    'uiGridGroupColumns'
 ];
 
 export default angular.module('uiGrid', deps).name;

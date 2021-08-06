@@ -69,6 +69,14 @@ export default {
             title: 'BLAST',
             name: 'layout>blast'
         },
+        homologs: {
+            displayed: false,
+            icon: 'search',
+            panel: 'ngbHomologsPanel',
+            position: 'right',
+            title: 'HOMOLOGS',
+            name: 'layout>homologs'
+        },
         ...(() => {
             const devPanels = {
                 DevLog: {

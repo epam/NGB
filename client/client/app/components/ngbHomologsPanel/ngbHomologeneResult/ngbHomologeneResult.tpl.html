@@ -1,0 +1,25 @@
+<div class="blast-search-result blast-search-flex-column">
+    <div layout="row">
+        <md-button
+                aria-label="back"
+                class="md-flat blast-search-result-back"
+                ng-click="$ctrl.changeState({state: 'HOMOLOGENE'})"
+                type="button">
+            <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
+        </md-button>
+    </div>
+    <div class="blast-search-result-table-row" flex layout="column" ng-if="!$ctrl.searchResultError">
+        <ngb-homologene-result-table change-state="$ctrl.changeState" flex layout="column"></ngb-homologene-result-table>
+    </div>
+    <div class="" flex layout="column" ng-if="!$ctrl.searchResultError">
+        <div class="domain-legend-title">Conserved Domains</div>
+        <div class="domain-legend-container" ng-repeat="domain in $ctrl.searchResult.domainTypes">
+            <div class="domain-legend-color-bar" ng-style="{'background-color': domain.color}"></div>
+            <div class="domain-legend-text">{{domain.name}} ({{domain.id}})</div>
+        </div>
+    </div>
+    <div class="variants-load-error-container" layout="column" layout-align="center center" ng-if="$ctrl.searchResultError">
+        <small>Search failed.</small>
+        <small>{{$ctrl.searchResultError}}</small>
+    </div>
+</div>

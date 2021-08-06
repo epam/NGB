@@ -1,0 +1,5 @@
+<div class="homolog-domain-container">
+    <div ng-class="domain.isFiller ? 'homolog-domain-filler' : 'homolog-domain-region'"
+         ng-repeat="domain in $ctrl.domainsView"
+         ng-style="{'background-color': domain.color, 'width': domain.width}"></div>
+</div>

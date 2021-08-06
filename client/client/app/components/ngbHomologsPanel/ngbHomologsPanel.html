@@ -1,0 +1,40 @@
+<div class="blast-search-flex-column">
+    <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected">
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.HOMOLOGENE)" name="HOMOLOGENE">HOMOLOGENE
+        </md-nav-item>
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.ORTHO_PARA)" name="ORTHO_PARA">ORTHOLOGS &
+            PARALOGS
+        </md-nav-item>
+        <span flex></span>
+        <ngb-blast-search-panel-paginate change-page="$ctrl.ngbHomologeneTableService.changePage(page)"
+                                         current-page="$ctrl.ngbHomologeneTableService.currentPageHistory"
+                                         flex
+                                         ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.HISTORY"
+                                         total-pages="$ctrl.ngbHomologeneTableService.totalPages"
+        ></ngb-blast-search-panel-paginate>
+        <md-button
+                aria-label="download"
+                class="md-accent md-flat blast-search-nav-button"
+                ng-click="$ctrl.downloadResults($event)"
+                ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.RESULT"
+                type="button"
+        >
+            <ng-md-icon class="icon_info_outline" icon="file_download"></ng-md-icon>
+        </md-button>
+    </md-nav-bar>
+
+    <md-content class="md-padding _md blast-search-result blast-search-flex-column">
+        <ngb-homologene-table change-state="$ctrl.changeState(state)"
+                              class="blast-search-flex-column"
+                              flex
+                              ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.HOMOLOGENE"></ngb-homologene-table>
+        <ngb-homologene-result change-state="$ctrl.changeState(state)"
+                               class="blast-search-flex-column"
+                               flex
+                               ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.HOMOLOGENE_RESULT"></ngb-homologene-result>
+        <ngb-ortho-para-table change-state="$ctrl.changeState(state)"
+                              class="blast-search-flex-column"
+                              flex
+                              ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.ORTHO_PARA"></ngb-ortho-para-table>
+    </md-content>
+</div>
