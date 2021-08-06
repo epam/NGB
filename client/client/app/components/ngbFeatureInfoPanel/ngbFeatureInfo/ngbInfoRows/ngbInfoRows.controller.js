@@ -39,15 +39,12 @@ export default class ngbInfoRowsController {
 
     onClickAddBtn () {
         if (this.attributes && this.attributes.length) {
-            const lastAttribute = this.attributes[this.attributes.length - 1];
-            if (lastAttribute.name && lastAttribute.value) {
-                this.attributes.push({
-                    name: '',
-                    value: '',
-                    default: false,
-                    attribute: true
-                });
-            }
+            this.attributes.push({
+                name: '',
+                value: '',
+                default: false,
+                attribute: true
+            });
         }
     }
 }
