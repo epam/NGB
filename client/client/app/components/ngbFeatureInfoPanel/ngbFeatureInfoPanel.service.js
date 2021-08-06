@@ -5,7 +5,6 @@ export default class ngbFeatureInfoPanelService {
     attributes = null;
     _saveError = null;
     _saveInProgress = false;
-    _defaultProperties;
 
     static instance(geneDataService) {
         return new ngbFeatureInfoPanelService(geneDataService);
@@ -87,14 +86,21 @@ export default class ngbFeatureInfoPanelService {
     }
 
     changeAttribute(property) {
-        const attributes = this.defaultProperties;
-        if (!property.default) {
-            return attributes.some(attribute => attribute[0].toLowerCase() === property.name.toLowerCase());
+        const newAttributes = this.attributes;
+        if (!property.default && property.name) {
+            const duplicates = newAttributes.filter(attribute => {
+                if (!attribute.deleted && attribute.name &&
+                    attribute.name.toLowerCase() === property.name.toLowerCase()
+                ) {
+                    return attribute;
+                }
+            });
+            return duplicates.length > 1;
         }
         return false;
     }
 
-    someAttributeIsInvalid () {
+    disableSaveButton () {
         const attributes = this.newAttributes;
         const valueIsEmpty = value => value === undefined || value === null || value === '';
         return attributes.some(attribute => {
