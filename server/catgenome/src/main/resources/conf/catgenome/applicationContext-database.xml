@@ -54,5 +54,6 @@
     <import resource="classpath:conf/catgenome/dao/species-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/user-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/role-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/activity-dao.xml" />
 
 </beans>
