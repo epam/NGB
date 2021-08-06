@@ -1,12 +1,12 @@
 export default class ngbFeatureInfoPanelService {
 
     _editMode = false;
-    _hasInfoHistory = false;
     attributes = null;
     _saveError = null;
     _historyError = null;
     _historyData = null;
     _saveInProgress = false;
+    getHistoryInProgress = false;
     duplicate = false;
 
     static instance(geneDataService) {
@@ -23,14 +23,6 @@ export default class ngbFeatureInfoPanelService {
 
     set editMode (value) {
         this._editMode = value;
-    }
-
-    get hasInfoHistory () {
-        return this._hasInfoHistory;
-    }
-
-    set hasInfoHistory (value) {
-        this._hasInfoHistory = value;
     }
 
     get newAttributes () {
@@ -165,17 +157,15 @@ export default class ngbFeatureInfoPanelService {
         });
     }
 
-    getGeneInfoHistory () {
+    getGeneInfoHistory (fileId, uuid) {
         return new Promise((resolve) => {
-            this.geneDataService.getGeneInfoHistory()
+            this.geneDataService.getGeneInfoHistory({fileId, uuid})
                 .then(data => {
                     this.historyError = null;
                     if (data.length > 0) {
                         this.historyData = data;
-                        resolve(true);
-                    } else {
-                        resolve(false);
                     }
+                    resolve(true);
                 })
                 .catch(error => {
                     this.historyError = [error.message];

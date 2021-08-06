@@ -31,13 +31,6 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
                     $mdDialog.hide();
                 };
                 $scope.disableCloseBtn = false;
-                $scope.history = ngbFeatureInfoPanelService.getGeneInfoHistory()
-                    .then((success) => {
-                        if (success) {
-                            return true;
-                        }
-                        return false;
-                    });
             },
             clickOutsideToClose: false
         });

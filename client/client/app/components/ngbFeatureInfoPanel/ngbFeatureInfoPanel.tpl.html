@@ -36,12 +36,12 @@
             </md-tab-body>
         </md-tab>
         <md-tab id="history"
-            md-on-select="$ctrl.selectTab('history')"
+            ng-if="$ctrl.uuid"
             ng-disabled="$ctrl.editMode"
-            ng-if="$ctrl.hasInfoHistory">
+            md-on-select="$ctrl.selectHistoryTab()">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
-                <!-- <ngb-feature-info flex feature-id="$ctrl.geneId"></ngb-feature-info> -->
+                <ngb-feature-info-history flex></ngb-feature-info-history>
             </md-tab-body>
         </md-tab>
     </md-tabs>
@@ -65,11 +65,12 @@
             </md-tab-body>
         </md-tab>
         <md-tab id="history"
-            md-on-select="$ctrl.selectTab('history')"
-            ng-disabled="$ctrl.editMode">
+            ng-if="$ctrl.uuid"
+            ng-disabled="$ctrl.editMode"
+            md-on-select="$ctrl.selectHistoryTab()">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
-                <ngb-feature-info-history flex data="$ctrl.historyData"></ngb-feature-info-history>
+                <ngb-feature-info-history flex></ngb-feature-info-history>
             </md-tab-body>
         </md-tab>
     </md-tabs>

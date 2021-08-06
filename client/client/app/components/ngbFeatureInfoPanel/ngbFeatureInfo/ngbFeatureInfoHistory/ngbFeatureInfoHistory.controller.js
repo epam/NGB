@@ -41,6 +41,10 @@ export default class ngbFeatureInfoHistoryController {
           ];
     }
 
+    get isHistoryLoading () {
+        return this.ngbFeatureInfoPanelService.getHistoryInProgress;
+    }
+
     get errorHistory () {
         return this.ngbFeatureInfoPanelService.historyError;
     }

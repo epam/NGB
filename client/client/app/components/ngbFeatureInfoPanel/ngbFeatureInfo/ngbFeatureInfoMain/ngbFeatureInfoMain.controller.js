@@ -25,9 +25,6 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
-        if (!this.uuid) {
-            this.uuid = '81ee07f2-b5f4-47a7-b323-3e21f28b6232';
-        }
     }
 
     events = {

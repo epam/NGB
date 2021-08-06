@@ -1,8 +1,14 @@
 <div layout="column">
+    <div ng-show="$ctrl.isHistoryLoading">
+        <div class="progress" layout-align="center center">
+            <span>Loading history...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
     <div ng-if="$ctrl.errorHistory.length" class="md-padding">
         <ngb-panel-error-list message-list="$ctrl.errorHistory"></ngb-panel-error-list>
     </div>
-    <div ng-if="$ctrl.data">
+    <div ng-if="$ctrl.data && !$ctrl.errorHistory.length && !$ctrl.isHistoryLoading">
         <div flex="100"
              ng-repeat="change in $ctrl.data"
              layout="row"
