@@ -1,4 +1,5 @@
 import {DataService} from '../data-service';
+
 /**
  * data service for genome
  * @extends DataService
@@ -27,7 +28,7 @@ export class GenomeDataService extends DataService {
             for (let i = 0; i < reference.length; i++) {
                 const promise = new Promise((resolve, reject) => {
                     this.post('reference/track/get', reference[i])
-                        .then((data)=> {
+                        .then((data) => {
                             if (data) {
                                 resolve(data);
                             } else {
@@ -62,9 +63,11 @@ export class GenomeDataService extends DataService {
             });
         }
         return new Promise((resolve, reject) => {
-            this.post('reference/track/get', reference).catch(() => { resolve({
-                blocks: []
-            }); }).then((data)=> {
+            this.post('reference/track/get', reference).catch(() => {
+                resolve({
+                    blocks: []
+                });
+            }).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
@@ -81,7 +84,9 @@ export class GenomeDataService extends DataService {
 
     loadChromosomeByName(referenceId, name) {
         return new Promise((resolve, reject) => {
-            this.loadAllChromosomes(referenceId).catch(() => { resolve([]); }).then((data) => {
+            this.loadAllChromosomes(referenceId).catch(() => {
+                resolve([]);
+            }).then((data) => {
                 if (data) {
                     const chromosomesAreEqual = (chr1, chr2) => {
                         if (!chr1 || !chr2)
@@ -98,8 +103,7 @@ export class GenomeDataService extends DataService {
                     };
                     const [chromosome] = data.filter(chr => chromosomesAreEqual(chr.name, `${name}`));
                     resolve(chromosome);
-                }
-                else {
+                } else {
                     const code = 'Genome Data Service', message = 'Genome Data Service: error loading chromosomes';
                     reject({code, message});
                 }
@@ -187,6 +191,455 @@ export class GenomeDataService extends DataService {
                 })
                 .catch(reject);
         });
+    }
+
+    _homologene = [];
+    _homologeneResult = [];
+    _orthoPara = [];
+    _orthoParaResult = [];
+
+    getHomologeneLoad() {
+        const length = 100;
+        if (!this._homologene.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._homologene.push(this.getHomologeneMock());
+            }
+        }
+        // return this._homologene;
+        return [
+            {
+                gene: 'KRAS, Kras, kras, Ras85D, let-60',
+                protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
+                info: 'Gene conserved in Bilateria'
+            },
+            {
+                gene: 'SSPN, Sspn, sspn',
+                protein: 'sarcospan',
+                info: 'Gene conserved in Euteleostomi'
+            }
+        ];
+    }
+
+    getHomologeneResultLoad() {
+        const length = 100;
+        if (!this._homologeneResult.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._homologeneResult.push(this.getHomologeneResultMock());
+            }
+        }
+        // return this._homologeneResult;
+        return [
+            {
+                name: 'KRAS',
+                species: 'H.sapiens',
+                accession_id: 'NP_203524.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'P.troglodytes',
+                accession_id: 'XP_003313842.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'C.lupus',
+                accession_id: 'XP_003433608.2',
+                aa: 229,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'B.taurus',
+                accession_id: 'NP_001103471.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Kras',
+                species: 'M.musculus',
+                accession_id: 'NP_067259.4',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Kras',
+                species: 'R.norvegicus',
+                accession_id: 'NP_113703.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'G.gallus',
+                accession_id: 'NP_001243091.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'LOC100485959',
+                species: 'X.tropicalis',
+                accession_id: '\tXP_004920180.1',
+                aa: 226,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'kras',
+                species: 'D.rerio',
+                accession_id: 'NP_001003744.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Ras85D',
+                species: 'D.melanogaster',
+                accession_id: 'NP_476699.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'AgaP_AGAP002219',
+                species: 'A.gambiae',
+                accession_id: 'XP_307965.4',
+                aa: 190,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'let-60',
+                species: 'C.elegans',
+                accession_id: 'NP_502213.3',
+                aa: 184,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+        ];
+    }
+
+    getOrthoParaLoad() {
+        const length = 200;
+        if (!this._orthoPara.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._orthoPara.push(this.getHomologeneMock());
+            }
+        }
+        // return this._orthoPara;
+
+        return [
+            {
+                gene: 'LIMK1, Limk1, Limk1a',
+                protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
+                info: 'Gene conserved in Bilateria'
+            }
+        ];
+    }
+
+    getOrthoParaResultLoad() {
+        const length = 100;
+        if (!this._orthoParaResult.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._orthoParaResult.push(this.getOrthoParaResultMock());
+            }
+        }
+        // return this._orthoParaResult;
+        return [
+            {
+                name: 'LIMK1',
+                species: 'Homo sapiens',
+                type: 'Ortholog',
+                aa: 647,
+                domains: [{
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cl02475',
+                    start: 81,
+                    end: 138,
+                    name: 'LIM'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
+                }]
+            },
+            {
+                name: 'Limk1',
+                species: 'Mus musculus',
+                type: 'Ortholog',
+                aa: 647,
+                domains: [{
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 138,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
+                }]
+            },
+            {
+                name: 'Limk1',
+                species: 'Rattus norvegicus',
+                type: 'Ortholog',
+                aa: 647,
+                domains: [{
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 138,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
+                }]
+            },
+            {
+                name: 'limk1a',
+                species: 'Danio rerio',
+                type: 'Ortholog',
+                aa: 648,
+                domains: [{
+                    id: 'cd09462',
+                    start: 5,
+                    end: 79,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cl02475',
+                    start: 84,
+                    end: 140,
+                    name: 'LIM'
+                },{
+                    id: 'pfam00595',
+                    start: 164,
+                    end: 254,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 349,
+                    end: 610,
+                    name: 'STKc_LIMK1'
+                }]
+            },
+            {
+                name: 'LIMK1',
+                species: 'Gallus gallus',
+                type: 'Ortholog',
+                aa: 685,
+                domains: [{
+                    id: 'cl02475',
+                    start: 75,
+                    end: 101,
+                    name: 'LIM'
+                },{
+                    id: 'cd09464',
+                    start: 108,
+                    end: 162,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 189,
+                    end: 279,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 375,
+                    end: 641,
+                    name: 'STKc_LIMK1'
+                }]
+            },
+            {
+                name: 'LIMK1',
+                species: 'Callithrix jacchus',
+                type: 'Ortholog',
+                aa: 188,
+                domains: []
+            },
+            {
+                name: 'limk1a',
+                species: 'Oryzias melastigma',
+                type: 'Ortholog',
+                aa: 674,
+                domains: [{
+                    id: 'cd09462',
+                    start: 5,
+                    end: 79,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 140,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 179,
+                    end: 260,
+                    name: 'PDZ'
+                },{
+                    id: 'cl21453',
+                    start: 366,
+                    end: 636,
+                    name: 'PKc_like'
+                }]
+            },
+        ];
+    }
+
+    getHomologeneMock() {
+        return {
+            gene: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ', '),
+            protein: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ' '),
+            info: this.getRandomString(Math.round(200 * Math.random()) + 50),
+        };
+    }
+
+    getHomologeneResultMock() {
+        const aa = Math.round(200 * Math.random()) + 50;
+        return {
+            name: this.getRandomString(Math.round(5 * Math.random()) + 3),
+            species: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            accession_id: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            aa: aa,
+            domains: this.getRandomDomains(Math.round(Math.random()) + 3, aa)
+        };
+    }
+
+    getOrthoParaResultMock() {
+        const aa = Math.round(200 * Math.random()) + 50;
+        const types = ['Ortholog', 'Paralog'];
+        return {
+            name: this.getRandomString(Math.round(5 * Math.random()) + 3),
+            species: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            type: types[Math.round(Math.random())],
+            aa: aa,
+            domains: this.getRandomDomains(Math.round(Math.random()) + 3, aa)
+        };
+    }
+
+    getRandomSentence(length, separator) {
+        let result = '';
+        for (let i = 0; i < length; i += 1) {
+            result += this.getRandomString(Math.round(10 * Math.random()) + 3) + separator;
+        }
+        return result.substring(0, result.length - 2);
+    }
+
+    getRandomString(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+        for (let i = 0; i < length; i += 1) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    }
+
+    getRandomDomains(length, end) {
+        const domainName = ['A', 'B', 'C', 'D'];
+        const result = [];
+        const maxDomainLength = end / length / 1.5;
+        let lastEnd = Math.round(maxDomainLength * Math.random() + 10),
+            lastStart = Math.round(30 * Math.random());
+        for (let i = 0; i < length; i += 1) {
+            result.push({
+                id: this.getRandomString(10),
+                start: lastStart,
+                end: lastEnd,
+                name: domainName[Math.round((domainName.length - 1) * Math.random())]
+            });
+            lastStart = lastEnd + Math.round(30 * Math.random() + 10);
+            lastEnd = Math.min(lastStart + Math.round(maxDomainLength * Math.random()), end);
+        }
+        return result;
     }
 
 }

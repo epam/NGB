@@ -1,0 +1,18 @@
+.homologs-link {
+  color: rgb(51, 103, 214);
+  font-weight: bold;
+  cursor: pointer;
+}
+.homologs-search-result {
+  padding: 5px 2px;
+
+  .homologs-search-result-title {
+    font-weight: bold;
+    display: inline-block;
+    line-height: 28px;
+    font-size: 18px;
+  }
+}
+.homologs-no-feature {
+  font-weight: bold;
+}

@@ -1,0 +1,21 @@
+<div class="blast-search-result blast-search-flex-column">
+    <div layout="row">
+        <md-button
+                aria-label="back"
+                class="md-flat blast-search-result-back"
+                ng-click="$ctrl.changeState({state: 'HOMOLOGENE'})"
+                type="button">
+            <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
+        </md-button>
+        <span class="blast-search-result-title">{{$ctrl.ngbHomologsService.currentHomologeneId}}</span>
+    </div>
+    <div class="blast-search-result-table-row" flex layout="column" ng-if="!$ctrl.searchResultError">
+        <ngb-homologene-result-table change-state="$ctrl.changeState" flex
+                                     layout="column"></ngb-homologene-result-table>
+    </div>
+    <div class="variants-load-error-container" layout="column" layout-align="center center"
+         ng-if="$ctrl.searchResultError">
+        <small>Search failed.</small>
+        <small>{{$ctrl.searchResultError}}</small>
+    </div>
+</div>

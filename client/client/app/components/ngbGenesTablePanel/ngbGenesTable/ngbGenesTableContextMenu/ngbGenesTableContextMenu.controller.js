@@ -70,4 +70,22 @@ export default class NgbGenesTableContextMenuController {
         this.dispatcher.emitSimpleEvent('miew:show:structure', data);
         event.stopImmediatePropagation();
     }
+
+    homologsSearch() {
+        this.ngbGenesTableContextMenu.close();
+        const layoutChange = this.appLayout.Panels.homologs;
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        const readInfo = {
+            referenceId: this.entity.referenceId,
+            startIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}startIndex`],
+            endIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}endIndex`]
+        };
+        const data = {
+            ...readInfo,
+            source: 'gene'
+        };
+        this.dispatcher.emitSimpleEvent('read:show:homologs', data);
+        event.stopImmediatePropagation();
+    }
 }
