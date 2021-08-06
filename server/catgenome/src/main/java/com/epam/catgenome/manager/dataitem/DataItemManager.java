@@ -189,7 +189,7 @@ public class DataItemManager {
     }
 
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
-        final String dataItemPath = biologicalDataItem.getPath();
+        final String dataItemPath = biologicalDataItem.getSource();
         if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
             return loadLocalFileItem(biologicalDataItem, dataItemPath);
         }

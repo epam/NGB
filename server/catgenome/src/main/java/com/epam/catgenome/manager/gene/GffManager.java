@@ -269,6 +269,7 @@ public class GffManager {
 
     private GeneFile registerGeneFileFromFile(final FeatureIndexedFileRegistrationRequest request) {
         final GeneFile geneFile = new GeneFile();
+        geneFile.setSource(request.getPath());
         final Long geneFileId = geneFileManager.createGeneFileId();
 
         if (isFeatureCounts(request.getPath())) {
@@ -288,7 +289,6 @@ public class GffManager {
         geneFile.setId(geneFileId);
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(path);
-        geneFile.setSource(path);
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
