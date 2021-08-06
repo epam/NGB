@@ -25,7 +25,9 @@
 package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
 
+import com.epam.ngb.cli.entity.BiologicalDataItemResourceType;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import java.util.List;
 
@@ -108,7 +110,8 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        referencePath = Utils.getNormalizeAndAbsolutePath(arguments.get(0));
+        referencePath = getTypeFromPath(arguments.get(0)) == BiologicalDataItemResourceType.FILE ?
+                Utils.getNormalizeAndAbsolutePath(arguments.get(0)) : arguments.get(0);
         if (options.getName() != null) {
             referenceName = options.getName();
         }

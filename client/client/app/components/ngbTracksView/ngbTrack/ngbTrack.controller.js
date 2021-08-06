@@ -432,12 +432,7 @@ export default class ngbTrackController {
         if (trackState) {
             const index = tracksState.indexOf(trackState);
             tracksState.splice(index, 1);
-            const referenceName = this.projectContext.reference.name.toLowerCase();
-            if (tracksState.filter(t => t.bioDataItemId.toLowerCase() !== referenceName).length === 0) {
-                this.projectContext.changeState({reference: null});
-            } else {
-                this.projectContext.changeState({tracksState});
-            }
+            this.projectContext.changeState({tracksState});
         }
         event.stopImmediatePropagation();
         event.stopPropagation();

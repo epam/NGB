@@ -30,8 +30,7 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.seekablestream.SeekableStreamFactory;
+import com.epam.catgenome.util.IOHelper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +49,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,7 +87,7 @@ public class GenbankManager {
     @SneakyThrows
     public Map<String, DNASequence> readGenbankFile(final String genbankFilePath) {
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        try (SeekableStream genBankStream = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath)) {
+        try (InputStream genBankStream = IOHelper.openStream(genbankFilePath)) {
             return GenbankReaderHelper.readGenbankDNASequence(genBankStream);
         }
     }

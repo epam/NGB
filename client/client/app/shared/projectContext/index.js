@@ -504,7 +504,7 @@ export default class projectContext {
         const name = track.name
             ? track.name.toLowerCase()
             : track.bioDataItemId.toString().toLowerCase();
-        const key = `track[${name}][${track.projectId.toLowerCase()}]`;
+        const key = `track[${name}][${(track.projectId || '').toLowerCase()}]`;
         const state = {
             bioDataItemId: name,
             height: track.height,
@@ -983,6 +983,7 @@ export default class projectContext {
                         if (!r.annotationFiles) {
                             r.annotationFiles = [];
                         }
+                        r.projectId = '';
                         if (r.geneFile && r.annotationFiles.filter(a =>
                             a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
                         ).length === 0) {
@@ -990,6 +991,9 @@ export default class projectContext {
                             r.geneFile.isGeneFile = true;
                             r.annotationFiles.push(r.geneFile);
                         }
+                        r.annotationFiles.forEach(annotationFile => {
+                           annotationFile.projectId = '';
+                        });
                     });
                     this._referencesAreLoading = false;
                     resolve();
@@ -1519,7 +1523,7 @@ export default class projectContext {
                     indexPath: decodeURIComponent(trackState.index),
                     bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
                     duplicateId: decodeURIComponent(`${trackState.duplicateId || ''}`),
-                    projectId: trackState.projectId,
+                    projectId: trackState.projectId || '',
                     projectIdNumber: trackState.projectIdNumber,
                     name: decodeURIComponent(trackState.bioDataItemId),
                     isLocal: trackState.isLocal,
@@ -1565,7 +1569,7 @@ export default class projectContext {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
                                     duplicateId: item.duplicateId,
-                                    projectId: _project.name,
+                                    projectId: _project.name || '',
                                     projectIdNumber: _project.id
                                 });
                                 tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
@@ -1578,7 +1582,7 @@ export default class projectContext {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
                                     duplicateId: item.duplicateId,
-                                    projectId: _project.name,
+                                    projectId: _project.name || '',
                                     projectIdNumber: _project.id
                                 });
                                 const predefinedTracks = [];

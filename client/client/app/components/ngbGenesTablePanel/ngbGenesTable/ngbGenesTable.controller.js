@@ -86,6 +86,7 @@ export default class ngbGenesTableController extends baseController {
         this.getStyle = this.ngbGenesTableService.getStyle(this.ngbGenesTableService);
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
         this.initEvents();
+        this.dispatcher.on('feature:info:saved', this.reloadGenes.bind(this));
     }
 
     static get UID() {
@@ -142,6 +143,10 @@ export default class ngbGenesTableController extends baseController {
         this.ngbGenesTableService.resetPagination();
         if (this.gridApi) {
             this.gridApi.infiniteScroll.setScrollDirections(false, false);
+            this.gridApi.core.scrollTo(
+                this.gridOptions.data[0],
+                this.gridOptions.columnDefs[0]
+            );
         }
         if (!this.projectContext.reference) {
             this.isProgressShown = false;

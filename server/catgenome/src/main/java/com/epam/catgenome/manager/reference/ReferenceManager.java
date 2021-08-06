@@ -103,6 +103,8 @@ import com.epam.catgenome.manager.gene.GffManager;
 @Slf4j
 public class ReferenceManager {
 
+    private static final String GENES_SUFFIX = "-genes";
+
     private JsonMapper objectMapper = new JsonMapper();
 
     @Autowired private HttpDataManager httpDataManager;
@@ -188,6 +190,12 @@ public class ReferenceManager {
             if (genbankManager.hasFeatures(dnaSequences)) {
                 FeatureIndexedFileRegistrationRequest geneFileRequest = new FeatureIndexedFileRegistrationRequest();
                 geneFileRequest.setPath(genbankFilePath);
+                if (StringUtils.isNotBlank(request.getName())) {
+                    geneFileRequest.setName(request.getName() + GENES_SUFFIX);
+                }
+                if (StringUtils.isNotBlank(request.getPrettyName())) {
+                    geneFileRequest.setPrettyName(request.getPrettyName() + GENES_SUFFIX);
+                }
                 request.setGeneFileRequest(geneFileRequest);
             }
         }
