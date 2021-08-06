@@ -1,44 +1,25 @@
+const EMPTY_HISTORY = 'There was not any change.';
+
 export default class ngbFeatureInfoHistoryController {
 
     static get UID() {
         return 'ngbFeatureInfoHistoryController';
     }
 
+    emptyHistoryData = EMPTY_HISTORY;
+
     constructor($scope, ngbFeatureInfoPanelService) {
         Object.assign(this, {$scope, ngbFeatureInfoPanelService});
-        this.data = [
-            {
-              "uid": "e8dd9d77-2342-4fa6-ac6f-e110a596d717",
-              "itemId": 1,
-              "itemType": "GENE",
-              "actionType": "UPDATE",
-              "datetime": "2021-08-03 15:31:46.347",
-              "username": "User",
-              "field": "source",
-              "oldValue": "old",
-              "newValue": "new"
-            },
-            {
-              "uid": "e8dd9d77-2342-4fa6-ac6f-e110a596d717",
-              "itemId": 1,
-              "itemType": "GENE",
-              "actionType": "CREATE",
-              "datetime": "2021-08-03 15:31:46.347",
-              "username": "User",
-              "field": "gene_name",
-              "newValue": "newGene"
-            },
-            {
-              "uid": "e8dd9d77-2342-4fa6-ac6f-e110a596d717",
-              "itemId": 1,
-              "itemType": "GENE",
-              "actionType": "DELETE",
-              "datetime": "2021-08-03 15:31:46.347",
-              "username": "User",
-              "field": "gene_id",
-              "oldValue": "GeneId"
-            }
-          ];
+    }
+
+    get historyData () {
+        const data = this.ngbFeatureInfoPanelService.historyData;
+        if (data.length) {
+            data.sort((a, b) => {
+                return new Date(b.datetime.split(' ').join('T')) - new Date(a.datetime.split(' ').join('T'));
+            });
+        }
+        return data;
     }
 
     get isHistoryLoading () {

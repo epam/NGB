@@ -197,10 +197,12 @@ export class GeneDataService extends DataService {
             const message = 'Gene Data Service: error history';
             this.get(`gene/${fileId}/activity?uid=${uuid}`)
                 .then(data => {
-                    if (data.error) {
-                        reject(new Error(data.error));
-                    } else if (data.payload) {
-                        resolve(data.payload);
+                    if (data) {
+                        if (data.error) {
+                            reject(new Error(data.error));
+                        } else {
+                            resolve(data);
+                        }
                     } else {
                         resolve([]);
                     }

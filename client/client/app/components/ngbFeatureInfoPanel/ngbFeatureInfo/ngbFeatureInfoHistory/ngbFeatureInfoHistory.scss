@@ -1,33 +1,23 @@
 .change-row {
     border: 0;
     margin: 20px;
-    overflow: hidden;
-    word-wrap: break-word;
-}
-
-.change-info {
-    margin-top: 15px;
 }
 
 .change {
     margin-top: 15px;
-    height: 35px;
     padding-left: 5px;
     padding-right: 5px;
 }
 
-
 .change-name {
     font: 700 13px Arial;
     color: #999;
-    text-transform: capitalize;
     line-height: 3;
 }
 
 .change-value {
-    margin-left: 15px;
+    margin-left: 10px;
     text-align: center;
-    height: 35px;
     line-height: 3;
     font-size: 13px;
 }

@@ -8,25 +8,36 @@
     <div ng-if="$ctrl.errorHistory.length" class="md-padding">
         <ngb-panel-error-list message-list="$ctrl.errorHistory"></ngb-panel-error-list>
     </div>
-    <div ng-if="$ctrl.data && !$ctrl.errorHistory.length && !$ctrl.isHistoryLoading">
+    <div ng-if="$ctrl.historyData && !$ctrl.errorHistory.length && !$ctrl.isHistoryLoading">
         <div flex="100"
-             ng-repeat="change in $ctrl.data"
+             ng-if="$ctrl.historyData.length"
+             ng-repeat="change in $ctrl.historyData"
              layout="row"
              layout-wrap
              class="change-row"
-            >
-                <div flex="100" class="change-info">
-                    {{$ctrl.changeInfo(change)}}
-                </div>
-                <div flex="20" class="change change-name">
-                    {{change.field}}
-                </div>
-                <div flex="15" class="change change-value change-value-old">
-                    {{change.oldValue ? change.oldValue : 'NA'}}
-                </div>
-                <div flex="15" class="change change-value change-value-new">
-                    {{change.newValue ? change.newValue : 'NA'}}
-                </div>
+        >
+            <div flex="100" class="change-info">
+                {{$ctrl.changeInfo(change)}}
             </div>
+            <div flex="20" class="change change-name">
+                {{change.field}}
+            </div>
+            <div flex="8" class="change change-value change-value-old">
+                {{change.oldValue ? change.oldValue : 'N/A'}}
+            </div>
+            <div flex="8" class="change change-value change-value-new">
+                {{change.newValue ? change.newValue : 'N/A'}}
+            </div>
+        </div>
+        <div flex="100"
+            layout="row"
+            layout-wrap
+            class="change-row"
+            ng-if="!$ctrl.historyData.length"
+        >
+            <div flex="100" class="change-info">
+                {{$ctrl.emptyHistoryData}}
+            </div>
+        </div>
     </div>
 </div>

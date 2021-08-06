@@ -4,7 +4,7 @@ export default class ngbFeatureInfoPanelService {
     attributes = null;
     _saveError = null;
     _historyError = null;
-    _historyData = null;
+    _historyData = [];
     _saveInProgress = false;
     getHistoryInProgress = false;
     duplicate = false;
@@ -162,14 +162,14 @@ export default class ngbFeatureInfoPanelService {
             this.geneDataService.getGeneInfoHistory({fileId, uuid})
                 .then(data => {
                     this.historyError = null;
-                    if (data.length > 0) {
+                    if (data) {
                         this.historyData = data;
                     }
                     resolve(true);
                 })
                 .catch(error => {
                     this.historyError = [error.message];
-                    this.historyData = null;
+                    this.historyData = [];
                     resolve(true);
                 });
         });
