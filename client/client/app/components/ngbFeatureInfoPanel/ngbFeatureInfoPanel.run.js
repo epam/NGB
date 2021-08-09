@@ -1,5 +1,41 @@
 export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
-
+    const sortProperties = (a, b) => {
+        const [aName, aAttribute] = [a[0], a[2]];
+        const [bName, bAttribute] = [b[0], b[2]];
+        if (!aAttribute && !bAttribute) {
+            if (aName === 'chromosome') {
+                return -1;
+            }
+            if (bName === 'chromosome') {
+                return 1;
+            }
+            if (aName === 'start') {
+                return -1;
+            }
+            if (bName === 'start') {
+                return 1;
+            }
+            if (aName === 'end') {
+                return -1;
+            }
+            if (bName === 'end') {
+                return 1;
+            }
+            if (aName > bName) {
+                return 1;
+            }
+            return -1;
+        } else if (!aAttribute && bAttribute) {
+            return -1;
+        } else if (aAttribute && !bAttribute) {
+            return 1;
+        } else {
+            if (aName > bName) {
+                return 1;
+            }
+            return -1;
+        }
+    };
 
     const displayFeatureInfoCallback = (data) => {
         $mdDialog.show({
@@ -7,7 +43,7 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
             template: require('./ngbFeatureInfoPanelDlg.tpl.html'),
             controller: function ($scope) {
                 $scope.editable = data.editable;
-                $scope.properties = data.properties;
+                $scope.properties = data.properties.sort(sortProperties);
                 $scope.referenceId = data.referenceId;
                 $scope.chromosomeId = data.chromosomeId;
                 $scope.startIndex = data.startIndex;
