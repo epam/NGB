@@ -7,6 +7,13 @@
 <div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
     <strong>No records found.</strong>
 </div>
+<div layout="row">
+    <ngb-homologs-panel-paginate change-page="$ctrl.ngbHomologeneTableService.changePage(page)"
+                                 current-page="$ctrl.ngbHomologeneTableService.currentPage"
+                                 flex
+                                 total-pages="$ctrl.ngbHomologeneTableService.totalPages"
+    ></ngb-homologs-panel-paginate>
+</div>
 <div class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults">
     <div class="variants-load-error-container" ng-if="$ctrl.historyLoadError">
         <small>{{$ctrl.historyLoadError}}</small>
@@ -19,6 +26,7 @@
          ui-grid-resize-columns
          ui-grid-save-state
          ui-grid-selection
+         ui-grid-pagination
     ></div>
 </div>
 

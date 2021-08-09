@@ -193,14 +193,8 @@ export class GenomeDataService extends DataService {
         });
     }
 
-    getHomologeneLoad() {
-        const length = 20;
-        const result = [];
-        for (let i = 0; i < length; i += 1) {
-            result.push(this.getHomologeneMock());
-        }
-        return result;
-    }
+    _homologene = [];
+    _homologeneResult = [];
 
     getHomologeneMock() {
         return {
@@ -210,13 +204,24 @@ export class GenomeDataService extends DataService {
         };
     }
 
-    getHomologeneResultLoad() {
-        const length = 20;
-        const result = [];
-        for (let i = 0; i < length; i += 1) {
-            result.push(this.getHomologeneResultMock());
+    getHomologeneLoad() {
+        const length = 100;
+        if (!this._homologene.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._homologene.push(this.getHomologeneMock());
+            }
         }
-        return result;
+        return this._homologene;
+    }
+
+    getHomologeneResultLoad() {
+        const length = 100;
+        if (!this._homologeneResult.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._homologeneResult.push(this.getHomologeneResultMock());
+            }
+        }
+        return this._homologeneResult;
     }
 
     getHomologeneResultMock() {

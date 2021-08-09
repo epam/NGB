@@ -15,12 +15,15 @@ import ngbHomologeneTable from './ngbHomologeneTable';
 import ngbHomologeneResult from './ngbHomologeneResult';
 import ngbOrthoParaTable from './ngbOrthoParaTable';
 import ngbHomologsDomains from './ngbHomologsDomains';
+import ngbHomologsPanelPaginate from './ngbHomologsPanelPaginate';
 
 // Import external modules
 export default angular
-    .module('ngbHomologsPanel',
-        [ngbHomologsDomains, ngbHomologeneTable, ngbHomologeneResult, ngbOrthoParaTable]
-    )
+    .module('ngbHomologsPanel', [
+        ngbHomologsPanelPaginate, ngbHomologsDomains,
+        ngbHomologeneTable, ngbHomologeneResult,
+        ngbOrthoParaTable
+    ])
     .service('dispatcher', dispatcher.instance)
     .service('ngbHomologsService', service.instance)
     .component('ngbHomologsPanel', ngbHomologsPanel)

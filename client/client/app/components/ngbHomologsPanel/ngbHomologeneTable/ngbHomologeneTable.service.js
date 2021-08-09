@@ -129,7 +129,7 @@ export default class ngbHomologeneTableService {
         } else {
             this._pageError = null;
         }
-        this._totalPages = Math.ceil(data.totalCount / this.pageSize);
+        this._totalPages = Math.ceil(data.length / this.pageSize);
         let filteredData = [];
         if (data) {
             filteredData = data;

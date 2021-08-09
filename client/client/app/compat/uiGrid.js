@@ -17,6 +17,7 @@ const deps = [
     'ui.grid.pinning',
     'ui.grid.saveState',
     'ui.grid.infiniteScroll',
+    'ui.grid.pagination',
     'uiGridGroupColumns'
 ];
 

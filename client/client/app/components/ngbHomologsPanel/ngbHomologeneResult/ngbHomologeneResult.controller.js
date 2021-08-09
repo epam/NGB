@@ -2,7 +2,6 @@ import baseController from '../../../shared/baseController';
 
 export default class ngbHomologeneResult extends baseController {
 
-    searchResult = {};
     isProgressShown = true;
     searchResultError = null;
     events = {
@@ -25,7 +24,6 @@ export default class ngbHomologeneResult extends baseController {
     }
 
     initialize() {
-        this.searchResult = this.ngbHomologeneResultService.homologeneResult;
         this.searchResultError = this.ngbHomologeneResultService.searchResultTableError;
         this.isProgressShown = false;
     }

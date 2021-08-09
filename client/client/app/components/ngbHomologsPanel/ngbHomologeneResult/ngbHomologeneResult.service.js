@@ -14,6 +14,9 @@ const HOMOLOGENE_COLUMN_TITLES = {
     'accession_id': 'Accession ID'
 };
 
+const FIRST_PAGE = 1;
+const PAGE_SIZE = 15;
+
 export default class ngbHomologeneResultService {
     _searchResultTableLoading = true;
 
@@ -47,6 +50,47 @@ export default class ngbHomologeneResultService {
 
     get columnTitleMap() {
         return HOMOLOGENE_COLUMN_TITLES;
+    }
+
+    _firstPage = FIRST_PAGE;
+
+    get firstPage() {
+        return this._firstPage;
+    }
+
+    set firstPage(value) {
+        this._firstPage = value;
+    }
+
+    _totalPages = FIRST_PAGE;
+
+    get totalPages() {
+        return this._totalPages;
+    }
+
+    _currentPage = FIRST_PAGE;
+
+    get currentPage() {
+        return this._currentPage;
+    }
+
+    set currentPage(value) {
+        this._currentPage = value;
+    }
+
+    _pageSize = PAGE_SIZE;
+
+    get pageSize() {
+        return this._pageSize;
+    }
+
+    set pageSize(value) {
+        this._pageSize = value;
+    }
+
+    changePage(page) {
+        this.currentPage = page;
+        this.dispatcher.emit('homologs:homologene:result:page:change', page);
     }
 
     static instance(dispatcher, genomeDataService) {
@@ -121,7 +165,6 @@ export default class ngbHomologeneResultService {
 
     async loadHomologeneResult(searchId) {
         const data = await this.genomeDataService.getHomologeneResultLoad(searchId);
-        const domainTypes = {};
         let maxHomologLength = 0;
         const colors = {
             'A': 'red',
@@ -130,27 +173,22 @@ export default class ngbHomologeneResultService {
             'D': 'yellow',
         };
         if (data.error) {
+            this._totalPages = 0;
+            this.currentPage = FIRST_PAGE;
+            this._firstPage = FIRST_PAGE;
             this._searchResultTableLoading = false;
             this._searchResultTableError = data.message;
             return [];
         } else {
             this._searchResultTableError = null;
         }
+        this._totalPages = Math.ceil(data.length / this.pageSize);
         if (data) {
             data.forEach((value, key) => {
                 data[key] = this._formatServerToClient(value);
                 if (maxHomologLength < data[key].aa) {
                     maxHomologLength = data[key].aa;
                 }
-                data[key].domains.forEach(d => {
-                    if (!domainTypes[d.name]) {
-                        domainTypes[d.name] = {
-                            id: d.id,
-                            name: d.name,
-                            color: colors[d.name]
-                        };
-                    }
-                });
             });
             data.forEach((value, key) => {
                 data[key].domainsObj = {
@@ -158,13 +196,10 @@ export default class ngbHomologeneResultService {
                     homologLength: data[key].aa,
                     maxHomologLength: maxHomologLength
                 };
-                delete data[key].domains;
+                // delete data[key].domains;
             });
         }
-        return {
-            data: data || [],
-            domainTypes: domainTypes || []
-        };
+        return data || [];
     }
 
     _formatServerToClient(result) {

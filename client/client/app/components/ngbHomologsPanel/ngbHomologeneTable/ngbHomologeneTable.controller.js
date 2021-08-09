@@ -37,6 +37,7 @@ export default class ngbHomologeneTableController extends baseController {
         saveGroupingExpandedStates: false,
         saveTreeView: false,
         saveSelection: false,
+        enablePaginationControls: false,
     };
     events = {
         'homologs:homologene:page:change': ::this.getDataOnPage
@@ -73,7 +74,7 @@ export default class ngbHomologeneTableController extends baseController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbHomologeneTableService.getHomologeneGridColumns(),
-            paginationPageSize: this.ngbHomologeneTableService.historyPageSize,
+            paginationPageSize: this.ngbHomologeneTableService.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -90,16 +91,17 @@ export default class ngbHomologeneTableController extends baseController {
     async loadData() {
         try {
             await this.ngbHomologeneTableService.updateHomologene();
+            const dataLength = this.ngbHomologeneTableService.homologene.length;
             if (this.ngbHomologeneTableService.pageError) {
                 this.loadError = this.ngbHomologeneTableService.pageError;
                 this.gridOptions.data = [];
                 this.isEmptyResults = false;
-            } else if (this.ngbHomologeneTableService.homologene.length) {
+            } else if (dataLength) {
                 this.loadError = null;
                 this.gridOptions.data = this.ngbHomologeneTableService.homologene;
+                this.gridOptions.paginationPageSize = this.ngbHomologeneTableService.pageSize;
+                this.gridOptions.totalItems = dataLength;
                 this.isEmptyResults = false;
-            } else if (this.ngbHomologeneTableService.currentPage > 1) {
-                this.ngbHomologeneTableService.changePage(1);
             } else {
                 this.isEmptyResults = true;
             }
@@ -107,7 +109,7 @@ export default class ngbHomologeneTableController extends baseController {
         } catch (errorObj) {
             this.onError(errorObj.message);
         }
-        this.$timeout(this.$scope.$apply.bind(this));
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onError(message) {
@@ -159,7 +161,10 @@ export default class ngbHomologeneTableController extends baseController {
 
     getDataOnPage(page) {
         this.ngbHomologeneTableService.firstPage = page;
-        this.loadData();
+        if (this.gridApi) {
+            this.gridApi.pagination.seek(page);
+        }
+        return this.loadData();
     }
 
     sortChanged(grid, sortColumns) {

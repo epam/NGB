@@ -53,7 +53,9 @@ export default class ngbHomologsDomainsController {
             result.push({
                 width: Math.ceil((d.end - d.start + 1)*this.scale),
                 color: d.color,
-                isFiller: false
+                isFiller: false,
+                name: d.name,
+                id: d.id
             });
             end = d.end;
         });
