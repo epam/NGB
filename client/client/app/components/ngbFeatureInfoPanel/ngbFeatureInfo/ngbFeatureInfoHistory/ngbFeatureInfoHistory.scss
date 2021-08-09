@@ -1,25 +1,40 @@
 .change-row {
     border: 0;
-    margin: 20px;
+    margin-top: 5px;
+    padding: 5px 15px;
+    line-height: 20px;
+    font-size: smaller;
+}
+
+.change-row:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.change-details {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
 }
 
 .change {
-    margin-top: 15px;
-    padding-left: 5px;
-    padding-right: 5px;
+    margin: 0 2px;
+    padding: 1px 3px;
 }
 
 .change-name {
-    font: 700 13px Arial;
     color: #999;
-    line-height: 3;
+    min-width: 20%;
 }
 
 .change-value {
     margin-left: 10px;
     text-align: center;
-    line-height: 3;
     font-size: 13px;
+}
+
+.change-author,
+.change-date {
+    font-weight: bold;
 }
 
 .change-value-old {

@@ -9,24 +9,30 @@
         <ngb-panel-error-list message-list="$ctrl.errorHistory"></ngb-panel-error-list>
     </div>
     <div ng-if="$ctrl.historyData && !$ctrl.errorHistory.length && !$ctrl.isHistoryLoading">
-        <div flex="100"
-             ng-if="$ctrl.historyData.length"
-             ng-repeat="change in $ctrl.historyData"
-             layout="row"
-             layout-wrap
+        <div ng-if="$ctrl.historyData.length"
              class="change-row"
+             ng-repeat="entry in $ctrl.historyData track by entry.key"
         >
             <div flex="100" class="change-info">
-                {{$ctrl.changeInfo(change)}}
+                <span style="white-space: pre">Changes by </span>
+                <span class="change-author">{{$ctrl.changeAuthor(entry)}}</span>
+                <span style="white-space: pre"> on </span>
+                <span class="change-date">{{$ctrl.changeDate(entry)}}</span>
+                <span>:</span>
             </div>
-            <div flex="20" class="change change-name">
-                {{change.field}}
-            </div>
-            <div flex="8" class="change change-value change-value-old">
-                {{change.oldValue ? change.oldValue : 'N/A'}}
-            </div>
-            <div flex="8" class="change change-value change-value-new">
-                {{change.newValue ? change.newValue : 'N/A'}}
+            <div ng-if="$ctrl.historyData.length"
+                 ng-repeat="change in entry.changes"
+                 class="change-details"
+            >
+                <div class="change change-name">
+                    {{change.field}}
+                </div>
+                <div class="change change-value change-value-old">
+                    {{change.oldValue ? change.oldValue : 'N/A'}}
+                </div>
+                <div class="change change-value change-value-new">
+                    {{change.newValue ? change.newValue : 'N/A'}}
+                </div>
             </div>
         </div>
         <div flex="100"

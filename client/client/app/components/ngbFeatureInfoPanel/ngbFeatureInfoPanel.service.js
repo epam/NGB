@@ -1,3 +1,13 @@
+import moment from 'moment';
+
+function dateString (date) {
+    const parsed = moment.utc(date.split(' ').join('T'));
+    if (parsed.isValid()) {
+        return moment(parsed.toDate()).format('D MMMM YYYY, HH:mm');
+    }
+    return undefined;
+}
+
 export default class ngbFeatureInfoPanelService {
 
     _editMode = false;
@@ -163,7 +173,25 @@ export default class ngbFeatureInfoPanelService {
                 .then(data => {
                     this.historyError = null;
                     if (data) {
-                        this.historyData = data;
+                        const processed = data.map(item => ({
+                            ...item,
+                            dateParsed: moment.utc(item.datetime.split(' ').join('T')),
+                            date: dateString(item.datetime),
+                            key: `${item.username}|${dateString(item.datetime)}`
+                        }));
+                        const keys = [...new Set(processed.map(item => item.key))];
+                        const grouped = keys
+                            .map(key => processed.filter(item => item.key === key))
+                            .filter(items => items.length > 0)
+                            .map(items => ({
+                                username: items[0].username,
+                                date: items[0].date,
+                                dateParsed: items[0].dateParsed,
+                                changes: items,
+                                key: items[0].key
+                            }))
+                            .sort((a, b) => b.dateParsed - a.dateParsed);
+                        this.historyData = grouped;
                     }
                     resolve(true);
                 })

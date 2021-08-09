@@ -1,4 +1,4 @@
-const EMPTY_HISTORY = 'There was not any change.';
+const EMPTY_HISTORY = 'Nothing changed';
 
 export default class ngbFeatureInfoHistoryController {
 
@@ -13,13 +13,7 @@ export default class ngbFeatureInfoHistoryController {
     }
 
     get historyData () {
-        const data = this.ngbFeatureInfoPanelService.historyData;
-        if (data.length) {
-            data.sort((a, b) => {
-                return new Date(b.datetime.split(' ').join('T')) - new Date(a.datetime.split(' ').join('T'));
-            });
-        }
-        return data;
+        return this.ngbFeatureInfoPanelService.historyData;
     }
 
     get isHistoryLoading () {
@@ -30,11 +24,13 @@ export default class ngbFeatureInfoHistoryController {
         return this.ngbFeatureInfoPanelService.historyError;
     }
 
-    changeInfo (change) {
-        const date = new Date(change.datetime.split(' ').join('T'));
-        const month = date.toLocaleString('default', { month: 'long' });
-        const time = date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-        const info = `Changes by ${change.username} on ${date.getDate()} ${month} ${date.getFullYear()}, ${time}`;
-        return info;
+    changeAuthor (change) {
+        return !change || !change.username || /^anonymousUser$/i.test(change.username)
+            ? 'anonymous user'
+            : change.username;
+    }
+
+    changeDate (change) {
+        return !change || !change.date ? 'N/A' : change.date;
     }
 }
