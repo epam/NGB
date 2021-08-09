@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {StatisticsContainer, initializeContainer} from './variants';
 import {CachedTrackRenderer} from '../../../../core';
 import {VcfTransformer} from '../data/vcfTransformer';

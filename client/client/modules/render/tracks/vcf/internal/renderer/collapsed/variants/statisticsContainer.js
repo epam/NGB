@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {NumberFormatter} from '../../../../../../utilities';
 import {VariantBaseContainer} from './baseContainer';
 import {drawingConfiguration} from '../../../../../../core';

@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {CachedTrackRenderer, drawingConfiguration} from '../../../../core';
 import {FeatureRenderer, GeneHistogram} from './features';
 import {GeneTransformer} from '../data/geneTransformer';

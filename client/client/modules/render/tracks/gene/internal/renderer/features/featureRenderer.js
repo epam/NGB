@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {
     AminoacidFeatureRenderer,
     FeatureBaseRenderer,
@@ -114,8 +114,8 @@ export default class FeatureRenderer {
         highlightGraphics: PIXI.Graphics = null, hoveredHighlightGraphics: PIXI.Graphics) {
         if (features === null || features === undefined)
             return null;
-        this.prepareRenderers();
         this.destroyRegisteredLabels();
+        this.prepareRenderers();
         this._labels = [];
         this._dockableLabels = [];
         this._dockableElements = [];

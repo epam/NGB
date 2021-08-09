@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';

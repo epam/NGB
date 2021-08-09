@@ -1,5 +1,8 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import drawingConfiguration from './drawingConfiguration';
+
+PIXI.settings.ROUND_PIXELS = true;
+PIXI.settings.RESOLUTION = drawingConfiguration.resolution;
 
 export default function getRenderer(size, opts = null) {
     const {width, height} = size;

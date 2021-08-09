@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {AlignmentsRenderer, BP_OFFSET} from './alignmentsRenderer';
 import {Line} from '../../cache/line';
 import {drawingConfiguration} from '../../../../../core';

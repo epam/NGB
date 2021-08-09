@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';

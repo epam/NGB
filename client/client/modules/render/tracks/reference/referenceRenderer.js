@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import * as modes from './reference.modes';
 import {aminoAcidsConst, CachedTrackRenderer, drawingConfiguration} from '../../core';
 import destroyPixiDisplayObjects from '../../utilities/destroyPixiDisplayObjects';

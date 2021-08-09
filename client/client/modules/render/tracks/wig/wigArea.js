@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import * as ScaleModes from './modes/scaleModes';
 import {Viewport, drawingConfiguration} from '../../core';
 import wigConfig from './wigConfig';

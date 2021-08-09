@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {BaseViewport} from '../../../../core';
 import drawStrandDirection from '../../../../tracks/gene/internal/renderer/features/drawing/strandDrawing';
 

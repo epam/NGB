@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import VariantBaseRenderer from './base-renderer';
 import {BaseViewport, drawingConfiguration} from '../../core';
 import {ShortVariantConfig, CommonConfig} from '../configs';
