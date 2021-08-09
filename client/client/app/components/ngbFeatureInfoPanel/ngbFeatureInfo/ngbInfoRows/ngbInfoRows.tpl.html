@@ -26,7 +26,7 @@
              class="property-row"
         >
             <div flex="40"
-                 ng-if="!$ctrl.isEditable(attribute)"
+                 ng-if="!$ctrl.isRemovable(attribute)"
                  layout="row"
                  layout-wrap
             >
@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div flex="40"
-                 ng-if="$ctrl.isEditable(attribute)"
+                 ng-if="$ctrl.isRemovable(attribute)"
                  layout="row"
                  layout-wrap
             >
