@@ -67,3 +67,9 @@ ngb-feature-info-main{
 .save-button {
   right: 90px;
 }
+
+@media screen and (max-width: 959px) {
+  .general-information-buttons {
+    top: 48px;
+  }
+}

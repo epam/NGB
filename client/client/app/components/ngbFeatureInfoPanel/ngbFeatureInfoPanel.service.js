@@ -11,7 +11,7 @@ export default class ngbFeatureInfoPanelService {
     }
 
     constructor(geneDataService) {
-        this.geneDataService = geneDataService;
+        Object.assign(this, {geneDataService});
     }
 
     get editMode () {
@@ -63,14 +63,6 @@ export default class ngbFeatureInfoPanelService {
 
     set saveInProgress (progress) {
         this._saveInProgress = progress;
-    }
-
-    get defaultProperties () {
-        return this._defaultProperties;
-    }
-
-    set defaultProperties (properties) {
-        this._defaultProperties = properties;
     }
 
     removeAttribute(property) {
@@ -158,6 +150,21 @@ export default class ngbFeatureInfoPanelService {
                     this.saveError = [error.message];
                     resolve(false);
                 });
+        });
+    }
+
+    unsavedChanges (properties) {
+        const attributes = this.attributes.filter(attribute => attribute.name || attribute.value);
+        if (properties.length !== attributes.length) {
+            return true;
+        }
+        return properties.some((property, index) => {
+            return (
+                property[0] !== attributes[index].name ||
+                property[1] !== attributes[index].value ||
+                property[2] !== attributes[index].attribute ||
+                attributes[index].deleted
+            );
         });
     }
 }
