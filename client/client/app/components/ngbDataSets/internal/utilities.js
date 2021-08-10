@@ -14,6 +14,13 @@ const __tracks_formats = [
     'WIG'
 ];
 
+const dummyReferenceNames = ['', ' ', '-', '=', 'dummy', 'null', 'none', 'x'];
+
+const dummyReferenceNamesRegExp = dummyReferenceNames
+    .map(name => new RegExp(`^${name}$`, 'i'));
+
+export {dummyReferenceNamesRegExp as dummyReferenceNames};
+
 function _preprocessNode(node: Node, parent: Node = null) {
     node.isProject = true;
     node.project = parent;
