@@ -70,6 +70,7 @@ export default {
             name: 'layout>blast'
         },
         homologs: {
+            isHidden: true,
             displayed: false,
             icon: 'search',
             panel: 'ngbHomologsPanel',

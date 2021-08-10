@@ -179,6 +179,28 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
+                // TODO: provide proper condition
+                if (true) {
+                    const layoutChange = this.appLayout.Panels.homologs;
+                    layoutChange.displayed = true;
+                    menuData.push({
+                        events: [
+                            {
+                                data: { layoutChange },
+                                name: 'layout:item:change'
+                            },
+                            {
+                                data: new EventGeneInfo({
+                                    endIndex: data.feature.endIndex,
+                                    geneTracks,
+                                    highlight: false,
+                                    startIndex: data.feature.startIndex
+                                }),
+                                name: 'read:show:homologs'
+                            }],
+                        title: 'Show similar genes'
+                    });
+                }
                 if (menuData.length > 0) {
                     const childScope = this.$scope.$new(false);
                     childScope.menuData = menuData;
