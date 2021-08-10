@@ -3,6 +3,7 @@ import drawingConfiguration from './drawingConfiguration';
 
 PIXI.settings.ROUND_PIXELS = true;
 PIXI.settings.RESOLUTION = drawingConfiguration.resolution;
+PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 export default function getRenderer(size, opts = null) {
     const {width, height} = size;
@@ -16,9 +17,8 @@ export default function getRenderer(size, opts = null) {
         width,
         height,
         antialias: drawingConfiguration.antialias,
-        preserveDrawingBuffer: true,
-        resolution: drawingConfiguration.resolution,
-        transparent: true
+        preserveDrawingBuffer: false,
+        transparent: false
     });
     renderer.backgroundColor = backgroundColor;
     return renderer;

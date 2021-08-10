@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
+import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';
 import drawStrandDirection, {getStrandArrowSize} from './strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
@@ -30,7 +30,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         let maxLabelWidth = {height: 0, width: 0};
         const gene = this.config.gene;
         if (feature.name) {
-            maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label);
+            maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label, true);
         }
         if (rect) {
             let transcriptsHeight = 0;
@@ -98,8 +98,8 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         const gene = this.config.gene;
 
         if (feature.name) {
-            const label = new PIXI.Text(feature.name, this.config.gene.label);
-            label.resolution = drawingConfiguration.resolution;
+            const fontName = FontManager.getFontByStyle(this.config.gene.label);
+            const label = new PIXI.BitmapText(feature.name, {fontName});
             label.x = Math.round(position.x);
             label.y = Math.round(position.y);
             dockableElementsContainer.addChild(label);
@@ -255,7 +255,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
 
                 if (transcripts[i].name) {
-                    const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
+                    const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label, true);
                     transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 } else {
                     transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);

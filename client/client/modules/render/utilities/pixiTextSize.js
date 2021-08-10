@@ -11,9 +11,12 @@ export default class PixiTextSize {
         return PixiTextSize._label;
     }
 
-    static getTextSize(text, _config) {
+    static getTextSize(text, _config, isBitmapText = false) {
         PixiTextSize.label.text = text;
-        PixiTextSize.label.style = _config;
+        PixiTextSize.label.style = {
+            ...isBitmapText ? {letterSpacing: 0.5} : {},
+            ..._config
+        };
         return {
             height: PixiTextSize.label.height,
             width: PixiTextSize.label.width

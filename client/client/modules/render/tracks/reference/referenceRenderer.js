@@ -10,15 +10,15 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
 
     _noGCContentLabel;
 
-    constructor(config, renderer) {
+    constructor(config) {
         super();
         this._config = config;
         this._height = config.height;
-        this.initializeLettersTextures(renderer);
+        this.initializeLettersTextures();
         this.initializeCentralLine();
     }
 
-    initializeLettersTextures(renderer) {
+    initializeLettersTextures() {
         this._lettersCache = {};
         this._aminoAcidEvenCache = {};
         this._aminoAcidOddCache = {};

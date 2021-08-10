@@ -15,7 +15,7 @@ export class REFERENCETrack extends CachedTrack {
 
     constructor(opts) {
         super(opts);
-        this._referenceRenderer = new ReferenceRenderer(this.trackConfig, this._pixiRenderer);
+        this._referenceRenderer = new ReferenceRenderer(this.trackConfig);
         this.dataService = new GenomeDataService(opts.dispatcher);
         this.dispatcher = opts.dispatcher;
     }

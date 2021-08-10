@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
+import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from './strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 const FEATURE_INDEX_EXON = 1;
@@ -34,7 +34,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const transcript = this.config.transcript;
 
         if (feature.name) {
-            transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label);
+            transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label, true);
         }
 
         const width = Math.max(1, boundariesX2 - boundariesX1, transcriptLabelSize.width);
@@ -304,9 +304,9 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const project = viewport.project;
         if (feature.name &&
             (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
-            const label = new PIXI.Text(feature.name, transcriptConfig.label);
+            const fontName = FontManager.getFontByStyle(transcriptConfig.label);
+            const label = new PIXI.BitmapText(feature.name, {fontName});
             let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
-            label.resolution = drawingConfiguration.resolution;
             labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);
             label.x = Math.round(labelStart);
             label.y = Math.round(position.y + transcriptConfig.label.marginTop);

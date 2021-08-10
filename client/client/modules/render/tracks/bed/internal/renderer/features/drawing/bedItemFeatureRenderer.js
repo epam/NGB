@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
+import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
@@ -23,10 +23,10 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let descriptionLabelSize = {height: 0, width: 0};
         let labelSize = {height: 0, width: 0};
         if (feature.name && feature.name !== '.') {
-            labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label);
+            labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label, true);
         }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
-            descriptionLabelSize = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label);
+            descriptionLabelSize = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label, true);
         }
         if (boundaries.rect) {
             boundaries.rect.x2 = Math.max(boundaries.rect.x2, boundaries.rect.x1 + labelSize.width);
@@ -61,8 +61,9 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let labelHeight = 0;
         let labelWidth = 0;
         if (feature.name && feature.name !== '.') {
-            const label = new PIXI.Text(feature.name, this.config.bed.label);
-            label.resolution = drawingConfiguration.resolution;
+            const fontName = FontManager.getFontByStyle(this.config.bed.label);
+            const label = new PIXI.BitmapText(feature.name, {fontName});
+
             label.x = Math.round(position.x);
             label.y = Math.round(position.y);
             dockableElementsContainer.addChild(label);
@@ -71,10 +72,11 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             this.registerLabel(label, position, {end: feature.endIndex, start: feature.startIndex});
         }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
-            const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label).width;
+            const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label, true).width;
             if (descriptionLabelWidth < position.width) {
-                const descriptionLabel = new PIXI.Text(feature.description, this.config.bed.description.label);
-                descriptionLabel.resolution = drawingConfiguration.resolution;
+                const fontName = FontManager.getFontByStyle(this.config.bed.description.label);
+                const descriptionLabel = new PIXI.BitmapText(feature.description, {fontName});
+
                 descriptionLabel.x = Math.round(position.x);
                 descriptionLabel.y = Math.round(position.y + labelHeight);
                 dockableElementsContainer.addChild(descriptionLabel);

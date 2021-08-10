@@ -26,13 +26,13 @@ export class AlignmentsRenderProcessor {
         return this._container;
     }
 
-    constructor(renderer) {
+    constructor() {
         this._alignmentHeight = 1;
         this._container = new PIXI.Container();
-        this._initializeLettersTextures(renderer);
+        this._initializeLettersTextures();
     }
 
-    _initializeLettersTextures(renderer) {
+    _initializeLettersTextures() {
         this._lettersCache = {};
         for (const letter of ['A', 'G', 'C', 'T', 'N']) {
             const text = new PIXI.Text(letter, {

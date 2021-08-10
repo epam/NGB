@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
+import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
-import {drawingConfiguration} from '../../../../../../core';
 
 const AMINOACID_LENGTH_IN_BASE_PAIRS = 3;
 const FEATURE_INDEX_AMINOACID = 2;
@@ -39,13 +39,13 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
 
     constructor(config, registerLabel, registerDockableElement, registerFeaturePosition) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition);
-        this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle).width +
+        this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle, true).width +
             this.config.aminoacid.label.margin * 2;
-        this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle).width +
+        this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle, true).width +
             this.config.aminoacid.label.margin * 2;
-        this._stopLabelWidth = PixiTextSize.getTextSize('STOP', this.config.aminoacid.label.defaultStyle).width +
+        this._stopLabelWidth = PixiTextSize.getTextSize('STOP', this.config.aminoacid.label.defaultStyle, true).width +
             this.config.aminoacid.label.margin * 2;
-        this._maxAminoacidNumberWidth = PixiTextSize.getTextSize('99999', this.config.aminoacid.number).width;
+        this._maxAminoacidNumberWidth = PixiTextSize.getTextSize('99999', this.config.aminoacid.number, true).width;
     }
 
     shouldDrawAminoacids(viewport) {
@@ -127,7 +127,7 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
     }
 
     analyzeBoundaries(feature, viewport) {
-        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height : 0;
+        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number, true).height : 0;
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
         if (this.aminoacidsFitsViewport(feature, viewport)) {
@@ -160,8 +160,8 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
 
             if (this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport)) {
                 const indexAcid = acid.index + 1;
-                const aminoacidNumber = new PIXI.Text(indexAcid, this.config.aminoacid.number);
-                aminoacidNumber.resolution = drawingConfiguration.resolution;
+                const fontName = FontManager.getFontByStyle(this.config.aminoacid.number);
+                const aminoacidNumber = new PIXI.BitmapText(indexAcid, {fontName});
 
                 const aminoacidNumberPosition = {
                     x: viewport.project.brushBP2pixel(acid.startIndex) +
@@ -268,8 +268,8 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 });
 
             if (shouldDisplayLabel && shouldDisplayAminoacidLabels && acid.endIndex - acid.startIndex >= 1) {
-                const label = new PIXI.Text(acid.text.toUpperCase(), labelStyle);
-                label.resolution = drawingConfiguration.resolution;
+                const fontName = FontManager.getFontByStyle(labelStyle);
+                const label = new PIXI.BitmapText(feature.name, {fontName});
                 const yOffset = 0.5;
                 const labelPosition = {
                     x: viewport.project.brushBP2pixel(acid.startIndex) +

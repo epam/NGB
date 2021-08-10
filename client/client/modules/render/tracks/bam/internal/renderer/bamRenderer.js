@@ -329,7 +329,7 @@ export class BamRenderer {
     }
 
     _initAlignments() {
-        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor(this._pixiRenderer);
+        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor();
         this._dataContainer.addChild(this._alignmentsRenderProcessor.container);
     }
 
@@ -399,7 +399,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     _renderPlaceholders() {
-        let topMargin = this.downsampleIndicatorsTopMargin;
+        const topMargin = this.downsampleIndicatorsTopMargin;
         this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(),
             {
                 height: this._pixiRenderer.height - topMargin, width: this._pixiRenderer.width

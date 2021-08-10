@@ -14,7 +14,7 @@ export default {
         label: {
             fill: 0x273F70,
             fontFamily: 'arial',
-            fontSize: '8pt',
+            fontSize: 10,
             fontWeight: 'bold'
         },
         description: {
@@ -22,7 +22,7 @@ export default {
             label :{
                 fill: 0x273F70,
                 fontFamily: 'arial',
-                fontSize: '7pt',
+                fontSize: 9,
                 fontWeight: 'normal'
             },
             margin: 10

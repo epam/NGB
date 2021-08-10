@@ -292,7 +292,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element: PIXI.Text = labels[i].label;
+            const element: PIXI.BitmapText = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }

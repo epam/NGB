@@ -10,7 +10,7 @@ export default {
             defaultStyle: {
                 fill: 0x030E24,
                 fontFamily: 'arial',
-                fontSize: '7pt',
+                fontSize: 9,
                 fontWeight: 'normal'
             },
             margin: 2
@@ -18,7 +18,7 @@ export default {
         number: {
             fill: 0x030E24,
             fontFamily: 'arial',
-            fontSize: '7pt',
+            fontSize: 9,
             fontWeight: 'normal'
         },
         odd: {
@@ -53,7 +53,7 @@ export default {
         label: {
             fill: 0x273F70,
             fontFamily: 'arial',
-            fontSize: '8pt',
+            fontSize: 10,
             fontWeight: 'bold'
         },
         strand: {
@@ -116,7 +116,7 @@ export default {
         label: {
             fill: 0x273F70,
             fontFamily: 'arial',
-            fontSize: '7pt',
+            fontSize: 9,
             fontWeight: 'normal',
             marginTop: 5
         },
