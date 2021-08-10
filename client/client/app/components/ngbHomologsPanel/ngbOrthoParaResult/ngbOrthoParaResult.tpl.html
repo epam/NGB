@@ -3,14 +3,14 @@
         <md-button
                 aria-label="back"
                 class="md-flat blast-search-result-back"
-                ng-click="$ctrl.changeState({state: 'HOMOLOGENE'})"
+                ng-click="$ctrl.changeState({state: 'ORTHO_PARA'})"
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
     </div>
     <div class="blast-search-result-table-row" flex layout="column" ng-if="!$ctrl.searchResultError">
-        <ngb-homologene-result-table change-state="$ctrl.changeState" flex
-                                     layout="column"></ngb-homologene-result-table>
+        <ngb-ortho-para-result-table change-state="$ctrl.changeState" flex
+                                     layout="column"></ngb-ortho-para-result-table>
     </div>
     <div class="variants-load-error-container" layout="column" layout-align="center center"
          ng-if="$ctrl.searchResultError">

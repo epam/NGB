@@ -1,26 +1,17 @@
 <div class="blast-search-flex-column">
     <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected">
-        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.HOMOLOGENE)" name="HOMOLOGENE">HOMOLOGENE
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.HOMOLOGENE)" name="HOMOLOGENE">
+            HOMOLOGENE
         </md-nav-item>
-        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.ORTHO_PARA)" name="ORTHO_PARA">ORTHOLOGS &
-            PARALOGS
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.ORTHO_PARA)" name="ORTHO_PARA">
+            ORTHOLOGS & PARALOGS
         </md-nav-item>
         <span flex></span>
-        <ngb-blast-search-panel-paginate change-page="$ctrl.ngbHomologeneTableService.changePage(page)"
-                                         current-page="$ctrl.ngbHomologeneTableService.currentPageHistory"
-                                         flex
-                                         ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.HISTORY"
-                                         total-pages="$ctrl.ngbHomologeneTableService.totalPages"
-        ></ngb-blast-search-panel-paginate>
-        <md-button
-                aria-label="download"
-                class="md-accent md-flat blast-search-nav-button"
-                ng-click="$ctrl.downloadResults($event)"
-                ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.RESULT"
-                type="button"
-        >
-            <ng-md-icon class="icon_info_outline" icon="file_download"></ng-md-icon>
-        </md-button>
+        <ngb-homologs-panel-paginate change-page="$ctrl.service.changePage(page)"
+                                     current-page="$ctrl.service.currentPage"
+                                     flex
+                                     total-pages="$ctrl.service.totalPages"
+        ></ngb-homologs-panel-paginate>
     </md-nav-bar>
 
     <md-content class="md-padding _md blast-search-result blast-search-flex-column">
@@ -36,5 +27,9 @@
                               class="blast-search-flex-column"
                               flex
                               ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.ORTHO_PARA"></ngb-ortho-para-table>
+        <ngb-ortho-para-result change-state="$ctrl.changeState(state)"
+                              class="blast-search-flex-column"
+                              flex
+                              ng-if="$ctrl.currentHomologsState === $ctrl.homologsStates.ORTHO_PARA_RESULT"></ngb-ortho-para-result>
     </md-content>
 </div>

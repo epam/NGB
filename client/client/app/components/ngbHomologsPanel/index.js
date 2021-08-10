@@ -14,6 +14,7 @@ import {dispatcher} from '../../shared/dispatcher';
 import ngbHomologeneTable from './ngbHomologeneTable';
 import ngbHomologeneResult from './ngbHomologeneResult';
 import ngbOrthoParaTable from './ngbOrthoParaTable';
+import ngbOrthoParaResult from './ngbOrthoParaResult';
 import ngbHomologsDomains from './ngbHomologsDomains';
 import ngbHomologsPanelPaginate from './ngbHomologsPanelPaginate';
 
@@ -22,7 +23,7 @@ export default angular
     .module('ngbHomologsPanel', [
         ngbHomologsPanelPaginate, ngbHomologsDomains,
         ngbHomologeneTable, ngbHomologeneResult,
-        ngbOrthoParaTable
+        ngbOrthoParaTable, ngbOrthoParaResult
     ])
     .service('dispatcher', dispatcher.instance)
     .service('ngbHomologsService', service.instance)

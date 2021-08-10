@@ -6,7 +6,11 @@ const HOMOLOGS_STATES = {
 };
 
 export default class ngbHomologsService {
-    constructor(dispatcher, projectContext) {
+    homologsServiceMap = {};
+    constructor(dispatcher, projectContext,
+        ngbHomologeneTableService, ngbHomologeneResultService,
+        ngbOrthoParaTableService, ngbOrthoParaResultService
+    ) {
         Object.assign(
             this,
             {
@@ -14,15 +18,26 @@ export default class ngbHomologsService {
                 projectContext
             }
         );
+        this.homologsServiceMap = {
+            HOMOLOGENE: ngbHomologeneTableService,
+            HOMOLOGENE_RESULT: ngbHomologeneResultService,
+            ORTHO_PARA: ngbOrthoParaTableService,
+            ORTHO_PARA_RESULT: ngbOrthoParaResultService
+        };
         this.initEvents();
+
     }
 
     get homologsStates() {
         return HOMOLOGS_STATES;
     }
 
-    static instance(dispatcher, projectContext) {
-        return new ngbHomologsService(dispatcher, projectContext);
+    static instance(dispatcher, projectContext,
+        ngbHomologeneTableService, ngbHomologeneResultService,
+        ngbOrthoParaTableService, ngbOrthoParaResultService) {
+        return new ngbHomologsService(dispatcher, projectContext,
+            ngbHomologeneTableService, ngbHomologeneResultService,
+            ngbOrthoParaTableService, ngbOrthoParaResultService);
     }
 
     initEvents() {

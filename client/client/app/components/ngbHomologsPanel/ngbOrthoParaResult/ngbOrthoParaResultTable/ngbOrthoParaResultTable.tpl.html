@@ -1,0 +1,25 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading search results...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
+    <strong>No significant similarity found.</strong>
+    <span>Try to change search parameters.</span>
+</div>
+<div class="ui-grid-container blast-search-flex-column" flex ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults">
+    <div class="variants-load-error-container" ng-if="$ctrl.searchResultTableLoadError">
+        <small>{{$ctrl.searchResultTableLoadError}}</small>
+    </div>
+    <div class="blast-search-result-table"
+         ui-grid="$ctrl.gridOptions"
+         ui-grid-auto-resize
+         ui-grid-move-columns
+         ui-grid-pagination
+         ui-grid-pinning
+         ui-grid-resize-columns
+         ui-grid-save-state
+         ui-grid-selection
+    ></div>
+</div>

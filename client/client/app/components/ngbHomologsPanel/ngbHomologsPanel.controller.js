@@ -5,8 +5,9 @@ export default class ngbHomologsPanelController extends baseController {
     homologsStates;
     currentHomologsState;
     tabSelected;
-    events = {
+    service;
 
+    events = {
     };
 
     constructor(dispatcher, $scope, $timeout, ngbHomologsService) {
@@ -17,9 +18,10 @@ export default class ngbHomologsPanelController extends baseController {
             $timeout,
             ngbHomologsService
         });
-        this.homologsStates = ngbHomologsService.homologsStates;
+        this.homologsStates = this.ngbHomologsService.homologsStates;
         this.currentHomologsState = this.homologsStates.HOMOLOGENE;
         this.tabSelected = this.homologsStates.HOMOLOGENE;
+        this.service = this.ngbHomologsService.homologsServiceMap[this.currentHomologsState];
         this.initEvents();
     }
 
@@ -30,6 +32,7 @@ export default class ngbHomologsPanelController extends baseController {
     changeState(state) {
         if (this.homologsStates.hasOwnProperty(state)) {
             this.currentHomologsState = this.homologsStates[state];
+            this.service = this.ngbHomologsService.homologsServiceMap[this.currentHomologsState];
             switch (state) {
                 case this.homologsStates.HOMOLOGENE:
                 case this.homologsStates.HOMOLOGENE_RESULT: {
@@ -43,7 +46,7 @@ export default class ngbHomologsPanelController extends baseController {
                 }
             }
         }
-        this.$timeout(this.$scope.$apply.bind(this));
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onExternalChange() {

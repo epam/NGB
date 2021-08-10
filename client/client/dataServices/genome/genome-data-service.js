@@ -195,14 +195,8 @@ export class GenomeDataService extends DataService {
 
     _homologene = [];
     _homologeneResult = [];
-
-    getHomologeneMock() {
-        return {
-            gene: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ', '),
-            protein: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ' '),
-            info: this.getRandomString(Math.round(200 * Math.random()) + 50),
-        };
-    }
+    _orthoPara = [];
+    _orthoParaResult = [];
 
     getHomologeneLoad() {
         const length = 100;
@@ -224,12 +218,52 @@ export class GenomeDataService extends DataService {
         return this._homologeneResult;
     }
 
+    getOrthoParaLoad() {
+        const length = 200;
+        if (!this._orthoPara.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._orthoPara.push(this.getHomologeneMock());
+            }
+        }
+        return this._orthoPara;
+    }
+
+    getOrthoParaResultLoad() {
+        const length = 100;
+        if (!this._orthoParaResult.length) {
+            for (let i = 0; i < length; i += 1) {
+                this._orthoParaResult.push(this.getOrthoParaResultMock());
+            }
+        }
+        return this._orthoParaResult;
+    }
+
+    getHomologeneMock() {
+        return {
+            gene: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ', '),
+            protein: this.getRandomSentence(Math.round(5 * Math.random()) + 1, ' '),
+            info: this.getRandomString(Math.round(200 * Math.random()) + 50),
+        };
+    }
+
     getHomologeneResultMock() {
         const aa = Math.round(200 * Math.random()) + 50;
         return {
             name: this.getRandomString(Math.round(5 * Math.random()) + 3),
             species: this.getRandomString(Math.round(20 * Math.random()) + 5),
             accession_id: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            aa: aa,
+            domains: this.getRandomDomains(Math.round(Math.random()) + 3, aa)
+        };
+    }
+
+    getOrthoParaResultMock() {
+        const aa = Math.round(200 * Math.random()) + 50;
+        const types = ['Ortholog', 'Paralog'];
+        return {
+            name: this.getRandomString(Math.round(5 * Math.random()) + 3),
+            species: this.getRandomString(Math.round(20 * Math.random()) + 5),
+            type: types[Math.round(Math.random())],
             aa: aa,
             domains: this.getRandomDomains(Math.round(Math.random()) + 3, aa)
         };

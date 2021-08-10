@@ -97,7 +97,7 @@ export default class ngbOrthoParaTableService {
     set orthoParaColumns(columns) {
         localStorage.setItem('orthoParaColumns', JSON.stringify(columns || []));
     }
-    
+
     static instance(dispatcher, genomeDataService) {
         return new ngbOrthoParaTableService(dispatcher, genomeDataService);
     }
@@ -129,7 +129,7 @@ export default class ngbOrthoParaTableService {
         } else {
             this._pageError = null;
         }
-        this._totalPages = Math.ceil(data.totalCount / this.pageSize);
+        this._totalPages = Math.ceil(data.length / this.pageSize);
         let filteredData = [];
         if (data) {
             filteredData = data;
