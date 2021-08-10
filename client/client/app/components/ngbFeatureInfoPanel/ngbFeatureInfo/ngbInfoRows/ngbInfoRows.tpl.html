@@ -32,7 +32,7 @@
             >
                 <div flex
                      class="property property-name unremovable"
-                     ng-class="{'isEmpty': $ctrl.valueIsEmpty(attribute.value)}">
+                     ng-class="{'isDouble': $ctrl.isDouble(attribute)}">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">
                         ATTR
@@ -57,7 +57,7 @@
                 </div>
                 <div class="property property-name"
                      ng-if="attribute.default"
-                     ng-class="{'isEmpty': $ctrl.valueIsEmpty(attribute.value)}"
+                     ng-class="{'isDouble': $ctrl.isDouble(attribute)}"
                      style="flex: 1">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">

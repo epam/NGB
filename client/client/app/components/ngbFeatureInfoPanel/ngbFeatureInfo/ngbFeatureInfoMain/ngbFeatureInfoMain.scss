@@ -68,6 +68,12 @@ ngb-feature-info-main{
   right: 90px;
 }
 
+@media screen and (max-width: 625px) {
+  .general-information-buttons {
+    top: 56px;
+  }
+}
+
 @media screen and (max-width: 959px) {
   .general-information-buttons {
     top: 48px;

@@ -26,6 +26,16 @@ export default class ngbInfoRowsController {
         return property.attribute || !/^(start|end|chromosome|source|feature|gene|score|strand|frame)$/i.test(property.name);
     }
 
+    isDouble (property) {
+        const attributes = this.ngbFeatureInfoPanelService.newAttributes;
+        const doubles = attributes.filter(attribute => {
+            if (property.default && property.name === attribute.name && !attribute.default) {
+                return attribute;
+            }
+        });
+        return doubles.length;
+    }
+
     valueIsEmpty (value) {
         return value === undefined || value === '' || value === null;
     }
