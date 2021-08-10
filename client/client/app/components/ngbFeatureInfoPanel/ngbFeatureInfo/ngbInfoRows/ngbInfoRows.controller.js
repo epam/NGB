@@ -36,8 +36,7 @@ export default class ngbInfoRowsController {
 
     onChangeAttribute (property) {
         if (property.name) {
-            const result = this.ngbFeatureInfoPanelService.changeAttribute(property);
-            return result;
+            return this.ngbFeatureInfoPanelService.changeAttribute(property);
         }
     }
 

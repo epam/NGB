@@ -78,11 +78,12 @@
   margin-right: 5px;
 }
 
-.ng-invalid.ng-touched {
+.isEmpty {
   border-color: #F00;
 }
 
-.isEmpty {
+.isDouble {
+  border-color: #F00;
   color: #F00;
 }
 
@@ -94,4 +95,11 @@
   border: 1px solid #dddddd;
   border-radius: 2px;
   font-weight: normal;
+}
+
+.property-error-message {
+  color: #F00;
+  margin-right: 5px;
+  font-size: 10px;
+  padding-left: 7px;
 }

@@ -65,30 +65,48 @@
                     </span>
                     {{attribute.name}}
                 </div>
-                <input type="string"
-                       ng-if="!attribute.default"
-                       style="flex: 1"
-                       required
-                       class="property property-name editable"
-                       ng-model="attribute.name"
-                       ng-change="$ctrl.onChangeAttribute(attribute)"
-                       ng-class="{'isEmpty': $ctrl.onChangeAttribute(attribute) || (attribute.name && $ctrl.valueIsEmpty(attribute.value))}"
-                       ng-model-options="{updateOn: 'blur'}" />
+                <div ng-if="!attribute.default" style="flex: 1">
+                    <input type="string"
+                           required
+                           class="property property-name editable"
+                           ng-model="attribute.name"
+                           ng-change="$ctrl.onChangeAttribute(attribute)"
+                           ng-class="{
+                               'isEmpty': !attribute.name && attribute.value,
+                               'isDouble': $ctrl.onChangeAttribute(attribute)
+                           }"
+                           ng-model-options="{updateOn: 'blur'}" />
+                    <div class="property-error-message"
+                         ng-if="!attribute.name && attribute.value"
+                    >
+                        Name is required
+                    </div>
+                    <div class="property-error-message"
+                         ng-if="$ctrl.onChangeAttribute(attribute)"
+                    >
+                        Duplicate attribute
+                    </div>
+                </div>
             </div>
             <div flex="60">
                 <div ng-if="!$ctrl.isEditable(attribute)"
                      class="property property-value">
                     {{attribute.value}}
                 </div>
-                <input type="string"
-                       style="flex: 1"
-                       ng-if="$ctrl.isEditable(attribute)"
-                       required
-                       ng-model="attribute.value"
-                       ng-change="$ctrl.onChangeAttribute(attribute)"
-                       class="property property-value editable"
-                       ng-class="{'isEmpty': !attribute.name && !$ctrl.valueIsEmpty(attribute.value)}"
-                       ng-model-options="{updateOn: 'blur'}" />
+                <div ng-if="$ctrl.isEditable(attribute)" style="flex: 1">
+                    <input type="string"
+                           required
+                           ng-model="attribute.value"
+                           ng-change="$ctrl.onChangeAttribute(attribute)"
+                           class="property property-value editable"
+                           ng-class="{'isEmpty': attribute.name && !attribute.value}"
+                           ng-model-options="{updateOn: 'blur'}" />
+                    <div class="property-error-message"
+                         ng-if="!attribute.value && attribute.name"
+                    >
+                        Value is required
+                    </div>
+                </div>
             </div>
         </div>
     </form>
