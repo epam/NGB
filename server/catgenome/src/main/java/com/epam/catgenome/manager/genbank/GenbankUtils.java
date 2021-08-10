@@ -35,6 +35,7 @@ public final class GenbankUtils {
     static {
         GENBANK_EXTENSIONS.add(".genbank");
         GENBANK_EXTENSIONS.add(".gb");
+        GENBANK_EXTENSIONS.add(".gbf");
         GENBANK_EXTENSIONS.add(".gbk");
     }
 
