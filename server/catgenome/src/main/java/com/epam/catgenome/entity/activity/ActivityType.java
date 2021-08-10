@@ -22,32 +22,8 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.genbank;
+package com.epam.catgenome.entity.activity;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public final class GenbankUtils {
-
-    public static final String GENBANK_DEFAULT_EXTENSION = ".gbk";
-    protected static final Set<String> GENBANK_EXTENSIONS = new HashSet<>();
-
-    static {
-        GENBANK_EXTENSIONS.add(".genbank");
-        GENBANK_EXTENSIONS.add(".gb");
-        GENBANK_EXTENSIONS.add(".gbf");
-        GENBANK_EXTENSIONS.add(".gbk");
-    }
-
-    private GenbankUtils() {
-        //utility class
-    }
-
-    public static Set<String> getGenbankExtensions() {
-        return GENBANK_EXTENSIONS;
-    }
-
-    public static boolean isGenbank(String path) {
-        return GENBANK_EXTENSIONS.stream().anyMatch(path::endsWith);
-    }
+public enum ActivityType {
+    CREATE, UPDATE, DELETE
 }

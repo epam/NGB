@@ -15,7 +15,7 @@ export default  {
         panelTitle: '=',
         fileId: '=?',
         feature: '=?',
-        uuid: '=?'
+        uuid: '=?',
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoPanel.tpl.html')

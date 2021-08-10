@@ -25,7 +25,6 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
-
         this.dispatcher.on('feature:info:changes:cancel', this.onClickCancelBtn.bind(this));
     }
 

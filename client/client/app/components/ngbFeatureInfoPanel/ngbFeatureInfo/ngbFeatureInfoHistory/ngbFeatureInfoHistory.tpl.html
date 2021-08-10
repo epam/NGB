@@ -1,0 +1,49 @@
+<div layout="column">
+    <div ng-show="$ctrl.isHistoryLoading">
+        <div class="progress" layout-align="center center">
+            <span>Loading history...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div ng-if="$ctrl.errorHistory.length" class="md-padding">
+        <ngb-panel-error-list message-list="$ctrl.errorHistory"></ngb-panel-error-list>
+    </div>
+    <div ng-if="$ctrl.historyData && !$ctrl.errorHistory.length && !$ctrl.isHistoryLoading">
+        <div ng-if="$ctrl.historyData.length"
+             class="change-row"
+             ng-repeat="entry in $ctrl.historyData track by entry.key"
+        >
+            <div flex="100" class="change-info">
+                <span style="white-space: pre">Changes by </span>
+                <span class="change-author">{{$ctrl.changeAuthor(entry)}}</span>
+                <span style="white-space: pre"> on </span>
+                <span class="change-date">{{$ctrl.changeDate(entry)}}</span>
+                <span>:</span>
+            </div>
+            <div ng-if="$ctrl.historyData.length"
+                 ng-repeat="change in entry.changes"
+                 class="change-details"
+            >
+                <div class="change change-name">
+                    {{change.field}}
+                </div>
+                <div class="change change-value change-value-old">
+                    {{change.oldValue ? change.oldValue : 'N/A'}}
+                </div>
+                <div class="change change-value change-value-new">
+                    {{change.newValue ? change.newValue : 'N/A'}}
+                </div>
+            </div>
+        </div>
+        <div flex="100"
+            layout="row"
+            layout-wrap
+            class="change-row"
+            ng-if="!$ctrl.historyData.length"
+        >
+            <div flex="100" class="change-info">
+                {{$ctrl.emptyHistoryData}}
+            </div>
+        </div>
+    </div>
+</div>

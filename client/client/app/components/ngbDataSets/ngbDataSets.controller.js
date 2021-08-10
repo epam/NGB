@@ -97,6 +97,17 @@ export default class ngbDataSetsController extends baseController {
         return settings.max_tracks_count || 10;
     }
 
+    hiddenReference (reference) {
+        return reference &&
+            this.service.isDummyReference(reference.name);
+    }
+
+    datasetSelectionDisabled (dataset) {
+        const isDummyReference = dataset &&
+            this.hiddenReference(dataset.reference);
+        return dataset.totalFilesCount > this.maxTracksToOpen || isDummyReference;
+    }
+
     getNodeHint (node) {
         if (node.isProject && node.totalFilesCount > this.maxTracksToOpen) {
             return `${node.hint}

@@ -5,6 +5,8 @@ export const SORT_MODE_BY_NAME_DESCENDING = 'sortByNameDesc';
 const toPlainList = utilities.toPlainList;
 export {toPlainList};
 
+const dummyReferenceNames = utilities.dummyReferenceNames;
+
 export default class ngbDataSetsService {
     static instance(dispatcher, projectContext, projectDataService) {
         return new ngbDataSetsService(dispatcher, projectContext, projectDataService);
@@ -26,6 +28,12 @@ export default class ngbDataSetsService {
         ngbDataSetsService.sort(datasets);
         await this.updateSelectionFromState(datasets);
         return datasets;
+    }
+
+    isDummyReference (referenceName) {
+        return dummyReferenceNames
+            .filter(o => o.test(referenceName))
+            .length > 0;
     }
 
     applyGenomeFilter(projects) {

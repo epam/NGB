@@ -123,6 +123,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     private static final String GENES_SORTED_GTF_PATH = "classpath:templates/genes_sorted.gtf";
     private static final String GENBANK_PATH = "classpath:templates/KU131557.gbk";
+    private static final String GBF_PATH = "classpath:templates/KU131557.gbf";
     private static final int TEST_END_INDEX = 239107476;
     private static final Double FULL_QUERY_SCALE_FACTOR = 1D;
     private static final Double SMALL_SCALE_FACTOR = 0.0009;
@@ -131,6 +132,7 @@ public class GffManagerTest extends AbstractManagerTest {
     private static final int TEST_VIEW_PORT_SIZE = 30000;
     private static final int TEST_INTRON_LENGTH = 100;
     public static final String PRETTY_NAME = "pretty";
+    public static final String GBF_EXT = ".gbf";
 
     @Autowired
     ApplicationContext context;
@@ -625,6 +627,22 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(geneFile.getId());
         Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
         Assert.assertTrue(geneFile.getSource().endsWith(GenbankUtils.GENBANK_DEFAULT_EXTENSION));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterGbf() throws IOException {
+        Resource resource = context.getResource(GBF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+        Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
+        Assert.assertTrue(geneFile.getSource().endsWith(GBF_EXT));
     }
 
     private boolean testCollapsed(String path) throws IOException, FeatureIndexException, InterruptedException,

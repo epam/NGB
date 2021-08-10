@@ -22,32 +22,29 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.genbank;
+package com.epam.catgenome.entity.activity;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public final class GenbankUtils {
+import java.time.LocalDateTime;
 
-    public static final String GENBANK_DEFAULT_EXTENSION = ".gbk";
-    protected static final Set<String> GENBANK_EXTENSIONS = new HashSet<>();
-
-    static {
-        GENBANK_EXTENSIONS.add(".genbank");
-        GENBANK_EXTENSIONS.add(".gb");
-        GENBANK_EXTENSIONS.add(".gbf");
-        GENBANK_EXTENSIONS.add(".gbk");
-    }
-
-    private GenbankUtils() {
-        //utility class
-    }
-
-    public static Set<String> getGenbankExtensions() {
-        return GENBANK_EXTENSIONS;
-    }
-
-    public static boolean isGenbank(String path) {
-        return GENBANK_EXTENSIONS.stream().anyMatch(path::endsWith);
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Activity {
+    private Long id;
+    private String uid;
+    private Long itemId;
+    private BiologicalDataItemFormat itemType;
+    private ActivityType actionType;
+    private LocalDateTime datetime;
+    private String username;
+    private String field;
+    private String oldValue;
+    private String newValue;
 }
