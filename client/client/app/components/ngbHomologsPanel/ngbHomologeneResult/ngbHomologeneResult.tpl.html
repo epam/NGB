@@ -7,6 +7,7 @@
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
+        <span class="blast-search-result-title">{{$ctrl.ngbHomologsService.currentHomologeneId}}</span>
     </div>
     <div class="blast-search-result-table-row" flex layout="column" ng-if="!$ctrl.searchResultError">
         <ngb-homologene-result-table change-state="$ctrl.changeState" flex

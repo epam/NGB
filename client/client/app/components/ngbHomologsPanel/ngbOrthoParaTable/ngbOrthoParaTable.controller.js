@@ -120,7 +120,7 @@ export default class ngbOrthoParaTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbHomologsService.currentOrthoParaId = row.entity.id;
+            this.ngbHomologsService.currentOrthoParaId = row.entity.info;
             this.changeState({state: 'ORTHO_PARA_RESULT'});
         } else {
             event.stopImmediatePropagation();

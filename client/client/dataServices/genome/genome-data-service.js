@@ -387,14 +387,9 @@ export class GenomeDataService extends DataService {
 
         return [
             {
-                gene: 'KRAS, Kras, kras, Ras85D, let-60',
+                gene: 'LIMK1, Limk1, Limk1a',
                 protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
                 info: 'Gene conserved in Bilateria'
-            },
-            {
-                gene: 'SSPN, Sspn, sspn',
-                protein: 'sarcospan',
-                info: 'Gene conserved in Euteleostomi'
             }
         ];
     }
@@ -409,87 +404,172 @@ export class GenomeDataService extends DataService {
         // return this._orthoParaResult;
         return [
             {
-                name: 'KRAS',
+                name: 'LIMK1',
                 species: 'Homo sapiens',
                 type: 'Ortholog',
-                aa: 188,
+                aa: 647,
                 domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cl02475',
+                    start: 81,
+                    end: 138,
+                    name: 'LIM'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
                 }]
             },
             {
-                name: 'kras',
+                name: 'Limk1',
                 species: 'Mus musculus',
                 type: 'Ortholog',
-                aa: 188,
+                aa: 647,
                 domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 138,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
                 }]
             },
             {
-                name: 'kras',
+                name: 'Limk1',
                 species: 'Rattus norvegicus',
                 type: 'Ortholog',
-                aa: 227,
+                aa: 647,
                 domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cd09462',
+                    start: 5,
+                    end: 77,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 138,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 165,
+                    end: 255,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 345,
+                    end: 611,
+                    name: 'STKc_LIMK1'
                 }]
             },
             {
-                name: 'KRAS',
-                species: 'Canis lupus familiaris',
+                name: 'limk1a',
+                species: 'Danio rerio',
                 type: 'Ortholog',
-                aa: 188,
+                aa: 648,
                 domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cd09462',
+                    start: 5,
+                    end: 79,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cl02475',
+                    start: 84,
+                    end: 140,
+                    name: 'LIM'
+                },{
+                    id: 'pfam00595',
+                    start: 164,
+                    end: 254,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 349,
+                    end: 610,
+                    name: 'STKc_LIMK1'
                 }]
             },
             {
-                name: 'KRAS',
+                name: 'LIMK1',
                 species: 'Gallus gallus',
                 type: 'Ortholog',
-                aa: 229,
+                aa: 685,
                 domains: [{
-                    id: 'cd04138',
-                    start: 50,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cl02475',
+                    start: 75,
+                    end: 101,
+                    name: 'LIM'
+                },{
+                    id: 'cd09464',
+                    start: 108,
+                    end: 162,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 189,
+                    end: 279,
+                    name: 'PDZ'
+                },{
+                    id: 'cd14221',
+                    start: 375,
+                    end: 641,
+                    name: 'STKc_LIMK1'
                 }]
             },
             {
-                name: 'KRAS',
-                species: 'Pan troglodytes',
+                name: 'LIMK1',
+                species: 'Callithrix jacchus',
                 type: 'Ortholog',
                 aa: 188,
-                domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
-                }]
+                domains: []
             },
             {
-                name: 'KRAS',
-                species: 'Bos taurus',
-                type: 'Paralog',
-                aa: 189,
+                name: 'limk1a',
+                species: 'Oryzias melastigma',
+                type: 'Ortholog',
+                aa: 674,
                 domains: [{
-                    id: 'cd04138',
-                    start: 3,
-                    end: 164,
-                    name: 'H_N_K_Ras_like'
+                    id: 'cd09462',
+                    start: 5,
+                    end: 79,
+                    name: 'LIM1_LIMK1'
+                },{
+                    id: 'cd09464',
+                    start: 84,
+                    end: 140,
+                    name: 'LIM2_LIMK1'
+                },{
+                    id: 'pfam00595',
+                    start: 179,
+                    end: 260,
+                    name: 'PDZ'
+                },{
+                    id: 'cl21453',
+                    start: 366,
+                    end: 636,
+                    name: 'PKc_like'
                 }]
             },
         ];

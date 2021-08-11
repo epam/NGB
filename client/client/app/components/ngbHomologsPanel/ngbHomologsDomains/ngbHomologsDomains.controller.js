@@ -33,34 +33,42 @@ export default class ngbHomologsDomainsController {
         if (!domains.domains) {
             return [];
         }
-        domains.domains = domains.domains.sort((a, b) => a.start < b.start);
-        domains.domains.forEach(d => {
-            if (d.start - 1 > end + 1) {
+        if (domains.domains.length) {
+            domains.domains = domains.domains.sort((a, b) => a.start < b.start);
+            domains.domains.forEach(d => {
+                if (d.start - 1 > end + 1) {
+                    result.push({
+                        width: Math.ceil((d.start - 1 - end) / maxHomologLength * 100),
+                        color: DEFAULT_COLOR,
+                        isFiller: true
+                    });
+                }
                 result.push({
-                    width: Math.ceil((d.start - 1 - end)/maxHomologLength*100),
+                    width: Math.ceil((d.end - d.start + 1) / maxHomologLength * 100),
+                    color: d.color,
+                    isFiller: false,
+                    name: d.name,
+                    id: d.id
+                });
+                end = d.end;
+            });
+            if (end + 1 < domains.homologLength) {
+                result.push({
+                    width: Math.ceil((domains.homologLength - end) / maxHomologLength * 100),
                     color: DEFAULT_COLOR,
                     isFiller: true
                 });
             }
+            if (domains.homologLength < domains.maxHomologLength) {
+                result.push({
+                    width: Math.ceil((domains.maxHomologLength - domains.homologLength) / maxHomologLength * 100),
+                    color: TRANSPARENT_COLOR,
+                    isFiller: true
+                });
+            }
+        } else {
             result.push({
-                width: Math.ceil((d.end - d.start + 1)/maxHomologLength*100),
-                color: d.color,
-                isFiller: false,
-                name: d.name,
-                id: d.id
-            });
-            end = d.end;
-        });
-        if (end + 1 < domains.homologLength) {
-            result.push({
-                width: Math.ceil((domains.homologLength - end)/maxHomologLength*100),
-                color: DEFAULT_COLOR,
-                isFiller: true
-            });
-        }
-        if (domains.homologLength < domains.maxHomologLength) {
-            result.push({
-                width: Math.ceil((domains.maxHomologLength - domains.homologLength)/maxHomologLength*100),
+                width: 100,
                 color: TRANSPARENT_COLOR,
                 isFiller: true
             });

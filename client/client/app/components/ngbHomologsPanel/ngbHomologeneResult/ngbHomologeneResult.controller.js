@@ -8,11 +8,12 @@ export default class ngbHomologeneResult extends baseController {
         'homologene:result:change': this.initialize.bind(this)
     };
 
-    constructor($scope, dispatcher, ngbHomologeneResultService) {
+    constructor($scope, dispatcher, ngbHomologsService, ngbHomologeneResultService) {
         super();
         Object.assign(this, {
             $scope,
             dispatcher,
+            ngbHomologsService,
             ngbHomologeneResultService
         });
         this.initEvents();

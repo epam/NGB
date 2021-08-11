@@ -8,11 +8,12 @@ export default class ngbOrthoParaResult extends baseController {
         'orthoPara:result:change': this.initialize.bind(this)
     };
 
-    constructor($scope, dispatcher, ngbOrthoParaResultService) {
+    constructor($scope, dispatcher, ngbHomologsService, ngbOrthoParaResultService) {
         super();
         Object.assign(this, {
             $scope,
             dispatcher,
+            ngbHomologsService,
             ngbOrthoParaResultService
         });
         this.initEvents();

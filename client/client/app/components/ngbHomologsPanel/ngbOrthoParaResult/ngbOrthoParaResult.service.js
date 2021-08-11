@@ -109,7 +109,12 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
             'B': 'blue',
             'C': 'green',
             'D': 'yellow',
-            'H_N_K_Ras_like': '#F00000'
+            'PDZ': '#F00000',
+            'PKc_like': 'pink',
+            'LIM1_LIMK1': 'lightblue',
+            'LIM2_LIMK1': 'blue',
+            'STKc_LIMK1': 'lightgreen',
+            'LIM': 'green'
         };
         if (data.error) {
             this._totalPages = 0;

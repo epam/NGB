@@ -7,6 +7,8 @@ const HOMOLOGS_STATES = {
 
 export default class ngbHomologsService {
     homologsServiceMap = {};
+    currentOrthoParaId;
+    currentHomologeneId;
     constructor(dispatcher, projectContext,
         ngbHomologeneTableService, ngbHomologeneResultService,
         ngbOrthoParaTableService, ngbOrthoParaResultService

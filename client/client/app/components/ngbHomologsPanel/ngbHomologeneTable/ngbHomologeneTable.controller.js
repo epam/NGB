@@ -120,7 +120,7 @@ export default class ngbHomologeneTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbHomologsService.currentHomologeneId = row.entity.id;
+            this.ngbHomologsService.currentHomologeneId = row.entity.info;
             this.changeState({state: 'HOMOLOGENE_RESULT'});
         } else {
             event.stopImmediatePropagation();
