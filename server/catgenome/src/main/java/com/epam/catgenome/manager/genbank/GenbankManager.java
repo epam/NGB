@@ -40,7 +40,6 @@ import org.biojava.nbio.core.sequence.features.DBReferenceInfo;
 import org.biojava.nbio.core.sequence.features.FeatureInterface;
 import org.biojava.nbio.core.sequence.features.Qualifier;
 import org.biojava.nbio.core.sequence.io.FastaWriterHelper;
-import org.biojava.nbio.core.sequence.io.GenbankReaderHelper;
 import org.biojava.nbio.core.sequence.template.AbstractSequence;
 import org.biojava.nbio.genome.parsers.gff.Location;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +87,7 @@ public class GenbankManager {
     public Map<String, DNASequence> readGenbankFile(final String genbankFilePath) {
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         try (InputStream genBankStream = IOHelper.openStream(genbankFilePath)) {
-            return GenbankReaderHelper.readGenbankDNASequence(genBankStream);
+            return GenbankUtils.readGenbankDNASequence(genBankStream);
         }
     }
 
@@ -111,7 +110,7 @@ public class GenbankManager {
         int featureIdNum;
         try (Gff3Writer gff3Writer = new Gff3Writer(gffFilePath)) {
             for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
-                String seqId = sequence.getValue().getAccession().getID();
+                final String seqId = GenbankUtils.getSequenceId(sequence.getValue());
                 for (FeatureInterface<AbstractSequence<NucleotideCompound>, NucleotideCompound> f :
                         sequence.getValue().getFeatures()) {
                     Map<String, List<Qualifier>> qualifiers = f.getQualifiers();
@@ -147,7 +146,7 @@ public class GenbankManager {
                     attributes.putAll(qualifiersToAttr(qualifiers));
 
                     Gff3FeatureImpl feature = new Gff3FeatureImpl(
-                            seqId.isEmpty() ? sequence.getValue().getOriginalHeader() : seqId,
+                            seqId,
                             SOURCE,
                             type,
                             parseFeatureLocation(f.getSource()).getBegin(),
