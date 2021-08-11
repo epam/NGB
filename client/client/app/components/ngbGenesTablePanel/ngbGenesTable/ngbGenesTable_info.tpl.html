@@ -1,4 +1,11 @@
-<md-button aria-label="info" class="md-icon-button " ng-click="grid.appScope.$ctrl.showInfo(row.entity, $event)"
-           ng-if="row.entity">
-    <md-icon aria-label="info" class="icon-info" md-colors="::{color: 'accent'}" md-svg-src="../../../assets/icons/info.svg" ></md-icon>
+<md-button aria-label="info" class="md-icon-button"
+           ng-click="grid.appScope.$ctrl.showInfo(row.entity, $event)"
+           ng-if="row.entity && !row.entity.isInfoLoading">
+    <md-icon aria-label="info" class="icon-info" md-colors="::{color: 'accent'}" md-svg-src="../../../assets/icons/info.svg" ng-if="!row.entity.error"></md-icon>
+    <md-icon aria-label="info" class="icon-info" md-colors="::{color: 'red'}" md-svg-src="../../../assets/icons/info.svg" ng-if="row.entity.error">
+        <md-tooltip>{{row.entity.error}}</md-tooltip>
+    </md-icon>
+</md-button>
+<md-button aria-label="info" class="md-icon-button icon-info-loading" ng-if="row.entity && row.entity.isInfoLoading">
+    <md-progress-circular md-diameter="16" md-mode="indeterminate"></md-progress-circular>
 </md-button>

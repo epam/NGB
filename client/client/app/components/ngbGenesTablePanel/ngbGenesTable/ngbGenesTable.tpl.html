@@ -1,22 +1,18 @@
 <div class="md-padding"
-     ng-if="!$ctrl.projectContext.reference">
+     ng-if="!$ctrl.isInitialized && !$ctrl.isProgressShown">
     <md-content flex
                 class="select-reference-warning">
         <span>Select a dataset to browse genes</span>
     </md-content>
 </div>
-<div class="md-padding"
-     ng-if="$ctrl.isEmptyResults">
-    <md-content flex
-                class="no-records-warning">
-        <span>No records found.</span>
-    </md-content>
-</div>
 <div class="ui-grid-container"
      ng-hide="$ctrl.errorMessageList.length"
-     ng-if="!$ctrl.isEmptyResults && $ctrl.projectContext.reference && !$ctrl.isProgressShown">
-    <div class="variants-load-error-container" ng-if="$ctrl.geneLoadError">
+     ng-if="$ctrl.isInitialized && !$ctrl.isProgressShown">
+    <div class="genes-load-error-container" ng-if="$ctrl.geneLoadError">
         <small>{{$ctrl.geneLoadError}}</small>
+    </div>
+    <div class="genes-reloading-container" ng-if="$ctrl.reloading">
+        <small>Reloading...</small>
     </div>
     <div ng-class="{'filters-not-displayed': !$ctrl.ngbGenesTableService.displayGenesFilter}"
          ui-grid="$ctrl.gridOptions"
@@ -28,6 +24,13 @@
          ui-grid-save-state
          ui-grid-selection
     ></div>
+    <div class="genes-empty-result-container"
+         ng-if="$ctrl.isEmptyResults">
+        <md-content class="no-records-warning"
+                    flex>
+            <span>No records found.</span>
+        </md-content>
+    </div>
 </div>
 
 <div class="md-padding" ng-if="$ctrl.errorMessageList.length">

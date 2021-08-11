@@ -41,3 +41,24 @@ ngb-feature-info-main{
 .sequence-loading-error {
   color: red;
 }
+
+.general-information-buttons {
+  position: absolute;
+  top: 0px;
+  margin: 0px;
+  font-size: 14px;
+  color: #6699ff;
+}
+
+.edit-button {
+  right: 0px;
+}
+
+.cancel-button {
+  right: 0px;
+  color: #494949;
+}
+
+.save-button {
+  right: 90px;
+}

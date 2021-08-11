@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.activity.ActivityDao" id="activityDao" autowire="byName">
+        <property name="activitySequenceName" value="catgenome.s_activity"/>
+        <property name="loadActivityByItemIdAndUidQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        uid,
+                        item_id,
+                        item_type,
+                        action_type,
+                        datetime,
+                        username,
+                        field,
+                        new_value,
+                        old_value
+                    FROM catgenome.activity
+                    WHERE item_id = ? AND uid = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertActivityQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.activity (
+                        id,
+                        uid,
+                        item_id,
+                        item_type,
+                        action_type,
+                        datetime,
+                        username,
+                        field,
+                        new_value,
+                        old_value)
+                    VALUES (
+                        :ID,
+                        :UID,
+                        :ITEM_ID,
+                        :ITEM_TYPE,
+                        :ACTION_TYPE,
+                        :DATETIME,
+                        :USERNAME,
+                        :FIELD,
+                        :NEW_VALUE,
+                        :OLD_VALUE)
+                ]]>
+            </value>
+        </property>
+        <property name="deleteActivityByItemIdQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.activity
+                    WHERE item_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

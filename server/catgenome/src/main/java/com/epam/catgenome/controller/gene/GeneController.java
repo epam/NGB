@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.manager.gene.GeneSecurityService;
@@ -37,12 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.Constants;
@@ -73,6 +68,14 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Source:      GeneController
@@ -396,5 +399,48 @@ public class GeneController extends AbstractRESTController {
     public Result<List<Block>> fetchExons(@RequestBody ExonRangeQuery query) throws IOException {
         return Result.success(geneSecurityService.loadExonsInTrack(query.getId(), query.getChromosomeId(),
                 query.getStartIndex(), query.getEndIndex(), query.getIntronLength(), query.getProjectId()));
+    }
+
+    @GetMapping("/gene/{fileId}/doc")
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads specific gene feature content",
+            notes = "Loads specific gene feature content",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<GeneHighLevel> loadGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
+                                                      @RequestParam(value = "uid") final String uid) {
+        return Result.success(geneSecurityService.loadGeneFeatureByUid(fileId, uid));
+    }
+
+    @PutMapping("/gene/{fileId}/doc")
+    @ResponseBody
+    @ApiOperation(
+            value = "Updates specific gene feature content",
+            notes = "Updates specific gene feature content",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<GeneHighLevel> updateGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
+                                                        @RequestParam(value = "uid") final String uid,
+                                                        @RequestBody final GeneHighLevel geneContent) {
+        return Result.success(geneSecurityService.updateGeneFeatureByUid(fileId, uid, geneContent));
+    }
+
+    @GetMapping("/gene/{fileId}/activity")
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns gene activities by gene file ID and uid",
+            notes = "Returns gene activities by gene file ID and uid",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Activity>> loadGeneActivity(@PathVariable(value = "fileId") final Long fileId,
+                                                   @RequestParam(value = "uid") final String uid) {
+        return Result.success(geneSecurityService.loadGeneActivity(fileId, uid));
     }
 }

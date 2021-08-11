@@ -6,10 +6,14 @@ export default  {
         endIndex: '=',
         name: '=',
         properties: '=',
+        editable: '=',
         read: '=',
         referenceId: '=',
         startIndex: '=',
-        infoForRead: '='
+        infoForRead: '=',
+        fileId: '=?',
+        feature: '=?',
+        uuid: '=?',
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoMain.tpl.html')

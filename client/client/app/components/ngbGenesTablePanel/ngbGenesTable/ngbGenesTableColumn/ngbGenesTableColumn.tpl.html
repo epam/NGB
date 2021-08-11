@@ -20,7 +20,7 @@
             </div>
         </md-menu-item>
         <md-divider></md-divider>
-        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name' track by $index">
+        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'value' track by $index">
             <div class="for-md-tooltip-work">
                 <md-checkbox class="text__sm" flex layout="row"
                              ng-change="$ctrl.addColumnToTable(column)"

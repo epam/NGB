@@ -1,4 +1,102 @@
-<div flex="100" layout="row" layout-wrap class="property-row" ng-repeat="property in $ctrl.properties" ng-if="::property[1]">
-    <div flex="30" class="property property-name">{{property[0]}}</div>
-    <div flex="70" class="property property-value">{{property[1]}}</div>
+<div>
+    <div ng-if="!$ctrl.editmode">
+        <div flex="100"
+             ng-repeat="property in $ctrl.properties"
+             ng-if="!$ctrl.valueIsEmpty(property[1]) && !property[3]"
+             layout="row"
+             layout-wrap
+             class="property-row"
+        >
+            <div flex="40" class="property property-name">
+                <span class="property-attribute"
+                      ng-if="property[2]">
+                    ATTR
+                </span>
+                {{property[0]}}
+            </div>
+            <div flex="60" class="property property-value">{{property[1]}}</div>
+        </div>
+    </div>
+    <form ng-if="$ctrl.editmode" name="attributes" class="general-information-form">
+        <div flex="100"
+             ng-repeat="attribute in $ctrl.attributes"
+             ng-if="!attribute.deleted"
+             layout="row"
+             layout-wrap
+             class="property-row"
+        >
+            <div flex="40"
+                 ng-if="!$ctrl.isEditable(attribute)"
+                 layout="row"
+                 layout-wrap
+            >
+                <div flex
+                     class="property property-name unremovable"
+                     ng-class="{'isEmpty': $ctrl.valueIsEmpty(attribute.value)}">
+                    <span class="property-attribute"
+                          ng-if="attribute.attribute">
+                        ATTR
+                    </span>
+                    {{attribute.name}}
+                </div>
+            </div>
+            <div flex="40"
+                 ng-if="$ctrl.isEditable(attribute)"
+                 layout="row"
+                 layout-wrap
+            >
+                <div class="remove-btn-container">
+                    <md-button
+                        class="remove-btn"
+                        ng-click="$ctrl.onClickRemoveAttribute(attribute)"
+                        aria-label="Remove"
+                        title="Remove attribute">
+                        <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;">
+                        </ng-md-icon>
+                    </md-button>
+                </div>
+                <div class="property property-name"
+                     ng-if="attribute.default"
+                     ng-class="{'isEmpty': $ctrl.valueIsEmpty(attribute.value)}"
+                     style="flex: 1">
+                    <span class="property-attribute"
+                          ng-if="attribute.attribute">
+                        ATTR
+                    </span>
+                    {{attribute.name}}
+                </div>
+                <input type="string"
+                       ng-if="!attribute.default"
+                       style="flex: 1"
+                       required
+                       class="property property-name editable"
+                       ng-model="attribute.name"
+                       ng-change="$ctrl.onChangeAttribute(attribute)"
+                       ng-class="{'isEmpty': $ctrl.onChangeAttribute(attribute) || (attribute.name && $ctrl.valueIsEmpty(attribute.value))}"
+                       ng-model-options="{updateOn: 'blur'}" />
+            </div>
+            <div flex="60">
+                <div ng-if="!$ctrl.isEditable(attribute)"
+                     class="property property-value">
+                    {{attribute.value}}
+                </div>
+                <input type="string"
+                       style="flex: 1"
+                       ng-if="$ctrl.isEditable(attribute)"
+                       required
+                       ng-model="attribute.value"
+                       ng-change="$ctrl.onChangeAttribute(attribute)"
+                       class="property property-value editable"
+                       ng-class="{'isEmpty': !attribute.name && !$ctrl.valueIsEmpty(attribute.value)}"
+                       ng-model-options="{updateOn: 'blur'}" />
+            </div>
+        </div>
+    </form>
+    <md-button
+        class="add-button"
+        ng-if="$ctrl.editmode"
+        ng-click="$ctrl.onClickAddBtn()"
+        ng-disabled="$ctrl.disableAddButton">
+        Add
+    </md-button>
 </div>

@@ -63,7 +63,9 @@ export default class ngbTrackEvents {
                                 referenceId: trackInstance.config.referenceId,
                                 startIndex: data.feature.startIndex,
                                 geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
-                                title: 'FEATURE'
+                                title: 'FEATURE',
+                                fileId: this.projectContext._reference.geneFile.id,
+                                feature: data.feature
                             },
                             name: 'feature:info:select'
                         }],

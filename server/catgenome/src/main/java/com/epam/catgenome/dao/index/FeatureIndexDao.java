@@ -28,14 +28,19 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.GeneIndexSortField;
 import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
+import com.epam.catgenome.dao.index.indexer.GeneDocumentBuilder;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.gene.Gene;
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
+import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
@@ -46,11 +51,15 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.manager.gene.GeneActivityService;
+import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -71,6 +80,7 @@ import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
@@ -114,6 +124,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -143,6 +154,9 @@ public class FeatureIndexDao {
     @Autowired
     private TaskExecutorService taskExecutorService;
 
+    @Autowired
+    private GeneActivityService geneActivityService;
+
     @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 2L * 1024 * 1024 * 1024}")
     private long luceneIndexMaxSizeForGrouping;
 
@@ -153,7 +167,6 @@ public class FeatureIndexDao {
 
     private static final int FACET_LIMIT = 1000;
     private static final int GENE_LIMIT = 100;
-
 
     public enum FeatureIndexFields {
         UID("uid"),
@@ -555,6 +568,87 @@ public class FeatureIndexDao {
                 IOUtils.closeQuietly(index);
             }
         }
+    }
+
+    /**
+     * Queries gene index entry by 'uid' Lucene document field
+     *
+     * @param featureFile the {@link GeneFile} which indexes to search
+     * @param uid Lucene document field
+     * @return {@link GeneIndexEntry} if such document exists
+     * @throws IOException if something is wrong in the filesystem
+     */
+    public GeneIndexEntry searchGeneFeatureByUid(final GeneFile featureFile, final String uid)
+            throws IOException {
+        final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return null;
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
+            final Integer docId = documentCreator.findDocumentIdByUid(searcher, uidTerm);
+            final Document document = searcher.doc(docId);
+
+            return buildGeneIndexEntry(documentCreator, document);
+        } finally {
+            for (SimpleFSDirectory index : indexes) {
+                IOUtils.closeQuietly(index);
+            }
+        }
+    }
+
+    /**
+     * Updates gene feature by 'uid' Lucene document field
+     *
+     * @param featureFile the {@link GeneFile} which indexes to search
+     * @param uid Lucene document field
+     * @param geneContent a new gene content
+     * @return {@link GeneIndexEntry} if such document exists
+     * @throws IOException if something is wrong in the filesystem
+     */
+    public GeneHighLevel updateGeneFeatureByUid(final GeneFile featureFile, final String uid,
+                                                final GeneHighLevel geneContent, final Gene.Origin geneFileType)
+            throws IOException {
+        final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
+        final GeneHighLevel newGeneContent = prepareGeneContentForDocument(geneContent);
+        final SimpleFSDirectory index = fileManager.createIndexForFile(featureFile);
+        final GeneIndexEntry oldEntry;
+        try (StandardAnalyzer analyzer = new StandardAnalyzer();
+             MultiReader reader = openMultiReader(new SimpleFSDirectory[] {index});
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer)
+                     .setOpenMode(IndexWriterConfig.OpenMode.APPEND))) {
+            if (reader.numDocs() == 0) {
+                throw new IllegalStateException("Failed to find any documents");
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
+            final FacetsConfig facetsConfig = documentCreator.createFacetsConfig(null);
+            final Integer docId = documentCreator.findDocumentIdByUid(searcher, uidTerm);
+            final Document oldDocument = searcher.doc(docId);
+            if (Objects.isNull(oldDocument)) {
+                throw new IllegalStateException(String.format("Failed to find document by ID '%d'", docId));
+            }
+            oldEntry = buildGeneIndexEntry(documentCreator, oldDocument);
+
+            final String featureId = GeneUtils.getFeatureId(geneContent.getFeature(),
+                    MapUtils.emptyIfNull(geneContent.getAttributes()));
+            final String featureName = getFeatureName(geneFileType, geneContent.getFeature(),
+                    MapUtils.emptyIfNull(geneContent.getAttributes()));
+            final Document newDocument = documentCreator.copyGeneDocument(newGeneContent, oldDocument, uid,
+                    featureId, featureName);
+
+            writer.updateDocument(uidTerm, facetsConfig.build(newDocument));
+        } finally {
+            IOUtils.closeQuietly(index);
+        }
+
+        geneActivityService.saveGeneActivities(newGeneContent, oldEntry);
+
+        return geneContent;
     }
 
     public int getTotalVariationsCountFacet(List<? extends FeatureFile> files, Query query) throws IOException {
@@ -1055,5 +1149,46 @@ public class FeatureIndexDao {
         }
 
         return geneIds;
+    }
+
+    private GeneHighLevel prepareGeneContentForDocument(final GeneHighLevel geneContent) {
+        final Integer frame = geneContent.getFrame();
+        geneContent.setFrame(Objects.isNull(frame) ? -1 : frame);
+
+        final Float score = geneContent.getScore();
+        geneContent.setScore(Objects.isNull(score) ? -1F : score);
+
+        final StrandSerializable strand = geneContent.getStrand();
+        geneContent.setStrand(Objects.isNull(strand) ? StrandSerializable.NONE : strand);
+
+        final String featureType = geneContent.getFeature();
+        geneContent.setFeature(Objects.isNull(featureType) ? StringUtils.EMPTY : featureType);
+
+        return geneContent;
+    }
+
+    private String getFeatureName(final Gene.Origin geneFileType, final String feature,
+                                  final Map<String, String> attributes) {
+        if (Objects.isNull(feature)) {
+            return StringUtils.EMPTY;
+        }
+        final String featureName = Gene.Origin.GTF.equals(geneFileType)
+                ? GeneUtils.getFeatureName(feature, attributes)
+                : attributes.get("Name");
+        return Objects.isNull(featureName) ? StringUtils.EMPTY : featureName;
+    }
+
+    private GeneIndexEntry buildGeneIndexEntry(final GeneDocumentBuilder documentCreator, final Document document) {
+        final GeneIndexEntry entry = documentCreator.buildEntry(document);
+        final Set<String> featureIndexFieldNames = Arrays.stream(FeatureIndexFields.values())
+                .map(FeatureIndexFields::getFieldName)
+                .collect(Collectors.toSet());
+        final Map<String, String> attributes = document.getFields().stream()
+                .map(IndexableField::name)
+                .distinct()
+                .filter(fieldName -> !featureIndexFieldNames.contains(fieldName))
+                .collect(Collectors.toMap(Function.identity(), document::get));
+        entry.setAttributes(attributes);
+        return entry;
     }
 }

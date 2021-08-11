@@ -112,6 +112,6 @@ export default {
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
-        ngbGenesTablePanel: [genesTableDownloadAction, genesTableColumnAction, genesResetFilterActions]
+        ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction]
     }
 };

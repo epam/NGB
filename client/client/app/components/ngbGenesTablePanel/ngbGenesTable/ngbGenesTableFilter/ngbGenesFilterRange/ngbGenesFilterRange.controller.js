@@ -10,8 +10,8 @@ export default class ngbGenesFilterRangeController {
     constructor(ngbGenesTableService) {
         this.ngbGenesTableService = ngbGenesTableService;
         const range = this.ngbGenesTableService.genesFilter[this.field.field] || [null, null];
-        this.prevValueFrom = this.valueFrom = range[0] || null;
-        this.prevValueTo = this.valueTo = range[1] || null;
+        this.prevValueFrom = this.valueFrom = isNaN(range[0]) || range[0] === null ? null : range[0];
+        this.prevValueTo = this.valueTo = isNaN(range[1]) || range[1] === null ? null : range[1];
     }
 
     static get UID() {

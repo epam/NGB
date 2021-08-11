@@ -1,4 +1,4 @@
-import * as Utilities from './../ngbBlastSearch.utilities';
+import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
@@ -17,6 +17,7 @@ export default class ngbBlastHistoryController extends baseController {
     historyLoadError = null;
     updateInterval = null;
     statusViews = [];
+    debounce = (new Debounce()).debounce;
 
     gridOptions = {
         enableSorting: true,
@@ -101,7 +102,7 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
-                this.gridApi.core.on.gridDimensionChanged(this.$scope, ::Utilities.debounce(::this.onResize, RESIZE_DELAY));
+                this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
             }
         });
         await this.loadData();

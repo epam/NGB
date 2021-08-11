@@ -80,7 +80,8 @@
                         </span>
                     </span>
                 </div>
-                <div class="dataset-genome">
+                <div class="dataset-genome"
+                     ng-if="node.reference && !$ctrl.hiddenReference(node.reference)">
                     {{node.reference.name}}
                 </div>
             </div>

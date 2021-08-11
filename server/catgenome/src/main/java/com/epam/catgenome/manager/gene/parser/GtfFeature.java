@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import com.epam.catgenome.manager.gene.GeneUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,12 +40,6 @@ import java.util.Map;
  * </p>
  */
 public class GtfFeature extends GffFeature {
-    private static final String GENE_NAME_KEY = "gene_name";
-    private static final String GENE_SYMBOL_KEY = "gene_symbol";
-    private static final String MRNA_NAME_KEY = "mRNA_name";
-    private static final String MRNA_SYMBOL_KEY = "mRNA_symbol";
-    private static final String TRANSCRIPT_NAME_KEY = "transcript_name";
-    private static final String TRANSCRIPT_SYMBOL_KEY = "transcript_symbol";
 
     public GtfFeature(String line) {
         super(line);
@@ -108,41 +104,6 @@ public class GtfFeature extends GffFeature {
 
     @Override
     public String getFeatureName() {
-        if (GENE_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            if (attributes.containsKey(GENE_NAME_KEY)) {
-                return attributes.get(GENE_NAME_KEY);
-            }
-            return attributes.get(GENE_SYMBOL_KEY);
-        }
-
-        String transcriptName = getTranscriptName();
-        if (transcriptName != null) {
-            return transcriptName;
-        }
-
-        if (EXON_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            return getFeatureId();
-        }
-        return null;
-    }
-
-    private String getTranscriptName() {
-        if (TRANSCRIPT_FEATURE_NAME.equalsIgnoreCase(this.feature) ||
-            MRNA_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            if (attributes.containsKey(MRNA_NAME_KEY)) {
-                return attributes.get(MRNA_NAME_KEY);
-            }
-            if (attributes.containsKey(TRANSCRIPT_NAME_KEY)) {
-                return attributes.get(TRANSCRIPT_NAME_KEY);
-            }
-            if (attributes.containsKey(TRANSCRIPT_SYMBOL_KEY)) {
-                return attributes.get(TRANSCRIPT_SYMBOL_KEY);
-            }
-            if (attributes.containsKey(MRNA_SYMBOL_KEY)) {
-                return attributes.get(MRNA_SYMBOL_KEY);
-            }
-        }
-
-        return null;
+        return GeneUtils.getFeatureName(feature, attributes);
     }
 }

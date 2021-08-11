@@ -28,11 +28,16 @@ import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.SortedFloatPoint;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
+import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.util.BytesRef;
 
 import java.util.HashMap;
@@ -83,6 +88,7 @@ public class GeneDocumentBuilder extends AbstractDocumentBuilder<GeneIndexEntry>
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.STRAND.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.UID.getFieldName());
         if (!CollectionUtils.isEmpty(attributesFields)) {
             for (String infoField : attributesFields) {
                 requiredFields.add(infoField.toLowerCase());
@@ -120,6 +126,47 @@ public class GeneDocumentBuilder extends AbstractDocumentBuilder<GeneIndexEntry>
             }
         }
         return geneIndexEntry;
+    }
+
+    public Document copyGeneDocument(final GeneHighLevel geneContent, final Document oldDocument,
+                                     final String documentUid, final String featureId, final String featureName) {
+        final Document newDocument = copyDocument(oldDocument);
+
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.UID.getFieldName(), documentUid));
+        newDocument.add(new SortedSetDocValuesFacetField(FeatureIndexDao.FeatureIndexFields.F_UID.getFieldName(),
+                documentUid));
+
+        final String featureType = geneContent.getFeature();
+        newDocument.add(new StringField(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), featureType,
+                Field.Store.YES));
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                featureType));
+
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(), featureId));
+        newDocument.add(new StringField(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                featureName.toLowerCase(), Field.Store.YES));
+        newDocument.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                new BytesRef(featureName)));
+
+        final Integer frame = geneContent.getFrame();
+        newDocument.add(new SortedIntPoint(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName(), frame));
+        newDocument.add(new StoredField(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName(), frame));
+
+        final Float score = geneContent.getScore();
+        newDocument.add(new SortedFloatPoint(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName(), score));
+        newDocument.add(new StoredField(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName(), score));
+
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.SOURCE.getFieldName(),
+                geneContent.getSource()));
+        newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.STRAND.getFieldName(),
+                geneContent.getStrand().getFileValue()));
+
+        MapUtils.emptyIfNull(geneContent.getAttributes()).forEach((k, v) -> {
+            newDocument.add(new SortedStringField(k.toLowerCase(), v));
+            newDocument.add(new StoredField(k.toLowerCase(), v));
+        });
+
+        return newDocument;
     }
 
     private String extractField(final Document doc, final FeatureIndexDao.FeatureIndexFields fieldName) {

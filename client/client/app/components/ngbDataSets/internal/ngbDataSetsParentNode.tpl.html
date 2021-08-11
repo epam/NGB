@@ -1,22 +1,27 @@
 <script type="text/ng-template" id="ngbDataSetsParentNode.tpl.html">
-    <div flex class="ivh-treeview-node-content" title="{{node.hint}}">
+    <div flex
+         class="ivh-treeview-node-content"
+         title="{{$ctrl.getNodeHint(node)}}">
         <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
             <div layout="row" layout-align="space-between center">
                 <div layout="row" layout-align="start center">
-                                    <span ng-if="!node.isEmpty">
+                                    <span>
                                         <ng-md-icon icon="play_arrow"
+                                                    class="dataset-icon"
                                                     ng-class="{opened: node.__expanded, empty: node.isEmpty}"
-                                                    ng-click="$ctrl.expanded(node)" class="dataset-icon"
+                                                    ng-click="$ctrl.expanded(node)"
                                                     size="13pt"></ng-md-icon>
                                     </span>
 
-                    <span class="ivh-treeview-checkbox-wrapper project" ng-if="node.reference" ng-class="{empty: !node.filesCount}">
+                    <span class="ivh-treeview-checkbox-wrapper project"
+                          ng-if="node.reference">
                                         <span class="ng-isolate-scope">
-                                            <input type="checkbox" indeterminate-checkbox element="node.__selected"
-                                                   indeterminate="{{node.__indeterminate}}"
+                                            <input type="checkbox"
+                                                   element="node.__selected"
                                                    property="node.__indeterminate"
                                                    class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
                                                    ng-change="$ctrl.toggle(node)" ng-model="node.__selected"
+                                                   ng-disabled="!node.__selected && $ctrl.datasetSelectionDisabled(node)"
                                                    aria-invalid="false">
                                         </span>
                                     </span>
@@ -33,7 +38,10 @@
                         <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
                     </span>
                 </div>
-                <div class="dataset-genome" ng-if="node.reference">{{node.reference.name}}</div>
+                <div class="dataset-genome"
+                     ng-if="node.reference && !$ctrl.hiddenReference(node.reference)">
+                    {{node.reference.name}}
+                </div>
             </div>
         </div>
     </div>

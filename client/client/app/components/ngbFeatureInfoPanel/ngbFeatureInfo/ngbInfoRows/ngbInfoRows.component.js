@@ -1,9 +1,10 @@
+import controller from './ngbInfoRows.controller';
+
 export default {
     template: require('./ngbInfoRows.tpl.html'),
-    controller: function () {
-
-    },
+    controller: controller.UID,
     bindings: {
-        properties: '<'
+        properties: '<',
+        editmode: '=?'
     }
 };

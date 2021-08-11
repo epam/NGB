@@ -5,6 +5,8 @@ export const SORT_MODE_BY_NAME_DESCENDING = 'sortByNameDesc';
 const toPlainList = utilities.toPlainList;
 export {toPlainList};
 
+const dummyReferenceNames = utilities.dummyReferenceNames;
+
 export default class ngbDataSetsService {
     static instance(dispatcher, projectContext, projectDataService) {
         return new ngbDataSetsService(dispatcher, projectContext, projectDataService);
@@ -26,6 +28,12 @@ export default class ngbDataSetsService {
         ngbDataSetsService.sort(datasets);
         await this.updateSelectionFromState(datasets);
         return datasets;
+    }
+
+    isDummyReference (referenceName) {
+        return dummyReferenceNames
+            .filter(o => o.test(referenceName))
+            .length > 0;
     }
 
     applyGenomeFilter(projects) {
@@ -77,11 +85,20 @@ export default class ngbDataSetsService {
             }
         }
 
-        const reference = items.map(track => track.reference)[0] | forceReference;
+        const reference = items.map(track => track.reference)[0] || forceReference;
+        const referenceIsSelected = items.filter(track => track.format === 'REFERENCE').length > 0;
+
+        let tracks = [];
+        if (referenceIsSelected) {
+            tracks = [
+                reference,
+                ...(items || []).filter(track => !reference || track.format !== 'REFERENCE')
+            ].filter(Boolean);
+        }
 
         return {
             reference,
-            tracks: items
+            tracks
         };
     }
 
@@ -107,16 +124,31 @@ export default class ngbDataSetsService {
 
     updateDatasetState(datasets) {
         for (let i = 0; i < datasets.length; i++) {
-            datasets[i].isTrack ?  this.updateTerminalNodeStateFn(datasets[i]) :  this.updateParentNodeStateFn(datasets[i]);
+            datasets[i].isTrack
+                ? this.updateTerminalNodeStateFn(datasets[i])
+                : this.updateParentNodeStateFn(datasets[i]);
         }
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
+    }
+
+    getSelectedDatasets (datasets) {
+        const selected = datasets.filter(dataset => dataset.isProject && dataset.__selected);
+        return selected.concat(
+            selected
+                .map(dataset => this.getSelectedDatasets(dataset.nestedProjects || []))
+                .reduce((r, c) => ([...r, ...c]), [])
+        );
     }
 
     updateTerminalNodeStateFn(item: Node) {
         const tracksState = this.projectContext.tracksState;
         let selected = false;
         if (item.isTrack && !item.isPlaceholder) {
-            selected = !!tracksState.filter(s => s.bioDataItemId.toString().toLowerCase() === item.name.toLowerCase() && s.projectId === item.projectId).length;
+            selected = tracksState
+                .filter(s => s.bioDataItemId.toString().toLowerCase() === item.name.toLowerCase() &&
+                    s.format === item.format &&
+                    (s.projectId === item.projectId)
+                ).length > 0;
         }
         item.__selected = selected;
         return {selected: selected, indeterminate: selected};
@@ -124,20 +156,24 @@ export default class ngbDataSetsService {
 
 
     updateParentNodeStateFn(item: Node) {
-        let allChildSelected = true;
+        let someChildSelected = false;
         let indeterminate = false;
+        let referenceSelected = false;
 
-        if (item.items) {
-            for (let j = 0; j < item.items.length; j++) {
-                if (item.items[j].isTrack && item.items[j].format === 'REFERENCE') {
-                    continue;
-                }
-                const childObj = item.items[j].isTrack ? this.updateTerminalNodeStateFn(item.items[j]) : this.updateParentNodeStateFn(item.items[j]);
-                allChildSelected = allChildSelected && childObj.selected;
-                indeterminate = indeterminate || childObj.indeterminate || childObj.selected;
+        for (let j = 0; j < (item.items || []).length; j++) {
+            if (item.items[j].isTrack && item.items[j].format === 'REFERENCE') {
+                const track = item.items[j];
+                const {selected: _referenceSelected} = this.updateTerminalNodeStateFn(track);
+                referenceSelected = _referenceSelected;
+                continue;
             }
+            const childObj = item.items[j].isTrack
+                ? this.updateTerminalNodeStateFn(item.items[j])
+                : this.updateParentNodeStateFn(item.items[j]);
+            someChildSelected = someChildSelected || childObj.selected;
+            indeterminate = indeterminate || childObj.indeterminate || childObj.selected;
         }
-        const selected = !!(allChildSelected && item.items && item.items.length > 0);
+        const selected = referenceSelected || someChildSelected;
 
         item.__selected = selected;
         item.__indeterminate = indeterminate && !selected;
@@ -194,8 +230,6 @@ export default class ngbDataSetsService {
         item.__selected = false;
         if (item.isProject) {
             item.items.forEach(t => {t.__selected = false; t.__indeterminate = false; this.deselectItem(t);});
-        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
-            item.project.items.forEach(t => t.__selected = false);
         }
     }
 
@@ -204,6 +238,19 @@ export default class ngbDataSetsService {
             datasets[i].__selected = false;
             datasets[i].__indeterminate = false;
             if (datasets[i].items) this.deselectAll(datasets[i].items);
+        }
+    }
+
+    checkDatasetSelection(dataset) {
+        if (!dataset.__selected || !dataset.isProject) {
+            return;
+        }
+        if (dataset.nestedProjects && dataset.nestedProjects.length) {
+            dataset.nestedProjects
+                .forEach(nestedProject => this.checkDatasetSelection(nestedProject));
+        }
+        if ((dataset.items || []).filter(child => child.__selected).length === 0) {
+            dataset.__selected = false;
         }
     }
 
@@ -222,6 +269,10 @@ export default class ngbDataSetsService {
             if (item.isProject) {
                 utilities.expandNodeWithChilds(item);
                 forceReference = utilities.findProjectReference(item);
+                if (forceReference) {
+                    utilities.deSelectAllProjectReferences(datasets);
+                    forceReference.__selected = true;
+                }
             } else {
                 // we should also select reference:
                 if (item.reference) {
@@ -232,12 +283,26 @@ export default class ngbDataSetsService {
             utilities.selectRecursively(item, isSelected);
             this.updateTracksState(datasets, forceReference);
 
-        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
-            item.project.items.filter(t => t.format !== 'REFERENCE').forEach(t => t.__selected = false);
-        }
-        const {tracks} = this.getSelectedTracks(datasets, forceReference);
-        if (tracks.filter(t => t.format !== 'REFERENCE').length === 0) {
-            tracks.forEach(t => t.__selected = false);
+        // } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
+        //     item.project.items.filter(t => t.format !== 'REFERENCE').forEach(t => t.__selected = false);
+        } else {
+            // not selected
+            datasets.forEach(this.checkDatasetSelection.bind(this));
+            const currentDataset = item.isProject ? item : item.project;
+            const otherSelectedDatasets = this.getSelectedDatasets(datasets)
+                .filter(d => !currentDataset || currentDataset.id !== d.id);
+            if (
+                (currentDataset.items || [])
+                    .filter(i => i.format !== 'REFERENCE' && i.__selected)
+                    .length === 0 &&
+                otherSelectedDatasets.length > 0
+            ) {
+                this.deselectItem(currentDataset);
+                [forceReference] = otherSelectedDatasets.map(utilities.findProjectReference);
+                if (forceReference) {
+                    forceReference.__selected = true;
+                }
+            }
         }
         this.navigateToTracks(datasets, forceReference);
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
@@ -246,7 +311,9 @@ export default class ngbDataSetsService {
     updateTracksState(datasets, forceReference) {
         for (let i = 0; i < datasets.length; i++) {
             utilities.updateTracksStateFn(datasets[i], forceReference);
-            if (datasets[i].items) this.updateTracksState(datasets[i].items, forceReference);
+            if (datasets[i].items) {
+                this.updateTracksState(datasets[i].items, forceReference);
+            }
         }
     }
 
@@ -265,16 +332,19 @@ export default class ngbDataSetsService {
             }
         }
         if (reference) {
-            const [currentReference] = currentTracks.filter(track => track.format === 'REFERENCE');
+            const [currentReference] = currentTracks
+                .filter(track => track.format === 'REFERENCE');
             if (!currentReference) {
                 currentTracks.push(reference);
-            } else if (`${currentReference.bioDataItemId || ''}`.toLowerCase() !==
-                `${reference.bioDataItemId || ''}`.toLowerCase()
+            } else if (
+                `${currentReference.bioDataItemId || ''}`.toLowerCase() !==
+                `${reference.bioDataItemId || ''}`.toLowerCase() ||
+                currentReference.projectId !== reference.projectId
             ) {
                 currentTracks.splice(currentTracks.indexOf(currentReference), 1, reference);
             }
         }
-        if (reference && tracks.filter(t => t.format !== 'REFERENCE').length > 0) {
+        if (reference && tracks.filter(t => t.format === 'REFERENCE').length > 0) {
             const tracksState = this.projectContext.tracksState || [];
             if (tracksState.length === 0) {
                 tracksState.push({
@@ -284,30 +354,35 @@ export default class ngbDataSetsService {
                     format: 'REFERENCE'
                 });
             }
+            const getTrackId = track => `[${track.name.toLowerCase()}][${(track.projectId || '').toLowerCase()}]`;
+            const getTrackStateId = track => `[${track.bioDataItemId.toLowerCase()}][${(track.projectId || '').toLowerCase()}]`;
             const shouldAddAnnotationTracks = this.projectContext.reference === null || this.projectContext.reference.name.toLowerCase() !== reference.name.toLowerCase();
-            const tracksIds = tracks.map(track => `[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`);
-            const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`);
+            const tracksIds = tracks.map(getTrackId);
+            const tracksStateIds = tracksState.map(getTrackStateId);
             const self = this;
             const mapTrackFn = function (track) {
-                const state = self.projectContext.getTrackState(track.name.toLowerCase(), track.projectId.toLowerCase());
+                const state = self.projectContext.getTrackState(track.name.toLowerCase(), (track.projectId || '').toLowerCase());
                 if (state) {
-                    return Object.assign(state, {index: track.indexPath, name: track.name, format: track.format, isLocal: track.isLocal});
+                    const o = Object.assign(state, {index: track.indexPath, name: track.name, format: track.format, isLocal: track.isLocal});
+                    o.projectId = o.projectId || '';
+                    return o;
                 }
                 return utilities.mapTrackFn(track);
             };
             const addedTracks = tracks
-                .filter(track => tracksStateIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) === -1 &&
+                .filter(track => tracksStateIds.indexOf(getTrackId(track)) === -1 &&
                     track.format !== 'REFERENCE'
                 );
             const addedTrackStates = addedTracks.map(mapTrackFn);
-            let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0);
+            let existedTracks = tracksState
+                .filter(track => tracksIds.indexOf(getTrackStateId(track)) >= 0);
             if (!existedTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === reference.name.toLowerCase()).length) {
                 existedTracks = [mapTrackFn(reference), ...existedTracks];
             }
             const newTracksState = [...existedTracks, ...addedTrackStates];
             const newTracks = currentTracks
                 .filter(track => track.format === 'REFERENCE' ||
-                    tracksIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0
+                    tracksIds.indexOf(getTrackId(track)) >= 0
                 )
                 .concat(addedTracks);
             this.projectContext.changeState({

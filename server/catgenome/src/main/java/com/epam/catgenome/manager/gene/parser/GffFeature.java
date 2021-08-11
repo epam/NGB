@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import com.epam.catgenome.manager.gene.GeneUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -132,33 +134,7 @@ public class GffFeature implements GeneFeature {
 
     @Override
     public String getFeatureId() {
-        if (GENE_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            return attributes.get(GENE_ID_KEY);
-        }
-
-        String transcriptId = getTranscriptId();
-        if (transcriptId != null) {
-            return transcriptId;
-        }
-
-        if (EXON_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            return attributes.get(EXON_ID_KEY);
-        }
-        return null;
-    }
-
-    private String getTranscriptId() {
-        if (TRANSCRIPT_FEATURE_NAME.equalsIgnoreCase(this.feature) ||
-            MRNA_FEATURE_NAME.equalsIgnoreCase(this.feature)) {
-            if (attributes.containsKey(TRANSCRIPT_ID_KEY)) {
-                return attributes.get(TRANSCRIPT_ID_KEY);
-            }
-            if (attributes.containsKey(MRNA_ID_KEY)) {
-                return attributes.get(MRNA_ID_KEY);
-            }
-        }
-
-        return null;
+        return GeneUtils.getFeatureId(feature, attributes);
     }
 
     @Override

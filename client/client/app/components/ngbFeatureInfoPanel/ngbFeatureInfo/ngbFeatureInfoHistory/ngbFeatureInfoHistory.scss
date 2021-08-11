@@ -1,0 +1,46 @@
+.change-row {
+    border: 0;
+    margin-top: 5px;
+    padding: 5px 15px;
+    line-height: 20px;
+    font-size: smaller;
+}
+
+.change-row:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.change-details {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.change {
+    margin: 0 2px;
+    padding: 1px 3px;
+}
+
+.change-name {
+    color: #999;
+    min-width: 20%;
+}
+
+.change-value {
+    margin-left: 10px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.change-author,
+.change-date {
+    font-weight: bold;
+}
+
+.change-value-old {
+    text-decoration: line-through;
+    background-color: #ffb3b3;
+}
+.change-value-new {
+    background-color:#85e085;
+}

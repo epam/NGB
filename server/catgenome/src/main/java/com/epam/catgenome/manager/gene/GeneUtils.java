@@ -37,7 +37,10 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.epam.catgenome.manager.gene.parser.GffFeature.*;
 
 /**
  * Source:      GeneUtils
@@ -60,6 +63,12 @@ public final class GeneUtils {
     public static final String PROTEIN_CODING = "protein_coding";
     public static final ProteinSequence EMPTY_PROTEIN_SEQUENCE = new ProteinSequence(0, 0, "", 0);
     public static final String GENE_BIOTYPE = "gene_biotype";
+    public static final String GENE_NAME_KEY = "gene_name";
+    public static final String GENE_SYMBOL_KEY = "gene_symbol";
+    public static final String MRNA_NAME_KEY = "mRNA_name";
+    public static final String MRNA_SYMBOL_KEY = "mRNA_symbol";
+    public static final String TRANSCRIPT_NAME_KEY = "transcript_name";
+    public static final String TRANSCRIPT_SYMBOL_KEY = "transcript_symbol";
 
     private GeneUtils() {
         // no-op
@@ -281,6 +290,75 @@ public final class GeneUtils {
     public static Gene getCanonical(final GeneTranscript gene) {
         return ListUtils.emptyIfNull(gene.getItems())
                 .stream().max(canonicalTranscriptComparator()).orElse(null);
+    }
+
+    public static String getFeatureId(final String feature, final Map<String, String> attributes) {
+        if (GENE_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            return attributes.get(GENE_ID_KEY);
+        }
+
+        final String transcriptId = getTranscriptId(feature, attributes);
+        if (transcriptId != null) {
+            return transcriptId;
+        }
+
+        if (EXON_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            return attributes.get(EXON_ID_KEY);
+        }
+        return null;
+    }
+
+    private static String getTranscriptId(final String feature, final Map<String, String> attributes) {
+        if (TRANSCRIPT_FEATURE_NAME.equalsIgnoreCase(feature) ||
+                MRNA_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            if (attributes.containsKey(TRANSCRIPT_ID_KEY)) {
+                return attributes.get(TRANSCRIPT_ID_KEY);
+            }
+            if (attributes.containsKey(MRNA_ID_KEY)) {
+                return attributes.get(MRNA_ID_KEY);
+            }
+        }
+
+        return null;
+    }
+
+    public static String getFeatureName(final String feature, final Map<String, String> attributes) {
+        if (GENE_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            if (attributes.containsKey(GENE_NAME_KEY)) {
+                return attributes.get(GENE_NAME_KEY);
+            }
+            return attributes.get(GENE_SYMBOL_KEY);
+        }
+
+        final String transcriptName = getTranscriptName(feature, attributes);
+        if (transcriptName != null) {
+            return transcriptName;
+        }
+
+        if (EXON_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            return getFeatureId(feature, attributes);
+        }
+        return null;
+    }
+
+    private static String getTranscriptName(final String feature, final Map<String, String> attributes) {
+        if (TRANSCRIPT_FEATURE_NAME.equalsIgnoreCase(feature) ||
+                MRNA_FEATURE_NAME.equalsIgnoreCase(feature)) {
+            if (attributes.containsKey(MRNA_NAME_KEY)) {
+                return attributes.get(MRNA_NAME_KEY);
+            }
+            if (attributes.containsKey(TRANSCRIPT_NAME_KEY)) {
+                return attributes.get(TRANSCRIPT_NAME_KEY);
+            }
+            if (attributes.containsKey(TRANSCRIPT_SYMBOL_KEY)) {
+                return attributes.get(TRANSCRIPT_SYMBOL_KEY);
+            }
+            if (attributes.containsKey(MRNA_SYMBOL_KEY)) {
+                return attributes.get(MRNA_SYMBOL_KEY);
+            }
+        }
+
+        return null;
     }
 
     private static Comparator<Gene> canonicalTranscriptComparator() {

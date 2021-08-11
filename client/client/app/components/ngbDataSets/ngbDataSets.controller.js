@@ -92,6 +92,32 @@ export default class ngbDataSetsController extends baseController {
         return this._isLoading;
     }
 
+    get maxTracksToOpen () {
+        const settings = this.projectContext.getTrackDefaultSettings('settings') || {};
+        return settings.max_tracks_count || 10;
+    }
+
+    hiddenReference (reference) {
+        return reference &&
+            this.service.isDummyReference(reference.name);
+    }
+
+    datasetSelectionDisabled (dataset) {
+        const isDummyReference = dataset &&
+            this.hiddenReference(dataset.reference);
+        return dataset.totalFilesCount > this.maxTracksToOpen || isDummyReference;
+    }
+
+    getNodeHint (node) {
+        if (node.isProject && node.totalFilesCount > this.maxTracksToOpen) {
+            return `${node.hint}
+
+Dataset has ${node.totalFilesCount} files that exceeds limit (${this.maxTracksToOpen}).
+Open dataset files manually.`;
+        }
+        return node.hint;
+    }
+
     events = {
         'activeDataSets': ::this.onResize,
         'datasets:filter:changed': ::this.loadingFinished,

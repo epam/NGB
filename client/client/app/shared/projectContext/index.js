@@ -504,7 +504,7 @@ export default class projectContext {
         const name = track.name
             ? track.name.toLowerCase()
             : track.bioDataItemId.toString().toLowerCase();
-        const key = `track[${name}][${track.projectId.toLowerCase()}]`;
+        const key = `track[${name}][${(track.projectId || '').toLowerCase()}]`;
         const state = {
             bioDataItemId: name,
             height: track.height,
@@ -983,6 +983,7 @@ export default class projectContext {
                         if (!r.annotationFiles) {
                             r.annotationFiles = [];
                         }
+                        r.projectId = '';
                         if (r.geneFile && r.annotationFiles.filter(a =>
                             a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
                         ).length === 0) {
@@ -990,6 +991,9 @@ export default class projectContext {
                             r.geneFile.isGeneFile = true;
                             r.annotationFiles.push(r.geneFile);
                         }
+                        r.annotationFiles.forEach(annotationFile => {
+                           annotationFile.projectId = '';
+                        });
                     });
                     this._referencesAreLoading = false;
                     resolve();
@@ -1038,7 +1042,8 @@ export default class projectContext {
                 referenceDidChange,
                 tracksStateDidChange,
                 viewportDidChange,
-                blatRegionDidChange
+                blatRegionDidChange,
+                geneFilesDidChanged
             } = result;
             let stateChanged = false;
             if (referenceDidChange) {
@@ -1073,6 +1078,9 @@ export default class projectContext {
             }
             if (datasetsUpdated) {
                 this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
+            }
+            if (geneFilesDidChanged) {
+                this.dispatcher.emitSimpleEvent('gene:files:changed', null);
             }
             if (stateChanged) {
                 emitEventFn('state:change', this.getCurrentStateObject());
@@ -1282,6 +1290,7 @@ export default class projectContext {
         const {
             referenceDidChange,
             vcfFilesChanged,
+            geneFilesDidChanged,
             recoveredTracksState
         } = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
         const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
@@ -1332,7 +1341,8 @@ export default class projectContext {
             referenceDidChange,
             tracksStateDidChange,
             viewportDidChange,
-            blatRegionDidChange
+            blatRegionDidChange,
+            geneFilesDidChanged
         };
     }
 
@@ -1353,11 +1363,13 @@ export default class projectContext {
 
     async _changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let vcfFilesChanged = false;
+        let geneFilesDidChanged = false;
         let referenceDidChange = false;
         let recoveredTracksState = undefined;
         if (reference !== undefined || tracks !== undefined || tracksState !== undefined) {
             const result = await this._loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
             vcfFilesChanged = result.vcfFilesChanged;
+            geneFilesDidChanged = result.geneFilesDidChanged;
             referenceDidChange = result.referenceDidChange;
             recoveredTracksState = result.recoveredTracksState;
         }
@@ -1371,7 +1383,7 @@ export default class projectContext {
             this._isVariantsInitialized = false;
         }
 
-        return {referenceDidChange, vcfFilesChanged, recoveredTracksState};
+        return {referenceDidChange, vcfFilesChanged, geneFilesDidChanged, recoveredTracksState};
     }
 
     async recoverTracksState(tracksState) {
@@ -1497,8 +1509,9 @@ export default class projectContext {
     async _loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let referenceDidChange = false;
         const oldVcfFiles = this.vcfTracks || [];
+        const oldGeneFiles = this.geneTracks || [];
         if (!reference && !tracks && tracksState && tracksReordering) {
-            return {referenceDidChange, vcfFilesChanged: false, recoveredTracksState: undefined};
+            return {referenceDidChange, vcfFilesChanged: false, geneFilesDidChanged: false, recoveredTracksState: undefined};
         }
         if (tracks || tracksState) {
             if (tracks) {
@@ -1510,7 +1523,7 @@ export default class projectContext {
                     indexPath: decodeURIComponent(trackState.index),
                     bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
                     duplicateId: decodeURIComponent(`${trackState.duplicateId || ''}`),
-                    projectId: trackState.projectId,
+                    projectId: trackState.projectId || '',
                     projectIdNumber: trackState.projectIdNumber,
                     name: decodeURIComponent(trackState.bioDataItemId),
                     isLocal: trackState.isLocal,
@@ -1556,7 +1569,7 @@ export default class projectContext {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
                                     duplicateId: item.duplicateId,
-                                    projectId: _project.name,
+                                    projectId: _project.name || '',
                                     projectIdNumber: _project.id
                                 });
                                 tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
@@ -1569,7 +1582,7 @@ export default class projectContext {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
                                     duplicateId: item.duplicateId,
-                                    projectId: _project.name,
+                                    projectId: _project.name || '',
                                     projectIdNumber: _project.id
                                 });
                                 const predefinedTracks = [];
@@ -1706,7 +1719,17 @@ export default class projectContext {
                 }
             }
         }
-        return {referenceDidChange, vcfFilesChanged, recoveredTracksState: tracksState};
+        let geneFilesDidChanged = oldGeneFiles.length !== this.geneTracks.length;
+        if (!geneFilesDidChanged) {
+            for (let i = 0; i < oldGeneFiles.length; i++) {
+                if (this.geneTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === oldGeneFiles[i].bioDataItemId.toString().toLowerCase()
+                    && t.projectId.toLowerCase() === oldGeneFiles[i].projectId.toLowerCase()).length === 0) {
+                    geneFilesDidChanged = true;
+                    break;
+                }
+            }
+        }
+        return {referenceDidChange, vcfFilesChanged, geneFilesDidChanged, recoveredTracksState: tracksState};
     }
 
     getVcfFileIdsByProject() {

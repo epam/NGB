@@ -1,44 +1,77 @@
 <div layout="column">
-    <ngb-feature-info-main properties="$ctrl.properties"
-                           reference-id="$ctrl.referenceId"
-                           chromosome-id="$ctrl.chromosomeId"
-                           start-index="$ctrl.startIndex"
-                           end-index="$ctrl.endIndex"
-                           read="$ctrl.read"
-                           name="$ctrl.name"
-                           info-for-read="$ctrl.infoForRead" flex ng-if="!$ctrl.shouldDisplayGeneInfo"></ngb-feature-info-main>
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
         <md-tab id="gff">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info-main properties="$ctrl.properties"
-                                      reference-id="$ctrl.referenceId"
-                                      chromosome-id="$ctrl.chromosomeId"
-                                      start-index="$ctrl.startIndex"
-                                      end-index="$ctrl.endIndex"
-                                      read="$ctrl.read"
-                                      name="$ctrl.name"
-                                      flex></ngb-feature-info-main>
+                                       editable="$ctrl.editable"
+                                       reference-id="$ctrl.referenceId"
+                                       chromosome-id="$ctrl.chromosomeId"
+                                       start-index="$ctrl.startIndex"
+                                       end-index="$ctrl.endIndex"
+                                       read="$ctrl.read"
+                                       name="$ctrl.name"
+                                       file-id="$ctrl.fileId"
+                                       feature="$ctrl.feature"
+                                       uuid="$ctrl.uuid"
+                                       flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')">
+        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')" ng-disabled="$ctrl.editMode">
             <md-tab-label>NCBI</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ncbi"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')">
+        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')" ng-disabled="$ctrl.editMode">
             <md-tab-label>Ensembl</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="ensembl"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
-        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')">
+        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')" ng-disabled="$ctrl.editMode">
             <md-tab-label>Uniprot</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info flex feature-id="$ctrl.geneId" db="uniprot"></ngb-feature-info>
             </md-tab-body>
         </md-tab>
+        <md-tab id="history"
+            ng-if="$ctrl.uuid"
+            ng-disabled="$ctrl.editMode"
+            md-on-select="$ctrl.selectHistoryTab()">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-history flex></ngb-feature-info-history>
+            </md-tab-body>
+        </md-tab>
     </md-tabs>
-
+    <md-tabs md-dynamic-height ng-if="!$ctrl.shouldDisplayGeneInfo">
+        <md-tab id="gff">
+            <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-main properties="$ctrl.properties"
+                                       editable="$ctrl.editable"
+                                       reference-id="$ctrl.referenceId"
+                                       chromosome-id="$ctrl.chromosomeId"
+                                       start-index="$ctrl.startIndex"
+                                       end-index="$ctrl.endIndex"
+                                       read="$ctrl.read"
+                                       name="$ctrl.name"
+                                       file-id="$ctrl.fileId"
+                                       feature="$ctrl.feature"
+                                       uuid="$ctrl.uuid"
+                                       info-for-read="$ctrl.infoForRead"
+                                       flex></ngb-feature-info-main>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="history"
+            ng-if="$ctrl.uuid"
+            ng-disabled="$ctrl.editMode"
+            md-on-select="$ctrl.selectHistoryTab()">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-history flex></ngb-feature-info-history>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
 </div>

@@ -4,7 +4,10 @@
             <h2 ng-show="name">{{name}}</h2>
             <h2 ng-hide="name">Feature info</h2>
             <span flex></span>
-            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+            <md-button class="md-icon-button"
+                       ng-click="close()"
+                       ng-disabled="disableCloseBtn"
+                       aria-label="Close">
                 <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
             </md-button>
         </div>
@@ -12,6 +15,7 @@
     <md-dialog-content>
         <div layout="column">
             <ngb-feature-info-panel properties="properties"
+                                    editable="editable"
                                     reference-id="referenceId"
                                     chromosome-id="chromosomeId"
                                     start-index="startIndex"
@@ -20,6 +24,9 @@
                                     name="name"
                                     gene-id="geneId"
 									info-for-read="infoForRead"
+                                    file-id="fileId"
+                                    feature="feature"
+                                    uuid="uuid"
                                     panel-title="panelTitle" flex></ngb-feature-info-panel>
         </div>
     </md-dialog-content>

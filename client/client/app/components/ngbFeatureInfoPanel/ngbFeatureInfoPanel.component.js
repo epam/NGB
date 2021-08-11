@@ -5,13 +5,17 @@ export default  {
         chromosomeId: '=',
         endIndex: '=',
         name: '=',
+        editable: '=',
         properties: '=',
         read: '=',
         referenceId: '=',
         startIndex: '=',
         geneId: '=',
         infoForRead: '=',
-        panelTitle: '='
+        panelTitle: '=',
+        fileId: '=?',
+        feature: '=?',
+        uuid: '=?',
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoPanel.tpl.html')
