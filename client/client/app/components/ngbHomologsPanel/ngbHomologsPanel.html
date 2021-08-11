@@ -1,5 +1,5 @@
 <div class="blast-search-flex-column">
-    <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected">
+    <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected" ng-if="$ctrl.currentHomologsState">
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.homologsStates.HOMOLOGENE)" name="HOMOLOGENE">
             HOMOLOGENE
         </md-nav-item>
@@ -15,6 +15,9 @@
     </md-nav-bar>
 
     <md-content class="md-padding _md blast-search-result blast-search-flex-column">
+        <div class="u-height__full homologs-no-feature" layout="row" layout-align="center center" ng-if="!$ctrl.currentHomologsState">
+            Select a feature to view a molecule <br> (Gene, Transcript, Variation)
+        </div>
         <ngb-homologene-table change-state="$ctrl.changeState(state)"
                               class="blast-search-flex-column"
                               flex

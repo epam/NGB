@@ -5,9 +5,12 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
-    <strong>No records found.</strong>
+    <strong>Nothing found. Try to search another gene.</strong>
 </div>
 <div class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults">
+    <div class="homologs-search-result">
+        <span class="homologs-search-result-title ng-binding">Search results</span>
+    </div>
     <div class="variants-load-error-container" ng-if="$ctrl.historyLoadError">
         <small>{{$ctrl.historyLoadError}}</small>
     </div>
