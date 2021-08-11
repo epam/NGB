@@ -1,3 +1,5 @@
+import ClientPaginationService from '../../../shared/services/clientPaginationService';
+
 const DEFAULT_COLUMNS = [
     'name', 'species', 'aa', 'domains', 'type'
 ];
@@ -8,10 +10,11 @@ const ORTHO_PARA_COLUMN_TITLES = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 15;
 
-export default class ngbOrthoParaResultService {
+export default class ngbOrthoParaResultService extends ClientPaginationService {
     _searchResultTableLoading = true;
 
     constructor(dispatcher, genomeDataService) {
+        super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:orthoPara:result:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
     }
@@ -43,49 +46,8 @@ export default class ngbOrthoParaResultService {
         return ORTHO_PARA_COLUMN_TITLES;
     }
 
-    _firstPage = FIRST_PAGE;
-
-    get firstPage() {
-        return this._firstPage;
-    }
-
-    set firstPage(value) {
-        this._firstPage = value;
-    }
-
-    _totalPages = FIRST_PAGE;
-
-    get totalPages() {
-        return this._totalPages;
-    }
-
-    _currentPage = FIRST_PAGE;
-
-    get currentPage() {
-        return this._currentPage;
-    }
-
-    set currentPage(value) {
-        this._currentPage = value;
-    }
-
-    _pageSize = PAGE_SIZE;
-
-    get pageSize() {
-        return this._pageSize;
-    }
-
-    set pageSize(value) {
-        this._pageSize = value;
-    }
-
     static instance(dispatcher, genomeDataService) {
         return new ngbOrthoParaResultService(dispatcher, genomeDataService);
-    }
-
-    changePage(page) {
-        this.currentPage = page;
-        this.dispatcher.emit('homologs:orthoPara:result:page:change', page);
     }
 
     getOrthoParaResultGridColumns() {

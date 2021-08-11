@@ -75,6 +75,7 @@ export default class ngbHomologeneTableController extends baseController {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbHomologeneTableService.getHomologeneGridColumns(),
             paginationPageSize: this.ngbHomologeneTableService.pageSize,
+            paginationCurrentPage: this.ngbHomologeneTableService.currentPage,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -201,7 +202,9 @@ export default class ngbHomologeneTableController extends baseController {
     }
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
-        this.ngbHomologeneTableService.pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
-        // this.loadData();
+        const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+        this.ngbHomologeneTableService.pageSize = pageSize;
+        this.gridOptions.paginationPageSize = pageSize;
+        this.$timeout(() => this.$scope.$apply());
     }
 }

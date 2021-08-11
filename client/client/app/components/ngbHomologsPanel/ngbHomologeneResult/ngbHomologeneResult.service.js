@@ -1,3 +1,5 @@
+import ClientPaginationService from '../../../shared/services/clientPaginationService';
+
 const DEFAULT_COLUMNS = [
     'name', 'species', 'accession_id', 'aa', 'domains'
 ];
@@ -17,10 +19,11 @@ const HOMOLOGENE_COLUMN_TITLES = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 15;
 
-export default class ngbHomologeneResultService {
+export default class ngbHomologeneResultService extends ClientPaginationService{
     _searchResultTableLoading = true;
 
     constructor(dispatcher, genomeDataService) {
+        super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:homologene:result:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
     }
@@ -50,47 +53,6 @@ export default class ngbHomologeneResultService {
 
     get columnTitleMap() {
         return HOMOLOGENE_COLUMN_TITLES;
-    }
-
-    _firstPage = FIRST_PAGE;
-
-    get firstPage() {
-        return this._firstPage;
-    }
-
-    set firstPage(value) {
-        this._firstPage = value;
-    }
-
-    _totalPages = FIRST_PAGE;
-
-    get totalPages() {
-        return this._totalPages;
-    }
-
-    _currentPage = FIRST_PAGE;
-
-    get currentPage() {
-        return this._currentPage;
-    }
-
-    set currentPage(value) {
-        this._currentPage = value;
-    }
-
-    _pageSize = PAGE_SIZE;
-
-    get pageSize() {
-        return this._pageSize;
-    }
-
-    set pageSize(value) {
-        this._pageSize = value;
-    }
-
-    changePage(page) {
-        this.currentPage = page;
-        this.dispatcher.emit('homologs:homologene:result:page:change', page);
     }
 
     static instance(dispatcher, genomeDataService) {

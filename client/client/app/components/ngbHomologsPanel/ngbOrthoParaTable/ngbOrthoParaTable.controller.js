@@ -40,10 +40,10 @@ export default class ngbOrthoParaTableController extends baseController {
         enablePaginationControls: false,
     };
     events = {
-        'homologs:orthoPara:page:change': ::this.getDataOnPage
+        'homologs:orthoPara:page:change': this.getDataOnPage.bind(this)
     };
 
-    constructor($scope, $timeout, dispatcher,
+    constructor($scope, $timeout, $window, dispatcher,
         ngbOrthoParaTableService, ngbHomologsService, uiGridConstants) {
         super();
 
@@ -74,6 +74,7 @@ export default class ngbOrthoParaTableController extends baseController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbOrthoParaTableService.getOrthoParaGridColumns(),
+            paginationCurrentPage: this.ngbOrthoParaTableService.currentPage,
             paginationPageSize: this.ngbOrthoParaTableService.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
@@ -201,7 +202,9 @@ export default class ngbOrthoParaTableController extends baseController {
     }
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
-        this.ngbOrthoParaTableService.pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
-        // this.loadData();
+        const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+        this.ngbOrthoParaTableService.pageSize = pageSize;
+        this.gridOptions.paginationPageSize = pageSize;
+        this.$timeout(() => this.$scope.$apply());
     }
 }

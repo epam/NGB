@@ -1,6 +1,8 @@
 import baseController from '../../../../shared/baseController';
+import {Debounce} from '../../../../shared/utils/debounce';
 
 const ROW_HEIGHT = 35;
+const RESIZE_DELAY = 300;
 
 export default class ngbHomologeneResultTableController extends baseController {
     dispatcher;
@@ -8,6 +10,7 @@ export default class ngbHomologeneResultTableController extends baseController {
     isEmptyResults = false;
     errorMessageList = [];
     searchResultTableLoadError = null;
+    debounce = (new Debounce()).debounce;
     gridOptions = {
         enableSorting: true,
         enableFiltering: false,
@@ -69,16 +72,19 @@ export default class ngbHomologeneResultTableController extends baseController {
         this.errorMessageList = [];
         this.isProgressShown = true;
         this.searchResultTableLoadError = null;
+        this.ngbHomologeneResultService.currentPage = 1;
         Object.assign(this.gridOptions, {
-            paginationCurrentPage: this.ngbHomologeneResultService.currentPage,
             appScopeProvider: this.$scope,
             columnDefs: this.ngbHomologeneResultService.getHomologeneResultGridColumns(),
+            paginationCurrentPage: this.ngbHomologeneResultService.currentPage,
+            paginationPageSize: this.ngbHomologeneResultService.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
+                this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
             }
         });
         await this.loadData();
@@ -165,5 +171,12 @@ export default class ngbHomologeneResultTableController extends baseController {
                 columnDef.sort = sortingConfig.sort;
             }
         });
+    }
+
+    onResize(oldGridHeight, oldGridWidth, newGridHeight) {
+        const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+        this.ngbHomologeneResultService.pageSize = pageSize;
+        this.gridOptions.paginationPageSize = pageSize;
+        this.$timeout(() => this.$scope.$apply());
     }
 }

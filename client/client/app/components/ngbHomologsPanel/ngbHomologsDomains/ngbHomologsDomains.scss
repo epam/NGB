@@ -1,20 +1,26 @@
-.homolog-domain-container {
-  display: flex;
-  height: 100%;
-  div {
-    display: inline-flex;
-    align-self: center;
-  }
-  .homolog-domain-region {
-    height: 20px;
-  }
+ngb-homologs-domains {
+  width: 100%;
 
-  .homolog-domain-filler {
-    display: inline-block;
-    height: 4px;
+  .homolog-domain-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+
+    div {
+      display: inline-flex;
+      align-self: center;
+    }
+
+    .homolog-domain-region {
+      height: 20px;
+    }
+
+    .homolog-domain-filler {
+      display: inline-block;
+      height: 4px;
+    }
   }
 }
-
 .domain-tooltip .md-content.md-show {
   opacity: 1;
 }

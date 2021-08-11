@@ -1,7 +1,7 @@
 <div class="homolog-domain-container">
     <div ng-class="domain.isFiller ? 'homolog-domain-filler' : 'homolog-domain-region'"
          ng-repeat="domain in $ctrl.domainsView"
-         ng-style="{'background-color': domain.color, 'width': domain.width}">
+         ng-style="{'background-color': domain.color, 'width': domain.width+'%'}">
         <md-tooltip class="domain-tooltip" md-delay="0" md-direction="top" ng-if="!domain.isFiller">
             {{domain.name}} ({{domain.id}})
         </md-tooltip>

@@ -5,12 +5,11 @@ export default class ngbHomologsDomainsController {
     domainsView = [];
     scale = 1;
 
-    constructor($scope, $timeout, $window, $element, dispatcher) {
+    constructor($scope, $timeout, $window, dispatcher) {
         Object.assign(this, {
             $scope,
             $timeout,
             $window,
-            $element,
             dispatcher
         });
     }
@@ -23,21 +22,14 @@ export default class ngbHomologsDomainsController {
         if (changes.domains) {
             if (changes.domains.currentValue && changes.domains.currentValue !== changes.domains.previousValue) {
                 this.domainsView = this.calculateDomainsView(changes.domains.currentValue);
-                this.scale = this.$element.parent().width()/changes.domains.currentValue.maxHomologLength || 1;
             }
         }
-    }
-    $onInit() {
-        this.initialize();
-    }
-
-    initialize() {
-        // this.$window.resize()
     }
 
     calculateDomainsView(domains) {
         const result = [];
         let end = 0;
+        const maxHomologLength = domains.maxHomologLength;
         if (!domains.domains) {
             return [];
         }
@@ -45,13 +37,13 @@ export default class ngbHomologsDomainsController {
         domains.domains.forEach(d => {
             if (d.start - 1 > end + 1) {
                 result.push({
-                    width: Math.ceil((d.start - 1 - end)*this.scale),
+                    width: Math.ceil((d.start - 1 - end)/maxHomologLength*100),
                     color: DEFAULT_COLOR,
                     isFiller: true
                 });
             }
             result.push({
-                width: Math.ceil((d.end - d.start + 1)*this.scale),
+                width: Math.ceil((d.end - d.start + 1)/maxHomologLength*100),
                 color: d.color,
                 isFiller: false,
                 name: d.name,
@@ -61,14 +53,14 @@ export default class ngbHomologsDomainsController {
         });
         if (end + 1 < domains.homologLength) {
             result.push({
-                width: Math.ceil((domains.homologLength - end)*this.scale),
+                width: Math.ceil((domains.homologLength - end)/maxHomologLength*100),
                 color: DEFAULT_COLOR,
                 isFiller: true
             });
         }
         if (domains.homologLength < domains.maxHomologLength) {
             result.push({
-                width: Math.ceil((domains.maxHomologLength - domains.homologLength)*this.scale),
+                width: Math.ceil((domains.maxHomologLength - domains.homologLength)/maxHomologLength*100),
                 color: TRANSPARENT_COLOR,
                 isFiller: true
             });

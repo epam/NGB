@@ -1,3 +1,5 @@
+import ClientPaginationService from '../../../shared/services/clientPaginationService';
+
 const DEFAULT_ORTHO_PARA_COLUMNS = [
     'gene', 'protein', 'info'
 ];
@@ -14,9 +16,10 @@ const ORTHO_PARA_COLUMN_TITLES = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 15;
 
-export default class ngbOrthoParaTableService {
+export default class ngbOrthoParaTableService extends ClientPaginationService {
 
     constructor(dispatcher, genomeDataService) {
+        super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:orthoPara:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
     }
@@ -25,42 +28,6 @@ export default class ngbOrthoParaTableService {
 
     get orthoPara() {
         return this._orthoPara;
-    }
-
-    _firstPage = FIRST_PAGE;
-
-    get firstPage() {
-        return this._firstPage;
-    }
-
-    set firstPage(value) {
-        this._firstPage = value;
-    }
-
-    _totalPages = FIRST_PAGE;
-
-    get totalPages() {
-        return this._totalPages;
-    }
-
-    _currentPage = FIRST_PAGE;
-
-    get currentPage() {
-        return this._currentPage;
-    }
-
-    set currentPage(value) {
-        this._currentPage = value;
-    }
-
-    _pageSize = PAGE_SIZE;
-
-    get pageSize() {
-        return this._pageSize;
-    }
-
-    set pageSize(value) {
-        this._pageSize = value;
     }
 
     _pageError = null;
@@ -104,11 +71,6 @@ export default class ngbOrthoParaTableService {
 
     async updateOrthoPara() {
         this._orthoPara = await this.loadOrthoPara(this.currentPage);
-    }
-
-    changePage(page) {
-        this.currentPage = page;
-        this.dispatcher.emit('homologs:orthoPara:page:change', page);
     }
 
     async loadOrthoPara(page) {

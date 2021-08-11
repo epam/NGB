@@ -1,3 +1,5 @@
+import ClientPaginationService from '../../../shared/services/clientPaginationService';
+
 const DEFAULT_HOMOLOGENE_COLUMNS = [
     'gene', 'protein', 'info'
 ];
@@ -14,9 +16,10 @@ const HOMOLOGENE_COLUMN_TITLES = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 15;
 
-export default class ngbHomologeneTableService {
+export default class ngbHomologeneTableService extends ClientPaginationService {
 
     constructor(dispatcher, genomeDataService) {
+        super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:homologene:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
     }
@@ -25,42 +28,6 @@ export default class ngbHomologeneTableService {
 
     get homologene() {
         return this._homologene;
-    }
-
-    _firstPage = FIRST_PAGE;
-
-    get firstPage() {
-        return this._firstPage;
-    }
-
-    set firstPage(value) {
-        this._firstPage = value;
-    }
-
-    _totalPages = FIRST_PAGE;
-
-    get totalPages() {
-        return this._totalPages;
-    }
-
-    _currentPage = FIRST_PAGE;
-
-    get currentPage() {
-        return this._currentPage;
-    }
-
-    set currentPage(value) {
-        this._currentPage = value;
-    }
-
-    _pageSize = PAGE_SIZE;
-
-    get pageSize() {
-        return this._pageSize;
-    }
-
-    set pageSize(value) {
-        this._pageSize = value;
     }
 
     _pageError = null;
@@ -97,18 +64,13 @@ export default class ngbHomologeneTableService {
     set homologeneColumns(columns) {
         localStorage.setItem('homologeneColumns', JSON.stringify(columns || []));
     }
-    
+
     static instance(dispatcher, genomeDataService) {
         return new ngbHomologeneTableService(dispatcher, genomeDataService);
     }
 
     async updateHomologene() {
         this._homologene = await this.loadHomologene(this.currentPage);
-    }
-
-    changePage(page) {
-        this.currentPage = page;
-        this.dispatcher.emit('homologs:homologene:page:change', page);
     }
 
     async loadHomologene(page) {
