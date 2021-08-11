@@ -205,7 +205,19 @@ export class GenomeDataService extends DataService {
                 this._homologene.push(this.getHomologeneMock());
             }
         }
-        return this._homologene;
+        // return this._homologene;
+        return [
+            {
+                gene: 'KRAS, Kras, kras, Ras85D, let-60',
+                protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
+                info: 'Gene conserved in Bilateria'
+            },
+            {
+                gene: 'SSPN, Sspn, sspn',
+                protein: 'sarcospan',
+                info: 'Gene conserved in Euteleostomi'
+            }
+        ];
     }
 
     getHomologeneResultLoad() {
@@ -215,7 +227,153 @@ export class GenomeDataService extends DataService {
                 this._homologeneResult.push(this.getHomologeneResultMock());
             }
         }
-        return this._homologeneResult;
+        // return this._homologeneResult;
+        return [
+            {
+                name: 'KRAS',
+                species: 'H.sapiens',
+                accession_id: 'NP_203524.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'P.troglodytes',
+                accession_id: 'XP_003313842.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'C.lupus',
+                accession_id: 'XP_003433608.2',
+                aa: 229,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'B.taurus',
+                accession_id: 'NP_001103471.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Kras',
+                species: 'M.musculus',
+                accession_id: 'NP_067259.4',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Kras',
+                species: 'R.norvegicus',
+                accession_id: 'NP_113703.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'G.gallus',
+                accession_id: 'NP_001243091.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'LOC100485959',
+                species: 'X.tropicalis',
+                accession_id: '\tXP_004920180.1',
+                aa: 226,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'kras',
+                species: 'D.rerio',
+                accession_id: 'NP_001003744.1',
+                aa: 188,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'Ras85D',
+                species: 'D.melanogaster',
+                accession_id: 'NP_476699.1',
+                aa: 189,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'AgaP_AGAP002219',
+                species: 'A.gambiae',
+                accession_id: 'XP_307965.4',
+                aa: 190,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+            {
+                name: 'let-60',
+                species: 'C.elegans',
+                accession_id: 'NP_502213.3',
+                aa: 184,
+                domains: [{
+                    id: 'cl17170',
+                    start: 3,
+                    end: 180,
+                    name: 'Ras_like_GTPase'
+                }]
+            },
+        ];
     }
 
     getOrthoParaLoad() {
@@ -225,7 +383,20 @@ export class GenomeDataService extends DataService {
                 this._orthoPara.push(this.getHomologeneMock());
             }
         }
-        return this._orthoPara;
+        // return this._orthoPara;
+
+        return [
+            {
+                gene: 'KRAS, Kras, kras, Ras85D, let-60',
+                protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
+                info: 'Gene conserved in Bilateria'
+            },
+            {
+                gene: 'SSPN, Sspn, sspn',
+                protein: 'sarcospan',
+                info: 'Gene conserved in Euteleostomi'
+            }
+        ];
     }
 
     getOrthoParaResultLoad() {
@@ -235,7 +406,93 @@ export class GenomeDataService extends DataService {
                 this._orthoParaResult.push(this.getOrthoParaResultMock());
             }
         }
-        return this._orthoParaResult;
+        // return this._orthoParaResult;
+        return [
+            {
+                name: 'KRAS',
+                species: 'Homo sapiens',
+                type: 'Ortholog',
+                aa: 188,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'kras',
+                species: 'Mus musculus',
+                type: 'Ortholog',
+                aa: 188,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'kras',
+                species: 'Rattus norvegicus',
+                type: 'Ortholog',
+                aa: 227,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'Canis lupus familiaris',
+                type: 'Ortholog',
+                aa: 188,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'Gallus gallus',
+                type: 'Ortholog',
+                aa: 229,
+                domains: [{
+                    id: 'cd04138',
+                    start: 50,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'Pan troglodytes',
+                type: 'Ortholog',
+                aa: 188,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+            {
+                name: 'KRAS',
+                species: 'Bos taurus',
+                type: 'Paralog',
+                aa: 189,
+                domains: [{
+                    id: 'cd04138',
+                    start: 3,
+                    end: 164,
+                    name: 'H_N_K_Ras_like'
+                }]
+            },
+        ];
     }
 
     getHomologeneMock() {

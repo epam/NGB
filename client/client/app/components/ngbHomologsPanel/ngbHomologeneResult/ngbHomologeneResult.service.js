@@ -133,6 +133,7 @@ export default class ngbHomologeneResultService extends ClientPaginationService{
             'B': 'blue',
             'C': 'green',
             'D': 'yellow',
+            'Ras_like_GTPase': '#F00000'
         };
         if (data.error) {
             this._totalPages = 0;
