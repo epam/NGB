@@ -22,18 +22,11 @@ export default class ngbInfoRowsController {
         return property.attribute || !/^(start|end|chromosome|)$/i.test(property.name);
     }
 
-    isRemovable (property) {
-        return property.attribute || !/^(start|end|chromosome|source|feature|gene|score|strand|frame)$/i.test(property.name);
-    }
-
-    isDouble (property) {
-        const attributes = this.ngbFeatureInfoPanelService.newAttributes;
-        const doubles = attributes.filter(attribute => {
-            if (property.default && property.name === attribute.name && !attribute.default) {
-                return attribute;
-            }
-        });
-        return doubles.length;
+    isDuplicate (attribute) {
+        if (attribute.name) {
+            return this.ngbFeatureInfoPanelService.isDuplicate(attribute);
+        }
+        return false;
     }
 
     valueIsEmpty (value) {
@@ -42,12 +35,6 @@ export default class ngbInfoRowsController {
 
     onClickRemoveAttribute (property) {
         this.ngbFeatureInfoPanelService.removeAttribute(property);
-    }
-
-    onChangeAttribute (property) {
-        if (property.name) {
-            return this.ngbFeatureInfoPanelService.changeAttribute(property);
-        }
     }
 
     onClickAddBtn () {

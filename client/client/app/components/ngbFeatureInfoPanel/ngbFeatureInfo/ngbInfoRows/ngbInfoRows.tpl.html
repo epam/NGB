@@ -26,13 +26,12 @@
              class="property-row"
         >
             <div flex="40"
-                 ng-if="!$ctrl.isRemovable(attribute)"
+                 ng-if="!attribute.attribute"
                  layout="row"
                  layout-wrap
             >
                 <div flex
-                     class="property property-name unremovable"
-                     ng-class="{'isDouble': $ctrl.isDouble(attribute)}">
+                     class="property property-name unremovable">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">
                         ATTR
@@ -41,7 +40,7 @@
                 </div>
             </div>
             <div flex="40"
-                 ng-if="$ctrl.isRemovable(attribute)"
+                 ng-if="attribute.attribute"
                  layout="row"
                  layout-wrap
             >
@@ -57,7 +56,6 @@
                 </div>
                 <div class="property property-name"
                      ng-if="attribute.default"
-                     ng-class="{'isDouble': $ctrl.isDouble(attribute)}"
                      style="flex: 1">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">
@@ -70,10 +68,9 @@
                            required
                            class="property property-name editable"
                            ng-model="attribute.name"
-                           ng-change="$ctrl.onChangeAttribute(attribute)"
                            ng-class="{
                                'isEmpty': !attribute.name && attribute.value,
-                               'isDouble': $ctrl.onChangeAttribute(attribute)
+                               'isDouble': $ctrl.isDuplicate(attribute)
                            }"
                            ng-model-options="{updateOn: 'blur'}" />
                     <div class="property-error-message"
@@ -82,7 +79,7 @@
                         Name is required
                     </div>
                     <div class="property-error-message"
-                         ng-if="$ctrl.onChangeAttribute(attribute)"
+                         ng-if="$ctrl.isDuplicate(attribute)"
                     >
                         Duplicate attribute
                     </div>
@@ -97,7 +94,6 @@
                     <input type="string"
                            required
                            ng-model="attribute.value"
-                           ng-change="$ctrl.onChangeAttribute(attribute)"
                            class="property property-value editable"
                            ng-class="{'isEmpty': attribute.name && !attribute.value}"
                            ng-model-options="{updateOn: 'blur'}" />

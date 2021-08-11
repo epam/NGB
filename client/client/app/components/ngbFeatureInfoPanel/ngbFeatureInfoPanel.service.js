@@ -97,7 +97,7 @@ export default class ngbFeatureInfoPanelService {
         }
     }
 
-    changeAttribute(property) {
+    isDuplicate(property) {
         const newAttributes = this.attributes;
         if (!property.default && property.name) {
             const duplicates = newAttributes.filter(attribute => {
@@ -123,7 +123,7 @@ export default class ngbFeatureInfoPanelService {
                 return false;
             }
             if (attribute.name && !valueIsEmpty(attribute.value)) {
-                return this.changeAttribute(attribute);
+                return this.isDuplicate(attribute);
             }
             return !attribute.name || valueIsEmpty(attribute.value);
         });
@@ -131,7 +131,7 @@ export default class ngbFeatureInfoPanelService {
 
     saveNewAttributes () {
         this.attributes = this.attributes
-            .filter(attribute => attribute.name && attribute.value && !this.changeAttribute(attribute));
+            .filter(attribute => attribute.name && attribute.value && !this.isDuplicate(attribute));
     }
 
     updateFeatureInfo(feature) {

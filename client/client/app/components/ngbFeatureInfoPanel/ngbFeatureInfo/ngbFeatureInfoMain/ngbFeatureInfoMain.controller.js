@@ -8,6 +8,7 @@ export default class ngbFeatureInfoMainController {
     sequenceProgress = 0;
     isSequenceLoading = true;
     error = null;
+    _isGeneralInfoOpen = true;
 
     constructor($scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
         Object.assign(this, {$scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
@@ -115,6 +116,20 @@ export default class ngbFeatureInfoMainController {
 
     get saveInProgress () {
         return this.ngbFeatureInfoPanelService.saveInProgress;
+    }
+
+    get isGeneralInfoOpen () {
+        return this._isGeneralInfoOpen;
+    }
+
+    set isGeneralInfoOpen (value) {
+        this._isGeneralInfoOpen = value;
+    }
+
+    onClickTitle (event) {
+        if (event.target.tagName === 'SPAN') {
+            event.stopPropagation();
+        }
     }
 
     onClickEditBtn () {
