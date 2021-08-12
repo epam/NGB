@@ -992,7 +992,7 @@ export default class projectContext {
                             r.annotationFiles.push(r.geneFile);
                         }
                         r.annotationFiles.forEach(annotationFile => {
-                           annotationFile.projectId = '';
+                            annotationFile.projectId = '';
                         });
                     });
                     this._referencesAreLoading = false;

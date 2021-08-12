@@ -1,97 +1,100 @@
-.property {
-  padding: 7px;
-}
+ngb-info-rows {
+  .property {
+    padding: 7px;
+  }
 
-.property-row,
-.property-name
-{
-  border: 0;
-  word-wrap: break-word;
-}
+  .property-row,
+  .property-name {
+    border: 0;
+    word-wrap: break-word;
+  }
 
-.property-name {
-  font: 700 13px Arial;
-  color: #999;
-}
+  .property-name {
+    font: 700 13px Arial;
+    color: #999;
+  }
 
-.property-value {
-  font: 13px Arial;
-  color: #666;
-}
+  .property-value {
+    font: 13px Arial;
+    color: #666;
+  }
 
-#summary .property-row {
-  border: 0;
-  & + a{
-    color: #679edb;
-    font-size: 14px;
-    text-decoration: none;
-    &:hover{
-      text-decoration: underline;
+  #summary .property-row {
+    border: 0;
+
+    & + a {
+      color: #679edb;
+      font-size: 14px;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
-}
-#summary .property-name
-{
-  min-width: 130px;
-  text-align: right;
-  border: 0;
-}
 
-.unremovable {
-  margin-left: 15px;
-}
+  #summary .property-name {
+    min-width: 130px;
+    text-align: right;
+    border: 0;
+  }
 
-.editable {
-  height: 15px;
-  border: none;
-  border-bottom: 1px solid #666;
-  padding-bottom: 6px;
-}
+  .unremovable {
+    margin-left: 15px;
+  }
 
-.md-button {
-  line-height: 0px;
-}
+  .editable {
+    height: 15px;
+    border: none;
+    border-bottom: 1px solid #666;
+    padding-bottom: 6px;
+  }
 
-.remove-btn-container {
-  height: 15px;
-  padding-bottom: 11px;
-  padding-top: 3px;
-}
+  .md-button {
+    line-height: 0px;
+  }
 
-.remove-btn {
-  min-width: 15px;
-  min-height: 15px;
-  margin: auto;
-  padding: 0px;
-}
+  .remove-btn-container {
+    height: 15px;
+    padding-bottom: 11px;
+    padding-top: 3px;
+  }
 
-.add-button {
-  font-size: 14px;
-  color: #679edb;
-  margin: 0px;
-  padding: 0px;
-  margin-top: 5px;
-}
+  .remove-btn {
+    min-width: 15px;
+    min-height: 15px;
+    margin: auto;
+    padding: 0px;
+  }
 
-.property-name.editable {
-  margin-left: 0;
-  margin-right: 5px;
-}
+  .add-button {
+    font-size: 14px;
+    color: #679edb;
+    margin: 0px;
+    padding: 0px;
+    margin-top: 5px;
+  }
 
-.ng-invalid.ng-touched {
-  border-color: #F00;
-}
+  .property-name.editable {
+    margin-left: 0;
+    margin-right: 5px;
+  }
 
-.isEmpty {
-  color: #F00;
-}
+  .ng-invalid.ng-touched {
+    border-color: #F00;
+  }
 
-.property-attribute {
-  margin-right: 5px;
-  font-size: x-small;
-  padding: 2px;
-  background-color: #fafafa;
-  border: 1px solid #dddddd;
-  border-radius: 2px;
-  font-weight: normal;
+  .isEmpty {
+    color: #F00;
+  }
+
+  .property-attribute {
+    margin-right: 5px;
+    font-size: x-small;
+    padding: 2px;
+    background-color: #fafafa;
+    border: 1px solid #dddddd;
+    border-radius: 2px;
+    font-weight: normal;
+  }
 }
