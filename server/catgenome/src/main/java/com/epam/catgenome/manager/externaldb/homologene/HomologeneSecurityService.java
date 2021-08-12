@@ -46,12 +46,6 @@ public class HomologeneSecurityService {
         return homologeneManager.searchHomologenes(query);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public HomologeneSearchResult<HomologeneEntry> searchHomologenesMock(final HomologeneSearchRequest query)
-            throws IOException {
-        return homologeneManager.searchHomologenesMock(query);
-    }
-
     @PreAuthorize(ROLE_ADMIN)
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         homologeneManager.importHomologeneDatabase(databasePath);

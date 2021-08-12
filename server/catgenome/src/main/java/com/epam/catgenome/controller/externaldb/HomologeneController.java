@@ -65,21 +65,6 @@ public class HomologeneController extends AbstractRESTController {
         return Result.success(homologeneSecurityService.searchHomologenes(query));
     }
 
-    @PostMapping(value = "/search/mock")
-    @ApiOperation(
-            value = "Returns mock list of Homologenes",
-            notes = "Returns mock list of Homologenes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<HomologeneSearchResult<HomologeneEntry>> searchHomologenesMock(
-            @RequestBody final HomologeneSearchRequest query)
-            throws IOException {
-        return Result.success(homologeneSecurityService.searchHomologenesMock(query));
-    }
-
-
     @PutMapping(value = "/import")
     @ApiOperation(
             value = "Creates Homologene Lucene Index from Homologene file",

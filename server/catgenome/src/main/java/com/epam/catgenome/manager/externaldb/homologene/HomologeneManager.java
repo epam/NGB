@@ -134,56 +134,6 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    public HomologeneSearchResult<HomologeneEntry> searchHomologenesMock(final HomologeneSearchRequest query)
-            throws IOException {
-        final List<HomologeneEntry> entries = new ArrayList<>();
-        final List<Gene> genes = new ArrayList<>();
-        final HomologeneSearchResult<HomologeneEntry> searchResult = new HomologeneSearchResult<>();
-        genes.add(Gene.builder()
-                .geneId(GENE_ID)
-                .title("acyl-CoA dehydrogenase, C-4 to C-12 straight chain")
-                .taxId(TAX_ID)
-                .protGi(PROT_GI)
-                .protAcc("NP_000007.1")
-                .protLen(PROT_LEN)
-                .nucGi(NUC_GI)
-                .nucAcc("NM_000016.5")
-                .build()
-        );
-        genes.add(Gene.builder()
-                .geneId(GENE_ID)
-                .title("acyl-CoA dehydrogenase, C-4 to C-12 straight chain")
-                .taxId(TAX_ID)
-                .protGi(PROT_GI)
-                .protAcc("NP_000007.1")
-                .protLen(PROT_LEN)
-                .nucGi(NUC_GI)
-                .nucAcc("NM_000016.5")
-                .build()
-        );
-        entries.add(
-                HomologeneEntry.builder()
-                        .groupId(3L)
-                        .taxId(TAX_ID1)
-                        .version(VERSION)
-                        .caption("Gene conserved in Bilateria")
-                        .genes(genes)
-                        .build()
-        );
-        entries.add(
-                HomologeneEntry.builder()
-                        .groupId(4L)
-                        .taxId(TAX_ID1)
-                        .version(VERSION)
-                        .caption("Gene conserved in Bilateria")
-                        .genes(genes)
-                        .build()
-        );
-        searchResult.setItems(entries);
-        searchResult.setTotalCount(2);
-        return searchResult;
-    }
-
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
