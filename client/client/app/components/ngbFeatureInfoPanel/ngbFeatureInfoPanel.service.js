@@ -224,4 +224,5 @@ export default class ngbFeatureInfoPanelService {
                 });
         });
     }
+
 }
