@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
@@ -42,17 +43,17 @@ public class HomologeneSecurityService {
     private HomologeneManager homologeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> search(final SearchRequest query) throws IOException {
-        return homologeneManager.search(query);
+    public SearchResult<HomologeneEntry> searchHomologenes(final SearchRequest query) throws IOException {
+        return homologeneManager.searchHomologenes(query);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchMock(final SearchRequest query) throws IOException {
-        return homologeneManager.searchMock(query);
+    public SearchResult<HomologeneEntry> searchHomologenesMock(final SearchRequest query) throws IOException {
+        return homologeneManager.searchHomologenesMock(query);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public void writeLuceneIndex(final String databasePath) throws IOException, ParseException {
-        homologeneManager.writeLuceneIndex(databasePath);
+    @PreAuthorize(ROLE_ADMIN)
+    public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
+        homologeneManager.importHomologeneDatabase(databasePath);
     }
 }

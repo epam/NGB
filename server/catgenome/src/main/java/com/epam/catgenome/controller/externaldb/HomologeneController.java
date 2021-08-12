@@ -59,9 +59,9 @@ public class HomologeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<HomologeneEntry>> search(@RequestBody final SearchRequest query)
+    public Result<SearchResult<HomologeneEntry>> searchHomologenes(@RequestBody final SearchRequest query)
             throws IOException {
-        return Result.success(homologeneSecurityService.search(query));
+        return Result.success(homologeneSecurityService.searchHomologenes(query));
     }
 
     @PostMapping(value = "/search/mock")
@@ -72,9 +72,9 @@ public class HomologeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<HomologeneEntry>> searchMock(@RequestBody final SearchRequest query)
+    public Result<SearchResult<HomologeneEntry>> searchHomologenesMock(@RequestBody final SearchRequest query)
             throws IOException {
-        return Result.success(homologeneSecurityService.searchMock(query));
+        return Result.success(homologeneSecurityService.searchHomologenesMock(query));
     }
 
 
@@ -88,7 +88,7 @@ public class HomologeneController extends AbstractRESTController {
             })
     public Result<Boolean> importHomologeneDatabase(@RequestParam final String databasePath)
             throws IOException, ParseException {
-        homologeneSecurityService.writeLuceneIndex(databasePath);
+        homologeneSecurityService.importHomologeneDatabase(databasePath);
         return Result.success(null);
     }
 }

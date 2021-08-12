@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.homologene;
 
+import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.entity.externaldb.homologene.EntryGenes;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
@@ -69,12 +70,14 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -94,7 +97,7 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
-    public SearchResult<HomologeneEntry> search(final SearchRequest query) throws IOException {
+    public SearchResult<HomologeneEntry> searchHomologenes(final SearchRequest query) throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
         final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
@@ -132,7 +135,7 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    public SearchResult<HomologeneEntry> searchMock(final SearchRequest query) throws IOException {
+    public SearchResult<HomologeneEntry> searchHomologenesMock(final SearchRequest query) throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
         final List<Gene> genes = new ArrayList<>();
         final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
@@ -181,7 +184,9 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    public void writeLuceneIndex(final String databasePath) throws IOException, ParseException {
+    public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
+        File file = new File(databasePath);
+        Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())

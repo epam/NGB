@@ -58,13 +58,13 @@ public class HomologeneManagerTest extends TestCase {
     @Before
     public void setUp() throws IOException, ParseException {
         this.fileName = context.getResource("classpath:homologene//homologene.xml").getFile().getPath();
-        homologeneManager.writeLuceneIndex(fileName);
+        homologeneManager.importHomologeneDatabase(fileName);
     }
 
     @Test
     public void searchTest() throws IOException {
         SearchRequest query = new SearchRequest("ACADML", 1, 5);
-        SearchResult<HomologeneEntry> searchResult = homologeneManager.search(query);
+        SearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
         assertNotNull(searchResult);
         assertEquals(1, searchResult.getItems().size());
     }
