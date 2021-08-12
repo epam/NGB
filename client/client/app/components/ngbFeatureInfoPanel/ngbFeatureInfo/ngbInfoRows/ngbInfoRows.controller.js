@@ -23,10 +23,7 @@ export default class ngbInfoRowsController {
     }
 
     isDuplicate (attribute) {
-        if (attribute.name) {
-            return this.ngbFeatureInfoPanelService.isDuplicate(attribute);
-        }
-        return false;
+        return this.ngbFeatureInfoPanelService.isDuplicate(attribute);
     }
 
     valueIsEmpty (value) {

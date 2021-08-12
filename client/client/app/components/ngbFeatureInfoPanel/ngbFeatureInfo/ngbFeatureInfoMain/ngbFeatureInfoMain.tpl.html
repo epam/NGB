@@ -1,24 +1,24 @@
 <div layout="column">
     <collapsible>
         <collapsible-panel is-open="$ctrl.isGeneralInfoOpen" disabled="$ctrl.editMode">
-            <collapsible-panel-title ng-click="$ctrl.onClickTitle($event)">
+            <collapsible-panel-title>
                 General information
                 <md-button
                     class="general-information-buttons"
                     ng-if="$ctrl.uuid && !$ctrl.editMode && $ctrl.isGeneralInfoOpen"
-                    ng-click="$ctrl.onClickEditBtn()">
+                    ng-click="$ctrl.onClickEditBtn($event)">
                     Edit
                 </md-button>
                 <md-button
                     class="general-information-buttons cancel-button"
                     ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickCancelBtn()">
+                    ng-click="$ctrl.onClickCancelBtn($event)">
                     Cancel
                 </md-button>
                 <md-button
                     class="general-information-buttons"
                     ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickSaveBtn()"
+                    ng-click="$ctrl.onClickSaveBtn($event)"
                     ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
                     Save
                 </md-button>

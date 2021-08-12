@@ -46,7 +46,8 @@ export default class ngbFeatureInfoPanelService {
                     name: property[0],
                     value: property[1],
                     default: true,
-                    attribute: Boolean(property[2])
+                    attribute: Boolean(property[2]),
+                    deleted: Boolean(property[3])
                 }));
         } else {
             this.attributes = properties;
@@ -183,7 +184,7 @@ export default class ngbFeatureInfoPanelService {
                 property[0] !== attributes[index].name ||
                 property[1] !== attributes[index].value ||
                 property[2] !== attributes[index].attribute ||
-                attributes[index].deleted
+                Boolean(property[3]) !== attributes[index].deleted
             );
         });
     }

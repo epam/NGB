@@ -126,18 +126,18 @@ export default class ngbFeatureInfoMainController {
         this._isGeneralInfoOpen = value;
     }
 
-    onClickTitle (event) {
-        if (event.target.tagName === 'SPAN') {
+    onClickEditBtn (event) {
+        if (event) {
             event.stopPropagation();
         }
-    }
-
-    onClickEditBtn () {
         this.ngbFeatureInfoPanelService.editMode = true;
         this.ngbFeatureInfoPanelService.newAttributes = this.properties;
     }
 
-    onClickSaveBtn () {
+    onClickSaveBtn (event) {
+        if (event) {
+            event.stopPropagation();
+        }
         this.ngbFeatureInfoPanelService.saveInProgress = true;
         this.ngbFeatureInfoPanelService.saveNewAttributes();
         this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
@@ -161,7 +161,10 @@ export default class ngbFeatureInfoMainController {
             });
     }
 
-    onClickCancelBtn () {
+    onClickCancelBtn (event) {
+        if (event) {
+            event.stopPropagation();
+        }
         this.ngbFeatureInfoPanelService.editMode = false;
         this.ngbFeatureInfoPanelService.newAttributes = null;
         this.ngbFeatureInfoPanelService.saveInProgress = false;

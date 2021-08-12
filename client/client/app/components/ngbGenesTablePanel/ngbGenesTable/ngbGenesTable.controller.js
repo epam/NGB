@@ -354,17 +354,7 @@ export default class ngbGenesTableController extends baseController {
         ).then(
             data => {
                 delete entity.error;
-                const sortProperties = (a, b) => {
-                    const [aName, aAttribute] = [a[0], a[2]];
-                    const [bName, bAttribute] = [b[0], b[2]];
-                    if (aAttribute === bAttribute) {
-                        if (aName > bName) {
-                            return 1;
-                        }
-                        return -1;
-                    }
-                    return aAttribute ? 1 : -1;
-                };
+                const sortProperties = (a, b) => a[0] > b[0] ? 1 : -1;
                 const extractProperties = (o, except = []) => Object
                     .entries(o || {})
                     .map(([key, value]) => {
@@ -402,7 +392,8 @@ export default class ngbGenesTableController extends baseController {
                             .entries(data.attributes || {})
                             .map(([key, value]) => ([
                                 key, value, true
-                            ])).sort(sortProperties)
+                            ]))
+                            .sort(sortProperties)
                     ],
                     referenceId: entity.referenceId,
                     title: entity.feature,
