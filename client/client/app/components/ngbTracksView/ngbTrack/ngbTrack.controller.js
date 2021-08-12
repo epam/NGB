@@ -1,6 +1,7 @@
 import ngbTrackEvents from './ngbTrack.events';
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
 import BLASTContext from '../../../shared/blastContext';
+import MotifsContext from '../../../shared/motifsContext'
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -17,6 +18,7 @@ export default class ngbTrackController {
     fcSourcesManager;
     selectionContext: SelectionContext;
     blastContext: BLASTContext;
+    motifsContext: MotifsContext;
 
     static get UID() {
         return 'ngbTrackController';
@@ -63,7 +65,8 @@ export default class ngbTrackController {
         trackNamingService,
         groupAutoScaleManager,
         fcSourcesManager,
-        blastContext
+        blastContext,
+        motifsContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
@@ -71,6 +74,7 @@ export default class ngbTrackController {
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
         this.blastContext = blastContext;
+        this.motifsContext = motifsContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
         this.fcSourcesManager = fcSourcesManager;
         this.domElement = $element[0];
@@ -211,6 +215,18 @@ export default class ngbTrackController {
             }
         };
 
+        const motifsTrackColorsChangedHandler = state => {
+            if (
+                this.browserId === state.data.browserId &&
+                (
+                    (state.sources || []).indexOf(this.track.name) >= 0 ||
+                    (state.data.applyToMotifsTracks && /^motifs$/i.test(this.track.format))
+                )
+            ) {
+                this.trackInstance.colorSettingsChanged(state);
+            }
+        };
+
         const trackSettingsChangedHandler = (params) => {
             if(self.trackInstance.trackSettingsChanged) {
                 self.trackInstance.trackSettingsChanged(params);
@@ -239,6 +255,7 @@ export default class ngbTrackController {
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
         dispatcher.on('coverage:color:configure:done', trackColorsChangedHandler);
         dispatcher.on('bed:color:configure:done', bedTrackColorsChangedHandler);
+        dispatcher.on('motifs:color:configure:done', motifsTrackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
         dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
         $scope.$on('$destroy', () => {
@@ -251,6 +268,7 @@ export default class ngbTrackController {
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
                 dispatcher.removeListener('coverage:color:configure:done', trackColorsChangedHandler);
                 dispatcher.removeListener('bed:color:configure:done', bedTrackColorsChangedHandler);
+                dispatcher.removeListener('motifs:color:configure:done', motifsTrackColorsChangedHandler);
                 dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
                 dispatcher.removeListener(SelectionEvents.changed, tracksSelectionChangedHandler);
                 this.trackInstance.destructor();
@@ -410,6 +428,7 @@ export default class ngbTrackController {
             fcSourcesManager: this.fcSourcesManager,
             projectContext: this.projectContext,
             blastContext: this.blastContext,
+            motifsContext: this.motifsContext,
             reloadScope: () => this.scope.$apply(),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,

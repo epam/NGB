@@ -501,7 +501,7 @@ export default class projectContext {
     }
 
     setTrackState(track) {
-        if (track.duplicateId) {
+        if (track.duplicateId || track.format === 'MOTIFS') {
             return;
         }
         const name = track.name
@@ -1271,7 +1271,8 @@ export default class projectContext {
             filterDatasets,
             shouldAddAnnotationTracks,
             blatRegion,
-            keepBLASTTrack
+            keepBLASTTrack,
+            keepMotifTrack
         } = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
@@ -1303,6 +1304,12 @@ export default class projectContext {
                 .filter(track => track.format !== 'BLAST');
             this._tracks = (this.tracks || [])
                 .filter(track => track.format !== 'BLAST');
+        }
+        if (chromosomeDidChange && !keepMotifTrack) {
+            this.tracksState = (this.tracksState || [])
+                .filter(track => track.format !== 'MOTIFS');
+            this._tracks = (this.tracks || [])
+                .filter(track => track.format !== 'MOTIFS');
         }
         let positionDidChange = false;
         let viewportDidChange = false;

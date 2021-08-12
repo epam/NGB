@@ -21,7 +21,7 @@
                 ng-checked="ctrl.trackIsSelected"
                 ng-click="ctrl.trackSelectionChanged($event)"
         />
-        <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
+        <div class="ngb-track-header-type" ng-if="ctrl.track.format !== 'MOTIFS'">{{ctrl.track.format}}</div>
         <input
                 ngb-autofocus
                 emit-focus="ctrl.nameInputVisible"

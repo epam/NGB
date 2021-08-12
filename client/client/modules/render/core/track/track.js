@@ -371,6 +371,12 @@ export class Track extends BaseTrack {
             state.cancel
                 ? this.state.color = {}
                 : this.state.color = state.data.settings;
+        } else if (this.config.format === 'MOTIFS') {
+            const color = this.state.color || {};
+            color[state.strand] = state.data.settings;
+            state.cancel
+                ? this.state.color = {}
+                : this.state.color = color;
         } else {
             state.cancel
                 ? this.state.wigColors = {}

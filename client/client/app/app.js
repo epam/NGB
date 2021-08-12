@@ -22,6 +22,7 @@ import projectContext from './shared/projectContext';
 import SelectionContext from './shared/selectionContext';
 import BLASTContext from './shared/blastContext';
 import NotificationsContext from './shared/notificationsContext';
+import MotifsContext from './shared/motifsContext';
 import config from './app.config';
 import controller from './app.controller';
 import {dispatcher} from './shared/dispatcher';
@@ -71,4 +72,5 @@ export default angular.module('NGB', [
     .service('fcSourcesManager', FCSourcesManager.instance)
     .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
     .service('notificationsContext', NotificationsContext.instance)
+    .service('motifsContext', MotifsContext.instance)
     .name;

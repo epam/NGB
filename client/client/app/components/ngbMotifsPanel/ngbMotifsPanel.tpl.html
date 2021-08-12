@@ -1,0 +1,13 @@
+<div>
+    <div ng-if="$ctrl.isSearchInProgress">
+        <div class="progress" layout-align="center center">
+            <span>Loading results...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="md-padding" ng-if="$ctrl.isSearchFailure">
+        <ngb-panel-error-list message-list="['Error']"></ngb-panel-error-list>
+    </div>
+    <ngb-motifs-table ng-if="$ctrl.isSearchResults"></ngb-motifs-table>
+</div>
+
