@@ -1,0 +1,24 @@
+<div class="u-height__full">
+    <div ng-if="$ctrl.isSearchInProgress">
+        <div class="progress"
+             layout-align="center center">
+            <span>Loading results...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="md-padding"
+         ng-if="$ctrl.isSearchFailure"
+         ng-hide="$ctrl.isSearchInProgress">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <ngb-motifs-params-table
+        ng-if="!$ctrl.isSearchFailure && $ctrl.isShowParamsTable"
+        ng-hide="$ctrl.isSearchInProgress"
+    ></ngb-motifs-params-table>
+    <ngb-motifs-results-table
+        ng-if="!$ctrl.isSearchFailure && !$ctrl.isShowParamsTable"
+        ng-hide="$ctrl.isSearchInProgress"
+        loading="$ctrl.isSearchInProgress"
+    ></ngb-motifs-results-table>
+    
+</div>

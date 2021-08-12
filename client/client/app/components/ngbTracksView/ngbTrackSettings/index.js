@@ -9,6 +9,7 @@ import trackCoverageSettings from './ngbTrackCoverageSettings';
 import trackResizePreference from './ngbTrackResizePreference';
 import wigColorPreference from './ngbWigColorPreference';
 import bedColorPreference from './ngbBedColorPreference';
+import motifsColorPreference from './ngbMotifsColorPreference';
 import collapsibleMenu from './ngbTrackSettings.collapsible.menu';
 import ngbHeatmapColorSchemePreference from './ngbHeatmapColorSchemePreference';
 import ngbPreventAutoClose from './ngbPreventAutoClose';
@@ -20,6 +21,7 @@ export default angular
         trackResizePreference,
         wigColorPreference,
         bedColorPreference,
+        motifsColorPreference,
         ngbTrackFontSize,
         ngbHeatmapColorSchemePreference
     ])

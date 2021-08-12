@@ -1,0 +1,62 @@
+<md-dialog aria-label="Motifs search">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Search motifs</h2>
+            <span flex></span>
+            <md-button class="md-icon-button"
+                        ng-click="close()"
+                        aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content layout="column" class="motifs-dialog-content">
+        <div layout="row" flex="100">
+            <div layout="column" flex="50">
+                <div class="motifs-dialog-label">Pattern</div>
+                <md-input-container class="motifs-dialog-input">
+                    <input
+                        type="text"
+                        name="motif"
+                        required
+                        motif-sequence="true"
+                        ng-model="sequence"
+                        placeholder="nucleotide sequence"
+                        aria-label="Motif pattern"
+                    >
+                </md-input-container>
+            </div>
+            <div layout="column" flex="50">
+                <div class="motifs-dialog-label">Title</div>
+                <md-input-container class="motifs-dialog-input">
+                    <input
+                        type="text"
+                        name="title"
+                        ng-model="title"
+                        aria-label="Motif title"
+                        placeholder="search task title"
+                    >
+                </md-input-container>
+            </div>
+        </div>
+        <div class="motifs-dialog-checkbox">
+            <md-checkbox
+                flex
+                aria-label="Search whole reference"
+                ng-checked="inReference"
+                ng-click="change()"
+            >
+                <p>Search whole reference</p>
+                <p class="motifs-dialog-checkbox-warning"><b>Warning:</b> this can take a long time</p>
+            </md-checkbox>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="find" ng-click="search()" class="md-primary" ng-disabled="!sequence">
+            Search
+        </md-button>
+        <md-button aria-label="cancel" ng-click="cancel()">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

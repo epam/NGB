@@ -103,6 +103,15 @@ export default {
             title: 'Homologs',
             name: 'layout>homologs'
         },
+        motifs: {
+            isHidden: true,
+            displayed: false,
+            icon: '',
+            panel: 'ngbMotifsPanel',
+            position: 'right',
+            title: 'Motifs',
+            name: 'layout>motifs'
+        },
         ...(() => {
             const devPanels = {
                 DevLog: {

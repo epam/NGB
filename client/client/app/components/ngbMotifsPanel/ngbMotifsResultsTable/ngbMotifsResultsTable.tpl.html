@@ -1,0 +1,42 @@
+<div class="ui-grid-container motifs-results-container">
+    <div layout="row">
+        <md-button
+            aria-label="back"
+            class="motifs-back-to-params-button"
+            ng-click="$ctrl.backToParamsTable()"
+            type="button">
+            <ng-md-icon icon="keyboard_arrow_left" size="24"></ng-md-icon>
+        </md-button>
+        <span flex class="motifs-results-title" title="{{$ctrl.motifsResultsTitle}}">
+            {{$ctrl.motifsResultsTitle}}
+        </span>
+    </div>
+    <div class="motifs-table-loading-indicator-container">
+        <md-progress-linear md-mode="query"
+                            ng-if="$ctrl.loadingData">
+        </md-progress-linear>
+    </div>
+    <div class="motifs-table-container"
+         ng-hide="$ctrl.emptyResults"
+    >
+        <div ui-grid="$ctrl.gridOptions"
+             ui-grid-resize-columns
+             ui-grid-move-columns
+             ui-grid-auto-resize
+             ui-grid-infinite-scroll
+             ui-grid-selection
+             ui-grid-save-state
+             ui-grid-pinning
+             ng-hide="$ctrl.emptyResults"
+             class="motifs-results-table">
+        </div>
+    </div>
+    <div class="motifs-empty-results-container"
+         ng-if="$ctrl.emptyResults"
+    >
+        <md-content class="motifs-results-no-records-warning"
+                    flex>
+            <span>No records found.</span>
+        </md-content>
+    </div>
+</div>
