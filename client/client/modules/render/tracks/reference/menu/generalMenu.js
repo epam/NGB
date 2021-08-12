@@ -47,6 +47,20 @@ export default {
             type: 'checkbox'
         },
         menu.getDivider(),
+        {
+            label: 'Motifs search',
+            name: 'reference>searchMotifs',
+            type: 'button',
+            perform: (tracks) => {
+                const [dispatcher] = (tracks || [])
+                    .map(track => track.config.dispatcher)
+                    .filter(Boolean);
+                if (dispatcher) {
+                    dispatcher.emitSimpleEvent('reference:search:motifs:open');
+                }
+            }
+        },
+        menu.getDivider(),
         header,
         downloadFile
     ],

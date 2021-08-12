@@ -9,6 +9,7 @@ import {RulerTrack as Ruler} from './ruler';
 import {SEGTrack as SEG} from './seg';
 import {VCFTrack as VCF} from './vcf';
 import {WIGTrack as WIG} from './wig';
+import {MOTIFSTrack as MOTIFS} from './motifs';
 
 export default {
     BAM,
@@ -21,5 +22,6 @@ export default {
     Ruler,
     SEG,
     VCF,
-    WIG
+    WIG,
+    MOTIFS
 };

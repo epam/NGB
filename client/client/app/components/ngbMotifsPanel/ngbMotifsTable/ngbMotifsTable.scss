@@ -1,0 +1,20 @@
+.motifs-search-title {
+  align-self: center;
+}
+
+.motifs-back-button {
+  min-width: 44px;
+}
+
+.motifs-search-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+    .ui-grid-viewport {
+      height: 100% !important;
+    }
+
+    .ui-grid-header-cell-label {
+      text-transform: capitalize;
+    }
+}

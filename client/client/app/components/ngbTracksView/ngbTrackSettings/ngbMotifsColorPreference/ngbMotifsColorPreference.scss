@@ -1,0 +1,28 @@
+.content-wrapper {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+}
+
+.color-preference-wrapper {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 5px;
+  .label {
+    display: inline-block;
+    margin-right: 5px;
+    min-width: 130px;
+  }
+  .strand-label {
+    text-transform: capitalize;
+  }
+}
+
+.color-preference-controls {
+  display: flex;
+  flex-direction: row;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  width: max-content;
+}
