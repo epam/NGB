@@ -240,12 +240,12 @@ export default class ngbGenesTableController extends baseController {
                     }
                 });
             }
-            this.$timeout(this.$scope.$apply);
+            this.$timeout(() => this.$scope.$apply());
         } catch (errorObj) {
             this.isProgressShown = false;
             this.isInitialized = true;
             this.onError(errorObj.message);
-            this.$timeout(::this.$scope.$apply);
+            this.$timeout(() => this.$scope.$apply());
             return this.gridApi.infiniteScroll.dataLoaded();
         }
     }
@@ -405,7 +405,7 @@ export default class ngbGenesTableController extends baseController {
             errorObj => {
                 entity.error = errorObj ? errorObj.error : 'Network error';
                 entity.isInfoLoading = false;
-                this.$timeout(this.$scope.$apply);
+                this.$timeout(() => this.$scope.$apply());
             }
         );
         event.stopImmediatePropagation();
