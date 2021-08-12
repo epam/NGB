@@ -92,13 +92,13 @@ export default class ngbBlatSearchController extends baseController {
             });
             await this.loadData();
 
-            this.$timeout(this.$scope.$apply());
+            this.$timeout(() => this.$scope.$apply());
         } else {
             this.blatSearchEmptyResult = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
 
-            this.$timeout(this.$scope.$apply());
+            this.$timeout(() => this.$scope.$apply());
         }
     }
 
@@ -111,9 +111,9 @@ export default class ngbBlatSearchController extends baseController {
                 return;
             }
             await this.blatSearchLoadingFinished();
-        }  catch (errorObj) {
-                this.onError(errorObj.message);
-                this.isProgressShown = false;
+        } catch (errorObj) {
+            this.onError(errorObj.message);
+            this.isProgressShown = false;
         }
     }
 
@@ -169,19 +169,17 @@ export default class ngbBlatSearchController extends baseController {
                 blatRegion,
             });
         } else {
-            this.projectContext.changeState({ viewport, blatRegion });
+            this.projectContext.changeState({viewport, blatRegion});
         }
     }
 
     sortChanged(grid, sortColumns) {
         this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
-            this.blatSearchService.orderBy = sortColumns.map((sc) => {
-                return {
-                    field: sc.field,
-                    desc: sc.sort.direction === 'desc',
-                };
-            });
+            this.blatSearchService.orderBy = sortColumns.map((sc) => ({
+                field: sc.field,
+                desc: sc.sort.direction === 'desc',
+            }));
         } else {
             this.blatSearchService.orderBy = null;
         }
@@ -191,7 +189,7 @@ export default class ngbBlatSearchController extends baseController {
         if (!this.gridApi) {
             return;
         }
-        const { columns } = this.gridApi.saveState.save();
+        const {columns} = this.gridApi.saveState.save();
         const mapNameToField = function ({name}) {
             return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/[\s\n\t]/g, '');
         };
