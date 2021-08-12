@@ -24,8 +24,6 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.homologene.SearchRequest;
-import com.epam.catgenome.entity.externaldb.homologene.SearchResult;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,12 +41,14 @@ public class HomologeneSecurityService {
     private HomologeneManager homologeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchHomologenes(final SearchRequest query) throws IOException {
+    public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
+            throws IOException {
         return homologeneManager.searchHomologenes(query);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchHomologenesMock(final SearchRequest query) throws IOException {
+    public HomologeneSearchResult<HomologeneEntry> searchHomologenesMock(final HomologeneSearchRequest query)
+            throws IOException {
         return homologeneManager.searchHomologenesMock(query);
     }
 

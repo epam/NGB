@@ -24,14 +24,12 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.entity.externaldb.homologene.EntryGenes;
+import com.epam.catgenome.entity.externaldb.homologene.EntryGenesXML;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySet;
+import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySetXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
-import com.epam.catgenome.entity.externaldb.homologene.SearchRequest;
-import com.epam.catgenome.entity.externaldb.homologene.SearchResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -97,9 +95,10 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
-    public SearchResult<HomologeneEntry> searchHomologenes(final SearchRequest query) throws IOException {
+    public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
+            throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
-        final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
+        final HomologeneSearchResult<HomologeneEntry> searchResult = new HomologeneSearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -135,10 +134,11 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    public SearchResult<HomologeneEntry> searchHomologenesMock(final SearchRequest query) throws IOException {
+    public HomologeneSearchResult<HomologeneEntry> searchHomologenesMock(final HomologeneSearchRequest query)
+            throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
         final List<Gene> genes = new ArrayList<>();
-        final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
+        final HomologeneSearchResult<HomologeneEntry> searchResult = new HomologeneSearchResult<>();
         genes.add(Gene.builder()
                 .geneId(GENE_ID)
                 .title("acyl-CoA dehydrogenase, C-4 to C-12 straight chain")
@@ -231,7 +231,7 @@ public class HomologeneManager {
         return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
     }
 
-    private EntryGenes getEntryGenes(final Document doc) {
+    private EntryGenesXML getEntryGenes(final Document doc) {
         return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
                 : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
     }
@@ -254,7 +254,7 @@ public class HomologeneManager {
 
     public List<HomologeneEntryXML> readHomologenes(final String path) {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(HomologeneEntrySet.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(HomologeneEntrySetXML.class);
 
             SAXParserFactory spf = SAXParserFactory.newInstance();
             spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
@@ -265,7 +265,7 @@ public class HomologeneManager {
             InputSource inputSource = new InputSource(path);
             SAXSource source = new SAXSource(xmlReader, inputSource);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            HomologeneEntrySet homologeneEntrySet = (HomologeneEntrySet) unmarshaller.unmarshal(source);
+            HomologeneEntrySetXML homologeneEntrySet = (HomologeneEntrySetXML) unmarshaller.unmarshal(source);
             return homologeneEntrySet.getHomologeneEntrySetEntries().getHomologeneEntries();
         } catch (JAXBException | ParserConfigurationException | SAXException e) {
             log.error(e.getMessage());
@@ -301,12 +301,12 @@ public class HomologeneManager {
     }
 
     @SneakyThrows
-    private static EntryGenes deserializeGenes(final String encoded) {
+    private static EntryGenesXML deserializeGenes(final String encoded) {
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(encoded, EntryGenes.class);
+        return objectMapper.readValue(encoded, EntryGenesXML.class);
     }
 
-    private static List<Gene> convertGenes(final EntryGenes entryGenes) {
+    private static List<Gene> convertGenes(final EntryGenesXML entryGenes) {
         List<Gene> genes = new ArrayList<>();
         for (GeneXML gene: entryGenes.getGenes()) {
             genes.add(Gene.builder()
@@ -328,12 +328,12 @@ public class HomologeneManager {
         return genes;
     }
 
-    private static String serializeGeneEntries(final EntryGenes entryGenes) throws JsonProcessingException {
+    private static String serializeGeneEntries(final EntryGenesXML entryGenes) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(entryGenes);
     }
 
-    private static String serializeQueryFields(final EntryGenes entryGenes) {
+    private static String serializeQueryFields(final EntryGenesXML entryGenes) {
         List<String> geneStrings = new ArrayList<>();
         for (GeneXML gene: entryGenes.getGenes()) {
             geneStrings.add(gene.getSymbol() + (gene.getGeneAliases() == null ? "" : GENE_FIELDS_LINE_DELIMITER +

@@ -26,7 +26,6 @@ package com.epam.catgenome.entity.externaldb.homologene;
 import lombok.Getter;
 
 import javax.xml.bind.annotation.XmlElement;
-import java.util.List;
 
 @Getter
 public class HomologeneEntryXML {
@@ -39,6 +38,5 @@ public class HomologeneEntryXML {
     @XmlElement(name = "HG-Entry_taxid")
     private Long taxId;
     @XmlElement(name = "HG-Entry_genes")
-    private EntryGenes entryGenes;
-    private List<GeneXML> genes;
+    private EntryGenesXML entryGenes;
 }

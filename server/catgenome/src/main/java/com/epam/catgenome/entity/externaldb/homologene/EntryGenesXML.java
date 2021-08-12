@@ -26,11 +26,10 @@ package com.epam.catgenome.entity.externaldb.homologene;
 import lombok.Getter;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
-@XmlRootElement(name = "HG-EntrySet")
 @Getter
-public class HomologeneEntrySet {
-    @XmlElement(name = "HG-EntrySet_entries")
-    private HomologeneEntrySetEntries homologeneEntrySetEntries;
+public class EntryGenesXML {
+    @XmlElement(name = "HG-Gene")
+    private List<GeneXML> genes;
 }

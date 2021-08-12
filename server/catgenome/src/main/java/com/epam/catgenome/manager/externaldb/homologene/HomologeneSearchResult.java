@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.homologene;
+package com.epam.catgenome.manager.externaldb.homologene;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +30,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class SearchResult<T> {
+public class HomologeneSearchResult<T> {
     private List<T> items;
     private Integer totalCount;
 }

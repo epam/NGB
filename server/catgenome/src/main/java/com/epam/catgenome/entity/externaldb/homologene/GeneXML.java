@@ -34,7 +34,7 @@ public class GeneXML {
     @XmlElement(name = "HG-Gene_symbol")
     private String symbol;
     @XmlElement(name = "HG-Gene_aliases")
-    private GeneAliases geneAliases;
+    private GeneAliasesXML geneAliases;
     @XmlElement(name = "HG-Gene_title")
     private String title;
     @XmlElement(name = "HG-Gene_taxid")
@@ -50,7 +50,7 @@ public class GeneXML {
     @XmlElement(name = "HG-Gene_nuc-acc")
     private String nucAcc;
     @XmlElement(name = "HG-Gene_domains")
-    private GeneDomains geneDomains;
+    private GeneDomainsXML geneDomains;
     @XmlElement(name = "HG-Gene_locus-tag")
     private String locusTag;
 }

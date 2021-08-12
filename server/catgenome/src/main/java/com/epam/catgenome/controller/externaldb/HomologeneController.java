@@ -27,8 +27,8 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSecurityService;
-import com.epam.catgenome.entity.externaldb.homologene.SearchRequest;
-import com.epam.catgenome.entity.externaldb.homologene.SearchResult;
+import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
+import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchResult;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -59,7 +59,8 @@ public class HomologeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<HomologeneEntry>> searchHomologenes(@RequestBody final SearchRequest query)
+    public Result<HomologeneSearchResult<HomologeneEntry>> searchHomologenes(
+            @RequestBody final HomologeneSearchRequest query)
             throws IOException {
         return Result.success(homologeneSecurityService.searchHomologenes(query));
     }
@@ -72,7 +73,8 @@ public class HomologeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<HomologeneEntry>> searchHomologenesMock(@RequestBody final SearchRequest query)
+    public Result<HomologeneSearchResult<HomologeneEntry>> searchHomologenesMock(
+            @RequestBody final HomologeneSearchRequest query)
             throws IOException {
         return Result.success(homologeneSecurityService.searchHomologenesMock(query));
     }

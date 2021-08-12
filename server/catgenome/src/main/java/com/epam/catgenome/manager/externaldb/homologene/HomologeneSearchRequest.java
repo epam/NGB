@@ -21,15 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.homologene;
+package com.epam.catgenome.manager.externaldb.homologene;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import javax.xml.bind.annotation.XmlElement;
-import java.util.List;
+import lombok.Setter;
 
 @Getter
-public class GeneAliases {
-    @XmlElement(name = "HG-Gene_aliases_E")
-    private List<String> aliases;
+@Setter
+@AllArgsConstructor
+public class HomologeneSearchRequest {
+    private String query;
+    private Integer page;
+    private Integer pageSize;
 }

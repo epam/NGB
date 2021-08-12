@@ -23,15 +23,14 @@
  */
 package com.epam.catgenome.entity.externaldb.homologene;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "HG-EntrySet")
 @Getter
-@Setter
-@AllArgsConstructor
-public class SearchRequest {
-    private String query;
-    private Integer page;
-    private Integer pageSize;
+public class HomologeneEntrySetXML {
+    @XmlElement(name = "HG-EntrySet_entries")
+    private HomologeneEntrySetEntriesXML homologeneEntrySetEntries;
 }

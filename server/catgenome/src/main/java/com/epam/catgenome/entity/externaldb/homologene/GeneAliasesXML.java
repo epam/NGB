@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlElement;
 import java.util.List;
 
 @Getter
-public class EntryGenes {
-    @XmlElement(name = "HG-Gene")
-    private List<GeneXML> genes;
+public class GeneAliasesXML {
+    @XmlElement(name = "HG-Gene_aliases_E")
+    private List<String> aliases;
 }

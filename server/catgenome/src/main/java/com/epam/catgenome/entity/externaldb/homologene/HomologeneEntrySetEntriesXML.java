@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlElement;
 import java.util.List;
 
 @Getter
-public class HomologeneEntrySetEntries {
+public class HomologeneEntrySetEntriesXML {
     @XmlElement(name = "HG-Entry")
     private List<HomologeneEntryXML> homologeneEntries;
 }
