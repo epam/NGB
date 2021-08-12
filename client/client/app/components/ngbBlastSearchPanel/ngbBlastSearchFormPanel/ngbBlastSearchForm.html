@@ -68,7 +68,7 @@
                         md-delay="300"
                         placeholder="{{$ctrl.searchRequest.organisms.length ? '' : 'Organism'}}">
                     <md-item-template>
-                        <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
+                        <span md-highlight-flags="gi" md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
                     <md-not-found>
                         No organisms found.
