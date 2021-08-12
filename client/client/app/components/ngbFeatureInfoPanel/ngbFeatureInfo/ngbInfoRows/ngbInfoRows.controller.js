@@ -5,7 +5,6 @@ export default class ngbInfoRowsController {
     }
 
     saveRequest = {};
-    duplicate = false;
 
     constructor($scope, ngbFeatureInfoPanelService, $compile) {
         Object.assign(this, {$scope, ngbFeatureInfoPanelService, $compile});
@@ -20,7 +19,11 @@ export default class ngbInfoRowsController {
     }
 
     isEditable (property) {
-        return !/^(start|end|chromosome)$/i.test(property.name);
+        return property.attribute || !/^(start|end|chromosome|)$/i.test(property.name);
+    }
+
+    isDuplicate (attribute) {
+        return this.ngbFeatureInfoPanelService.isDuplicate(attribute);
     }
 
     valueIsEmpty (value) {
@@ -31,25 +34,14 @@ export default class ngbInfoRowsController {
         this.ngbFeatureInfoPanelService.removeAttribute(property);
     }
 
-    onChangeAttribute (property) {
-        if (property.name) {
-            const result = this.ngbFeatureInfoPanelService.changeAttribute(property);
-            this.duplicate = result;
-            return result;
-        }
-    }
-
     onClickAddBtn () {
         if (this.attributes && this.attributes.length) {
-            const lastAttribute = this.attributes[this.attributes.length - 1];
-            if (lastAttribute.name && lastAttribute.value && !this.duplicate) {
-                this.attributes.push({
-                    name: '',
-                    value: '',
-                    default: false,
-                    attribute: true
-                });
-            }
+            this.attributes.push({
+                name: '',
+                value: '',
+                default: false,
+                attribute: true
+            });
         }
     }
 }

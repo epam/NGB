@@ -354,6 +354,7 @@ export default class ngbGenesTableController extends baseController {
         ).then(
             data => {
                 delete entity.error;
+                const sortProperties = (a, b) => a[0] > b[0] ? 1 : -1;
                 const extractProperties = (o, except = []) => Object
                     .entries(o || {})
                     .map(([key, value]) => {
@@ -367,7 +368,8 @@ export default class ngbGenesTableController extends baseController {
                         }
                         return undefined;
                     })
-                    .filter(Boolean);
+                    .filter(Boolean)
+                    .sort(sortProperties);
                 const result = {
                     projectId: undefined,
                     chromosomeId: entity.chromosomeObj.id,
@@ -375,11 +377,10 @@ export default class ngbGenesTableController extends baseController {
                     endIndex: data.endIndex,
                     name: data.featureName,
                     geneId: data.featureId,
-                    editable: true,
                     properties: [
+                        ['chromosome', entity.chromosomeObj.name, false],
                         ['start', data.startIndex, false],
                         ['end', data.endIndex, false],
-                        ['chromosome', entity.chromosomeObj.name, false],
                         ...extractProperties(data, [
                             'start',
                             'end',
@@ -392,6 +393,7 @@ export default class ngbGenesTableController extends baseController {
                             .map(([key, value]) => ([
                                 key, value, true
                             ]))
+                            .sort(sortProperties)
                     ],
                     referenceId: entity.referenceId,
                     title: entity.feature,

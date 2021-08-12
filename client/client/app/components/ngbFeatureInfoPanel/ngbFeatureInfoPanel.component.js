@@ -5,7 +5,6 @@ export default  {
         chromosomeId: '=',
         endIndex: '=',
         name: '=',
-        editable: '=',
         properties: '=',
         read: '=',
         referenceId: '=',
