@@ -84,13 +84,6 @@ public class HomologeneManager {
 
     private static final String TERM_SPLIT_TOKEN = " ";
     private static final String GENE_FIELDS_LINE_DELIMITER = "|";
-    public static final long GENE_ID = 34L;
-    public static final long TAX_ID = 9606L;
-    public static final long PROT_GI = 4557231L;
-    public static final long PROT_LEN = 421L;
-    public static final long NUC_GI = 554506551L;
-    public static final long TAX_ID1 = 33213L;
-    public static final long VERSION = 14L;
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
