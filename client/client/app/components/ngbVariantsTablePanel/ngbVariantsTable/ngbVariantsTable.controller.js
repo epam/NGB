@@ -129,7 +129,7 @@ export default class ngbVariantsTableController extends baseController {
             if (!this.projectContext.reference) {
                 this.isProgressShown = false;
                 this.variantsLoadError = null;
-                this.$timeout(this.$scope.$apply());
+                this.$timeout(() => this.$scope.$apply());
                 return;
             }
             if (this.projectContext.containsVcfFiles) {
@@ -137,7 +137,7 @@ export default class ngbVariantsTableController extends baseController {
                     this.variantsLoadingFinished();
                 }
             } else {
-                this.onError(this.variantsTableMessages.ErrorMessage.VcfNotFound);
+                // this.onError(this.variantsTableMessages.ErrorMessage.VcfNotFound);
                 this.isProgressShown = false;
                 this.variantsLoadError = null;
             }

@@ -39,6 +39,10 @@ ngb-info-rows {
     border: 0;
   }
 
+  .unremovable {
+    margin-left: 15px;
+  }
+
   .editable {
     height: 15px;
     border: none;
@@ -85,6 +89,10 @@ ngb-info-rows {
   .property-attribute-name {
     word-break: break-all;
     line-height: 1.5;
+  }
+
+  .ng-invalid.ng-touched {
+    border-color: #F00;
   }
 
   .property-attribute {

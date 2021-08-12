@@ -1,6 +1,6 @@
 <div layout="row" class="golden-layout-content-0" layout-fill>
 
-    <div ng-if="!$ctrl.isProgressShown" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
+    <div class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && $ctrl.projectContext.containsVcfFiles">
         <div ng-if="$ctrl.variantsLoadError" class="variants-load-error-container">
             <small>{{$ctrl.variantsLoadError}}</small>
         </div>
@@ -14,13 +14,13 @@
              ui-grid-infinite-scroll
              ng-class="{'filters-not-displayed': !$ctrl.projectContext.displayVariantsFilter}"
         ></div>
-        <div class="variants-empty-result-container"
-             ng-if="false">
-            <md-content class="no-records-warning"
-                        flex>
-                <span>No records found.</span>
-            </md-content>
-        </div>
+    </div>
+    <div class="md-padding"
+         ng-if="!$ctrl.isProgressShown && !$ctrl.projectContext.containsVcfFiles">
+        <md-content class="select-vcf-warning"
+                    flex>
+            <span>Select a VCF file to browse variations</span>
+        </md-content>
     </div>
 
     <div ng-if="$ctrl.errorMessageList.length" class="md-padding">

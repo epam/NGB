@@ -5,8 +5,16 @@
   text-align: center;
 }
 
-ngb-variants-table .ui-grid-row .ui-grid-cell {
-  background-color: inherit !important;
+ngb-variants-table {
+  //.ui-grid-row:hover {
+  //  outline: 2px solid #4285f4;
+  //  box-shadow: 0 2px 3px 0 rgba(66, 133, 244, 0.5) inset,
+  //              0 -2px 3px 0 rgba(66, 133, 244, 0.5) inset;
+  //}
+
+  .ui-grid-row .ui-grid-cell {
+    background-color: inherit !important;
+  }
 }
 
 .variants-empty-result-container {
@@ -18,4 +26,8 @@ ngb-variants-table .ui-grid-row .ui-grid-cell {
   width: 100%;
   text-align: center;
   z-index: 1000;
+}
+
+.select-vcf-warning {
+  color: #999;
 }
