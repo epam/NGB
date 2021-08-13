@@ -151,7 +151,6 @@ public class HomologeneManager {
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        double time1 = Utils.getSystemTimeMilliseconds();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
@@ -161,8 +160,6 @@ public class HomologeneManager {
                 addDoc(writer, entry);
             }
         }
-        double time2 = Utils.getSystemTimeMilliseconds();
-        log.debug("Homologene File import took {} ms", time2 - time1);
     }
 
     private Query buildSearchQuery(final String terms) {
