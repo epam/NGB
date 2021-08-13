@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb;
 
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchResult;
@@ -71,7 +70,7 @@ public class HomologeneManagerTest extends TestCase {
 
     @Test
     public void readHomologenesTest() {
-        List<HomologeneEntryXML> entries =  homologeneManager.readHomologenes(fileName);
+        List<HomologeneEntry> entries = homologeneManager.readHomologenes(fileName);
         assertNotNull(entries);
         assertEquals(ENTRIES_COUNT, entries.size());
     }
