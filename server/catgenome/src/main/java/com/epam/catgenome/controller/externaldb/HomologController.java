@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.externaldb.homolog;
+package com.epam.catgenome.controller.externaldb;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseSource;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,24 +54,24 @@ public class HomologDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
-    private String databaseSequenceName;
-    private String insertDatabaseQuery;
-    private String updateDatabaseQuery;
+    private String groupSequenceName;
+    private String insertGroupQuery;
+    private String updateGroupQuery;
     private String deleteDatabaseQuery;
     private String loadDatabasesQuery;
     private String loadDatabaseQuery;
 
     /**
-     * Persists a new or updates existing Blast database record.
-     * @param database {@code BlastDatabase} a Blast database to persist.
+     * Persists a new or updates existing Homolog Group record.
+     * @param homologGroup {@code HomologGroup} a Homolog Group to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveDatabase(final BlastDatabase database) {
-        if (database.getId() == null) {
-            database.setId(daoHelper.createId(databaseSequenceName));
-            getNamedParameterJdbcTemplate().update(insertDatabaseQuery, DatabaseParameters.getParameters(database));
+    public void saveDatabase(final HomologGroup homologGroup) {
+        if (homologGroup.getId() == null) {
+            homologGroup.setId(daoHelper.createId(groupSequenceName));
+            getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(homologGroup));
         } else {
-            getNamedParameterJdbcTemplate().update(updateDatabaseQuery, DatabaseParameters.getParameters(database));
+            getNamedParameterJdbcTemplate().update(updateGroupQuery, GroupParameters.getParameters(homologGroup));
         }
     }
 
@@ -90,7 +91,7 @@ public class HomologDao extends NamedParameterJdbcDaoSupport {
      */
     public List<BlastDatabase> loadDatabases(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadDatabasesQuery, queryParameters);
-        return getJdbcTemplate().query(query, DatabaseParameters.getRowMapper());
+        return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
     }
 
     /**
@@ -100,25 +101,26 @@ public class HomologDao extends NamedParameterJdbcDaoSupport {
      */
     public BlastDatabase loadDatabase(final long id) {
         List<BlastDatabase> blastDatabases = getJdbcTemplate().query(loadDatabaseQuery,
-                DatabaseParameters.getRowMapper(), id);
+                GroupParameters.getRowMapper(), id);
         return blastDatabases.isEmpty() ? null : blastDatabases.get(0);
     }
 
-    enum DatabaseParameters {
-        DATABASE_ID,
-        DATABASE_NAME,
-        DATABASE_PATH,
-        DATABASE_TYPE,
-        DATABASE_SOURCE;
+    enum GroupParameters {
+        ID,
+        PRIMARY_GENE_ID,
+        PRIMARY_GENE_TAX_ID,
+        PRIMARY_GENE_NAME,
+        PROTEIN_NAME,
+        DATABASE_ID;
 
-        static MapSqlParameterSource getParameters(final BlastDatabase database) {
+        static MapSqlParameterSource getParameters(final HomologGroup homologGroup) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
-            params.addValue(DATABASE_ID.name(), database.getId());
-            params.addValue(DATABASE_NAME.name(), database.getName());
-            params.addValue(DATABASE_PATH.name(), database.getPath());
-            params.addValue(DATABASE_TYPE.name(), database.getType().getTypeId());
-            params.addValue(DATABASE_SOURCE.name(), database.getSource().getSourceId());
+            params.addValue(ID.name(), homologGroup.getId());
+            params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getPrimary_gene_name());
+            params.addValue(DATABASE_PATH.name(), homologGroup.getPath());
+            params.addValue(DATABASE_TYPE.name(), homologGroup.getType().getTypeId());
+            params.addValue(DATABASE_SOURCE.name(), homologGroup.getSource().getSourceId());
 
             return params;
         }
