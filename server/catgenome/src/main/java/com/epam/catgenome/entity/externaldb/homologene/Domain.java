@@ -36,7 +36,7 @@ class Domain {
     @XmlElement(name = "HG-Domain_pssm-id")
     private Long pssmId;
     @XmlElement(name = "HG-Domain_cdd-id")
-    private Long cddId;
+    private String cddId;
     @XmlElement(name = "HG-Domain_cdd-name")
     private String cddName;
 }

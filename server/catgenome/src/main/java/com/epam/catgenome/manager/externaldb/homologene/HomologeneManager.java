@@ -30,6 +30,9 @@ import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySetXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.util.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -55,6 +58,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -76,6 +80,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -88,6 +93,9 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
+    @Autowired
+    BlastTaxonomyManager taxonomyManager;
+
     public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
@@ -95,10 +103,10 @@ public class HomologeneManager {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
-            final Integer page = query.getPage();
+            final Integer page = query.getPage() == null ? 1 : query.getPage();
             Assert.isTrue(page > 0, "Page number should be > 0");
 
-            final Integer pageSize = query.getPageSize();
+            final Integer pageSize = query.getPageSize() == null ? DEFAULT_PAGE_SIZE : query.getPageSize();
             Assert.isTrue(pageSize > 0, "Page size should be > 0");
             final int hits = page * pageSize;
 
@@ -111,13 +119,16 @@ public class HomologeneManager {
 
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
+                List<Gene> genes = getEntryGenes(doc) == null ? Collections.emptyList()
+                        : convertGenes(getEntryGenes(doc));
+                setSpeciesName(genes);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
                         .taxId(getTaxId(doc))
                         .version(getVersion(doc))
                         .caption(getCaption(doc))
-                        .genes(convertGenes(getEntryGenes(doc)))
+                        .genes(genes)
                         .build()
                 );
             }
@@ -127,9 +138,20 @@ public class HomologeneManager {
         return searchResult;
     }
 
+    private void setSpeciesName(List<Gene> genes) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = taxonomyManager.searchOrganismById(gene.getTaxId());
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
+    }
+
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        double time1 = Utils.getSystemTimeMilliseconds();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
@@ -139,6 +161,8 @@ public class HomologeneManager {
                 addDoc(writer, entry);
             }
         }
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Homologene File import took {} ms", time2 - time1);
     }
 
     private Query buildSearchQuery(final String terms) {
