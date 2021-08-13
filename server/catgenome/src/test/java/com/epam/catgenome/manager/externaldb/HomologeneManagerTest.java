@@ -21,9 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast;
+package com.epam.catgenome.manager.externaldb;
 
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
+import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
+import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
+import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchResult;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -39,12 +43,12 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BlastTaxonomyManagerTest extends TestCase {
+public class HomologeneManagerTest extends TestCase {
 
-    public static final int ORGANISMS_COUNT = 12;
+    public static final int ENTRIES_COUNT = 7;
 
     @Autowired
-    private BlastTaxonomyManager blastTaxonomyManager;
+    private HomologeneManager homologeneManager;
 
     @Autowired
     private ApplicationContext context;
@@ -53,35 +57,22 @@ public class BlastTaxonomyManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        this.fileName = context.getResource("classpath:taxonomy//names.dmp").getFile().getPath();
-        blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName);
+        this.fileName = context.getResource("classpath:homologene//homologene.xml").getFile().getPath();
+        homologeneManager.importHomologeneDatabase(fileName);
     }
 
     @Test
-    public void searchOrganismsTest() throws IOException, ParseException {
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
-        assertNotNull(organisms);
-        assertEquals(2, organisms.size());
+    public void searchTest() throws IOException {
+        HomologeneSearchRequest query = new HomologeneSearchRequest("ACADML", 1, 5);
+        HomologeneSearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
+        assertNotNull(searchResult);
+        assertEquals(1, searchResult.getItems().size());
     }
 
     @Test
-    public void searchOrganismsAfterReIndexingTest() throws IOException, ParseException {
-        blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName);
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
-        assertNotNull(organisms);
-        assertEquals(2, organisms.size());
-    }
-
-    @Test
-    public void searchOrganismsByIdTest() {
-        BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(6L);
-        assertNotNull(organism);
-    }
-
-    @Test
-    public void readTaxonomyTest() {
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.readTaxonomy(fileName);
-        assertNotNull(organisms);
-        assertEquals(ORGANISMS_COUNT, organisms.size());
+    public void readHomologenesTest() {
+        List<HomologeneEntryXML> entries =  homologeneManager.readHomologenes(fileName);
+        assertNotNull(entries);
+        assertEquals(ENTRIES_COUNT, entries.size());
     }
 }
