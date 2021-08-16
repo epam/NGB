@@ -10,6 +10,8 @@ import {Sorting, ZonesManager} from '../../../../../utilities';
 import {Viewport} from '../../../../../core';
 import destroyPixiDisplayObjects from '../../../../../utilities/destroyPixiDisplayObjects';
 
+const TWO_MINUTES = 2 * 60 * 1000;
+
 const Math = window.Math;
 
 export default class FeatureRenderer {
@@ -22,6 +24,8 @@ export default class FeatureRenderer {
     _aminoacidFeatureRenderer: AminoacidFeatureRenderer = null;
 
     _labels = null;
+    _labelsPools = new Map();
+    _clearLabelsPoolTimeout = null;
     _dockableLabels = null;
     _attachedElements = null;
     _dockableElements = null;
@@ -34,16 +38,19 @@ export default class FeatureRenderer {
         this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(config,
             ::this.registerLabel,
             ::this.registerDockableElement,
-            ::this.registerFeaturePosition);
+            ::this.registerFeaturePosition,
+            ::this.getLabelObjectFromPool);
         this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
+            ::this.getLabelObjectFromPool,
             this._aminoacidFeatureRenderer);
         this._geneFeatureRenderer = new GeneFeatureRenderer(config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
+            ::this.getLabelObjectFromPool,
             this._transcriptFeatureRenderer);
 
         this._labels = [];
@@ -114,7 +121,13 @@ export default class FeatureRenderer {
         highlightGraphics: PIXI.Graphics = null, hoveredHighlightGraphics: PIXI.Graphics) {
         if (features === null || features === undefined)
             return null;
-        this.destroyRegisteredLabels();
+
+        if (this._clearLabelsPoolTimeout) {
+            clearTimeout(this._clearLabelsPoolTimeout);
+            this._clearLabelsPoolTimeout = null;
+        }
+        this.addExistingLabelObjectsToPool(labelContainer);
+        this.addExistingLabelObjectsToPool(dockableElementsContainer);
         this.prepareRenderers();
         this._labels = [];
         this._dockableLabels = [];
@@ -191,7 +204,17 @@ export default class FeatureRenderer {
                 });
             }
         }
+
+        this.scheduleClearLabelsPool();
         return graphicsObj;
+    }
+
+    scheduleClearLabelsPool() {
+        this._clearLabelsPoolTimeout = setTimeout(() => {
+            for (const [container, children] of this._labelsPools) {
+                container.removeChild(...children);
+            }
+        }, TWO_MINUTES);
     }
 
     manageLabels(viewport) {
@@ -356,6 +379,42 @@ export default class FeatureRenderer {
             }
         }
         mask.endFill();
+    }
+
+    /**
+     * @param container {PIXI.Container}
+     * */
+    addExistingLabelObjectsToPool(container) {
+        // pooling only objects that aren't currently visible
+        const itemsToAdd = [];
+
+        for (let i = 0; i < (container.children || []).length; i++) {
+            const child = container.children[i];
+            if (child.visible || !(child instanceof PIXI.BitmapText)) {
+                continue;
+            }
+            itemsToAdd.push(child);
+        }
+        if (!this._labelsPools.has(container)) {
+            this._labelsPools.set(container, itemsToAdd);
+        } else {
+            const existingPool = this._labelsPools.get(container);
+            existingPool.push(...itemsToAdd);
+        }
+    }
+
+    /**
+     * @param container {PIXI.Container}
+     *
+     * @return {PIXI.BitmapText | null} - label if exists otherwise null
+     * */
+    getLabelObjectFromPool(container) {
+        if (!this._labelsPools.has(container)) {
+            return null;
+        }
+
+        const existingPool = this._labelsPools.get(container);
+        return existingPool.pop() || null;
     }
 
     registerLabel(label, position, range, yDockable = false, centered = false) {

@@ -23,6 +23,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _geneFeatures = [];
     _showCenterLine;
 
+    _graphicsSprite: PIXI.Sprite = null;
+    _hoveredGraphicsSprite: PIXI.Sprite = null;
+
     constructor(config, transformer: GeneTransformer, pixiRenderer) {
         super();
         this._config = config;
@@ -98,13 +101,34 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return true;
     }
 
+    /**
+     * @param container {PIXI.Container}
+     * */
+    removeChildrenApartFromText(container) {
+        if (!container || !container.children || !container.children.length) {
+            return;
+        }
+        const childrenToRemove = [];
+        for (let i = 0; i < container.children.length; i++) {
+            const child = container.children[i];
+            if (!(child instanceof PIXI.BitmapText)) {
+                childrenToRemove.push(child);
+            } else {
+                child.visible = false;
+            }
+        }
+        if (childrenToRemove.length > 0) {
+            container.removeChild(...childrenToRemove);
+        }
+    }
+
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
 
         this.dataContainer.removeChildren();
-        this._dockableElementsContainer.removeChildren();
         this._attachedElementsContainer.removeChildren();
-        this._labelsContainer.removeChildren();
+        this.removeChildrenApartFromText(this._dockableElementsContainer);
+        this.removeChildrenApartFromText(this._labelsContainer);
 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
@@ -127,9 +151,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
             const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
-                    if (this.graphicsSprite && !this.graphicsSprite._destroyed) {
-                        this.graphicsSprite.destroy(true);
-                    }
                     let temporaryContainer = new PIXI.Container();
                     if (highlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(highlightGraphics);
@@ -141,10 +162,14 @@ export default class GeneRenderer extends CachedTrackRenderer {
                         drawingConfiguration.scale,
                         drawingConfiguration.resolution
                     );
-                    this.graphicsSprite = new PIXI.Sprite(texture);
-                    this.graphicsSprite.position.x = coordinates.x;
-                    this.graphicsSprite.position.y = coordinates.y;
-                    this.dataContainer.addChild(this.graphicsSprite);
+                    if (this._graphicsSprite) {
+                        this._graphicsSprite.texture = texture;
+                    } else {
+                        this._graphicsSprite = new PIXI.Sprite(texture);
+                    }
+                    this._graphicsSprite.position.x = coordinates.x;
+                    this._graphicsSprite.position.y = coordinates.y;
+                    this.dataContainer.addChild(this._graphicsSprite);
                     graphics.clear();
                     temporaryContainer = null;
                 } else {
@@ -155,9 +180,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
             if (hoveredGraphics !== null) {
                 this._hoveredItemContainer.removeChildren();
                 if (this.needConvertGraphicsToTexture) {
-                    if (this.hoveredGraphicsSprite && !this.hoveredGraphicsSprite._destroyed) {
-                        this.hoveredGraphicsSprite.destroy(true);
-                    }
                     let temporaryContainer = new PIXI.Container();
                     if (hoveredHighlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(hoveredHighlightGraphics);
@@ -169,10 +191,14 @@ export default class GeneRenderer extends CachedTrackRenderer {
                         drawingConfiguration.scale,
                         drawingConfiguration.resolution
                     );
-                    this.hoveredGraphicsSprite = new PIXI.Sprite(texture);
-                    this.hoveredGraphicsSprite.position.x = coordinates.x;
-                    this.hoveredGraphicsSprite.position.y = coordinates.y;
-                    this._hoveredItemContainer.addChild(this.hoveredGraphicsSprite);
+                    if (this._hoveredGraphicsSprite) {
+                        this._hoveredGraphicsSprite.texture = texture;
+                    } else {
+                        this._hoveredGraphicsSprite = new PIXI.Sprite(texture);
+                    }
+                    this._hoveredGraphicsSprite.position.x = coordinates.x;
+                    this._hoveredGraphicsSprite.position.y = coordinates.y;
+                    this._hoveredItemContainer.addChild(this._hoveredGraphicsSprite);
                     hoveredGraphics.clear();
                     temporaryContainer = null;
                 } else {

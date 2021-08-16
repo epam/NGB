@@ -11,8 +11,8 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
     _transcriptFeatureRenderer: TranscriptFeatureRenderer = null;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, transcriptRenderer) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition);
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool, transcriptRenderer) {
+        super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
         this._transcriptFeatureRenderer = transcriptRenderer;
     }
 
@@ -98,11 +98,22 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         const gene = this.config.gene;
 
         if (feature.name) {
+            let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(dockableElementsContainer);
+            let shouldAddToContainer = false;
             const fontName = FontManager.getFontByStyle(this.config.gene.label);
-            const label = new PIXI.BitmapText(feature.name, {fontName});
+            if (!label) {
+                shouldAddToContainer = true;
+                label = new PIXI.BitmapText(feature.name, {fontName});
+            } else {
+                label.visible = true;
+                label.fontName = fontName;
+                label.text = feature.name;
+            }
             label.x = Math.round(position.x);
             label.y = Math.round(position.y);
-            dockableElementsContainer.addChild(label);
+            if (shouldAddToContainer) {
+                dockableElementsContainer.addChild(label);
+            }
             geneNameLabelHeight = label.height;
             this.registerLabel(label, position, {
                 end: feature.endIndex,

@@ -37,8 +37,8 @@ const AMINOACID_DESCRIPTION = {
 export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
     gffShowNumbersAminoacid;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition);
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool) {
+        super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
         this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle, true).width +
             this.config.aminoacid.label.margin * 2;
         this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle, true).width +
@@ -160,8 +160,17 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
 
             if (this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport)) {
                 const indexAcid = acid.index + 1;
+                let shouldAddToContainer = false;
+                let aminoacidNumber = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
                 const fontName = FontManager.getFontByStyle(this.config.aminoacid.number);
-                const aminoacidNumber = new PIXI.BitmapText(indexAcid, {fontName});
+                if (!aminoacidNumber) {
+                    aminoacidNumber = new PIXI.BitmapText(indexAcid, {fontName});
+                    shouldAddToContainer = true;
+                } else {
+                    aminoacidNumber.visible = true;
+                    aminoacidNumber.fontName = fontName;
+                    aminoacidNumber.text = indexAcid;
+                }
 
                 const aminoacidNumberPosition = {
                     x: viewport.project.brushBP2pixel(acid.startIndex) +
@@ -170,7 +179,9 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 };
                 aminoacidNumber.x = Math.round(aminoacidNumberPosition.x);
                 aminoacidNumber.y = Math.round(aminoacidNumberPosition.y);
-                labelContainer.addChild(aminoacidNumber);
+                if (shouldAddToContainer) {
+                    labelContainer.addChild(aminoacidNumber);
+                }
                 this.registerLabel(aminoacidNumber, aminoacidNumberPosition, {
                     end: acid.endIndex,
                     start: acid.startIndex,
@@ -268,8 +279,17 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 });
 
             if (shouldDisplayLabel && shouldDisplayAminoacidLabels && acid.endIndex - acid.startIndex >= 1) {
+                let shouldAddToContainer = false;
+                let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
                 const fontName = FontManager.getFontByStyle(labelStyle);
-                const label = new PIXI.BitmapText(feature.name, {fontName});
+                if (!label) {
+                    shouldAddToContainer = true;
+                    label = new PIXI.BitmapText(acid.text.toUpperCase(), {fontName});
+                } else {
+                    label.visible = true;
+                    label.fontName = fontName;
+                    label.text = acid.text.toUpperCase();
+                }
                 const yOffset = 0.5;
                 const labelPosition = {
                     x: viewport.project.brushBP2pixel(acid.startIndex) +
@@ -278,7 +298,9 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 };
                 label.x = Math.round(labelPosition.x);
                 label.y = Math.round(labelPosition.y);
-                labelContainer.addChild(label);
+                if (shouldAddToContainer) {
+                    labelContainer.addChild(label);
+                }
                 this.registerLabel(
                     label,
                     labelPosition,

@@ -13,8 +13,8 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     gffShowNumbersAminoacid;
     collapsedMode;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, aminoacidFeatureRenderer) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition);
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool, aminoacidFeatureRenderer) {
+        super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
         this._aminoacidFeatureRenderer = aminoacidFeatureRenderer;
     }
 
@@ -304,14 +304,25 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const project = viewport.project;
         if (feature.name &&
             (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
+            let shouldAddToContainer = false;
+            let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
             const fontName = FontManager.getFontByStyle(transcriptConfig.label);
-            const label = new PIXI.BitmapText(feature.name, {fontName});
+            if (!label) {
+                shouldAddToContainer = true;
+                label = new PIXI.BitmapText(feature.name, {fontName});
+            } else {
+                label.visible = true;
+                label.fontName = fontName;
+                label.text = feature.name;
+            }
             let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
             labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);
             label.x = Math.round(labelStart);
             label.y = Math.round(position.y + transcriptConfig.label.marginTop);
             center = label.height + transcriptConfig.label.marginTop + transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-            labelContainer.addChild(label);
+            if (shouldAddToContainer) {
+                labelContainer.addChild(label);
+            }
             this.registerLabel(label, {x: labelStart, y: position.y + transcriptConfig.label.marginTop}, {
                 end: feature.endIndex,
                 start: feature.startIndex

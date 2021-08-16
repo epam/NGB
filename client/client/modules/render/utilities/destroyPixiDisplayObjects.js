@@ -1,8 +1,16 @@
-export default function destroyPixiDisplayObjects(itemsToDestroy = [], destroyChildren) {
-    for (let i = itemsToDestroy.length - 1; i > 0; i--) {
-        if (itemsToDestroy[i] && !itemsToDestroy[i]._destroyed) {
-            itemsToDestroy[i].destroy(destroyChildren);
-            itemsToDestroy[i] = null;
+export default async function destroyPixiDisplayObjects(itemsToDestroy = [], destroyChildren) {
+    const remove = (itemIndex) => new Promise((resolve) => {
+        if (itemIndex < 0) {
+            return Promise.resolve();
         }
-    }
+        if (itemsToDestroy[itemIndex] && !itemsToDestroy[itemIndex]._destroyed) {
+            itemsToDestroy[itemIndex].destroy(destroyChildren);
+            itemsToDestroy[itemIndex] = null;
+        }
+        setTimeout(async () => {
+            await remove(itemIndex - 1);
+            resolve();
+        }, Math.random() * 1000);
+    });
+    await remove(itemsToDestroy.length - 1);
 }
