@@ -125,7 +125,8 @@ public class HomologeneManager {
                 List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
                 taxIds.addAll(geneTaxIds);
             }
-            final List<BlastTaxonomy> organisms = taxonomyManager.searchOrganismsByIds(taxIds);
+            final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                    : taxonomyManager.searchOrganismsByIds(taxIds);
 
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
