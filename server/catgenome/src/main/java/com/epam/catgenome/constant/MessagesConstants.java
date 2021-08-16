@@ -269,7 +269,6 @@ public final class MessagesConstants {
     public static final String ERROR_BLAST_REQUEST = "error.blast.request.unexpected";
     public static final String ERROR_BLAST_ORGANISMS = "error.blast.organisms";
     public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
-    public static final String ERROR_TAX_ID_LIST_IS_EMPTY = "error.tax.id.list.is.empty";
     public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
 
     private MessagesConstants() {

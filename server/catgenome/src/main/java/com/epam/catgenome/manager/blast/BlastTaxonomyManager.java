@@ -23,8 +23,6 @@
  */
 package com.epam.catgenome.manager.blast;
 
-import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -54,7 +52,6 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
@@ -131,8 +128,6 @@ public class BlastTaxonomyManager {
 
     @SneakyThrows
     public List<BlastTaxonomy> searchOrganismsByIds(final Set<Long> taxIds) {
-        Assert.isTrue(!CollectionUtils.isEmpty(taxIds), MessageHelper
-                .getMessage(MessagesConstants.ERROR_TAX_ID_LIST_IS_EMPTY));
         final List<BlastTaxonomy> organisms = new ArrayList<>();
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final QueryParser queryParser = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer);
