@@ -36,6 +36,8 @@ public class Gene {
     private List<String> aliases;
     private String title;
     private Long taxId;
+    private String speciesCommonName;
+    private String speciesScientificName;
     private Long protGi;
     private String protAcc;
     private Long protLen;
