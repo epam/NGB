@@ -59,7 +59,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,7 +67,6 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -79,6 +77,7 @@ public class HomologeneManager {
 
     private static final String TERM_SPLIT_TOKEN = " ";
     private static final String GENE_FIELDS_LINE_DELIMITER = "|";
+    public static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
@@ -193,11 +192,10 @@ public class HomologeneManager {
         }
     }
 
-    private<T> void setValue(final T obj, Consumer<T> consumer) {
+    private static <T> void requireNonNull(T obj) {
         if (obj == null) {
-            throw new IllegalStateException("Incorrect XML format");
+            throw new IllegalStateException(INCORRECT_XML_FORMAT);
         }
-        consumer.accept(obj);
     }
 
     @SneakyThrows
@@ -213,118 +211,127 @@ public class HomologeneManager {
         HomologeneEntry homologeneEntry = null;
         Gene gene = null;
         Domain domain = null;
-        try {
-            while (streamReader.hasNext()) {
-                streamReader.next();
-                if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
-                    final String text = streamReader.getElementText();
-                    switch (streamReader.getLocalName()) {
-                        case "HG-Entry":
-                            homologeneEntry = new HomologeneEntry();
-                            break;
-                        case "HG-Entry_hg-id":
-                            setValue(homologeneEntry, h -> h.setGroupId(Long.valueOf(streamReader.getElementText())));
-                            break;
-                        case "HG-Entry_version":
-                            setValue(homologeneEntry, h -> h.setVersion(Long.valueOf(text)));
-                            break;
-                        case "HG-Entry_caption":
-                            setValue(homologeneEntry, h -> h.setCaption(text));
-                            break;
-                        case "HG-Entry_taxid":
-                            setValue(homologeneEntry, h -> h.setTaxId(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene":
-                            gene = new Gene();
-                            break;
-                        case "HG-Gene_geneid":
-                            setValue(gene, h -> h.setGeneId(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene_symbol":
-                            setValue(gene, h -> h.setSymbol(text));
-                            break;
-                        case "HG-Gene_title":
-                            setValue(gene, h -> h.setTitle(text));
-                            break;
-                        case "HG-Gene_taxid":
-                            setValue(gene, h -> h.setTaxId(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene_prot-gi":
-                            setValue(gene, h -> h.setProtGi(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene_prot-acc":
-                            setValue(gene, h -> h.setProtAcc(text));
-                            break;
-                        case "HG-Gene_prot-len":
-                            setValue(gene, h -> h.setProtLen(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene_nuc-gi":
-                            setValue(gene, h -> h.setNucGi(Long.valueOf(text)));
-                            break;
-                        case "HG-Gene_nuc-acc":
-                            setValue(gene, h -> h.setNucAcc(text));
-                            break;
-                        case "HG-Gene_locus-tag":
-                            setValue(gene, h -> h.setLocusTag(text));
-                            break;
-                        case "HG-Gene_aliases_E":
-                            aliases.add(streamReader.getElementText());
-                            break;
-                        case "HG-Domain":
-                            domain = new Domain();
-                            break;
-                        case "HG-Domain_begin":
-                            setValue(domain, h -> h.setBegin(Long.valueOf(text)));
-                            break;
-                        case "HG-Domain_end":
-                            setValue(domain, h -> h.setEnd(Long.valueOf(text)));
-                            break;
-                        case "HG-Domain_pssm-id":
-                            setValue(domain, h -> h.setPssmId(Long.valueOf(text)));
-                            break;
-                        case "HG-Domain_cdd-id":
-                            setValue(domain, h -> h.setCddId(text));
-                            break;
-                        case "HG-Domain_cdd-name":
-                            setValue(domain, h -> h.setCddName(text));
-                            break;
-                        default:
-                            break;
-                    }
-                } else if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
-                    switch (streamReader.getLocalName()) {
-                        case "HG-Entry":
-                            if (homologeneEntry == null) {
-                                throw new IllegalStateException("Incorrect XML format");
-                            }
-                            homologeneEntry.setGenes(genes);
-                            homologeneEntries.add(homologeneEntry);
-                            genes = new ArrayList<>();
-                            homologeneEntry = null;
-                            break;
-                        case "HG-Gene":
-                            if (gene == null) {
-                                throw new IllegalStateException("Incorrect XML format");
-                            }
-                            gene.setAliases(aliases);
-                            gene.setDomains(domains);
-                            genes.add(gene);
-                            aliases = new ArrayList<>();
-                            domains = new ArrayList<>();
-                            gene = null;
-                            break;
-                        case "HG-Domain":
-                            domains.add(domain);
-                            domain = null;
-                            break;
-                        default:
-                            break;
-                    }
+        while (streamReader.hasNext()) {
+            streamReader.next();
+            if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+                switch (streamReader.getLocalName()) {
+                    case "HG-Entry":
+                        homologeneEntry = new HomologeneEntry();
+                        break;
+                    case "HG-Entry_hg-id":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setGroupId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Entry_version":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setVersion(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Entry_caption":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setCaption(streamReader.getElementText());
+                        break;
+                    case "HG-Entry_taxid":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setTaxId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene":
+                        gene = new Gene();
+                        break;
+                    case "HG-Gene_geneid":
+                        requireNonNull(gene);
+                        gene.setGeneId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_symbol":
+                        requireNonNull(gene);
+                        gene.setSymbol(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_title":
+                        requireNonNull(gene);
+                        gene.setTitle(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_taxid":
+                        requireNonNull(gene);
+                        gene.setTaxId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_prot-gi":
+                        requireNonNull(gene);
+                        gene.setProtGi(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_prot-acc":
+                        requireNonNull(gene);
+                        gene.setProtAcc(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_prot-len":
+                        requireNonNull(gene);
+                        gene.setProtLen(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_nuc-gi":
+                        requireNonNull(gene);
+                        gene.setNucGi(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_nuc-acc":
+                        requireNonNull(gene);
+                        gene.setNucAcc(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_locus-tag":
+                        requireNonNull(gene);
+                        gene.setLocusTag(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_aliases_E":
+                        aliases.add(streamReader.getElementText());
+                        break;
+                    case "HG-Domain":
+                        domain = new Domain();
+                        break;
+                    case "HG-Domain_begin":
+                        requireNonNull(domain);
+                        domain.setBegin(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_end":
+                        requireNonNull(domain);
+                        domain.setEnd(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_pssm-id":
+                        requireNonNull(domain);
+                        domain.setPssmId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_cdd-id":
+                        requireNonNull(domain);
+                        domain.setCddId(streamReader.getElementText());
+                        break;
+                    case "HG-Domain_cdd-name":
+                        requireNonNull(domain);
+                        domain.setCddName(streamReader.getElementText());
+                        break;
+                    default:
+                        break;
+                }
+            } else if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+                switch (streamReader.getLocalName()) {
+                    case "HG-Entry":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setGenes(genes);
+                        homologeneEntries.add(homologeneEntry);
+                        genes = new ArrayList<>();
+                        homologeneEntry = null;
+                        break;
+                    case "HG-Gene":
+                        requireNonNull(gene);
+                        gene.setAliases(aliases);
+                        gene.setDomains(domains);
+                        genes.add(gene);
+                        aliases = new ArrayList<>();
+                        domains = new ArrayList<>();
+                        gene = null;
+                        break;
+                    case "HG-Domain":
+                        domains.add(domain);
+                        domain = null;
+                        break;
+                    default:
+                        break;
                 }
             }
-
-        } catch (XMLStreamException e) {
-
         }
         streamReader.close();
         inputStream.close();
