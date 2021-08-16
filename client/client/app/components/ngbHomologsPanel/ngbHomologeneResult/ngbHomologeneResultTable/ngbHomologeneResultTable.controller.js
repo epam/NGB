@@ -43,13 +43,14 @@ export default class ngbHomologeneResultTableController extends baseController {
         'homologs:homologene:result:page:change': ::this.getDataOnPage
     };
 
-    constructor($scope, $timeout, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
+    constructor($scope, $timeout, ngbHomologeneTableService, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
+            ngbHomologeneTableService,
             ngbHomologeneResultService,
             ngbHomologsService
         });
@@ -87,23 +88,22 @@ export default class ngbHomologeneResultTableController extends baseController {
                 this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
             }
         });
-        await this.loadData();
+        this.loadData();
     }
 
-    async loadData() {
+    loadData() {
         try {
-            await this.ngbHomologeneResultService.updateSearchResult(this.ngbHomologsService.currentResultId);
-            const resultLength = this.ngbHomologeneResultService.homologeneResult.length;
-            if (this.ngbHomologeneResultService.searchResultTableError) {
-                this.searchResultTableLoadError = this.ngbHomologeneResultService.searchResultTableError;
+            const result = this.ngbHomologeneTableService.getHomologeneResultById(this.ngbHomologsService.currentHomologeneId);
+            if (this.ngbHomologeneTableService.searchResultTableError) {
+                this.searchResultTableLoadError = this.ngbHomologeneTableService.searchResultTableError;
                 this.gridOptions.data = [];
                 this.gridOptions.totalItems = 0;
                 this.isEmptyResults = false;
-            } else if (resultLength) {
+            } else if (result.length) {
                 this.searchResultTableLoadError = null;
-                this.gridOptions.data = this.ngbHomologeneResultService.homologeneResult;
+                this.gridOptions.data = result;
                 this.gridOptions.paginationPageSize = this.ngbHomologeneResultService.pageSize;
-                this.gridOptions.totalItems = resultLength;
+                this.gridOptions.totalItems = result.length;
                 this.isEmptyResults = false;
             } else {
                 this.isEmptyResults = true;
@@ -125,7 +125,6 @@ export default class ngbHomologeneResultTableController extends baseController {
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }
-        return this.loadData();
     }
 
     saveColumnsState() {

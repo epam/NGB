@@ -15,6 +15,7 @@ export default class ngbHomologsPanelPaginate {
         if (!!changes.currentPage && (changes.currentPage.previousValue !== changes.currentPage.currentValue)) {
             this.setPage(changes.currentPage.currentValue);
         }
+
     }
 
     setTotalPages(totalPages) {

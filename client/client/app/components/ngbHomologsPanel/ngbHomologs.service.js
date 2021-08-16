@@ -43,15 +43,12 @@ export default class ngbHomologsService {
     }
 
     initEvents() {
-        this.dispatcher.on('read:show:homologs', () => {
-            this.currentSearchId = null;
-        });
     }
 
     async getCurrentSearch() {
         let data = {};
-        if (this._currentSearchId) {
-            data = this._formatServerToClient(await this.genomeDataService.getHomologsSearch(this._currentSearchId));
+        if (this.currentSearch) {
+            data = this._formatServerToClient(await this.genomeDataService.getHomologsSearch(this.currentSearch));
         }
         return {request: data};
     }
@@ -73,9 +70,9 @@ export default class ngbHomologsService {
         searchRequest.organismsArray = searchRequest.organisms ? searchRequest.organisms.map(o => o.taxid) : [];
         return this.genomeDataService.createHomologsSearch(this._formatClientToServer(searchRequest)).then(data => {
             if (data && data.id) {
-                this.currentSearchId = data.id;
+                this.currentSearch = data.id;
                 localStorage.removeItem('homologeneRequest');
-                this.currentSearchId = null;
+                this.currentSearch = null;
             }
             return data;
         });

@@ -12,7 +12,7 @@ export default class ngbHomologeneTableController extends baseController {
     loadError = null;
     debounce = (new Debounce()).debounce;
     gridOptions = {
-        enableSorting: true,
+        enableSorting: false,
         enableFiltering: false,
         enableGridMenu: false,
         enableHorizontalScrollbar: 0,
@@ -36,11 +36,10 @@ export default class ngbHomologeneTableController extends baseController {
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false,
-        enablePaginationControls: false,
+        saveSelection: false
     };
     events = {
-        'homologs:homologene:page:change': ::this.getDataOnPage
+        'homologs:homologene:page:change': this.getDataOnPage.bind(this)
     };
 
     constructor($scope, $timeout, dispatcher,
@@ -74,8 +73,6 @@ export default class ngbHomologeneTableController extends baseController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbHomologeneTableService.getHomologeneGridColumns(),
-            paginationPageSize: this.ngbHomologeneTableService.pageSize,
-            paginationCurrentPage: this.ngbHomologeneTableService.currentPage,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -120,7 +117,7 @@ export default class ngbHomologeneTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbHomologsService.currentHomologeneId = row.entity.info;
+            this.ngbHomologsService.currentHomologeneId = row.entity.groupId;
             this.changeState({state: 'HOMOLOGENE_RESULT'});
         } else {
             event.stopImmediatePropagation();
