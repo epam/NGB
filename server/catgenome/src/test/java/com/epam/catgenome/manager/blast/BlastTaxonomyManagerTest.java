@@ -35,13 +35,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BlastTaxonomyManagerTest extends TestCase {
 
-    public static final int ORGANISMS_COUNT = 12;
+    public static final int ORGANISMS_COUNT = 2;
+    public static final int TOTAL_ORGANISMS_COUNT = 12;
 
     @Autowired
     private BlastTaxonomyManager blastTaxonomyManager;
@@ -61,7 +64,7 @@ public class BlastTaxonomyManagerTest extends TestCase {
     public void searchOrganismsTest() throws IOException, ParseException {
         List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
         assertNotNull(organisms);
-        assertEquals(2, organisms.size());
+        assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 
     @Test
@@ -69,7 +72,7 @@ public class BlastTaxonomyManagerTest extends TestCase {
         blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName);
         List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
         assertNotNull(organisms);
-        assertEquals(2, organisms.size());
+        assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 
     @Test
@@ -79,9 +82,16 @@ public class BlastTaxonomyManagerTest extends TestCase {
     }
 
     @Test
+    public void searchOrganismsByIdsTest() {
+        List<BlastTaxonomy> organisms = blastTaxonomyManager.searchOrganismsByIds(new HashSet<>(Arrays.asList(6L, 7L)));
+        assertNotNull(organisms);
+        assertEquals(ORGANISMS_COUNT, organisms.size());
+    }
+
+    @Test
     public void readTaxonomyTest() {
         List<BlastTaxonomy> organisms =  blastTaxonomyManager.readTaxonomy(fileName);
         assertNotNull(organisms);
-        assertEquals(ORGANISMS_COUNT, organisms.size());
+        assertEquals(TOTAL_ORGANISMS_COUNT, organisms.size());
     }
 }

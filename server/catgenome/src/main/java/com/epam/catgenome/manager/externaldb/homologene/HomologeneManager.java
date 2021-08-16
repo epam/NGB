@@ -30,6 +30,8 @@ import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySetXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -55,6 +57,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -73,9 +76,13 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -88,6 +95,9 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
+    @Autowired
+    BlastTaxonomyManager taxonomyManager;
+
     public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
@@ -95,11 +105,9 @@ public class HomologeneManager {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
-            final Integer page = query.getPage();
-            Assert.isTrue(page > 0, "Page number should be > 0");
-
-            final Integer pageSize = query.getPageSize();
-            Assert.isTrue(pageSize > 0, "Page size should be > 0");
+            final int page = (query.getPage() == null || query.getPage() <= 0) ? 1 : query.getPage();
+            final int pageSize = (query.getPageSize() == null || query.getPage() <= 0) ? DEFAULT_PAGE_SIZE
+                    : query.getPageSize();
             final int hits = page * pageSize;
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -109,15 +117,28 @@ public class HomologeneManager {
             final int from = (page - 1) * pageSize;
             final int to = Math.min(from + pageSize, scoreDocs.length);
 
+            final Set<Long> taxIds = new HashSet<>();
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
+                List<Gene> genes = getEntryGenes(doc) == null ? Collections.emptyList()
+                        : convertGenes(getEntryGenes(doc));
+                List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
+                taxIds.addAll(geneTaxIds);
+            }
+            final List<BlastTaxonomy> organisms = taxonomyManager.searchOrganismsByIds(taxIds);
+
+            for (int i = from; i < to; i++) {
+                Document doc = searcher.doc(scoreDocs[i].doc);
+                List<Gene> genes = getEntryGenes(doc) == null ? Collections.emptyList()
+                        : convertGenes(getEntryGenes(doc));
+                setSpeciesName(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
                         .taxId(getTaxId(doc))
                         .version(getVersion(doc))
                         .caption(getCaption(doc))
-                        .genes(convertGenes(getEntryGenes(doc)))
+                        .genes(genes)
                         .build()
                 );
             }
@@ -125,6 +146,20 @@ public class HomologeneManager {
             searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
+    }
+
+    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
     }
 
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
