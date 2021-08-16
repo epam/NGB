@@ -174,8 +174,10 @@ export default class ngbHomologeneResultTableController extends baseController {
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
-        this.ngbHomologeneResultService.pageSize = pageSize;
-        this.gridOptions.paginationPageSize = pageSize;
-        this.$timeout(() => this.$scope.$apply());
+        if (pageSize) {
+            this.ngbHomologeneResultService.pageSize = pageSize;
+            this.gridOptions.paginationPageSize = pageSize;
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 }
