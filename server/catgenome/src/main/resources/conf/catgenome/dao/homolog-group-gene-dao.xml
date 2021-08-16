@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.homolog.HomologGroupGeneDao" id="homologGroupGeneDao" autowire="byName">
+        <property name="groupGeneSequenceName" value="catgenome.s_homolog_group_gene"/>
+        <property name="insertGroupGeneQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.homolog_group_gene (
+                        id,
+                        group_id,
+                        gene_id,
+                        tax_id
+                    ) VALUES (
+                        :ID,
+                        :GROUP_ID,
+                        :GENE_ID,
+                        :TAX_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteGroupGenesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.homolog_group_gene
+                ]]>
+            </value>
+        </property>
+        <property name="loadGroupGenesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        group_id,
+                        gene_id,
+                        tax_id
+                    FROM catgenome.homolog_group_gene WHERE gene_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

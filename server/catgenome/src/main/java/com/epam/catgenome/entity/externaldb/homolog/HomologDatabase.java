@@ -28,7 +28,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class  HomologDatabase {
+public class HomologDatabase {
     private Long id;
     private String name;
     private String path;

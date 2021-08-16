@@ -70,94 +70,94 @@ public class HomologManager {
     @Value("${taxonomy.top.hits:10}")
     private int taxonomyTopHits;
 
-    public List<BlastTaxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
-        final List<BlastTaxonomy> organisms = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-            IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(buildTaxonomySearchQuery(terms), taxonomyTopHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                organisms.add(
-                    BlastTaxonomy.builder()
-                        .taxId(getTaxId(doc))
-                        .scientificName(getScientificName(doc))
-                        .commonName(getCommonName(doc))
-                        .synonyms(getSynonyms(doc))
-                        .build()
-                );
-            }
-        }
-        return organisms;
-    }
-
-    @SneakyThrows
-    public BlastTaxonomy searchHomolog(final HomologSearchRequest searchRequest) {
-        final StandardAnalyzer analyzer = new StandardAnalyzer();
-        final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
-                .parse(String.valueOf(searchRequest));
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, 1);
-            ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
-            Document doc = scoreDoc != null ? searcher.doc(scoreDoc.doc) : null;
-            return doc == null ? null
-                    :  BlastTaxonomy.builder().taxId(getTaxId(doc))
-                            .scientificName(getScientificName(doc))
-                            .commonName(getCommonName(doc))
-                            .synonyms(getSynonyms(doc))
-                            .build();
-        }
-    }
-
-    public void importHomologData(final String databasePath) throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexWriter writer = new IndexWriter(
-                     index, new IndexWriterConfig(new StandardAnalyzer())
-                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
-            writer.deleteAll();
-            for (BlastTaxonomy taxonomyEntry: readTaxonomy(databasePath)) {
-                addDoc(writer, taxonomyEntry);
-            }
-        }
-    }
-
-    List<BlastTaxonomy> readTaxonomy(final String path) {
-        return readTaxonomyLines(path).stream().collect(Collectors.groupingBy(TaxonomyRecord::getTaxId))
-                .entrySet().stream()
-                .map(entry -> processTaxonomyId(entry.getKey(), entry.getValue()))
-                .filter(Objects::nonNull)
-                .filter(this::taxonomyIdIsComplete)
-                .collect(Collectors.toList());
-    }
-
-    private Query buildTaxonomySearchQuery(final String terms) {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        for (String term : terms.split(TAXONOMY_TERM_SPLIT_TOKEN)) {
-            mainBuilder.add(
-                new BooleanQuery.Builder()
-                    .add(buildPrefixQuery(term, TaxonomyIndexFields.COMMON_NAME), BooleanClause.Occur.SHOULD)
-                    .add(buildPrefixQuery(term, TaxonomyIndexFields.SCIENTIFIC_NAME), BooleanClause.Occur.SHOULD)
-                    .add(buildPrefixQuery(term, TaxonomyIndexFields.SYNONYMS), BooleanClause.Occur.SHOULD)
-                    .build(),
-                BooleanClause.Occur.MUST
-            );
-        }
-        return mainBuilder.build();
-    }
-
-
-
-    private List<TaxonomyRecord> readTaxonomyLines(final String path) {
-        try {
-            return Files.lines(Paths.get(path))
-                    .map(tl -> new TaxonomyRecord(
-                            Long.parseLong(tl.split(TAXONOMY_TOKEN_DELIMITER_PATTERN)[0].trim()), tl))
-                    .collect(Collectors.toList());
-        } catch (IOException | NumberFormatException e) {
-            log.error(e.getMessage());
-            return Collections.emptyList();
-        }
-    }
+//    public List<BlastTaxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
+//        final List<BlastTaxonomy> organisms = new ArrayList<>();
+//        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
+//            IndexReader indexReader = DirectoryReader.open(index)) {
+//            IndexSearcher searcher = new IndexSearcher(indexReader);
+//            TopDocs topDocs = searcher.search(buildTaxonomySearchQuery(terms), taxonomyTopHits);
+//            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+//                Document doc = searcher.doc(scoreDoc.doc);
+//                organisms.add(
+//                    BlastTaxonomy.builder()
+//                        .taxId(getTaxId(doc))
+//                        .scientificName(getScientificName(doc))
+//                        .commonName(getCommonName(doc))
+//                        .synonyms(getSynonyms(doc))
+//                        .build()
+//                );
+//            }
+//        }
+//        return organisms;
+//    }
+//
+//    @SneakyThrows
+//    public BlastTaxonomy searchHomolog(final HomologSearchRequest searchRequest) {
+//        final StandardAnalyzer analyzer = new StandardAnalyzer();
+//        final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
+//                .parse(String.valueOf(searchRequest));
+//        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
+//             IndexReader indexReader = DirectoryReader.open(index)) {
+//            IndexSearcher searcher = new IndexSearcher(indexReader);
+//            TopDocs topDocs = searcher.search(query, 1);
+//            ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
+//            Document doc = scoreDoc != null ? searcher.doc(scoreDoc.doc) : null;
+//            return doc == null ? null
+//                    :  BlastTaxonomy.builder().taxId(getTaxId(doc))
+//                            .scientificName(getScientificName(doc))
+//                            .commonName(getCommonName(doc))
+//                            .synonyms(getSynonyms(doc))
+//                            .build();
+//        }
+//    }
+//
+//    public void importHomologData(final String databasePath) throws IOException, ParseException {
+//        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
+//             IndexWriter writer = new IndexWriter(
+//                     index, new IndexWriterConfig(new StandardAnalyzer())
+//                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+//            writer.deleteAll();
+//            for (BlastTaxonomy taxonomyEntry: readTaxonomy(databasePath)) {
+//                addDoc(writer, taxonomyEntry);
+//            }
+//        }
+//    }
+//
+//    List<BlastTaxonomy> readTaxonomy(final String path) {
+//        return readTaxonomyLines(path).stream().collect(Collectors.groupingBy(TaxonomyRecord::getTaxId))
+//                .entrySet().stream()
+//                .map(entry -> processTaxonomyId(entry.getKey(), entry.getValue()))
+//                .filter(Objects::nonNull)
+//                .filter(this::taxonomyIdIsComplete)
+//                .collect(Collectors.toList());
+//    }
+//
+//    private Query buildTaxonomySearchQuery(final String terms) {
+//        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+//        for (String term : terms.split(TAXONOMY_TERM_SPLIT_TOKEN)) {
+//            mainBuilder.add(
+//                new BooleanQuery.Builder()
+//                    .add(buildPrefixQuery(term, TaxonomyIndexFields.COMMON_NAME), BooleanClause.Occur.SHOULD)
+//                    .add(buildPrefixQuery(term, TaxonomyIndexFields.SCIENTIFIC_NAME), BooleanClause.Occur.SHOULD)
+//                    .add(buildPrefixQuery(term, TaxonomyIndexFields.SYNONYMS), BooleanClause.Occur.SHOULD)
+//                    .build(),
+//                BooleanClause.Occur.MUST
+//            );
+//        }
+//        return mainBuilder.build();
+//    }
+//
+//
+//
+//    private List<TaxonomyRecord> readTaxonomyLines(final String path) {
+//        try {
+//            return Files.lines(Paths.get(path))
+//                    .map(tl -> new TaxonomyRecord(
+//                            Long.parseLong(tl.split(TAXONOMY_TOKEN_DELIMITER_PATTERN)[0].trim()), tl))
+//                    .collect(Collectors.toList());
+//        } catch (IOException | NumberFormatException e) {
+//            log.error(e.getMessage());
+//            return Collections.emptyList();
+//        }
+//    }
 }

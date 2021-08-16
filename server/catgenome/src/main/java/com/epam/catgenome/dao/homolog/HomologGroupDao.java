@@ -24,9 +24,6 @@
 package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.blast.BlastDatabase;
-import com.epam.catgenome.entity.blast.BlastDatabaseSource;
-import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
@@ -50,59 +47,41 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HomologDao extends NamedParameterJdbcDaoSupport {
+public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
     private String groupSequenceName;
     private String insertGroupQuery;
-    private String updateGroupQuery;
-    private String deleteDatabaseQuery;
-    private String loadDatabasesQuery;
-    private String loadDatabaseQuery;
+    private String deleteGroupsQuery;
+    private String loadGroupQuery;
 
     /**
      * Persists a new or updates existing Homolog Group record.
      * @param homologGroup {@code HomologGroup} a Homolog Group to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveDatabase(final HomologGroup homologGroup) {
-        if (homologGroup.getId() == null) {
-            homologGroup.setId(daoHelper.createId(groupSequenceName));
-            getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(homologGroup));
-        } else {
-            getNamedParameterJdbcTemplate().update(updateGroupQuery, GroupParameters.getParameters(homologGroup));
-        }
+    public void save(final HomologGroup homologGroup) {
+        homologGroup.setId(daoHelper.createId(groupSequenceName));
+        getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(homologGroup));
     }
 
     /**
-     * Deletes a Blast database entity, specified by ID, from the database
-     * @param id ID of a record to delete
+     * Deletes Homolog groups from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteDatabase(final long id) {
-        getJdbcTemplate().update(deleteDatabaseQuery, id);
+    public void deleteGroups() {
+        getJdbcTemplate().update(deleteGroupsQuery);
     }
 
     /**
-     * Loads {@code Blast databases} from a database by type.
+     * Loads {@code Homolog groups} from a database by parameters.
      * @param queryParameters {@code QueryParameters} query parameters
-     * @return a {@code List<BlastDatabase>} from the database
+     * @return a {@code List<HomologGroup>} from the database
      */
-    public List<BlastDatabase> loadDatabases(final QueryParameters queryParameters) {
-        String query = addParametersToQuery(loadDatabasesQuery, queryParameters);
+    public List<HomologGroup> loadGroup(final QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadGroupQuery, queryParameters);
         return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
-    }
-
-    /**
-     * Loads a {@code Blast database} instance from a database by it's ID.
-     * @param id {@code long} an ID of a database
-     * @return a {@code BlastDatabase} instance from the database
-     */
-    public BlastDatabase loadDatabase(final long id) {
-        List<BlastDatabase> blastDatabases = getJdbcTemplate().query(loadDatabaseQuery,
-                GroupParameters.getRowMapper(), id);
-        return blastDatabases.isEmpty() ? null : blastDatabases.get(0);
     }
 
     enum GroupParameters {
@@ -115,34 +94,28 @@ public class HomologDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final HomologGroup homologGroup) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-
             params.addValue(ID.name(), homologGroup.getId());
-            params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getPrimary_gene_name());
-            params.addValue(DATABASE_PATH.name(), homologGroup.getPath());
-            params.addValue(DATABASE_TYPE.name(), homologGroup.getType().getTypeId());
-            params.addValue(DATABASE_SOURCE.name(), homologGroup.getSource().getSourceId());
-
+            params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getPrimaryGeneId());
+            params.addValue(PRIMARY_GENE_TAX_ID.name(), homologGroup.getPrimaryGeneTaxId());
+            params.addValue(PRIMARY_GENE_NAME.name(), homologGroup.getPrimaryGeneName());
+            params.addValue(PROTEIN_NAME.name(), homologGroup.getProteinName());
+            params.addValue(DATABASE_ID.name(), homologGroup.getDatabaseId());
             return params;
         }
 
-        static RowMapper<BlastDatabase> getRowMapper() {
-            return (rs, rowNum) -> parseDatabase(rs);
+        static RowMapper<HomologGroup> getRowMapper() {
+            return (rs, rowNum) -> parseGroup(rs);
         }
 
-        static BlastDatabase parseDatabase(final ResultSet rs) throws SQLException {
-            final BlastDatabase database = new BlastDatabase();
-            database.setId(rs.getLong(DATABASE_ID.name()));
-            database.setName(rs.getString(DATABASE_NAME.name()));
-            database.setPath(rs.getString(DATABASE_PATH.name()));
-            final long typeVal = rs.getLong(DATABASE_TYPE.name());
-            if (!rs.wasNull()) {
-                database.setType(BlastDatabaseType.getTypeById(typeVal));
-            }
-            final long sourceVal = rs.getLong(DATABASE_SOURCE.name());
-            if (!rs.wasNull()) {
-                database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
-            }
-            return database;
+        static HomologGroup parseGroup(final ResultSet rs) throws SQLException {
+            final HomologGroup group = new HomologGroup();
+            group.setId(rs.getLong(ID.name()));
+            group.setPrimaryGeneId(PRIMARY_GENE_ID.name());
+            group.setPrimaryGeneTaxId(rs.getLong(PRIMARY_GENE_TAX_ID.name()));
+            group.setPrimaryGeneName(rs.getString(PRIMARY_GENE_NAME.name()));
+            group.setProteinName(PROTEIN_NAME.name());
+            group.setDatabaseId(rs.getLong(DATABASE_ID.name()));
+            return group;
         }
     }
 }
