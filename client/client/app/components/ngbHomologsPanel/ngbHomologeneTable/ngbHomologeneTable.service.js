@@ -24,25 +24,12 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:homologene:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
-        this.initEvents();
-    }
-
-    _currentSearch;
-
-    set currentSearch(value) {
-        this._currentSearch = value;
     }
 
     _homologene;
 
     get homologene() {
         return this._homologene;
-    }
-
-    initEvents() {
-        this.dispatcher.on('read:show:homologs', data => {
-            this.currentSearch = data.search;
-        });
     }
 
     getHomologeneResultById(id) {
@@ -55,18 +42,9 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
 
     _pageError = null;
 
+
     get pageError() {
         return this._pageError;
-    }
-
-    _orderBy = null;
-
-    get orderBy() {
-        return this._orderBy;
-    }
-
-    set orderBy(orderBy) {
-        this._orderBy = orderBy;
     }
 
     get columnTitleMap() {
@@ -92,23 +70,22 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         return new ngbHomologeneTableService(dispatcher, genomeDataService);
     }
 
-    async updateHomologene() {
-        const result = await this.loadHomologene();
+    async searchHomologene(currentSearch) {
+        const result = await this.loadHomologene(currentSearch);
         this._homologene = result.homologene;
         this._homologeneResult = result.homologeneResult;
         this.dispatcher.emitSimpleEvent('homologene:result:change');
     }
 
-    async loadHomologene() {
+    async loadHomologene(currentSearch) {
+        const emptyResult = {
+            homologene: [],
+            homologeneResult: {}
+        };
         const filter = {
-            query: 'kras',//this._currentSearch,
-            page: 1,
-            pageSize: 100
-            // pagingInfo: {
-            //     pageNum: page,
-            //     pageSize: this.pageSize
-            // },
-            // sortInfos: this.orderBy
+            query: currentSearch,
+            page: this.currentPage,
+            pageSize: this.pageSize
         };
         const data = await this.genomeDataService.getHomologeneLoad(filter);
         if (data.error) {
@@ -116,7 +93,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
-            return [];
+            return emptyResult;
         } else {
             this._pageError = null;
         }
@@ -127,10 +104,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 homologeneResult: this.getHomologeneResult(data.items)
             };
         } else {
-            return {
-                homologene: [],
-                homologeneResult: {}
-            };
+            return emptyResult;
         }
     }
 
@@ -241,9 +215,11 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
 
     _formatResultToClient(result) {
         return {
+            geneId: result.geneId,
             name: result.symbol,
             species: result.species,
             accession_id: result.protAcc,
+            protGi: result.protGi,
             aa: result.protLen,
             domains: result.domains.map(d => ({
                 id: d.pssmId,

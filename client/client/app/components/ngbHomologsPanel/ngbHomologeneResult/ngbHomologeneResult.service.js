@@ -68,8 +68,11 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                 }
                 case 'name': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
-                                       >{{row.entity.name}}</div>`,
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link">
+                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/gene/{{row.entity.geneId}}">
+                                            {{row.entity.name}}
+                                        </a>
+                                       </div>`,
                         enableHiding: false,
                         field: 'name',
                         group: COLUMNS_GROUP[column],
@@ -80,8 +83,11 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                 }
                 case 'accession_id': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
-                                       >{{row.entity.accession_id}}</div>`,
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link">
+                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/protein/{{row.entity.protGi}}">
+                                            {{row.entity.accession_id}}
+                                        </a>
+                                       </div>`,
                         enableHiding: false,
                         field: 'accession_id',
                         group: COLUMNS_GROUP[column],

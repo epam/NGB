@@ -179,8 +179,7 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
-                // TODO: provide proper condition
-                if (true) {
+                if (data.feature.feature.toLowerCase() === 'gene') {
                     const layoutChange = this.appLayout.Panels.homologs;
                     layoutChange.displayed = true;
                     menuData.push({
@@ -190,12 +189,9 @@ export default class ngbTrackEvents {
                                 name: 'layout:item:change'
                             },
                             {
-                                data: new EventGeneInfo({
-                                    endIndex: data.feature.endIndex,
-                                    geneTracks,
-                                    highlight: false,
-                                    startIndex: data.feature.startIndex
-                                }),
+                                data: {
+                                    search: data.feature.name
+                                },
                                 name: 'read:show:homologs'
                             }],
                         title: 'Show similar genes'
