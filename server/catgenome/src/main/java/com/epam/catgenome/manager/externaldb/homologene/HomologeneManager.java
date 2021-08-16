@@ -24,17 +24,17 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.entity.externaldb.homologene.EntryGenesXML;
+import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
-import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySetXML;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -55,27 +55,26 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.sax.SAXSource;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -114,8 +113,7 @@ public class HomologeneManager {
             final Set<Long> taxIds = new HashSet<>();
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
-                List<Gene> genes = getEntryGenes(doc) == null ? Collections.emptyList()
-                        : convertGenes(getEntryGenes(doc));
+                List<Gene> genes = getGenes(doc);
                 List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
                 taxIds.addAll(geneTaxIds);
             }
@@ -124,8 +122,7 @@ public class HomologeneManager {
 
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
-                List<Gene> genes = getEntryGenes(doc) == null ? Collections.emptyList()
-                        : convertGenes(getEntryGenes(doc));
+                List<Gene> genes = getGenes(doc);
                 setSpeciesName(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
@@ -371,7 +368,7 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
-    private static void addDoc(final IndexWriter writer, final HomologeneEntryXML entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final HomologeneEntry entry) throws IOException {
         final Document doc = new Document();
 
         doc.add(new StringField(IndexFields.GROUP_ID.getFieldName(),
@@ -400,8 +397,8 @@ public class HomologeneManager {
 
     @SneakyThrows
     private static List<Gene> deserializeGenes(final String encoded) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(encoded, List.class);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(encoded, mapper.getTypeFactory().constructCollectionType(List.class, Gene.class));
     }
 
     private static String serializeGenes(final List<Gene> genes) throws JsonProcessingException {
