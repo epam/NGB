@@ -43,4 +43,5 @@ public class Gene {
     private String nucAcc;
     private List<Domain> domains;
     private String locusTag;
+
 }
