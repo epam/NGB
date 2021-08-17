@@ -211,10 +211,15 @@ export default class FeatureRenderer {
 
     scheduleClearLabelsPool() {
         this._clearLabelsPoolTimeout = setTimeout(() => {
-            for (const [container, children] of this._labelsPools) {
-                container.removeChild(...children);
-            }
+            this.clearLabelsPool();
         }, TWO_MINUTES);
+    }
+
+    clearLabelsPool() {
+        for (const [container, children] of this._labelsPools) {
+            container.removeChild(...children);
+        }
+        this._labelsPools.clear();
     }
 
     manageLabels(viewport) {

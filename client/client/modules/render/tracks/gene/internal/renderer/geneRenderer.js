@@ -127,19 +127,22 @@ export default class GeneRenderer extends CachedTrackRenderer {
 
         this.dataContainer.removeChildren();
         this._attachedElementsContainer.removeChildren();
-        this.removeChildrenApartFromText(this._dockableElementsContainer);
-        this.removeChildrenApartFromText(this._labelsContainer);
 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.scale = this.dataContainer.scale;
 
         if (this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
+            this._dockableElementsContainer.removeChildren();
+            this._labelsContainer.removeChildren();
+            this.featureRenderer.clearLabelsPool && this.featureRenderer.clearLabelsPool();
             this.geneHistogram.totalHeight = this.height;
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;
         }
         else if (cache.data !== null && cache.data !== undefined) {
+            this.removeChildrenApartFromText(this._dockableElementsContainer);
+            this.removeChildrenApartFromText(this._labelsContainer);
             this.geneHistogram.clear();
             this.featureRenderer._opts = {
                 gffColorByFeatureType: this._gffColorByFeatureType,
