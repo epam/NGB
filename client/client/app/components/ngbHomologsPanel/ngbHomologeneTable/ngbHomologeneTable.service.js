@@ -213,7 +213,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         return {
             geneId: result.geneId,
             name: result.symbol,
-            species: result.species,
+            species: result.speciesScientificName,
             accession_id: result.protAcc,
             protGi: result.protGi,
             aa: result.protLen,
