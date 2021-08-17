@@ -2,12 +2,12 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.epam.catgenome.dao.homolog.HomologGeneDescriptionDao" id="homologGeneDescriptionDao" autowire="byName">
-        <property name="geneDescriptionSequenceName" value="catgenome.s_homolog_gene_description"/>
+    <bean class="com.epam.catgenome.dao.homolog.HomologGeneDescDao" id="homologGeneDescDao" autowire="byName">
+        <property name="geneDescSequenceName" value="catgenome.s_homolog_gene_desc"/>
         <property name="insertGeneDescQuery">
             <value>
                 <![CDATA[
-                    INSERT INTO catgenome.gene_description (
+                    INSERT INTO catgenome.gene_desc (
                         id,
                         symbol,
                         title,
@@ -36,7 +36,7 @@
         <property name="deleteGeneDescQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.gene_description
+                    DELETE FROM catgenome.gene_desc
                 ]]>
             </value>
         </property>
@@ -54,7 +54,7 @@
                         nuc_gi,
                         nuc_acc,
                         locus_tag
-                    FROM catgenome.gene_description WHERE id = ?
+                    FROM catgenome.gene_desc WHERE id = ?
                 ]]>
             </value>
         </property>

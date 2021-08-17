@@ -28,7 +28,7 @@ import lombok.Getter;
 import javax.xml.bind.annotation.XmlElement;
 
 @Getter
-class Domain {
+public class Domain {
     @XmlElement(name = "HG-Domain_begin")
     private Long begin;
     @XmlElement(name = "HG-Domain_end")

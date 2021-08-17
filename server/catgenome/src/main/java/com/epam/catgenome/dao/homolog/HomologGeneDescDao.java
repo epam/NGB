@@ -47,7 +47,7 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HomologGeneDescriptionDao extends NamedParameterJdbcDaoSupport {
+public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
@@ -63,14 +63,14 @@ public class HomologGeneDescriptionDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void save(final Gene gene) {
         gene.setGeneId(daoHelper.createId(geneDescSequenceName));
-        getNamedParameterJdbcTemplate().update(insertGeneDescQuery, GeneDescriptionParameters.getParameters(gene));
+        getNamedParameterJdbcTemplate().update(insertGeneDescQuery, GeneDescParameters.getParameters(gene));
     }
 
     /**
      * Deletes Gene descriptions from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteGeneDescriptions() {
+    public void deleteGeneDesc() {
         getJdbcTemplate().update(deleteGeneDescQuery);
     }
 
@@ -81,10 +81,10 @@ public class HomologGeneDescriptionDao extends NamedParameterJdbcDaoSupport {
      */
     public List<Gene> loadGeneDesc(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadGeneDescQuery, queryParameters);
-        return getJdbcTemplate().query(query, GeneDescriptionParameters.getRowMapper());
+        return getJdbcTemplate().query(query, GeneDescParameters.getRowMapper());
     }
 
-    enum GeneDescriptionParameters {
+    enum GeneDescParameters {
         ID,
         SYMBOL,
         TITLE,

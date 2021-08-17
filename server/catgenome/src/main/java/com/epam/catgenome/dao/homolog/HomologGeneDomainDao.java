@@ -25,6 +25,7 @@ package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,12 +59,12 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Persists a new or updates existing Homolog Group record.
-     * @param homologGroup {@code HomologGroup} a Homolog Group to persist.
+     * @param domain {@code HomologGroup} a Homolog Group to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void save(final HomologGroup homologGroup) {
-        homologGroup.setId(daoHelper.createId(groupSequenceName));
-        getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(homologGroup));
+    public void save(final Domain domain) {
+//        domain.setId(daoHelper.createId(groupSequenceName));
+        getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(domain));
     }
 
     /**

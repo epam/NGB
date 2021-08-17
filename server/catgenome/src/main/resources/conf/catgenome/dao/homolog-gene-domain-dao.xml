@@ -2,47 +2,50 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.epam.catgenome.dao.homolog.HomologGroupDao" id="homologGroupDao" autowire="byName">
-        <property name="groupSequenceName" value="catgenome.s_homolog_group"/>
-        <property name="insertGroupQuery">
+    <bean class="com.epam.catgenome.dao.homolog.HomologGeneDomainDao" id="homologGeneDomainDao" autowire="byName">
+        <property name="geneDomainSequenceName" value="catgenome.s_homolog_gene_domain"/>
+        <property name="insertGeneDomainQuery">
             <value>
                 <![CDATA[
-                    INSERT INTO catgenome.homolog_group (
+                    INSERT INTO catgenome.homolog_gene_domain (
                         id,
-                        primary_gene_id,
-                        primary_gene_tax_id,
-                        primary_gene_name,
-                        protein_name,
-                        database_id
+                        gene_id,
+                        begin,
+                        end,
+                        pssmid,
+                        cddid,
+                        cddname
                     ) VALUES (
                         :ID,
-                        :PRIMARY_GENE_ID,
-                        :PRIMARY_GENE_TAX_ID,
-                        :PRIMARY_GENE_NAME,
-                        :PROTEIN_NAME,
-                        :DATABASE_ID
+                        :GENE_ID,
+                        :BEGIN,
+                        :END,
+                        :PSSMID,
+                        :CDDID,
+                        :CDDNAME
                     )
                 ]]>
             </value>
         </property>
-        <property name="deleteGroupsQuery">
+        <property name="deleteGeneDomainsQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.homolog_group
+                    DELETE FROM catgenome.homolog_gene_domain
                 ]]>
             </value>
         </property>
-        <property name="loadGroupQuery">
+        <property name="loadGeneDomainsQuery">
             <value>
                 <![CDATA[
                     SELECT
                         id,
-                        primary_gene_id,
-                        primary_gene_tax_id,
-                        primary_gene_name,
-                        protein_name,
-                        database_id
-                    FROM catgenome.homolog_group WHERE id = ?
+                        gene_id,
+                        begin,
+                        end,
+                        pssmid,
+                        cddid,
+                        cddname
+                    FROM catgenome.homolog_gene_domain WHERE gene_id = ?
                 ]]>
             </value>
         </property>
