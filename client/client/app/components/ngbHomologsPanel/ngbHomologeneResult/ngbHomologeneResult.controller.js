@@ -2,19 +2,20 @@ import baseController from '../../../shared/baseController';
 
 export default class ngbHomologeneResult extends baseController {
 
-    homologene = {}
+    homologene = {};
     isProgressShown = true;
     events = {
         'homologene:result:change': this.initialize.bind(this)
     };
 
-    constructor($scope, dispatcher, ngbHomologsService, ngbHomologeneTableService) {
+    constructor($scope, dispatcher, ngbHomologsService, ngbHomologeneTableService, ngbHomologeneResultService) {
         super();
         Object.assign(this, {
             $scope,
             dispatcher,
             ngbHomologsService,
-            ngbHomologeneTableService
+            ngbHomologeneTableService,
+            ngbHomologeneResultService
         });
         this.initEvents();
         this.initialize();
