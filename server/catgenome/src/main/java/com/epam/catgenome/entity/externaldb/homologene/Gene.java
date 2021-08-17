@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.entity.externaldb.homologene;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,7 +30,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
 public class Gene {
     private Long geneId;
     private String symbol;

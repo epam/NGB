@@ -24,19 +24,14 @@ package com.epam.catgenome.entity.externaldb.homologene;
  * SOFTWARE.
  */
 import lombok.Getter;
-
-import javax.xml.bind.annotation.XmlElement;
+import lombok.Setter;
 
 @Getter
-class Domain {
-    @XmlElement(name = "HG-Domain_begin")
+@Setter
+public class Domain {
     private Long begin;
-    @XmlElement(name = "HG-Domain_end")
     private Long end;
-    @XmlElement(name = "HG-Domain_pssm-id")
     private Long pssmId;
-    @XmlElement(name = "HG-Domain_cdd-id")
     private String cddId;
-    @XmlElement(name = "HG-Domain_cdd-name")
     private String cddName;
 }
