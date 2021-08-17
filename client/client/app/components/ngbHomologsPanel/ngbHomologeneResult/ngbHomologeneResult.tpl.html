@@ -7,15 +7,10 @@
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
-        <span class="blast-search-result-title">{{$ctrl.ngbHomologsService.currentHomologeneId}}</span>
+        <span class="blast-search-result-title">{{$ctrl.homologene.info}}</span>
     </div>
-    <div class="blast-search-result-table-row" flex layout="column" ng-if="!$ctrl.searchResultError">
+    <div class="blast-search-result-table-row" flex layout="column">
         <ngb-homologene-result-table change-state="$ctrl.changeState" flex
                                      layout="column"></ngb-homologene-result-table>
-    </div>
-    <div class="variants-load-error-container" layout="column" layout-align="center center"
-         ng-if="$ctrl.searchResultError">
-        <small>Search failed.</small>
-        <small>{{$ctrl.searchResultError}}</small>
     </div>
 </div>

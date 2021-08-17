@@ -62,6 +62,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.join;
@@ -123,6 +124,33 @@ public class BlastTaxonomyManager {
                             .synonyms(getSynonyms(doc))
                             .build();
         }
+    }
+
+    @SneakyThrows
+    public List<BlastTaxonomy> searchOrganismsByIds(final Set<Long> taxIds) {
+        final List<BlastTaxonomy> organisms = new ArrayList<>();
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final QueryParser queryParser = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer);
+        queryParser.setDefaultOperator(QueryParser.Operator.OR);
+        Query query = queryParser.parse(join(taxIds, TAXONOMY_TERM_SPLIT_TOKEN));
+
+        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, taxIds.size());
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                organisms.add(
+                        BlastTaxonomy.builder()
+                                .taxId(getTaxId(doc))
+                                .scientificName(getScientificName(doc))
+                                .commonName(getCommonName(doc))
+                                .synonyms(getSynonyms(doc))
+                                .build()
+                );
+            }
+        }
+        return organisms;
     }
 
     public void writeLuceneTaxonomyIndex(final String taxonomyFilePath) throws IOException, ParseException {

@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.export;
 
+import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -65,13 +66,14 @@ public class ExportManager {
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
         setGeneAttributes(filterForm);
+        final List<? extends FeatureFile> filesToExport = featureIndexManager.getGeneFilesForReference(
+                referenceId, filterForm.getFileIds());
         IndexSearchResult<GeneIndexEntry> indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm,
-                featureIndexManager.getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+                filesToExport);
         writeGenePage(format, exportFields, indexSearchResult, outputStream);
         for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
             filterForm.setPage(i);
-            indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm,
-                    featureIndexManager.getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+            indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm, filesToExport);
             writeGenePage(format, exportFields, indexSearchResult, outputStream);
         }
         return outputStream.toByteArray();

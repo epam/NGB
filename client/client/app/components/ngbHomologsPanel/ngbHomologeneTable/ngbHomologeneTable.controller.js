@@ -9,10 +9,9 @@ export default class ngbHomologeneTableController extends baseController {
     isProgressShown = true;
     isEmptyResult = false;
     errorMessageList = [];
-    loadError = null;
     debounce = (new Debounce()).debounce;
     gridOptions = {
-        enableSorting: true,
+        enableSorting: false,
         enableFiltering: false,
         enableGridMenu: false,
         enableHorizontalScrollbar: 0,
@@ -36,11 +35,11 @@ export default class ngbHomologeneTableController extends baseController {
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false,
-        enablePaginationControls: false,
+        saveSelection: false
     };
     events = {
-        'homologs:homologene:page:change': ::this.getDataOnPage
+        'homologs:homologene:page:change': this.getDataOnPage.bind(this),
+        'read:show:homologs': this.loadData.bind(this)
     };
 
     constructor($scope, $timeout, dispatcher,
@@ -70,12 +69,9 @@ export default class ngbHomologeneTableController extends baseController {
     async initialize() {
         this.errorMessageList = [];
         this.isProgressShown = true;
-        this.loadError = null;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbHomologeneTableService.getHomologeneGridColumns(),
-            paginationPageSize: this.ngbHomologeneTableService.pageSize,
-            paginationCurrentPage: this.ngbHomologeneTableService.currentPage,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -90,17 +86,17 @@ export default class ngbHomologeneTableController extends baseController {
     }
 
     async loadData() {
+        this.isProgressShown = true;
         try {
-            await this.ngbHomologeneTableService.updateHomologene();
+            await this.ngbHomologeneTableService.searchHomologene(this.ngbHomologsService.currentSearch);
             const dataLength = this.ngbHomologeneTableService.homologene.length;
             if (this.ngbHomologeneTableService.pageError) {
-                this.loadError = this.ngbHomologeneTableService.pageError;
+                this.errorMessageList = [this.ngbHomologeneTableService.pageError];
                 this.gridOptions.data = [];
                 this.isEmptyResults = false;
             } else if (dataLength) {
-                this.loadError = null;
+                this.errorMessageList = [];
                 this.gridOptions.data = this.ngbHomologeneTableService.homologene;
-                this.gridOptions.paginationPageSize = this.ngbHomologeneTableService.pageSize;
                 this.gridOptions.totalItems = dataLength;
                 this.isEmptyResults = false;
             } else {
@@ -108,19 +104,20 @@ export default class ngbHomologeneTableController extends baseController {
             }
             this.isProgressShown = false;
         } catch (errorObj) {
+            this.isProgressShown = false;
             this.onError(errorObj.message);
         }
         this.$timeout(() => this.$scope.$apply());
     }
 
     onError(message) {
-        this.errorMessageList.push(message);
+        this.errorMessageList = [message];
     }
 
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbHomologsService.currentHomologeneId = row.entity.info;
+            this.ngbHomologsService.currentHomologeneId = row.entity.groupId;
             this.changeState({state: 'HOMOLOGENE_RESULT'});
         } else {
             event.stopImmediatePropagation();
@@ -203,8 +200,9 @@ export default class ngbHomologeneTableController extends baseController {
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 2;
-        this.ngbHomologeneTableService.pageSize = pageSize;
-        this.gridOptions.paginationPageSize = pageSize;
-        this.$timeout(() => this.$scope.$apply());
+        if (pageSize) {
+            this.ngbHomologeneTableService.pageSize = pageSize;
+            this.loadData();
+        }
     }
 }

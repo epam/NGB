@@ -193,187 +193,21 @@ export class GenomeDataService extends DataService {
         });
     }
 
-    _homologene = [];
-    _homologeneResult = [];
     _orthoPara = [];
     _orthoParaResult = [];
 
-    getHomologeneLoad() {
-        const length = 100;
-        if (!this._homologene.length) {
-            for (let i = 0; i < length; i += 1) {
-                this._homologene.push(this.getHomologeneMock());
-            }
-        }
-        // return this._homologene;
-        return [
-            {
-                gene: 'KRAS, Kras, kras, Ras85D, let-60',
-                protein: 'v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog',
-                info: 'Gene conserved in Bilateria'
-            },
-            {
-                gene: 'SSPN, Sspn, sspn',
-                protein: 'sarcospan',
-                info: 'Gene conserved in Euteleostomi'
-            }
-        ];
-    }
-
-    getHomologeneResultLoad() {
-        const length = 100;
-        if (!this._homologeneResult.length) {
-            for (let i = 0; i < length; i += 1) {
-                this._homologeneResult.push(this.getHomologeneResultMock());
-            }
-        }
-        // return this._homologeneResult;
-        return [
-            {
-                name: 'KRAS',
-                species: 'H.sapiens',
-                accession_id: 'NP_203524.1',
-                aa: 189,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'KRAS',
-                species: 'P.troglodytes',
-                accession_id: 'XP_003313842.1',
-                aa: 189,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'KRAS',
-                species: 'C.lupus',
-                accession_id: 'XP_003433608.2',
-                aa: 229,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'KRAS',
-                species: 'B.taurus',
-                accession_id: 'NP_001103471.1',
-                aa: 188,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'Kras',
-                species: 'M.musculus',
-                accession_id: 'NP_067259.4',
-                aa: 188,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'Kras',
-                species: 'R.norvegicus',
-                accession_id: 'NP_113703.1',
-                aa: 188,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'KRAS',
-                species: 'G.gallus',
-                accession_id: 'NP_001243091.1',
-                aa: 188,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'LOC100485959',
-                species: 'X.tropicalis',
-                accession_id: '\tXP_004920180.1',
-                aa: 226,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'kras',
-                species: 'D.rerio',
-                accession_id: 'NP_001003744.1',
-                aa: 188,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'Ras85D',
-                species: 'D.melanogaster',
-                accession_id: 'NP_476699.1',
-                aa: 189,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'AgaP_AGAP002219',
-                species: 'A.gambiae',
-                accession_id: 'XP_307965.4',
-                aa: 190,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-            {
-                name: 'let-60',
-                species: 'C.elegans',
-                accession_id: 'NP_502213.3',
-                aa: 184,
-                domains: [{
-                    id: 'cl17170',
-                    start: 3,
-                    end: 180,
-                    name: 'Ras_like_GTPase'
-                }]
-            },
-        ];
+    getHomologeneLoad(filter) {
+        return new Promise((resolve, reject) => {
+            this.post('search', filter)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No homologene received'));
+                    }
+                })
+                .catch(reject);
+        });
     }
 
     getOrthoParaLoad() {

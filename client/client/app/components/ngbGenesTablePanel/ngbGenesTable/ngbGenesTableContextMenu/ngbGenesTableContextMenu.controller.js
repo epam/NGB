@@ -4,6 +4,7 @@ export default class NgbGenesTableContextMenuController {
 
     entity = {};
     featureName;
+    isGene;
     sequenceTooLong = false;
     maxSequenceLength = Infinity;
 
@@ -11,6 +12,7 @@ export default class NgbGenesTableContextMenuController {
         Object.assign(this, {dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
         this.entity = $scope.row.entity;
         this.featureName = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
+        this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE';
 
         const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
         const maxQueryLengthProperty = 'query_max_length';
@@ -77,9 +79,7 @@ export default class NgbGenesTableContextMenuController {
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
         const readInfo = {
-            referenceId: this.entity.referenceId,
-            startIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}startIndex`],
-            endIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}endIndex`]
+            search: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`]
         };
         const data = {
             ...readInfo,

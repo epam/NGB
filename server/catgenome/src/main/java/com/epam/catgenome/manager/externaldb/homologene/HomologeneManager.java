@@ -24,17 +24,17 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.entity.externaldb.homologene.EntryGenesXML;
+import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
-import com.epam.catgenome.entity.externaldb.homologene.GeneXML;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntrySetXML;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntryXML;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -55,27 +55,26 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.sax.SAXSource;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -84,9 +83,13 @@ public class HomologeneManager {
 
     private static final String TERM_SPLIT_TOKEN = " ";
     private static final String GENE_FIELDS_LINE_DELIMITER = "|";
+    public static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
+
+    @Autowired
+    BlastTaxonomyManager taxonomyManager;
 
     public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
@@ -95,11 +98,9 @@ public class HomologeneManager {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
-            final Integer page = query.getPage();
-            Assert.isTrue(page > 0, "Page number should be > 0");
-
-            final Integer pageSize = query.getPageSize();
-            Assert.isTrue(pageSize > 0, "Page size should be > 0");
+            final int page = (query.getPage() == null || query.getPage() <= 0) ? 1 : query.getPage();
+            final int pageSize = (query.getPageSize() == null || query.getPage() <= 0) ? DEFAULT_PAGE_SIZE
+                    : query.getPageSize();
             final int hits = page * pageSize;
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -109,15 +110,27 @@ public class HomologeneManager {
             final int from = (page - 1) * pageSize;
             final int to = Math.min(from + pageSize, scoreDocs.length);
 
+            final Set<Long> taxIds = new HashSet<>();
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
+                List<Gene> genes = getGenes(doc);
+                List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
+                taxIds.addAll(geneTaxIds);
+            }
+            final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                    : taxonomyManager.searchOrganismsByIds(taxIds);
+
+            for (int i = from; i < to; i++) {
+                Document doc = searcher.doc(scoreDocs[i].doc);
+                List<Gene> genes = getGenes(doc);
+                setSpeciesName(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
                         .taxId(getTaxId(doc))
                         .version(getVersion(doc))
                         .caption(getCaption(doc))
-                        .genes(convertGenes(getEntryGenes(doc)))
+                        .genes(genes)
                         .build()
                 );
             }
@@ -125,6 +138,20 @@ public class HomologeneManager {
             searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
+    }
+
+    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
     }
 
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
@@ -135,7 +162,7 @@ public class HomologeneManager {
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (HomologeneEntryXML entry: readHomologenes(databasePath)) {
+            for (HomologeneEntry entry: readHomologenes(databasePath)) {
                 addDoc(writer, entry);
             }
         }
@@ -174,7 +201,7 @@ public class HomologeneManager {
         return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
     }
 
-    private EntryGenesXML getEntryGenes(final Document doc) {
+    private List<Gene> getGenes(final Document doc) {
         return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
                 : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
     }
@@ -195,28 +222,153 @@ public class HomologeneManager {
         }
     }
 
-    public List<HomologeneEntryXML> readHomologenes(final String path) {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(HomologeneEntrySetXML.class);
-
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
-            XMLReader xmlReader = spf.newSAXParser().getXMLReader();
-            InputSource inputSource = new InputSource(path);
-            SAXSource source = new SAXSource(xmlReader, inputSource);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            HomologeneEntrySetXML homologeneEntrySet = (HomologeneEntrySetXML) unmarshaller.unmarshal(source);
-            return homologeneEntrySet.getHomologeneEntrySetEntries().getHomologeneEntries();
-        } catch (JAXBException | ParserConfigurationException | SAXException e) {
-            log.error(e.getMessage());
-            return Collections.emptyList();
+    private static <T> void requireNonNull(T obj) {
+        if (obj == null) {
+            throw new IllegalStateException(INCORRECT_XML_FORMAT);
         }
     }
 
-    private static void addDoc(final IndexWriter writer, final HomologeneEntryXML entry) throws IOException {
+    @SneakyThrows
+    public List<HomologeneEntry> readHomologenes(final String path) {
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        InputStream inputStream = new FileInputStream(path);
+        XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(inputStream);
+        List<HomologeneEntry> homologeneEntries = new ArrayList<>();
+        List<Gene> genes = new ArrayList<>();
+        List<String> aliases = new ArrayList<>();
+        List<Domain> domains = new ArrayList<>();
+        HomologeneEntry homologeneEntry = null;
+        Gene gene = null;
+        Domain domain = null;
+        while (streamReader.hasNext()) {
+            streamReader.next();
+            if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+                switch (streamReader.getLocalName()) {
+                    case "HG-Entry":
+                        homologeneEntry = new HomologeneEntry();
+                        break;
+                    case "HG-Entry_hg-id":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setGroupId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Entry_version":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setVersion(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Entry_caption":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setCaption(streamReader.getElementText());
+                        break;
+                    case "HG-Entry_taxid":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setTaxId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene":
+                        gene = new Gene();
+                        break;
+                    case "HG-Gene_geneid":
+                        requireNonNull(gene);
+                        gene.setGeneId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_symbol":
+                        requireNonNull(gene);
+                        gene.setSymbol(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_title":
+                        requireNonNull(gene);
+                        gene.setTitle(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_taxid":
+                        requireNonNull(gene);
+                        gene.setTaxId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_prot-gi":
+                        requireNonNull(gene);
+                        gene.setProtGi(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_prot-acc":
+                        requireNonNull(gene);
+                        gene.setProtAcc(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_prot-len":
+                        requireNonNull(gene);
+                        gene.setProtLen(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_nuc-gi":
+                        requireNonNull(gene);
+                        gene.setNucGi(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Gene_nuc-acc":
+                        requireNonNull(gene);
+                        gene.setNucAcc(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_locus-tag":
+                        requireNonNull(gene);
+                        gene.setLocusTag(streamReader.getElementText());
+                        break;
+                    case "HG-Gene_aliases_E":
+                        aliases.add(streamReader.getElementText());
+                        break;
+                    case "HG-Domain":
+                        domain = new Domain();
+                        break;
+                    case "HG-Domain_begin":
+                        requireNonNull(domain);
+                        domain.setBegin(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_end":
+                        requireNonNull(domain);
+                        domain.setEnd(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_pssm-id":
+                        requireNonNull(domain);
+                        domain.setPssmId(Long.valueOf(streamReader.getElementText()));
+                        break;
+                    case "HG-Domain_cdd-id":
+                        requireNonNull(domain);
+                        domain.setCddId(streamReader.getElementText());
+                        break;
+                    case "HG-Domain_cdd-name":
+                        requireNonNull(domain);
+                        domain.setCddName(streamReader.getElementText());
+                        break;
+                    default:
+                        break;
+                }
+            } else if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+                switch (streamReader.getLocalName()) {
+                    case "HG-Entry":
+                        requireNonNull(homologeneEntry);
+                        homologeneEntry.setGenes(genes);
+                        homologeneEntries.add(homologeneEntry);
+                        genes = new ArrayList<>();
+                        homologeneEntry = null;
+                        break;
+                    case "HG-Gene":
+                        requireNonNull(gene);
+                        gene.setAliases(aliases);
+                        gene.setDomains(domains);
+                        genes.add(gene);
+                        aliases = new ArrayList<>();
+                        domains = new ArrayList<>();
+                        gene = null;
+                        break;
+                    case "HG-Domain":
+                        domains.add(domain);
+                        domain = null;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        streamReader.close();
+        inputStream.close();
+        return homologeneEntries;
+    }
+
+    private static void addDoc(final IndexWriter writer, final HomologeneEntry entry) throws IOException {
         final Document doc = new Document();
 
         doc.add(new StringField(IndexFields.GROUP_ID.getFieldName(),
@@ -231,56 +383,34 @@ public class HomologeneManager {
         doc.add(new StringField(IndexFields.TAX_ID.getFieldName(),
                 String.valueOf(entry.getTaxId()), Field.Store.YES));
 
-        if (entry.getEntryGenes() != null) {
+        if (entry.getGenes() != null) {
             doc.add(new TextField(IndexFields.GENES.getFieldName(),
-                    serializeGeneEntries(entry.getEntryGenes()), Field.Store.YES));
+                    serializeGenes(entry.getGenes()), Field.Store.YES));
         }
 
-        if (entry.getEntryGenes() != null) {
+        if (entry.getGenes() != null) {
             doc.add(new TextField(IndexFields.QUERY_FIELDS.getFieldName(),
-                    serializeQueryFields(entry.getEntryGenes()), Field.Store.YES));
+                    serializeQueryFields(entry.getGenes()), Field.Store.YES));
         }
         writer.addDocument(doc);
     }
 
     @SneakyThrows
-    private static EntryGenesXML deserializeGenes(final String encoded) {
+    private static List<Gene> deserializeGenes(final String encoded) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(encoded, mapper.getTypeFactory().constructCollectionType(List.class, Gene.class));
+    }
+
+    private static String serializeGenes(final List<Gene> genes) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(encoded, EntryGenesXML.class);
+        return objectMapper.writeValueAsString(genes);
     }
 
-    private static List<Gene> convertGenes(final EntryGenesXML entryGenes) {
-        List<Gene> genes = new ArrayList<>();
-        for (GeneXML gene: entryGenes.getGenes()) {
-            genes.add(Gene.builder()
-                    .geneId(gene.getGeneId())
-                    .symbol(gene.getSymbol())
-                    .aliases(gene.getGeneAliases() == null ? null : gene.getGeneAliases().getAliases())
-                    .title(gene.getTitle())
-                    .taxId(gene.getTaxId())
-                    .protGi(gene.getProtGi())
-                    .protAcc(gene.getProtAcc())
-                    .protLen(gene.getProtLen())
-                    .nucGi(gene.getNucGi())
-                    .nucAcc(gene.getNucAcc())
-                    .domains(gene.getGeneDomains() == null ? null : gene.getGeneDomains().getDomains())
-                    .locusTag(gene.getLocusTag())
-                    .build()
-            );
-        }
-        return genes;
-    }
-
-    private static String serializeGeneEntries(final EntryGenesXML entryGenes) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(entryGenes);
-    }
-
-    private static String serializeQueryFields(final EntryGenesXML entryGenes) {
+    private static String serializeQueryFields(final List<Gene> genes) {
         List<String> geneStrings = new ArrayList<>();
-        for (GeneXML gene: entryGenes.getGenes()) {
-            geneStrings.add(gene.getSymbol() + (gene.getGeneAliases() == null ? "" : GENE_FIELDS_LINE_DELIMITER +
-                    join(gene.getGeneAliases().getAliases(), GENE_FIELDS_LINE_DELIMITER)));
+        for (Gene gene: genes) {
+            geneStrings.add(gene.getSymbol() + (CollectionUtils.isEmpty(gene.getAliases()) ? ""
+                    : GENE_FIELDS_LINE_DELIMITER + join(gene.getAliases(), GENE_FIELDS_LINE_DELIMITER)));
         }
         return join(geneStrings, GENE_FIELDS_LINE_DELIMITER);
     }

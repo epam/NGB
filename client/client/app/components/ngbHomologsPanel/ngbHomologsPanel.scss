@@ -2,6 +2,10 @@
   color: rgb(51, 103, 214);
   font-weight: bold;
   cursor: pointer;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 .homologs-search-result {
   padding: 5px 2px;
