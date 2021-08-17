@@ -17,14 +17,13 @@ export default class ngbFeatureInfoPanelService {
     _historyData = [];
     _saveInProgress = false;
     getHistoryInProgress = false;
-    duplicate = false;
 
     static instance(geneDataService) {
         return new ngbFeatureInfoPanelService(geneDataService);
     }
 
     constructor(geneDataService) {
-        this.geneDataService = geneDataService;
+        Object.assign(this, {geneDataService});
     }
 
     get editMode () {
@@ -47,7 +46,8 @@ export default class ngbFeatureInfoPanelService {
                     name: property[0],
                     value: property[1],
                     default: true,
-                    attribute: Boolean(property[2])
+                    attribute: Boolean(property[2]),
+                    deleted: Boolean(property[3])
                 }));
         } else {
             this.attributes = properties;
@@ -98,18 +98,22 @@ export default class ngbFeatureInfoPanelService {
         }
     }
 
-    changeAttribute(property) {
-        const attributes = this.attributes;
-        if (!property.default) {
-            return attributes.some(attribute => attribute.default &&
-                !attribute.deleted &&
-                attribute.name.toLowerCase() === property.name.toLowerCase()
-            );
+    isDuplicate(property) {
+        const newAttributes = this.attributes;
+        if (!property.default && property.name) {
+            const duplicates = newAttributes.filter(attribute => {
+                if (!attribute.deleted && attribute.name &&
+                    attribute.name.toLowerCase() === property.name.toLowerCase()
+                ) {
+                    return attribute;
+                }
+            });
+            return duplicates.length > 1;
         }
         return false;
     }
 
-    someAttributeIsEmpty () {
+    disableSaveButton () {
         const attributes = this.newAttributes;
         const valueIsEmpty = value => value === undefined || value === null || value === '';
         return attributes.some(attribute => {
@@ -119,13 +123,16 @@ export default class ngbFeatureInfoPanelService {
             if (attribute.default && attribute.deleted && valueIsEmpty(attribute.value)) {
                 return false;
             }
+            if (attribute.name && !valueIsEmpty(attribute.value)) {
+                return this.isDuplicate(attribute);
+            }
             return !attribute.name || valueIsEmpty(attribute.value);
         });
     }
 
     saveNewAttributes () {
         this.attributes = this.attributes
-            .filter(attribute => attribute.name && attribute.value && !this.changeAttribute(attribute));
+            .filter(attribute => attribute.name && attribute.value && !this.isDuplicate(attribute));
     }
 
     updateFeatureInfo(feature) {
@@ -167,6 +174,21 @@ export default class ngbFeatureInfoPanelService {
         });
     }
 
+    unsavedChanges (properties) {
+        const attributes = this.attributes.filter(attribute => attribute.name || attribute.value);
+        if (properties.length !== attributes.length) {
+            return true;
+        }
+        return properties.some((property, index) => {
+            return (
+                property[0] !== attributes[index].name ||
+                property[1] !== attributes[index].value ||
+                property[2] !== attributes[index].attribute ||
+                Boolean(property[3]) !== attributes[index].deleted
+            );
+        });
+    }
+
     getGeneInfoHistory (fileId, uuid) {
         return new Promise((resolve) => {
             this.geneDataService.getGeneInfoHistory({fileId, uuid})
@@ -202,4 +224,5 @@ export default class ngbFeatureInfoPanelService {
                 });
         });
     }
+
 }

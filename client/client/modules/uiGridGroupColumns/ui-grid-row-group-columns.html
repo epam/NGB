@@ -1,0 +1,12 @@
+<div
+        class="ui-grid-cell"
+        ng-class="{
+  'ui-grid-row-header-cell': col.isRowHeader,
+  'first-in-group': col.isFirstInGroup,
+  'last-in-group': col.isLastInGroup
+}"
+        ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.uid"
+        role="{{col.isRowHeader ? 'rowheader' : 'gridcell'}}"
+        ui-grid-cell
+        ui-grid-one-bind-id-grid="rowRenderIndex + '-' + col.uid + '-cell'">
+</div>

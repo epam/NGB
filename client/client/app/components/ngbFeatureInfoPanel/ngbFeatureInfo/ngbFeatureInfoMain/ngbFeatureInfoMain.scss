@@ -1,5 +1,6 @@
 .feature-dialog {
   width: 50%;
+  min-width: 600px;
 }
 
 .sequence-area {
@@ -17,6 +18,7 @@ ngb-feature-info-main{
   collapsible-panel-title{
     font: 400 18px Arial;
     text-transform: none;
+    width: 100%;
   }
 }
 
@@ -43,22 +45,12 @@ ngb-feature-info-main{
 }
 
 .general-information-buttons {
-  position: absolute;
-  top: 0px;
   margin: 0px;
   font-size: 14px;
   color: #6699ff;
-}
-
-.edit-button {
-  right: 0px;
+  float: right;
 }
 
 .cancel-button {
-  right: 0px;
   color: #494949;
-}
-
-.save-button {
-  right: 90px;
 }

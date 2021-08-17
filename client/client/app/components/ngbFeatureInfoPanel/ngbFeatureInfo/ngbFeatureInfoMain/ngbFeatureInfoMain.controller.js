@@ -8,6 +8,7 @@ export default class ngbFeatureInfoMainController {
     sequenceProgress = 0;
     isSequenceLoading = true;
     error = null;
+    _isGeneralInfoOpen = true;
 
     constructor($scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
         Object.assign(this, {$scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
@@ -25,13 +26,8 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
+        this.dispatcher.on('feature:info:changes:cancel', this.onClickCancelBtn.bind(this));
     }
-
-    events = {
-        'feature:info:saved': ::this.getUpdatedFeatureInfo,
-    };
-
-    getUpdatedFeatureInfo () {}
 
     loadSequence() {
         this.isSequenceLoading = true;
@@ -111,7 +107,7 @@ export default class ngbFeatureInfoMainController {
     }
 
     get disableSave () {
-        return this.ngbFeatureInfoPanelService.someAttributeIsEmpty();
+        return this.ngbFeatureInfoPanelService.disableSaveButton();
     }
 
     get saveError () {
@@ -122,12 +118,26 @@ export default class ngbFeatureInfoMainController {
         return this.ngbFeatureInfoPanelService.saveInProgress;
     }
 
-    onClickEditBtn () {
+    get isGeneralInfoOpen () {
+        return this._isGeneralInfoOpen;
+    }
+
+    set isGeneralInfoOpen (value) {
+        this._isGeneralInfoOpen = value;
+    }
+
+    onClickEditBtn (event) {
+        if (event) {
+            event.stopPropagation();
+        }
         this.ngbFeatureInfoPanelService.editMode = true;
         this.ngbFeatureInfoPanelService.newAttributes = this.properties;
     }
 
-    onClickSaveBtn () {
+    onClickSaveBtn (event) {
+        if (event) {
+            event.stopPropagation();
+        }
         this.ngbFeatureInfoPanelService.saveInProgress = true;
         this.ngbFeatureInfoPanelService.saveNewAttributes();
         this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
@@ -151,7 +161,10 @@ export default class ngbFeatureInfoMainController {
             });
     }
 
-    onClickCancelBtn () {
+    onClickCancelBtn (event) {
+        if (event) {
+            event.stopPropagation();
+        }
         this.ngbFeatureInfoPanelService.editMode = false;
         this.ngbFeatureInfoPanelService.newAttributes = null;
         this.ngbFeatureInfoPanelService.saveInProgress = false;

@@ -1,0 +1,31 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading orthologs and paralogs...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
+    <strong>Nothing found. Try to search another gene.</strong>
+</div>
+<div class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults">
+    <div class="homologs-search-result">
+        <span class="homologs-search-result-title ng-binding">Search results</span>
+    </div>
+    <div class="variants-load-error-container" ng-if="$ctrl.historyLoadError">
+        <small>{{$ctrl.historyLoadError}}</small>
+    </div>
+    <div class="blast-history-table"
+         ui-grid="$ctrl.gridOptions"
+         ui-grid-auto-resize
+         ui-grid-move-columns
+         ui-grid-pinning
+         ui-grid-resize-columns
+         ui-grid-save-state
+         ui-grid-selection
+         ui-grid-pagination
+    ></div>
+</div>
+
+<div class="md-padding" ng-if="$ctrl.errorMessageList.length">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>

@@ -25,5 +25,15 @@
                 Show 3D structure
             </md-button>
         </md-list-item>
+        <md-list-item>
+            <md-button ng-click="ctrl.isGene && ctrl.homologsSearch($event)"
+                        ng-disabled="!ctrl.isGene">
+                Show similar genes
+                <div class="ngb-context-menu-warning" ng-if="!ctrl.isGene">
+                    <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
+                    Feature type is not Gene
+                </div>
+            </md-button>
+        </md-list-item>
     </md-list>
 </div>

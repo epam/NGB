@@ -4,6 +4,7 @@ export default class NgbGenesTableContextMenuController {
 
     entity = {};
     featureName;
+    isGene;
     sequenceTooLong = false;
     maxSequenceLength = Infinity;
 
@@ -11,6 +12,7 @@ export default class NgbGenesTableContextMenuController {
         Object.assign(this, {dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
         this.entity = $scope.row.entity;
         this.featureName = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
+        this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE';
 
         const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
         const maxQueryLengthProperty = 'query_max_length';
@@ -68,6 +70,22 @@ export default class NgbGenesTableContextMenuController {
             }]
         });
         this.dispatcher.emitSimpleEvent('miew:show:structure', data);
+        event.stopImmediatePropagation();
+    }
+
+    homologsSearch() {
+        this.ngbGenesTableContextMenu.close();
+        const layoutChange = this.appLayout.Panels.homologs;
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        const readInfo = {
+            search: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`]
+        };
+        const data = {
+            ...readInfo,
+            source: 'gene'
+        };
+        this.dispatcher.emitSimpleEvent('read:show:homologs', data);
         event.stopImmediatePropagation();
     }
 }

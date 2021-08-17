@@ -1,29 +1,29 @@
 <div layout="column">
     <collapsible>
-        <collapsible-panel is-open="true" disabled="$ctrl.editMode">
+        <collapsible-panel is-open="$ctrl.isGeneralInfoOpen" disabled="$ctrl.editMode">
             <collapsible-panel-title>
                 General information
-            </collapsible-panel-title>
-            <collapsible-panel-content>
                 <md-button
-                    class="general-information-buttons edit-button"
-                    ng-if="$ctrl.uuid && $ctrl.editable && !$ctrl.editMode"
-                    ng-click="$ctrl.onClickEditBtn()">
+                    class="general-information-buttons"
+                    ng-if="$ctrl.uuid && !$ctrl.editMode && $ctrl.isGeneralInfoOpen"
+                    ng-click="$ctrl.onClickEditBtn($event)">
                     Edit
-                </md-button>
-                <md-button
-                    class="general-information-buttons save-button"
-                    ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickSaveBtn()"
-                    ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
-                    Save
                 </md-button>
                 <md-button
                     class="general-information-buttons cancel-button"
                     ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickCancelBtn()">
+                    ng-click="$ctrl.onClickCancelBtn($event)">
                     Cancel
                 </md-button>
+                <md-button
+                    class="general-information-buttons"
+                    ng-if="$ctrl.editMode"
+                    ng-click="$ctrl.onClickSaveBtn($event)"
+                    ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
+                    Save
+                </md-button>
+            </collapsible-panel-title>
+            <collapsible-panel-content>
                 <div ng-if="$ctrl.saveInProgress">
                     <div class="progress save-info" layout-align="center center" style="height: 20px;">
                         <span style="line-height: 0px;">Saving...</span>

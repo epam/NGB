@@ -1,0 +1,29 @@
+<div
+        class="ui-grid-footer-panel ui-grid-footer-aggregates-row"> <!-- tfooter -->
+  <div
+          class="ui-grid-footer ui-grid-footer-viewport">
+    <div
+            class="ui-grid-footer-canvas">
+      <div
+              class="ui-grid-footer-cell-wrapper"
+              ng-style="colContainer.headerCellWrapperStyle()">
+        <div
+                class="ui-grid-footer-cell-row"
+                role="row">
+          <div
+                  class="ui-grid-footer-cell ui-grid-clearfix"
+                  col="col"
+                  ng-class="{
+            'first-in-group': col.isFirstInGroup,
+            'last-in-group': col.isLastInGroup
+          }"
+                  ng-repeat="col in colContainer.renderedColumns track by col.uid"
+                  render-index="$index"
+                  role="gridcell"
+                  ui-grid-footer-cell>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

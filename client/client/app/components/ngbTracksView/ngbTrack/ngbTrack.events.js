@@ -181,6 +181,24 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
+                if (data.feature.feature.toLowerCase() === 'gene') {
+                    const layoutChange = this.appLayout.Panels.homologs;
+                    layoutChange.displayed = true;
+                    menuData.push({
+                        events: [
+                            {
+                                data: { layoutChange },
+                                name: 'layout:item:change'
+                            },
+                            {
+                                data: {
+                                    search: data.feature.name
+                                },
+                                name: 'read:show:homologs'
+                            }],
+                        title: 'Show similar genes'
+                    });
+                }
                 if (menuData.length > 0) {
                     const childScope = this.$scope.$new(false);
                     childScope.menuData = menuData;

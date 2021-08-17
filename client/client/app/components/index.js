@@ -16,6 +16,7 @@ import ngbGenomeAnnotations from './ngbGenomeAnnotations';
 import ngbBlatSearchPanel from './ngbBlatSearchPanel';
 import ngbBlastSearchPanel from './ngbBlastSearchPanel';
 import ngbGenesTablePanel from './ngbGenesTablePanel';
+import ngbHomologsPanel from './ngbHomologsPanel';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -34,5 +35,6 @@ export default angular.module('NGB_Panels', [
     ngbGenomeAnnotations,
     ngbBlatSearchPanel,
     ngbBlastSearchPanel,
-    ngbGenesTablePanel
+    ngbGenesTablePanel,
+    ngbHomologsPanel
 ]).name;
