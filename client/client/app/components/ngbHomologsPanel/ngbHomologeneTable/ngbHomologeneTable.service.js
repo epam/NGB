@@ -130,7 +130,8 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                     result[homologene.groupId][key].domainsObj = {
                         domains: value.domains.map(d => ({...d, color: this.calculateColor(d.name)})),
                         homologLength: value.aa,
-                        maxHomologLength: maxHomologLength
+                        maxHomologLength: maxHomologLength,
+                        accession_id: value.accession_id
                     };
                     delete result[homologene.groupId][key].domains;
                 });
@@ -161,6 +162,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                         cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
                                        >{{row.entity.gene}}</div>`,
                         enableHiding: false,
+                        enableColumnMenu: false,
                         field: 'gene',
                         name: this.columnTitleMap[column]
                     };
@@ -169,6 +171,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 default: {
                     columnSettings = {
                         enableHiding: false,
+                        enableColumnMenu: false,
                         field: column,
                         minWidth: 40,
                         name: this.columnTitleMap[column],
