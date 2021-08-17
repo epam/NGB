@@ -121,6 +121,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -507,7 +508,7 @@ public class FeatureIndexDao {
                     TermsEnum termsEnum = terms.iterator();
                     BytesRef byteRef = termsEnum.next();
                     while (byteRef != null && i < luceneRequestMaxValues) {
-                        termValues.add(byteRef.utf8ToString());
+                        termValues.add(byteRef.utf8ToString().toLowerCase(Locale.ROOT));
                         byteRef = termsEnum.next();
                         i++;
                     }
