@@ -12,7 +12,8 @@ export default class NgbGenesTableContextMenuController {
         Object.assign(this, {dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
         this.entity = $scope.row.entity;
         this.featureName = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
-        this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE';
+        this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE'
+            && !!this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
 
         const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
         const maxQueryLengthProperty = 'query_max_length';

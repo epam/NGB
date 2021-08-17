@@ -58,6 +58,8 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                     result.push({
                         cellTemplate: '<ngb-homologs-domains domains="row.entity.domainsObj"></ngb-homologs-domains>',
                         enableHiding: false,
+                        enableSorting: false,
+                        enableColumnMenu: false,
                         field: 'domainsObj',
                         group: COLUMNS_GROUP[column],
                         headerCellTemplate: headerCells,
@@ -84,7 +86,7 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                 case 'accession_id': {
                     result.push({
                         cellTemplate: `<div class="ui-grid-cell-contents homologs-link">
-                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/protein/{{row.entity.protGi}}">
+                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/protein/{{row.entity.accession_id}}">
                                             {{row.entity.accession_id}}
                                         </a>
                                        </div>`,
