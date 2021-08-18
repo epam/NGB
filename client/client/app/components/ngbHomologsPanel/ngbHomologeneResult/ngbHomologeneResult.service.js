@@ -70,10 +70,9 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                 }
                 case 'name': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link">
-                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/gene/{{row.entity.geneId}}">
-                                            {{row.entity.name}}
-                                        </a>
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link" 
+                                            ng-click="grid.appScope.$ctrl.navigateToTrack(row.entity)">
+                                        {{row.entity.name}}
                                        </div>`,
                         enableHiding: false,
                         field: 'name',
