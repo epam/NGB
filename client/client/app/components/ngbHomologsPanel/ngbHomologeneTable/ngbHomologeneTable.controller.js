@@ -80,6 +80,9 @@ export default class ngbHomologeneTableController extends baseController {
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
                 this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
+                this.gridApi.core.on.renderingComplete(this.$scope, gridApi => {
+                    this.debounce(this, this.onResize.bind(this), RESIZE_DELAY)(0, 0, gridApi.grid.gridHeight);
+                });
             }
         });
         await this.loadData();
@@ -159,9 +162,6 @@ export default class ngbHomologeneTableController extends baseController {
 
     getDataOnPage(page) {
         this.ngbHomologeneTableService.firstPage = page;
-        if (this.gridApi) {
-            this.gridApi.pagination.seek(page);
-        }
         return this.loadData();
     }
 

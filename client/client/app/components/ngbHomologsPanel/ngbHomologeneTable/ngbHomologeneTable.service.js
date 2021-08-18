@@ -119,6 +119,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         const result = {};
         if (data) {
             data.forEach(homologene => {
+                maxHomologLength = 0;
                 result[homologene.groupId] = [];
                 homologene.genes.forEach((gene, key) => {
                     result[homologene.groupId][key] = this._formatResultToClient(gene);
@@ -230,6 +231,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
             accession_id: result.protAcc,
             protGi: result.protGi,
             aa: result.protLen,
+            taxId: result.taxId,
             domains: (result.domains || []).map(d => ({
                 id: d.pssmId,
                 start: d.begin,

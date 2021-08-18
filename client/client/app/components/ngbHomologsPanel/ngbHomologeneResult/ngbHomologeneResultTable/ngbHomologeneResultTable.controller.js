@@ -43,13 +43,16 @@ export default class ngbHomologeneResultTableController extends baseController {
         'homologs:homologene:result:page:change': ::this.getDataOnPage
     };
 
-    constructor($scope, $timeout, ngbHomologeneTableService, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
+    constructor($scope, $timeout, projectContext, projectDataService,
+        ngbHomologeneTableService, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
+            projectContext,
+            projectDataService,
             ngbHomologeneTableService,
             ngbHomologeneResultService,
             ngbHomologsService
@@ -182,6 +185,27 @@ export default class ngbHomologeneResultTableController extends baseController {
             this.ngbHomologeneResultService.totalPages = Math.ceil(this.gridOptions.data.length / this.ngbHomologeneResultService.pageSize);
             this.gridOptions.paginationPageSize = pageSize;
             this.$timeout(() => this.$scope.$apply());
+        }
+    }
+
+    async navigateToTrack(entity) {
+        const coordinates = await this.projectDataService.getFeatureCoordinates(entity.accession_id, 'PROTEIN', entity.taxId);
+        if (coordinates && !coordinates.error) {
+            const range = Math.abs(coordinates.end - coordinates.start);
+            const start = Math.min(coordinates.start, coordinates.end) - range / 10.0;
+            const end = Math.max(coordinates.start, coordinates.end) + range / 10.0;
+            this.projectContext.changeState({
+                chromosome: {id: coordinates.chromosomeId},
+                viewport: {
+                    start,
+                    end
+                }
+            });
+            // navigate to track
+        } else {
+            event.stopImmediatePropagation();
+            window.open(`https://www.ncbi.nlm.nih.gov/gene/${entity.geneId}`);
+            return false;
         }
     }
 }
