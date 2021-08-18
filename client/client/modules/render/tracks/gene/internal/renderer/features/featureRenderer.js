@@ -8,7 +8,6 @@ import {
 } from './drawing';
 import {Sorting, ZonesManager} from '../../../../../utilities';
 import {Viewport} from '../../../../../core';
-import destroyPixiDisplayObjects from '../../../../../utilities/destroyPixiDisplayObjects';
 
 const TWO_MINUTES = 2 * 60 * 1000;
 
@@ -222,7 +221,7 @@ export default class FeatureRenderer {
         this._labelsPools.clear();
     }
 
-    manageLabels(viewport) {
+    manageLabels(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._labels.length; i++) {
             const labelData = this._labels[i];
             if (labelData.label.parent === null || labelData.label.parent === undefined)
@@ -239,7 +238,8 @@ export default class FeatureRenderer {
                     (labelData.range.offset ? labelData.range.offset.left : 0);
                 const endPx = Math.max(viewport.project.brushBP2pixel(labelData.range.end) -
                     labelData.label.width, startPx);
-                if (startPx > viewport.canvasSize || endPx < -labelData.label.width) {
+                const verticallyInvisible = labelData.position.y < -yOffset || labelData.position.y + labelData.position.height > (-yOffset) + height;
+                if (startPx > viewport.canvasSize || endPx < -labelData.label.width || verticallyInvisible) {
                     labelData.label.visible = false;
                 } else {
                     labelData.label.visible = true;
@@ -268,13 +268,16 @@ export default class FeatureRenderer {
         }
     }
 
-    manageAttachedElements(viewport) {
+    manageAttachedElements(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._attachedElements.length; i++) {
             const {attachedInfo, element} = this._attachedElements[i];
-            element.y = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            const elementY = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            element.y = elementY;
             const startPx = viewport.project.brushBP2pixel(attachedInfo.range.start);
             const endPx = viewport.project.brushBP2pixel(attachedInfo.range.end);
-            if (startPx > viewport.canvasSize || endPx < 0) {
+            const verticallyInvisible = elementY < -yOffset || elementY + attachedInfo.renderInfo.height > (-yOffset) + height;
+
+            if (startPx > viewport.canvasSize || endPx < 0 || verticallyInvisible) {
                 element.visible = false;
                 continue;
             }
@@ -439,17 +442,6 @@ export default class FeatureRenderer {
                 yDockable
             });
         }
-    }
-
-    destroyRegisteredLabels() {
-        const labelsToDestroy = [
-            ...(this._labels || []).map(i => i.label),
-            ...(this._dockableLabels || []).map(i => i.label)
-        ];
-        (labels => {
-            destroyPixiDisplayObjects(labels, {children: true});
-            labels = null;
-        })(labelsToDestroy);
     }
 
     registerDockableElement(dockableElement, range) {

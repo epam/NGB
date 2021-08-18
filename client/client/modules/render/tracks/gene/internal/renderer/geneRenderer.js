@@ -210,9 +210,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 }
                 this.hoverItem(null, viewport, false);
             }
-            this.featureRenderer.manageLabels(viewport);
+            this.featureRenderer.manageLabels(viewport, this.height);
             this.featureRenderer.manageDockableElements(viewport);
-            this.featureRenderer.manageAttachedElements(viewport);
+            this.featureRenderer.manageAttachedElements(viewport, this.height);
             this._actualHeight = this.featureRenderer.getActualHeight();
             this.dataContainer.addChild(this._hoveredItemContainer);
         }
@@ -310,9 +310,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.scale = this.dataContainer.scale;
-        this.featureRenderer.manageLabels(viewport);
+        this.featureRenderer.manageLabels(viewport, this.height, this.dataContainer.y);
         this.featureRenderer.manageDockableElements(viewport);
-        this.featureRenderer.manageAttachedElements(viewport);
+        this.featureRenderer.manageAttachedElements(viewport, this.height, this.dataContainer.y);
         this.manageMask(viewport);
     }
 
@@ -325,9 +325,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this._dockableElementsContainer.x = this.dataContainer.x;
             this._dockableElementsContainer.y = this.dataContainer.y;
             this._dockableElementsContainer.scale = this.dataContainer.scale;
-            this.featureRenderer.manageLabels(viewport);
+            this.featureRenderer.manageLabels(viewport, this.height, this.dataContainer.y);
             this.featureRenderer.manageDockableElements(viewport);
-            this.featureRenderer.manageAttachedElements(viewport);
+            this.featureRenderer.manageAttachedElements(viewport, this.height, this.dataContainer.y);
             this.hoverItem(null);
         }
         this.manageMask(viewport);
