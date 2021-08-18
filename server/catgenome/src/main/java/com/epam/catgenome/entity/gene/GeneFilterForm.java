@@ -85,6 +85,8 @@ public class GeneFilterForm extends AbstractFilterForm {
                 GeneIndexSortField.CHROMOSOME_NAME.getType(), false));
         sortFields.add(new SortField(GeneIndexSortField.START_INDEX.getFieldName(),
                 GeneIndexSortField.START_INDEX.getType(), false));
+        sortFields.add(new SortField(GeneIndexSortField.FEATURE_NAME.getFieldName(),
+                GeneIndexSortField.FEATURE_NAME.getType(), false));
         return new Sort(sortFields.toArray(new SortField[0]));
     }
 

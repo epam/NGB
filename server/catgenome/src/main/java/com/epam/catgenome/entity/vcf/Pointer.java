@@ -97,13 +97,15 @@ public class Pointer {
     @Builder
     public static class FieldRef {
 
+        private static final String EMPTY = "";
+
         Object ref;
         FieldRefType type;
 
         public Object toField() {
             switch (type) {
                 case BYTES_REF:
-                    return new BytesRef((String) ref);
+                    return ref != null ? new BytesRef((String) ref) : new BytesRef(EMPTY);
                 case INTEGER:
                     return Integer.parseInt(ref.toString());
                 case DOUBLE:
