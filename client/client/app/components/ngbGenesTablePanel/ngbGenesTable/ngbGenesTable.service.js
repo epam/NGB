@@ -1,3 +1,5 @@
+import {calculateColor} from '../../../shared/utils/calculateColor';
+
 const DEFAULT_GENES_COLUMNS = [
     'chromosome', 'featureName', 'featureId', 'featureType', 'startIndex', 'endIndex', 'strand'
 ];
@@ -572,22 +574,6 @@ export default class ngbGenesTableService {
         }
     }
 
-    hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return 100 * hash;
-    }
-
-    intToRGB(i) {
-        const c = (i & 0x00FFFFFF)
-            .toString(16)
-            .toUpperCase();
-
-        return `#${'00000'.substring(0, 6 - c.length)}${c}`;
-    }
-
     determineDarkness(color) {
         const parsedColor = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
 
@@ -608,7 +594,7 @@ export default class ngbGenesTableService {
 
     getStyle(context) {
         return str => {
-            const color = context.intToRGB(context.hashCode(str));
+            const color = calculateColor(str);
             return {
                 'background-color': color,
                 'color': context.determineDarkness(color)

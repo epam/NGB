@@ -1,4 +1,5 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
+import {calculateColor} from '../../../shared/utils/calculateColor';
 
 const DEFAULT_ORTHO_PARA_COLUMNS = [
     'gene', 'protein', 'info'
@@ -129,7 +130,7 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
                 });
                 result[orthoPara.groupId].forEach((value, key) => {
                     result[orthoPara.groupId][key].domainsObj = {
-                        domains: value.domains.map(d => ({...d, color: this.calculateColor(d.name)})),
+                        domains: value.domains.map(d => ({...d, color: calculateColor(d.name)})),
                         homologLength: value.aa,
                         maxHomologLength: maxHomologLength,
                         accession_id: value.accession_id
@@ -195,17 +196,30 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
     }
 
     _formatServerToClient(orthoPara) {
-        const gene = new Set(),
-            protein = [];
+        const gene = new Set();
+        const proteinFrequency = {};
         orthoPara.genes.forEach(g => {
             gene.add(g.symbol);
-            // protein.push(g.title);
+            if (proteinFrequency.hasOwnProperty(g.title)) {
+                proteinFrequency[g.title] += 1;
+            } else {
+                proteinFrequency[g.title] = 1;
+            }
         });
+
+        const sortableProteinFrequency = [];
+        for (const protein in proteinFrequency) {
+            if (proteinFrequency.hasOwnProperty(protein)) {
+                sortableProteinFrequency.push([protein, proteinFrequency[protein]]);
+            }
+        }
+
+        sortableProteinFrequency.sort((b, a) => a[1] - b[1]);
 
         return {
             groupId: orthoPara.groupId,
             gene: [...gene].sort().join(', '),
-            protein: protein.join(', '),
+            protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
             info: orthoPara.caption
         };
     }
@@ -227,27 +241,4 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
             }))
         };
     }
-
-
-    calculateColor(str) {
-        return this.intToRGB(this.hashCode(str));
-    }
-
-    //TODO: move this and gene's to utility
-    hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return 100 * hash;
-    }
-
-    intToRGB(i) {
-        const c = (i & 0x00FFFFFF)
-            .toString(16)
-            .toUpperCase();
-
-        return `#${'00000'.substring(0, 6 - c.length)}${c}`;
-    }
-
 }

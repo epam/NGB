@@ -1,13 +1,14 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
 
 const DEFAULT_COLUMNS = [
-    'name', 'species', 'accession_id', 'aa', 'domains'
+    'name', 'species', 'accession_id', 'protein',  'aa', 'domains'
 ];
 
 const COLUMNS_GROUP = {
     name: 'Gene',
     species: 'Gene',
     accession_id: 'Protein',
+    protein: 'Protein',
     aa: 'Protein',
     domains: 'Protein'
 };
@@ -63,7 +64,7 @@ export default class ngbHomologeneResultService extends ClientPaginationService 
                         field: 'domainsObj',
                         group: COLUMNS_GROUP[column],
                         headerCellTemplate: headerCells,
-                        minWidth: 300,
+                        minWidth: 250,
                         name: column
                     });
                     break;

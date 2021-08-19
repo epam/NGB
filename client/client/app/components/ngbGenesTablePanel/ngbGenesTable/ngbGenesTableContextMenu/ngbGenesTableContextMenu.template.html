@@ -1,39 +1,39 @@
 <div class="ngb-genes-table-context-menu">
-    <md-list class="md-dense">
-        <md-list-item>
+    <md-menu-content>
+        <md-menu-item>
             <md-button ng-click="!ctrl.sequenceTooLong && ctrl.blastSearch('blastn', $event)"
                        ng-disabled="ctrl.sequenceTooLong">
-                BLASTn search
-                <div class="ngb-context-menu-warning" ng-if="ctrl.sequenceTooLong">
+                <span>BLASTn search</span>
+                <span class="ngb-context-menu-warning" ng-if="ctrl.sequenceTooLong">
                     <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
                     Query maximum length ({{ctrl.maxSequenceLength}}bp) exceeded
-                </div>
+                </span>
             </md-button>
-        </md-list-item>
-        <md-list-item>
+        </md-menu-item>
+        <md-menu-item>
             <md-button ng-click="ctrl.featureName && ctrl.blastSearch('blastp', $event)"
                        ng-disabled="!ctrl.featureName">
-                BLASTp search
-                <div class="ngb-context-menu-warning" ng-if="!ctrl.featureName">
+                <span>BLASTp search</span>
+                <span class="ngb-context-menu-warning" ng-if="!ctrl.featureName">
                     <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
-                        Feature name is missing
-                </div>
+                    Feature name is missing
+                </span>
             </md-button>
-        </md-list-item>
-        <md-list-item>
+        </md-menu-item>
+        <md-menu-item>
             <md-button ng-click="ctrl.openMolecularView($event)">
                 Show 3D structure
             </md-button>
-        </md-list-item>
-        <md-list-item>
+        </md-menu-item>
+        <md-menu-item>
             <md-button ng-click="ctrl.isGene && ctrl.homologsSearch($event)"
-                        ng-disabled="!ctrl.isGene">
-                Show similar genes
-                <div class="ngb-context-menu-warning" ng-if="!ctrl.isGene">
+                       ng-disabled="!ctrl.isGene">
+                <span>Show similar genes</span>
+                <span class="ngb-context-menu-warning" ng-if="!ctrl.isGene">
                     <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
                     Feature type is not Gene or Name is missing
-                </div>
+                </span>
             </md-button>
-        </md-list-item>
-    </md-list>
+        </md-menu-item>
+    </md-menu-content>
 </div>
