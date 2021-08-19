@@ -1,4 +1,5 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
+import {calculateColor} from '../../../shared/utils/calculateColor';
 
 const DEFAULT_HOMOLOGENE_COLUMNS = [
     'gene', 'protein', 'info'
@@ -129,7 +130,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 });
                 result[homologene.groupId].forEach((value, key) => {
                     result[homologene.groupId][key].domainsObj = {
-                        domains: value.domains.map(d => ({...d, color: this.calculateColor(d.name)})),
+                        domains: value.domains.map(d => ({...d, color: calculateColor(d.name)})),
                         homologLength: value.aa,
                         maxHomologLength: maxHomologLength,
                         accession_id: value.accession_id
@@ -232,6 +233,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
             protGi: result.protGi,
             aa: result.protLen,
             taxId: result.taxId,
+            protein: result.title,
             domains: (result.domains || []).map(d => ({
                 id: d.pssmId,
                 start: d.begin,
@@ -239,28 +241,6 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 name: d.cddName
             }))
         };
-    }
-
-
-    calculateColor(str) {
-        return this.intToRGB(this.hashCode(str));
-    }
-
-    //TODO: move this and gene's to utility
-    hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return 100 * hash;
-    }
-
-    intToRGB(i) {
-        const c = (i & 0x00FFFFFF)
-            .toString(16)
-            .toUpperCase();
-
-        return `#${'00000'.substring(0, 6 - c.length)}${c}`;
     }
 
 }
