@@ -194,17 +194,30 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
     }
 
     _formatServerToClient(homologene) {
-        const gene = new Set(),
-            protein = [];
+        const gene = new Set();
+        const proteinFrequency = {};
         homologene.genes.forEach(g => {
             gene.add(g.symbol);
-            // protein.push(g.title);
+            if (proteinFrequency.hasOwnProperty(g.title)) {
+                proteinFrequency[g.title] += 1;
+            } else {
+                proteinFrequency[g.title] = 1;
+            }
         });
+
+        const sortableProteinFrequency = [];
+        for (const protein in proteinFrequency) {
+            if (proteinFrequency.hasOwnProperty(protein)) {
+                sortableProteinFrequency.push([protein, proteinFrequency[protein]]);
+            }
+        }
+
+        sortableProteinFrequency.sort((b, a) => a[1] - b[1]);
 
         return {
             groupId: homologene.groupId,
             gene: [...gene].sort().join(', '),
-            protein: protein.join(', '),
+            protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
             info: homologene.caption
         };
     }
