@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from './strandDrawing';
 
@@ -34,7 +33,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const transcript = this.config.transcript;
 
         if (feature.name) {
-            transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label, true);
+            transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label);
         }
 
         const width = Math.max(1, boundariesX2 - boundariesX1, transcriptLabelSize.width);
@@ -306,13 +305,12 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
             (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
             let shouldAddToContainer = false;
             let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-            const fontName = FontManager.getFontByStyle(transcriptConfig.label);
             if (!label) {
                 shouldAddToContainer = true;
-                label = new PIXI.BitmapText(feature.name, {fontName});
+                label = new PIXI.Text(feature.name, transcriptConfig.label);
             } else {
                 label.visible = true;
-                label.fontName = fontName;
+                label.style = transcriptConfig.label;
                 label.text = feature.name;
             }
             let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;

@@ -111,7 +111,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         const childrenToRemove = [];
         for (let i = 0; i < container.children.length; i++) {
             const child = container.children[i];
-            if (!(child instanceof PIXI.BitmapText)) {
+            if (!(child instanceof PIXI.Text)) {
                 childrenToRemove.push(child);
             } else {
                 child.visible = false;

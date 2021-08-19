@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 
 const AMINOACID_LENGTH_IN_BASE_PAIRS = 3;
@@ -39,13 +38,13 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
 
     constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
-        this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle, true).width +
+        this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
-        this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle, true).width +
+        this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
-        this._stopLabelWidth = PixiTextSize.getTextSize('STOP', this.config.aminoacid.label.defaultStyle, true).width +
+        this._stopLabelWidth = PixiTextSize.getTextSize('STOP', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
-        this._maxAminoacidNumberWidth = PixiTextSize.getTextSize('99999', this.config.aminoacid.number, true).width;
+        this._maxAminoacidNumberWidth = PixiTextSize.getTextSize('99999', this.config.aminoacid.number).width;
     }
 
     shouldDrawAminoacids(viewport) {
@@ -127,7 +126,7 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
     }
 
     analyzeBoundaries(feature, viewport) {
-        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number, true).height : 0;
+        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height : 0;
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
         if (this.aminoacidsFitsViewport(feature, viewport)) {
@@ -162,13 +161,12 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 const indexAcid = acid.index + 1;
                 let shouldAddToContainer = false;
                 let aminoacidNumber = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-                const fontName = FontManager.getFontByStyle(this.config.aminoacid.number);
                 if (!aminoacidNumber) {
-                    aminoacidNumber = new PIXI.BitmapText(indexAcid, {fontName});
+                    aminoacidNumber = new PIXI.Text(indexAcid, this.config.aminoacid.number);
                     shouldAddToContainer = true;
                 } else {
                     aminoacidNumber.visible = true;
-                    aminoacidNumber.fontName = fontName;
+                    aminoacidNumber.style = this.config.aminoacid.number;
                     aminoacidNumber.text = indexAcid;
                 }
 
@@ -281,13 +279,12 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
             if (shouldDisplayLabel && shouldDisplayAminoacidLabels && acid.endIndex - acid.startIndex >= 1) {
                 let shouldAddToContainer = false;
                 let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-                const fontName = FontManager.getFontByStyle(labelStyle);
                 if (!label) {
                     shouldAddToContainer = true;
-                    label = new PIXI.BitmapText(acid.text.toUpperCase(), {fontName});
+                    label = new PIXI.Text(acid.text.toUpperCase(), labelStyle);
                 } else {
                     label.visible = true;
-                    label.fontName = fontName;
+                    label.style = labelStyle;
                     label.text = acid.text.toUpperCase();
                 }
                 const yOffset = 0.5;

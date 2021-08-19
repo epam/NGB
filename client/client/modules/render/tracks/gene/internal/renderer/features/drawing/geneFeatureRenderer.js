@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';
 import drawStrandDirection, {getStrandArrowSize} from './strandDrawing';
@@ -30,7 +29,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         let maxLabelWidth = {height: 0, width: 0};
         const gene = this.config.gene;
         if (feature.name) {
-            maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label, true);
+            maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label);
         }
         if (rect) {
             let transcriptsHeight = 0;
@@ -100,13 +99,12 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         if (feature.name) {
             let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(dockableElementsContainer);
             let shouldAddToContainer = false;
-            const fontName = FontManager.getFontByStyle(this.config.gene.label);
             if (!label) {
                 shouldAddToContainer = true;
-                label = new PIXI.BitmapText(feature.name, {fontName});
+                label = new PIXI.Text(feature.name, this.config.gene.label);
             } else {
                 label.visible = true;
-                label.fontName = fontName;
+                label.style = this.config.gene.label;
                 label.text = feature.name;
             }
             label.x = Math.round(position.x);
@@ -266,7 +264,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
 
                 if (transcripts[i].name) {
-                    const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label, true);
+                    const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
                     transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 } else {
                     transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);

@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
 
@@ -67,7 +66,7 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
         const boundaries = super.analyzeBoundaries(feature, viewport);
         let labelSize = {height: 0, width: 0};
         if (feature.name && feature.name !== '.') {
-            labelSize = PixiTextSize.getTextSize(feature.name, this.config.gene.label, true);
+            labelSize = PixiTextSize.getTextSize(feature.name, this.config.gene.label);
         }
         if (boundaries.rect) {
             boundaries.rect.x2 = Math.max(boundaries.rect.x2, boundaries.rect.x1 + labelSize.width);
@@ -136,8 +135,7 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
         const gene = this.config.gene;
 
         if (feature.name) {
-            const fontName = FontManager.getFontByStyle(this.config.gene.label);
-            const label = new PIXI.BitmapText(feature.name, {fontName});
+            const label = new PIXI.Text(feature.name, this.config.gene.label);
 
             label.x = Math.round(position.x);
             label.y = Math.round(position.y);

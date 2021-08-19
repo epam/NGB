@@ -323,7 +323,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element: PIXI.BitmapText = labels[i].label;
+            const element: PIXI.Text = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -398,7 +398,7 @@ export default class FeatureRenderer {
 
         for (let i = 0; i < (container.children || []).length; i++) {
             const child = container.children[i];
-            if (child.visible || !(child instanceof PIXI.BitmapText)) {
+            if (child.visible || !(child instanceof PIXI.Text)) {
                 continue;
             }
             itemsToAdd.push(child);
@@ -414,7 +414,7 @@ export default class FeatureRenderer {
     /**
      * @param container {PIXI.Container}
      *
-     * @return {PIXI.BitmapText | null} - label if exists otherwise null
+     * @return {PIXI.Text | null} - label if exists otherwise null
      * */
     getLabelObjectFromPool(container) {
         if (!this._labelsPools.has(container)) {

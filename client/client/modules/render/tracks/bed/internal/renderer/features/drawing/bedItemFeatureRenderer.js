@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import FontManager from '../../../../../../core/fontManager';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
 
@@ -23,10 +22,10 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let descriptionLabelSize = {height: 0, width: 0};
         let labelSize = {height: 0, width: 0};
         if (feature.name && feature.name !== '.') {
-            labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label, true);
+            labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label);
         }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
-            descriptionLabelSize = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label, true);
+            descriptionLabelSize = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label);
         }
         if (boundaries.rect) {
             boundaries.rect.x2 = Math.max(boundaries.rect.x2, boundaries.rect.x1 + labelSize.width);
@@ -61,8 +60,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let labelHeight = 0;
         let labelWidth = 0;
         if (feature.name && feature.name !== '.') {
-            const fontName = FontManager.getFontByStyle(this.config.bed.label);
-            const label = new PIXI.BitmapText(feature.name, {fontName});
+            const label = new PIXI.Text(feature.name, this.config.bed.label);
 
             label.x = Math.round(position.x);
             label.y = Math.round(position.y);
@@ -72,10 +70,9 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             this.registerLabel(label, position, {end: feature.endIndex, start: feature.startIndex});
         }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
-            const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label, true).width;
+            const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label).width;
             if (descriptionLabelWidth < position.width) {
-                const fontName = FontManager.getFontByStyle(this.config.bed.description.label);
-                const descriptionLabel = new PIXI.BitmapText(feature.description, {fontName});
+                const descriptionLabel = new PIXI.Text(feature.description, this.config.bed.description.label);
 
                 descriptionLabel.x = Math.round(position.x);
                 descriptionLabel.y = Math.round(position.y + labelHeight);
