@@ -43,13 +43,17 @@ export default class ngbOrthoParaResultTableController extends baseController {
         'homologs:orthoPara:result:page:change': ::this.getDataOnPage
     };
 
-    constructor($scope, $timeout, ngbOrthoParaResultService, ngbHomologsService, dispatcher) {
+    constructor($scope, $timeout, projectContext, projectDataService,
+        ngbOrthoParaTableService, ngbOrthoParaResultService, ngbHomologsService, dispatcher) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
+            projectContext,
+            projectDataService,
+            ngbOrthoParaTableService,
             ngbOrthoParaResultService,
             ngbHomologsService
         });
@@ -85,25 +89,27 @@ export default class ngbOrthoParaResultTableController extends baseController {
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
+                this.gridApi.core.on.renderingComplete(this.$scope, gridApi => {
+                    this.debounce(this, this.onResize.bind(this), RESIZE_DELAY)(0, 0, gridApi.grid.gridHeight);
+                });
             }
         });
-        await this.loadData();
+        this.loadData();
     }
 
-    async loadData() {
+    loadData() {
         try {
-            await this.ngbOrthoParaResultService.updateSearchResult(this.ngbHomologsService.currentResultId);
-            const resultLength = this.ngbOrthoParaResultService.orthoParaResult.length;
-            if (this.ngbOrthoParaResultService.searchResultTableError) {
-                this.searchResultTableLoadError = this.ngbOrthoParaResultService.searchResultTableError;
+            const result = this.ngbOrthoParaTableService.getOrthoParaResultById(this.ngbHomologsService.currentOrthoParaId);
+            if (this.ngbOrthoParaTableService.searchResultTableError) {
+                this.searchResultTableLoadError = this.ngbOrthoParaTableService.searchResultTableError;
                 this.gridOptions.data = [];
                 this.gridOptions.totalItems = 0;
                 this.isEmptyResults = false;
-            } else if (resultLength) {
+            } else if (result.length) {
                 this.searchResultTableLoadError = null;
-                this.gridOptions.data = this.ngbOrthoParaResultService.orthoParaResult;
+                this.gridOptions.data = result;
                 this.gridOptions.paginationPageSize = this.ngbOrthoParaResultService.pageSize;
-                this.gridOptions.totalItems = resultLength;
+                this.gridOptions.totalItems = result.length;
                 this.isEmptyResults = false;
             } else {
                 this.isEmptyResults = true;
@@ -125,7 +131,6 @@ export default class ngbOrthoParaResultTableController extends baseController {
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }
-        return this.loadData();
     }
 
     saveColumnsState() {
@@ -175,9 +180,11 @@ export default class ngbOrthoParaResultTableController extends baseController {
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
-        this.ngbOrthoParaResultService.pageSize = pageSize;
-        this.gridOptions.paginationPageSize = pageSize;
-        this.$timeout(() => this.$scope.$apply());
+        if (pageSize) {
+            this.ngbOrthoParaResultService.pageSize = pageSize;
+            this.ngbOrthoParaResultService.totalPages = Math.ceil(this.gridOptions.data.length / this.ngbOrthoParaResultService.pageSize);
+            this.gridOptions.paginationPageSize = pageSize;
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
-
 }

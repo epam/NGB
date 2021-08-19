@@ -18,6 +18,8 @@ const PAGE_SIZE = 15;
 
 export default class ngbOrthoParaTableService extends ClientPaginationService {
 
+    _orthoParaResult;
+
     constructor(dispatcher, genomeDataService) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:orthoPara:page:change');
         this.dispatcher = dispatcher;
@@ -30,20 +32,19 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
         return this._orthoPara;
     }
 
+    getOrthoParaResultById(id) {
+        return this._orthoParaResult[id];
+    }
+
+    getOrthoParaById(id) {
+        return this.orthoPara.filter(h => h.groupId === id)[0] || {};
+    }
+
     _pageError = null;
+
 
     get pageError() {
         return this._pageError;
-    }
-
-    _orderBy = null;
-
-    get orderBy() {
-        return this._orderBy;
-    }
-
-    set orderBy(orderBy) {
-        this._orderBy = orderBy;
     }
 
     get columnTitleMap() {
@@ -69,17 +70,22 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
         return new ngbOrthoParaTableService(dispatcher, genomeDataService);
     }
 
-    async updateOrthoPara() {
-        this._orthoPara = await this.loadOrthoPara(this.currentPage);
+    async searchOrthoPara(currentSearch) {
+        const result = await this.loadOrthoPara(currentSearch);
+        this._orthoPara = result.orthoPara;
+        this._orthoParaResult = result.orthoParaResult;
+        this.dispatcher.emitSimpleEvent('orthoPara:result:change');
     }
 
-    async loadOrthoPara(page) {
+    async loadOrthoPara(currentSearch) {
+        const emptyResult = {
+            orthoPara: [],
+            orthoParaResult: {}
+        };
         const filter = {
-            pagingInfo: {
-                pageNum: page,
-                pageSize: this.pageSize
-            },
-            sortInfos: this.orderBy
+            query: currentSearch,
+            page: this.currentPage,
+            pageSize: this.pageSize
         };
         const data = await this.genomeDataService.getOrthoParaLoad(filter);
         if (data.error) {
@@ -87,17 +93,52 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
-            return [];
+            return emptyResult;
         } else {
             this._pageError = null;
         }
-        this._totalPages = Math.ceil(data.length / this.pageSize);
-        let filteredData = [];
-        if (data) {
-            filteredData = data;
-            filteredData.forEach((value, key) => filteredData[key] = this._formatServerToClient(value));
+        this._totalPages = Math.ceil(data.totalCount / this.pageSize);
+        if (data && data.items) {
+            return {
+                orthoPara: this.getOrthoParaSearch(data.items),
+                orthoParaResult: this.getOrthoParaResult(data.items)
+            };
+        } else {
+            return emptyResult;
         }
-        return filteredData;
+    }
+
+    getOrthoParaSearch(data) {
+        const result = [];
+        data.forEach(value => result.push(this._formatServerToClient(value)));
+        return result;
+    }
+
+    getOrthoParaResult(data) {
+        let maxHomologLength = 0;
+        const result = {};
+        if (data) {
+            data.forEach(orthoPara => {
+                maxHomologLength = 0;
+                result[orthoPara.groupId] = [];
+                orthoPara.genes.forEach((gene, key) => {
+                    result[orthoPara.groupId][key] = this._formatResultToClient(gene);
+                    if (maxHomologLength < result[orthoPara.groupId][key].aa) {
+                        maxHomologLength = result[orthoPara.groupId][key].aa;
+                    }
+                });
+                result[orthoPara.groupId].forEach((value, key) => {
+                    result[orthoPara.groupId][key].domainsObj = {
+                        domains: value.domains.map(d => ({...d, color: this.calculateColor(d.name)})),
+                        homologLength: value.aa,
+                        maxHomologLength: maxHomologLength,
+                        accession_id: value.accession_id
+                    };
+                    delete result[orthoPara.groupId][key].domains;
+                });
+            });
+        }
+        return result;
     }
 
     getOrthoParaGridColumns() {
@@ -122,6 +163,7 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
                         cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
                                        >{{row.entity.gene}}</div>`,
                         enableHiding: false,
+                        enableColumnMenu: false,
                         field: 'gene',
                         name: this.columnTitleMap[column]
                     };
@@ -130,6 +172,7 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
                 default: {
                     columnSettings = {
                         enableHiding: false,
+                        enableColumnMenu: false,
                         field: column,
                         minWidth: 40,
                         name: this.columnTitleMap[column],
@@ -152,10 +195,59 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
     }
 
     _formatServerToClient(orthoPara) {
+        const gene = new Set(),
+            protein = [];
+        orthoPara.genes.forEach(g => {
+            gene.add(g.symbol);
+            // protein.push(g.title);
+        });
+
         return {
-            gene: orthoPara.gene,
-            protein: orthoPara.protein,
-            info: orthoPara.info
+            groupId: orthoPara.groupId,
+            gene: [...gene].sort().join(', '),
+            protein: protein.join(', '),
+            info: orthoPara.caption
         };
     }
+
+    _formatResultToClient(result) {
+        return {
+            geneId: result.geneId,
+            name: result.symbol,
+            species: result.speciesScientificName,
+            accession_id: result.protAcc,
+            protGi: result.protGi,
+            aa: result.protLen,
+            taxId: result.taxId,
+            domains: (result.domains || []).map(d => ({
+                id: d.pssmId,
+                start: d.begin,
+                end: d.end,
+                name: d.cddName
+            }))
+        };
+    }
+
+
+    calculateColor(str) {
+        return this.intToRGB(this.hashCode(str));
+    }
+
+    //TODO: move this and gene's to utility
+    hashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return 100 * hash;
+    }
+
+    intToRGB(i) {
+        const c = (i & 0x00FFFFFF)
+            .toString(16)
+            .toUpperCase();
+
+        return `#${'00000'.substring(0, 6 - c.length)}${c}`;
+    }
+
 }
