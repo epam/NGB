@@ -47,6 +47,20 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.initializeCentralLine();
     }
 
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer}
+     * */
+    get pixiRenderer() {
+        return this._pixiRenderer;
+    }
+
+    /**
+     * @param renderer {PIXI.CanvasRenderer | PIXI.Renderer}
+     * */
+    set pixiRenderer(renderer) {
+        this._pixiRenderer = renderer;
+    }
+
     get config() {
         return this._config;
     }
@@ -160,7 +174,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     }
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = this._pixiRenderer.generateTexture(
+                    const texture = this.pixiRenderer.generateTexture(
                         temporaryContainer,
                         drawingConfiguration.scale,
                         drawingConfiguration.resolution
@@ -189,7 +203,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     }
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = this._pixiRenderer.generateTexture(
+                    const texture = this.pixiRenderer.generateTexture(
                         temporaryContainer,
                         drawingConfiguration.scale,
                         drawingConfiguration.resolution

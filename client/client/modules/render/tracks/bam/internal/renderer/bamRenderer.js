@@ -69,6 +69,20 @@ export class BamRenderer {
 
     _lastHoveredFeature = null;
 
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer}
+     * */
+    get pixiRenderer() {
+        return this._pixiRenderer;
+    }
+
+    /**
+     * @param renderer {PIXI.CanvasRenderer | PIXI.Renderer}
+     * */
+    set pixiRenderer(renderer) {
+        this._pixiRenderer = renderer;
+    }
+
     set height(value) {
         this._height = value;
     }
@@ -252,8 +266,8 @@ export class BamRenderer {
 
         if (flags.widthChanged) {
             this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
-                height: this._pixiRenderer.height,
-                width: this._pixiRenderer.width
+                height: this.pixiRenderer.height,
+                width: this.pixiRenderer.width
             });
         }
 
@@ -390,11 +404,11 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
 
     _initPlaceholder() {
         this._zoomInPlaceholderRenderer = new PlaceholderRenderer();
-        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._zoomInPlaceholderContainer.addChild(this._zoomInPlaceholderRenderer.container);
 
         this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer();
-        this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._noReadsInRangePlaceholderContainer.addChild(this._noReadsInRangePlaceholderRenderer.container);
     }
 
@@ -402,7 +416,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         const topMargin = this.downsampleIndicatorsTopMargin;
         this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(),
             {
-                height: this._pixiRenderer.height - topMargin, width: this._pixiRenderer.width
+                height: this.pixiRenderer.height - topMargin, width: this.pixiRenderer.width
             });
         this._zoomInPlaceholderContainer.y = topMargin;
     }
@@ -443,7 +457,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 currentY: this._yPosition,
                 features: this._state,
                 height: this._height,
-                renderer: this._pixiRenderer,
+                renderer: this.pixiRenderer,
                 topMargin: this.alignmentsDrawingTopMargin
             }
         );
@@ -665,7 +679,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                             currentY: this._yPosition,
                             features: this._state,
                             height: this._height,
-                            renderer: this._pixiRenderer,
+                            renderer: this.pixiRenderer,
                             topMargin: this.alignmentsDrawingTopMargin
                         }, this._hoveredItemContainer, feature.item, feature.line
                     );

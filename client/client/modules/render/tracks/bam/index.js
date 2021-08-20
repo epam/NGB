@@ -673,6 +673,9 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     render(flags) {
+        if (flags.pixiRendererChanged) {
+            this._bamRenderer.pixiRenderer = this._pixiRenderer;
+        }
         if (flags.renderReset) {
             this.container.removeChildren();
             this.container.addChild(this._bamRenderer.container);

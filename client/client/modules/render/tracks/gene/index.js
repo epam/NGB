@@ -10,6 +10,8 @@ import geneMenuConfig from './exterior/geneMenuConfig';
 import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
 
+const PREFER_WEBGL = true;
+
 export class GENETrack extends CachedTrack {
 
     _dataService = null;
@@ -40,6 +42,7 @@ export class GENETrack extends CachedTrack {
     );
 
     constructor(opts) {
+        opts.preferWebGL = PREFER_WEBGL;
         super(opts);
         const self = this;
         const handleClick = async() => {
@@ -229,6 +232,10 @@ export class GENETrack extends CachedTrack {
     }
 
     render(flags) {
+        if (flags.pixiRendererChanged) {
+            this.renderer.pixiRenderer = this._pixiRenderer;
+        }
+
         let somethingChanged = super.render(flags);
         if (flags.renderReset) {
             this.container.addChild(this.renderer.container);

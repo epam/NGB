@@ -19,6 +19,7 @@ const getFlags = () => ({
     renderReset: false,
     settingsChanged: false,
     widthChanged: false,
+    pixiRendererChanged: false,
 });
 
 function refreshRender(render, size) {
@@ -37,6 +38,7 @@ export class Track extends BaseTrack {
 
     shouldDisplayTooltips = true;
 
+    preferWebGL = false;
     domElement = document.createElement('div');
     tooltip = tooltipFactory(this.domElement);
     menuElement = menuFactory(this.domElement);
@@ -163,6 +165,9 @@ export class Track extends BaseTrack {
         this.viewport.shortenedIntronsViewport.intronLength = opts.shortenedIntronLength;
         this.viewport.shortenedIntronsViewport.maximumRange = opts.shortenedIntronsMaximumRange;
         if (opts) {
+            if (opts.preferWebGL) {
+                this.preferWebGL = opts.preferWebGL;
+            }
             if (opts.restoredHeight) {
                 this.height = opts.restoredHeight;
             }
@@ -238,7 +243,17 @@ export class Track extends BaseTrack {
                     this._flags.heightChanged = true;
             }
         } else {
-            this._pixiRenderer = getRenderer(newSize);
+            this._pixiRenderer = getRenderer(newSize, null, this.preferWebGL);
+            if (this.preferWebGL) {
+                this._pixiRenderer.view.addEventListener('webglcontextlost', (e) => {
+                    e.preventDefault();
+                    this.preferWebGL = false;
+                    this._destroyPixiRenderer();
+                    this._flags.pixiRendererChanged = true;
+                    this._refreshPixiRenderer(true);
+                });
+            }
+
             this.domElement.appendChild(this._pixiRenderer.view);
             refreshRender(this._pixiRenderer, newSize);
             this._flags.widthChanged = true;
@@ -255,17 +270,21 @@ export class Track extends BaseTrack {
         this._flags.renderReset = true;
     }
 
-    destructor() {
-        super.destructor();
-        if (this.tooltip) {
-            this.tooltip.hide();
-        }
+    _destroyPixiRenderer() {
         if (this._pixiRenderer && this._pixiRenderer.view) {
             this.container.removeChildren();
             this.domElement.removeChild(this._pixiRenderer.view);
             this._pixiRenderer.destroy(true);
             this._pixiRenderer = null;
         }
+    }
+
+    destructor() {
+        super.destructor();
+        if (this.tooltip) {
+            this.tooltip.hide();
+        }
+        this._destroyPixiRenderer();
         this.clearData();
         for (const disposable of this._disposables)
             disposable.dispose();

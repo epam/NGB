@@ -205,17 +205,6 @@ export default class VariantRenderer {
             this.container.removeChildren();
             this.canvasElement.removeChild(this._pixiRenderer.view);
             this._pixiRenderer.destroy(true);
-
-            // Forcing WebGL to lose renderer's context.
-            // This is known pixi.js issue (https://github.com/pixijs/pixi.js/issues/2233), which have been fixed at pixi.js:dev branch,
-            // but haven't been merged at master branch.
-            // Todo: remove code below which forces WebGL to lose context when pixi.js:dev branch will be merged (https://github.com/pixijs/pixi.js/branches)
-            if (this._pixiRenderer.currentRenderTarget) {
-                const extension = this._pixiRenderer.currentRenderTarget.gl.getExtension('WEBGL_lose_context');
-                if (extension !== null && extension !== undefined) {
-                    extension.loseContext();
-                }
-            }
             this._pixiRenderer = null;
         }
     }

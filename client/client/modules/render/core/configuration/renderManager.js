@@ -5,19 +5,20 @@ PIXI.settings.ROUND_PIXELS = true;
 PIXI.settings.RESOLUTION = drawingConfiguration.resolution;
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
-export default function getRenderer(size, opts = null) {
+export default function getRenderer(size, opts = null, forceWebGL = false) {
     const {width, height} = size;
     if (opts === null) {
         opts = {
             backgroundColor: 0xf9f9f9
         };
     }
+    const rendererConstructor = forceWebGL ? PIXI.Renderer : PIXI.CanvasRenderer;
     const {backgroundColor} = opts;
-    const renderer = new PIXI.CanvasRenderer({
+    const renderer = new rendererConstructor({
         width,
         height,
         antialias: drawingConfiguration.antialias,
-        preserveDrawingBuffer: false,
+        preserveDrawingBuffer: forceWebGL,
         transparent: false
     });
     renderer.backgroundColor = backgroundColor;
