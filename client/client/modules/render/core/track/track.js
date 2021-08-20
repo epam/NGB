@@ -274,7 +274,7 @@ export class Track extends BaseTrack {
                 this.labelsManager.destroy();
                 this.labelsManager = null;
             }
-            this.labelsManager = new LabelsManager(this._pixiRenderer, this.constructor.name);
+            this.labelsManager = new LabelsManager(this._pixiRenderer);
         }
         if (!this.isResizing) {
             this._resetRender();
