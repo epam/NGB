@@ -1,4 +1,4 @@
-<div ng-style="row.entity.highlightColor ? {'background-color': row.entity.highlightColor} : {}">
+<div ng-class="{'highlighted-row': row.entity.highlightColor}" ng-style="row.entity.highlightColor ? {'background-color': row.entity.highlightColor} : {}">
     <div ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.uid"
          ui-grid-one-bind-id-grid="rowRenderIndex + '-' + col.uid + '-cell' " class="ui-grid-cell"
          ng-style="Viewport.rowStyle(rowRenderIndex)"
