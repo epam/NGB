@@ -3,8 +3,8 @@ import {
     BTOPPartType,
     parseBtop
 } from '../../../../app/shared/blastContext';
-import {CachedTrackRenderer} from '../../core';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
+import {CachedTrackRenderer} from '../../core';
 import {drawingConfiguration} from '../../core/configuration';
 
 class BLASTAlignmentRenderer extends CachedTrackRenderer {
@@ -28,8 +28,8 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    constructor(config, pixiRenderer, options, blastContext) {
-        super();
+    constructor(config, pixiRenderer, options, blastContext, track) {
+        super(track);
         this._config = config;
         this.pixiRenderer = pixiRenderer;
         this.options = options;
@@ -369,12 +369,14 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             )
             .endFill();
         if (alt && renderLabel) {
-            const label = new PIXI.Text(
-                alt,
-                this.config.sequence.mismatch.label,
-                drawingConfiguration.resolution
-            );
-            if (label.width < x2 - x1) {
+            const label = this.labelsManager
+                ? this.labelsManager.getLabel(
+                    alt,
+                    this.config.sequence.mismatch.label,
+                    drawingConfiguration.resolution
+                )
+                : undefined;
+            if (label && label.width < x2 - x1) {
                 label.x = Math.round((x1 + x2) / 2.0 - label.width / 2.0);
                 label.y = Math.round(
                     y + height / 2.0 - label.height / 2.0
@@ -499,20 +501,24 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                     height
                 );
             if (renderLabel) {
-                const label = new PIXI.Text(
-                    `${size}`,
-                    this.config.sequence.notAligned.label,
-                    drawingConfiguration.resolution
-                );
-                label.x = Math.round(
-                    direction < 0
-                        ? (x - notAlignedMarkerWidth - label.width - margin)
-                        : (x + notAlignedMarkerWidth + margin)
-                );
-                label.y = Math.round(
-                    y + height / 2.0 - label.height / 2.0
-                );
-                this.dataContainer.addChild(label);
+                const label = this.labelsManager
+                    ? this.labelsManager.getLabel(
+                        `${size}`,
+                        this.config.sequence.notAligned.label,
+                        drawingConfiguration.resolution
+                    )
+                    : undefined;
+                if (label) {
+                    label.x = Math.round(
+                        direction < 0
+                            ? (x - notAlignedMarkerWidth - label.width - margin)
+                            : (x + notAlignedMarkerWidth + margin)
+                    );
+                    label.y = Math.round(
+                        y + height / 2.0 - label.height / 2.0
+                    );
+                    this.dataContainer.addChild(label);
+                }
             }
         }
     }

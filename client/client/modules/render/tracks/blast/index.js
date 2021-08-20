@@ -22,7 +22,8 @@ export class BLASTTrack extends CachedTrack {
             Object.assign({}, this.trackConfig, this.config),
             this._pixiRenderer,
             opts,
-            opts.blastContext
+            opts.blastContext,
+            this
         );
         this.reload = this.reload.bind(this);
         this.dispatcher.on(BLASTResultEvents.changed, this.reload);

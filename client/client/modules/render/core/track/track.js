@@ -5,6 +5,7 @@ import {getRenderer} from '../configuration';
 import menuFactory from './menu';
 import {scaleModes, displayModes} from '../../tracks/wig/modes';
 import tooltipFactory from './tooltip';
+import LabelsManager from '../labelsManager';
 
 const DEBOUNCE_TIMEOUT = 100;
 const Math = window.Math;
@@ -44,6 +45,7 @@ export class Track extends BaseTrack {
     menuElement = menuFactory(this.domElement);
     container: PIXI.Container = new PIXI.Container();
     _pixiRenderer: PIXI.CanvasRenderer;
+    labelsManager: LabelsManager;
     _flags = getFlags();
     trackDataLoadingStatusChanged = null;
 
@@ -184,6 +186,14 @@ export class Track extends BaseTrack {
         this._showCenterLine = opts.showCenterLine;
         requestAnimationFrame(::this.tick);
         this._pixiRenderer.plugins.interaction.autoPreventDefault = false;
+        const visibilitychangeCallback = () => {
+            if (document.visibilityState === 'visible') {
+                this._resetRender();
+                requestAnimationFrame(this.tick.bind(this));
+            }
+        };
+        this.visibilitychangeCallback = visibilitychangeCallback.bind(this);
+        document.addEventListener('visibilitychange', this.visibilitychangeCallback);
     }
 
     reportTrackState(silent = false) {
@@ -237,10 +247,12 @@ export class Track extends BaseTrack {
         if (this._pixiRenderer) {
             refreshRender(this._pixiRenderer, newSize);
             if (!this.isResizing) {
-                if (size.width !== newSize.width)
+                if (size.width !== newSize.width) {
                     this._flags.widthChanged = true;
-                if (size.height !== newSize.height)
+                }
+                if (size.height !== newSize.height) {
                     this._flags.heightChanged = true;
+                }
             }
         } else {
             this._pixiRenderer = getRenderer(newSize, null, this.preferWebGL);
@@ -258,6 +270,11 @@ export class Track extends BaseTrack {
             refreshRender(this._pixiRenderer, newSize);
             this._flags.widthChanged = true;
             this._flags.heightChanged = true;
+            if (this.labelsManager) {
+                this.labelsManager.destroy();
+                this.labelsManager = null;
+            }
+            this.labelsManager = new LabelsManager(this._pixiRenderer, this.constructor.name);
         }
         if (!this.isResizing) {
             this._resetRender();
@@ -281,8 +298,13 @@ export class Track extends BaseTrack {
 
     destructor() {
         super.destructor();
+        document.removeEventListener('visibilitychange', this.visibilitychangeCallback);
         if (this.tooltip) {
             this.tooltip.hide();
+        }
+        if (this.labelsManager) {
+            this.labelsManager.destroy();
+            this.labelsManager = null;
         }
         this._destroyPixiRenderer();
         this.clearData();
@@ -326,10 +348,12 @@ export class Track extends BaseTrack {
     }
 
     set isResizing(value) {
-        this._isResizing = value;
-        if (!value) {
-            this._flags.heightChanged = true;
-            this._refreshPixiRenderer(true);
+        if (this._isResizing !== value) {
+            this._isResizing = value;
+            if (!value) {
+                this._flags.heightChanged = true;
+                this._refreshPixiRenderer(true);
+            }
         }
     }
 

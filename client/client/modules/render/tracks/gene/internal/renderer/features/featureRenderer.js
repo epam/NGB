@@ -9,8 +9,6 @@ import {
 import {Sorting, ZonesManager} from '../../../../../utilities';
 import {Viewport} from '../../../../../core';
 
-const TWO_MINUTES = 2 * 60 * 1000;
-
 const Math = window.Math;
 
 export default class FeatureRenderer {
@@ -23,8 +21,6 @@ export default class FeatureRenderer {
     _aminoacidFeatureRenderer: AminoacidFeatureRenderer = null;
 
     _labels = null;
-    _labelsPools = new Map();
-    _clearLabelsPoolTimeout = null;
     _dockableLabels = null;
     _attachedElements = null;
     _dockableElements = null;
@@ -32,25 +28,32 @@ export default class FeatureRenderer {
     _featuresPositions = null;
     _opts;
 
-    constructor(config) {
+    constructor(config, track) {
         this._config = config;
-        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(config,
+        this._track = track;
+        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(
+            track,
+            config,
+            ::this.registerLabel,
+            ::this.registerDockableElement,
+            ::this.registerFeaturePosition
+        );
+        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.getLabelObjectFromPool);
-        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(config,
+            this._aminoacidFeatureRenderer
+        );
+        this._geneFeatureRenderer = new GeneFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.getLabelObjectFromPool,
-            this._aminoacidFeatureRenderer);
-        this._geneFeatureRenderer = new GeneFeatureRenderer(config,
-            ::this.registerLabel,
-            ::this.registerDockableElement,
-            ::this.registerFeaturePosition,
-            ::this.getLabelObjectFromPool,
-            this._transcriptFeatureRenderer);
+            this._transcriptFeatureRenderer
+        );
 
         this._labels = [];
         this._dockableLabels = [];
@@ -121,12 +124,6 @@ export default class FeatureRenderer {
         if (features === null || features === undefined)
             return null;
 
-        if (this._clearLabelsPoolTimeout) {
-            clearTimeout(this._clearLabelsPoolTimeout);
-            this._clearLabelsPoolTimeout = null;
-        }
-        this.addExistingLabelObjectsToPool(labelContainer);
-        this.addExistingLabelObjectsToPool(dockableElementsContainer);
         this.prepareRenderers();
         this._labels = [];
         this._dockableLabels = [];
@@ -159,41 +156,59 @@ export default class FeatureRenderer {
             hoveredHighlightGraphics: hoveredFeatureHighlightGraphics
         };
         this._geneFeatureRenderer._opts = this._opts;
-        const maxIterations = 10000000;
         const {
             geneFeatures
         } = this._opts || {};
-        for (let i = 0; i < features.length; i++) {
-            const item = features[i];
-            if (
+        const featureOutOfViewport = ({startIndex, endIndex}) => {
+            if (startIndex === undefined || endIndex === undefined) {
+                return true;
+            }
+            const x1 = viewport.project.brushBP2pixel(startIndex);
+            const x2 = viewport.project.brushBP2pixel(endIndex);
+            return x2 <= -viewport.canvasSize || x1 >= 2.0 * viewport.canvasSize;
+        };
+        const filteredFeatures = (features || []).filter(item =>
+            !featureOutOfViewport(item) &&
+            this.getRendererForFeature(item) &&
+            !(
                 geneFeatures &&
                 geneFeatures.length > 0 &&
                 !/^statistic$/i.test(item.feature) &&
                 geneFeatures.indexOf(item.feature) === -1
-            ) {
-                continue;
-            }
+            )
+        );
+        const featureBoundariesArray = filteredFeatures.map(item => ({
+            feature: item,
+            boundary: Object.assign(
+                {
+                    global: {
+                        x: 0,
+                        y: zoneBoundaries.y1
+                    }
+                },
+                this.getRendererForFeature(item).analyzeBoundaries(item, viewport)
+            )
+        }));
+        const getFeatureBoundaries = (feature) => {
+            const [boundaries] = featureBoundariesArray.filter(o => o.feature === feature);
+            return boundaries ? boundaries.boundary : undefined;
+        };
+        for (let i = 0; i < filteredFeatures.length; i++) {
+            const item = filteredFeatures[i];
             const renderer = this.getRendererForFeature(item);
             if (!renderer) {
-                continue;
+                return;
             }
+            const boundary = getFeatureBoundaries(item);
             const boundaries = this._zonesManager.checkArea(
                 ZONES_MANAGER_DEFAULT_ZONE_NAME,
-                Object.assign(
-                    {
-                        global: {
-                            x: 0,
-                            y: zoneBoundaries.y1
-                        }
-                    },
-                    renderer.analyzeBoundaries(item, viewport)
-                ),
+                boundary,
                 {
                     translateX: 0,
                     translateY: 1
                 },
-                maxIterations);
-            if (!boundaries.conflicts) {
+            );
+            if (boundaries && !boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
                 renderer.render(item, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
@@ -203,22 +218,7 @@ export default class FeatureRenderer {
                 });
             }
         }
-
-        this.scheduleClearLabelsPool();
         return graphicsObj;
-    }
-
-    scheduleClearLabelsPool() {
-        this._clearLabelsPoolTimeout = setTimeout(() => {
-            this.clearLabelsPool();
-        }, TWO_MINUTES);
-    }
-
-    clearLabelsPool() {
-        for (const [container, children] of this._labelsPools) {
-            container.removeChild(...children);
-        }
-        this._labelsPools.clear();
     }
 
     manageLabels(viewport, height, yOffset = 0) {
@@ -238,8 +238,7 @@ export default class FeatureRenderer {
                     (labelData.range.offset ? labelData.range.offset.left : 0);
                 const endPx = Math.max(viewport.project.brushBP2pixel(labelData.range.end) -
                     labelData.label.width, startPx);
-                const verticallyInvisible = labelData.position.y < -yOffset || labelData.position.y + labelData.position.height > (-yOffset) + height;
-                if (startPx > viewport.canvasSize || endPx < -labelData.label.width || verticallyInvisible) {
+                if (startPx > viewport.canvasSize || endPx < -labelData.label.width) {
                     labelData.label.visible = false;
                 } else {
                     labelData.label.visible = true;
@@ -250,6 +249,11 @@ export default class FeatureRenderer {
                     const relativeYStartPosition = labelData.label.parent.y + labelData.position.y;
                     const relativeYEndPosition = labelData.label.parent.y + labelData.position.y + labelData.range.height - labelData.label.height;
                     labelData.label.y = Math.round(Math.max(relativeYStartPosition, Math.min(relativeYEndPosition, 0))) - labelData.label.parent.y;
+                }
+                const verticallyInvisible = (labelData.label.y + labelData.label.height) < -yOffset ||
+                    labelData.label.y > (-yOffset) + height;
+                if (verticallyInvisible) {
+                    labelData.visible = false;
                 }
             }
         }
@@ -323,7 +327,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element: PIXI.Text = labels[i].label;
+            const element = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -387,42 +391,6 @@ export default class FeatureRenderer {
             }
         }
         mask.endFill();
-    }
-
-    /**
-     * @param container {PIXI.Container}
-     * */
-    addExistingLabelObjectsToPool(container) {
-        // pooling only objects that aren't currently visible
-        const itemsToAdd = [];
-
-        for (let i = 0; i < (container.children || []).length; i++) {
-            const child = container.children[i];
-            if (child.visible || !(child instanceof PIXI.Text)) {
-                continue;
-            }
-            itemsToAdd.push(child);
-        }
-        if (!this._labelsPools.has(container)) {
-            this._labelsPools.set(container, itemsToAdd);
-        } else {
-            const existingPool = this._labelsPools.get(container);
-            existingPool.push(...itemsToAdd);
-        }
-    }
-
-    /**
-     * @param container {PIXI.Container}
-     *
-     * @return {PIXI.Text | null} - label if exists otherwise null
-     * */
-    getLabelObjectFromPool(container) {
-        if (!this._labelsPools.has(container)) {
-            return null;
-        }
-
-        const existingPool = this._labelsPools.get(container);
-        return existingPool.pop() || null;
     }
 
     registerLabel(label, position, range, yDockable = false, centered = false) {
@@ -504,9 +472,10 @@ export default class FeatureRenderer {
             if (item.graphicsBoundaries.ignore) {
                 return true;
             }
+            const diff = container.getGlobalPosition().y;
             const graphics = new PIXI.Graphics();
             graphics.beginFill(0x00FF00, 1);
-            graphics.drawRect(x1, y1, x2 - x1, y2 - y1);
+            graphics.drawRect(x1, y1 + diff, x2 - x1, y2 - y1);
             graphics.endFill();
             container.mask = graphics;
             container.visible = true;

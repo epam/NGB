@@ -1,4 +1,3 @@
-import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from './strandDrawing';
@@ -12,8 +11,8 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     gffShowNumbersAminoacid;
     collapsedMode;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool, aminoacidFeatureRenderer) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
+    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, aminoacidFeatureRenderer) {
+        super(track, config, registerLabel, registerDockableElement, registerFeaturePosition, undefined);
         this._aminoacidFeatureRenderer = aminoacidFeatureRenderer;
     }
 
@@ -23,11 +22,16 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
             : super.strandIndicatorConfig;
     }
 
+    getFeatureKey (feature, viewport) {
+        if (!feature.name) {
+            return undefined;
+        }
+        return `[${feature.name}-${this._aminoacidFeatureRenderer.getFeatureKey(feature, viewport)}]`;
+    }
+
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
-        const boundariesX1 = rectBoundaries.x1;
-        const boundariesX2 = rectBoundaries.x2;
 
         let transcriptLabelSize = {height: 0, width: 0};
         const transcript = this.config.transcript;
@@ -35,25 +39,17 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         if (feature.name) {
             transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label);
         }
-
-        const width = Math.max(1, boundariesX2 - boundariesX1, transcriptLabelSize.width);
-        let height = transcript.height + transcriptLabelSize.height;
+        rectBoundaries.x2 = Math.max(rectBoundaries.x2, rectBoundaries.x1 + transcriptLabelSize.width);
+        rectBoundaries.y1 = 0;
+        rectBoundaries.y2 = transcript.height + transcriptLabelSize.height;
 
         this._aminoacidFeatureRenderer.gffShowNumbersAminoacid = this.gffShowNumbersAminoacid;
         const childBoundaries = this._aminoacidFeatureRenderer.analyzeBoundaries(feature, viewport);
         if (childBoundaries) {
-            const childRect = childBoundaries.rect;
-            const childSize = {
-                height: childRect.y2 - childRect.y1,
-                width: childRect.x2 - childRect.x1
-            };
-            height += childSize.height;
+            rectBoundaries.y2 += childBoundaries.rect.y2 - childBoundaries.rect.y1;
         }
 
-        if (rectBoundaries) {
-            rectBoundaries.x2 = Math.max(boundariesX2, boundariesX1 + width);
-            rectBoundaries.y2 = height;
-        }
+        boundaries.key = this.getBoundariesKey(feature, viewport);
         return boundaries;
     }
 
@@ -301,30 +297,25 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const aminoacidsFitsViewport = this._aminoacidFeatureRenderer.aminoacidsFitsViewport(feature, viewport);
         let center = transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
         const project = viewport.project;
-        if (feature.name &&
-            (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
-            let shouldAddToContainer = false;
-            let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-            if (!label) {
-                shouldAddToContainer = true;
-                label = new PIXI.Text(feature.name, transcriptConfig.label);
-            } else {
-                label.visible = true;
-                label.style = transcriptConfig.label;
-                label.text = feature.name;
-            }
-            let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
-            labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);
-            label.x = Math.round(labelStart);
-            label.y = Math.round(position.y + transcriptConfig.label.marginTop);
-            center = label.height + transcriptConfig.label.marginTop + transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-            if (shouldAddToContainer) {
+        if (
+            feature.name &&
+            (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') &&
+            !feature.canonical &&
+            this.labelsManager
+        ) {
+            const label = this.labelsManager.getLabel(feature.name, transcriptConfig.label, true);
+            if (label) {
+                let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
+                labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);
+                label.x = Math.round(labelStart);
+                label.y = Math.round(position.y + transcriptConfig.label.marginTop);
+                center = label.height + transcriptConfig.label.marginTop + transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 labelContainer.addChild(label);
+                this.registerLabel(label, {x: labelStart, y: position.y + transcriptConfig.label.marginTop}, {
+                    end: feature.endIndex,
+                    start: feature.startIndex
+                });
             }
-            this.registerLabel(label, {x: labelStart, y: position.y + transcriptConfig.label.marginTop}, {
-                end: feature.endIndex,
-                start: feature.startIndex
-            });
         }
 
         if (feature.structure !== null && feature.structure !== undefined) {

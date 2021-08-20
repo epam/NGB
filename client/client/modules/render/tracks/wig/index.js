@@ -11,7 +11,7 @@ import {scaleModes} from './modes';
 
 export class WIGTrack extends CachedTrack {
 
-    _wigArea = new WIGArea(this.viewport, this.trackConfig);
+    _wigArea = new WIGArea(this.viewport, this.trackConfig, this.labelsManager);
     _wigRenderer = new WIGRenderer(this.trackConfig, this.state);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();

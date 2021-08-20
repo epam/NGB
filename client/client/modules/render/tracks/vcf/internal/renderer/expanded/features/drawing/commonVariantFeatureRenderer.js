@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js-legacy';
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import {drawingConfiguration} from '../../../../../../../core';
 
 const Math = window.Math;
 
@@ -32,29 +31,30 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
     }
 
     generateAttachedElement(attachmentInfo, text, style, dockableContainer) {
-        if (!this.registerAttachedElement) {
+        if (!this.registerAttachedElement || !this.labelsManager) {
             return;
         }
         const element = new PIXI.Container();
-        const label = new PIXI.Text(text, style.font);
-        label.resolution = drawingConfiguration.resolution;
-        const margin = 1;
-        label.x = margin;
-        label.y = margin;
-        attachmentInfo.renderInfo = {
-            width: label.width + 2 * margin,
-            height: label.height + 2 * margin
-        };
-        dockableContainer.addChild(element);
-        const background = new PIXI.Graphics();
-        background
-            .beginFill(attachmentInfo.color || style.fill, 1)
-            .drawRoundedRect(0, 0, label.width + 2 * margin, label.height + 2 * margin,
-                (label.height + 2 * margin) / 2)
-            .endFill();
-        element.addChild(background);
-        element.addChild(label);
-        this.registerAttachedElement(element, attachmentInfo);
+        const label = this.labelsManager.getLabel(text, style.font);
+        if (label) {
+            const margin = 1;
+            label.x = margin;
+            label.y = margin;
+            attachmentInfo.renderInfo = {
+                width: label.width + 2 * margin,
+                height: label.height + 2 * margin
+            };
+            dockableContainer.addChild(element);
+            const background = new PIXI.Graphics();
+            background
+                .beginFill(attachmentInfo.color || style.fill, 1)
+                .drawRoundedRect(0, 0, label.width + 2 * margin, label.height + 2 * margin,
+                    (label.height + 2 * margin) / 2)
+                .endFill();
+            element.addChild(background);
+            element.addChild(label);
+            this.registerAttachedElement(element, attachmentInfo);
+        }
     }
 
     getFeatureDisplayText(feature) {
@@ -93,19 +93,32 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol = this.getFeatureDisplayText(feature);
-        const label = new PIXI.Text(symbol, labelStyle);
-        label.resolution = drawingConfiguration.resolution;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
         const cY = Math.round(position.y + position.height - height / 2);
-        const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
-        const labelPosition = {
-            x: Math.round(textX1),
-            y: Math.round(position.y + position.height - height - label.height)
-        };
-        label.x = Math.round(labelPosition.x);
-        label.y = Math.round(labelPosition.y);
+        if (this.labelsManager) {
+            const label = this.labelsManager.getLabel(symbol, labelStyle);
+            if (label) {
+                const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
+                const labelPosition = {
+                    x: Math.round(textX1),
+                    y: Math.round(position.y + position.height - height - label.height)
+                };
+                label.x = Math.round(labelPosition.x);
+                label.y = Math.round(labelPosition.y);
+                labelContainer.addChild(label);
+                this.registerLabel(
+                    label,
+                    labelPosition,
+                    {
+                        end: feature.startIndex,
+                        start: feature.startIndex,
+                    },
+                    false,
+                    true);
+            }
+        }
         if (feature.highlightColor) {
             const highlightArea = this.calculateHighlightArea(feature, viewport, {
                 cY: Math.floor(cY + height/2),
@@ -122,16 +135,6 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
                 .drawRect(highlightArea.start, highlightArea.y, highlightArea.length, highlightArea.height)
                 .endFill();
         }
-        labelContainer.addChild(label);
-        this.registerLabel(
-            label,
-            labelPosition,
-            {
-                end: feature.startIndex,
-                start: feature.startIndex,
-            },
-            false,
-            true);
         graphics.graphics.lineStyle(0, white, 0);
         graphics.hoveredGraphics.lineStyle(0, white, 0);
         const zygosity = feature.zygosity;

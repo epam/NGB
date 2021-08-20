@@ -29,6 +29,12 @@ export default {
     },
     fitHeightFactor: 1,
     height: 50,
+    label: {
+        fill: 0x000000,
+        fontFamily: 'arial',
+        fontSize: '7pt',
+        fontWeight: 'normal'
+    },
     logScaleIndicator: {
         alpha: 0.5,
         fill: 0x92AEE7,

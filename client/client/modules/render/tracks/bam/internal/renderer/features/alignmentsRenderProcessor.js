@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js-legacy';
 import {AlignmentsRenderer, BP_OFFSET} from './alignmentsRenderer';
 import {Line} from '../../cache/line';
-import {drawingConfiguration} from '../../../../../core';
 
 const Math = window.Math;
 
@@ -12,7 +11,6 @@ export class AlignmentsRenderProcessor {
     _renderPositionInfo = null;
 
     _alignmentHeight;
-    _lettersCache = null;
 
     set alignmentHeight(value) {
         this._alignmentHeight = value;
@@ -26,29 +24,10 @@ export class AlignmentsRenderProcessor {
         return this._container;
     }
 
-    constructor() {
+    constructor(track) {
+        this.labelsManager = track ? track.labelsManager : undefined;
         this._alignmentHeight = 1;
         this._container = new PIXI.Container();
-        this._initializeLettersTextures();
-    }
-
-    _initializeLettersTextures() {
-        this._lettersCache = {};
-        for (const letter of ['A', 'G', 'C', 'T', 'N']) {
-            const text = new PIXI.Text(letter, {
-                fill: 0xFFFFFF,
-                fontFamily: 'arial',
-                fontSize: '6pt',
-                fontWeight: 'normal'
-            });
-            text.resolution = drawingConfiguration.resolution;
-            const texture = text.texture;
-            texture.offsetX = Math.round(text.width / 2);
-            texture.offsetY = Math.round(text.height / 2);
-            if (texture.baseTexture) {
-                this._lettersCache[letter] = texture;
-            }
-        }
     }
 
     clear() {
@@ -144,7 +123,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this._lettersCache,
+            this.labelsManager,
             height
         );
         alignmentsRenderer.startRender();
@@ -180,7 +159,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this._lettersCache,
+            this.labelsManager,
             height
         );
         alignmentsRenderer.startRender(true);

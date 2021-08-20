@@ -5,7 +5,6 @@ import {
     CAN_SHOW_DETAILS_FACTOR,
     CoverageRenderer,
     RegionsRenderer,
-    PlaceholderRenderer,
     SashimiRenderer,
     renderCenterLine,
     renderDownSampleIndicators,
@@ -14,6 +13,7 @@ import {
     renderSpliceJunctions
 } from './features';
 import CoverageArea from '../../../wig/wigArea.js';
+import {PlaceholderRenderer} from '../../../../utilities';
 import {readsViewTypes} from '../../modes';
 
 const Math = window.Math;
@@ -196,7 +196,8 @@ export class BamRenderer {
         return this._config.yScale;
     }
 
-    constructor(viewport, config, renderer, cacheService, opts) {
+    constructor(viewport, config, renderer, cacheService, opts, track) {
+        this.track = track;
         this._config = config;
         this._viewport = viewport;
         this._pixiRenderer = renderer;
@@ -343,13 +344,18 @@ export class BamRenderer {
     }
 
     _initAlignments() {
-        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor();
+        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor(this.track);
         this._dataContainer.addChild(this._alignmentsRenderProcessor.container);
     }
 
     _initCoverage() {
         this._dataContainer.addChild(this._coverageContainer = new PIXI.Container());
-        this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config, this._state);
+        this._coverageRenderer = new CoverageRenderer(
+            this._config.coverage,
+            this._config,
+            this._state,
+            this.track
+        );
         this._coverageArea = new CoverageArea(this._viewport, this._config.coverage);
         this._coverageArea.registerGroupAutoScaleManager(this._groupAutoScaleManager);
         this._coverageContainer.addChild(this._coverageRenderer.container);
@@ -369,7 +375,11 @@ export class BamRenderer {
         this._spliceJunctionsGraphics = new PIXI.Graphics();
         this._dataContainer.addChild(this._sashimiContainer = new PIXI.Container());
         this._dataContainer.addChild(this._spliceJunctionsGraphics);
-        this._sashimiRenderer = new SashimiRenderer(this._config.spliceJunctions.sashimi, this._config);
+        this._sashimiRenderer = new SashimiRenderer(
+            this._config.spliceJunctions.sashimi,
+            this._config,
+            this.track
+        );
         this._sashimiArea = new CoverageArea(this._viewport, this._config.spliceJunctions.sashimi.coverage);
         this._sashimiContainer.addChild(this._sashimiRenderer.container);
         this._sashimiContainer.addChild(this._sashimiArea.axis);
@@ -403,11 +413,11 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     _initPlaceholder() {
-        this._zoomInPlaceholderRenderer = new PlaceholderRenderer();
+        this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this.track);
         this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._zoomInPlaceholderContainer.addChild(this._zoomInPlaceholderRenderer.container);
 
-        this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer();
+        this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer(this.track);
         this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._noReadsInRangePlaceholderContainer.addChild(this._noReadsInRangePlaceholderRenderer.container);
     }
@@ -425,7 +435,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         this._groupsBackground.removeChildren();
         this._groupsNamesContainer.removeChildren();
         if (features.alignments && this._viewport.actualBrushSize <= this.maximumAlignmentsRange) {
-            renderGroups(this._state, this._cacheService.cache.groups,
+            renderGroups(
+                this._state,
+                this._cacheService.cache.groups,
                 {
                     alignmentRowHeight: this.alignmentsRowHeight,
                     config: this._config,
@@ -436,7 +448,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     scrollY: this._yPosition,
                     topMargin: this.alignmentsDrawingTopMargin,
                     viewport: this._viewport
-                });
+                },
+                this.track ? this.track.labelsManager : undefined
+            );
         }
     }
 

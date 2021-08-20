@@ -26,6 +26,10 @@ export class BEDTrack extends GENETrack {
         ];
     }
 
+    get featuresFilteringEnabled () {
+        return false;
+    }
+
     constructor(opts) {
         super(opts);
         this._actions = null;
@@ -86,10 +90,10 @@ export class BEDTrack extends GENETrack {
     get renderer() {
         if (!this._renderer) {
             this._renderer = new BEDRenderer(
-                this,
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer
+                this._pixiRenderer,
+                this
             );
         }
         return this._renderer;

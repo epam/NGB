@@ -291,7 +291,14 @@ export class BAMTrack extends ScrollableTrack {
             ? opts.spliceJunctionsCoverageThreshold
             : 0;
         this.cacheService = opts.cacheService || new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
-        this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
+        this._bamRenderer = new BamRenderer(
+            this.viewport,
+            Object.assign({}, this.trackConfig, this.config),
+            this._pixiRenderer,
+            this.cacheService,
+            opts,
+            this
+        );
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,

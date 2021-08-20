@@ -9,8 +9,8 @@ export default class VcfRenderer extends CachedTrackRenderer {
     _variantContainers = [];
     _mask = null;
 
-    constructor(config) {
-        super();
+    constructor(config, track) {
+        super(track);
         this._config = config;
         this._height = config.height;
         this._manager = new ZonesManager();
@@ -92,7 +92,12 @@ export default class VcfRenderer extends CachedTrackRenderer {
 
         for (let i = 0; i < data.variants.length; i++) {
             const variant = data.variants[i];
-            const variantContainer = initializeContainer(variant, this._config, this._tooltipArea);
+            const variantContainer = initializeContainer(
+                variant,
+                this._config,
+                this._track,
+                this._tooltipArea
+            );
             variantContainer.container.y = this.height - this._config.chromosomeLine.thickness;
             variantContainer.render(viewport, this._manager);
             if (variantContainer instanceof StatisticsContainer) {

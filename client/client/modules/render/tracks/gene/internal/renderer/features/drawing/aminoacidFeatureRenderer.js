@@ -1,6 +1,5 @@
-import * as PIXI from 'pixi.js-legacy';
-import FeatureBaseRenderer from './featureBaseRenderer';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
+import FeatureBaseRenderer from './featureBaseRenderer';
 
 const AMINOACID_LENGTH_IN_BASE_PAIRS = 3;
 const FEATURE_INDEX_AMINOACID = 2;
@@ -36,8 +35,8 @@ const AMINOACID_DESCRIPTION = {
 export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
     gffShowNumbersAminoacid;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, getLabelObjectFromPool) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition, undefined, getLabelObjectFromPool);
+    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition) {
+        super(track, config, registerLabel, registerDockableElement, registerFeaturePosition, undefined);
         this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
         this._startLabelWidth = PixiTextSize.getTextSize('START', this.config.aminoacid.label.defaultStyle).width +
@@ -125,13 +124,26 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
         return fits;
     }
 
+    getFeatureKey (feature, viewport) {
+        if (!feature.name) {
+            return undefined;
+        }
+        if (this.aminoacidsFitsViewport(feature, viewport)) {
+            return 'aa-numbers';
+        }
+        return 'aa';
+    }
+
     analyzeBoundaries(feature, viewport) {
-        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height : 0;
+        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport)
+            ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height
+            : 0;
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
         if (this.aminoacidsFitsViewport(feature, viewport)) {
             rectBoundaries.y2 += this._aminoacidNumberHeight;
         }
+        boundaries.key = this.getBoundariesKey(feature, viewport);
         return boundaries;
     }
 
@@ -157,33 +169,33 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 continue;
             }
 
-            if (this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport)) {
+            if (
+                this.gffShowNumbersAminoacid &&
+                this.shouldNumberAminoacids(viewport) &&
+                this.labelsManager
+            ) {
                 const indexAcid = acid.index + 1;
-                let shouldAddToContainer = false;
-                let aminoacidNumber = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-                if (!aminoacidNumber) {
-                    aminoacidNumber = new PIXI.Text(indexAcid, this.config.aminoacid.number);
-                    shouldAddToContainer = true;
-                } else {
-                    aminoacidNumber.visible = true;
-                    aminoacidNumber.style = this.config.aminoacid.number;
-                    aminoacidNumber.text = indexAcid;
-                }
-
-                const aminoacidNumberPosition = {
-                    x: viewport.project.brushBP2pixel(acid.startIndex) +
-                    viewport.convert.brushBP2pixel(acid.endIndex - acid.startIndex + 1) / 2 - aminoacidNumber.width / 2,
-                    y: Math.round(position.y - height / 2 - aminoacidNumber.height)
-                };
-                aminoacidNumber.x = Math.round(aminoacidNumberPosition.x);
-                aminoacidNumber.y = Math.round(aminoacidNumberPosition.y);
-                if (shouldAddToContainer) {
+                const aminoacidNumber = this.labelsManager.getLabel(indexAcid, this.config.aminoacid.number, true);
+                if (aminoacidNumber) {
+                    const aminoacidNumberPosition = {
+                        x: viewport.project.brushBP2pixel(acid.startIndex) +
+                            viewport.convert.brushBP2pixel(acid.endIndex - acid.startIndex + 1) / 2 - aminoacidNumber.width / 2,
+                        y: Math.round(position.y - height / 2 - aminoacidNumber.height)
+                    };
+                    aminoacidNumber.x = Math.round(aminoacidNumberPosition.x);
+                    aminoacidNumber.y = Math.round(aminoacidNumberPosition.y);
                     labelContainer.addChild(aminoacidNumber);
+                    this.registerLabel(
+                        aminoacidNumber,
+                        aminoacidNumberPosition,
+                        {
+                            end: acid.endIndex,
+                            start: acid.startIndex,
+                        },
+                        false,
+                        true
+                    );
                 }
-                this.registerLabel(aminoacidNumber, aminoacidNumberPosition, {
-                    end: acid.endIndex,
-                    start: acid.startIndex,
-                }, false, true);
             }
 
             let startStrandFactor = 0;
@@ -276,37 +288,33 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                     y: position.y - height / 2
                 });
 
-            if (shouldDisplayLabel && shouldDisplayAminoacidLabels && acid.endIndex - acid.startIndex >= 1) {
-                let shouldAddToContainer = false;
-                let label = this._getLabelObjectFromPool && this._getLabelObjectFromPool(labelContainer);
-                if (!label) {
-                    shouldAddToContainer = true;
-                    label = new PIXI.Text(acid.text.toUpperCase(), labelStyle);
-                } else {
-                    label.visible = true;
-                    label.style = labelStyle;
-                    label.text = acid.text.toUpperCase();
-                }
-                const yOffset = 0.5;
-                const labelPosition = {
-                    x: viewport.project.brushBP2pixel(acid.startIndex) +
-                    viewport.convert.brushBP2pixel(acid.endIndex - acid.startIndex + 1) / 2 - label.width / 2,
-                    y: Math.round(position.y - label.height / 2 - yOffset)
-                };
-                label.x = Math.round(labelPosition.x);
-                label.y = Math.round(labelPosition.y);
-                if (shouldAddToContainer) {
+            if (
+                shouldDisplayLabel &&
+                shouldDisplayAminoacidLabels &&
+                acid.endIndex - acid.startIndex >= 1 &&
+                this.labelsManager
+            ) {
+                const label = this.labelsManager.getLabel(acid.text.toUpperCase(), labelStyle, true);
+                if (label) {
+                    const yOffset = 0.5;
+                    const labelPosition = {
+                        x: viewport.project.brushBP2pixel(acid.startIndex) +
+                            viewport.convert.brushBP2pixel(acid.endIndex - acid.startIndex + 1) / 2 - label.width / 2,
+                        y: Math.round(position.y - label.height / 2 - yOffset)
+                    };
+                    label.x = Math.round(labelPosition.x);
+                    label.y = Math.round(labelPosition.y);
                     labelContainer.addChild(label);
+                    this.registerLabel(
+                        label,
+                        labelPosition,
+                        {
+                            end: acid.endIndex,
+                            start: acid.startIndex,
+                        },
+                        false,
+                        true);
                 }
-                this.registerLabel(
-                    label,
-                    labelPosition,
-                    {
-                        end: acid.endIndex,
-                        start: acid.startIndex,
-                    },
-                    false,
-                    true);
                 this.registerFeaturePosition(AminoacidFeatureRenderer.getAminoacidInfo(acid), {
                     x1: viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2,
                     x2: viewport.project.brushBP2pixel(acid.endIndex) + pixelsInBp / 2,

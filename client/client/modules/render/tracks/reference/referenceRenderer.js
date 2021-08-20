@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js-legacy';
 import * as modes from './reference.modes';
-import {aminoAcidsConst, CachedTrackRenderer, drawingConfiguration} from '../../core';
+import {CachedTrackRenderer} from '../../core';
 import destroyPixiDisplayObjects from '../../utilities/destroyPixiDisplayObjects';
 
 
@@ -10,60 +10,11 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
 
     _noGCContentLabel;
 
-    constructor(config) {
-        super();
+    constructor(config, track) {
+        super(track);
         this._config = config;
         this._height = config.height;
-        this.initializeLettersTextures();
         this.initializeCentralLine();
-    }
-
-    initializeLettersTextures() {
-        this._lettersCache = {};
-        this._aminoAcidEvenCache = {};
-        this._aminoAcidOddCache = {};
-        for (const letter of ['A', 'G', 'C', 'T', 'N', 'a', 'g', 'c', 't', 'n']) {
-            const text = new PIXI.Text(letter, this._config.largeScale.labelStyle);
-            text.resolution = drawingConfiguration.resolution;
-            const texture = text.texture;
-            if (texture.baseTexture) {
-                this._lettersCache[letter] = {texture, width: text.width, height: text.height};
-            }
-        }
-        const aminoacidsDictionary = [
-            ...(Object.values(aminoAcidsConst).map(o => ({key: o.toLowerCase(), value: o}))),
-            {
-                key: 'stop',
-                value: '*'
-            },
-            {
-                key: 'uncovered',
-                value: 'n'
-            }
-        ];
-        for (let a = 0; a < aminoacidsDictionary.length; a++) {
-            const {key, value} = aminoacidsDictionary[a];
-            const textOdd = new PIXI.Text(value, this._getLabelStyle(key, true).labelStyle);
-            textOdd.resolution = drawingConfiguration.resolution;
-            const textureOdd = textOdd.texture;
-            if (textureOdd.baseTexture) {
-                this._aminoAcidOddCache[key] = {
-                    height: textOdd.height,
-                    texture: textureOdd,
-                    width: textOdd.width
-                };
-            }
-            const textEven = new PIXI.Text(value, this._getLabelStyle(key, false).labelStyle);
-            textEven.resolution = drawingConfiguration.resolution;
-            const textureEven = textEven.texture;
-            if (textureEven.baseTexture) {
-                this._aminoAcidEvenCache[key] = {
-                    height: textEven.height,
-                    texture: textureEven,
-                    width: textEven.width
-                };
-            }
-        }
     }
 
     get height() {
@@ -148,21 +99,12 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                 continue;
             if (pixelsPerBp >= this._config.largeScale.labelDisplayAfterPixelsPerBp) {
-                let label;
-                let labelHeight, labelWidth;
-                if (this._lettersCache[item.value]) {
-                    const {texture, width, height} = this._lettersCache[item.value];
-                    label = new PIXI.Sprite(texture);
-                    label.resolution = drawingConfiguration.resolution;
-                    labelHeight = height;
-                    labelWidth = width;
-                } else {
-                    label = new PIXI.Text(item.value, this._config.largeScale.labelStyle);
-                    label.resolution = drawingConfiguration.resolution;
-                    labelHeight = label.height;
-                    labelWidth = label.width;
-                }
+                const label = this.labelsManager
+                    ? this.labelsManager.getLabel(item.value, this._config.largeScale.labelStyle)
+                    : undefined;
                 if (label) {
+                    const labelHeight = label.height;
+                    const labelWidth = label.width;
                     label.x = this.correctCanvasXPosition(
                         Math.round(this.correctedXPosition(item.xStart) - labelWidth / 2.0),
                         viewport
@@ -203,6 +145,16 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             block.endFill();
         }
         this.dataContainer.addChild(block);
+    }
+
+    _getAminoAcidText (aa) {
+        if (/^stop$/i.test(aa)) {
+            return '*';
+        }
+        if (/^uncovered$/i.test(aa)) {
+            return 'n';
+        }
+        return aa;
     }
 
     _getLabelStyleConfig(acid) {
@@ -277,51 +229,31 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                     continue;
                 if (pixelsPerBp >= this._config.aminoacid.labelDisplayAfterPixelsPerBp) {
-                    let label;
-                    let labelPadding;
-                    let labelWidth;
-                    let labelHeight;
-                    const dictionary = item.startIndex % 2 === 1 ? this._aminoAcidOddCache : this._aminoAcidEvenCache;
-                    if (dictionary[item.value.toLowerCase()]) {
-                        const {texture, width, height} = dictionary[item.value.toLowerCase()];
-                        label = new PIXI.Sprite(texture);
-                        label.resolution = drawingConfiguration.resolution;
-                        labelWidth = width;
-                        labelHeight = height;
+                    const label = this.labelsManager
+                        ? this.labelsManager.getLabel(this._getAminoAcidText(item.value), labelStyle)
+                        : undefined;
+                    if (label) {
+                        let labelPadding;
+                        const labelWidth = label.width;
+                        const labelHeight = label.height;
+                        switch (item.value.toLowerCase()) {
+                            case 'stop':
+                                labelPadding = labelHeight / 4.0;
+                                break;
+                            case 'uncovered':
+                                labelPadding = labelHeight / 2.0;
+                                break;
+                            default:
+                                labelPadding = labelHeight / 2.0;
+                                break;
+                        }
+                        label.x = this.correctCanvasXPosition(
+                            Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - labelWidth / 2.0),
+                            viewport
+                        );
+                        label.y = Math.round(isReverse ? startY + heightBlock / 2.0 - labelPadding : startY - heightBlock / 2.0 - labelPadding - 1);
+                        this.dataContainer.addChild(label);
                     }
-                    switch (item.value.toLowerCase()) {
-                        case 'stop':
-                            if (!label) {
-                                label = new PIXI.Text('*', labelStyle);
-                                labelWidth = label.width;
-                                labelHeight = label.height;
-                            }
-                            labelPadding = labelHeight / 4.0;
-                            break;
-                        case 'uncovered':
-                            if (!label) {
-                                label = new PIXI.Text('n', labelStyle);
-                                labelWidth = label.width;
-                                labelHeight = label.height;
-                            }
-                            labelPadding = labelHeight / 2.0;
-                            break;
-                        default:
-                            if (!label) {
-                                label = new PIXI.Text(item.value, labelStyle);
-                                labelWidth = label.width;
-                                labelHeight = label.height;
-                            }
-                            labelPadding = labelHeight / 2.0;
-                            break;
-                    }
-                    label.resolution = drawingConfiguration.resolution;
-                    label.x = this.correctCanvasXPosition(
-                        Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - labelWidth / 2.0),
-                        viewport
-                    );
-                    label.y = Math.round(isReverse ? startY + heightBlock / 2.0 - labelPadding : startY - heightBlock / 2.0 - labelPadding - 1);
-                    this.dataContainer.addChild(label);
                 }
             }
             index++;
@@ -362,13 +294,18 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
 
     _updateNoGCContentLable(viewport, reference) {
         if (!this._noGCContentLabel) {
-            this._noGCContentLabel = new PIXI.Text(this._config.noGCContent.text, this._config.noGCContent.labelStyle);
-            this._noGCContentLabel.resolution = drawingConfiguration.resolution;
-            this.container.addChild(this._noGCContentLabel);
+            this._noGCContentLabel = this.labelsManager
+                ? this.labelsManager.getLabel(this._config.noGCContent.text, this._config.noGCContent.labelStyle)
+                : undefined;
+            if (this._noGCContentLabel) {
+                this.container.addChild(this._noGCContentLabel);
+            }
         }
-        this._noGCContentLabel.x = Math.round(viewport.canvasSize / 2 - this._noGCContentLabel.width / 2.0);
-        this._noGCContentLabel.y = Math.round(this.height / 2.0 - this._noGCContentLabel.height / 2.0);
-        this._noGCContentLabel.visible = reference.mode === modes.gcContentNotProvided;
+        if (this._noGCContentLabel) {
+            this._noGCContentLabel.x = Math.round(viewport.canvasSize / 2 - this._noGCContentLabel.width / 2.0);
+            this._noGCContentLabel.y = Math.round(this.height / 2.0 - this._noGCContentLabel.height / 2.0);
+            this._noGCContentLabel.visible = reference.mode === modes.gcContentNotProvided;
+        }
     }
 
     _gradientColor(value) {

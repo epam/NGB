@@ -6,8 +6,8 @@ export class CoverageRenderer extends WIGRenderer {
 
     _bamConfig;
 
-    constructor(config, bamConfig, bamState) {
-        super(config, bamState);
+    constructor(config, bamConfig, bamState, track) {
+        super(config, bamState, track);
         this._bamConfig = bamConfig;
     }
 

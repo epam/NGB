@@ -3,8 +3,7 @@ import {
     VariantContainer,
     VCFCollapsedRenderer,
     VCFExpandedRenderer,
-    VcfTransformer,
-    PlaceholderRenderer
+    VcfTransformer
 } from './internal';
 import {GENETrack} from '../gene';
 import VcfConfig from './vcfConfig';
@@ -13,7 +12,7 @@ import GeneConfig from '../gene/geneConfig';
 import {default as menu} from './menu';
 import Menu from '../../core/menu';
 import {variantsView} from './modes';
-import {menu as menuUtilities} from '../../utilities';
+import {menu as menuUtilities, PlaceholderRenderer} from '../../utilities';
 import {EventVariationInfo} from '../../../../app/shared/utils/events';
 
 export class VCFTrack extends GENETrack {
@@ -21,7 +20,7 @@ export class VCFTrack extends GENETrack {
     _collapsedRenderer: VCFCollapsedRenderer = null;
     _lastHovered = null;
     _variantsMaximumRange;
-    _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer();
+    _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer(this);
     _highlightProfile = null;
     _highlightProfileConditions = [];
 
@@ -33,6 +32,10 @@ export class VCFTrack extends GENETrack {
 
     get stateKeys() {
         return ['variantsView', 'header'];
+    }
+
+    get featuresFilteringEnabled () {
+        return false;
     }
 
     static preStateMutatorFn = (track) => ({
@@ -180,10 +183,18 @@ export class VCFTrack extends GENETrack {
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new VCFExpandedRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new VCFExpandedRenderer(
+                this.trackConfig,
+                this.transformer,
+                this._pixiRenderer,
+                this
+            );
         }
         if (!this._collapsedRenderer) {
-            this._collapsedRenderer = new VCFCollapsedRenderer(VcfConfig);
+            this._collapsedRenderer = new VCFCollapsedRenderer(
+                VcfConfig,
+                this
+            );
         }
         if (this.state.variantsView === variantsView.variantsViewCollapsed) {
             return this._collapsedRenderer;

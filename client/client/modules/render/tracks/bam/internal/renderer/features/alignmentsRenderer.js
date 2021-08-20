@@ -10,15 +10,22 @@ export const BP_OFFSET = 0.5;
 const ALIGNMENT_ARROW_DIRECTION_LEFT = -1;
 const ALIGNMENT_ARROW_DIRECTION_RIGHT = 1;
 
+const baseLabelStyle = {
+    fill: 0xFFFFFF,
+    fontFamily: 'arial',
+    fontSize: '6pt',
+    fontWeight: 'normal'
+};
+
 export class AlignmentsRenderer {
-    constructor(viewport, config, colors, alignmentRowHeight, topMargin, y, features, lettersCache, height) {
+    constructor(viewport, config, colors, alignmentRowHeight, topMargin, y, features, labelsManager, height) {
         this._graphics = new PIXI.Graphics();
         this._container = new PIXI.Container();
         this._container.addChild(this._graphics);
         this._viewport = viewport;
         this._colors = colors;
         this._features = features;
-        this._lettersCache = lettersCache;
+        this._labelsManager = labelsManager;
         this._height = height;
         this._baseColor = colors.base;
         this._topMargin = topMargin;
@@ -335,12 +342,17 @@ export class AlignmentsRenderer {
             end - start,
             localYHeight,
             this._canShowLetters && this._yScale > 1 ? BP_OFFSET : 0);
-        if (!breakOnLeft && !breakOnRight && this._canShowLetters &&
-            this._yScale > 1 && this._lettersCache[renderEntry.base] && !renderEntry.isOverlaps) {
-            const texture = this._lettersCache[renderEntry.base];
-            const sprite = new PIXI.Sprite(texture);
-            sprite.x = Math.round(this._projectX(renderEntry.startIndex + BP_OFFSET) - texture.width / 2);
-            sprite.y = Math.round(this._projectY(localYOffset + localYHeight / 2) - texture.height / 2);
+        if (
+            !breakOnLeft &&
+            !breakOnRight &&
+            this._canShowLetters &&
+            this._yScale > 1 &&
+            !renderEntry.isOverlaps &&
+            this._labelsManager
+        ) {
+            const sprite = this._labelsManager.getLabel(renderEntry.base, baseLabelStyle);
+            sprite.x = Math.round(this._projectX(renderEntry.startIndex + BP_OFFSET) - sprite.width / 2);
+            sprite.y = Math.round(this._projectY(localYOffset + localYHeight / 2) - sprite.height / 2);
             this._container.addChild(sprite);
         }
         this._setColor(this._colors.bg);

@@ -22,13 +22,17 @@ export class FeatureCountsTrack extends GENETrack {
     get renderer() {
         if (!this._renderer) {
             this._renderer = new FCRenderer(
-                this,
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer
+                this._pixiRenderer,
+                this
             );
         }
         return this._renderer;
+    }
+
+    get featuresFilteringEnabled () {
+        return false;
     }
 
     constructor(opts) {

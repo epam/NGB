@@ -9,7 +9,7 @@ import SegTransformer from './segTransformer';
 export class SEGTrack extends CachedTrack {
 
     _dataService;
-    _renderer = new SegRenderer(this.trackConfig);
+    _renderer = new SegRenderer(this.trackConfig, this);
 
     static postStateMutatorFn = (track) => {
         track.reportTrackState();

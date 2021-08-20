@@ -30,10 +30,18 @@ export class VariantBaseContainer {
         return this._highlightGraphics;
     }
 
-    constructor(variant, config) {
+    /**
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager () {
+        return this._track ? this._track.labelsManager : undefined;
+    }
+
+    constructor(variant, config, track) {
         this._container = new PIXI.Container();
         this._config = config;
         this._variant = variant;
+        this._track = track;
 
         this._graphics = new PIXI.Graphics();
         this._highlightGraphics = new PIXI.Graphics();

@@ -26,11 +26,11 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _graphicsSprite: PIXI.Sprite = null;
     _hoveredGraphicsSprite: PIXI.Sprite = null;
 
-    constructor(config, transformer: GeneTransformer, pixiRenderer) {
-        super();
-        this._config = config;
+    constructor(config, transformer: GeneTransformer, pixiRenderer, track) {
+        super(track);
+        this._config = {...config, pixiRenderer};
         this._pixiRenderer = pixiRenderer;
-        this._featureRenderer = new FeatureRenderer(config);
+        this._featureRenderer = new FeatureRenderer(this._config, track);
         this._geneHistogram = new GeneHistogram(config);
         this._transformer = transformer;
         this._labelsContainer = new PIXI.Container();
@@ -115,32 +115,19 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return true;
     }
 
-    /**
-     * @param container {PIXI.Container}
-     * */
-    removeChildrenApartFromText(container) {
-        if (!container || !container.children || !container.children.length) {
-            return;
-        }
-        const childrenToRemove = [];
-        for (let i = 0; i < container.children.length; i++) {
-            const child = container.children[i];
-            if (!(child instanceof PIXI.Text)) {
-                childrenToRemove.push(child);
-            } else {
-                child.visible = false;
-            }
-        }
-        if (childrenToRemove.length > 0) {
-            container.removeChild(...childrenToRemove);
-        }
-    }
-
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
-
+        const clearPreviousSprite = sprite => {
+            if (sprite && sprite.texture && sprite.texture.baseTexture) {
+                sprite.texture.destroy();
+            }
+        };
         this.dataContainer.removeChildren();
+        this._dockableElementsContainer.removeChildren();
         this._attachedElementsContainer.removeChildren();
+        this._labelsContainer.removeChildren();
+        clearPreviousSprite(this._graphicsSprite);
+        clearPreviousSprite(this._hoveredGraphicsSprite);
 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
@@ -149,14 +136,11 @@ export default class GeneRenderer extends CachedTrackRenderer {
         if (this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
             this._dockableElementsContainer.removeChildren();
             this._labelsContainer.removeChildren();
-            this.featureRenderer.clearLabelsPool && this.featureRenderer.clearLabelsPool();
             this.geneHistogram.totalHeight = this.height;
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;
         }
         else if (cache.data !== null && cache.data !== undefined) {
-            this.removeChildrenApartFromText(this._dockableElementsContainer);
-            this.removeChildrenApartFromText(this._labelsContainer);
             this.geneHistogram.clear();
             this.featureRenderer._opts = {
                 gffColorByFeatureType: this._gffColorByFeatureType,
@@ -165,7 +149,13 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 geneFeatures: this._geneFeatures
             };
             this.featureRenderer.prepare();
-            const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
+            const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(
+                cache.data,
+                viewport,
+                this._labelsContainer,
+                this._dockableElementsContainer,
+                this._attachedElementsContainer
+            );
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
@@ -224,9 +214,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 }
                 this.hoverItem(null, viewport, false);
             }
-            this.featureRenderer.manageLabels(viewport, this.height);
-            this.featureRenderer.manageDockableElements(viewport);
-            this.featureRenderer.manageAttachedElements(viewport, this.height);
             this._actualHeight = this.featureRenderer.getActualHeight();
             this.dataContainer.addChild(this._hoveredItemContainer);
         }
