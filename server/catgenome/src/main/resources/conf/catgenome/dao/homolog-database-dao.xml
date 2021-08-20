@@ -2,23 +2,19 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.epam.catgenome.dao.homolog.HomologGroupGeneDao" id="homologGroupGeneDao" autowire="byName">
-        <property name="sequenceName" value="catgenome.s_homolog_group_gene"/>
+    <bean class="com.epam.catgenome.dao.homolog.HomologDatabaseDao" id="homologDatabaseDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_homolog_database"/>
         <property name="insertQuery">
             <value>
                 <![CDATA[
-                    INSERT INTO catgenome.homolog_group_gene (
+                    INSERT INTO catgenome.homolog_database (
                         id,
-                        group_id,
-                        gene_id,
-                        tax_id,
-                        database_id
+                        name,
+                        path
                     ) VALUES (
                         :ID,
-                        :GROUP_ID,
-                        :GENE_ID,
-                        :TAX_ID,
-                        :DATABASE_ID
+                        :NAME,
+                        :PATH
                     )
                 ]]>
             </value>
@@ -26,7 +22,7 @@
         <property name="deleteQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.homolog_group_gene WHERE database_id = ?
+                    DELETE FROM catgenome.homolog_database WHERE id = ?
                 ]]>
             </value>
         </property>
@@ -35,11 +31,9 @@
                 <![CDATA[
                     SELECT
                         id,
-                        group_id,
-                        gene_id,
-                        tax_id,
-                        database_id
-                    FROM catgenome.homolog_group_gene
+                        name,
+                        path
+                    FROM catgenome.homolog_database
                 ]]>
             </value>
         </property>

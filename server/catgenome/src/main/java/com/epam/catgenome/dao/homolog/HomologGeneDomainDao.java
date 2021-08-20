@@ -24,13 +24,13 @@
 package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -52,71 +53,89 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
-    private String groupSequenceName;
-    private String insertGroupQuery;
-    private String deleteGroupsQuery;
-    private String loadGroupQuery;
+    private String sequenceName;
+    private String insertQuery;
+    private String deleteAllQuery;
+    private String loadQuery;
 
     /**
-     * Persists a new or updates existing Homolog Group record.
-     * @param domain {@code HomologGroup} a Homolog Group to persist.
+     * Persists a new Gene Domain record.
+     * @param domain {@code Domain} a Gene domain to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void save(final Domain domain) {
-//        domain.setId(daoHelper.createId(groupSequenceName));
-        getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(domain));
+        long newId = daoHelper.createId(sequenceName);
+        getNamedParameterJdbcTemplate().update(insertQuery, DomainParameters.getParameters(newId, domain));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void save(final List<Domain> domains) {
+        if (!CollectionUtils.isEmpty(domains)) {
+            List<Long> newIds = daoHelper.createIds(sequenceName, domains.size());
+            List<MapSqlParameterSource> params = new ArrayList<>(domains.size());
+            for (int i = 0; i < domains.size(); i++) {
+                MapSqlParameterSource param = DomainParameters.getParameters(newIds.get(i), domains.get(i));
+                params.add(param);
+            }
+
+            getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
+                    params.toArray(new MapSqlParameterSource[domains.size()]));
+        }
     }
 
     /**
-     * Deletes Homolog groups from the database
+     * Deletes Gene domains from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteGroups() {
-        getJdbcTemplate().update(deleteGroupsQuery);
+    public void deleteAll() {
+        getJdbcTemplate().update(deleteAllQuery);
     }
 
     /**
-     * Loads {@code Homolog groups} from a database by parameters.
+     * Loads {@code Gene domains} from a database by parameters.
      * @param queryParameters {@code QueryParameters} query parameters
-     * @return a {@code List<HomologGroup>} from the database
+     * @return a {@code List<Domain>} from the database
      */
-    public List<HomologGroup> loadGroup(final QueryParameters queryParameters) {
-        String query = addParametersToQuery(loadGroupQuery, queryParameters);
-        return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
+    public List<Domain> load(final QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadQuery, queryParameters);
+        return getJdbcTemplate().query(query, DomainParameters.getRowMapper());
     }
 
-    enum GroupParameters {
+    enum DomainParameters {
         ID,
-        PRIMARY_GENE_ID,
-        PRIMARY_GENE_TAX_ID,
-        PRIMARY_GENE_NAME,
-        PROTEIN_NAME,
-        DATABASE_ID;
+        GENE_ID,
+        BEGIN,
+        END,
+        PSSMID,
+        CDDID,
+        CDDNAME;
 
-        static MapSqlParameterSource getParameters(final HomologGroup homologGroup) {
+        static MapSqlParameterSource getParameters(final long id, final Domain domain) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), homologGroup.getId());
-            params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getPrimaryGeneId());
-            params.addValue(PRIMARY_GENE_TAX_ID.name(), homologGroup.getPrimaryGeneTaxId());
-            params.addValue(PRIMARY_GENE_NAME.name(), homologGroup.getPrimaryGeneName());
-            params.addValue(PROTEIN_NAME.name(), homologGroup.getProteinName());
-            params.addValue(DATABASE_ID.name(), homologGroup.getDatabaseId());
+            params.addValue(ID.name(), id);
+            params.addValue(GENE_ID.name(), domain.getGeneId());
+            params.addValue(BEGIN.name(), domain.getBegin());
+            params.addValue(END.name(), domain.getEnd());
+            params.addValue(PSSMID.name(), domain.getPssmId());
+            params.addValue(CDDID.name(), domain.getCddId());
+            params.addValue(CDDNAME.name(), domain.getCddName());
             return params;
         }
 
-        static RowMapper<HomologGroup> getRowMapper() {
-            return (rs, rowNum) -> parseGroup(rs);
+        static RowMapper<Domain> getRowMapper() {
+            return (rs, rowNum) -> parseDomain(rs);
         }
 
-        static HomologGroup parseGroup(final ResultSet rs) throws SQLException {
-            final HomologGroup group = new HomologGroup();
-            group.setId(rs.getLong(ID.name()));
-            group.setPrimaryGeneId(PRIMARY_GENE_ID.name());
-            group.setPrimaryGeneTaxId(rs.getLong(PRIMARY_GENE_TAX_ID.name()));
-            group.setPrimaryGeneName(rs.getString(PRIMARY_GENE_NAME.name()));
-            group.setProteinName(PROTEIN_NAME.name());
-            group.setDatabaseId(rs.getLong(DATABASE_ID.name()));
-            return group;
+        static Domain parseDomain(final ResultSet rs) throws SQLException {
+            return Domain.builder()
+                    .id(rs.getLong(ID.name()))
+                    .geneId(rs.getLong(GENE_ID.name()))
+                    .begin(rs.getLong(BEGIN.name()))
+                    .end(rs.getLong(END.name()))
+                    .pssmId(rs.getLong(PSSMID.name()))
+                    .cddId(rs.getString(CDDID.name()))
+                    .cddName(rs.getString(CDDNAME.name()))
+                    .build();
         }
     }
 }

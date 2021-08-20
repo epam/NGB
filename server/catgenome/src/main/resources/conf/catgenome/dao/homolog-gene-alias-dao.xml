@@ -3,37 +3,37 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.homolog.HomologGeneAliasDao" id="homologGeneAliasDao" autowire="byName">
-        <property name="geneAliasSequenceName" value="catgenome.s_homolog_gene_alias"/>
-        <property name="insertGeneAliasQuery">
+        <property name="sequenceName" value="catgenome.s_homolog_gene_alias"/>
+        <property name="insertQuery">
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_gene_alias (
                         id,
                         gene_id,
-                        alias
+                        name
                     ) VALUES (
                         :ID,
                         :GENE_ID,
-                        :ALIAS
+                        :NAME
                     )
                 ]]>
             </value>
         </property>
-        <property name="deleteGeneAliasesQuery">
+        <property name="deleteAllQuery">
             <value>
                 <![CDATA[
                     DELETE FROM catgenome.homolog_gene_alias
                 ]]>
             </value>
         </property>
-        <property name="loadGeneAliasesQuery">
+        <property name="loadQuery">
             <value>
                 <![CDATA[
                     SELECT
                         id,
                         gene_id,
-                        alias
-                    FROM catgenome.homolog_gene_alias WHERE gene_id = ?
+                        name
+                    FROM catgenome.homolog_gene_alias
                 ]]>
             </value>
         </property>

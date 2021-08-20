@@ -25,7 +25,8 @@ package com.epam.catgenome.controller.externaldb;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSearchRequest;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSecurityService;
 import com.wordnik.swagger.annotations.Api;
@@ -35,11 +36,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -50,7 +47,7 @@ public class HomologController extends AbstractRESTController {
 
     private final HomologSecurityService homologSecurityService;
 
-    @GetMapping(value = "/search")
+    @PostMapping(value = "/homolog/search")
     @ApiOperation(
             value = "Searches homologs by gene ID",
             notes = "Searches homologs by gene ID",
@@ -58,11 +55,12 @@ public class HomologController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastTaxonomy> searchHomolog(@RequestBody final HomologSearchRequest searchRequest) throws IOException, ParseException {
+    public Result<SearchResult<HomologGroup>> search(@RequestBody final HomologSearchRequest searchRequest)
+            throws IOException, ParseException {
         return Result.success(homologSecurityService.searchHomolog(searchRequest));
     }
 
-    @PutMapping(value = "/import")
+    @PutMapping(value = "/homolog/import")
     @ApiOperation(
             value = "Imports Homolog data",
             notes = "Imports Homolog data",
@@ -70,9 +68,10 @@ public class HomologController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importHomologData(@RequestParam final String databasePath)
+    public Result<Boolean> importHomologData(@RequestParam final String databaseName,
+                                             @RequestParam final String databasePath)
             throws IOException, ParseException {
-        homologSecurityService.importHomologData(databasePath);
+        homologSecurityService.importHomologData(databaseName, databasePath);
         return Result.success(null);
     }
 }

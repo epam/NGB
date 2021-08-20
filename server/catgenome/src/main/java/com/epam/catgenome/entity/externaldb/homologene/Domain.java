@@ -23,12 +23,20 @@ package com.epam.catgenome.entity.externaldb.homologene;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Domain {
+    private Long id;
+    private Long geneId;
     private Long begin;
     private Long end;
     private Long pssmId;

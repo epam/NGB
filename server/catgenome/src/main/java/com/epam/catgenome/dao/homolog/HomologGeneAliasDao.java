@@ -24,12 +24,13 @@
 package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.entity.externaldb.homologene.Alias;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -51,71 +53,76 @@ public class HomologGeneAliasDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
-    private String groupSequenceName;
-    private String insertGroupQuery;
-    private String deleteGroupsQuery;
-    private String loadGroupQuery;
+    private String sequenceName;
+    private String insertQuery;
+    private String deleteAllQuery;
+    private String loadQuery;
 
     /**
-     * Persists a new or updates existing Homolog Group record.
-     * @param homologGroup {@code HomologGroup} a Homolog Group to persist.
+     * Persists a new Gene alias records.
+     * @param alias {@code Alias} a Gene alias to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void save(final HomologGroup homologGroup) {
-        homologGroup.setId(daoHelper.createId(groupSequenceName));
-        getNamedParameterJdbcTemplate().update(insertGroupQuery, GroupParameters.getParameters(homologGroup));
+    public void save(final Alias alias) {
+        long newId = daoHelper.createId(sequenceName);
+        getNamedParameterJdbcTemplate().update(insertQuery, AliasParameters.getParameters(newId, alias));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void save(final List<Alias> aliases) {
+        if (!CollectionUtils.isEmpty(aliases)) {
+            List<Long> newIds = daoHelper.createIds(sequenceName, aliases.size());
+            ArrayList<MapSqlParameterSource> params = new ArrayList<>(aliases.size());
+            for (int i = 0; i < aliases.size(); i++) {
+                MapSqlParameterSource param = AliasParameters.getParameters(newIds.get(i), aliases.get(i));
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
+                    params.toArray(new MapSqlParameterSource[aliases.size()]));
+        }
     }
 
     /**
-     * Deletes Homolog groups from the database
+     * Deletes Gene alias from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteGroups() {
-        getJdbcTemplate().update(deleteGroupsQuery);
+    public void deleteAll() {
+        getJdbcTemplate().update(deleteAllQuery);
     }
 
     /**
-     * Loads {@code Homolog groups} from a database by parameters.
+     * Loads {@code Gene alias} from a database by parameters.
      * @param queryParameters {@code QueryParameters} query parameters
-     * @return a {@code List<HomologGroup>} from the database
+     * @return a {@code List<Alias>} from the database
      */
-    public List<HomologGroup> loadGroup(final QueryParameters queryParameters) {
-        String query = addParametersToQuery(loadGroupQuery, queryParameters);
-        return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
+    public List<Alias> load(final QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadQuery, queryParameters);
+        return getJdbcTemplate().query(query, AliasParameters.getRowMapper());
     }
 
-    enum GroupParameters {
+    enum AliasParameters {
         ID,
-        PRIMARY_GENE_ID,
-        PRIMARY_GENE_TAX_ID,
-        PRIMARY_GENE_NAME,
-        PROTEIN_NAME,
-        DATABASE_ID;
+        GENE_ID,
+        NAME;
 
-        static MapSqlParameterSource getParameters(final HomologGroup homologGroup) {
+        static MapSqlParameterSource getParameters(final long id, final Alias alias) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), homologGroup.getId());
-            params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getPrimaryGeneId());
-            params.addValue(PRIMARY_GENE_TAX_ID.name(), homologGroup.getPrimaryGeneTaxId());
-            params.addValue(PRIMARY_GENE_NAME.name(), homologGroup.getPrimaryGeneName());
-            params.addValue(PROTEIN_NAME.name(), homologGroup.getProteinName());
-            params.addValue(DATABASE_ID.name(), homologGroup.getDatabaseId());
+            params.addValue(ID.name(), id);
+            params.addValue(GENE_ID.name(), alias.getGeneId());
+            params.addValue(NAME.name(), alias.getName());
             return params;
         }
 
-        static RowMapper<HomologGroup> getRowMapper() {
-            return (rs, rowNum) -> parseGroup(rs);
+        static RowMapper<Alias> getRowMapper() {
+            return (rs, rowNum) -> parseAlias(rs);
         }
 
-        static HomologGroup parseGroup(final ResultSet rs) throws SQLException {
-            final HomologGroup group = new HomologGroup();
-            group.setId(rs.getLong(ID.name()));
-            group.setPrimaryGeneId(PRIMARY_GENE_ID.name());
-            group.setPrimaryGeneTaxId(rs.getLong(PRIMARY_GENE_TAX_ID.name()));
-            group.setPrimaryGeneName(rs.getString(PRIMARY_GENE_NAME.name()));
-            group.setProteinName(PROTEIN_NAME.name());
-            group.setDatabaseId(rs.getLong(DATABASE_ID.name()));
-            return group;
+        static Alias parseAlias(final ResultSet rs) throws SQLException {
+            return Alias.builder()
+                    .id(rs.getLong(ID.name()))
+                    .geneId(rs.getLong(GENE_ID.name()))
+                    .name(rs.getString(NAME.name()))
+                    .build();
         }
     }
 }

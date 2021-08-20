@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -51,27 +53,41 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
-    private String geneDescSequenceName;
-    private String insertGeneDescQuery;
-    private String deleteGeneDescQuery;
-    private String loadGeneDescQuery;
+    private String sequenceName;
+    private String insertQuery;
+    private String deleteAllQuery;
+    private String loadQuery;
 
     /**
      * Persists a new or updates existing Gene Description record.
      * @param gene {@code Gene } a Gene Description to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void save(final Gene gene) {
-        gene.setGeneId(daoHelper.createId(geneDescSequenceName));
-        getNamedParameterJdbcTemplate().update(insertGeneDescQuery, GeneDescParameters.getParameters(gene));
+    public Gene save(final Gene gene) {
+        gene.setGeneId(daoHelper.createId(sequenceName));
+        getNamedParameterJdbcTemplate().update(insertQuery, GeneDescParameters.getParameters(gene));
+        return gene;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void save(final List<Gene> genes) {
+        if (!CollectionUtils.isEmpty(genes)) {
+            ArrayList<MapSqlParameterSource> params = new ArrayList<>(genes.size());
+            for (Gene gene : genes) {
+                MapSqlParameterSource param = GeneDescParameters.getParameters(gene);
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
+                    params.toArray(new MapSqlParameterSource[genes.size()]));
+        }
     }
 
     /**
      * Deletes Gene descriptions from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteGeneDesc() {
-        getJdbcTemplate().update(deleteGeneDescQuery);
+    public void deleteAll() {
+        getJdbcTemplate().update(deleteAllQuery);
     }
 
     /**
@@ -79,8 +95,8 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
      * @param queryParameters {@code QueryParameters} query parameters
      * @return a {@code List<Gene>} from the database
      */
-    public List<Gene> loadGeneDesc(final QueryParameters queryParameters) {
-        String query = addParametersToQuery(loadGeneDescQuery, queryParameters);
+    public List<Gene> load(final QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadQuery, queryParameters);
         return getJdbcTemplate().query(query, GeneDescParameters.getRowMapper());
     }
 
@@ -116,18 +132,18 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
         }
 
         static Gene parseGene(final ResultSet rs) throws SQLException {
-            final Gene gene = new Gene();
-            gene.setGeneId(rs.getLong(ID.name()));
-            gene.setSymbol(rs.getString(SYMBOL.name()));
-            gene.setTitle(rs.getString(TITLE.name()));
-            gene.setTaxId(rs.getLong(TAX_ID.name()));
-            gene.setProtGi(rs.getLong(PROT_GI.name()));
-            gene.setProtAcc(rs.getString(PROT_ACC.name()));
-            gene.setProtLen(rs.getLong(PROT_LEN.name()));
-            gene.setNucGi(rs.getLong(NUC_GI.name()));
-            gene.setNucAcc(rs.getString(NUC_ACC.name()));
-            gene.setLocusTag(rs.getString(LOCUS_TAG.name()));
-            return gene;
+            return Gene.builder()
+                    .geneId(rs.getLong(ID.name()))
+                    .symbol(rs.getString(SYMBOL.name()))
+                    .title(rs.getString(TITLE.name()))
+                    .taxId(rs.getLong(TAX_ID.name()))
+                    .protGi(rs.getLong(PROT_GI.name()))
+                    .protAcc(rs.getString(PROT_ACC.name()))
+                    .protLen(rs.getLong(PROT_LEN.name()))
+                    .nucGi(rs.getLong(NUC_GI.name()))
+                    .nucAcc(rs.getString(NUC_ACC.name()))
+                    .locusTag(rs.getString(LOCUS_TAG.name()))
+                    .build();
         }
     }
 }

@@ -24,13 +24,12 @@
 package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
+import com.epam.catgenome.entity.externaldb.homolog.HomologDatabase;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -49,7 +47,7 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
+public class HomologDatabaseDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
@@ -57,34 +55,20 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     private String insertQuery;
     private String deleteQuery;
     private String loadQuery;
-    private String totalCountQuery;
 
     /**
-     * Persists a new Homolog group gene record.
-     * @param gene {@code HomologGroupGene} a Homolog group gene to persist.
+     * Persists a new Homolog database records.
+     * @param database {@code HomologDatabase} a Homolog database to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void save(final HomologGroupGene gene) {
-        long newId = daoHelper.createId(sequenceName);
-        getNamedParameterJdbcTemplate().update(insertQuery, GroupGeneParameters.getParameters(newId, gene));
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void save(final List<HomologGroupGene> genes) {
-        if (!CollectionUtils.isEmpty(genes)) {
-            List<Long> newIds = daoHelper.createIds(sequenceName, genes.size());
-            List<MapSqlParameterSource> params = new ArrayList<>(genes.size());
-            for (int i = 0; i < genes.size(); i++) {
-                MapSqlParameterSource param = GroupGeneParameters.getParameters(newIds.get(i), genes.get(i));
-                params.add(param);
-            }
-            getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
-                    params.toArray(new MapSqlParameterSource[genes.size()]));
-        }
+    public HomologDatabase save(final HomologDatabase database) {
+        database.setId(daoHelper.createId(sequenceName));
+        getNamedParameterJdbcTemplate().update(insertQuery, DatabaseParameters.getParameters(database));
+        return database;
     }
 
     /**
-     * Deletes Homolog groups genes from the database
+     * Deletes Homolog database record from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void delete(final Long id) {
@@ -92,43 +76,37 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
-     * Loads {@code Homolog groups gene} from a database by parameters.
+     * Loads {@code Homolog database} from a database by parameters.
      * @param queryParameters {@code QueryParameters} query parameters
-     * @return a {@code List<HomologGroupGene>} from the database
+     * @return a {@code List<HomologDatabase>} from the database
      */
-    public List<HomologGroupGene> load(final QueryParameters queryParameters) {
+    public List<HomologDatabase> load(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadQuery, queryParameters);
-        return getJdbcTemplate().query(query, GroupGeneParameters.getRowMapper());
+        return getJdbcTemplate().query(query, DatabaseParameters.getRowMapper());
     }
 
-    enum GroupGeneParameters {
+    enum DatabaseParameters {
         ID,
-        GROUP_ID,
-        GENE_ID,
-        TAX_ID,
-        DATABASE_ID;
+        NAME,
+        PATH;
 
-        static MapSqlParameterSource getParameters(final long id, final HomologGroupGene gene) {
+        static MapSqlParameterSource getParameters(final HomologDatabase database) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), id);
-            params.addValue(GROUP_ID.name(), gene.getGroupId());
-            params.addValue(GENE_ID.name(), gene.getGeneId());
-            params.addValue(TAX_ID.name(), gene.getTaxId());
-            params.addValue(DATABASE_ID.name(), gene.getDatabaseId());
+            params.addValue(ID.name(), database.getId());
+            params.addValue(NAME.name(), database.getName());
+            params.addValue(PATH.name(), database.getPath());
             return params;
         }
 
-        static RowMapper<HomologGroupGene> getRowMapper() {
-            return (rs, rowNum) -> parseGroupGene(rs);
+        static RowMapper<HomologDatabase> getRowMapper() {
+            return (rs, rowNum) -> parseAlias(rs);
         }
 
-        static HomologGroupGene parseGroupGene(final ResultSet rs) throws SQLException {
-            return HomologGroupGene.builder()
+        static HomologDatabase parseAlias(final ResultSet rs) throws SQLException {
+            return HomologDatabase.builder()
                     .id(rs.getLong(ID.name()))
-                    .groupId(rs.getLong(GROUP_ID.name()))
-                    .geneId(rs.getLong(GENE_ID.name()))
-                    .taxId(rs.getLong(TAX_ID.name()))
-                    .databaseId(rs.getLong(DATABASE_ID.name()))
+                    .name(rs.getString(NAME.name()))
+                    .path(rs.getString(PATH.name()))
                     .build();
         }
     }

@@ -1,3 +1,7 @@
+package com.epam.catgenome.entity.externaldb.homolog;
+
+import lombok.AllArgsConstructor;
+
 /*
  * MIT License
  *
@@ -21,16 +25,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.homologene;
+import java.util.HashMap;
+import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
+@AllArgsConstructor
+public enum HomologType {
+    ORTHOLOG(0, "Ortholog"),
+    PARALOG(1, "Paralog");
 
-import java.util.List;
+    private final int id;
+    private final String name;
+    private static final Map<Integer, HomologType> ID_MAP = new HashMap<>();
+    private static final Map<String, HomologType> NAME_MAP = new HashMap<>();
 
-@Getter
-@Setter
-public class HomologeneSearchResult<T> {
-    private List<T> items;
-    private Integer totalCount;
+    static {
+        ID_MAP.put(0, ORTHOLOG);
+        ID_MAP.put(1, PARALOG);
+    }
+
+    static {
+        NAME_MAP.put("Ortholog", ORTHOLOG);
+        NAME_MAP.put("Paralog", PARALOG);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public static HomologType getById(int id) {
+        return ID_MAP.get(id);
+    }
+    public static HomologType getByName(String name) {
+        return NAME_MAP.get(name);
+    }
 }

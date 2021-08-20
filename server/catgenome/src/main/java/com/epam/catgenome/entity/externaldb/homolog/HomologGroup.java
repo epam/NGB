@@ -23,16 +23,24 @@
  */
 package com.epam.catgenome.entity.externaldb.homolog;
 
+import com.epam.catgenome.entity.externaldb.homologene.Gene;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
+@Builder
 public class HomologGroup {
     private Long id;
-    private String primaryGeneId;
-    private Long primaryGeneTaxId;
-    private String primaryGeneName;
+    private Long geneId;
+    private Long taxId;
+    private String geneName;
     private String proteinName;
     private Long databaseId;
+    private String homologDatabase;
+    private HomologType type;
+    private List<Gene> homologs;
 }

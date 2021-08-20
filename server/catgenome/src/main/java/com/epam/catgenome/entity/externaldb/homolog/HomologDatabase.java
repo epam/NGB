@@ -23,11 +23,13 @@
  */
 package com.epam.catgenome.entity.externaldb.homolog;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class HomologDatabase {
     private Long id;
     private String name;

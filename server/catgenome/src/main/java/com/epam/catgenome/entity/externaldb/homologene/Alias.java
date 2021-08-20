@@ -1,3 +1,5 @@
+package com.epam.catgenome.entity.externaldb.homologene;
+
 /*
  * MIT License
  *
@@ -21,34 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.homologene;
-
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Gene {
+public class Alias {
+    private Long id;
     private Long geneId;
-    private String symbol;
-    private List<String> aliases;
-    private String title;
-    private Long taxId;
-    private String speciesCommonName;
-    private String speciesScientificName;
-    private Long protGi;
-    private String protAcc;
-    private Long protLen;
-    private Long nucGi;
-    private String nucAcc;
-    private List<Domain> domains;
-    private String locusTag;
+    private String name;
 }

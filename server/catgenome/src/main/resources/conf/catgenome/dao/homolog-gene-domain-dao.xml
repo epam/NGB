@@ -3,8 +3,8 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.homolog.HomologGeneDomainDao" id="homologGeneDomainDao" autowire="byName">
-        <property name="geneDomainSequenceName" value="catgenome.s_homolog_gene_domain"/>
-        <property name="insertGeneDomainQuery">
+        <property name="sequenceName" value="catgenome.s_homolog_gene_domain"/>
+        <property name="insertQuery">
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_gene_domain (
@@ -27,14 +27,14 @@
                 ]]>
             </value>
         </property>
-        <property name="deleteGeneDomainsQuery">
+        <property name="deleteAllQuery">
             <value>
                 <![CDATA[
                     DELETE FROM catgenome.homolog_gene_domain
                 ]]>
             </value>
         </property>
-        <property name="loadGeneDomainsQuery">
+        <property name="loadQuery">
             <value>
                 <![CDATA[
                     SELECT
@@ -45,7 +45,7 @@
                         pssmid,
                         cddid,
                         cddname
-                    FROM catgenome.homolog_gene_domain WHERE gene_id = ?
+                    FROM catgenome.homolog_gene_domain
                 ]]>
             </value>
         </property>

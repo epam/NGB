@@ -23,7 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.homolog;
 
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
@@ -40,13 +42,14 @@ public class HomologSecurityService {
     private HomologManager homologManager;
 
     @PreAuthorize(ROLE_USER)
-    public BlastTaxonomy searchHomolog(final HomologSearchRequest searchRequest) throws IOException, ParseException {
+    public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest searchRequest)
+            throws IOException, ParseException {
         return homologManager.searchHomolog(searchRequest);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public void importHomologData(final String databasePath) throws IOException, ParseException {
-        homologManager.importHomologData(databasePath);
+    @PreAuthorize(ROLE_ADMIN)
+    public void importHomologData(final String databaseName, final String databasePath)
+            throws IOException, ParseException {
+        homologManager.importHomologData(databaseName, databasePath);
     }
-
 }

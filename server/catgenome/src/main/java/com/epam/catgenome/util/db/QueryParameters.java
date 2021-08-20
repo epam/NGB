@@ -1,12 +1,14 @@
 package com.epam.catgenome.util.db;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class QueryParameters {
     private PagingInfo pagingInfo;
     private List<Filter> filters;

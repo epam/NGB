@@ -23,9 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb;
 
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
+import com.epam.catgenome.manager.externaldb.homolog.HomologManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -38,15 +36,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class HomologeneManagerTest extends TestCase {
-
-    public static final int ENTRIES_COUNT = 7;
+public class HomologManagerTest extends TestCase {
 
     @Autowired
-    private HomologeneManager homologeneManager;
+    private HomologManager homologManager;
 
     @Autowired
     private ApplicationContext context;
@@ -55,22 +52,12 @@ public class HomologeneManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        this.fileName = context.getResource("classpath:homologene//homologene.xml").getFile().getPath();
-        homologeneManager.importHomologeneDatabase(fileName);
+        this.fileName = context.getResource("classpath:homologene//orthologs.tsv").getFile().getPath();
     }
 
     @Test
-    public void searchTest() throws IOException {
-        HomologeneSearchRequest query = new HomologeneSearchRequest("ACADML", 1, 5);
-        SearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
-        assertNotNull(searchResult);
-        assertEquals(1, searchResult.getItems().size());
-    }
-
-    @Test
-    public void readHomologenesTest() {
-        List<HomologeneEntry> entries = homologeneManager.readHomologenes(fileName);
+    public void readHomologsTest() throws IOException {
+        Map<Object, List<HomologManager.HomologRecord>> entries = homologManager.readLines(fileName);
         assertNotNull(entries);
-        assertEquals(ENTRIES_COUNT, entries.size());
     }
 }

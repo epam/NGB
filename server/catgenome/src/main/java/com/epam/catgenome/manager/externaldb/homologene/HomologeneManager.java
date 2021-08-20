@@ -24,11 +24,16 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.component.MessageCode;
+import com.epam.catgenome.dao.homolog.HomologGeneAliasDao;
+import com.epam.catgenome.dao.homolog.HomologGeneDescDao;
+import com.epam.catgenome.dao.homolog.HomologGeneDomainDao;
+import com.epam.catgenome.entity.externaldb.homologene.Alias;
 import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -58,6 +63,8 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -91,10 +98,17 @@ public class HomologeneManager {
     @Autowired
     BlastTaxonomyManager taxonomyManager;
 
-    public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
+    @Autowired
+    HomologGeneDomainDao domainDao;
+    @Autowired
+    HomologGeneAliasDao aliasDao;
+    @Autowired
+    HomologGeneDescDao geneDescDao;
+
+    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
-        final HomologeneSearchResult<HomologeneEntry> searchResult = new HomologeneSearchResult<>();
+        final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -104,7 +118,7 @@ public class HomologeneManager {
             final int hits = page * pageSize;
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(buildSearchQuery(query.getQuery()), hits);
+            TopDocs topDocs = searcher.search(buildSearchQuery(query.getQuery() == null ? "" : query.getQuery()), hits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -154,9 +168,11 @@ public class HomologeneManager {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        List<Gene> genes = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
@@ -164,8 +180,39 @@ public class HomologeneManager {
             writer.deleteAll();
             for (HomologeneEntry entry: readHomologenes(databasePath)) {
                 addDoc(writer, entry);
+                genes.addAll(entry.getGenes());
             }
         }
+        updateGenes(genes);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    private void updateGenes(final List<Gene> genes) {
+        domainDao.deleteAll();
+        aliasDao.deleteAll();
+        geneDescDao.deleteAll();
+        List<Alias> aliases = new ArrayList<>();
+        List<Domain> domains = new ArrayList<>();
+        List<Gene> distinctGenes = genes.stream()
+                .collect(Collectors.groupingBy(Gene::getGeneId))
+                .values()
+                .stream()
+                .flatMap(group -> group.stream().limit(1))
+                .collect(Collectors.toList());
+        for (Gene gene: distinctGenes) {
+            gene.getAliases().forEach(a -> aliases.add(Alias.builder()
+                    .geneId(gene.getGeneId())
+                    .name(a)
+                    .build()));
+        }
+        for (Gene gene: distinctGenes) {
+            List<Domain> geneDomains = gene.getDomains();
+            geneDomains.forEach(d -> d.setGeneId(gene.getGeneId()));
+            domains.addAll(geneDomains);
+        }
+        geneDescDao.save(distinctGenes);
+        aliasDao.save(aliases);
+        domainDao.save(domains);
     }
 
     private Query buildSearchQuery(final String terms) {
