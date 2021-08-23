@@ -24,7 +24,6 @@ export class FeatureCountsTrack extends GENETrack {
             this._renderer = new FCRenderer(
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer,
                 this
             );
         }

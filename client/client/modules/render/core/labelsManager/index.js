@@ -102,14 +102,14 @@ export default class LabelsManager {
     clearTextureByKey (key) {
         if (this.texturesCache.has(key)) {
             const texture = this.texturesCache.get(key);
-            texture.destroy();
+            texture.destroy(true);
             this.texturesCache.delete(key);
         }
     }
 
     clear () {
         this.texturesCache.forEach(texture => {
-            texture.destroy();
+            texture.destroy(true);
         });
         this.texturesCache.clear();
     }

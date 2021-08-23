@@ -24,6 +24,10 @@ export default class CachedTrackRenderer {
      * @returns {LabelsManager|undefined}
      */
     get labelsManager() { return this._track ? this._track.labelsManager : undefined; }
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
+     * */
+    get pixiRenderer() { return this._track ? this._track._pixiRenderer : null; }
     get viewport() { return this._viewport; }
 
     initializeCentralLine() {

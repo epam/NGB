@@ -46,7 +46,7 @@ export class GENETrack extends CachedTrack {
     );
 
     constructor(opts) {
-        opts.preferWebGL = PREFER_WEBGL;
+        // opts.preferWebGL = PREFER_WEBGL;
         super(opts);
         const self = this;
         const handleClick = async() => {
@@ -212,7 +212,7 @@ export class GENETrack extends CachedTrack {
 
     get renderer(): GeneRenderer {
         if (!this._renderer) {
-            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer, this);
+            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this);
         }
         return this._renderer;
     }
@@ -243,10 +243,6 @@ export class GENETrack extends CachedTrack {
     }
 
     render(flags) {
-        if (flags.pixiRendererChanged) {
-            this.renderer.pixiRenderer = this._pixiRenderer;
-        }
-
         let somethingChanged = super.render(flags);
         if (flags.renderReset) {
             this.container.addChild(this.renderer.container);

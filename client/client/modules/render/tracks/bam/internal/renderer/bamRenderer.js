@@ -70,17 +70,17 @@ export class BamRenderer {
     _lastHoveredFeature = null;
 
     /**
-     * @return {PIXI.CanvasRenderer | PIXI.Renderer}
+     * @return {LabelsManager | null}
      * */
-    get pixiRenderer() {
-        return this._pixiRenderer;
+    get labelsManager() {
+        return this.track ? this.track.labelsManager : null;
     }
 
     /**
-     * @param renderer {PIXI.CanvasRenderer | PIXI.Renderer}
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
      * */
-    set pixiRenderer(renderer) {
-        this._pixiRenderer = renderer;
+    get pixiRenderer() {
+        return this.track ? this.track._pixiRenderer : null;
     }
 
     set height(value) {
@@ -196,11 +196,10 @@ export class BamRenderer {
         return this._config.yScale;
     }
 
-    constructor(viewport, config, renderer, cacheService, opts, track) {
+    constructor(viewport, config, cacheService, opts, track) {
         this.track = track;
         this._config = config;
         this._viewport = viewport;
-        this._pixiRenderer = renderer;
         this._cacheService = cacheService;
         this._settings = opts;
         this._maximumAlignmentsRange = opts.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
@@ -259,6 +258,9 @@ export class BamRenderer {
     }
 
     render(flags, features) {
+        if (!this.pixiRenderer) {
+            return false;
+        }
         this._state = features;
         if (flags.renderReset) {
             this._initializeSubRenderers();
@@ -344,7 +346,7 @@ export class BamRenderer {
     }
 
     _initAlignments() {
-        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor(this.track);
+        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor();
         this._dataContainer.addChild(this._alignmentsRenderProcessor.container);
     }
 
@@ -472,6 +474,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 features: this._state,
                 height: this._height,
                 renderer: this.pixiRenderer,
+                labelsManager: this.labelsManager,
                 topMargin: this.alignmentsDrawingTopMargin
             }
         );
@@ -694,6 +697,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                             features: this._state,
                             height: this._height,
                             renderer: this.pixiRenderer,
+                            labelsManager: this.labelsManager,
                             topMargin: this.alignmentsDrawingTopMargin
                         }, this._hoveredItemContainer, feature.item, feature.line
                     );

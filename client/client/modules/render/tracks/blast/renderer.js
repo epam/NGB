@@ -28,10 +28,9 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    constructor(config, pixiRenderer, options, blastContext, track) {
+    constructor(config, options, blastContext, track) {
         super(track);
         this._config = config;
-        this.pixiRenderer = pixiRenderer;
         this.options = options;
         this._verticalScroll = new PIXI.Graphics();
         this._hoveringGraphics = new PIXI.Graphics();

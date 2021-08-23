@@ -92,7 +92,6 @@ export class BEDTrack extends GENETrack {
             this._renderer = new BEDRenderer(
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer,
                 this
             );
         }

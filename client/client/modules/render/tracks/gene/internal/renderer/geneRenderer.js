@@ -26,10 +26,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _graphicsSprite: PIXI.Sprite = null;
     _hoveredGraphicsSprite: PIXI.Sprite = null;
 
-    constructor(config, transformer: GeneTransformer, pixiRenderer, track) {
+    constructor(config, transformer: GeneTransformer, track) {
         super(track);
-        this._config = {...config, pixiRenderer};
-        this._pixiRenderer = pixiRenderer;
+        this._config = {...config};
         this._featureRenderer = new FeatureRenderer(this._config, track);
         this._geneHistogram = new GeneHistogram(config);
         this._transformer = transformer;
@@ -45,20 +44,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.container.addChild(this._dockableElementsContainer);
         this.container.addChild(this._labelsContainer);
         this.initializeCentralLine();
-    }
-
-    /**
-     * @return {PIXI.CanvasRenderer | PIXI.Renderer}
-     * */
-    get pixiRenderer() {
-        return this._pixiRenderer;
-    }
-
-    /**
-     * @param renderer {PIXI.CanvasRenderer | PIXI.Renderer}
-     * */
-    set pixiRenderer(renderer) {
-        this._pixiRenderer = renderer;
     }
 
     get config() {
@@ -116,10 +101,13 @@ export default class GeneRenderer extends CachedTrackRenderer {
     }
 
     rebuildContainer(viewport, cache) {
+        if (!this.pixiRenderer) {
+            return;
+        }
         super.rebuildContainer(viewport, cache);
         const clearPreviousSprite = sprite => {
             if (sprite && sprite.texture && sprite.texture.baseTexture) {
-                sprite.texture.destroy();
+                sprite.texture.destroy(true);
             }
         };
         this.dataContainer.removeChildren();
@@ -134,8 +122,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._dockableElementsContainer.scale = this.dataContainer.scale;
 
         if (this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
-            this._dockableElementsContainer.removeChildren();
-            this._labelsContainer.removeChildren();
             this.geneHistogram.totalHeight = this.height;
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;

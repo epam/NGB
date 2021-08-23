@@ -186,7 +186,6 @@ export class VCFTrack extends GENETrack {
             this._renderer = new VCFExpandedRenderer(
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer,
                 this
             );
         }

@@ -24,8 +24,7 @@ export class AlignmentsRenderProcessor {
         return this._container;
     }
 
-    constructor(track) {
-        this.labelsManager = track ? track.labelsManager : undefined;
+    constructor() {
         this._alignmentHeight = 1;
         this._container = new PIXI.Container();
     }
@@ -35,7 +34,7 @@ export class AlignmentsRenderProcessor {
     }
 
     render(cache, viewport, flags, drawingConfig) {
-        const {colors, config, currentY, features, height, renderer, topMargin} = drawingConfig;
+        const {colors, config, currentY, features, height, labelsManager, renderer, topMargin} = drawingConfig;
         const visibleLinesCount = (height - topMargin) / this._alignmentHeight;
         const linesCount = cache.linesCount;
         const y = Math.max(Math.min(currentY, linesCount - visibleLinesCount), 0);
@@ -75,6 +74,7 @@ export class AlignmentsRenderProcessor {
                 endLine,
                 features,
                 height,
+                labelsManager,
                 renderer,
                 startLine,
                 topMargin,
@@ -108,6 +108,7 @@ export class AlignmentsRenderProcessor {
             endLine,
             features,
             height,
+            labelsManager,
             renderer,
             startLine,
             topMargin,
@@ -123,7 +124,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this.labelsManager,
+            labelsManager,
             height
         );
         alignmentsRenderer.startRender();
@@ -146,7 +147,7 @@ export class AlignmentsRenderProcessor {
     }
 
     hoverRead(cache, viewport, drawingConfig, container, read, line) {
-        const {colors, config, currentY, features, height, renderer, topMargin} = drawingConfig;
+        const {colors, config, currentY, features, height, labelsManager, renderer, topMargin} = drawingConfig;
         if (!read) {
             container.removeChildren();
             return;
@@ -159,7 +160,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this.labelsManager,
+            labelsManager,
             height
         );
         alignmentsRenderer.startRender(true);

@@ -294,7 +294,6 @@ export class BAMTrack extends ScrollableTrack {
         this._bamRenderer = new BamRenderer(
             this.viewport,
             Object.assign({}, this.trackConfig, this.config),
-            this._pixiRenderer,
             this.cacheService,
             opts,
             this
@@ -680,9 +679,6 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     render(flags) {
-        if (flags.pixiRendererChanged) {
-            this._bamRenderer.pixiRenderer = this._pixiRenderer;
-        }
         if (flags.renderReset) {
             this.container.removeChildren();
             this.container.addChild(this._bamRenderer.container);

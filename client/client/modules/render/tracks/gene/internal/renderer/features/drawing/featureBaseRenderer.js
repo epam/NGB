@@ -24,6 +24,10 @@ export default class FeatureBaseRenderer{
      * @returns {LabelsManager|undefined}
      */
     get labelsManager () { return this._track ? this._track.labelsManager : undefined; }
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
+     * */
+    get pixiRenderer() { return this._track ? this._track._pixiRenderer : null; }
     get config() { return this._config; }
     get registerLabel() { return this._registerLabel; }
     get registerDockableElement() { return this._registerDockableElement; }

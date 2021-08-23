@@ -20,7 +20,6 @@ const getFlags = () => ({
     renderReset: false,
     settingsChanged: false,
     widthChanged: false,
-    pixiRendererChanged: false,
 });
 
 function refreshRender(render, size) {
@@ -261,7 +260,6 @@ export class Track extends BaseTrack {
                     e.preventDefault();
                     this.preferWebGL = false;
                     this._destroyPixiRenderer();
-                    this._flags.pixiRendererChanged = true;
                     this._refreshPixiRenderer(true);
                 });
             }
@@ -270,10 +268,7 @@ export class Track extends BaseTrack {
             refreshRender(this._pixiRenderer, newSize);
             this._flags.widthChanged = true;
             this._flags.heightChanged = true;
-            if (this.labelsManager) {
-                this.labelsManager.destroy();
-                this.labelsManager = null;
-            }
+            this._destroyLabelsManager();
             this.labelsManager = new LabelsManager(this._pixiRenderer);
         }
         if (!this.isResizing) {
@@ -296,16 +291,20 @@ export class Track extends BaseTrack {
         }
     }
 
+    _destroyLabelsManager() {
+        if (this.labelsManager) {
+            this.labelsManager.destroy();
+            this.labelsManager = null;
+        }
+    }
+
     destructor() {
         super.destructor();
         document.removeEventListener('visibilitychange', this.visibilitychangeCallback);
         if (this.tooltip) {
             this.tooltip.hide();
         }
-        if (this.labelsManager) {
-            this.labelsManager.destroy();
-            this.labelsManager = null;
-        }
+        this._destroyLabelsManager();
         this._destroyPixiRenderer();
         this.clearData();
         for (const disposable of this._disposables)

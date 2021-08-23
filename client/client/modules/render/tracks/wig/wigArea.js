@@ -9,10 +9,17 @@ export default class WIGArea{
 
     _height = null;
 
-    constructor(viewport, config){
+    /**
+     * Labels manager
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager () { return this.track ? this.track.labelsManager : undefined; }
+
+    constructor(viewport, config, track){
         if (!(viewport instanceof Viewport)) {
             throw new TypeError('WIGArea: `viewport` is not instance of Viewport');
         }
+        this.track = track;
         this._viewport = viewport;
         this._config = config;
         this._height = config.height;

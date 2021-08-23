@@ -20,7 +20,6 @@ export class BLASTTrack extends CachedTrack {
         this.dispatcher = opts.dispatcher;
         this.renderer = new BLASTAlignmentRenderer(
             Object.assign({}, this.trackConfig, this.config),
-            this._pixiRenderer,
             opts,
             opts.blastContext,
             this
