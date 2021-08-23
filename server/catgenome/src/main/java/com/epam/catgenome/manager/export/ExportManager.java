@@ -46,6 +46,7 @@ import static com.epam.catgenome.util.Utils.NEW_LINE;
 public class ExportManager {
 
     private static final String EMPTY_FIELD_VALUE = ".";
+    private static final String ATTR = " (attr)";
 
     @Value("${export.page.size:100}")
     private int exportPageSize;
@@ -163,7 +164,7 @@ public class ExportManager {
             if (GeneField.getByField(exportField) != null) {
                 header.add(GeneField.getByField(exportField).getName());
             } else {
-                header.add(exportField);
+                header.add(exportField + ATTR);
             }
         }
         return String.join(separator, header) + NEW_LINE;

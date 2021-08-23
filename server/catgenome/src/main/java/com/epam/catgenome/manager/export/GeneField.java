@@ -34,13 +34,13 @@ public enum GeneField {
     SCORE("score", "Score", o -> String.valueOf(o.getScore())),
     STRAND("strand", "Strand", GeneIndexEntry::getStrand),
     FRAME("frame", "Frame", o -> String.valueOf(o.getFrame())),
-    FEATURE("feature", "Feature", GeneIndexEntry::getFeature),
-    START_INDEX("startIndex", "Position From", o -> String.valueOf(o.getStartIndex())),
-    END_INDEX("endIndex", "Position To", o -> String.valueOf(o.getEndIndex())),
+    FEATURE("feature", "Type", GeneIndexEntry::getFeature),
+    START_INDEX("startIndex", "Start", o -> String.valueOf(o.getStartIndex())),
+    END_INDEX("endIndex", "End", o -> String.valueOf(o.getEndIndex())),
     FEATURE_ID("featureId", "Id", o -> String.valueOf(o.getFeatureId())),
     CHROMOSOME("chromosome", "Chr", o -> o.getChromosome().getName()),
     FEATURE_TYPE("featureType", "Type", o -> o.getFeatureType().getFileValue()),
-    FEATURE_FILE_ID("featureFileId", "File Id", o -> String.valueOf(o.getFeatureFileId())),
+    FEATURE_FILE_ID("featureFileId", "FeatureFileID", o -> String.valueOf(o.getFeatureFileId())),
     FEATURE_NAME("featureName", "Name", GeneIndexEntry::getFeatureName);
 
     private final String field;
