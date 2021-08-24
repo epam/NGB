@@ -48,8 +48,10 @@
   padding-bottom: 6px;
 }
 
-.md-button {
-  line-height: 0px;
+ngb-info-rows {
+  .md-button {
+    line-height: 0px;
+  }
 }
 
 .remove-btn-container {
@@ -78,14 +80,6 @@
   margin-right: 5px;
 }
 
-.ng-invalid.ng-touched {
-  border-color: #F00;
-}
-
-.isEmpty {
-  color: #F00;
-}
-
 .property-attribute {
   margin-right: 5px;
   font-size: x-small;
@@ -94,4 +88,20 @@
   border: 1px solid #dddddd;
   border-radius: 2px;
   font-weight: normal;
+}
+
+.isEmpty {
+  border-color: #F00;
+}
+
+.isDouble {
+  border-color: #F00;
+  color: #F00;
+}
+
+.property-error-message {
+  color: #F00;
+  margin-right: 5px;
+  font-size: 10px;
+  padding-left: 7px;
 }

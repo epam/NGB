@@ -17,7 +17,7 @@ export default class ngbFeatureInfoPanelController {
     }
 
     get editMode() {
-        this.$scope.$parent.disableCloseBtn = this.ngbFeatureInfoPanelService.editMode;
+        this.$scope.$parent.editMode = this.ngbFeatureInfoPanelService.editMode;
         return this.ngbFeatureInfoPanelService.editMode;
     }
 

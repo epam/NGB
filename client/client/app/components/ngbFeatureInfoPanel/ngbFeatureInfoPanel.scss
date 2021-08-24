@@ -17,3 +17,28 @@
 md-pagination-wrapper {
   width:auto !important;
 }
+
+.confirm-close-dialog {
+  width: 30%;
+  overflow: hidden;
+
+  md-toolbar {
+    background-color: #fff;
+    color: #000;
+  }
+
+  .md-toolbar-tools {
+    max-height: 100%;
+    height: auto;
+    align-items: flex-start;
+  }
+
+  .md-toolbar-tools .md-button {
+    margin: 14px 0px 0px 0px;
+  }
+
+  .dialog-content {
+    margin: 20px 30px 0px 10px;
+    font-size: 16px;
+  }
+}

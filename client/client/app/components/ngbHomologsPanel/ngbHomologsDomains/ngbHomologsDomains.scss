@@ -5,6 +5,7 @@ ngb-homologs-domains {
     display: flex;
     height: 100%;
     width: 100%;
+    cursor: pointer;
 
     div {
       display: inline-flex;
@@ -21,6 +22,56 @@ ngb-homologs-domains {
     }
   }
 }
-.domain-tooltip .md-content.md-show {
-  opacity: 1;
+
+.domain-tooltip {
+  .md-content {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    background: #FFFFFF;
+    color: #000000;
+    font-size: 14px;
+    border: 1px solid grey;
+    border-radius: 5px;
+
+    .domain-tooltip-header {
+      * {
+        padding: 5px;
+      }
+
+      justify-content: space-between;
+
+      .close {
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+
+    .domain-tooltip-body {
+      display: table;
+      .domain-tooltip-row {
+        display: table-row;
+        border-spacing: 5px;
+
+        .domain-tooltip-col {
+          display: table-cell;
+          padding: 0 5px;
+          line-height: 30px;
+          vertical-align: middle;
+        }
+
+        .domain-color-bar {
+          width: 20px;
+          height: 20px;
+          padding: 0;
+          border: 1px solid grey;
+        }
+      }
+    }
+  }
+
+  .md-content.md-show {
+    opacity: 1;
+  }
 }

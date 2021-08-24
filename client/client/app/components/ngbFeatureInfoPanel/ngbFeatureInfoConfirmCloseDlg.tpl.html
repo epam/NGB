@@ -1,0 +1,18 @@
+<md-dialog class="confirm-close-dialog" aria-label="Confirm close">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <span flex class="dialog-content">You have unsaved changes. Continue?</span>
+            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                <ng-md-icon style="fill: #3367d6;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="save" ng-click="yes()" class="md-primary">
+            Yes
+        </md-button>
+        <md-button aria-label="cancel" ng-click="no()">
+            No
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

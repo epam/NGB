@@ -1,13 +1,14 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
 
 const DEFAULT_COLUMNS = [
-    'name', 'species', 'accession_id', 'aa', 'domains'
+    'name', 'species', 'accession_id', 'protein',  'aa', 'domains'
 ];
 
 const COLUMNS_GROUP = {
     name: 'Gene',
     species: 'Gene',
     accession_id: 'Protein',
+    protein: 'Protein',
     aa: 'Protein',
     domains: 'Protein'
 };
@@ -19,25 +20,12 @@ const HOMOLOGENE_COLUMN_TITLES = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 15;
 
-export default class ngbHomologeneResultService extends ClientPaginationService{
-    _searchResultTableLoading = true;
+export default class ngbHomologeneResultService extends ClientPaginationService {
 
     constructor(dispatcher, genomeDataService) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:homologene:result:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
-    }
-
-    _searchResultTableError = null;
-
-    get searchResultTableError() {
-        return this._searchResultTableError;
-    }
-
-    _homologeneResult = {};
-
-    get homologeneResult() {
-        return this._homologeneResult;
     }
 
     get homologeneResultColumns() {
@@ -71,18 +59,22 @@ export default class ngbHomologeneResultService extends ClientPaginationService{
                     result.push({
                         cellTemplate: '<ngb-homologs-domains domains="row.entity.domainsObj"></ngb-homologs-domains>',
                         enableHiding: false,
+                        enableSorting: false,
+                        enableColumnMenu: false,
                         field: 'domainsObj',
                         group: COLUMNS_GROUP[column],
                         headerCellTemplate: headerCells,
-                        minWidth: 300,
+                        minWidth: 250,
                         name: column
                     });
                     break;
                 }
                 case 'name': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
-                                       >{{row.entity.name}}</div>`,
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link" 
+                                            ng-click="grid.appScope.$ctrl.navigateToTrack(row.entity)">
+                                        {{row.entity.name}}
+                                       </div>`,
                         enableHiding: false,
                         field: 'name',
                         group: COLUMNS_GROUP[column],
@@ -93,8 +85,11 @@ export default class ngbHomologeneResultService extends ClientPaginationService{
                 }
                 case 'accession_id': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
-                                       >{{row.entity.accession_id}}</div>`,
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link">
+                                        <a target="_blank" ng-href="https://www.ncbi.nlm.nih.gov/protein/{{row.entity.accession_id}}">
+                                            {{row.entity.accession_id}}
+                                        </a>
+                                       </div>`,
                         enableHiding: false,
                         field: 'accession_id',
                         group: COLUMNS_GROUP[column],
@@ -118,60 +113,5 @@ export default class ngbHomologeneResultService extends ClientPaginationService{
             }
         }
         return result;
-    }
-
-    async updateSearchResult(searchId) {
-        this._homologeneResult = await this.loadHomologeneResult(searchId);
-        this.dispatcher.emitSimpleEvent('homologene:result:change');
-    }
-
-    async loadHomologeneResult(searchId) {
-        const data = await this.genomeDataService.getHomologeneResultLoad(searchId);
-        let maxHomologLength = 0;
-        const colors = {
-            'A': 'red',
-            'B': 'blue',
-            'C': 'green',
-            'D': 'yellow',
-            'Ras_like_GTPase': '#F00000'
-        };
-        if (data.error) {
-            this._totalPages = 0;
-            this.currentPage = FIRST_PAGE;
-            this._firstPage = FIRST_PAGE;
-            this._searchResultTableLoading = false;
-            this._searchResultTableError = data.message;
-            return [];
-        } else {
-            this._searchResultTableError = null;
-        }
-        this._totalPages = Math.ceil(data.length / this.pageSize);
-        if (data) {
-            data.forEach((value, key) => {
-                data[key] = this._formatServerToClient(value);
-                if (maxHomologLength < data[key].aa) {
-                    maxHomologLength = data[key].aa;
-                }
-            });
-            data.forEach((value, key) => {
-                data[key].domainsObj = {
-                    domains: data[key].domains.map(d => ({...d, color: colors[d.name]})),
-                    homologLength: data[key].aa,
-                    maxHomologLength: maxHomologLength
-                };
-                // delete data[key].domains;
-            });
-        }
-        return data || [];
-    }
-
-    _formatServerToClient(result) {
-        return {
-            name: result.name,
-            species: result.species,
-            accession_id: result.accession_id,
-            aa: result.aa,
-            domains: result.domains
-        };
     }
 }

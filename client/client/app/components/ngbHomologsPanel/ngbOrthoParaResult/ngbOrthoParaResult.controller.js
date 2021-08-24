@@ -2,18 +2,19 @@ import baseController from '../../../shared/baseController';
 
 export default class ngbOrthoParaResult extends baseController {
 
+    orthoPara = {};
     isProgressShown = true;
-    searchResultError = null;
     events = {
         'orthoPara:result:change': this.initialize.bind(this)
     };
 
-    constructor($scope, dispatcher, ngbHomologsService, ngbOrthoParaResultService) {
+    constructor($scope, dispatcher, ngbHomologsService, ngbOrthoParaTableService, ngbOrthoParaResultService) {
         super();
         Object.assign(this, {
             $scope,
             dispatcher,
             ngbHomologsService,
+            ngbOrthoParaTableService,
             ngbOrthoParaResultService
         });
         this.initEvents();
@@ -25,7 +26,7 @@ export default class ngbOrthoParaResult extends baseController {
     }
 
     initialize() {
-        this.searchResultError = this.ngbOrthoParaResultService.searchResultTableError;
+        this.orthoPara = this.ngbOrthoParaTableService.getOrthoParaById(this.ngbHomologsService.currentOrthoParaId);
         this.isProgressShown = false;
     }
 }

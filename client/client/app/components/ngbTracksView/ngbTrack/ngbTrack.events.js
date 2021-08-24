@@ -21,8 +21,8 @@ export default class ngbTrackEvents {
 
     _getGeneTracks() {
         return (this.projectContext.reference && this.projectContext.reference.geneFile)
-        ? [this.projectContext.reference.geneFile]
-        : this.projectContext.geneTracks;
+            ? [this.projectContext.reference.geneFile]
+            : this.projectContext.geneTracks;
     }
 
     featureClick(trackInstance, data, track, event) {
@@ -30,18 +30,17 @@ export default class ngbTrackEvents {
         const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
         const maxQueryLengthProperty = 'query_max_length';
         const maxSequenceLength = blastSettings &&
-            blastSettings.hasOwnProperty(maxQueryLengthProperty) &&
-            !Number.isNaN(Number(blastSettings[maxQueryLengthProperty]))
+        blastSettings.hasOwnProperty(maxQueryLengthProperty) &&
+        !Number.isNaN(Number(blastSettings[maxQueryLengthProperty]))
             ? Number(blastSettings[maxQueryLengthProperty])
             : Infinity;
         if (data.feature) {
             const featureSize = Math.abs((data.feature.startIndex || 0) - (data.feature.endIndex || 0));
-            (async() => {
+            (async () => {
                 let geneTracks = [];
                 if (!isGeneTrack) {
                     geneTracks = this._getGeneTracks();
-                }
-                else {
+                } else {
                     geneTracks.push({
                         chromosomeId: trackInstance.config.chromosomeId,
                         id: track.id,
@@ -163,7 +162,7 @@ export default class ngbTrackEvents {
                         menuData.push({
                             events: [
                                 {
-                                    data: { layoutChange },
+                                    data: {layoutChange},
                                     name: 'layout:item:change'
                                 },
                                 {
@@ -181,28 +180,26 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
-                // TODO: provide proper condition
-                if (true) {
-                    const layoutChange = this.appLayout.Panels.homologs;
-                    layoutChange.displayed = true;
-                    menuData.push({
-                        events: [
-                            {
-                                data: { layoutChange },
-                                name: 'layout:item:change'
+                const layoutChange = this.appLayout.Panels.homologs;
+                layoutChange.displayed = true;
+                menuData.push({
+                    events: [
+                        {
+                            data: {layoutChange},
+                            name: 'layout:item:change'
+                        },
+                        {
+                            data: {
+                                search: data.feature.name
                             },
-                            {
-                                data: new EventGeneInfo({
-                                    endIndex: data.feature.endIndex,
-                                    geneTracks,
-                                    highlight: false,
-                                    startIndex: data.feature.startIndex
-                                }),
-                                name: 'read:show:homologs'
-                            }],
-                        title: 'Show similar genes'
-                    });
-                }
+                            name: 'read:show:homologs'
+                        }],
+                    title: 'Show similar genes',
+                    disabled: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name,
+                    warning: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name
+                        ? 'Feature type is not Gene or Name is missing'
+                        : undefined,
+                });
                 if (menuData.length > 0) {
                     const childScope = this.$scope.$new(false);
                     childScope.menuData = menuData;
@@ -219,7 +216,7 @@ export default class ngbTrackEvents {
     }
 
     variationRequest(trackInstance, data, track, event) {
-        (async() => {
+        (async () => {
             if (data) {
                 if (data.endPoint && data.endPoint.chromosome) {
                     data.endPoint.chromosome = this.projectContext.getChromosome({name: data.endPoint.chromosome});
@@ -286,8 +283,7 @@ export default class ngbTrackEvents {
 
             if (!chromosomeChanged) {
                 goToMateMenuItemEvent = {position: data.read.pnext};
-            }
-            else if (pairReadParameters) {
+            } else if (pairReadParameters) {
                 goToMateMenuItemEvent = {
                     chromosome: {name: pairReadParameters.endPoint.chromosome},
                     position: data.read.pnext
@@ -355,9 +351,9 @@ export default class ngbTrackEvents {
                 };
                 const read = await self._bamDataService.loadRead(payload);
                 const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
-                const tags = read.tags.map(tag => `${tag.tag  } = ${  tag.value}`).join('\r\n');
+                const tags = read.tags.map(tag => `${tag.tag} = ${tag.value}`).join('\r\n');
 
-                menuItem.clipboard = `${generalInfo  }\r\n\r\n${  read.sequence  }\r\n\r\n${  tags}`;
+                menuItem.clipboard = `${generalInfo}\r\n\r\n${read.sequence}\r\n\r\n${tags}`;
                 menuItem.isLoading = false;
                 self.$scope.$apply();
             }
@@ -386,7 +382,7 @@ export default class ngbTrackEvents {
             }
         };
         const readInfo = {
-            geneId:null,
+            geneId: null,
             id: track.id,
             referenceId: track.referenceId,
             chromosomeId: data.chromosome.id,
@@ -408,7 +404,7 @@ export default class ngbTrackEvents {
             events: [{
                 data: {
                     ...readInfo,
-                    tool:'blastn',
+                    tool: 'blastn',
                     source: 'bam'
                 },
                 name: 'read:show:blast',

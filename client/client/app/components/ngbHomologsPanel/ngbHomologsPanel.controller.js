@@ -8,6 +8,9 @@ export default class ngbHomologsPanelController extends baseController {
     service;
 
     events = {
+        'read:show:homologs': () => {
+            this.changeState('HOMOLOGENE');
+        }
     };
 
     constructor(dispatcher, $scope, $timeout, ngbHomologsService) {
@@ -19,9 +22,6 @@ export default class ngbHomologsPanelController extends baseController {
             ngbHomologsService
         });
         this.homologsStates = this.ngbHomologsService.homologsStates;
-        this.currentHomologsState = this.homologsStates.HOMOLOGENE;
-        this.tabSelected = this.homologsStates.HOMOLOGENE;
-        this.service = this.ngbHomologsService.homologsServiceMap[this.currentHomologsState];
         this.initEvents();
     }
 
@@ -47,12 +47,5 @@ export default class ngbHomologsPanelController extends baseController {
             }
         }
         this.$timeout(() => this.$scope.$apply());
-    }
-
-    onExternalChange() {
-        if (this.currentHomologsState !== this.homologsStates.HOMOLOGENE) {
-            this.ngbHomologsService.currentSearchId = null;
-            this.changeState('HOMOLOGENE');
-        }
     }
 }

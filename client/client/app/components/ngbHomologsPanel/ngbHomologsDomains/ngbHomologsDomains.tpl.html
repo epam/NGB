@@ -1,9 +1,30 @@
-<div class="homolog-domain-container">
+<div class="homolog-domain-container" ng-click="$ctrl.domainsDesc.toggleTooltip = !$ctrl.domainsDesc.toggleTooltip">
     <div ng-class="domain.isFiller ? 'homolog-domain-filler' : 'homolog-domain-region'"
          ng-repeat="domain in $ctrl.domainsView"
          ng-style="{'background-color': domain.color, 'width': domain.width+'%'}">
-        <md-tooltip class="domain-tooltip" md-delay="0" md-direction="top" ng-if="!domain.isFiller">
-            {{domain.name}} ({{domain.id}})
-        </md-tooltip>
     </div>
+    <md-tooltip class="domain-tooltip" md-delay="0" md-direction="top" md-visible="$ctrl.domainsDesc.toggleTooltip" ng-if="$ctrl.domainsDesc.toggleTooltip">
+        <div class="domain-tooltip-header" layout="row">
+            <a class="homologs-link" ng-href="https://www.ncbi.nlm.nih.gov/protein/{{$ctrl.domainsDesc.accession_id}}"
+               target="_blank">
+                {{$ctrl.domainsDesc.accession_id}}
+            </a>
+            <span>{{$ctrl.domainsDesc.aa}} aa</span>
+            <span flex></span>
+            <span class="close" ng-click="$ctrl.domainsDesc.toggleTooltip = false">X</span>
+        </div>
+        <div class="domain-tooltip-body" layout="column">
+            <div class="domain-tooltip-row" layout="row" ng-repeat="domain in $ctrl.domainsDesc.domains">
+                <div class="domain-tooltip-col">
+                    <div class="domain-color-bar" ng-style="{'background-color': domain.color}"></div>
+                </div>
+                <div class="domain-tooltip-col">{{domain.start}} - {{domain.end}} aa</div>
+                <div class="domain-tooltip-col">
+                    <a class="homologs-link domain-tooltip-id" ng-href="https://www.ncbi.nlm.nih.gov/Structure/cdd/cddsrv.cgi?uid={{domain.id}}"
+                       target="_blank">{{domain.id}}</a>
+                </div>
+                <div class="domain-tooltip-col">{{domain.name}}</div>
+            </div>
+        </div>
+    </md-tooltip>
 </div>

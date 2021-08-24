@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.export;
 
+import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -45,6 +46,7 @@ import static com.epam.catgenome.util.Utils.NEW_LINE;
 public class ExportManager {
 
     private static final String EMPTY_FIELD_VALUE = ".";
+    private static final String ATTR = " (attr)";
 
     @Value("${export.page.size:100}")
     private int exportPageSize;
@@ -65,13 +67,14 @@ public class ExportManager {
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
         setGeneAttributes(filterForm);
+        final List<? extends FeatureFile> filesToExport = featureIndexManager.getGeneFilesForReference(
+                referenceId, filterForm.getFileIds());
         IndexSearchResult<GeneIndexEntry> indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm,
-                featureIndexManager.getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+                filesToExport);
         writeGenePage(format, exportFields, indexSearchResult, outputStream);
         for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
             filterForm.setPage(i);
-            indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm,
-                    featureIndexManager.getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+            indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm, filesToExport);
             writeGenePage(format, exportFields, indexSearchResult, outputStream);
         }
         return outputStream.toByteArray();
@@ -161,7 +164,7 @@ public class ExportManager {
             if (GeneField.getByField(exportField) != null) {
                 header.add(GeneField.getByField(exportField).getName());
             } else {
-                header.add(exportField);
+                header.add(exportField + ATTR);
             }
         }
         return String.join(separator, header) + NEW_LINE;

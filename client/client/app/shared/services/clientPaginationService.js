@@ -27,6 +27,10 @@ export default class ClientPaginationService {
         return this._totalPages;
     }
 
+    set totalPages(value) {
+        this._totalPages = value;
+    }
+
     _currentPage;
 
     get currentPage() {

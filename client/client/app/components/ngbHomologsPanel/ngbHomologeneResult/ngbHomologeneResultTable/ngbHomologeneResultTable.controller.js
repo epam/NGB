@@ -43,13 +43,17 @@ export default class ngbHomologeneResultTableController extends baseController {
         'homologs:homologene:result:page:change': ::this.getDataOnPage
     };
 
-    constructor($scope, $timeout, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
+    constructor($scope, $timeout, projectContext, projectDataService,
+        ngbHomologeneTableService, ngbHomologeneResultService, ngbHomologsService, dispatcher) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
+            projectContext,
+            projectDataService,
+            ngbHomologeneTableService,
             ngbHomologeneResultService,
             ngbHomologsService
         });
@@ -85,25 +89,27 @@ export default class ngbHomologeneResultTableController extends baseController {
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
+                this.gridApi.core.on.renderingComplete(this.$scope, gridApi => {
+                    this.debounce(this, this.onResize.bind(this), RESIZE_DELAY)(0, 0, gridApi.grid.gridHeight);
+                });
             }
         });
-        await this.loadData();
+        this.loadData();
     }
 
-    async loadData() {
+    loadData() {
         try {
-            await this.ngbHomologeneResultService.updateSearchResult(this.ngbHomologsService.currentResultId);
-            const resultLength = this.ngbHomologeneResultService.homologeneResult.length;
-            if (this.ngbHomologeneResultService.searchResultTableError) {
-                this.searchResultTableLoadError = this.ngbHomologeneResultService.searchResultTableError;
+            const result = this.ngbHomologeneTableService.getHomologeneResultById(this.ngbHomologsService.currentHomologeneId);
+            if (this.ngbHomologeneTableService.searchResultTableError) {
+                this.searchResultTableLoadError = this.ngbHomologeneTableService.searchResultTableError;
                 this.gridOptions.data = [];
                 this.gridOptions.totalItems = 0;
                 this.isEmptyResults = false;
-            } else if (resultLength) {
+            } else if (result.length) {
                 this.searchResultTableLoadError = null;
-                this.gridOptions.data = this.ngbHomologeneResultService.homologeneResult;
+                this.gridOptions.data = result;
                 this.gridOptions.paginationPageSize = this.ngbHomologeneResultService.pageSize;
-                this.gridOptions.totalItems = resultLength;
+                this.gridOptions.totalItems = result.length;
                 this.isEmptyResults = false;
             } else {
                 this.isEmptyResults = true;
@@ -125,7 +131,6 @@ export default class ngbHomologeneResultTableController extends baseController {
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }
-        return this.loadData();
     }
 
     saveColumnsState() {
@@ -175,8 +180,32 @@ export default class ngbHomologeneResultTableController extends baseController {
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
-        this.ngbHomologeneResultService.pageSize = pageSize;
-        this.gridOptions.paginationPageSize = pageSize;
-        this.$timeout(() => this.$scope.$apply());
+        if (pageSize) {
+            this.ngbHomologeneResultService.pageSize = pageSize;
+            this.ngbHomologeneResultService.totalPages = Math.ceil(this.gridOptions.data.length / this.ngbHomologeneResultService.pageSize);
+            this.gridOptions.paginationPageSize = pageSize;
+            this.$timeout(() => this.$scope.$apply());
+        }
+    }
+
+    async navigateToTrack(entity) {
+        const coordinates = await this.projectDataService.getFeatureCoordinates(entity.accession_id, 'PROTEIN', entity.taxId);
+        if (coordinates && !coordinates.error) {
+            const range = Math.abs(coordinates.end - coordinates.start);
+            const start = Math.min(coordinates.start, coordinates.end) - range / 10.0;
+            const end = Math.max(coordinates.start, coordinates.end) + range / 10.0;
+            this.projectContext.changeState({
+                chromosome: {id: coordinates.chromosomeId},
+                viewport: {
+                    start,
+                    end
+                }
+            });
+            // navigate to track
+        } else {
+            event.stopImmediatePropagation();
+            window.open(`https://www.ncbi.nlm.nih.gov/gene/${entity.geneId}`);
+            return false;
+        }
     }
 }
