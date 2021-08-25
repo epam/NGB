@@ -1,5 +1,14 @@
 site_name: New Genome Browser 2.6.1
-pages:
+theme: 
+    name: readthedocs
+    #theme_dir: material-epam-theme
+docs_dir: md
+use_directory_urls: false
+extra_css:
+    - css/extra.css
+extra_javascript:
+  - 'css/extra.js'
+nav:
     - Home: index.md
     - Release notes:
         - 2.1: release-notes/2.1/v2.1.md
@@ -35,9 +44,3 @@ pages:
         - Working with Annotations: user-guide/annotations.md
         - Embedding NGB with URL: user-guide/embedding-url.md
         - Embedding NGB with JS: user-guide/embedding-js.md
-theme: material
-theme_dir: material-epam-theme
-docs_dir: md
-use_directory_urls: false
-extra:
-  logo: assets/images/logo.png
