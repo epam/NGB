@@ -55,11 +55,10 @@ export default class LabelsManager {
                 this.label.style = textStyle;
             }
             this.label.text = text;
-            const texture = this.renderer.generateTexture(
-                this.label,
-                drawingConfiguration.scale,
-                drawingConfiguration.resolution
-            );
+            const texture = this.renderer.generateTexture(this.label, {
+                scale: drawingConfiguration.scale,
+                resolution: drawingConfiguration.resolution
+            });
             this.texturesCache.set(key, texture);
         }
         const texture = this.texturesCache.get(key);

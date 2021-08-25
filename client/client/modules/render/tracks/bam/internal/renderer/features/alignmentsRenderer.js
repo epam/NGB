@@ -54,7 +54,10 @@ export class AlignmentsRenderer {
 
     finishRender(renderer) {
         this._graphics.endFill();
-        const bamTexture = renderer.generateTexture(this._container, drawingConfiguration.scale, drawingConfiguration.resolution);
+        const bamTexture = renderer.generateTexture(this._container, {
+            scale: drawingConfiguration.scale,
+            resolution: drawingConfiguration.resolution
+        });
         const bamSprite = new PIXI.Sprite(bamTexture);
         bamSprite.position.x = this._textureStartX;
         bamSprite.position.y = this._textureStartY;

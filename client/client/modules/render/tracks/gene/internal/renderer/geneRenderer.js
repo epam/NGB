@@ -150,11 +150,10 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     }
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = this.pixiRenderer.generateTexture(
-                        temporaryContainer,
-                        drawingConfiguration.scale,
-                        drawingConfiguration.resolution
-                    );
+                    const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
+                        scale: drawingConfiguration.scale,
+                        resolution: drawingConfiguration.resolution
+                    });
                     if (this._graphicsSprite) {
                         this._graphicsSprite.texture = texture;
                     } else {
@@ -179,11 +178,10 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     }
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = this.pixiRenderer.generateTexture(
-                        temporaryContainer,
-                        drawingConfiguration.scale,
-                        drawingConfiguration.resolution
-                    );
+                    const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
+                        scale: drawingConfiguration.scale,
+                        resolution: drawingConfiguration.resolution
+                    });
                     if (this._hoveredGraphicsSprite) {
                         this._hoveredGraphicsSprite.texture = texture;
                     } else {

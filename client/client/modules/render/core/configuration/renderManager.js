@@ -19,7 +19,7 @@ export default function getRenderer(size, opts = null, forceWebGL = false) {
         height,
         antialias: drawingConfiguration.antialias,
         preserveDrawingBuffer: forceWebGL,
-        transparent: false
+        useContextAlpha: false,
     });
     renderer.backgroundColor = backgroundColor;
     return renderer;
