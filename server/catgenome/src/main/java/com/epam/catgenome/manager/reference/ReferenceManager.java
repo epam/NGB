@@ -45,7 +45,10 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.reference.StrandedSequence;
-import com.epam.catgenome.entity.reference.motif.*;
+import com.epam.catgenome.entity.reference.motif.Motif;
+import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
+import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
+import com.epam.catgenome.entity.reference.motif.MotifTrackQuery;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
@@ -129,7 +132,8 @@ public class ReferenceManager {
 
     @Autowired private GenbankManager genbankManager;
 
-    @Autowired private AuthManager authManager;
+    @Autowired
+    private AuthManager authManager;
 
     /**
      * @param track {@code Track} Track with information about query
@@ -387,8 +391,8 @@ public class ReferenceManager {
         if (isNibReference(reference.getPath())) {
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeRefInputStream(reference.getId(), chromosomeName);
-                     DataInputStream indexStrm = fileManager
-                             .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
+                    DataInputStream indexStrm = fileManager
+                            .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
                 return nibDataReader.getStringFromNibFile(startIndex, endIndex, strm, indexStrm);
             }
         } else {
@@ -481,7 +485,7 @@ public class ReferenceManager {
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeGCInputStream(trackID, chromosomeName);
                     DataInputStream indexStrm = fileManager
-                             .makeGCIndexInputStream(trackID, chromosomeName)) {
+                            .makeGCIndexInputStream(trackID, chromosomeName)) {
                 return getGCFromGCFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
             } catch (IllegalArgumentException e) {
                 //gc content may be disabled
@@ -495,7 +499,7 @@ public class ReferenceManager {
                 try (BlockCompressedDataInputStream strm = fileManager
                         .makeRefInputStream(trackID, chromosomeName);
                         DataInputStream indexStrm = fileManager
-                                 .makeRefIndexInputStream(trackID, chromosomeName)) {
+                                .makeRefIndexInputStream(trackID, chromosomeName)) {
                     return getGCFromNibFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
                 }
             } else {
