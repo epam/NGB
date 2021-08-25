@@ -28,10 +28,10 @@ package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.entity.reference.*;
+import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
+import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
+import com.epam.catgenome.entity.reference.motif.MotifTrackQuery;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.ReferenceReadingException;
@@ -144,5 +144,15 @@ public class ReferenceSecurityService {
     @PostFilter(READ_ON_FILTER_OBJECT)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
         return referenceGenomeManager.getReferenceAnnotationFiles(referenceId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public Track<StrandedSequence> getTrackByMotif(MotifTrackQuery trackQuery) {
+        return referenceManager.getTrackByMotif(trackQuery);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public MotifSearchResult getTableByMotif(MotifSearchRequest motifSearchRequest) {
+        return referenceManager.getMotifSearchResultByRequest(motifSearchRequest);
     }
 }

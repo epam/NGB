@@ -27,7 +27,7 @@ package com.epam.catgenome.manager.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.entity.reference.*;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -41,6 +41,7 @@ import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.reference.motif.*;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
@@ -78,9 +79,6 @@ import com.epam.catgenome.controller.vo.ga4gh.ReferenceSet;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
 import com.epam.catgenome.manager.FileManager;
@@ -107,25 +105,35 @@ public class ReferenceManager {
 
     private JsonMapper objectMapper = new JsonMapper();
 
-    @Autowired private HttpDataManager httpDataManager;
+    @Autowired
+    private HttpDataManager httpDataManager;
 
-    @Autowired private TrackHelper trackHelper;
+    @Autowired
+    private TrackHelper trackHelper;
 
-    @Autowired private FileManager fileManager;
+    @Autowired
+    private FileManager fileManager;
 
-    @Autowired private ReferenceGenomeManager referenceGenomeManager;
+    @Autowired
+    private ReferenceGenomeManager referenceGenomeManager;
 
-    @Autowired private NibDataReader nibDataReader;
+    @Autowired
+    private NibDataReader nibDataReader;
 
-    @Autowired private NibDataWriter nibDataWriter;
+    @Autowired
+    private NibDataWriter nibDataWriter;
 
-    @Autowired private GffManager gffManager;
+    @Autowired
+    private GffManager gffManager;
 
-    @Autowired private GeneFileManager geneFileManager;
+    @Autowired
+    private GeneFileManager geneFileManager;
 
-    @Autowired private BiologicalDataItemManager biologicalDataItemManager;
+    @Autowired
+    private BiologicalDataItemManager biologicalDataItemManager;
 
-    @Autowired private GenbankManager genbankManager;
+    @Autowired
+    private GenbankManager genbankManager;
 
     @Autowired
     private AuthManager authManager;
@@ -260,7 +268,7 @@ public class ReferenceManager {
     }
 
     private void processGeneRegistrationRequest(ReferenceRegistrationRequest request,
-            Reference reference) throws IOException {
+                                                Reference reference) throws IOException {
         if (request.getGeneFileRequest() != null) {
             try {
                 request.getGeneFileRequest().setReferenceId(reference.getId());
@@ -286,13 +294,13 @@ public class ReferenceManager {
      * started at startPosition and length sequenceLength
      */
     public List<Sequence> getNucleotidesFromNibFile(int startPosition, final int endPosition,
-            final long referenceId, final String chromosomeName) throws IOException {
+                                                    final long referenceId, final String chromosomeName) throws IOException {
         final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
         if (isNibReference(reference.getPath())) {
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeRefInputStream(referenceId, chromosomeName);
-                    DataInputStream indexStrm = fileManager
-                            .makeRefIndexInputStream(referenceId, chromosomeName)) {
+                 DataInputStream indexStrm = fileManager
+                         .makeRefIndexInputStream(referenceId, chromosomeName)) {
                 return nibDataReader
                         .getNucleotidesFromNibFile(startPosition, endPosition, strm, indexStrm);
             }
@@ -321,7 +329,7 @@ public class ReferenceManager {
     private ReferenceSet getReferenceSet(final String referenceSetId)
             throws IOException, InterruptedException, ExternalDbUnavailableException {
 
-        ParameterNameValue[] params = new ParameterNameValue[] {};
+        ParameterNameValue[] params = new ParameterNameValue[]{};
 
         String locationReference =
                 Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE_SET + referenceSetId
@@ -341,7 +349,7 @@ public class ReferenceManager {
     private ReferenceGA4GH getReference(final String referenceId)
             throws InterruptedException, IOException, ExternalDbUnavailableException {
 
-        ParameterNameValue[] params = new ParameterNameValue[] {};
+        ParameterNameValue[] params = new ParameterNameValue[]{};
 
         String locationReference =
                 Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE + referenceId
@@ -381,13 +389,13 @@ public class ReferenceManager {
      * @throws IOException
      */
     public String getSequenceString(final int startIndex, final int endIndex,
-            final Long referenceId, final String chromosomeName) throws IOException {
+                                    final Long referenceId, final String chromosomeName) throws IOException {
         final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
         if (isNibReference(reference.getPath())) {
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeRefInputStream(reference.getId(), chromosomeName);
-                    DataInputStream indexStrm = fileManager
-                            .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
+                 DataInputStream indexStrm = fileManager
+                         .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
                 return nibDataReader.getStringFromNibFile(startIndex, endIndex, strm, indexStrm);
             }
         } else {
@@ -408,13 +416,13 @@ public class ReferenceManager {
      * @throws IOException
      */
     public byte[] getSequenceByteArray(final int startIndex, final int endIndex,
-            final Long referenceId, final String chromosomeName) throws IOException {
+                                       final Long referenceId, final String chromosomeName) throws IOException {
         final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
         if (isNibReference(reference.getPath())) {
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeRefInputStream(referenceId, chromosomeName);
-                    DataInputStream indexStrm = fileManager
-                            .makeRefIndexInputStream(referenceId, chromosomeName)) {
+                 DataInputStream indexStrm = fileManager
+                         .makeRefIndexInputStream(referenceId, chromosomeName)) {
                 return nibDataReader
                         .getByteNucleotidesFromNibFile(startIndex, endIndex, strm, indexStrm);
             }
@@ -457,7 +465,7 @@ public class ReferenceManager {
     }
 
     private List<Sequence> getReferenceSequenceWithGC(Chromosome chr, long trackID,
-            Reference reference, int startIndex, int endIndex, double scaleFactor)
+                                                      Reference reference, int startIndex, int endIndex, double scaleFactor)
             throws IOException {
         final int chromosomeSize = chr.getSize();
         final String chromosomeName = chr.getName();
@@ -473,14 +481,14 @@ public class ReferenceManager {
     }
 
     private List<Sequence> getGCData(long trackID, int startIndex, int endIndex, double scaleFactor,
-            int chromosomeSize, String chromosomeName, Reference reference) throws IOException {
+                                     int chromosomeSize, String chromosomeName, Reference reference) throws IOException {
         if (scaleFactor <= (1.0 / Constants.GC_CONTENT_STEP)
                 && chromosomeSize > Constants.GC_CONTENT_MIN_LENGTH) {
             log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeGCInputStream(trackID, chromosomeName);
-                    DataInputStream indexStrm = fileManager
-                            .makeGCIndexInputStream(trackID, chromosomeName)) {
+                 DataInputStream indexStrm = fileManager
+                         .makeGCIndexInputStream(trackID, chromosomeName)) {
                 return getGCFromGCFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
             } catch (IllegalArgumentException e) {
                 //gc content may be disabled
@@ -493,8 +501,8 @@ public class ReferenceManager {
                 log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
                 try (BlockCompressedDataInputStream strm = fileManager
                         .makeRefInputStream(trackID, chromosomeName);
-                        DataInputStream indexStrm = fileManager
-                                .makeRefIndexInputStream(trackID, chromosomeName)) {
+                     DataInputStream indexStrm = fileManager
+                             .makeRefIndexInputStream(trackID, chromosomeName)) {
                     return getGCFromNibFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
                 }
             } else {
@@ -509,7 +517,7 @@ public class ReferenceManager {
     }
 
     private List<Sequence> getReferenceSequenceWithoutGC(Chromosome chr, long trackID, String cName,
-            Reference reference, int startIndex, int endIndex)
+                                                         Reference reference, int startIndex, int endIndex)
             throws Ga4ghResourceUnavailableException, IOException {
         log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
         if (reference.getType() == BiologicalDataItemResourceType.GA4GH) {
@@ -558,23 +566,23 @@ public class ReferenceManager {
     }
 
     private List<Sequence> getGCFromGCFile(int startPosition, final int endPosition,
-            final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
-            final DataInputStream indexStream) throws IOException {
+                                           final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
+                                           final DataInputStream indexStream) throws IOException {
 
         return nibDataReader.fillSequenceOfGCFromGCFile(startPosition, endPosition, scaleFactor,
                 gcContentStream, indexStream);
     }
 
     private List<Sequence> getGCForGA4GH(final Integer startPosition, final Integer endPosition,
-            final Double scaleFactor, final String referenceId) throws IOException {
+                                         final Double scaleFactor, final String referenceId) throws IOException {
 
         return nibDataReader
                 .fillSequenceOfGCForGA4GH(startPosition, endPosition, scaleFactor, referenceId);
     }
 
     private List<Sequence> getGCFromNibFile(int startPosition, final int endPosition,
-            final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
-            final DataInputStream indexStream) throws IOException {
+                                            final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
+                                            final DataInputStream indexStream) throws IOException {
         //arrays started at zero position, but chromosome started ad first position
         return nibDataReader.fillSequenceOfGCFromNibFile(startPosition, endPosition, scaleFactor,
                 gcContentStream, indexStream);
@@ -629,7 +637,7 @@ public class ReferenceManager {
     }
 
     private long registerGA4GH(ReferenceRegistrationRequest request, Long referenceId,
-            Reference reference)
+                               Reference reference)
             throws IOException, InterruptedException, ExternalDbUnavailableException {
         final List<String> listReferenceId = getReferenceSet(request.getPath()).getReferenceIds();
         long lengthOfGenome = 0;
@@ -668,5 +676,89 @@ public class ReferenceManager {
         } else {
             return index.getPath();
         }
+    }
+
+    public Track<StrandedSequence> getTrackByMotif(final MotifTrackQuery trackQuery) {
+        return createStubTrack();
+//        final Chromosome chr = referenceGenomeManager.loadChromosome(trackQuery.getChromosomeId());
+//        if (chr != null && checkIndexes(trackQuery.getStartIndex(), trackQuery.getEndIndex())) {
+//            return  createTrackBySearchByTrackQuery(chr, trackQuery);
+//        }
+//        return new Track<>();
+    }
+
+    private Track<StrandedSequence> createStubTrack() {
+        Track<StrandedSequence> track = new Track<>();
+        track.setId(1L);
+        track.setChromosome(new Chromosome());
+        track.setStartIndex(1);
+        track.setEndIndex(1000);
+        List<StrandedSequence> sequenceList = new ArrayList<>();
+        StrandedSequence sequence1 = new StrandedSequence();
+        sequence1.setText("sequence 1");
+        StrandedSequence sequence2 = new StrandedSequence();
+        sequence2.setText("sequence 2");
+        StrandedSequence sequence3 = new StrandedSequence();
+        sequence3.setText("sequence 3");
+        sequenceList.add(sequence1);
+        sequenceList.add(sequence2);
+        sequenceList.add(sequence3);
+        track.setBlocks(sequenceList);
+        return track;
+    }
+
+    private boolean checkIndexes(Integer startIndex, Integer endIndex) {
+        return startIndex == 0 || endIndex == 0 || startIndex < endIndex;
+    }
+
+    private Track<StrandedSequence> createTrackBySearchByTrackQuery(
+            final Chromosome chr,
+            final MotifTrackQuery trackQuery) {
+        Track<StrandedSequence> track = new Track<>();
+        track.setId(trackQuery.getId());
+        track.setChromosome(chr);
+        track.setStartIndex(trackQuery.getStartIndex());
+        track.setEndIndex(trackQuery.getEndIndex());
+        track.setBlocks(makeSearchByTrackQuery(trackQuery));
+        return track;
+    }
+
+    private List<StrandedSequence> makeSearchByTrackQuery(final MotifTrackQuery trackQuery) {
+        return new ArrayList<>();
+    }
+
+    public MotifSearchResult getMotifSearchResultByRequest(final MotifSearchRequest motifSearchRequest) {
+        return createStubMotifSearchResult();
+//        if (referenceGenomeManager.isRegistered(motifSearchRequest.getReferenceId())) {
+//            return createMotifSearchResult(motifSearchRequest);
+//        }
+//        return MotifSearchResult.builder().build();
+    }
+
+    private MotifSearchResult createStubMotifSearchResult() {
+        List<Motif> motifList = new ArrayList<>();
+        motifList.add(new Motif("contig 1", 1, 100, false, "value 1"));
+        motifList.add(new Motif("contig 2", 101, 200, false, "value 2"));
+        motifList.add(new Motif("contig 3", 201, 300, true, "value 3"));
+        motifList.add(new Motif("contig 4", 301, 400, true, "value 4"));
+        return MotifSearchResult.builder()
+                .result(motifList)
+                .chr("chr 1")
+                .pageSize(120L)
+                .position(42)
+                .build();
+    }
+
+    private MotifSearchResult createMotifSearchResult(final MotifSearchRequest motifSearchRequest) {
+        return MotifSearchResult.builder()
+                .result(makeSearchByMotifSearchRequest(motifSearchRequest))
+                .chr(motifSearchRequest.getChromosome())
+                .pageSize(motifSearchRequest.getPageSize())
+                .position(motifSearchRequest.getEndPosition())
+                .build();
+    }
+
+    private List<Motif> makeSearchByMotifSearchRequest(final MotifSearchRequest motifSearchRequest) {
+        return new ArrayList<>();
     }
 }
