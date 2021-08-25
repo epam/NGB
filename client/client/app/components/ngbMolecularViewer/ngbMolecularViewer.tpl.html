@@ -28,7 +28,7 @@
                 </md-select>
             </md-input-container>
         </div>
-        <md-content flex>
+        <md-content flex layout="column">
             <div layout="row" ng-if="$ctrl.selectedItem" class="md-padding">
                 <ngb-pdb-description pdb="$ctrl.selectedItem"
                                      pdb-list="$ctrl.mdSelectSource"
@@ -37,10 +37,12 @@
                                      load-done="$ctrl.descriptionDone"
                 ></ngb-pdb-description>
             </div>
-            <div layout="row" class="md-padding" ng-if="$ctrl.descriptionDone">
-                <ngb-miew pdb="$ctrl.selectedItem"
+            <div class="ngb-miew-container" ng-if="$ctrl.descriptionDone">
+                <ngb-miew pdb="$ctrl.selectedItemId"
+                          position="$ctrl.selectedItem ? $ctrl.selectedItem.position : undefined"
+                          transcript="$ctrl.selectedItem ? $ctrl.selectedItem.transcript : undefined"
                           chain-id="$ctrl.descriptionChainId"
-                          description="$ctrl.description"
+                          chains="$ctrl.description ? $ctrl.description.entities : []"
                           region="$ctrl.region"
                 ></ngb-miew>
             </div>

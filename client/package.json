@@ -37,6 +37,7 @@
     "jquery-mousewheel": "3.1.13",
     "jquery-ui": "1.12.1",
     "keyboardjs": "2.5.1",
+    "miew": "^0.9.0",
     "moment": "^2.23.0",
     "pixi.js": "3.0.11",
     "rx": "4.1.0",
