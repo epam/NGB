@@ -5,7 +5,6 @@ import {
 } from '../../../../app/shared/blastContext';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
 import {CachedTrackRenderer} from '../../core';
-import {drawingConfiguration} from '../../core/configuration';
 
 class BLASTAlignmentRenderer extends CachedTrackRenderer {
     get config() {
@@ -371,8 +370,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             const label = this.labelsManager
                 ? this.labelsManager.getLabel(
                     alt,
-                    this.config.sequence.mismatch.label,
-                    drawingConfiguration.resolution
+                    this.config.sequence.mismatch.label
                 )
                 : undefined;
             if (label && label.width < x2 - x1) {
@@ -503,8 +501,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 const label = this.labelsManager
                     ? this.labelsManager.getLabel(
                         `${size}`,
-                        this.config.sequence.notAligned.label,
-                        drawingConfiguration.resolution
+                        this.config.sequence.notAligned.label
                     )
                     : undefined;
                 if (label) {
