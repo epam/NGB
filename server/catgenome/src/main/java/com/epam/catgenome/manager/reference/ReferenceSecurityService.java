@@ -28,7 +28,11 @@ package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.reference.*;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.entity.reference.StrandedSequence;
 import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
 import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifTrackQuery;
