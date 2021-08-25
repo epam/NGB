@@ -37,13 +37,60 @@
                                      load-done="$ctrl.descriptionDone"
                 ></ngb-pdb-description>
             </div>
-            <div class="ngb-miew-container" ng-if="$ctrl.descriptionDone">
-                <ngb-miew pdb="$ctrl.selectedItemId"
-                          position="$ctrl.selectedItem ? $ctrl.selectedItem.position : undefined"
-                          transcript="$ctrl.selectedItem ? $ctrl.selectedItem.transcript : undefined"
-                          chain-id="$ctrl.descriptionChainId"
-                          chains="$ctrl.description ? $ctrl.description.entities : []"
-                          region="$ctrl.region"
+            <div layout="column" class="md-padding structure-container" ng-if="$ctrl.descriptionDone">
+                <div ng-if="!$ctrl.loading" class="miew-actions-container">
+                    <md-menu md-position-mode="target-right target">
+                        <md-button class="md-icon-button">
+                            <ng-md-icon
+                                icon="invert_colors"
+                                style="fill:#4285f4"
+                                class=" miew-action"
+                                ng-click="$mdOpenMenu($event)"
+                            ></md-icon>
+                        </md-button>
+                        <md-menu-content style="width: 750px; height: 380px">
+                            <md-subheader class="md-primary">Display color</md-subheader>
+                            <md-grid-list md-cols="6" md-row-height="96px" md-gutter="8px">
+                                <md-grid-tile ng-repeat="color in $ctrl.colorer">
+                                    <md-button ng-click="$ctrl.changeDisplaySettings(color.name, $event, 'colorer')" class="thumbnail-button">
+                                        <img ng-src="{{$ctrl.loadImage(color.img, 'colorer')}}" style="width: 96px; height:96px;"/>
+                                        <md-grid-tile-footer class="thumbnail-title colorer"><h5 style="text-transform: capitalize;">{{color.name}}</h5></md-grid-tile-footer>
+                                    </md-button>
+                                </md-grid-tile>
+                            </md-grid-list>
+                            
+                        </md-menu-content>
+                    </md-menu>
+                    <md-menu md-position-mode="target-right target">
+                        <md-button class="md-icon-button">
+                            <ng-md-icon
+                                icon="texture"
+                                style="fill:#4285f4"
+                                class="miew-action"
+                                ng-click="$mdOpenMenu($event)"
+                            ></ng-md-icon>
+                        </md-button>
+                        <md-menu-content style="width: 750px; height: 380px">
+                            <md-subheader class="md-primary">Display mode</md-subheader>
+                            <md-grid-list md-cols="6" md-row-height="96px" md-gutter="8px">
+                                    <md-grid-tile ng-repeat="mode in $ctrl.displaymode" style="width: 96px; height:96px;">
+                                        <md-button ng-click="$ctrl.changeDisplaySettings(mode.name, $event, 'mode')" class="thumbnail-button">
+                                            <img ng-src="{{$ctrl.loadImage(mode.img, 'displayMode')}}" />
+                                            <md-grid-tile-footer class="thumbnail-title mode"><h5 style="text-transform: capitalize;">{{mode.name}}</h5></md-grid-tile-footer>
+                                        </md-button>
+                                    </md-grid-tile>
+                            </md-grid-list>
+                            
+                        </md-menu-content>
+                    </md-menu>
+                </div>
+                <div class="ngb-miew-container" ng-if="$ctrl.descriptionDone">
+                    <ngb-miew pdb="$ctrl.selectedItemId"
+                              position="$ctrl.selectedItem ? $ctrl.selectedItem.position : undefined"
+                              transcript="$ctrl.selectedItem ? $ctrl.selectedItem.transcript : undefined"
+                            chain-id="$ctrl.descriptionChainId"
+                            chains="$ctrl.description ? $ctrl.description.entities : []"
+                            region="$ctrl.region"
                 ></ngb-miew>
             </div>
             <div class="md-padding" ng-if="$ctrl.errorMessageList.length">

@@ -16,12 +16,15 @@ export default class ngbMolecularViewerController extends baseController {
     selectedItem = null;
     region = null;
 
-    constructor($sce, $scope, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant) {
+    constructor($sce, $scope, $element, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant) {
         super();
 
         Object.assign(this, {$scope, dispatcher, ngbMolecularViewerConstant, ngbMolecularViewerService});
 
         this.defaultMessage = $sce.trustAsHtml(ngbMolecularViewerConstant.defaultMessage);
+        this.colorer = ngbMolecularViewerConstant.colorer;
+        this.displaymode = ngbMolecularViewerConstant.displaymode;
+        this.element = $element;
 
 
         this.initEvents();
@@ -102,6 +105,14 @@ export default class ngbMolecularViewerController extends baseController {
             await this.geneTrackChanged();
         }
     }
-
+    loadImage(image, type) {
+        return require(`../../assets/images/${type}/${image}`);
+    }
+    changeDisplaySettings(name, event, type) {
+        // console.log('changeDisplaySettings', name, type);
+        document.querySelectorAll(`.thumbnail-title.${type}`)
+        .forEach(node => node.classList.remove('selected'));
+        event.currentTarget.children[1].classList.add('selected');
+    }
 
 }

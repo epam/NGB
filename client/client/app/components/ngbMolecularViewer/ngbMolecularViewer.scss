@@ -13,6 +13,66 @@ ngb-molecular-viewer {
 md-option .md-text .option-hack {
   display: none;
 }
+.thumbnail-button {
+  cursor: pointer;
+  width: 96px;
+  height:96px;
+  overflow: visible;
+  background-color: black;
+  padding-left: 0;
+  img {
+    width: inherit;
+    height: inherit;
+  }
+  img.selected {
+    filter: blur(10);
+  }
+  .thumbnail-title {
+      background-color: rgba(0,0,0,0.5);
+      height: 25px;
+      width:96px;
+      text-align: center;
+      padding: 5px 6px;
+      .h4 {
+        width: 104px;
+        text-transform: unset;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        position: relative;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none
+      }
+    }
+    .thumbnail-title.selected {
+      background-color: #4285f4;
+    }
+  &:hover {
+    .thumbnail-title {
+          background-color: #4285f4;
+          width: 96px;
+          transition: all 0.4s ease;
+      }
+    background-color: #4285f4;
+    }
+}
+.structure-container{
+  position: relative;
+}
+.miew-actions-container {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  right:0;
+  top:0;
+  z-index: 100;
+}
+button.miew-action {
+  width: 36px;
+  height: 36px;
+}
+
 
 .ngb-miew-container {
   flex: 1;
