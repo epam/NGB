@@ -15,17 +15,17 @@ export default class ngbMolecularViewerController extends baseController {
     selectedItemId = null;
     selectedItem = null;
     region = null;
+    currentMode = null;
+    currentColor = null;
 
-    constructor($sce, $scope, $element, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant) {
+    constructor($sce, $scope, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant, miewSettings) {
         super();
 
         Object.assign(this, {$scope, dispatcher, ngbMolecularViewerConstant, ngbMolecularViewerService});
 
         this.defaultMessage = $sce.trustAsHtml(ngbMolecularViewerConstant.defaultMessage);
-        this.colorer = ngbMolecularViewerConstant.colorer;
-        this.displaymode = ngbMolecularViewerConstant.displaymode;
-        this.element = $element;
-
+        this.colorer = miewSettings.displayColors;
+        this.modes = miewSettings.displayModes;
 
         this.initEvents();
 
@@ -48,6 +48,17 @@ export default class ngbMolecularViewerController extends baseController {
         'miew:show:structure': ::this.geneClick,
         'miew:highlight:region': ::this.geneClick
     };
+    openMenu($mdOpenMenu, ev) {
+        if (ev.currentTarget.parentNode.className.startsWith('colors-menu')) {
+            document.querySelector('.modes-content').classList.add('hidden');
+            document.querySelector('.colors-content').classList.remove('hidden');
+        }
+        if (ev.currentTarget.parentNode.className.startsWith('modes-menu')) {
+            document.querySelector('.colors-content').classList.add('hidden');
+            document.querySelector('.modes-content').classList.remove('hidden');
+        }
+        $mdOpenMenu(ev);
+    }
 
     async geneTrackChanged() {
         if (!this.selectedGeneTrack || !this.event)
@@ -105,11 +116,16 @@ export default class ngbMolecularViewerController extends baseController {
             await this.geneTrackChanged();
         }
     }
-    loadImage(image, type) {
-        return require(`../../assets/images/${type}/${image}`);
+    loadImage(imagePath) {
+        return require(`../../assets/images/${imagePath}`);
     }
     changeDisplaySettings(name, event, type) {
-        // console.log('changeDisplaySettings', name, type);
+        if (type === 'mode') {
+            this.currentMode = name;
+        }
+        if (type === 'color') {
+            this.currentColor = name;
+        }
         document.querySelectorAll(`.thumbnail-title.${type}`)
         .forEach(node => node.classList.remove('selected'));
         event.currentTarget.children[1].classList.add('selected');

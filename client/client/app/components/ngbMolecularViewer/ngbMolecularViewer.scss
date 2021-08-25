@@ -15,50 +15,52 @@ md-option .md-text .option-hack {
 }
 .thumbnail-button {
   cursor: pointer;
-  width: 96px;
-  height:96px;
+  width: 110px;
+  height:110px;
   overflow: visible;
-  background-color: black;
   padding-left: 0;
   img {
     width: inherit;
     height: inherit;
   }
-  img.selected {
-    filter: blur(10);
-  }
   .thumbnail-title {
-      background-color: rgba(0,0,0,0.5);
-      height: 25px;
-      width:96px;
-      text-align: center;
-      padding: 5px 6px;
-      .h4 {
-        width: 104px;
-        text-transform: unset;
-        overflow: hidden;
+    margin: 0;
+    width: 110px;
+    height: 35px;
+    background-color: transparent;
+      h5 {
+        background-color: rgba(0,0,0,0.5);
+        width: 110px;
+        height: 25px;
+        line-height: 25px;
         white-space: nowrap;
-        text-overflow: ellipsis;
-        position: relative;
         display: inline-block;
-        text-align: center;
-        text-decoration: none
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
     .thumbnail-title.selected {
-      background-color: #4285f4;
+      h5 {
+        background-color: #4285f4;
+      }
     }
   &:hover {
     .thumbnail-title {
-          background-color: #4285f4;
-          width: 96px;
+          width: 110px;
           transition: all 0.4s ease;
+          h5 {
+            background-color: #4285f4;
+          }
       }
-    background-color: #4285f4;
+   
     }
 }
 .structure-container{
   position: relative;
+  min-height: 500px;
+  canvas {
+    min-height: 500px;
+  }
 }
 .miew-actions-container {
   display: flex;
@@ -78,5 +80,7 @@ button.miew-action {
   flex: 1;
   overflow: hidden;
 }
-
+.modes-content.hidden, .colors-content.hidden {
+  display:none;
+}
 
