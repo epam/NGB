@@ -97,5 +97,17 @@
                 ]]>
             </value>
         </property>
+        <property name="updateNgbSessionQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.ngb_session SET
+                    name = :NAME
+                    description = :DESCRIPTION
+                    session_value = : SESSION_VALUE
+                    owner = :OWNER
+                    WHERE id = :ID
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

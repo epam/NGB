@@ -44,6 +44,7 @@ public class NGBSessionSecurityService {
     public static final String OR = " OR ";
     public static final String WRITE_SESSION_BY_ID = "hasPermissionOnSession(#id, 'WRITE')";
     public static final String SESSION_IS_READABLE = "sessionIsReadable(returnObject)";
+    public static final String FILTERED_SESSION_IS_READABLE = "sessionIsReadable(filterObject)";
 
 
     @Autowired
@@ -51,19 +52,24 @@ public class NGBSessionSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public NGBSession create(final NGBSession session) {
-       return sessionManager.create(session);
+        return sessionManager.create(session);
     }
 
 
-    @PostFilter(SESSION_IS_READABLE)
+    @PostFilter(FILTERED_SESSION_IS_READABLE)
     public List<NGBSession> filter(final NGBSessionFilter filter) {
-       return sessionManager.filter(filter);
+        return sessionManager.filter(filter);
     }
 
 
     @PostAuthorize(SESSION_IS_READABLE)
     public NGBSession load(final Long id) {
-       return sessionManager.load(id);
+        return sessionManager.load(id);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + WRITE_SESSION_BY_ID)
+    public NGBSession update(final NGBSession session) {
+        return sessionManager.update(session);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + WRITE_SESSION_BY_ID)

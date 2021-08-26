@@ -47,6 +47,7 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
     private static final String AND = " AND ";
     private static final String WHERE = "WHERE ";
     private static final String LIKE = " LIKE '%";
+    private static final String EMPTY = "";
 
     @Autowired
     private DaoHelper daoHelper;
@@ -57,6 +58,7 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
     private String filterNgbSessionsQuery;
     private String loadNgbSessionQuery;
     private String deleteNgbSessionQuery;
+    private String updateNgbSessionQuery;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public NGBSession create(final NGBSession session) {
@@ -85,8 +87,9 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
         return loaded;
     }
 
-    public void setNgbSessionSequenceName(String ngbSessionSequenceName) {
-        this.ngbSessionSequenceName = ngbSessionSequenceName;
+    public NGBSession update(final NGBSession session) {
+        getJdbcTemplate().update(updateNgbSessionQuery, NGBSessionParameters.getParameters(session));
+        return session;
     }
 
     enum NGBSessionParameters {
@@ -131,59 +134,60 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    private String generateSessionFilter(NGBSessionFilter filter) {
+    private String generateSessionFilter(final NGBSessionFilter filter) {
         final StringBuilder result = new StringBuilder();
         if (isFilterEmpty(filter)) {
             return result.toString();
         }
 
         if(StringUtils.isNotEmpty(filter.getChromosome())) {
-            result.append(
-                    WHERE + NGBSessionParameters.CHROMOSOME.name() + " LIKE '" + filter.getChromosome() + "'"
-            );
+            result.append(WHERE)
+                    .append(NGBSessionParameters.CHROMOSOME.name())
+                    .append(" LIKE '")
+                    .append(filter.getChromosome())
+                    .append('\'');
         }
 
-        result.append(likeFilter(result, filter.getName(), NGBSessionParameters.NAME));
-        result.append(likeFilter(result, filter.getOwner(), NGBSessionParameters.OWNER));
-        result .append(likeFilter(result, filter.getDescription(), NGBSessionParameters.DESCRIPTION));
+        result.append(likeFilter(result, filter.getName(), NGBSessionParameters.NAME))
+                .append(likeFilter(result, filter.getOwner(), NGBSessionParameters.OWNER))
+                .append(likeFilter(result, filter.getDescription(), NGBSessionParameters.DESCRIPTION));
 
         if(CollectionUtils.isNotEmpty(filter.getReferenceIds())) {
-            result.append(
-                    (StringUtils.isEmpty(result) ? WHERE : AND) + NGBSessionParameters.REFERENCE_ID.name()
-                        + " in ("
-                        + filter.getReferenceIds().stream().map(Object::toString)
-                                .collect(Collectors.joining(", "))
-                        + ")"
-            );
+            result.append(StringUtils.isEmpty(result) ? WHERE : AND)
+                    .append(NGBSessionParameters.REFERENCE_ID.name())
+                    .append(" in (")
+                    .append(filter.getReferenceIds().stream().map(Object::toString)
+                            .collect(Collectors.joining(", ")))
+                    .append(')');
         }
 
 
 
         if(filter.getStart() != null) {
-            result.append(
-                    (StringUtils.isEmpty(result) ? WHERE : AND) + NGBSessionParameters.START_POSITION.name()
-                    + " > " + filter.getStart()
-            );
+            result.append(StringUtils.isEmpty(result) ? WHERE : AND)
+                    .append(NGBSessionParameters.START_POSITION.name())
+                    .append(" > ")
+                    .append(filter.getStart());
         }
 
         if(filter.getEnd() != null) {
-            result.append(
-                    (StringUtils.isEmpty(result) ? WHERE : AND) + NGBSessionParameters.END_POSITION.name()
-                    + " < " + filter.getEnd()
-            );
+            result.append(StringUtils.isEmpty(result) ? WHERE : AND)
+                    .append(NGBSessionParameters.END_POSITION.name())
+                    .append(" < ")
+                    .append(filter.getEnd());
         }
         return result.toString();
     }
 
-    private String likeFilter(StringBuilder result, String value, NGBSessionParameters parameter) {
+    private String likeFilter(final StringBuilder result, final String value,
+                              final NGBSessionParameters parameter) {
         if (StringUtils.isNotEmpty(value)) {
-            return (StringUtils.isEmpty(result) ? WHERE : AND) + parameter.name()
-                    + LIKE + value + "%'";
+            return (StringUtils.isEmpty(result) ? WHERE : AND) + parameter.name() + LIKE + value + "%'";
         }
-        return "";
+        return EMPTY;
     }
 
-    private boolean isFilterEmpty(NGBSessionFilter filter) {
+    private boolean isFilterEmpty(final NGBSessionFilter filter) {
         return filter == null ||
                 StringUtils.isEmpty(filter.getChromosome()) && StringUtils.isEmpty(filter.getName()) &&
                         StringUtils.isEmpty(filter.getOwner()) && CollectionUtils.isEmpty(filter.getReferenceIds()) &&
@@ -191,19 +195,27 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
                         && filter.getEnd() == null;
     }
 
-    public void setCreateNgbSessionQuery(String createNgbSessionQuery) {
+    public void setNgbSessionSequenceName(final String ngbSessionSequenceName) {
+        this.ngbSessionSequenceName = ngbSessionSequenceName;
+    }
+
+    public void setUpdateNgbSessionQuery(final String updateNgbSessionQuery) {
+        this.updateNgbSessionQuery = updateNgbSessionQuery;
+    }
+
+    public void setCreateNgbSessionQuery(final String createNgbSessionQuery) {
         this.createNgbSessionQuery = createNgbSessionQuery;
     }
 
-    public void setFilterNgbSessionsQuery(String filterNgbSessionsQuery) {
+    public void setFilterNgbSessionsQuery(final String filterNgbSessionsQuery) {
         this.filterNgbSessionsQuery = filterNgbSessionsQuery;
     }
 
-    public void setLoadNgbSessionQuery(String loadNgbSessionQuery) {
+    public void setLoadNgbSessionQuery(final String loadNgbSessionQuery) {
         this.loadNgbSessionQuery = loadNgbSessionQuery;
     }
 
-    public void setDeleteNgbSessionQuery(String deleteNgbSessionQuery) {
+    public void setDeleteNgbSessionQuery(final String deleteNgbSessionQuery) {
         this.deleteNgbSessionQuery = deleteNgbSessionQuery;
     }
 }

@@ -117,6 +117,9 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean sessionIsReadable(final NGBSession session) {
+        if (session == null) {
+            return false;
+        }
         return permissionHelper.sessionIsReadable(session);
     }
 

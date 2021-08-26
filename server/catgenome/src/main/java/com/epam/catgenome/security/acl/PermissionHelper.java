@@ -64,8 +64,7 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -302,18 +301,19 @@ public class PermissionHelper {
         try {
             final NGBSessionValue value = MAPPER.readValue(session.getSessionValue(), NGBSessionValue.class);
             return value.getTracks().stream().anyMatch(t -> {
-               if (t.getBiologicalDataItem() != null) {
-                   return dataItemManager.findFilesByName(t.getBiologicalDataItem(), true)
-                           .stream().findFirst()
-                           .map(biologicalDataItem -> isAllowedByBioItemId(READ, biologicalDataItem.getId()))
-                           .orElse(false);
-               } else if (t.getProject() != null) {
-                   return isAllowed(READ, projectManager.load(t.getProject()).getId(), Project.class);
-               }
-               return false;
+                final Optional<Project> project = Optional.ofNullable(t.getProject()).map(projectManager::load);
+                final Optional<BiologicalDataItem> bioDataItem = Optional.ofNullable(t.getBiologicalDataItem())
+                        .flatMap(i -> dataItemManager.findFilesByName(i, true).stream().findFirst());
+                if (bioDataItem.isPresent()) {
+                    return isAllowedByBioItemId(READ, BiologicalDataItem.getBioDataItemId(bioDataItem.get()))
+                            || project.map(p -> isAllowed(READ, p)).orElse(false);
+                } else if (project.isPresent()) {
+                    return isAllowed(READ, project.get());
+                }
+                return false;
             });
         } catch (IOException e) {
-            LOGGER.warn("Can't parse session_value and check avaliability of the session id: " + session.getId(), e);
+            LOGGER.warn("Can't parse session_value and check availability of the session id: " + session.getId(), e);
         }
         return false;
     }

@@ -41,9 +41,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -67,7 +65,7 @@ public class SessionController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<NGBSession>> filterSessions(@RequestBody NGBSessionFilter filter) {
+    public Result<List<NGBSession>> filterSessions(@RequestBody(required = false) NGBSessionFilter filter) {
         return Result.success(sessionSecurityService.filter(filter));
     }
 
@@ -87,8 +85,8 @@ public class SessionController extends AbstractRESTController {
     @RequestMapping(value = "/session/{id}", method = RequestMethod.DELETE)
     @ResponseBody
     @ApiOperation(
-            value = "Returns a project by given ID",
-            notes = "Provides extended data, including files in project",
+            value = "Deletes a session by given ID",
+            notes = "Deletes a session by given ID",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -108,6 +106,19 @@ public class SessionController extends AbstractRESTController {
         })
     public Result<NGBSession> createSession(@RequestBody final NGBSession session) {
         return Result.success(sessionSecurityService.create(session));
+    }
+
+    @RequestMapping(value = "/session", method = RequestMethod.PUT)
+    @ResponseBody
+    @ApiOperation(
+            value = "Updates session",
+            notes = "Updates session with given parameters",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<NGBSession> update(@RequestBody final NGBSession session) {
+        return Result.success(sessionSecurityService.update(session));
     }
 
 }

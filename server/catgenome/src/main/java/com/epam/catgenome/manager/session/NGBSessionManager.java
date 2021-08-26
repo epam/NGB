@@ -25,9 +25,12 @@
 package com.epam.catgenome.manager.session;
 
 import com.epam.catgenome.dao.session.NGBSessionDao;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.session.NGBSession;
 import com.epam.catgenome.entity.session.NGBSessionFilter;
 import com.epam.catgenome.manager.AuthManager;
+import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +44,7 @@ import java.util.List;
 @AclSync
 @Service
 @AllArgsConstructor
-public class NGBSessionManager {
+public class NGBSessionManager implements SecuredEntityManager {
 
     @Autowired
     private final NGBSessionDao sessionDao;
@@ -72,5 +75,24 @@ public class NGBSessionManager {
     public NGBSession delete(final Long id) {
         return sessionDao.delete(id).orElseThrow(() ->
                 new IllegalArgumentException("Can't find a session with id: " + id));
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public NGBSession update(final NGBSession session) {
+        Assert.notNull(load(session.getId()), "Can't find a session with id: " + session.getId());
+        return sessionDao.update(session);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(final Long id, final String owner) {
+        final NGBSession session = load(id);
+        session.setOwner(owner);
+        return update(session);
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.SESSION;
     }
 }
