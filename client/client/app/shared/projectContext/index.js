@@ -68,7 +68,8 @@ export default class projectContext {
         referenceShowForwardStrand: 'rsfs',
         referenceShowReverseStrand: 'rsrs',
         header: 'he',
-        color: 'co'
+        color: 'co',
+        featureCountsDisplayMode: 'fcdm'
     };
 
     _tracksStateMinificationIgnoreRules = [

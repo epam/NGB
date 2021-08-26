@@ -1,4 +1,13 @@
-import {scaleModes} from '../tracks/wig/modes';
+import {scaleModes} from '../tracks/common/scaleModes';
+
+const autoScaleGroupsColors = [
+    0xFF7700,
+    0x14BC0F,
+    0x0F54BC,
+    0x710FBC,
+    0xBC0F8E,
+    0xBC0F43
+];
 
 class GroupAutoScaleManager {
     static instance (projectContext, dispatcher) {
@@ -113,6 +122,10 @@ class GroupAutoScaleManager {
     getGroup(name) {
         const [group] = this.groups.filter(g => g.name === name);
         return group;
+    }
+
+    getGroupColor (group) {
+        return autoScaleGroupsColors[group.index % autoScaleGroupsColors.length];
     }
 
     registerTrackData(track, data) {

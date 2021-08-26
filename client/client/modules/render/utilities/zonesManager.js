@@ -1,4 +1,5 @@
 import Sorting from './sorting';
+import linearDimensionsConflict from './linearDimensionsConflicts';
 
 export default class ZonesManager {
 
@@ -229,10 +230,7 @@ export default class ZonesManager {
         const o1p2 = o1[prop2];
         const o2p1 = o2[prop1];
         const o2p2 = o2[prop2];
-        const o1size = Math.abs(o1p2 - o1p1);
-        const o2size = Math.abs(o2p2 - o2p1);
-        const oSize = Math.max(o1p1, o1p2, o2p1, o2p2) - Math.min(o1p1, o1p2, o2p1, o2p2);
-        return o1size + o2size > oSize + margin;
+        return linearDimensionsConflict(o1p1, o1p2, o2p1, o2p2, margin);
     }
 
     static _rectanglesConflict(rect1, rect2, margin = {marginX: 0, marginY: 0}) {

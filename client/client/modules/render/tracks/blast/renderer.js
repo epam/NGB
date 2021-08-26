@@ -2,30 +2,14 @@ import {
     BTOPPartType,
     parseBtop
 } from '../../../../app/shared/blastContext';
-import {CachedTrackRenderer} from '../../core';
+import {CachedTrackRendererWithVerticalScroll} from '../../core';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
 import PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../core/configuration';
 
-class BLASTAlignmentRenderer extends CachedTrackRenderer {
+class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
     get config() {
         return this._config;
-    }
-
-    get verticalScroll(): PIXI.Graphics {
-        return this._verticalScroll;
-    }
-
-    get height() {
-        return this._height;
-    }
-
-    set height(value) {
-        this._height = value;
-    }
-
-    get actualHeight() {
-        return this._actualHeight;
     }
 
     constructor(config, pixiRenderer, options, blastContext) {
@@ -33,7 +17,6 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         this._config = config;
         this.pixiRenderer = pixiRenderer;
         this.options = options;
-        this._verticalScroll = new PIXI.Graphics();
         this._hoveringGraphics = new PIXI.Graphics();
         this.blastContext = blastContext;
         this.container.addChild(this._verticalScroll);
@@ -41,87 +24,9 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         this.initializeCentralLine();
     }
 
-    scrollIndicatorBoundaries(viewport) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            return {
-                height: this.height * this.height / this.actualHeight,
-                width: this.config.scroll.width,
-                x: viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                y: -this.dataContainer.y / this.actualHeight * this.height
-            };
-        }
-        return null;
-    }
-
-    drawVerticalScroll(viewport) {
-        this.verticalScroll.clear();
-        if (this.actualHeight && this.height < this.actualHeight) {
-            const scrollHeight = this.height * this.height / this.actualHeight;
-            this.verticalScroll
-                .beginFill(this.config.scroll.fill, this._verticalScrollIsHovered ? this.config.scroll.hoveredAlpha : this.config.scroll.alpha)
-                .drawRect(
-                    viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                    -this.dataContainer.y / this.actualHeight * this.height,
-                    this.config.scroll.width,
-                    scrollHeight
-                )
-                .endFill();
-        }
-    }
-
-    _verticalScrollIsHovered = false;
-
-    hoverVerticalScroll(viewport) {
-        if (!this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = true;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    unhoverVerticalScroll(viewport) {
-        if (this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = false;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    isScrollable() {
-        return this.actualHeight && this.height < this.actualHeight;
-    }
-
-    canScroll(yDelta) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            return __y <= 0 && __y >= this.height - this.actualHeight;
-        }
-        return false;
-    }
-
-    setScrollPosition(viewport, indicatorPosition) {
-        this.scroll(viewport, - indicatorPosition * this.actualHeight / this.height - this.dataContainer.y);
-    }
-
     scroll(viewport, yDelta) {
         this.hoverItem(null);
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            __y = Math.min(0, Math.max(this.height - this.actualHeight, __y));
-            this.dataContainer.y = __y;
-            this.drawVerticalScroll(viewport);
-        } else {
-            this.dataContainer.y = 0;
-            this.drawVerticalScroll(null);
-        }
+        super.scroll(viewport, yDelta);
     }
 
     translateContainer(viewport, cache) {
