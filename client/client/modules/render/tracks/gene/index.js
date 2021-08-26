@@ -46,7 +46,7 @@ export class GENETrack extends CachedTrack {
     );
 
     constructor(opts) {
-        // opts.preferWebGL = PREFER_WEBGL;
+        opts.preferWebGL = PREFER_WEBGL;
         super(opts);
         const self = this;
         const handleClick = async() => {

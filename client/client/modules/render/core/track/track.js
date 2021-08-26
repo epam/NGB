@@ -232,6 +232,13 @@ export class Track extends BaseTrack {
         this._pixiRenderer.render(this.container);
     }
 
+    handleContextLoss = (e) => {
+        e.preventDefault();
+        this.preferWebGL = false;
+        this._destroyPixiRenderer();
+        this._refreshPixiRenderer(true);
+    };
+
     _refreshPixiRenderer(force = false) {
         const size = this._getCurrentSize();
         const newSize = this._getExpectedSize();
@@ -256,12 +263,7 @@ export class Track extends BaseTrack {
         } else {
             this._pixiRenderer = getRenderer(newSize, null, this.preferWebGL);
             if (this.preferWebGL) {
-                this._pixiRenderer.view.addEventListener('webglcontextlost', (e) => {
-                    e.preventDefault();
-                    this.preferWebGL = false;
-                    this._destroyPixiRenderer();
-                    this._refreshPixiRenderer(true);
-                });
+                this._pixiRenderer.view.addEventListener('webglcontextlost', this.handleContextLoss);
             }
 
             this.domElement.appendChild(this._pixiRenderer.view);
@@ -285,6 +287,9 @@ export class Track extends BaseTrack {
     _destroyPixiRenderer() {
         if (this._pixiRenderer && this._pixiRenderer.view) {
             this.container.removeChildren();
+            if (this.preferWebGL) {
+                this._pixiRenderer.view.removeEventListener('webglcontextlost', this.handleContextLoss);
+            }
             this.domElement.removeChild(this._pixiRenderer.view);
             this._pixiRenderer.destroy(true);
             this._pixiRenderer = null;
