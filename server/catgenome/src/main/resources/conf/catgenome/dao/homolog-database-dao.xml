@@ -8,11 +8,11 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_database (
-                        id,
+                        database_id,
                         name,
                         path
                     ) VALUES (
-                        :ID,
+                        :DATABASE_ID,
                         :NAME,
                         :PATH
                     )
@@ -22,7 +22,7 @@
         <property name="deleteQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.homolog_database WHERE id = ?
+                    DELETE FROM catgenome.homolog_database WHERE database_id = ?
                 ]]>
             </value>
         </property>
@@ -30,7 +30,7 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
+                        database_id,
                         name,
                         path
                     FROM catgenome.homolog_database

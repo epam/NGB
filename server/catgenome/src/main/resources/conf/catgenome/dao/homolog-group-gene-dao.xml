@@ -8,13 +8,13 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_group_gene (
-                        id,
+                        group_gene_id,
                         group_id,
                         gene_id,
                         tax_id,
                         database_id
                     ) VALUES (
-                        :ID,
+                        :GROUP_GENE_ID,
                         :GROUP_ID,
                         :GENE_ID,
                         :TAX_ID,
@@ -34,12 +34,31 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
-                        group_id,
-                        gene_id,
-                        tax_id,
-                        database_id
-                    FROM catgenome.homolog_group_gene
+                        hgg.group_gene_id as group_gene_id,
+                        hgg.group_id as group_id,
+                        hgg.gene_id as gene_id,
+                        hgg.tax_id as tax_id,
+                        hgg.database_id as database_id,
+                        desc.symbol as symbol,
+                        desc.title as title,
+                        desc.prot_gi as prot_gi,
+                        desc.prot_acc as prot_acc,
+                        desc.prot_len as prot_len,
+                        desc.nuc_gi as nuc_gi,
+                        desc.nuc_acc as nuc_acc,
+                        desc.locus_tag as locus_tag,
+                        dmn.domain_id,
+                        dmn.begin,
+                        dmn.end,
+                        dmn.pssmid,
+                        dmn.cddid,
+                        dmn.cddname,
+                        als.alias_id as alias_id,
+                        als.name as name
+                    FROM catgenome.homolog_group_gene hgg
+                         left join catgenome.homolog_gene_desc desc on hgg.gene_id = desc.gene_id
+                         left join catgenome.homolog_gene_domain dmn on dmn.gene_id = desc.gene_id
+                         left join catgenome.homolog_gene_alias als on als.gene_id = desc.gene_id
                 ]]>
             </value>
         </property>

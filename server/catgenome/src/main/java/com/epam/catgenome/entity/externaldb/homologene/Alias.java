@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class Alias {
-    private Long id;
+    private Long aliasId;
     private Long geneId;
     private String name;
 }

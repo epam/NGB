@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class HomologGroupGene {
-    private Long id;
+    private Long groupGeneId;
     private Long groupId;
     private Long geneId;
     private Long taxId;

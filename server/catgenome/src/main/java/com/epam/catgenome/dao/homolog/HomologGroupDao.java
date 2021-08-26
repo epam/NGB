@@ -68,11 +68,12 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public HomologGroup save(final HomologGroup homologGroup) {
-        homologGroup.setId(daoHelper.createId(sequenceName));
+        homologGroup.setGroupId(daoHelper.createId(sequenceName));
         getNamedParameterJdbcTemplate().update(insertQuery, GroupParameters.getParameters(homologGroup));
         return homologGroup;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public long nextVal() {
         return daoHelper.createId(sequenceName);
     }
@@ -85,8 +86,8 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
     public void save(final List<HomologGroup> groups) {
         if (!CollectionUtils.isEmpty(groups)) {
             List<MapSqlParameterSource> params = new ArrayList<>(groups.size());
-            for (int i = 0; i < groups.size(); i++) {
-                MapSqlParameterSource param = GroupParameters.getParameters(groups.get(i));
+            for (HomologGroup group : groups) {
+                MapSqlParameterSource param = GroupParameters.getParameters(group);
                 params.add(param);
             }
             getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
@@ -97,7 +98,7 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
     /**
      * Deletes Homolog groups from the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final Long id) {
         getJdbcTemplate().update(deleteQuery, id);
     }
@@ -118,22 +119,21 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum  GroupParameters{
-        ID,
+        GROUP_ID,
         PRIMARY_GENE_ID,
         PRIMARY_GENE_TAX_ID,
         TYPE,
-        PRIMARY_GENE_NAME,
+        DATABASE_ID,
+        GENE_NAME,
         PROTEIN_NAME,
-        DATABASE_ID;
+        HOMOLOG_DATABASE;
 
         static MapSqlParameterSource getParameters(final HomologGroup homologGroup) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), homologGroup.getId());
+            params.addValue(GROUP_ID.name(), homologGroup.getGroupId());
             params.addValue(PRIMARY_GENE_ID.name(), homologGroup.getGeneId());
             params.addValue(PRIMARY_GENE_TAX_ID.name(), homologGroup.getTaxId());
             params.addValue(TYPE.name(), homologGroup.getType().getId());
-            params.addValue(PRIMARY_GENE_NAME.name(), homologGroup.getGeneName());
-            params.addValue(PROTEIN_NAME.name(), homologGroup.getProteinName());
             params.addValue(DATABASE_ID.name(), homologGroup.getDatabaseId());
             return params;
         }
@@ -144,13 +144,13 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
 
         static HomologGroup parseGroup(final ResultSet rs) throws SQLException {
             return HomologGroup.builder()
-                    .id(rs.getLong(ID.name()))
+                    .groupId(rs.getLong(GROUP_ID.name()))
                     .geneId(rs.getLong(PRIMARY_GENE_ID.name()))
                     .taxId(rs.getLong(PRIMARY_GENE_TAX_ID.name()))
                     .type(HomologType.getById(rs.getInt(TYPE.name())))
-                    .geneName(rs.getString(PRIMARY_GENE_NAME.name()))
+                    .geneName(rs.getString(GENE_NAME.name()))
                     .proteinName(rs.getString(PROTEIN_NAME.name()))
-                    .databaseId(rs.getLong(DATABASE_ID.name()))
+                    .homologDatabase(rs.getString(HOMOLOG_DATABASE.name()))
                     .build();
         }
     }

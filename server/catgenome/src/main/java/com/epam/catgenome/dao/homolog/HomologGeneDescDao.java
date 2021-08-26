@@ -101,7 +101,8 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum GeneDescParameters {
-        ID,
+        GENE_ID,
+        GROUP_ID,
         SYMBOL,
         TITLE,
         TAX_ID,
@@ -114,7 +115,7 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final Gene gene) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), gene.getGeneId());
+            params.addValue(GENE_ID.name(), gene.getGeneId());
             params.addValue(SYMBOL.name(), gene.getSymbol());
             params.addValue(TITLE.name(), gene.getTitle());
             params.addValue(TAX_ID.name(), gene.getTaxId());
@@ -133,7 +134,8 @@ public class HomologGeneDescDao extends NamedParameterJdbcDaoSupport {
 
         static Gene parseGene(final ResultSet rs) throws SQLException {
             return Gene.builder()
-                    .geneId(rs.getLong(ID.name()))
+                    .geneId(rs.getLong(GENE_ID.name()))
+                    .groupId(rs.getLong(GROUP_ID.name()))
                     .symbol(rs.getString(SYMBOL.name()))
                     .title(rs.getString(TITLE.name()))
                     .taxId(rs.getLong(TAX_ID.name()))

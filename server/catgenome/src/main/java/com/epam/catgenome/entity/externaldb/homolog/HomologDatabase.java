@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class HomologDatabase {
-    private Long id;
+    private Long databaseId;
     private String name;
     private String path;
 }

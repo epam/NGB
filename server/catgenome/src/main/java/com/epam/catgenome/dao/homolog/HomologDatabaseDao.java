@@ -60,9 +60,9 @@ public class HomologDatabaseDao extends NamedParameterJdbcDaoSupport {
      * Persists a new Homolog database records.
      * @param database {@code HomologDatabase} a Homolog database to persist.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRED)
     public HomologDatabase save(final HomologDatabase database) {
-        database.setId(daoHelper.createId(sequenceName));
+        database.setDatabaseId(daoHelper.createId(sequenceName));
         getNamedParameterJdbcTemplate().update(insertQuery, DatabaseParameters.getParameters(database));
         return database;
     }
@@ -70,7 +70,7 @@ public class HomologDatabaseDao extends NamedParameterJdbcDaoSupport {
     /**
      * Deletes Homolog database record from the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final Long id) {
         getJdbcTemplate().update(deleteQuery, id);
     }
@@ -86,13 +86,13 @@ public class HomologDatabaseDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum DatabaseParameters {
-        ID,
+        DATABASE_ID,
         NAME,
         PATH;
 
         static MapSqlParameterSource getParameters(final HomologDatabase database) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), database.getId());
+            params.addValue(DATABASE_ID.name(), database.getDatabaseId());
             params.addValue(NAME.name(), database.getName());
             params.addValue(PATH.name(), database.getPath());
             return params;
@@ -104,7 +104,7 @@ public class HomologDatabaseDao extends NamedParameterJdbcDaoSupport {
 
         static HomologDatabase parseAlias(final ResultSet rs) throws SQLException {
             return HomologDatabase.builder()
-                    .id(rs.getLong(ID.name()))
+                    .databaseId(rs.getLong(DATABASE_ID.name()))
                     .name(rs.getString(NAME.name()))
                     .path(rs.getString(PATH.name()))
                     .build();

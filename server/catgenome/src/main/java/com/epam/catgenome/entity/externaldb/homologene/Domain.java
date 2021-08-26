@@ -35,7 +35,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Domain {
-    private Long id;
+    private Long domainId;
     private Long geneId;
     private Long begin;
     private Long end;

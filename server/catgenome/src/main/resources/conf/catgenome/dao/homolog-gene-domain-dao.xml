@@ -8,7 +8,7 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_gene_domain (
-                        id,
+                        domain_id,
                         gene_id,
                         begin,
                         end,
@@ -16,7 +16,7 @@
                         cddid,
                         cddname
                     ) VALUES (
-                        :ID,
+                        :DOMAIN_ID,
                         :GENE_ID,
                         :BEGIN,
                         :END,
@@ -38,7 +38,7 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
+                        domain_id,
                         gene_id,
                         begin,
                         end,

@@ -90,20 +90,19 @@ public class HomologeneManager {
 
     private static final String TERM_SPLIT_TOKEN = " ";
     private static final String GENE_FIELDS_LINE_DELIMITER = "|";
-    public static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
+    private static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
     @Autowired
-    BlastTaxonomyManager taxonomyManager;
-
+    private BlastTaxonomyManager taxonomyManager;
     @Autowired
-    HomologGeneDomainDao domainDao;
+    private HomologGeneDomainDao domainDao;
     @Autowired
-    HomologGeneAliasDao aliasDao;
+    private HomologGeneAliasDao aliasDao;
     @Autowired
-    HomologGeneDescDao geneDescDao;
+    private HomologGeneDescDao geneDescDao;
 
     public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
@@ -154,20 +153,6 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
-        for (Gene gene: genes) {
-            BlastTaxonomy organism = organisms
-                    .stream()
-                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
-                    .findFirst()
-                    .orElse(null);
-            if (organism != null) {
-                gene.setSpeciesCommonName(organism.getCommonName());
-                gene.setSpeciesScientificName(organism.getScientificName());
-            }
-        }
-    }
-
     @Transactional(propagation = Propagation.REQUIRED)
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
@@ -183,14 +168,12 @@ public class HomologeneManager {
                 genes.addAll(entry.getGenes());
             }
         }
-        updateGenes(genes);
+        deleteGenes();
+        saveGenes(genes);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    private void updateGenes(final List<Gene> genes) {
-        domainDao.deleteAll();
-        aliasDao.deleteAll();
-        geneDescDao.deleteAll();
+    public void saveGenes(final List<Gene> genes) {
         List<Alias> aliases = new ArrayList<>();
         List<Domain> domains = new ArrayList<>();
         List<Gene> distinctGenes = genes.stream()
@@ -215,64 +198,11 @@ public class HomologeneManager {
         domainDao.save(domains);
     }
 
-    private Query buildSearchQuery(final String terms) {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        for (String term: terms.split(TERM_SPLIT_TOKEN)) {
-            mainBuilder.add(
-                new BooleanQuery.Builder()
-                    .add(buildPrefixQuery(term, IndexFields.QUERY_FIELDS), BooleanClause.Occur.SHOULD)
-                    .build(),
-                BooleanClause.Occur.MUST
-            );
-        }
-        return mainBuilder.build();
-    }
-
-    private PrefixQuery buildPrefixQuery(final String term, final IndexFields field) {
-        return new PrefixQuery(new Term(field.getFieldName(), term.toLowerCase()));
-    }
-
-    private long getGroupId(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.GROUP_ID.getFieldName()).stringValue());
-    }
-
-    private long getVersion(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.VERSION.getFieldName()).stringValue());
-    }
-
-    private String getCaption(final Document doc) {
-        return doc.getField(IndexFields.CAPTION.getFieldName()).stringValue();
-    }
-
-    private long getTaxId(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
-    }
-
-    private List<Gene> getGenes(final Document doc) {
-        return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
-                : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
-    }
-
-    @Getter
-    private enum IndexFields {
-        GROUP_ID("groupId"),
-        VERSION("version"),
-        CAPTION("caption"),
-        TAX_ID("taxId"),
-        QUERY_FIELDS("queryFields"),
-        GENES("genes");
-
-        private final String fieldName;
-
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
-        }
-    }
-
-    private static <T> void requireNonNull(T obj) {
-        if (obj == null) {
-            throw new IllegalStateException(INCORRECT_XML_FORMAT);
-        }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void deleteGenes() {
+        domainDao.deleteAll();
+        aliasDao.deleteAll();
+        geneDescDao.deleteAll();
     }
 
     @SneakyThrows
@@ -415,6 +345,66 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
+    private Query buildSearchQuery(final String terms) {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        for (String term: terms.split(TERM_SPLIT_TOKEN)) {
+            mainBuilder.add(
+                new BooleanQuery.Builder()
+                    .add(buildPrefixQuery(term, IndexFields.QUERY_FIELDS), BooleanClause.Occur.SHOULD)
+                    .build(),
+                BooleanClause.Occur.MUST
+            );
+        }
+        return mainBuilder.build();
+    }
+
+    private PrefixQuery buildPrefixQuery(final String term, final IndexFields field) {
+        return new PrefixQuery(new Term(field.getFieldName(), term.toLowerCase()));
+    }
+
+    private long getGroupId(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.GROUP_ID.getFieldName()).stringValue());
+    }
+
+    private long getVersion(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.VERSION.getFieldName()).stringValue());
+    }
+
+    private String getCaption(final Document doc) {
+        return doc.getField(IndexFields.CAPTION.getFieldName()).stringValue();
+    }
+
+    private long getTaxId(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
+    }
+
+    private List<Gene> getGenes(final Document doc) {
+        return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
+                : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
+    }
+
+    @Getter
+    private enum IndexFields {
+        GROUP_ID("groupId"),
+        VERSION("version"),
+        CAPTION("caption"),
+        TAX_ID("taxId"),
+        QUERY_FIELDS("queryFields"),
+        GENES("genes");
+
+        private final String fieldName;
+
+        IndexFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+    }
+
+    private static <T> void requireNonNull(T obj) {
+        if (obj == null) {
+            throw new IllegalStateException(INCORRECT_XML_FORMAT);
+        }
+    }
+
     private static void addDoc(final IndexWriter writer, final HomologeneEntry entry) throws IOException {
         final Document doc = new Document();
 
@@ -460,5 +450,19 @@ public class HomologeneManager {
                     : GENE_FIELDS_LINE_DELIMITER + join(gene.getAliases(), GENE_FIELDS_LINE_DELIMITER)));
         }
         return join(geneStrings, GENE_FIELDS_LINE_DELIMITER);
+    }
+
+    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
     }
 }

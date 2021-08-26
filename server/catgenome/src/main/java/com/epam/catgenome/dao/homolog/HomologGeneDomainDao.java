@@ -77,7 +77,6 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
                 MapSqlParameterSource param = DomainParameters.getParameters(newIds.get(i), domains.get(i));
                 params.add(param);
             }
-
             getNamedParameterJdbcTemplate().batchUpdate(insertQuery,
                     params.toArray(new MapSqlParameterSource[domains.size()]));
         }
@@ -102,7 +101,7 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum DomainParameters {
-        ID,
+        DOMAIN_ID,
         GENE_ID,
         BEGIN,
         END,
@@ -112,7 +111,7 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final long id, final Domain domain) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), id);
+            params.addValue(DOMAIN_ID.name(), id);
             params.addValue(GENE_ID.name(), domain.getGeneId());
             params.addValue(BEGIN.name(), domain.getBegin());
             params.addValue(END.name(), domain.getEnd());
@@ -128,7 +127,7 @@ public class HomologGeneDomainDao extends NamedParameterJdbcDaoSupport {
 
         static Domain parseDomain(final ResultSet rs) throws SQLException {
             return Domain.builder()
-                    .id(rs.getLong(ID.name()))
+                    .domainId(rs.getLong(DOMAIN_ID.name()))
                     .geneId(rs.getLong(GENE_ID.name()))
                     .begin(rs.getLong(BEGIN.name()))
                     .end(rs.getLong(END.name()))

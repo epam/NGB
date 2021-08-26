@@ -8,7 +8,7 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_gene_desc (
-                        id,
+                        gene_id,
                         symbol,
                         title,
                         tax_id,
@@ -19,7 +19,7 @@
                         nuc_acc,
                         locus_tag
                      ) VALUES (
-                        :ID,
+                        :GENE_ID,
                         :SYMBOL,
                         :TITLE,
                         :TAX_ID,
@@ -44,7 +44,7 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
+                        gene_id,
                         symbol,
                         title,
                         tax_id,

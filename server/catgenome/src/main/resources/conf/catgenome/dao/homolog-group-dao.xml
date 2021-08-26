@@ -8,20 +8,16 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_group (
-                        id,
+                        group_id,
                         primary_gene_id,
                         primary_gene_tax_id,
                         type,
-                        primary_gene_name,
-                        protein_name,
                         database_id
                     ) VALUES (
-                        :ID,
+                        :GROUP_ID,
                         :PRIMARY_GENE_ID,
                         :PRIMARY_GENE_TAX_ID,
                         :TYPE,
-                        :PRIMARY_GENE_NAME,
-                        :PROTEIN_NAME,
                         :DATABASE_ID
                     )
                 ]]>
@@ -38,14 +34,16 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
-                        primary_gene_id,
-                        primary_gene_tax_id,
-                        type,
-                        primary_gene_name,
-                        protein_name,
-                        database_id
-                    FROM catgenome.homolog_group
+                        gr.group_id as group_id,
+                        gr.primary_gene_id as primary_gene_id,
+                        gr.primary_gene_tax_id as primary_gene_tax_id,
+                        gr.type as type,
+                        desc.symbol as gene_name,
+                        desc.title as protein_name,
+                        hdb.name as homolog_database
+                    FROM catgenome.homolog_group gr
+                         join catgenome.homolog_database hdb on gr.database_id = hdb.database_id
+                         left join catgenome.homolog_gene_desc desc on gr.primary_gene_id = desc.gene_id
                 ]]>
             </value>
         </property>

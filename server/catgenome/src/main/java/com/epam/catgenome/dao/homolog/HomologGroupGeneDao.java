@@ -25,6 +25,9 @@ package com.epam.catgenome.dao.homolog;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
+import com.epam.catgenome.entity.externaldb.homologene.Alias;
+import com.epam.catgenome.entity.externaldb.homologene.Domain;
+import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -86,7 +90,7 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     /**
      * Deletes Homolog groups genes from the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final Long id) {
         getJdbcTemplate().update(deleteQuery, id);
     }
@@ -94,15 +98,15 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     /**
      * Loads {@code Homolog groups gene} from a database by parameters.
      * @param queryParameters {@code QueryParameters} query parameters
-     * @return a {@code List<HomologGroupGene>} from the database
+     * @return a {@code List<Gene>} from the database
      */
-    public List<HomologGroupGene> load(final QueryParameters queryParameters) {
+    public List<Gene> load(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadQuery, queryParameters);
-        return getJdbcTemplate().query(query, GroupGeneParameters.getRowMapper());
+        return getJdbcTemplate().query(query, GroupGeneParameters.getExtendedRowExtractor());
     }
 
     enum GroupGeneParameters {
-        ID,
+        GROUP_GENE_ID,
         GROUP_ID,
         GENE_ID,
         TAX_ID,
@@ -110,7 +114,7 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final long id, final HomologGroupGene gene) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), id);
+            params.addValue(GROUP_GENE_ID.name(), id);
             params.addValue(GROUP_ID.name(), gene.getGroupId());
             params.addValue(GENE_ID.name(), gene.getGeneId());
             params.addValue(TAX_ID.name(), gene.getTaxId());
@@ -124,12 +128,46 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
 
         static HomologGroupGene parseGroupGene(final ResultSet rs) throws SQLException {
             return HomologGroupGene.builder()
-                    .id(rs.getLong(ID.name()))
+                    .groupGeneId(rs.getLong(GROUP_GENE_ID.name()))
                     .groupId(rs.getLong(GROUP_ID.name()))
                     .geneId(rs.getLong(GENE_ID.name()))
                     .taxId(rs.getLong(TAX_ID.name()))
                     .databaseId(rs.getLong(DATABASE_ID.name()))
                     .build();
+        }
+
+        static ResultSetExtractor<List<Gene>> getExtendedRowExtractor() {
+            return (rs) -> {
+                long geneId = 0;
+                long domainId = 0;
+                Gene gene;
+                Domain domain;
+                Alias alias;
+                List<Gene> genes = new ArrayList<>();
+                List<Domain> domains = new ArrayList<>();
+                List<String> aliases = new ArrayList<>();
+                while (rs.next()) {
+                    if (geneId != rs.getLong(GENE_ID.name())) {
+                        domains = new ArrayList<>();
+                        aliases = new ArrayList<>();
+                        gene = HomologGeneDescDao.GeneDescParameters.parseGene(rs);
+                        gene.setDomains(domains);
+                        gene.setAliases(aliases);
+                        genes.add(gene);
+                        geneId = rs.getLong(GENE_ID.name());
+                    }
+                    domain = HomologGeneDomainDao.DomainParameters.parseDomain(rs);
+                    if (domain.getDomainId() != 0 && domain.getDomainId() != domainId) {
+                        domains.add(domain);
+                        domainId = domain.getDomainId();
+                    }
+                    alias = HomologGeneAliasDao.AliasParameters.parseAlias(rs);
+                    if (alias.getAliasId() != 0) {
+                        aliases.add(alias.getName());
+                    }
+                }
+                return genes;
+            };
         }
     }
 }

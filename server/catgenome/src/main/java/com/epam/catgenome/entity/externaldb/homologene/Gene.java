@@ -38,6 +38,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Gene {
     private Long geneId;
+    private Long groupId;
     private String symbol;
     private List<String> aliases;
     private String title;

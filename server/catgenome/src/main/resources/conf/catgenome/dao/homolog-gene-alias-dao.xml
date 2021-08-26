@@ -8,11 +8,11 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.homolog_gene_alias (
-                        id,
+                        alias_id,
                         gene_id,
                         name
                     ) VALUES (
-                        :ID,
+                        :ALIAS_ID,
                         :GENE_ID,
                         :NAME
                     )
@@ -30,7 +30,7 @@
             <value>
                 <![CDATA[
                     SELECT
-                        id,
+                        alias_id,
                         gene_id,
                         name
                     FROM catgenome.homolog_gene_alias

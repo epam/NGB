@@ -101,13 +101,13 @@ public class HomologGeneAliasDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum AliasParameters {
-        ID,
+        ALIAS_ID,
         GENE_ID,
         NAME;
 
         static MapSqlParameterSource getParameters(final long id, final Alias alias) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ID.name(), id);
+            params.addValue(ALIAS_ID.name(), id);
             params.addValue(GENE_ID.name(), alias.getGeneId());
             params.addValue(NAME.name(), alias.getName());
             return params;
@@ -119,7 +119,7 @@ public class HomologGeneAliasDao extends NamedParameterJdbcDaoSupport {
 
         static Alias parseAlias(final ResultSet rs) throws SQLException {
             return Alias.builder()
-                    .id(rs.getLong(ID.name()))
+                    .aliasId(rs.getLong(ALIAS_ID.name()))
                     .geneId(rs.getLong(GENE_ID.name()))
                     .name(rs.getString(NAME.name()))
                     .build();

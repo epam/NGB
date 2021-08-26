@@ -34,7 +34,7 @@ import java.util.List;
 @Setter
 @Builder
 public class HomologGroup {
-    private Long id;
+    private Long groupId;
     private Long geneId;
     private Long taxId;
     private String geneName;
