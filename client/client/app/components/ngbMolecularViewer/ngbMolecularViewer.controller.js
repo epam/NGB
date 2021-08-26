@@ -18,7 +18,7 @@ export default class ngbMolecularViewerController extends baseController {
     currentMode = null;
     currentColor = null;
 
-    constructor($sce, $scope, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant, miewSettings) {
+    constructor($sce, $scope, $mdMenu, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant, miewSettings) {
         super();
 
         Object.assign(this, {$scope, dispatcher, ngbMolecularViewerConstant, ngbMolecularViewerService});
@@ -26,6 +26,7 @@ export default class ngbMolecularViewerController extends baseController {
         this.defaultMessage = $sce.trustAsHtml(ngbMolecularViewerConstant.defaultMessage);
         this.colorer = miewSettings.displayColors;
         this.modes = miewSettings.displayModes;
+        this.menu = $mdMenu;
 
         this.initEvents();
 
@@ -48,17 +49,6 @@ export default class ngbMolecularViewerController extends baseController {
         'miew:show:structure': ::this.geneClick,
         'miew:highlight:region': ::this.geneClick
     };
-    openMenu($mdOpenMenu, ev) {
-        if (ev.currentTarget.parentNode.className.startsWith('colors-menu')) {
-            document.querySelector('.modes-content').classList.add('hidden');
-            document.querySelector('.colors-content').classList.remove('hidden');
-        }
-        if (ev.currentTarget.parentNode.className.startsWith('modes-menu')) {
-            document.querySelector('.colors-content').classList.add('hidden');
-            document.querySelector('.modes-content').classList.remove('hidden');
-        }
-        $mdOpenMenu(ev);
-    }
 
     async geneTrackChanged() {
         if (!this.selectedGeneTrack || !this.event)
@@ -119,16 +109,13 @@ export default class ngbMolecularViewerController extends baseController {
     loadImage(imagePath) {
         return require(`../../assets/images/${imagePath}`);
     }
-    changeDisplaySettings(name, event, type) {
+    changeDisplaySettings(name, type) {
         if (type === 'mode') {
             this.currentMode = name;
         }
         if (type === 'color') {
             this.currentColor = name;
         }
-        document.querySelectorAll(`.thumbnail-title.${type}`)
-        .forEach(node => node.classList.remove('selected'));
-        event.currentTarget.children[1].classList.add('selected');
     }
 
 }
