@@ -1,0 +1,50 @@
+<md-dialog aria-label="Settings">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Save session</h2>
+            <span flex></span>
+            <md-button aria-label="Close" class="md-icon-button" ng-click="ctrl.close()">
+                <ng-md-icon icon="clear" style="fill: #fff;"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <md-dialog-content class="save-dlb-content">
+        <div class="row">
+            <md-input-container class="save-dlb-select-container">
+                <label for="bookmark_name">Name</label>
+                <input class="input-container"
+                       id="bookmark_name"
+                       ng-model="ctrl.getterSetterName"
+                       ng-model-options="{getterSetter: true}"
+                       placeholder="Enter session name"
+                       required
+                >
+            </md-input-container>
+        </div>
+        <div class="row">
+            <md-input-container class="save-dlb-select-container">
+                <label for="bookmark_desc">Description</label>
+                <textarea id="bookmark_desc"
+                          ng-model="ctrl.getterSetterDesc"
+                          ng-model-options="{getterSetter: true}"></textarea>
+            </md-input-container>
+        </div>
+        <div class="row" ng-show="ctrl.error">
+            <div class="save-dlb-error">{{ctrl.error}}</div>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button class="md-primary" ng-click="!ctrl.isLoading && ctrl.save($event)" ng-disabled="ctrl.isLoading">
+            <span ng-hide="ctrl.isLoading">Save</span>
+            <md-progress-circular
+                    md-diameter="16"
+                    md-mode="indeterminate"
+                    ng-show="ctrl.isLoading">
+            </md-progress-circular>
+        </md-button>
+        <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

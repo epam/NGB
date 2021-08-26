@@ -1,5 +1,5 @@
 <div role="columnheader"
-     ng-class="{'sortable': sortable }"
+     ng-class="{'sortable': sortable, 'bookmark-column-filtered': col.colDef.filterApplied()}"
      ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
      aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
 
@@ -22,5 +22,5 @@
          ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel" aria-haspopup="true">
         <i class="ui-grid-icon-angle-down" aria-hidden="true">&nbsp;</i>
     </div>
-    <div ui-grid-filter></div>
+    <ngb-bookmarks-table-filter column="col" ng-if="grid.appScope.$ctrl.displayBookmarksFilter && col.enableFiltering"></ngb-bookmarks-table-filter>
 </div>

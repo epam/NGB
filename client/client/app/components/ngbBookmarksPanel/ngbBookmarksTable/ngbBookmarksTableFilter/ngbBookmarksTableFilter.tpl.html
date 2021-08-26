@@ -1,0 +1,8 @@
+<div flex>
+    <ngb-bookmarks-filter-list field="$ctrl.column"
+                           list="$ctrl.list"
+                           ng-if="$ctrl.isList"></ngb-bookmarks-filter-list>
+    <div flex ng-if="$ctrl.isString">
+        <ngb-bookmarks-filter-input field="$ctrl.column"></ngb-bookmarks-filter-input>
+    </div>
+</div>

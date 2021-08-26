@@ -14,53 +14,16 @@ ngb-bookmark {
     &:hover {
       opacity: 1;
     }
-    &.success-save {
-      ng-md-icon {
-        fill: #9bff9f;
-      }
-    }
-    &.error-save {
-      ng-md-icon {
-        fill: #ff9191
-      }
-    }
   }
 }
 
-.ngb-session-save-menu {
-  position: absolute;
-  left: 60px;
-  width: 200px;
-  background: #fff;
-  z-index: 10;
-  padding: 0;
-  .input-container {
-    display: inline-block;
-    margin: $bookmark-input-container-margin;
-    padding: 0 0 0 10px;
-    position: relative;
-    height: 36px;
-    border: 0;
-    color: $bookmark-input-text-color;
-    font-style: italic;
-    background-color: $bookmark-input-background-color;
-    transition: transform 1s;
-    z-index: 10;
+.save-dlb-error {
+  color: rgb(213,0,0);
+}
 
-    &.open-bookmark {
-      visibility: visible;
-    }
-    &:focus {
-      outline: none;
-    }
-
-    .md-input {
-      height: 100%;
-    }
-
-    .md-errors-spacer {
-      min-height: 0;
-      height: 0;
-    }
-  }
+.save-dlb-content {
+  min-width:600px;
+  max-width: 800px;
+  margin: 10px 30px;
+  padding: 10px;
 }

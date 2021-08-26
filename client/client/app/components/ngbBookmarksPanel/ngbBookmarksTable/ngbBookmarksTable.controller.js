@@ -1,4 +1,4 @@
-import  baseController from '../../../shared/baseController';
+import baseController from '../../../shared/baseController';
 
 export default class ngbBookmarksTableController extends baseController {
     static get UID() {
@@ -7,9 +7,10 @@ export default class ngbBookmarksTableController extends baseController {
 
     isDataLoaded = false;
     isNothingFound = false;
+    displayBookmarksFilter = false;
 
     gridOptions = {
-        enableHorizontalScrollbar:0,
+        enableHorizontalScrollbar: 0,
         enableRowHeaderSelection: false,
         enableRowSelection: true,
         headerRowHeight: 48,
@@ -25,41 +26,47 @@ export default class ngbBookmarksTableController extends baseController {
     trackNamingService;
 
     events = {
-        'bookmark:save': ::this.loadData
+        'bookmarks:save': this.loadData.bind(this),
+        'bookmarks:restore': this.restoreState.bind(this),
+        'display:bookmarks:filter': this.refreshScope.bind(this),
+        'reference:change': () => {
+            if (this.gridOptions.data && this.projectContext.reference) {
+                this.isDataLoaded = true;
+            }
+        }
     };
 
-    constructor($scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
+    constructor($scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
         super();
-
-        Object.assign(this, {$scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
-
-        $scope.$watch('$ctrl.searchPattern', ::this.loadData);
-
+        Object.assign(this, {$scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
+        this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
         this.initEvents();
     }
 
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            columnDefs: this.ngbBookmarksTableService.getBookmarksGridColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-            },
-            ...this.bookmarksTableService.getBookmarksGridColumns()
+            }
         });
         this.loadData();
     }
 
     loadData() {
-        const bookmarks = this.bookmarksTableService.loadBookmarks() || [];
+        const bookmarks = this.ngbBookmarksTableService.loadBookmarks() || [];
         if (this.searchPattern && this.searchPattern.length) {
             this.gridOptions.data = bookmarks.filter(bookmark => bookmark.name.toLowerCase().indexOf(this.searchPattern.toLowerCase()) >= 0);
         } else {
             this.gridOptions.data = bookmarks;
         }
         this.isNothingFound = !this.gridOptions.data || !this.gridOptions.data.length;
-        this.isDataLoaded=true;
+        if (this.projectContext.reference) {
+            this.isDataLoaded = true;
+        }
     }
 
     rowClick(row) {
@@ -96,13 +103,28 @@ export default class ngbBookmarksTableController extends baseController {
             .ok('OK')
             .cancel('CANCEL');
 
-        this.$mdDialog.show(confirm).then(async() => {
-            this.bookmarksTableService.deleteBookmark(id);
+        this.$mdDialog.show(confirm).then(async () => {
+            this.ngbBookmarksTableService.deleteBookmark(id);
             this.loadData();
         });
         event.stopImmediatePropagation();
         return false;
     }
 
+    restoreState() {
+        this.ngbBookmarksTableService.orderByBookmarks = null;
+        this.ngbBookmarksTableService.clearGenesFilter();
+        this.ngbBookmarksTableService.setDisplayBookmarksFilter(false, false);
+        if (!this.gridApi || !this.defaultState) {
+            return;
+        }
+        this.gridApi.saveState.restore(this.$scope, this.defaultState);
+    }
 
+    refreshScope(needRefresh) {
+        this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
+        if (needRefresh) {
+            this.$scope.$apply();
+        }
+    }
 }
