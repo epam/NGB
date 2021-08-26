@@ -5,6 +5,8 @@
     <ngb-genes-table-download ng-if="action === actions.genesTableDownloadAction"></ngb-genes-table-download>
     <ngb-genes-table-column ng-if="action === actions.genesTableColumn"></ngb-genes-table-column>
     <ngb-variants-loading-indicator ng-if="action === actions.variantsLoadingIndicator"></ngb-variants-loading-indicator>
+    <ngb-bookmarks-table-paginate ng-if="action === actions.bookmarksTablePagination"></ngb-bookmarks-table-paginate>
+    <ngb-bookmarks-table-column ng-if="action === actions.bookmarksTableColumn"></ngb-bookmarks-table-column>
     <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected()"></ngb-close-all-tracks>
     <ngb-project-info-sections ng-if="action === actions.projectInfoSections && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-project-info-sections>
     <ngb-genome-annotations ng-if="action === actions.genomeAnnotations && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-genome-annotations>

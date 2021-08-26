@@ -1,0 +1,12 @@
+<div class="pagination" ng-if="$ctrl.totalPages > 1">
+    <md-button aria-label="Page {{page.value}}"
+               class="pagination-item"
+               md-no-ink
+               ng-class="{active:page.value === $ctrl.currentPage}"
+               ng-click="$ctrl.setPage(page.value, true)"
+               ng-repeat="page in $ctrl.pages track by $index">
+        <ng-md-icon icon="keyboard_arrow_left" ng-if="page.isFirst" size="24"></ng-md-icon>
+        <span ng-if="!page.isFirst && !page.isLast">{{page.value}}</span>
+        <ng-md-icon icon="keyboard_arrow_right" ng-if="page.isLast" size="24"></ng-md-icon>
+    </md-button>
+</div>

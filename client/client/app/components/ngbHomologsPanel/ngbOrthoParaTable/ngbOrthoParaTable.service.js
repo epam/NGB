@@ -43,7 +43,6 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
 
     _pageError = null;
 
-
     get pageError() {
         return this._pageError;
     }

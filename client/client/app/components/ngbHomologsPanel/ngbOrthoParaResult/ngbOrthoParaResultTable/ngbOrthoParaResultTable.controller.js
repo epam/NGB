@@ -102,8 +102,8 @@ export default class ngbOrthoParaResultTableController extends baseController {
     loadData() {
         try {
             const result = this.ngbOrthoParaTableService.getOrthoParaResultById(this.ngbHomologsService.currentOrthoParaId);
-            if (this.ngbOrthoParaTableService.searchResultTableError) {
-                this.searchResultTableLoadError = this.ngbOrthoParaTableService.searchResultTableError;
+            if (this.ngbOrthoParaTableService.pageError) {
+                this.searchResultTableLoadError = this.ngbOrthoParaTableService.pageError;
                 this.gridOptions.data = [];
                 this.gridOptions.totalItems = 0;
                 this.isEmptyResults = false;
