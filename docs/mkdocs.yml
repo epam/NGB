@@ -1,13 +1,11 @@
-site_name: New Genome Browser 2.6.1
-theme: 
-    name: readthedocs
-    #theme_dir: material-epam-theme
+site_name: New Genome Browser
+theme: readthedocs
 docs_dir: md
 use_directory_urls: false
 extra_css:
     - css/extra.css
 extra_javascript:
-  - 'css/extra.js'
+    - css/extra.js
 nav:
     - Home: index.md
     - Release notes:
