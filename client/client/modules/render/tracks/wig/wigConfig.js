@@ -9,14 +9,6 @@ export default {
     autoScaleGroupIndicator: {
         width: 5
     },
-    autoScaleGroupsColors: [
-        0xFF7700,
-        0x14BC0F,
-        0x0F54BC,
-        0x710FBC,
-        0xBC0F8E,
-        0xBC0F43
-    ],
     centerLine:{
         dash: {
             fill: 0x000000,

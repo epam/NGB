@@ -1,7 +1,6 @@
 const Math = window.Math;
 
-export default class NumberFormatter{
-
+export default class NumberFormatter {
     static _formatter = null;
 
     static get formatter(){
@@ -51,42 +50,42 @@ export default class NumberFormatter{
         const P = 15;
 
         if (module === K){
-            if (prefixMap && prefixMap['K']) {
-                prefix = prefixMap['K'];
+            if (prefixMap && prefixMap.K) {
+                prefix = prefixMap.K;
             } else {
                 prefix = 'K';
             }
         }
         else if (module === M){
-            if (prefixMap && prefixMap['M']) {
-                prefix = prefixMap['M'];
+            if (prefixMap && prefixMap.M) {
+                prefix = prefixMap.N;
             } else {
                 prefix = 'M';
             }
         }
         else if (module === G){
-            if (prefixMap && prefixMap['G']) {
-                prefix = prefixMap['G'];
+            if (prefixMap && prefixMap.G) {
+                prefix = prefixMap.G;
             } else {
                 prefix = 'G';
             }
         }
         else if (module === T){
-            if (prefixMap && prefixMap['T']) {
-                prefix = prefixMap['T'];
+            if (prefixMap && prefixMap.T) {
+                prefix = prefixMap.T;
             } else {
                 prefix = 'T';
             }
         }
         else if (module === P){
-            if (prefixMap && prefixMap['P']) {
-                prefix = prefixMap['P'];
+            if (prefixMap && prefixMap.P) {
+                prefix = prefixMap.P;
             } else {
                 prefix = 'P';
             }
         }
-        if (!prefix && prefixMap && prefixMap['units']) {
-            prefix = prefixMap['units'];
+        if (!prefix && prefixMap && prefixMap.units) {
+            prefix = prefixMap.units;
         }
         if (prefix){
             return NumberFormatter.formattedText(valueCorrected) + prefix;
