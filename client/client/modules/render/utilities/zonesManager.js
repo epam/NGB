@@ -133,11 +133,15 @@ export default class ZonesManager {
                 if (!xCandidate || !yCandidate) {
                     conflicts = true;
                 } else {
-                    conflicts = false;
                     desiredArea.x1 = xCandidate.start;
                     desiredArea.x2 = xCandidate.end;
                     desiredArea.y1 = yCandidate.start;
                     desiredArea.y2 = yCandidate.end;
+                    if (xCandidate.conflicts && yCandidate.conflicts) {
+                        conflicts = areasToCheck.filter(a => ZonesManager._rectanglesConflict(a, desiredArea, margin)).length > 0;
+                    } else {
+                        conflicts = false;
+                    }
                 }
             }
             conflicts = conflicts || !ZonesManager._rectangleFitBoundaries(desiredArea, zone.boundaries);
@@ -356,7 +360,8 @@ export default class ZonesManager {
         if (!candidate || translate === 0 || candidate.distance === 0) {
             return {
                 start: _start,
-                end: _end
+                end: _end,
+                conflicts: !candidate
             };
         }
         if (candidate.start === -Infinity || translate < 0) {
