@@ -181,24 +181,26 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
-                if (data.feature.feature.toLowerCase() === 'gene') {
-                    const layoutChange = this.appLayout.Panels.homologs;
-                    layoutChange.displayed = true;
-                    menuData.push({
-                        events: [
-                            {
-                                data: { layoutChange },
-                                name: 'layout:item:change'
+                const layoutChange = this.appLayout.Panels.homologs;
+                layoutChange.displayed = true;
+                menuData.push({
+                    events: [
+                        {
+                            data: {layoutChange},
+                            name: 'layout:item:change'
+                        },
+                        {
+                            data: {
+                                search: data.feature.name
                             },
-                            {
-                                data: {
-                                    search: data.feature.name
-                                },
-                                name: 'read:show:homologs'
-                            }],
-                        title: 'Show similar genes'
-                    });
-                }
+                            name: 'read:show:homologs'
+                        }],
+                    title: 'Show similar genes',
+                    disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
+                    warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
+                        ? 'Feature type is not Gene or Name is missing'
+                        : undefined,
+                });
                 if (menuData.length > 0) {
                     const childScope = this.$scope.$new(false);
                     childScope.menuData = menuData;
