@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class HomologSearchRequest {
-    private Integer geneId;
+    private String geneId;
     private Integer page;
     private Integer pageSize;
 }

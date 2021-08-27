@@ -34,23 +34,16 @@
             <value>
                 <![CDATA[
                     SELECT
-                        gr.group_id as group_id,
-                        gr.primary_gene_id as primary_gene_id,
-                        gr.primary_gene_tax_id as primary_gene_tax_id,
-                        gr.type as type,
+                        homolog_group.group_id as group_id,
+                        homolog_group.primary_gene_id as primary_gene_id,
+                        homolog_group.primary_gene_tax_id as primary_gene_tax_id,
+                        homolog_group.type as type,
                         desc.symbol as gene_name,
                         desc.title as protein_name,
-                        hdb.name as homolog_database
-                    FROM catgenome.homolog_group gr
-                         join catgenome.homolog_database hdb on gr.database_id = hdb.database_id
-                         left join catgenome.homolog_gene_desc desc on gr.primary_gene_id = desc.gene_id
-                ]]>
-            </value>
-        </property>
-        <property name="getTotalCountQuery">
-            <value>
-                <![CDATA[
-                    select count(*) as count from catgenome.homolog_group
+                        database.name as homolog_database
+                    FROM catgenome.homolog_group homolog_group
+                         join catgenome.homolog_database database on homolog_group.database_id = database.database_id
+                         left join catgenome.homolog_gene_desc desc on homolog_group.primary_gene_id = desc.gene_id
                 ]]>
             </value>
         </property>

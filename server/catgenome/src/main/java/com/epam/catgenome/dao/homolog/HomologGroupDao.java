@@ -26,7 +26,6 @@ package com.epam.catgenome.dao.homolog;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
-import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,7 +44,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
 @Getter
@@ -54,13 +52,18 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 @AllArgsConstructor
 public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
 
+    private static final String GROUP_IDS_QUERY = "select group_id from catgenome.homolog_group " +
+            "where primary_gene_id = %s " +
+            "union " +
+            "select group_id from catgenome.homolog_group_gene " +
+            "where gene_id = %s";
+
     @Autowired
     private DaoHelper daoHelper;
     private String sequenceName;
     private String insertQuery;
     private String deleteQuery;
     private String loadQuery;
-    private String getTotalCountQuery;
 
     /**
      * Persists a new or updates existing Homolog Group record.
@@ -113,9 +116,15 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
     }
 
-    public int getTotalCount(final List<Filter> filters) {
-        String query = addFiltersToQuery(getTotalCountQuery, filters);
-        return getJdbcTemplate().queryForObject(query, Integer.class);
+    public List<String> loadGroupIds(final QueryParameters queryParameters, final String geneId) {
+        String query = String.format(GROUP_IDS_QUERY, geneId, geneId);
+        String pageQuery = addParametersToQuery(query, queryParameters);
+        return getJdbcTemplate().queryForList(pageQuery, String.class);
+    }
+
+    public List<String> loadTotalGroupIds(final String geneId) {
+        String query = String.format(GROUP_IDS_QUERY, geneId, geneId);
+        return getJdbcTemplate().queryForList(query, String.class);
     }
 
     enum  GroupParameters{

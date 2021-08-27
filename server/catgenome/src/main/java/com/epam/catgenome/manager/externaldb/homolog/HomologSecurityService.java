@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.homolog;
 
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class HomologSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest searchRequest)
-            throws IOException, ParseException {
+            throws IOException, ParseException, ExternalDbUnavailableException {
         return homologManager.searchHomolog(searchRequest);
     }
 

@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.externaldb;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSearchRequest;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSecurityService;
@@ -56,7 +57,7 @@ public class HomologController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<HomologGroup>> search(@RequestBody final HomologSearchRequest searchRequest)
-            throws IOException, ParseException {
+            throws IOException, ParseException, ExternalDbUnavailableException {
         return Result.success(homologSecurityService.searchHomolog(searchRequest));
     }
 
