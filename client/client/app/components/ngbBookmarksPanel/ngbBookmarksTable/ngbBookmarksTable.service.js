@@ -1,5 +1,7 @@
+import ClientPaginationService from '../../../shared/services/clientPaginationService';
+
 const BOOKMARKS_COLUMNS = [
-    'name', 'description', 'reference', 'chromosome', 'startIndex', 'endIndex', 'owner'
+    'name', 'description', 'reference', 'chromosome', 'startIndex', 'endIndex', 'owner', 'info'
 ];
 
 const BOOKMARKS_COLUMN_TITLES = {
@@ -9,15 +11,19 @@ const BOOKMARKS_COLUMN_TITLES = {
 };
 
 const blockFilterBookmarksTimeout = 500;
+const FIRST_PAGE = 1;
+const PAGE_SIZE = 2;
 
-export default class ngbBookmarksTableService {
+export default class ngbBookmarksTableService extends ClientPaginationService {
 
     _blockFilterBookmarks;
 
-    constructor(dispatcher, localDataService) {
+    constructor(dispatcher, localDataService, bookmarkDataService) {
+        super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'bookmarks:page:change');
         Object.assign(this, {
             dispatcher,
-            localDataService
+            localDataService,
+            bookmarkDataService
         });
         this.clearBookmarksFilter();
     }
@@ -38,21 +44,26 @@ export default class ngbBookmarksTableService {
         return !!this._displayBookmarksFilter;
     }
 
-    static instance(dispatcher, localDataService) {
-        return new ngbBookmarksTableService(dispatcher, localDataService);
+    _pageError = null;
+
+    get pageError() {
+        return this._pageError;
+    }
+
+    static instance(dispatcher, localDataService, bookmarkDataService) {
+        return new ngbBookmarksTableService(dispatcher, localDataService, bookmarkDataService);
     }
 
     getBookmarksColumnTitle(column) {
         return BOOKMARKS_COLUMN_TITLES[column] || column;
     }
-    
+
     setDisplayBookmarksFilter(value, updateScope = true) {
         if (value !== this._displayBookmarksFilter) {
             this._displayBookmarksFilter = value;
             this.dispatcher.emitSimpleEvent('display:bookmarks:filter', updateScope);
         }
     }
-
 
     getBookmarksGridColumns() {
         const headerCells = require('./ngbBookmarksTable_header.tpl.html');
@@ -80,6 +91,28 @@ export default class ngbBookmarksTableService {
                                 shown: () => this.bookmarksFieldIsFiltered(column)
                             }
                         ],
+                        width: '*'
+                    };
+                    break;
+                }
+                case 'info': {
+                    columnSettings = {
+                        cellTemplate: `
+                                    <md-button
+                                            class="md-accent md-flat bookmark-delete-button"
+                                            type="button"
+                                            aria-label="Clear history"
+                                            ng-click="grid.appScope.$ctrl.onRemove(row, $event)"
+                                    >
+                                        <ng-md-icon icon="delete"></ng-md-icon>
+                                    </md-button>`,
+                        field: 'info',
+                        headerCellTemplate: headerCells,
+                        enableSorting: false,
+                        enableColumnMenu: false,
+                        minWidth: 20,
+                        maxWidth: 40,
+                        name: '',
                         width: '*'
                     };
                     break;
@@ -145,15 +178,34 @@ export default class ngbBookmarksTableService {
         this.dispatcher.emit('bookmarks:refresh');
     }
 
-    loadBookmarks() {
-        return this.localDataService.getBookmarks();
-    }
+    async loadBookmarks() {
+        const filter = {
 
-    loadBookmark(bookmarksId) {
-        return this.localDataService.getBookmarks(bookmarksId);
+        };
+        const serverData = await this.bookmarkDataService.loadBookmarks(filter);
+        const data = this.localDataService.getBookmarks();
+        if (serverData.error) {
+            this._totalPages = 0;
+            this.currentPage = FIRST_PAGE;
+            this._firstPage = FIRST_PAGE;
+            this._pageError = data.message;
+            return [];
+        } else {
+            this._pageError = null;
+            serverData.forEach(value => {
+                data.push(this._formatServerToClient(value));
+            });
+        }
+        this._totalPages = Math.ceil(data.length / this.pageSize);
+        this.dispatcher.emit('bookmarks:loaded');
+        return data || [];
     }
 
     deleteBookmarks(bookmarksId) {
         return this.localDataService.deleteBookmarks(bookmarksId);
+    }
+
+    _formatServerToClient(result) {
+        return result;
     }
 }

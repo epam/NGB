@@ -9,9 +9,13 @@
         <span ng-if="$ctrl.searchPattern && $ctrl.searchPattern.length">Sessions not found for <strong>{{$ctrl.searchPattern}}</strong></span>
         <span ng-if="!$ctrl.searchPattern || !$ctrl.searchPattern.length">Sessions not found</span>
     </div>
-    <div class="ui-grid-container" ng-if="$ctrl.isDataLoaded && !$ctrl.isNothingFound">
+    <div class="variants-load-error-container" ng-if="$ctrl.resultTableError">
+        <small>{{$ctrl.resultTableError}}</small>
+    </div>
+    <div class="ui-grid-container" ng-if="$ctrl.isDataLoaded && !$ctrl.isNothingFound && !$crtl.resultTableError">
         <div ui-grid="$ctrl.gridOptions"
              ui-grid-selection
+             ui-grid-pagination
              ui-grid-resize-columns
              ui-grid-auto-resize
              ui-grid-move-columns

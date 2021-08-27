@@ -27,7 +27,7 @@ const closeAllTracksAction = {
 const fitAllTracksAction = {
     name: 'fitAllTracks',
     isDefault: true,
-    event:'tracks:fit:height',
+    event: 'tracks:fit:height',
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
@@ -43,7 +43,7 @@ const variantsResetFilterActions = {
 const organizeTracksAction = {
     name: 'organizeTracks',
     isDefault: true,
-    event:'tracks:organize',
+    event: 'tracks:organize',
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
@@ -95,6 +95,13 @@ const bookmarksTableColumnAction = {
     name: 'bookmarksTableColumn',
     isDefault: false
 };
+const bookmarksTablePaginationAction = {
+    name: 'bookmarksTablePagination',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
 
 export default {
     actions: {
@@ -112,12 +119,13 @@ export default {
         genesTableDownloadAction: genesTableDownloadAction,
         genesTableColumn: genesTableColumnAction,
         genesResetFilter: genesResetFilterActions,
-        bookmarksTableColumn: bookmarksTableColumnAction
+        bookmarksTableColumn: bookmarksTableColumnAction,
+        bookmarksTablePagination: bookmarksTablePaginationAction
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
-        ngbBookmarksPanel: [bookmarksTableColumnAction]
+        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksTableColumnAction]
     }
 };

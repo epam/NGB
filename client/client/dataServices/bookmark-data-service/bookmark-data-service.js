@@ -25,7 +25,15 @@ export class BookmarkDataService extends DataService {
      * @returns {promise}
      */
     loadBookmarks() {
-        return this.get('bookmarks');
+        return new Promise(resolve => {
+            this.get('users')
+                .then((data) => {
+                    resolve(data || []);
+                })
+                .catch(() => {
+                    resolve([]);
+                });
+        });
     }
 
     /**

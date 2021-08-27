@@ -2,6 +2,14 @@ ngb-bookmarks-table {
   display: block;
   width: 100%;
   height: 100%;
+
+  .bookmark-delete-button {
+    min-width: 0;
+    fill: rgb(51, 103, 214);
+    margin: 0 5px 0 0;
+    padding: 0 2px;
+  }
+
 }
 
 .project-not-selected-warning {
