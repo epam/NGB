@@ -136,7 +136,7 @@ public class HomologeneManager {
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
                 List<Gene> genes = getGenes(doc);
-                setSpeciesName(genes, organisms);
+                setGeneSpeciesNames(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
@@ -345,6 +345,20 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
+    public static void setGeneSpeciesNames(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
+    }
+
     private Query buildSearchQuery(final String terms) {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         for (String term: terms.split(TERM_SPLIT_TOKEN)) {
@@ -450,19 +464,5 @@ public class HomologeneManager {
                     : GENE_FIELDS_LINE_DELIMITER + join(gene.getAliases(), GENE_FIELDS_LINE_DELIMITER)));
         }
         return join(geneStrings, GENE_FIELDS_LINE_DELIMITER);
-    }
-
-    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
-        for (Gene gene: genes) {
-            BlastTaxonomy organism = organisms
-                    .stream()
-                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
-                    .findFirst()
-                    .orElse(null);
-            if (organism != null) {
-                gene.setSpeciesCommonName(organism.getCommonName());
-                gene.setSpeciesScientificName(organism.getScientificName());
-            }
-        }
     }
 }
