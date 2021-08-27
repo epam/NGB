@@ -32,7 +32,10 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.glassfish.grizzly.http.Note;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -46,6 +49,8 @@ import org.springframework.util.CollectionUtils;
  * </p>
  */
 @NoArgsConstructor
+@Getter
+@Setter
 public class Project extends AbstractHierarchicalEntity {
 
     private List<ProjectItem> items;
@@ -54,6 +59,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
+    private List<Note> notes;
 
     public Project(Long id) {
         super(id);
@@ -128,54 +134,6 @@ public class Project extends AbstractHierarchicalEntity {
     @Override
     public AbstractSecuredEntity getParent() {
         return parentId != null ? new Project(parentId) : null;
-    }
-
-    public List<ProjectItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<ProjectItem> items) {
-        this.items = items;
-    }
-
-    public Integer getItemsCount() {
-        return itemsCount;
-    }
-
-    public void setItemsCount(Integer itemsCount) {
-        this.itemsCount = itemsCount;
-    }
-
-    public Map<BiologicalDataItemFormat, Integer> getItemsCountPerFormat() {
-        return itemsCountPerFormat;
-    }
-
-    public void setItemsCountPerFormat(Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
-        this.itemsCountPerFormat = itemsCountPerFormat;
-    }
-
-    public Date getLastOpenedDate() {
-        return lastOpenedDate;
-    }
-
-    public void setLastOpenedDate(Date lastOpenedDate) {
-        this.lastOpenedDate = lastOpenedDate;
-    }
-
-    public List<Project> getNestedProjects() {
-        return nestedProjects;
-    }
-
-    public void setNestedProjects(List<Project> nestedProjects) {
-        this.nestedProjects = nestedProjects;
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
     }
 
     @Override
