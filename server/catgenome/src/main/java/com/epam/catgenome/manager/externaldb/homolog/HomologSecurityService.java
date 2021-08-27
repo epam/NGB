@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.homologene;
+package com.epam.catgenome.manager.externaldb.homolog;
 
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +37,20 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
-public class HomologeneSecurityService {
+public class HomologSecurityService {
 
     @Autowired
-    private HomologeneManager homologeneManager;
+    private HomologManager homologManager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
-            throws IOException {
-        return homologeneManager.searchHomologenes(query);
+    public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest searchRequest)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return homologManager.searchHomolog(searchRequest);
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
-        homologeneManager.importHomologeneDatabase(databasePath);
+    public void importHomologData(final String databaseName, final String databasePath)
+            throws IOException, ParseException {
+        homologManager.importHomologData(databaseName, databasePath);
     }
 }

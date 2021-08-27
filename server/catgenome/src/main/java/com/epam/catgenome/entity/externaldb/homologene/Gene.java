@@ -23,15 +23,22 @@
  */
 package com.epam.catgenome.entity.externaldb.homologene;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Gene {
     private Long geneId;
+    private Long groupId;
     private String symbol;
     private List<String> aliases;
     private String title;
