@@ -1,5 +1,3 @@
-package com.epam.catgenome.entity.externaldb.homologene;
-
 /*
  * MIT License
  *
@@ -23,23 +21,16 @@ package com.epam.catgenome.entity.externaldb.homologene;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+package com.epam.catgenome.manager.externaldb;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Domain {
-    private Long domainId;
-    private Long geneId;
-    private Long begin;
-    private Long end;
-    private Long pssmId;
-    private String cddId;
-    private String cddName;
+public class SearchResult<T> {
+    private List<T> items;
+    private Integer totalCount;
 }

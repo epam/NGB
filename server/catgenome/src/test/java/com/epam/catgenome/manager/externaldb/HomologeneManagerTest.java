@@ -26,7 +26,6 @@ package com.epam.catgenome.manager.externaldb;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchResult;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -63,7 +62,7 @@ public class HomologeneManagerTest extends TestCase {
     @Test
     public void searchTest() throws IOException {
         HomologeneSearchRequest query = new HomologeneSearchRequest("ACADML", 1, 5);
-        HomologeneSearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
+        SearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
         assertNotNull(searchResult);
         assertEquals(1, searchResult.getItems().size());
     }

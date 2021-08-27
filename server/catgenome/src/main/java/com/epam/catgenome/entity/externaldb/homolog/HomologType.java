@@ -1,3 +1,7 @@
+package com.epam.catgenome.entity.externaldb.homolog;
+
+import lombok.AllArgsConstructor;
+
 /*
  * MIT License
  *
@@ -21,34 +25,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.homologene;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.manager.externaldb.SearchResult;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+@AllArgsConstructor
+public enum HomologType {
+    ORTHOLOG(0, "Ortholog"),
+    PARALOG(1, "Paralog");
 
-import java.io.IOException;
+    private final int id;
+    private final String name;
+    private static final Map<Integer, HomologType> ID_MAP = new HashMap<>();
+    private static final Map<String, HomologType> NAME_MAP = new HashMap<>();
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
-
-@Service
-public class HomologeneSecurityService {
-
-    @Autowired
-    private HomologeneManager homologeneManager;
-
-    @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
-            throws IOException {
-        return homologeneManager.searchHomologenes(query);
+    static {
+        ID_MAP.put(0, ORTHOLOG);
+        ID_MAP.put(1, PARALOG);
     }
 
-    @PreAuthorize(ROLE_ADMIN)
-    public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
-        homologeneManager.importHomologeneDatabase(databasePath);
+    static {
+        NAME_MAP.put("Ortholog", ORTHOLOG);
+        NAME_MAP.put("Paralog", PARALOG);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public static HomologType getById(int id) {
+        return ID_MAP.get(id);
+    }
+    public static HomologType getByName(String name) {
+        return NAME_MAP.get(name);
     }
 }

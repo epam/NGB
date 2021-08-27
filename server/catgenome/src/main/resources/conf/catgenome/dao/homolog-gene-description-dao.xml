@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.homolog.HomologGeneDescDao" id="homologGeneDescDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_homolog_gene_desc"/>
+        <property name="insertQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.homolog_gene_desc (
+                        gene_id,
+                        symbol,
+                        title,
+                        tax_id,
+                        prot_gi,
+                        prot_acc,
+                        prot_len,
+                        nuc_gi,
+                        nuc_acc,
+                        locus_tag
+                     ) VALUES (
+                        :GENE_ID,
+                        :SYMBOL,
+                        :TITLE,
+                        :TAX_ID,
+                        :PROT_GI,
+                        :PROT_ACC,
+                        :PROT_LEN,
+                        :NUC_GI,
+                        :NUC_ACC,
+                        :LOCUS_TAG
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteAllQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.homolog_gene_desc
+                ]]>
+            </value>
+        </property>
+        <property name="loadQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        gene_id,
+                        symbol,
+                        title,
+                        tax_id,
+                        prot_gi,
+                        prot_acc,
+                        prot_len,
+                        nuc_gi,
+                        nuc_acc,
+                        locus_tag
+                    FROM catgenome.homolog_gene_desc
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

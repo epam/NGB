@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.homolog.HomologDatabaseDao" id="homologDatabaseDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_homolog_database"/>
+        <property name="insertQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.homolog_database (
+                        database_id,
+                        name,
+                        path
+                    ) VALUES (
+                        :DATABASE_ID,
+                        :NAME,
+                        :PATH
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.homolog_database WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_id,
+                        name,
+                        path
+                    FROM catgenome.homolog_database
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>
