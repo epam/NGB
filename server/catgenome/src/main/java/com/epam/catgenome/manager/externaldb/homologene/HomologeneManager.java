@@ -136,7 +136,7 @@ public class HomologeneManager {
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
                 List<Gene> genes = getGenes(doc);
-                setGenesSpeciesName(genes, organisms);
+                setGeneSpeciesNames(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
@@ -345,7 +345,7 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
-    public static void setGenesSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+    public static void setGeneSpeciesNames(final List<Gene> genes, List<BlastTaxonomy> organisms) {
         for (Gene gene: genes) {
             BlastTaxonomy organism = organisms
                     .stream()

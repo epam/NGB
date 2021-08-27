@@ -64,7 +64,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGenesSpeciesName;
+import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGeneSpeciesNames;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -230,7 +230,7 @@ public class HomologManager {
         taxIds.addAll(genes.stream().map(Gene::getTaxId).collect(Collectors.toList()));
         final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
                 : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
-        setGenesSpeciesName(genes, organisms);
+        setGeneSpeciesNames(genes, organisms);
         for (HomologGroup group: homologGroups) {
             BlastTaxonomy organism = organisms
                     .stream()
