@@ -154,12 +154,13 @@ public class ReferenceSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Track<StrandedSequence> fillTrackWithMotifSearch(Track<StrandedSequence> track, String motif, StrandSerializable strand) {
+    public Track<StrandedSequence> fillTrackWithMotifSearch(final Track<StrandedSequence> track, final String motif,
+                                                            final StrandSerializable strand) {
         return motifSearchManager.fillTrackWithMotifSearch(track, motif, strand);
     }
 
     @PreAuthorize(ROLE_USER)
-    public MotifSearchResult getTableByMotif(MotifSearchRequest motifSearchRequest) {
+    public MotifSearchResult getTableByMotif(final MotifSearchRequest motifSearchRequest) {
         return motifSearchManager.search(motifSearchRequest);
     }
 }

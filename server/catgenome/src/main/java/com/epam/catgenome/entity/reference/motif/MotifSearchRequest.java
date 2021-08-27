@@ -38,7 +38,7 @@ public class MotifSearchRequest {
     Long chromosomeId;
     Integer startPosition;
     Integer endPosition;
-    Integer pageSize;
     StrandSerializable strand;
+    Integer pageSize;
 
 }

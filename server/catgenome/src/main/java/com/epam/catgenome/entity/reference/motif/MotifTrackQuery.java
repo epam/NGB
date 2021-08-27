@@ -34,6 +34,6 @@ import lombok.EqualsAndHashCode;
 public class MotifTrackQuery extends TrackQuery {
 
     private String motif;
-    StrandSerializable strand;
+    private StrandSerializable strand;
 
 }

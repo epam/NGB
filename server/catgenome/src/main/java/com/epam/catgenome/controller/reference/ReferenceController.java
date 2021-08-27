@@ -396,8 +396,7 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Track<StrandedSequence>> loadMotifTrack(
-            @RequestBody MotifTrackQuery trackQuery) {
+    public Result<Track<StrandedSequence>> loadMotifTrack(@RequestBody MotifTrackQuery trackQuery) {
         return Result.success(referenceSecurityService.fillTrackWithMotifSearch(convertToTrack(trackQuery),
                 trackQuery.getMotif(), trackQuery.getStrand()));
     }
@@ -411,8 +410,7 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<MotifSearchResult> loadMotifTable(
-            @RequestBody MotifSearchRequest motifSearchRequest) {
+    public Result<MotifSearchResult> loadMotifTable(@RequestBody MotifSearchRequest motifSearchRequest) {
         return Result.success(referenceSecurityService.getTableByMotif(motifSearchRequest));
     }
 }
