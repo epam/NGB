@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,13 @@
 
 package com.epam.catgenome.entity.project;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -35,7 +41,6 @@ import com.epam.catgenome.entity.security.AclClass;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.glassfish.grizzly.http.Note;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -59,7 +64,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
-    private List<Note> notes;
+    private List<ProjectNote> notes;
 
     public Project(Long id) {
         super(id);

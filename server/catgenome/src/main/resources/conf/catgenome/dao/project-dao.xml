@@ -166,6 +166,22 @@
                 ]]>
             </value>
         </property>
+        <property name="addProjectNoteQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.project_note (
+                        note_id,
+                        project_id,
+                        title,
+                        content
+                    VALUES (
+                        :NOTE_ID,
+                        :PROJECT_ID,
+                        :TITLE,
+                        :CONTENT
+                ]]>
+            </value>
+        </property>
         <property name="deleteProjectItemQuery">
             <value>
                 <![CDATA[
