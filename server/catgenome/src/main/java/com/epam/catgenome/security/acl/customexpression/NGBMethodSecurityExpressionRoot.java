@@ -106,8 +106,7 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean hasPermissionOnSession(Long sessionId, String permission) {
-        // if projectId does not specified just return true
-        // case: when we ask permission for creating project in the root
+        // if sessionId does not specified just return true
         if (sessionId == null) {
             return true;
         } else {

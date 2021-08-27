@@ -55,6 +55,7 @@ public class NGBSessionManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public NGBSession create(final NGBSession session) {
         Assert.hasText(session.getName(), "Session name couldn't be empty");
+        Assert.notNull(session.getReferenceId(), "Reference id couldn't be null for session");
         Assert.hasText(session.getSessionValue(), "Session value couldn't be empty");
         session.setOwner(authManager.getAuthorizedUser());
         return sessionDao.create(session);

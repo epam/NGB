@@ -43,6 +43,6 @@ public class NGBSessionValue {
     String description;
 
     @JsonProperty("tracks")
-    List<NGBSessionObject> tracks;
+    List<NGBSessionTrack> tracks;
 
 }

@@ -33,7 +33,7 @@ import lombok.Value;
 @Value
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGBSessionObject {
+public class NGBSessionTrack {
 
     @JsonProperty("bioDataItemId")
     String biologicalDataItem;
