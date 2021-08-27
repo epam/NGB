@@ -25,10 +25,11 @@ package com.epam.catgenome.controller.externaldb;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneSecurityService;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
+import com.epam.catgenome.manager.externaldb.homolog.HomologSearchRequest;
+import com.epam.catgenome.manager.externaldb.homolog.HomologSecurityService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -45,37 +46,37 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 
 @RestController
-@Api(value = "homologene", description = "Homologene Data Management")
+@Api(value = "homolog", description = "Homolog Data Management")
 @RequiredArgsConstructor
-public class HomologeneController extends AbstractRESTController {
+public class HomologController extends AbstractRESTController {
 
-    private final HomologeneSecurityService homologeneSecurityService;
+    private final HomologSecurityService homologSecurityService;
 
-    @PostMapping(value = "/homologene/search")
+    @PostMapping(value = "/homolog/search")
     @ApiOperation(
-            value = "Returns list of Homologenes",
-            notes = "Returns list of Homologenes",
+            value = "Searches homologs by gene ID",
+            notes = "Searches homologs by gene ID",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<HomologeneEntry>> search(
-            @RequestBody final HomologeneSearchRequest query)
-            throws IOException {
-        return Result.success(homologeneSecurityService.searchHomologenes(query));
+    public Result<SearchResult<HomologGroup>> search(@RequestBody final HomologSearchRequest searchRequest)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(homologSecurityService.searchHomolog(searchRequest));
     }
 
-    @PutMapping(value = "/homologene/import")
+    @PutMapping(value = "/homolog/import")
     @ApiOperation(
-            value = "Creates Homologene Lucene Index from Homologene file",
-            notes = "Creates Homologene Lucene Index from Homologene file",
+            value = "Imports Homolog data",
+            notes = "Imports Homolog data",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importHomologeneDatabase(@RequestParam final String databasePath)
+    public Result<Boolean> importHomologData(@RequestParam final String databaseName,
+                                             @RequestParam final String databasePath)
             throws IOException, ParseException {
-        homologeneSecurityService.importHomologeneDatabase(databasePath);
+        homologSecurityService.importHomologData(databaseName, databasePath);
         return Result.success(null);
     }
 }

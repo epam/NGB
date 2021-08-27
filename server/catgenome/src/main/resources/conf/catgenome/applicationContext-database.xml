@@ -55,6 +55,12 @@
     <import resource="classpath:conf/catgenome/dao/user-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/role-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/activity-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-gene-alias-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-gene-description-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-gene-domain-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-database-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-group-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/homolog-group-gene-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/session-dao.xml" />
 
 </beans>

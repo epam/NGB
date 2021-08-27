@@ -195,8 +195,8 @@ export default class ngbTrackEvents {
                             name: 'read:show:homologs'
                         }],
                     title: 'Show similar genes',
-                    disabled: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name,
-                    warning: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name
+                    disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
+                    warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
                         ? 'Feature type is not Gene or Name is missing'
                         : undefined,
                 });

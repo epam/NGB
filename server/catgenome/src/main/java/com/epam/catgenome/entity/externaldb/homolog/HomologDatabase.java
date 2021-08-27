@@ -1,5 +1,3 @@
-package com.epam.catgenome.entity.externaldb.homologene;
-
 /*
  * MIT License
  *
@@ -23,23 +21,17 @@ package com.epam.catgenome.entity.externaldb.homologene;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import lombok.AllArgsConstructor;
+package com.epam.catgenome.entity.externaldb.homolog;
+
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Domain {
-    private Long domainId;
-    private Long geneId;
-    private Long begin;
-    private Long end;
-    private Long pssmId;
-    private String cddId;
-    private String cddName;
+public class HomologDatabase {
+    private Long databaseId;
+    private String name;
+    private String path;
 }

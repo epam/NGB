@@ -21,16 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.homologene;
+package com.epam.catgenome.entity.externaldb.homolog;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-public class HomologeneSearchResult<T> {
-    private List<T> items;
-    private Integer totalCount;
+@Builder
+public class HomologGroupGene {
+    private Long groupGeneId;
+    private Long groupId;
+    private Long geneId;
+    private Long taxId;
+    private Long databaseId;
 }
