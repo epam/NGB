@@ -188,7 +188,8 @@ export default class ngbTrackEvents {
                         },
                         {
                             data: {
-                                search: data.feature.name
+                                search: data.feature.name,
+                                featureId: data.feature.groupId
                             },
                             name: 'read:show:homologs'
                         }],

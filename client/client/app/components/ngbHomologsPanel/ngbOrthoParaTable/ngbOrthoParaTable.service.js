@@ -84,7 +84,7 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
             orthoParaResult: {}
         };
         const filter = {
-            query: currentSearch,
+            geneId: currentSearch,
             page: this.currentPage,
             pageSize: this.pageSize
         };
@@ -122,8 +122,8 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
             data.forEach(orthoPara => {
                 maxHomologLength = 0;
                 result[orthoPara.groupId] = [];
-                orthoPara.genes.forEach((gene, key) => {
-                    result[orthoPara.groupId][key] = this._formatResultToClient(gene);
+                orthoPara.homologs.forEach((gene, key) => {
+                    result[orthoPara.groupId][key] = this._formatResultToClient(gene, orthoPara.type);
                     if (maxHomologLength < result[orthoPara.groupId][key].aa) {
                         maxHomologLength = result[orthoPara.groupId][key].aa;
                     }
@@ -196,41 +196,22 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
     }
 
     _formatServerToClient(orthoPara) {
-        const gene = new Set();
-        const proteinFrequency = {};
-        orthoPara.genes.forEach(g => {
-            gene.add(g.symbol);
-            if (proteinFrequency.hasOwnProperty(g.title)) {
-                proteinFrequency[g.title] += 1;
-            } else {
-                proteinFrequency[g.title] = 1;
-            }
-        });
-
-        const sortableProteinFrequency = [];
-        for (const protein in proteinFrequency) {
-            if (proteinFrequency.hasOwnProperty(protein)) {
-                sortableProteinFrequency.push([protein, proteinFrequency[protein]]);
-            }
-        }
-
-        sortableProteinFrequency.sort((b, a) => a[1] - b[1]);
-
         return {
             groupId: orthoPara.groupId,
-            gene: [...gene].sort().join(', '),
-            protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
-            info: orthoPara.caption
+            gene: orthoPara.geneName,
+            protein: orthoPara.proteinName,
+            info: orthoPara.homologDatabase
         };
     }
 
-    _formatResultToClient(result) {
+    _formatResultToClient(result, type) {
         return {
             geneId: result.geneId,
             name: result.symbol,
             species: result.speciesScientificName,
-            accession_id: result.protAcc,
+            type: type,
             protGi: result.protGi,
+            accession_id: result.protAcc,
             aa: result.protLen,
             taxId: result.taxId,
             domains: (result.domains || []).map(d => ({

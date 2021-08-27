@@ -11,6 +11,7 @@ export default class ngbOrthoParaResultTableController extends baseController {
     errorMessageList = [];
     searchResultTableLoadError = null;
     debounce = (new Debounce()).debounce;
+    typeViewMap = {};
     gridOptions = {
         enableSorting: true,
         enableFiltering: false,
@@ -59,6 +60,7 @@ export default class ngbOrthoParaResultTableController extends baseController {
         });
 
         this.initEvents();
+        this.typeViewMap = this.ngbOrthoParaResultService.typeViewMap;
         this.$scope.$on('$destroy', () => {
             this.ngbHomologsService.isEmptyResults = true;
         });
@@ -187,4 +189,29 @@ export default class ngbOrthoParaResultTableController extends baseController {
             this.$timeout(() => this.$scope.$apply());
         }
     }
+
+    async navigateToTrack(entity) {
+        let coordinates = null;
+        if (entity.accession_id) {
+            coordinates = await this.projectDataService.getFeatureCoordinates(entity.accession_id, 'PROTEIN', entity.taxId);
+        }
+        if (coordinates && !coordinates.error) {
+            const range = Math.abs(coordinates.end - coordinates.start);
+            const start = Math.min(coordinates.start, coordinates.end) - range / 10.0;
+            const end = Math.max(coordinates.start, coordinates.end) + range / 10.0;
+            this.projectContext.changeState({
+                chromosome: {id: coordinates.chromosomeId},
+                viewport: {
+                    start,
+                    end
+                }
+            });
+            // navigate to track
+        } else {
+            event.stopImmediatePropagation();
+            window.open(`https://www.ncbi.nlm.nih.gov/gene/${entity.geneId}`);
+            return false;
+        }
+    }
+
 }
