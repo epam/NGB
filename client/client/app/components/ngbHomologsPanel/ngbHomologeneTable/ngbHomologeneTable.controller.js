@@ -91,7 +91,7 @@ export default class ngbHomologeneTableController extends baseController {
     async loadData() {
         this.isProgressShown = true;
         try {
-            await this.ngbHomologeneTableService.searchHomologene(this.ngbHomologsService.currentSearch);
+            await this.ngbHomologeneTableService.searchHomologene(this.ngbHomologsService.currentSearch.search);
             const dataLength = this.ngbHomologeneTableService.homologene.length;
             if (this.ngbHomologeneTableService.pageError) {
                 this.errorMessageList = [this.ngbHomologeneTableService.pageError];
