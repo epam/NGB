@@ -166,14 +166,14 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
         if(filter.getStart() != null) {
             result.append(StringUtils.isEmpty(result) ? WHERE : AND)
                     .append(NGBSessionParameters.START_POSITION.name())
-                    .append(" > ")
+                    .append(" >= ")
                     .append(filter.getStart());
         }
 
         if(filter.getEnd() != null) {
             result.append(StringUtils.isEmpty(result) ? WHERE : AND)
                     .append(NGBSessionParameters.END_POSITION.name())
-                    .append(" < ")
+                    .append(" <= ")
                     .append(filter.getEnd());
         }
         return result.toString();

@@ -60,6 +60,8 @@ public class NGBSessionSharingSecurityTest extends AbstractACLSecurityTest {
     public static final String ADMIN = "ADMIN";
     public static final String USER = "USER";
     public static final String READ = "READ";
+    public static final long END = 10000L;
+    public static final long START = 0L;
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -91,7 +93,6 @@ public class NGBSessionSharingSecurityTest extends AbstractACLSecurityTest {
 
 
     @Before
-    @WithMockUser(username = TEST_USER, roles = {ADMIN, USER})
     public void setup() throws IOException {
         userManager.createUser(TEST_USER, new ArrayList<>(Arrays.asList(1L, 3L)),
                 new ArrayList<>(), Collections.emptyMap());
@@ -144,8 +145,8 @@ public class NGBSessionSharingSecurityTest extends AbstractACLSecurityTest {
         ngbSession = new NGBSession();
         ngbSession.setName("testSession");
         ngbSession.setChromosome("X");
-        ngbSession.setStart(0L);
-        ngbSession.setEnd(10000L);
+        ngbSession.setStart(START);
+        ngbSession.setEnd(END);
         ngbSession.setReferenceId(reference.getId());
         ngbSession.setSessionValue("{" +
                 "\"name\":\"testSession\"," +
