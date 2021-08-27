@@ -24,15 +24,28 @@
 
 package com.epam.catgenome.entity.reference.motif;
 
-import htsjdk.samtools.util.Interval;
+import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import lombok.Data;
 
+@Data
+public class Motif {
 
-public class Motif extends Interval {
-
-    public Motif(String contig, int start, int end, boolean negativeStrand, String value) {
-        super(contig, start, end, negativeStrand, null);
+    public Motif(final String contig, final int start, final int end,
+                 final StrandSerializable strand, final String value) {
+        this.contig = contig;
+        this.start = start;
+        this.end = end;
+        this.strand = strand;
         this.value = value;
     }
 
+    private final String contig;
+    private final int start;
+    private final int end;
+    private StrandSerializable strand;
     private String value;
+
+    public String getValue() {
+        return value;
+    }
 }

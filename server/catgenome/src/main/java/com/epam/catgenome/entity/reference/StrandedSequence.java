@@ -27,10 +27,18 @@ package com.epam.catgenome.entity.reference;
 
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class StrandedSequence extends Sequence {
 
     private StrandSerializable strand;
+
+    public StrandedSequence(final Integer startIndex, final Integer endIndex, final String text,
+                            final StrandSerializable strand){
+        super(startIndex, endIndex, text);
+        this.strand = strand;
+    }
 
 }

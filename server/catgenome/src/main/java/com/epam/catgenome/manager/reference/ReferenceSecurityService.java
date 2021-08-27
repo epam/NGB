@@ -32,9 +32,13 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.entity.reference.StrandedSequence;
+import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
+import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.ReferenceReadingException;
+import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +59,9 @@ public class ReferenceSecurityService {
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
+
+    @Autowired
+    private MotifSearchManager motifSearchManager;
 
     @AclMaskList
     @PreAuthorize(ROLE_USER)
@@ -144,5 +151,15 @@ public class ReferenceSecurityService {
     @PostFilter(READ_ON_FILTER_OBJECT)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
         return referenceGenomeManager.getReferenceAnnotationFiles(referenceId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public Track<StrandedSequence> fillTrackWithMotifSearch(Track<StrandedSequence> track, String motif, StrandSerializable strand) {
+        return motifSearchManager.fillTrackWithMotifSearch(track, motif, strand);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public MotifSearchResult getTableByMotif(MotifSearchRequest motifSearchRequest) {
+        return motifSearchManager.search(motifSearchRequest);
     }
 }
