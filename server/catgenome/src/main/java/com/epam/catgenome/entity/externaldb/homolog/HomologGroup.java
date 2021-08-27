@@ -37,6 +37,8 @@ public class HomologGroup {
     private Long groupId;
     private Long geneId;
     private Long taxId;
+    private String speciesCommonName;
+    private String speciesScientificName;
     private String geneName;
     private String proteinName;
     private Long databaseId;

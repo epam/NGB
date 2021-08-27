@@ -34,6 +34,8 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.util.db.Filter;
@@ -57,10 +59,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGenesSpeciesName;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -74,6 +78,8 @@ public class HomologManager {
     @Value("${homolog.groups.batch.size:500}")
     private int batchSize;
 
+    @Autowired
+    private BlastTaxonomyManager taxonomyManager;
     @Autowired
     private HomologGroupDao homologGroupDao;
     @Autowired
@@ -104,6 +110,9 @@ public class HomologManager {
                     .build();
             final List<HomologGroup> homologGroups = homologGroupDao.load(queryParams);
             final List<Gene> genes = homologGroupGeneDao.load(queryParams);
+
+            setSpeciesNames(homologGroups, genes);
+
             for (HomologGroup group: homologGroups) {
                 List<Gene> groupGenes = genes.stream()
                         .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
@@ -214,5 +223,24 @@ public class HomologManager {
         return QueryParameters.builder()
                 .pagingInfo(pagingInfo)
                 .build();
+    }
+
+    private void setSpeciesNames(final List<HomologGroup> homologGroups, final List<Gene> genes) {
+        final List<Long> taxIds = homologGroups.stream().map(HomologGroup::getTaxId).collect(Collectors.toList());
+        taxIds.addAll(genes.stream().map(Gene::getTaxId).collect(Collectors.toList()));
+        final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+        setGenesSpeciesName(genes, organisms);
+        for (HomologGroup group: homologGroups) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(group.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                group.setSpeciesCommonName(organism.getCommonName());
+                group.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
     }
 }
