@@ -6,6 +6,16 @@
             </md-button>
         </md-list-item>
         <md-divider ng-if="ctrl.hasRole"></md-divider>
+        <md-list-item>
+            <md-button
+                class="md-primary"
+                style="margin: 0; height: 48px"
+                ng-click="ctrl.openMetadataPopup($event)"
+            >
+                Edit attributes
+            </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
         <md-list-item ng-if="!ctrl.node.isProject">
             <md-button>
                 <ngb-dataset-item-download-url id="ctrl.node.bioDataItemId"
