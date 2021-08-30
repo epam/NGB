@@ -80,15 +80,19 @@ function getTrackFileName(track) {
     }
 }
 
-function _getProjectHint(project, reference) {
+function _getProjectHint(project, reference, metadata) {
     let tracksFormats = '';
+    const attributes = metadata
+    ? Object.entries(metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+    : '';
+
     for (let i = 0; i < __tracks_formats.length; i++) {
         const count = project.items.filter(track => track.format === __tracks_formats[i]).length;
         if (count) {
             tracksFormats += `\r\n${count} ${__tracks_formats[i]} ${count === 1 ? 'file' : 'files'}`;
         }
     }
-    return `${project.name}${reference ? `\r\nReference: ${reference.name}` : ''}${tracksFormats}`;
+    return `${project.name}${reference ? `\r\nReference: ${reference.name}` : ''}${attributes}${tracksFormats}`;
 }
 
 export function sortDatasets(content, sortFn) {
