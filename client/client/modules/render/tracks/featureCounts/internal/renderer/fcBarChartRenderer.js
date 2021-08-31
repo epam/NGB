@@ -22,7 +22,9 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
         // to ensure z-index:
         this.container.addChild(this.verticalScroll);
         this.placeholder = new PlaceholderRenderer();
+        this.noSourcesPlaceholder = new PlaceholderRenderer();
         this.container.addChild(this.placeholder.container);
+        this.container.addChild(this.noSourcesPlaceholder.container);
         this.sourceRenderers = [];
     }
 
@@ -60,7 +62,7 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
     }
 
     get sourcesCount () {
-        return Math.max(1, this.sourceRenderers.length);
+        return this.sourceRenderers.length;
     }
 
     get actualHeight() {
@@ -72,6 +74,9 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
     }
 
     get subTrackHeight () {
+        if (this.sourcesCount === 0) {
+            return 0;
+        }
         return Math.floor(this.actualHeight / this.sourcesCount);
     }
 
@@ -253,8 +258,8 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
         );
     }
 
-    render(...opts) {
-        super.render(...opts);
+    render(viewport, ...opts) {
+        super.render(viewport, ...opts);
         if (this.showPlaceholder) {
             this.placeholder.init(
                 'Zoom in to see features',
@@ -263,6 +268,11 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
                     width: this._pixiRenderer.width
                 });
         }
+        this.background.clear();
+        this.background
+            .beginFill(this.config.barChart.background, 1)
+            .drawRect(0, 0, viewport.canvasSize, this.height)
+            .endFill();
     }
 
     translateContainer(viewport, cache){
@@ -273,12 +283,16 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
     }
 
     rebuildContainer(viewport, cache){
-        this.background.clear();
-        this.background
-            .beginFill(this.config.barChart.background, 1)
-            .drawRect(0, 0, viewport.canvasSize, this.height)
-            .endFill();
+        if (this.showPlaceholder) {
+            return;
+        }
         this.createDrawScope(viewport, cache);
+        this.noSourcesPlaceholder.init(
+            'No sources found',
+            {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
         const {
             coordinateSystem,
             sources: sourcesData = {},
@@ -288,6 +302,9 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
             sources = [],
             values: data = {}
         } = sourcesData;
+        this.noSourcesPlaceholder.container.visible = sources.length === 0;
+        this.dataContainer.visible = sources.length > 0;
+        this.background.visible = sources.length > 0;
         // removing unused source renderers:
         const sourceRenderersToRemove = this.sourceRenderers.filter((sourceRenderer: BarChartSourceRenderer) => {
             const {disabled = true} = data[sourceRenderer.source] || {};

@@ -16,7 +16,7 @@ export default {
         scale: {
             axis: {
                 color: 0x666666,
-                margin: 2
+                margin: 5
             },
             tick: {
                 axis: {
@@ -28,7 +28,7 @@ export default {
                     font: 'normal 6pt arial',
                 },
                 margin: 2,
-                heightPx: 20
+                heightPx: 40
             },
             log: {
                 fill: 0xfafafa,

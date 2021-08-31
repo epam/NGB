@@ -81,11 +81,6 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
         return true;
     }
 
-    // eslint-disable-next-line
-    prepareRenderer (viewport, cache) {
-        this.featureRenderer.prepare();
-    }
-
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
 
@@ -111,7 +106,7 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
                 collapsedMode: this._collapsedMode,
                 geneFeatures: this._geneFeatures
             };
-            this.prepareRenderer(viewport, cache);
+            this.featureRenderer.prepare();
             const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
