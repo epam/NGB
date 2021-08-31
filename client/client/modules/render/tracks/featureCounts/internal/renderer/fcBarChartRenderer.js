@@ -302,7 +302,7 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
             sources = [],
             values: data = {}
         } = sourcesData;
-        this.noSourcesPlaceholder.container.visible = sources.length === 0;
+        this.noSourcesPlaceholder.container.visible = cache && cache.sources && sources.length === 0;
         this.dataContainer.visible = sources.length > 0;
         this.background.visible = sources.length > 0;
         // removing unused source renderers:
