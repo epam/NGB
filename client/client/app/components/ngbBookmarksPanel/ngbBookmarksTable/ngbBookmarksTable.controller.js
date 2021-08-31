@@ -28,6 +28,10 @@ export default class ngbBookmarksTableController extends baseController {
 
     events = {
         'bookmarks:save': this.loadData.bind(this),
+        'bookmarks:refresh': () => {
+            this.isDataLoaded = false;
+            return this.loadData();
+        },
         'bookmarks:restore': this.restoreState.bind(this),
         'display:bookmarks:filter': this.refreshScope.bind(this),
         'bookmarks:page:change': this.getDataOnPage.bind(this),
@@ -78,6 +82,7 @@ export default class ngbBookmarksTableController extends baseController {
         }
         if (this.projectContext.reference) {
             this.isDataLoaded = true;
+            this.$scope.$apply();
         }
     }
 
@@ -116,6 +121,7 @@ export default class ngbBookmarksTableController extends baseController {
     onRemove(row, event) {
         const entity = row.entity;
         const id = entity.id;
+        const isLocal = entity.isLocal;
 
         const confirm = this.$mdDialog.confirm()
             .title(`Delete session ${entity.name}?`)
@@ -123,8 +129,7 @@ export default class ngbBookmarksTableController extends baseController {
             .cancel('CANCEL');
 
         this.$mdDialog.show(confirm).then(async () => {
-            this.ngbBookmarksTableService.deleteBookmark(id);
-            this.loadData();
+            this.ngbBookmarksTableService.deleteBookmark(id, isLocal).then(this.loadData.bind(this));
         });
         event.stopImmediatePropagation();
         return false;

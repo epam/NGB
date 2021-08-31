@@ -34,6 +34,15 @@ export default class ngbBookmarksFilterListController {
                 }
                 break;
             }
+            case 'reference.name': {
+                if (this.ngbBookmarksTableService.bookmarksFilter.reference) {
+                    this.selectedItems = this.projectContext.references
+                        .filter(ref => this.ngbBookmarksTableService.bookmarksFilter.reference.indexOf(ref.id) >= 0)
+                        .map(ref => ref.name);
+                    this.displayText = [...this.selectedItems].join(', ');
+                }
+                break;
+            }
         }
     }
 
@@ -153,6 +162,21 @@ export default class ngbBookmarksFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.ngbBookmarksTableService.bookmarksFilter.chromosome = currValue;
+                    this.ngbBookmarksTableService.scheduleFilterBookmarks();
+                }
+                break;
+            }
+            case 'reference.name': {
+                const selectedItemsLowerCase = this.selectedItems.map(i => i.toLowerCase());
+                const prevValue = (this.ngbBookmarksTableService.bookmarksFilter.reference || []);
+                prevValue.sort();
+                const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+                const currValue = this.projectContext.references
+                    .filter(ref => selectedItemsLowerCase.indexOf(ref.name.toLowerCase()) >= 0).map(ref => ref.id);
+                currValue.sort();
+                const currValueStr = JSON.stringify(currValue).toUpperCase();
+                if (currValueStr !== prevValueStr) {
+                    this.ngbBookmarksTableService.bookmarksFilter.reference = currValue;
                     this.ngbBookmarksTableService.scheduleFilterBookmarks();
                 }
                 break;

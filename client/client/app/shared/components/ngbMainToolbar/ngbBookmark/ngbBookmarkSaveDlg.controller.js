@@ -5,14 +5,14 @@ export default class ngbBookmarkSaveDlgController {
     bookmarkDescription;
     error;
 
-    constructor(dispatcher, $mdDialog, projectContext, $scope, trackNamingService, localDataService) {
+    constructor(dispatcher, $mdDialog, projectContext, $scope, trackNamingService, bookmarkDataService) {
         Object.assign(this, {
             dispatcher,
             $scope,
             $mdDialog,
             projectContext,
             trackNamingService,
-            localDataService
+            bookmarkDataService
         });
     }
 
@@ -42,21 +42,24 @@ export default class ngbBookmarkSaveDlgController {
         const layout = this.projectContext.layout;
         const vcfColumns = this.projectContext.vcfColumns;
         const customNames = this.trackNamingService.customNames;
-        const reference = this.projectContext.reference ? this.projectContext.reference.name : '';
-        const query = new Bookmark(name, description, reference, ruler, chromosome, tracks, layout, vcfColumns, customNames);
-        try {
-            const savingResult = this.localDataService.saveBookmark(query);
-            this.dispatcher.emitSimpleEvent('bookmarks:save', {bookmarkId: savingResult.id});
-        } catch (e) {
-            this.error = e;
-        }
-        return false;
-        this.projectContext.downloadVcfTable(query)
+        const reference = this.projectContext.reference ? this.projectContext.reference : {};
+        const sessionValue = new Bookmark(name, description, reference, ruler, chromosome, tracks, layout, vcfColumns, customNames);
+        const params = {
+            owner: '',
+            chromosome: sessionValue.chromosome.name,
+            start: sessionValue.startIndex,
+            description: sessionValue.description,
+            sessionValue: JSON.stringify(sessionValue),
+            referenceId: sessionValue.reference.id,
+            name: sessionValue.name,
+            end: sessionValue.endIndex
+        };
+        this.bookmarkDataService.saveBookmark(params)
             .then(data => {
                 if (data.error) {
                     this.error = 'Error during save happened';
                 } else {
-                    this.dispatcher.emitSimpleEvent('bookmarks:save', {bookmarkId: data.id});
+                    this.dispatcher.emitSimpleEvent('bookmarks:save');
                     this.close();
                 }
                 this.isLoading = false;
@@ -74,7 +77,10 @@ export default class ngbBookmarkSaveDlgController {
 function Bookmark(name, description, reference, ruler, chromosome, tracks, layout, vcfColumns, customNames) {
     this.name = name;
     this.description = description;
-    this.reference = reference;
+    this.reference = {
+        name: reference.name,
+        id: reference.id
+    };
     this.customNames = customNames || {};
     this.startIndex = parseInt(ruler.start);
     this.endIndex = parseInt(ruler.end);

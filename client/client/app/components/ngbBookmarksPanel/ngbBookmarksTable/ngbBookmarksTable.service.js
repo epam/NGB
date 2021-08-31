@@ -12,7 +12,7 @@ const BOOKMARKS_COLUMN_TITLES = {
 
 const blockFilterBookmarksTimeout = 500;
 const FIRST_PAGE = 1;
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 15;
 
 export default class ngbBookmarksTableService extends ClientPaginationService {
 
@@ -80,6 +80,27 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                         enableFiltering: true,
                         enableSorting: true,
                         field: 'chromosome.name',
+                        headerCellTemplate: headerCells,
+                        minWidth: 40,
+                        name: this.getBookmarksColumnTitle(column),
+                        filterApplied: () => this.bookmarksFieldIsFiltered(column),
+                        menuItems: [
+                            {
+                                title: 'Clear column filter',
+                                action: () => this.clearBookmarksFieldFilter(column),
+                                shown: () => this.bookmarksFieldIsFiltered(column)
+                            }
+                        ],
+                        width: '*'
+                    };
+                    break;
+                }
+                case 'reference': {
+                    columnSettings = {
+                        enableHiding: false,
+                        enableFiltering: true,
+                        enableSorting: true,
+                        field: 'reference.name',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.getBookmarksColumnTitle(column),
@@ -178,12 +199,42 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
         this.dispatcher.emit('bookmarks:refresh');
     }
 
-    async loadBookmarks() {
-        const filter = {
-
+    getRequestFilter() {
+        return item => {
+            let result = true;
+            if (this.bookmarksFilter.name) {
+                result &= item.name.includes(this.bookmarksFilter.name);
+            }
+            if (this.bookmarksFilter.description) {
+                result &= item.description.includes(this.bookmarksFilter.description);
+            }
+            if (this.bookmarksFilter.chromosome) {
+                result &= item.chromosome && this.bookmarksFilter.chromosome.includes(item.chromosome.id);
+            }
+            if (this.bookmarksFilter.reference) {
+                result &= item.reference && this.bookmarksFilter.reference.includes(item.reference.id);
+            }
+            if (this.bookmarksFilter.startIndex) {
+                result &= item.startIndex >= this.bookmarksFilter.startIndex;
+            }
+            if (this.bookmarksFilter.endIndex) {
+                result &= item.endIndex <= this.bookmarksFilter.endIndex;
+            }
+            if (this.bookmarksFilter.owner) {
+                result &= item.owner.includes(this.bookmarksFilter.owner);
+            }
+            return !!result;
         };
-        const serverData = await this.bookmarkDataService.loadBookmarks(filter);
-        const data = this.localDataService.getBookmarks();
+    }
+
+    async loadBookmarks() {
+        const filterFn = this.getRequestFilter();
+        const data = [];
+        const serverData = await this.bookmarkDataService.loadBookmarks();
+        const localData = this.localDataService.getBookmarks();
+        localData.forEach(value => {
+            data.push(this._formatLocalToClient(value));
+        });
         if (serverData.error) {
             this._totalPages = 0;
             this.currentPage = FIRST_PAGE;
@@ -196,16 +247,37 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                 data.push(this._formatServerToClient(value));
             });
         }
-        this._totalPages = Math.ceil(data.length / this.pageSize);
+        const filteredData = data.filter(filterFn);
+        this._totalPages = Math.ceil(filteredData.length / this.pageSize);
+        if (this.currentPage < this._totalPages) {
+            this.currentPage = FIRST_PAGE;
+        }
         this.dispatcher.emit('bookmarks:loaded');
-        return data || [];
+        return filteredData || [];
     }
 
-    deleteBookmarks(bookmarksId) {
-        return this.localDataService.deleteBookmarks(bookmarksId);
+    deleteBookmark(bookmarksId, isLocal) {
+        if (isLocal) {
+            return new Promise(resolve => {
+                this.localDataService.deleteBookmark(bookmarksId);
+                resolve();
+            });
+        } else {
+            return this.bookmarkDataService.deleteBookmark(bookmarksId);
+        }
     }
 
     _formatServerToClient(result) {
+        return {
+            id: result.id,
+            owner: result.owner,
+            isLocal: false,
+            ...JSON.parse(result.sessionValue)
+        };
+    }
+
+    _formatLocalToClient(result) {
+        result.isLocal = true;
         return result;
     }
 }
