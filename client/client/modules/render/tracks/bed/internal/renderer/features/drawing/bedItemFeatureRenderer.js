@@ -112,6 +112,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let endX = viewport.project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2;
         if (
             feature.hasOwnProperty('strand') &&
+            /^(positive|negative)$/i.test(feature.strand) &&
             this.shouldRenderStrandIndicatorInsteadOfGraphics(startX, endX)
         ) {
             endX = startX +
