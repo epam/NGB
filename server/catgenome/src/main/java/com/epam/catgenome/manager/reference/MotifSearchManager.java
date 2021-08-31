@@ -49,6 +49,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 public class MotifSearchManager {
 
     private static final int TRACK_LENGTH = 100;
+    private static final int STUB_MOTIF_LENGTH = 1000;
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -196,8 +197,7 @@ public class MotifSearchManager {
     private List<Motif> getStubMotifList(final Chromosome chromosome, final Integer trackStart, final Integer trackEnd,
                                          final StrandSerializable strand) {
         final int motifStart = trackStart == null ? 0 : trackStart;
-        int motifLength = 1000;
-        final int motifEnd = trackEnd == null ? (motifStart + motifLength) : trackEnd;
+        final int motifEnd = trackEnd == null ? (motifStart + STUB_MOTIF_LENGTH) : trackEnd;
         int count = (motifEnd - motifStart) / TRACK_LENGTH;
         List<Motif> motifs = new ArrayList<>();
         for (int i = 0; i <= count; i++) {
@@ -205,9 +205,9 @@ public class MotifSearchManager {
             String value = generateString();
             int end = start + value.length();
             motifs.add(
-                    new Motif(chromosome.getName(), start, end,
-                            strand != null ? strand : StrandSerializable.POSITIVE,
-                            value));
+                Motif.builder().contig(chromosome.getName()).start(start).end(end)
+                        .strand(strand != null ? strand : StrandSerializable.POSITIVE)
+                        .value(value).build());
         }
         return motifs;
     }
