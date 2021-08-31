@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.reference.Species;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -41,6 +40,10 @@ import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
@@ -78,9 +81,6 @@ import com.epam.catgenome.controller.vo.ga4gh.ReferenceSet;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
 import com.epam.catgenome.manager.FileManager;

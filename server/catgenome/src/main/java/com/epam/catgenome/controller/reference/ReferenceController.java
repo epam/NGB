@@ -33,12 +33,20 @@ import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
-import com.epam.catgenome.entity.reference.Species;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.entity.reference.StrandedSequence;
+import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
+import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
+import com.epam.catgenome.entity.reference.motif.MotifTrackQuery;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.export.GeneExportFilterForm;
@@ -54,9 +62,6 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.index.IndexSearchResult;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.ReferenceReadingException;
 import com.wordnik.swagger.annotations.Api;
@@ -379,5 +384,33 @@ public class ReferenceController extends AbstractRESTController {
     public Result<Reference> updateSpecies(@PathVariable Long referenceId,
         @RequestParam(required = false) String speciesVersion) {
         return Result.success(referenceSecurityService.updateSpecies(referenceId, speciesVersion));
+    }
+
+    @RequestMapping(value = "/reference/motif", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns a track containing a list of StrandedSequence that contains positions," +
+                    " sequence and strand",
+            notes = "Returns information about matches found at the specified motif",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Track<StrandedSequence>> loadMotifTrack(@RequestBody MotifTrackQuery trackQuery) {
+        return Result.success(referenceSecurityService.fillTrackWithMotifSearch(convertToTrack(trackQuery),
+                trackQuery.getMotif(), trackQuery.getStrand()));
+    }
+
+    @RequestMapping(value = "/reference/motif/table", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns a table containing a list of motifs found",
+            notes = "Returns table with information about matches found at the specified motif",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<MotifSearchResult> loadMotifTable(@RequestBody MotifSearchRequest motifSearchRequest) {
+        return Result.success(referenceSecurityService.getTableByMotif(motifSearchRequest));
     }
 }
