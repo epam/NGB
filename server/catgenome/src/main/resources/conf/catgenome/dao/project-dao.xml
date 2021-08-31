@@ -5,6 +5,7 @@
     <bean class="com.epam.catgenome.dao.project.ProjectDao" id="projectDao" autowire="byName">
         <property name="projectSequenceName" value="catgenome.s_project" />
         <property name="projectItemSequenceName" value="catgenome.s_project_item" />
+        <property name="projectNoteSequenceName" value="catgenome.s_project_note" />
         <property name="insertProjectQuery">
             <value>
                 <![CDATA[
@@ -166,22 +167,6 @@
                 ]]>
             </value>
         </property>
-        <property name="addProjectNoteQuery">
-            <value>
-                <![CDATA[
-                    INSERT INTO catgenome.project_note (
-                        note_id,
-                        project_id,
-                        title,
-                        content
-                    VALUES (
-                        :NOTE_ID,
-                        :PROJECT_ID,
-                        :TITLE,
-                        :CONTENT
-                ]]>
-            </value>
-        </property>
         <property name="deleteProjectItemQuery">
             <value>
                 <![CDATA[
@@ -261,6 +246,59 @@
                     WHERE
                         referred_project_id = :PROJECT_ID
                         AND referred_bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
+        <property name="addProjectNoteQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.project_note (
+                        note_id,
+                        project_id,
+                        title,
+                        content)
+                    VALUES (
+                        :NOTE_ID,
+                        :PROJECT_ID,
+                        :TITLE,
+                        :CONTENT)
+                ]]>
+            </value>
+        </property>
+        <property name="loadProjectNotesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        note_id,
+                        project_id,
+                        title,
+                        content
+                    FROM catgenome.project_note where project_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteProjectNotesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.project_note
+                ]]>
+            </value>
+        </property>
+        <property name="deleteAllProjectNotesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.project_note WHERE project_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="updateProjectNotesQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.project_note SET
+                        title = :TITLE,
+                        content = :CONTENT
+                    WHERE
+                        note_id = :NOTE_ID
                 ]]>
             </value>
         </property>

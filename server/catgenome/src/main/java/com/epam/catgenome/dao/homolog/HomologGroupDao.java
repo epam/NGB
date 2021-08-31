@@ -127,7 +127,7 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().queryForList(query, String.class);
     }
 
-    enum  GroupParameters{
+    enum GroupParameters {
         GROUP_ID,
         PRIMARY_GENE_ID,
         PRIMARY_GENE_TAX_ID,

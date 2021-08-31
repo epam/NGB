@@ -31,10 +31,12 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.project.ProjectNote;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
+import com.epam.catgenome.util.db.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,10 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Source:      ProjectManager
@@ -226,6 +231,7 @@ public class ProjectManager implements SecuredEntityManager {
     private void loadProjectStuff(Project project) {
         loadProjectItems(project);
         project.setNestedProjects(projectDao.loadNestedProjects(project.getId()));
+        project.setNotes(projectDao.loadProjectNotes(project.getId()));
     }
 
     private void updateLastOpenedDate(Project project) {
@@ -308,12 +314,12 @@ public class ProjectManager implements SecuredEntityManager {
 
         projectDao.saveProject(helpProject, parentId);
 
+        Project loadedProject = this.load(helpProject.getId());
+
         if (helpProject.getItems() != null) {
             List<ProjectItem> newProjectItems = helpProject.getItems()
                     .stream().distinct().collect(Collectors.toList());
             if (!newProject) {
-                Project loadedProject = this.load(helpProject.getId());
-
                 Set<Long> existingBioIds = new HashSet<>();
                 Set<Long> newBioIds = new HashSet<>();
                 existingBioIds.addAll(loadedProject.getItems().stream()
@@ -388,7 +394,38 @@ public class ProjectManager implements SecuredEntityManager {
                 dataItems.forEach(i -> fillFileTypeLists(i, newGeneFiles, newVcfFiles));
             }
         }
-
+        if (!newProject && !CollectionUtils.isEmpty(loadedProject.getNotes())) {
+            List<Long> existingNoteIds = loadedProject.getNotes().stream()
+                    .map(ProjectNote::getNoteId)
+                    .collect(Collectors.toList());
+            List<Long> newNoteIds = helpProject.getNotes() == null ? Collections.emptyList() :
+                    helpProject.getNotes().stream()
+                    .map(ProjectNote::getNoteId)
+                    .collect(Collectors.toList());
+            List<Long> notesToDelete = existingNoteIds.stream()
+                    .filter(o -> !newNoteIds.contains(o))
+                    .collect(Collectors.toList());
+            if (!notesToDelete.isEmpty()) {
+                final Filter filter = Filter.builder()
+                        .field("note_id")
+                        .operator("in")
+                        .value("(" + join(notesToDelete, ",") + ")")
+                        .build();
+                projectDao.deleteProjectNotes(Collections.singletonList(filter));
+            }
+        }
+        List<ProjectNote> notes = project.getNotes();
+        if (!CollectionUtils.isEmpty(notes)) {
+            List<ProjectNote> notesToAdd = notes.stream()
+                    .filter(n -> n.getNoteId() == 0)
+                    .collect(Collectors.toList());
+            List<ProjectNote> notesToUpdate = notes.stream()
+                    .filter(n -> n.getNoteId() != 0)
+                    .collect(Collectors.toList());
+            notes = projectDao.saveProjectNotes(notesToAdd, project.getId());
+            notes.addAll(projectDao.updateProjectNotes(notesToUpdate));
+        }
+        helpProject.setNotes(notes);
         return helpProject;
     }
 
@@ -541,6 +578,7 @@ public class ProjectManager implements SecuredEntityManager {
 
     private void deleteProjectWithNested(Project projectToDelete) throws IOException {
         deleteNestedProjects(projectToDelete.getId());
+        projectDao.deleteAllProjectNotes(projectToDelete.getId());
         projectDao.deleteProjectItems(projectToDelete.getId());
         projectDao.deleteProject(projectToDelete.getId());
         fileManager.deleteProjectDirectory(projectToDelete);

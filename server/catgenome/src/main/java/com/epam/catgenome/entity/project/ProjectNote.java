@@ -23,6 +23,8 @@
  */
 package com.epam.catgenome.entity.project;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,8 +32,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProjectNote {
     private Long noteId;
+    private Long projectId;
     private String title;
     private String content;
 }
