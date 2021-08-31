@@ -6,7 +6,6 @@ export default function run($mdDialog, dispatcher) {
             formats
         } = options || {};
         let processed = false;
-        console.log(sources, formats);
         $mdDialog.show({
             template: require('./ngbTrackCoverageSettings.dialog.tpl.html'),
             controller: function ($scope) {

@@ -84,6 +84,10 @@ export class FeatureCountsTrack extends GENETrack {
         return this._renderer;
     }
 
+    get featuresFilteringEnabled () {
+        return false;
+    }
+
     get verticalScrollRenderer() {
         if (this.barChartDisplayMode) {
             return this.barChartRenderer;

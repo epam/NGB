@@ -27,6 +27,10 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
         return ['geneTranscript', 'header', 'geneFeatures'];
     }
 
+    get featuresFilteringEnabled () {
+        return true;
+    }
+
     static postStateMutatorFn = (track) => {
         track.updateAndRefresh();
         track.reportTrackState();
@@ -103,6 +107,9 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
     }
 
     fetchAvailableFeatureTypes () {
+        if (!this.featuresFilteringEnabled) {
+            return;
+        }
         const {
             id,
             project,
@@ -150,10 +157,14 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
     }
 
     updateAvailableFeatures(features) {
-        const availableFeatures = (this.state.availableFeatures || []).concat(features || []);
-        this.state.availableFeatures = [...(new Set(availableFeatures))]
-            .filter(Boolean)
-            .sort();
+        if (this.featuresFilteringEnabled) {
+            const availableFeatures = (this.state.availableFeatures || []).concat(features || []);
+            this.state.availableFeatures = [...(new Set(availableFeatures))]
+                .filter(Boolean)
+                .sort();
+        } else {
+            this.state.availableFeatures = undefined;
+        }
     }
 
     currentTrackManagesShortenedIntronsMode() {

@@ -26,6 +26,10 @@ export class BEDTrack extends GENETrack {
         ];
     }
 
+    get featuresFilteringEnabled () {
+        return false;
+    }
+
     constructor(opts) {
         super(opts);
         this._actions = null;

@@ -35,6 +35,10 @@ export class VCFTrack extends GENETrack {
         return ['variantsView', 'header'];
     }
 
+    get featuresFilteringEnabled () {
+        return false;
+    }
+
     static preStateMutatorFn = (track) => ({
         oldVariantsView: track.state.variantsView
     });
