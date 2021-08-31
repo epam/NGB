@@ -5,6 +5,8 @@ export default class ngbProjectSummaryController {
 
     projectContext;
     showTrackOriginalName = true;
+    datasetMetadata = {};
+    dataset={}
 
     /**
      * @constructor
@@ -50,14 +52,22 @@ export default class ngbProjectSummaryController {
 
         const files = [];
         const items = this.projectContext.tracks;
+        this.dataset = items.reduce((dataset, item) => {
+            if (item.projectId) {
+                dataset = item.project;
+            }
+            return dataset;
+        }, {});
+        this.datasetMetadata = this.dataset.metadata;
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
+            const metadata = item.metadata;
             for (const file of files) {
                 if (file.type === item.format) {
                     if (!file.names.some((nameObj) => nameObj.name === name)) {
-                        file.names.push({customName, name});
+                        file.names.push({customName, name, metadata});
                     }
                     added = true;
                     break;
@@ -65,7 +75,7 @@ export default class ngbProjectSummaryController {
             }
             if (!added) {
                 files.push({
-                    names: [{customName, name}],
+                    names: [{customName, name, metadata}],
                     type: item.format,
                 });
             }

@@ -173,6 +173,18 @@ $folder-line: #cccccc;
   font-weight: normal;
   text-transform: uppercase;
 }
+.structure-card-search-result {
+  padding: 1px 4px 1px 4px;
+  margin-left: 2px;
+  cursor: pointer;
+  font-size: xx-small;
+  display: inline-block;
+  background-color: $selected-color;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid darken($selected-color, 10%);
+  font-weight: normal;
+}
 
 .datasets-warning {
   padding-top: 20px;

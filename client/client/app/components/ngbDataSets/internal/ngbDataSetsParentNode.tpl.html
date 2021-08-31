@@ -31,6 +31,13 @@
                         <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
                             {{node.searchInfo.pre}}<span class="search-result">{{node.searchInfo.match}}</span>{{node.searchInfo.post}}
                         </span>
+                        <span
+                            class="structure-card-search-result"
+                            ng-if="$ctrl.searchLength && node.metadataSearchInfo && node.metadataSearchInfo.metadata"
+                            ng-repeat="attr in node.metadataSearchInfo.metadata"
+                        >
+                            {{attr.key}}:{{attr.pre}}<span class="search-result">{{attr.match}}</span>{{attr.post}}
+                        </span>
                         <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
                             {{node.name}}
                         </span>

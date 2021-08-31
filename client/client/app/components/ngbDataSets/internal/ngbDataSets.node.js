@@ -3,11 +3,13 @@ export class SearchInfo {
     pre: string; // string before match
     match: string;
     post: string; // string after match
+    key: string ; // key of metadata attribute
+    metadata: Record<string, string> = {}; // metadata search results
     constructor() {
         this.passed = true;
     }
-    test(pattern: string, s: string) {
-        if (!pattern || !pattern.length) {
+    test(pattern: string, s: string, key = null) {
+        if (!pattern || !pattern.length && !key) {
             this.passed = true;
             this.pre = s || '';
             this.match = '';
@@ -16,13 +18,26 @@ export class SearchInfo {
             const index = (s || '').toLowerCase().indexOf(pattern.toLowerCase());
             this.passed = index >= 0;
             if (index >= 0) {
-                this.pre = s.substring(0, index);
-                this.match = s.substring(index, index + pattern.length);
-                this.post = s.substring(index + pattern.length);
+                if (key) {
+                    this.metadata[key] = {
+                        pre: s.substring(0, index),
+                        match: s.substring(index, index + pattern.length),
+                        post: s.substring(index + pattern.length),
+                        key
+                    };
+                } else {
+                    this.pre = s.substring(0, index);
+                    this.match = s.substring(index, index + pattern.length);
+                    this.post = s.substring(index + pattern.length);
+                }
             } else {
+                if (key) {
+                    delete this.metadata[key];
+                }
                 this.pre = s || '';
                 this.match = '';
                 this.post = '';
+                this.key = null;
             }
         }
         return this.passed;
