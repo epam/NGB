@@ -107,6 +107,7 @@
                 ng-disabled="!ctrl.metadataIsChanged || ctrl.formHasDuplicates"
             >
               SAVE
+              <md-progress-circular ng-show="ctrl.saving" md-mode="indeterminate"></md-progress-circular>
             </md-button>
             <md-button ng-click="ctrl.cancelChanges()">
               CANCEL

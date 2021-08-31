@@ -18,6 +18,7 @@ export default class ngbDataSetMetadataController extends BaseController {
     formData;
     initial_metadata;
     metadata;
+    saving;
 
     static get UID() {
         return 'ngbDataSetMetadataController';
@@ -52,17 +53,18 @@ export default class ngbDataSetMetadataController extends BaseController {
         }, {});
     }
     get formHasDuplicates() {
-        return !!Object.values(this.existedKeys).filter(v => v > 1).length;
+        return Object.values(this.existedKeys).filter(v => v > 1).length;
     }
     async saveMetadata() {
-        const saveAttributes = (attrs) => new Promise(resolve => {
-            setTimeout(() => {
-                resolve(attrs);
-            }, 1000);
-        });
-        await saveAttributes(this.metadata);
+        const requestBody = {
+            id: this.node.id,
+            aclClass: this.service.getNodeAclClass(this.node),
+            metadata: this.metadata
+        };
+        this.saving = true;
+        await this.service.saveMetadata(requestBody);
+        this.saving = false;
         this.$mdDialog.hide();
-        
     }
     closeDialog() { 
         this.$mdDialog.cancel();
@@ -78,10 +80,10 @@ export default class ngbDataSetMetadataController extends BaseController {
     }
     isDuplicate(newKey) {
         return !!Object.entries(this.existedKeys)
-            .filter(([key, value]) => {
-                return newKey &&
+            .filter(([key, value]) => (
+                newKey &&
                 newKey.toLowerCase() === key.toLowerCase() &&
-                value > 1;
-            })[0];
+                value > 1
+            ))[0];
     }
 }
