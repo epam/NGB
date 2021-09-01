@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.metadata;
 
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.metadata.MetadataDao;
 import com.epam.catgenome.entity.metadata.EntityVO;
 import com.epam.catgenome.entity.metadata.MetadataVO;
@@ -53,8 +55,9 @@ public class MetadataManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public MetadataVO upsert(final MetadataVO metadataVO) {
         final Long entityId = metadataVO.getId();
-        Assert.notNull(entityId, "Entity ID must be specified");
-        Assert.notNull(metadataVO.getAclClass(), "Entity class must be specified");
+        Assert.notNull(entityId, MessageHelper.getMessage(MessagesConstants.ERROR_METADATA_ENTITY_ID_NOT_SPECIFIED));
+        Assert.notNull(metadataVO.getAclClass(), MessageHelper.getMessage(
+                MessagesConstants.ERROR_METADATA_ENTITY_CLASS_NOT_SPECIFIED));
         final String entityClass = metadataVO.getAclClass().name();
 
         prepareMetadata(metadataVO);
@@ -105,9 +108,9 @@ public class MetadataManager {
     private void prepareMetadata(final MetadataVO metadataVO) {
         final Map<String, String> preparedData = MapUtils.emptyIfNull(metadataVO.getMetadata()).entrySet().stream()
                 .peek(entry -> Assert.isTrue(StringUtils.isNotBlank(entry.getKey()),
-                        "Metadata key cannot be empty"))
+                        MessageHelper.getMessage(MessagesConstants.ERROR_METADATA_EMPTY_KEY)))
                 .peek(entry -> Assert.isTrue(StringUtils.isNotBlank(entry.getValue()),
-                        "Metadata value cannot be empty"))
+                        MessageHelper.getMessage(MessagesConstants.ERROR_METADATA_EMPTY_VALUE)))
                 .collect(Collectors.toMap(entry -> StringUtils.upperCase(entry.getKey()), entry ->
                         StringUtils.upperCase(entry.getValue())));
         metadataVO.setMetadata(preparedData);
