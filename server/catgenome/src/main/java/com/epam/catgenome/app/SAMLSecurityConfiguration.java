@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.security.saml.CustomSAMLProcessingFilter;
+import com.epam.catgenome.security.saml.LBConfig;
 import com.epam.catgenome.security.saml.SchemeInsensitiveUrlComparator;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.lang3.StringUtils;
@@ -154,6 +155,23 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${saml.authn.max.authentication.age:93600}")
     private Long maxAuthentificationAge;
 
+    @Value("${saml.lb.enabled:false}")
+    private boolean loadBalancerEnabled;
+
+    /**
+     * Optional Load balancer configuration
+     */
+    @Value("${saml.lb.scheme:}")
+    private String loadBalancerScheme;
+    @Value("${saml.lb.server.name:}")
+    private String loadBalancerServerName;
+    @Value("${saml.lb.include.port.in.request:false}")
+    private boolean loadBalancerIncludeServerPortInRequestURL;
+    @Value("${saml.lb.server.port:443}")
+    private int loadBalancerServerPort;
+    @Value("${saml.lb.context.path:}")
+    private String loadBalancerContextPath;
+
     @Autowired
     private SAMLUserDetailsService samlUserDetailsService;
 
@@ -242,7 +260,18 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     // Provider of default SAML Context
     @Bean
     public SAMLContextProviderImpl contextProvider() {
-        return new SAMLContextProviderCustomSignKey(signingKey);
+        if (loadBalancerEnabled) {
+            final LBConfig lbConfig = new LBConfig();
+            lbConfig.setScheme(loadBalancerScheme);
+            lbConfig.setServerName(loadBalancerServerName);
+            lbConfig.setServerPort(loadBalancerServerPort);
+            lbConfig.setContextPath(loadBalancerContextPath);
+            lbConfig.setIncludeServerPortInRequestURL(loadBalancerIncludeServerPortInRequestURL);
+            lbConfig.validate();
+            return new SAMLContextProviderCustomSignKey(signingKey, lbConfig);
+        } else {
+            return new SAMLContextProviderCustomSignKey(signingKey);
+        }
     }
 
     // Initialization of OpenSAML library
