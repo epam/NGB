@@ -10,6 +10,15 @@
         </layout>
     </appender>
 
+    <appender name="debug-appender" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="Threshold" value="DEBUG"/>
+        <param name="File" value="./logs/catgenome-debug.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
+        </layout>
+    </appender>
+
     <appender name="error-appender" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="Encoding" value="UTF-8" />
         <param name="Threshold" value="ERROR"/>
@@ -25,6 +34,9 @@
     <category name="com.epam.gene.catgenome">
         <priority value="INFO"/>
     </category>
+    <category name="org.springframework.security">
+        <priority value="DEBUG"/>
+    </category>
     <category name="org.apache.commons.beanutils">
         <priority value="WARN"/>
     </category>
@@ -36,8 +48,9 @@
     </category>
 
     <root>
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="stdout"/>
+        <appender-ref ref="debug-appender"/>
         <appender-ref ref="error-appender"/>
     </root>
 </log4j:configuration>

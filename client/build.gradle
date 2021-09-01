@@ -6,7 +6,7 @@ plugins {
 
 def desktop = hasProperty("desktop")
 def clientPath = hasProperty("clientPath") ? clientPath : "/catgenome"
-def nodeVersion = "6.9.5"
+def nodeVersion = "12.19.0"
 
 //to handle Windows issue with CMD output buffer (can be removed
 //after moving to Gradle 3.4
