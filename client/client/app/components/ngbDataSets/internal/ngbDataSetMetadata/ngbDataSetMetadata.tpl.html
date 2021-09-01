@@ -25,7 +25,7 @@
                         ng-if="ctrl.metadataIsEmpty"
                         class="message">
                         <h3>This dataset does not contain any attributes.</h3>
-                        <h4>Click to the button below to add new one</h4>
+                        <h4>Click to the add button to create new one</h4>
                     </div>
                      <h2
                         ng-if="!ctrl.metadataIsEmpty"
@@ -39,11 +39,11 @@
                         
                     >
                         <md-input-container
-                            ng-class="{'hide-excessive-space':ctrl.isDuplicate(ctrl.formData[$index][0]), 'md-block': true}"
+                            ng-class="{'hide-excessive-space':ctrl.isDuplicate(attr[0]), 'md-block': true}"
                         >
                             <label>Key</label>
                             <input
-                                ng-model="ctrl.formData[$index][0]"
+                                ng-model="attr[0]"
                                 name="attrKey"
                                 required
                                 style="width: 250px">
@@ -64,7 +64,7 @@
                         <md-input-container class="md-block" class="input-container">
                             <label>Value</label>
                             <input
-                                ng-model="ctrl.formData[$index][1]"
+                                ng-model="attr[1]"
                                 name="attrValue"
                                 required
                                 style="width: 250px"
@@ -73,7 +73,7 @@
                         <md-button class="md-icon-button" ng-click="ctrl.removeAttribute($index)">
                             <ng-md-icon
                                 icon="clear"
-                                aria-label="add attribute"
+                                aria-label="remove attribute"
                                 style="fill: #999999"
                                 size="16">
                             </ng-md-icon>
@@ -88,28 +88,27 @@
             style="padding: 15px;"
         >
             <md-button
-                class="md-icon-button"
+                class="md-raised md-primary"
                 ng-click="ctrl.addFormItem()"
-                style="height: 48px; width: 48px;"
+                aria-label="add attribute"
             >
-                <md-tooltip md-direction="top">Add new attribute</md-tooltip>
-                <ng-md-icon
-                    icon="add_circle_outline"
-                    aria-label="add attribute"
-                    style="fill: #4285f4"
-                    size="32">
-                </ng-md-icon>
+                ADD
+            </md-button>
             </md-button>
             <span flex></span>
             <md-button
                 type="submit"
                 class="md-primary"
+                aria-label="save attribute"
                 ng-disabled="!ctrl.metadataIsChanged || ctrl.formHasDuplicates"
             >
               SAVE
               <md-progress-circular ng-show="ctrl.saving" md-mode="indeterminate"></md-progress-circular>
             </md-button>
-            <md-button ng-click="ctrl.cancelChanges()">
+            <md-button
+                aria-label="cancel changes and close metadata popup"
+                ng-click="ctrl.cancelChanges()"
+                >
               CANCEL
             </md-button>
         </md-dialog-actions>

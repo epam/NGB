@@ -78,6 +78,13 @@
                             </md-tooltip>
                             {{node.displayName}}
                         </span>
+                        <span
+                            class="structure-card-search-result"
+                            ng-if="$ctrl.searchLength && node.metadataSearchInfo && node.metadataSearchInfo.metadata"
+                            ng-repeat="attr in node.metadataSearchInfo.metadata"
+                        >
+                            {{attr.key}}:{{attr.pre}}<span class="search-result">{{attr.match}}</span>{{attr.post}}
+                        </span>
                     </span>
                 </div>
                 <div class="dataset-genome"

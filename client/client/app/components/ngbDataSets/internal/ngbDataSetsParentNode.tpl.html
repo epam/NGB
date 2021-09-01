@@ -31,6 +31,11 @@
                         <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
                             {{node.searchInfo.pre}}<span class="search-result">{{node.searchInfo.match}}</span>{{node.searchInfo.post}}
                         </span>
+                        <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
+                            {{node.name}}
+                        </span>
+                        <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
+                        <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
                         <span
                             class="structure-card-search-result"
                             ng-if="$ctrl.searchLength && node.metadataSearchInfo && node.metadataSearchInfo.metadata"
@@ -38,11 +43,6 @@
                         >
                             {{attr.key}}:{{attr.pre}}<span class="search-result">{{attr.match}}</span>{{attr.post}}
                         </span>
-                        <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
-                            {{node.name}}
-                        </span>
-                        <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
-                        <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
                     </span>
                 </div>
                 <div class="dataset-genome"

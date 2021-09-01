@@ -334,7 +334,7 @@ export function search(pattern, items: Array<Node>) {
             if (item.metadata.hasOwnProperty(key)) {
                 item.metadataSearchInfo.test(pattern, item.metadata[key], key);
             }
-            searchFilterPassed = searchFilterPassed || item.metadataSearchInfo.metadata[key].passed;
+            searchFilterPassed = searchFilterPassed || item.metadataSearchInfo.metadata[key];
         }
         item.searchFilterPassed = searchFilterPassed ||
         item.searchInfo.passed ||

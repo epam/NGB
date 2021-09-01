@@ -1,13 +1,18 @@
 import BaseController from '../../../../shared/baseController';
 
 function metadataIsEqual(o1, o2) {
-    if (Object.keys(o1).length !== Object.keys(o2).length) {
+    if ((!o1 && o2) || (o1 && !o2)) {
         return false;
     }
-    for(const p in o1){
-        if(o1.hasOwnProperty(p) && o2.hasOwnProperty(p)){
-            if(o1[p] !== o2[p]){
-                return false;
+    if (o1 && o2) {
+        if (Object.keys(o1).length !== Object.keys(o2).length) {
+            return false;
+        }
+        for(const p in o1) {
+            if(o1.hasOwnProperty(p) && o2.hasOwnProperty(p)){
+                if(o1[p] !== o2[p]) {
+                    return false;
+                }
             }
         }
     }
