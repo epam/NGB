@@ -26,10 +26,12 @@ package com.epam.catgenome.controller.vo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.vcf.VcfSample;
+import lombok.Data;
 
 /**
  * Source:      ProjectItemVO
@@ -41,6 +43,7 @@ import com.epam.catgenome.entity.vcf.VcfSample;
  * A View Object for simplified representation of ProjectItem entity
  * </p>
  */
+@Data
 public class ProjectItemVO {
     private Boolean hidden;
     private Short ordinalNumber;
@@ -61,116 +64,5 @@ public class ProjectItemVO {
     private Boolean compressed;
     // VCF properties
     private List<VcfSample> samples;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public BiologicalDataItemResourceType getType() {
-        return type;
-    }
-
-    public void setType(BiologicalDataItemResourceType type) {
-        this.type = type;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public BiologicalDataItemFormat getFormat() {
-        return format;
-    }
-
-    public void setFormat(BiologicalDataItemFormat format) {
-        this.format = format;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Date getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public Long getBioDataItemId() {
-        return bioDataItemId;
-    }
-
-    public void setBioDataItemId(Long bioDataItemId) {
-        this.bioDataItemId = bioDataItemId;
-    }
-
-    public Boolean getHidden() {
-        return hidden;
-    }
-
-    public void setHidden(Boolean hidden) {
-        this.hidden = hidden;
-    }
-
-    public Short getOrdinalNumber() {
-        return ordinalNumber;
-    }
-
-    public void setOrdinalNumber(Short ordinalNumber) {
-        this.ordinalNumber = ordinalNumber;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(Long referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public Boolean getCompressed() {
-        return compressed;
-    }
-
-    public void setCompressed(Boolean compressed) {
-        this.compressed = compressed;
-    }
-
-    public List<VcfSample> getSamples() {
-        return samples;
-    }
-
-    public void setSamples(List<VcfSample> samples) {
-        this.samples = samples;
-    }
-
-    public String getPrettyName() {
-        return prettyName;
-    }
-
-    public void setPrettyName(String prettyName) {
-        this.prettyName = prettyName;
-    }
+    private Map<String, String> metadata;
 }
