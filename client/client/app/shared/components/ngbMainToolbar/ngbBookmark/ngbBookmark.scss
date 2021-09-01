@@ -21,9 +21,12 @@ ngb-bookmark {
   color: rgb(213,0,0);
 }
 
-.save-dlb-content {
+.save-bookmark-dlg-content {
   min-width:600px;
   max-width: 800px;
   margin: 10px 30px;
   padding: 10px;
+  .save-bookmark-dlg-select-container {
+    width: 100%;
+  }
 }

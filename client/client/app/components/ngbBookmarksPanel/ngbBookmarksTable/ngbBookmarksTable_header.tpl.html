@@ -1,26 +1,33 @@
-<div role="columnheader"
-     ng-class="{'sortable': sortable, 'bookmark-column-filtered': col.colDef.filterApplied()}"
-     ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
-     aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
+<div layout="column">
+    <div aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}"
+         ng-class="{'sortable': sortable, 'bookmark-column-filtered': col.colDef.filterApplied()}"
+         role="columnheader"
+         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'">
 
-    <md-button  tabindex="0" class="ui-grid-cell-contents ui-grid-header-cell-primary-focus"
-               col-index="renderIndex">
-        <span class="ui-grid-header-cell-label" ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName CUSTOM_FILTERS }}</span>
-        <span ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'" ui-grid-visible="col.sort.direction"
-              aria-label="{{getSortDirectionAriaLabel()}}">
+        <md-button class="ui-grid-cell-contents ui-grid-header-cell-primary-focus" col-index="renderIndex"
+                   tabindex="0">
+            <span class="ui-grid-header-cell-label"
+                  ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName
+            CUSTOM_FILTERS }}</span>
+            <span aria-label="{{getSortDirectionAriaLabel()}}" ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"
+                  ui-grid-visible="col.sort.direction">
 
-            <ng-md-icon icon="arrow_downward" size="12" ng-if="col.sort.direction == desc" title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}"></ng-md-icon>
-            <ng-md-icon icon="arrow_upwards"  size="12" ng-if="col.sort.direction == asc" title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}"></ng-md-icon>
+            <ng-md-icon icon="arrow_downward" ng-if="col.sort.direction == desc" size="12"
+                        title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}"></ng-md-icon>
+            <ng-md-icon icon="arrow_upwards" ng-if="col.sort.direction == asc" size="12"
+                        title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}"></ng-md-icon>
 
-            <sub ui-grid-visible="isSortPriorityVisible()" class="ui-grid-sort-priority-number">{{col.sort.priority + 1}}</sub>
+            <sub class="ui-grid-sort-priority-number"
+                 ui-grid-visible="isSortPriorityVisible()">{{col.sort.priority + 1}}</sub>
         </span>
-    </md-button>
-    <div role="button" tabindex="0" ui-grid-one-bind-id-grid="col.uid + '-menu-button'"
-         class="ui-grid-column-menu-button"
-         ng-if="grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false"
-         ng-click="toggleMenu($event)" ng-class="{'ui-grid-column-menu-button-last-col': isLastCol}"
-         ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel" aria-haspopup="true">
-        <i class="ui-grid-icon-angle-down" aria-hidden="true">&nbsp;</i>
+        </md-button>
+        <div aria-haspopup="true" class="ui-grid-column-menu-button" ng-class="{'ui-grid-column-menu-button-last-col': isLastCol}"
+             ng-click="toggleMenu($event)"
+             ng-if="grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false"
+             role="button" tabindex="0"
+             ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel" ui-grid-one-bind-id-grid="col.uid + '-menu-button'">
+            <i aria-hidden="true" class="ui-grid-icon-angle-down">&nbsp;</i>
+        </div>
     </div>
     <ngb-bookmarks-table-filter column="col" ng-if="grid.appScope.$ctrl.displayBookmarksFilter && col.enableFiltering"></ngb-bookmarks-table-filter>
 </div>

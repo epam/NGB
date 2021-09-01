@@ -208,10 +208,10 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             if (this.bookmarksFilter.description) {
                 result &= item.description && item.description.includes(this.bookmarksFilter.description);
             }
-            if (this.bookmarksFilter.chromosome) {
+            if (this.bookmarksFilter.chromosome && this.bookmarksFilter.chromosome.length) {
                 result &= item.chromosome && this.bookmarksFilter.chromosome.includes(item.chromosome.id);
             }
-            if (this.bookmarksFilter.reference) {
+            if (this.bookmarksFilter.reference && this.bookmarksFilter.reference.length) {
                 result &= item.reference && this.bookmarksFilter.reference.includes(item.reference.id);
             }
             if (this.bookmarksFilter.startIndex) {
