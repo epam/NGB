@@ -110,12 +110,16 @@ export class FeatureCountsTrack extends GENETrack {
             this.cache.sources = this.transformer
                 .getSourcesInfo(data, this.state.selectedSources) || {};
             this.state.sources = (this.cache.sources.sources || []).slice();
+            if (this.fcSourcesManager) {
+                this.fcSourcesManager.registerSource(...this.state.sources);
+            }
         }
     }
 
     constructor(opts) {
         super(opts);
         this._actions = null;
+        this.fcSourcesManager = opts.fcSourcesManager;
         this.transformer.registerGroupAutoScaleManager(opts.groupAutoScaleManager, this);
         this.barChartRenderer.registerGroupAutoScaleManager(opts.groupAutoScaleManager);
         this.barChartRenderer.registerFCSourcesManager(opts.fcSourcesManager);
@@ -214,6 +218,8 @@ export class FeatureCountsTrack extends GENETrack {
                     .getCoordinateSystem(this.viewport, this.cache, this.state);
                 this.barChartRenderer.showPlaceholder = this.transformer
                     .isHistogramDrawingModeForViewport(this.viewport, this.cache);
+                this.barChartRenderer.grayScaleColors = this.state.grayScaleColors;
+                this.barChartRenderer.singleColors = this.state.singleBarChartColors;
                 this.barChartRenderer.visibleSources = this.state.selectedSources;
                 this.barChartRenderer.render(
                     this.viewport,

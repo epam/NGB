@@ -1,6 +1,26 @@
+import {getDivider} from '../../../utilities/menu';
 import {displayModes} from '../modes';
 
+const colorsConfigAvailable = (state, tracks, track) => state.featureCountsDisplayMode === displayModes.barChart &&
+    track.fcSourcesManager &&
+    track.fcSourcesManager.sources.length > 1;
+
 export default {
+    displayAdditionalName: state => {
+        if (state.featureCountsDisplayMode === displayModes.barChart) {
+            const parts = [];
+            if (state.singleBarChartColors) {
+                parts.push('Single color');
+            }
+            if (state.grayScaleColors) {
+                parts.push('Grayscale');
+            }
+            if (parts.length > 0) {
+                return parts.join('/');
+            }
+        }
+        return undefined;
+    },
     displayName: state => {
         switch (state.featureCountsDisplayMode) {
             case displayModes.features:
@@ -25,6 +45,25 @@ export default {
             isEnabled: state => state.featureCountsDisplayMode === displayModes.barChart,
             label: 'Bar Graph',
             name: 'featurecounts>display>barchart',
+            type: 'checkbox'
+        },
+        getDivider({isVisible: colorsConfigAvailable}),
+        {
+            disable: state => state.singleBarChartColors = false,
+            enable: state => state.singleBarChartColors = true,
+            isEnabled: state => !!state.singleBarChartColors,
+            isVisible: colorsConfigAvailable,
+            label: 'Use single color for sources',
+            name: 'featurecounts>display>singleColor',
+            type: 'checkbox'
+        },
+        {
+            disable: state => state.grayScaleColors = false,
+            enable: state => state.grayScaleColors = true,
+            isEnabled: state => !!state.grayScaleColors,
+            isVisible: colorsConfigAvailable,
+            label: 'Use grayscale',
+            name: 'featurecounts>display>grayscale',
             type: 'checkbox'
         }
     ],

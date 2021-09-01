@@ -1,3 +1,4 @@
+import {ColorProcessor} from '../../../../../utilities';
 import CoordinateSystem from '../../../../common/coordinateSystemRenderer';
 import PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../../core';
@@ -13,17 +14,21 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         this.config = config;
         this.dataContainer = new PIXI.Container();
         this.graphics = new PIXI.Graphics();
+        this.lineGraphics = new PIXI.Graphics();
         this.hoveredGraphics = new PIXI.Graphics();
+        this.hoveredLineGraphics = new PIXI.Graphics();
         this.dataContainer.addChild(this.graphics);
         this.dataContainer.addChild(this.hoveredGraphics);
+        this.dataContainer.addChild(this.lineGraphics);
+        this.dataContainer.addChild(this.hoveredLineGraphics);
         this.coordinateSystemRenderer = new CoordinateSystem(track);
         this.sourceNameLabel = new PIXI.Text(source, config.barChart.title);
         this.sourceNameLabel.resolution = drawingConfiguration.resolution;
         this.background = new PIXI.Graphics();
         this.groupAutoScaleIndicator = new PIXI.Graphics();
         this.addChild(this.background);
-        this.addChild(this.coordinateSystemRenderer);
         this.addChild(this.dataContainer);
+        this.addChild(this.coordinateSystemRenderer);
         this.addChild(this.sourceNameLabel);
         this.addChild(this.groupAutoScaleIndicator);
         this.featurePositions = [];
@@ -147,26 +152,40 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             viewport,
             data,
             coordinateSystem,
-            {...(options || {}), graphics: this.graphics}
+            {
+                ...(options || {}),
+                graphics: this.graphics,
+                lineGraphics: this.lineGraphics
+            }
         );
     }
 
     renderFeatures (viewport, data, coordinateSystem, options) {
         const {
             graphics,
+            lineGraphics,
             height = 0,
             features = [],
-            hovered = false
+            hovered = false,
+            singleColors = false,
+            grayScaleColors = false
         } = options || {};
+        const colorOptions = {
+            hovered,
+            singleColor: singleColors,
+            grayScale: grayScaleColors
+        };
         const color = this.fcSourcesManager
-            ? this.fcSourcesManager.getColorConfiguration(this.source)
+            ? this.fcSourcesManager.getColorConfiguration(this.source, colorOptions)
             : this.config.barChart.bar;
-        const fillOpacity = hovered ? 0.5 : 0.33;
-        const strokeOpacity = hovered ? 0.8 : 0.4;
+        const borderColor = this.fcSourcesManager
+            ? this.fcSourcesManager.getColorConfiguration(this.source, {...colorOptions, border: true})
+            : ColorProcessor.darkenColor(this.config.barChart.bar);
         if (!graphics) {
             return;
         }
         graphics.clear();
+        lineGraphics.clear();
         if (!data || !coordinateSystem) {
             return;
         }
@@ -222,7 +241,7 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             }
             const height = y2 - y1;
             graphics
-                .beginFill(color, fillOpacity)
+                .beginFill(color, 1)
                 .lineStyle(0, 0x0, 0)
                 .drawRect(
                     x1,
@@ -230,8 +249,9 @@ export default class BarChartSourceRenderer extends PIXI.Container {
                     x2 - x1,
                     height
                 )
-                .endFill()
-                .lineStyle(1, color, strokeOpacity)
+                .endFill();
+            lineGraphics
+                .lineStyle(1, borderColor, 1)
                 .moveTo(x1, y2)
                 .lineTo(x1, y1)
                 .lineTo(x2, y1)
@@ -259,6 +279,7 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             {
                 ...(options || {}),
                 graphics: this.hoveredGraphics,
+                lineGraphics: this.hoveredLineGraphics,
                 hovered: true
             }
         );

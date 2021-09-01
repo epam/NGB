@@ -61,6 +61,22 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
         this.background.visible = !showPlaceholder;
     }
 
+    get singleColors () {
+        return this._singleColors;
+    }
+
+    set singleColors (singleColors) {
+        this._singleColors = singleColors;
+    }
+
+    get grayScaleColors () {
+        return this._grayScaleColors;
+    }
+
+    set grayScaleColors (grayScaleColors) {
+        this._grayScaleColors = grayScaleColors;
+    }
+
     get sourcesCount () {
         return this.sourceRenderers.length;
     }
@@ -331,7 +347,9 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
                     items,
                     coordinateSystem,
                     {
-                        height: this.subTrackHeight
+                        height: this.subTrackHeight,
+                        singleColors: this.singleColors,
+                        grayScaleColors: this.grayScaleColors
                     }
                 );
             }
@@ -362,7 +380,9 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
                         item ? item.feature : undefined,
                         cache ? cache.coordinateSystem : undefined,
                         {
-                            height: this.subTrackHeight
+                            height: this.subTrackHeight,
+                            singleColors: this.singleColors,
+                            grayScaleColors: this.grayScaleColors
                         }
                     );
                 }
