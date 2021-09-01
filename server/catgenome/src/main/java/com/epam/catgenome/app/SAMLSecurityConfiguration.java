@@ -153,21 +153,21 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${saml.validate.url.without.scheme:false}")
     private boolean samlValidateUrlWithoutScheme;
 
-    @Value("${saml.lb.enabled:false")
+    @Value("${saml.lb.enabled:false}")
     private boolean loadBalancerEnabled;
 
     /**
      * Optional Load balancer configuration
      */
-    @Value("${saml.lb.scheme:")
+    @Value("${saml.lb.scheme:}")
     private String loadBalancerScheme;
-    @Value("${saml.lb.server.name:")
+    @Value("${saml.lb.server.name:}")
     private String loadBalancerServerName;
-    @Value("${saml.lb.include.port.in.request:false")
+    @Value("${saml.lb.include.port.in.request:false}")
     private boolean loadBalancerIncludeServerPortInRequestURL;
-    @Value("${saml.lb.server.port:443")
+    @Value("${saml.lb.server.port:443}")
     private int loadBalancerServerPort;
-    @Value("${saml.lb.context.path:")
+    @Value("${saml.lb.context.path:}")
     private String loadBalancerContextPath;
 
     @Autowired
