@@ -1,7 +1,80 @@
+1	|	all	|		|	synonym	|
+1	|	root	|		|	scientific name	|
+2	|	Bacteria	|	Bacteria <bacteria>	|	scientific name	|
+2	|	bacteria	|		|	blast name	|
+2	|	eubacteria	|		|	genbank common name	|
+2	|	Monera	|	Monera <bacteria>	|	in-part	|
+2	|	Procaryotae	|	Procaryotae <bacteria>	|	in-part	|
+2	|	Prokaryotae	|	Prokaryotae <bacteria>	|	in-part	|
+2	|	Prokaryota	|	Prokaryota <bacteria>	|	in-part	|
+2	|	prokaryote	|	prokaryote <bacteria>	|	in-part	|
+2	|	prokaryotes	|	prokaryotes <bacteria>	|	in-part	|
+6	|	Azorhizobium Dreyfus et al. 1988 emend. Lang et al. 2013	|		|	authority	|
+6	|	Azorhizobium	|		|	scientific name	|
+7	|	ATCC 43989	|	ATCC 43989 <type strain>	|	type material	|
+7	|	Azorhizobium caulinodans Dreyfus et al. 1988	|		|	authority	|
+7	|	Azorhizobium caulinodans	|		|	scientific name	|
+7	|	Azotirhizobium caulinodans	|		|	equivalent name	|
+7	|	CCUG 26647	|	CCUG 26647 <type strain>	|	type material	|
+7	|	DSM 5975	|	DSM 5975 <type strain>	|	type material	|
+7	|	IFO 14845	|	IFO 14845 <type strain>	|	type material	|
+7	|	JCM 20966	|	JCM 20966 <type strain>	|	type material	|
+7	|	LMG 6465	|	LMG 6465 <type strain>	|	type material	|
+7	|	LMG:6465	|	LMG:6465 <type strain>	|	type material	|
+7	|	NBRC 14845	|	NBRC 14845 <type strain>	|	type material	|
+7	|	ORS 571	|	ORS 571 <type strain>	|	type material	|
+9	|	Acyrthosiphon pisum symbiont P	|		|	includes	|
+9	|	Buchnera aphidicola Munson et al. 1991	|		|	authority	|
+9	|	Buchnera aphidicola	|		|	scientific name	|
+9	|	primary endosymbiont of Schizaphis graminum	|		|	includes	|
+10	|	Cellvibrio (ex Winogradsky 1929) Blackall et al. 1986 emend. Humphry et al. 2003	|		|	authority	|
+10	|	Cellvibrio (ex Winogradsky 1929) Blackall et al. 1986 emend. Suarez et al. 2014	|		|	authority	|
+10	|	Cellvibrio	|		|	scientific name	|
+10	|	"Cellvibrio" Winogradsky 1929	|		|	authority	|
+11	|	ATCC 13127	|	ATCC 13127 <type strain>	|	type material	|
+11	|	"Cellulomonas gilvus" (Hulcher and King 1958) Christopherson et al. 2013	|		|	authority	|
+11	|	Cellulomonas gilvus	|		|	scientific name	|
+11	|	"Cellvibrio gilvus" Hulcher and King 1958	|		|	authority	|
+11	|	Cellvibrio gilvus	|		|	synonym	|
+11	|	culture-collection:NRRL:B:14078	|	culture-collection:NRRL:B:14078 <type strain>	|	type material	|
+11	|	NRRL B-14078	|	NRRL B-14078 <type strain>	|	type material	|
+13	|	Dictyoglomus Saiki et al. 1985	|		|	authority	|
+13	|	Dictyoglomus	|		|	scientific name	|
+14	|	ATCC 35947	|	ATCC 35947 <type strain>	|	type material	|
+14	|	Dictyoglomus thermophilum Saiki et al. 1985	|		|	authority	|
+14	|	Dictyoglomus thermophilum	|		|	scientific name	|
+14	|	DSM 3960	|	DSM 3960 <type strain>	|	type material	|
+14	|	strain H-6-12	|	strain H-6-12 <type strain>	|	type material	|
+16	|	Methyliphilus	|		|	equivalent name	|
+16	|	Methylophilus Jenkins et al. 1987	|		|	authority	|
+16	|	Methylophilus	|		|	scientific name	|
+17	|	ATCC 53528	|	ATCC 53528 <type strain>	|	type material	|
+17	|	culture-collection:VKM:B:1623	|	culture-collection:VKM:B:1623 <type strain>	|	type material	|
+17	|	DSM 46235	|	DSM 46235 <type strain>	|	type material	|
+17	|	LMG 6787	|	LMG 6787 <type strain>	|	type material	|
+17	|	LMG:6787	|	LMG:6787 <type strain>	|	type material	|
+17	|	Methyliphilus methylitrophus	|		|	equivalent name	|
+17	|	Methyliphilus methylotrophus	|		|	equivalent name	|
+17	|	Methylophilus methylitrophus	|		|	equivalent name	|
+17	|	Methylophilus methylotrophus Jenkins et al. 1987	|		|	authority	|
+17	|	Methylophilus methylotrophus	|		|	scientific name	|
+17	|	Methylophilus sp. CBMB147	|		|	includes	|
+17	|	Methylotrophus methylophilus	|		|	synonym	|
+17	|	NCIB 10515	|	NCIB 10515 <type strain>	|	type material	|
+17	|	NCIB:10515	|	NCIB:10515 <type strain>	|	type material	|
+17	|	NCIMB 10515	|	NCIMB 10515 <type strain>	|	type material	|
+17	|	VKM B-1623	|	VKM B-1623 <type strain>	|	type material	|
+18	|	Pelobacter Schink and Pfennig 1983	|		|	authority	|
+18	|	Pelobacter	|		|	scientific name	|
+19	|	DSM 2380	|	DSM 2380 <type strain>	|	type material	|
+19	|	NBRC 103641	|	NBRC 103641 <type strain>	|	type material	|
+19	|	Pelobacter carbinolicus Schink 1984	|		|	authority	|
+19	|	Pelobacter carbinolicus	|		|	synonym	|
+19	|	strain Gra Bd 1	|	strain Gra Bd 1 <type strain>	|	type material	|
+19	|	Syntrophotalea carbinolica (Schink 1984) Waite et al. 2020	|		|	authority	|
+19	|	Syntrophotalea carbinolica	|		|	scientific name	|
 20	|	Phenylobacterium Lingens et al. 1985 emend. Abraham et al. 2008	|		|	authority	|
 20	|	Phenylobacterium Lingens et al. 1985 emend. Kanso and Patel 2004	|		|	authority	|
 20	|	Phenylobacterium Lingens et al. 1985 emend. Oh and Roh 2012	|		|	authority	|
 20	|	Phenylobacterium Lingens et al. 1985 emend. Tiago et al. 2005	|		|	authority	|
 20	|	Phenylobacterium	|		|	scientific name	|
-9598	|	chimpanzee	|		|	genbank common name	|
-9598	|	Pan troglodytes	|		|	scientific name	|
