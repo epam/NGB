@@ -29,8 +29,7 @@ export default class ngbMainSettingsDlgController {
         this.moment = moment;
 
         this.tokenValidDate = this.moment().add(1, 'month').toDate();
-        // this.highlightProfileList = projectContext.getTrackDefaultSettings('interest_profiles');
-        this.highlightProfileList = [];
+        this.highlightProfileList = projectContext.getTrackDefaultSettings('interest_profiles');
 
         utilsDataService.isRoleModelEnabled().then(res => {
             this.isRoleModelEnabled = res;
