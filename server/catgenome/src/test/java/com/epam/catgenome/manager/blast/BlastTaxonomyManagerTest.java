@@ -77,7 +77,7 @@ public class BlastTaxonomyManagerTest extends TestCase {
 
     @Test
     public void searchOrganismsByIdTest() {
-        BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(6L);
+        BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(9598);
         assertNotNull(organism);
     }
 

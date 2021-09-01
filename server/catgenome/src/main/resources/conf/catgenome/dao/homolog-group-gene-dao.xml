@@ -30,6 +30,13 @@
                 ]]>
             </value>
         </property>
+        <property name="loadGroupIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT distinct group_id FROM catgenome.homolog_group_gene
+                ]]>
+            </value>
+        </property>
         <property name="loadQuery">
             <value>
                 <![CDATA[
