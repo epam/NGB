@@ -29,3 +29,14 @@ ngb-bookmarks-table {
     background-color: #dcffe7;
   }
 }
+
+.bookmarks-empty-result-container {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.25;
+  font-size: 3em;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+}

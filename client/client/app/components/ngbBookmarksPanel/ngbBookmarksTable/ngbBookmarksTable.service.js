@@ -206,7 +206,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                 result &= item.name.includes(this.bookmarksFilter.name);
             }
             if (this.bookmarksFilter.description) {
-                result &= item.description.includes(this.bookmarksFilter.description);
+                result &= item.description && item.description.includes(this.bookmarksFilter.description);
             }
             if (this.bookmarksFilter.chromosome) {
                 result &= item.chromosome && this.bookmarksFilter.chromosome.includes(item.chromosome.id);
@@ -221,7 +221,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                 result &= item.endIndex <= this.bookmarksFilter.endIndex;
             }
             if (this.bookmarksFilter.owner) {
-                result &= item.owner.includes(this.bookmarksFilter.owner);
+                result &= item.owner && item.owner.includes(this.bookmarksFilter.owner);
             }
             return !!result;
         };

@@ -10,7 +10,7 @@ export default class ngbBookmarksTableFilterController {
                 this.list = projectContext.chromosomes.map(d => d.name.toUpperCase());
                 break;
             }
-            case 'reference': {
+            case 'reference.name': {
                 this.isList = true;
                 this.list = projectContext.references.map(d => d.name.toUpperCase());
                 break;

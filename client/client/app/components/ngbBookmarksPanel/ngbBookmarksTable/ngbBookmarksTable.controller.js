@@ -78,6 +78,9 @@ export default class ngbBookmarksTableController extends baseController {
             this.gridOptions.totalItems = bookmarks.length;
             this.isNothingFound = false;
         } else {
+            this.resultTableError = null;
+            this.gridOptions.data = [];
+            this.gridOptions.totalItems = 0;
             this.isNothingFound = true;
         }
         if (this.projectContext.reference) {
@@ -137,7 +140,7 @@ export default class ngbBookmarksTableController extends baseController {
 
     restoreState() {
         this.ngbBookmarksTableService.orderByBookmarks = null;
-        this.ngbBookmarksTableService.clearGenesFilter();
+        this.ngbBookmarksTableService.clearBookmarksFilter();
         this.ngbBookmarksTableService.setDisplayBookmarksFilter(false, false);
         if (!this.gridApi || !this.defaultState) {
             return;

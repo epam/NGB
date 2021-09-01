@@ -5,14 +5,10 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div layout="row" class="golden-layout-content-0" layout-fill>
-    <div ng-if="$ctrl.isNothingFound" flex class="project-not-selected-warning">
-        <span ng-if="$ctrl.searchPattern && $ctrl.searchPattern.length">Sessions not found for <strong>{{$ctrl.searchPattern}}</strong></span>
-        <span ng-if="!$ctrl.searchPattern || !$ctrl.searchPattern.length">Sessions not found</span>
-    </div>
     <div class="variants-load-error-container" ng-if="$ctrl.resultTableError">
         <small>{{$ctrl.resultTableError}}</small>
     </div>
-    <div class="ui-grid-container" ng-if="$ctrl.isDataLoaded && !$ctrl.isNothingFound && !$crtl.resultTableError">
+    <div class="ui-grid-container" ng-if="$ctrl.isDataLoaded && !$ctrl.resultTableError">
         <div ui-grid="$ctrl.gridOptions"
              ui-grid-selection
              ui-grid-pagination
@@ -21,5 +17,12 @@
              ui-grid-move-columns
              ng-class="{'filters-not-displayed': !$ctrl.ngbBookmarksTableService.displayBookmarksFilter}"
         ></div>
+        <div class="bookmarks-empty-result-container"
+             ng-if="$ctrl.isNothingFound">
+            <md-content class="no-records-warning"
+                        flex>
+                <span>Sessions not found.</span>
+            </md-content>
+        </div>
     </div>
 </div>
