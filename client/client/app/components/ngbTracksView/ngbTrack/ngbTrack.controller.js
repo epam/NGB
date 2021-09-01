@@ -354,6 +354,26 @@ export default class ngbTrackController {
             .setTrackIsSelected(this.track, this.browserId, value);
     }
 
+    trackSelectionChanged(event) {
+        const trackIsSelected = this.trackIsSelected;
+        const {shiftKey, ctrlKey, metaKey} = event;
+        if (shiftKey && (ctrlKey || metaKey)) {
+            !trackIsSelected
+                ? this.selectionContext.selectAll(this.browserId)
+                : this.selectionContext.clearSelection(this.browserId);
+        } else if (shiftKey) {
+            this.selectionContext
+                .setTracksOfTypeAreSelected(
+                    this.track ? this.track.format : undefined,
+                    this.browserId,
+                    !trackIsSelected
+                );
+        } else {
+            this.selectionContext
+                .setTrackIsSelected(this.track, this.browserId, !trackIsSelected);
+        }
+    }
+
     changeTrackHeight(newHeight) {
         this.trackInstance.height = newHeight;
         this.track.height = this.trackInstance.height;

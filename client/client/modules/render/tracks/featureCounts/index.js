@@ -178,6 +178,20 @@ export class FeatureCountsTrack extends GENETrack {
         return super.hoverItem(items, isHistogram);
     }
 
+    getTooltipDataObject(isHistogram, geneData) {
+        if (this.barChartDisplayMode && !isHistogram && geneData && geneData.length > 0) {
+            const [item] = geneData;
+            if (item.sourceValue) {
+                const info = super.getTooltipDataObject(isHistogram, geneData) || [];
+                return [
+                    ['Features count', item.sourceValue],
+                    ...info
+                ];
+            }
+        }
+        return super.getTooltipDataObject(isHistogram, geneData);
+    }
+
     render (flags) {
         let somethingChanged = super.render(flags);
         if (flags.renderReset) {

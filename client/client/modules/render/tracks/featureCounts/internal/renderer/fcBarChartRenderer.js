@@ -362,14 +362,7 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
                         item ? item.feature : undefined,
                         cache ? cache.coordinateSystem : undefined,
                         {
-                            height: this.subTrackHeight,
-                            yPositionCorrection: y => Math.max(
-                                -renderer.y - this.dataContainer.y,
-                                Math.min(
-                                    this.height - renderer.y - this.dataContainer.y,
-                                    y
-                                )
-                            )
+                            height: this.subTrackHeight
                         }
                     );
                 }

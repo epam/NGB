@@ -130,12 +130,13 @@ export class FeatureCountsTransformer extends GeneTransformer {
                     extendRatio = 0.2
                 } = options;
                 if (log) {
+                    const log10 = o => o > 0 ? Math.log10(o) : 0;
                     return {
                         minimum: extendMinimum
-                            ? (10 ** (Math.floor(Math.log10(minimum)) - extendRatio))
+                            ? (10 ** (Math.floor(log10(minimum)) - extendRatio))
                             : minimum,
                         maximum: extendMaximum
-                            ? (10 ** (Math.ceil(Math.log10(maximum)) + extendRatio))
+                            ? (10 ** (Math.ceil(log10(maximum)) + extendRatio))
                             : maximum
                     };
                 } else {
@@ -169,8 +170,8 @@ export class FeatureCountsTransformer extends GeneTransformer {
                             coverageScaleFrom,
                             coverageScaleTo,
                             {
-                                minimum: log,
-                                maximum: log,
+                                minimum: false,
+                                maximum: false,
                                 log
                             }
                         ),

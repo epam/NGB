@@ -1,30 +1,9 @@
+import CoordinateSystem from '../../../../common/coordinateSystemRenderer';
 import PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../../core';
-import ScaleRenderer from './scale-renderer';
 import ensureEmptyValue from '../../../../../utilities/ensureEmptyValue';
 
 const white = 0xffffff;
-
-const getConverter = (coordinateSystem, height) => (value) => {
-    if (coordinateSystem) {
-        if (coordinateSystem.log && value === -Infinity) {
-            return 0;
-        }
-        const {
-            minimum: min = 0,
-            maximum: max = 1,
-            log = false
-        } = coordinateSystem;
-        const convert = o => log ? (o > 0 ? Math.log10(o) : 0) : o;
-        const minimum = convert(min);
-        const maximum = convert(max);
-        const range = maximum - minimum;
-        if (range > 0) {
-            return (convert(value) - minimum) / range * height;
-        }
-    }
-    return 0;
-};
 
 export default class BarChartSourceRenderer extends PIXI.Container {
     constructor(track, config, source) {
@@ -33,25 +12,19 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         this.track = track;
         this.config = config;
         this.dataContainer = new PIXI.Container();
-        this.tooltipContainer = new PIXI.Container();
         this.graphics = new PIXI.Graphics();
         this.hoveredGraphics = new PIXI.Graphics();
-        this.tooltipGraphics = new PIXI.Graphics();
-        this.tooltips = new PIXI.Container();
         this.dataContainer.addChild(this.graphics);
         this.dataContainer.addChild(this.hoveredGraphics);
-        this.tooltipContainer.addChild(this.tooltipGraphics);
-        this.tooltipContainer.addChild(this.tooltips);
-        this.scaleRenderer = new ScaleRenderer(track, config);
+        this.coordinateSystemRenderer = new CoordinateSystem(track);
         this.sourceNameLabel = new PIXI.Text(source, config.barChart.title);
         this.sourceNameLabel.resolution = drawingConfiguration.resolution;
         this.background = new PIXI.Graphics();
         this.groupAutoScaleIndicator = new PIXI.Graphics();
         this.addChild(this.background);
-        this.addChild(this.scaleRenderer);
+        this.addChild(this.coordinateSystemRenderer);
         this.addChild(this.dataContainer);
         this.addChild(this.sourceNameLabel);
-        this.addChild(this.tooltipContainer);
         this.addChild(this.groupAutoScaleIndicator);
         this.featurePositions = [];
     }
@@ -97,14 +70,10 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         if (!drawScope) {
             this.dataContainer.x = 0;
             this.dataContainer.scale.x = 1;
-            this.tooltipContainer.x = 0;
-            this.tooltipContainer.scale.x = 1;
             return;
         }
         this.dataContainer.x = drawScope.containerTranslateFactor * drawScope.scaleFactor;
         this.dataContainer.scale.x = drawScope.scaleFactor;
-        this.tooltipContainer.x = this.dataContainer.x;
-        this.tooltipContainer.scale.x = this.dataContainer.scale.x;
     }
 
     renderGroupAutoScaleIndicator(coordinateSystem, height) {
@@ -130,6 +99,16 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         }
     }
 
+    getDrawingArea = (height) => {
+        const top = ensureEmptyValue(this.config.barChart.margin.top);
+        const bottom = height - ensureEmptyValue(this.config.barChart.margin.bottom);
+        return {
+            top,
+            bottom,
+            height: bottom - top
+        };
+    };
+
     render (viewport, data, coordinateSystem, options) {
         this.featurePositions = [];
         this.translate();
@@ -146,33 +125,24 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             )
             .endFill();
         const barChartConfig = this.config.barChart || {};
-        this.sourceNameLabel.x = Math.round(
-            ensureEmptyValue(barChartConfig.scale.axis.margin) +
-            ensureEmptyValue(barChartConfig.title.margin)
-        );
-        this.sourceNameLabel.y = Math.round(
-            ensureEmptyValue(this.config.barChart.margin.top) +
-            ensureEmptyValue(barChartConfig.title.margin)
-        );
-        const drawingHeight = height -
-            ensureEmptyValue(this.config.barChart.margin.top) -
-            ensureEmptyValue(this.config.barChart.margin.bottom);
-        const scaleDrawingHeight = height -
-            ensureEmptyValue(this.config.barChart.margin.top) -
-            ensureEmptyValue(this.config.barChart.margin.bottom) -
-            2.0 * ensureEmptyValue(barChartConfig.title.margin) -
-            this.sourceNameLabel.height;
-        const convertSourceValueToPixel = getConverter(coordinateSystem, drawingHeight);
-        this.scaleRenderer.render(
+        const {top, bottom, height: drawingHeight} = this.getDrawingArea(height);
+        this.sourceNameLabel.x = Math.round(ensureEmptyValue(barChartConfig.title.margin));
+        this.sourceNameLabel.y = Math.round(top + ensureEmptyValue(barChartConfig.title.margin));
+        this.coordinateSystemRenderer.render(
             viewport,
             coordinateSystem,
-            scaleDrawingHeight,
-            convertSourceValueToPixel
+            drawingHeight,
+            {
+                yBoundaries: {
+                    top: this.sourceNameLabel.y +
+                        this.sourceNameLabel.height +
+                        ensureEmptyValue(barChartConfig.title.margin) -
+                        top
+                }
+            }
         );
-        this.scaleRenderer.x = 0;
-        this.scaleRenderer.y = ensureEmptyValue(barChartConfig.margin.top) +
-            2.0 * ensureEmptyValue(barChartConfig.title.margin) +
-            this.sourceNameLabel.height;
+        this.coordinateSystemRenderer.x = 0;
+        this.coordinateSystemRenderer.y = bottom - drawingHeight;
         this.featurePositions = this.renderFeatures(
             viewport,
             data,
@@ -186,17 +156,13 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             graphics,
             height = 0,
             features = [],
-            hovered = false,
-            tooltip = false,
-            yPositionCorrection = (o => o)
+            hovered = false
         } = options || {};
         const color = this.fcSourcesManager
             ? this.fcSourcesManager.getColorConfiguration(this.source)
             : this.config.barChart.bar;
         const fillOpacity = hovered ? 0.5 : 0.33;
         const strokeOpacity = hovered ? 0.8 : 0.4;
-        this.tooltipGraphics.clear();
-        this.tooltips.removeChildren();
         if (!graphics) {
             return;
         }
@@ -208,16 +174,8 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         const bottom = height - ensureEmptyValue(this.config.barChart.margin.bottom);
         const correctYPosition = o => Math.max(top, Math.min(bottom, o));
         const drawingHeight = bottom - top;
-        const convertSourceValueToPixel = getConverter(coordinateSystem, drawingHeight);
-        const baseLine = correctYPosition(
-            ensureEmptyValue(this.config.barChart.margin.top) +
-                drawingHeight -
-                convertSourceValueToPixel(
-                    coordinateSystem && coordinateSystem.log
-                        ? -Infinity
-                        : 0
-                )
-        );
+        const convertSourceValueToPixel = CoordinateSystem.getConverter(coordinateSystem, drawingHeight);
+        const baseLine = top + CoordinateSystem.getBaseLine(coordinateSystem, drawingHeight);
         const featurePositions = [];
         for (let i = 0; i < (data || []).length; i++) {
             const item = data[i];
@@ -243,21 +201,26 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             let x2 = viewport.project.brushBP2pixel(item.endIndex + 0.5);
             x1 = Math.floor(Math.max(x1, -viewport.canvasSize));
             x2 = Math.ceil(Math.min(x2, 2 * viewport.canvasSize));
-            const yValue = drawingHeight - convertSourceValueToPixel(value);
-            const y1 = correctYPosition(Math.min(baseLine, yValue));
-            const y2 = correctYPosition(Math.max(baseLine, yValue));
+            const yValue = bottom - convertSourceValueToPixel(value);
+            if (Math.abs(baseLine - yValue) === 0) {
+                continue;
+            }
             if (
                 coordinateSystem &&
                 coordinateSystem.log &&
-                y1 >= baseLine &&
-                y2 >= baseLine
+                yValue >= baseLine
             ) {
                 continue;
             }
-            const height = y2 - y1;
-            if (height === 0) {
-                continue;
+            let y1, y2;
+            if (yValue < baseLine) {
+                y1 = Math.floor(correctYPosition(Math.min(yValue, baseLine - 1))); // ensure 1px height
+                y2 = Math.floor(baseLine);
+            } else {
+                y1 = Math.ceil(baseLine);
+                y2 = Math.ceil(correctYPosition(Math.max(yValue, baseLine + 1))); // ensure 1px height
             }
+            const height = y2 - y1;
             graphics
                 .beginFill(color, fillOpacity)
                 .lineStyle(0, 0x0, 0)
@@ -273,52 +236,6 @@ export default class BarChartSourceRenderer extends PIXI.Container {
                 .lineTo(x1, y1)
                 .lineTo(x2, y1)
                 .lineTo(x2, y2);
-            if (tooltip) {
-                const tooltipConfig = this.config.barChart.hoveredItemInfo;
-                const tooltipLabel = new PIXI.Text(
-                    item.name ? `${item.name}: ${value}` : `${value}`,
-                    tooltipConfig.label
-                );
-                tooltipLabel.resolution = drawingConfiguration.resolution;
-                this.tooltips.addChild(tooltipLabel);
-                const tooltipX = Math.round(
-                    Math.max(
-                        -this.dataContainer.x +
-                        ensureEmptyValue(tooltipConfig.padding),
-                        Math.min(
-                            viewport.canvasSize -
-                            this.dataContainer.x -
-                            ensureEmptyValue(tooltipConfig.padding) -
-                            tooltipLabel.width,
-                            (x1 + x2) / 2.0 - tooltipLabel.width / 2.0
-                        )
-                    )
-                );
-                const tooltipY2 = yPositionCorrection(
-                    y1 -
-                    ensureEmptyValue(tooltipConfig.padding) -
-                    ensureEmptyValue(tooltipConfig.margin)
-                );
-                const tooltipY1 = Math.round(
-                    yPositionCorrection(
-                        tooltipY2 -
-                        tooltipLabel.height -
-                        ensureEmptyValue(tooltipConfig.padding)
-                    ) + ensureEmptyValue(tooltipConfig.padding)
-                );
-                tooltipLabel.x = tooltipX;
-                tooltipLabel.y = tooltipY1;
-                this.tooltipGraphics
-                    .beginFill(tooltipConfig.background.fill, tooltipConfig.background.opacity)
-                    .lineStyle(1, tooltipConfig.background.stroke, 1)
-                    .drawRect(
-                        tooltipX - ensureEmptyValue(tooltipConfig.padding),
-                        tooltipY1 - ensureEmptyValue(tooltipConfig.padding),
-                        tooltipLabel.width + 2.0 * ensureEmptyValue(tooltipConfig.padding),
-                        tooltipLabel.height + 2.0 * ensureEmptyValue(tooltipConfig.padding)
-                    )
-                    .endFill();
-            }
             featurePositions.push({
                 feature: item,
                 source: this.source,
@@ -342,7 +259,6 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             {
                 ...(options || {}),
                 graphics: this.hoveredGraphics,
-                tooltip: true,
                 hovered: true
             }
         );

@@ -17,8 +17,9 @@
         <input
                 ng-if="ctrl.selectable"
                 type="checkbox"
-                ng-model="ctrl.trackIsSelected"
                 dnd-nodrag
+                ng-checked="ctrl.trackIsSelected"
+                ng-click="ctrl.trackSelectionChanged($event)"
         />
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
         <input

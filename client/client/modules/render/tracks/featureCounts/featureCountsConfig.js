@@ -13,35 +13,6 @@ export default {
             font: 'bold 8pt arial',
             margin: 2
         },
-        scale: {
-            axis: {
-                color: 0x666666,
-                margin: 5
-            },
-            tick: {
-                axis: {
-                    color: 0x666666,
-                    opacity: 0.125
-                },
-                label: {
-                    fill: 0x666666,
-                    font: 'normal 6pt arial',
-                },
-                margin: 2,
-                heightPx: 40
-            },
-            log: {
-                fill: 0xfafafa,
-                opacity: 0.8,
-                stroke: 0xaaaaaa,
-                label: {
-                    fill: 0x666666,
-                    font: 'normal 6pt arial',
-                },
-                padding: 2,
-                margin: 2
-            }
-        },
         margin: {
             top: 0,
             bottom: 0

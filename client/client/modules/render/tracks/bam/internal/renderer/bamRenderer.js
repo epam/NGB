@@ -6,12 +6,12 @@ import {
     RegionsRenderer,
     PlaceholderRenderer,
     SashimiRenderer,
-    renderCenterLine,
     renderDownSampleIndicators,
     renderGroups,
     renderScrollBar,
     renderSpliceJunctions
 } from './features';
+import {renderCenterLine} from '../../../../utilities';
 import CoverageArea from '../../../wig/wigArea.js';
 import PIXI from 'pixi.js';
 import {readsViewTypes} from '../../modes';
@@ -399,7 +399,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     _renderPlaceholders() {
-        let topMargin = this.downsampleIndicatorsTopMargin;
+        const topMargin = this.downsampleIndicatorsTopMargin;
         this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(),
             {
                 height: this._pixiRenderer.height - topMargin, width: this._pixiRenderer.width
