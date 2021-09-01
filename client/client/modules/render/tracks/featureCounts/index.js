@@ -57,6 +57,8 @@ export class FeatureCountsTrack extends GENETrack {
         return [
             'header',
             'featureCountsDisplayMode',
+            'singleBarChartColors',
+            'grayScaleColors',
             'coverageLogScale',
             'coverageScaleMode',
             'coverageScaleFrom',

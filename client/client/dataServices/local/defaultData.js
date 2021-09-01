@@ -58,7 +58,8 @@ export default {
             referenceShowTranslation: false,
             referenceShowForwardStrand: true,
             referenceShowReverseStrand: false,
-            featureCountsDisplayMode: featureCountsDisplayModes.features
+            featureCountsDisplayMode: featureCountsDisplayModes.barChart,
+            singleBarChartColors: true
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
