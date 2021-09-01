@@ -22,9 +22,9 @@ function getDisplayValue (value, base) {
             return `${sign}${Math.floor(unsignedValue / baseValue * postfixBase) / postfixBase}${postfixes[k]}`;
         }
     }
-    const digitsPower = Math.max(0, -Math.floor(Math.log10(unsignedValue)));
+    const digitsPower = Math.max(1, -Math.floor(base), -Math.floor(Math.log10(unsignedValue)));
     const digits = 10 ** digitsPower;
-    if (digitsPower > 0) {
+    if (digitsPower > 3) {
         return `${sign}${Math.floor(unsignedValue * digits)}e-${digitsPower}`;
     }
     return `${sign}${Math.floor(unsignedValue * digits) / digits}`;
