@@ -65,4 +65,5 @@ public class ProjectItemVO {
     // VCF properties
     private List<VcfSample> samples;
     private Map<String, String> metadata;
+    private Integer mask;
 }

@@ -56,4 +56,5 @@ public class ProjectVO {
     private Long parentId;
     private String prettyName;
     private Map<String, String> metadata;
+    private Integer mask;
 }
