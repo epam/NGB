@@ -52,12 +52,6 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 @AllArgsConstructor
 public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
 
-    private static final String GROUP_IDS_QUERY = "select group_id from catgenome.homolog_group " +
-            "where primary_gene_id = %s " +
-            "union " +
-            "select group_id from catgenome.homolog_group_gene " +
-            "where gene_id = %s";
-
     @Autowired
     private DaoHelper daoHelper;
     private String sequenceName;
@@ -114,17 +108,6 @@ public class HomologGroupDao extends NamedParameterJdbcDaoSupport {
     public List<HomologGroup> load(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadQuery, queryParameters);
         return getJdbcTemplate().query(query, GroupParameters.getRowMapper());
-    }
-
-    public List<String> loadGroupIds(final QueryParameters queryParameters, final String geneId) {
-        String query = String.format(GROUP_IDS_QUERY, geneId, geneId);
-        String pageQuery = addParametersToQuery(query, queryParameters);
-        return getJdbcTemplate().queryForList(pageQuery, String.class);
-    }
-
-    public List<String> loadTotalGroupIds(final String geneId) {
-        String query = String.format(GROUP_IDS_QUERY, geneId, geneId);
-        return getJdbcTemplate().queryForList(query, String.class);
     }
 
     enum  GroupParameters{
