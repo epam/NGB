@@ -80,7 +80,8 @@ export default class NgbGenesTableContextMenuController {
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
         const readInfo = {
-            search: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`]
+            search: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`],
+            featureId: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureId`]
         };
         const data = {
             ...readInfo,

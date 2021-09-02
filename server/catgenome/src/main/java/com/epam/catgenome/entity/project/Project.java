@@ -65,6 +65,7 @@ public class Project extends AbstractHierarchicalEntity {
     private List<Project> nestedProjects;
     private Long parentId;
     private List<ProjectNote> notes;
+    private Map<String, String> metadata;
 
     public Project(Long id) {
         super(id);
@@ -141,8 +142,64 @@ public class Project extends AbstractHierarchicalEntity {
         return parentId != null ? new Project(parentId) : null;
     }
 
+    public List<ProjectItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<ProjectItem> items) {
+        this.items = items;
+    }
+
+    public Integer getItemsCount() {
+        return itemsCount;
+    }
+
+    public void setItemsCount(Integer itemsCount) {
+        this.itemsCount = itemsCount;
+    }
+
+    public Map<BiologicalDataItemFormat, Integer> getItemsCountPerFormat() {
+        return itemsCountPerFormat;
+    }
+
+    public void setItemsCountPerFormat(Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
+        this.itemsCountPerFormat = itemsCountPerFormat;
+    }
+
+    public Date getLastOpenedDate() {
+        return lastOpenedDate;
+    }
+
+    public void setLastOpenedDate(Date lastOpenedDate) {
+        this.lastOpenedDate = lastOpenedDate;
+    }
+
+    public List<Project> getNestedProjects() {
+        return nestedProjects;
+    }
+
+    public void setNestedProjects(List<Project> nestedProjects) {
+        this.nestedProjects = nestedProjects;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
     @Override
     public AclClass getAclClass() {
         return  AclClass.PROJECT;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 }

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,9 @@ public class SegFileManager implements SecuredEntityManager {
 
     @Autowired
     private ProjectDao projectDao;
+
+    @Autowired
+    private MetadataManager metadataManager;
 
     /**
      * Saves a {@code SegFile} in the system and extracts and saves samples from the file
@@ -122,6 +126,7 @@ public class SegFileManager implements SecuredEntityManager {
         segFileDao.deleteSegFile(segFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getBioDataItemId());
+        metadataManager.delete(segFile);
     }
 
     @Override

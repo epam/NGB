@@ -32,10 +32,15 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.project.ProjectNote;
+import com.epam.catgenome.entity.metadata.EntityVO;
+import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 import com.epam.catgenome.util.db.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +107,9 @@ public class ProjectManager implements SecuredEntityManager {
     @Autowired
     private AuthManager authManager;
 
+    @Autowired
+    private MetadataManager metadataManager;
+
     /**
      * Loads all top-level projects for current user from the database.
      * Projects are being loaded with single reference item.
@@ -159,6 +167,8 @@ public class ProjectManager implements SecuredEntityManager {
             itemMap = projectDao.loadProjectItemsByProjects(allProjects);
         }
 
+        attachMetadata(allProjects, itemMap);
+
         allProjects.forEach(p -> {
             if (itemMap.containsKey(p.getId())) {
                 p.setItems(new ArrayList<>(itemMap.get(p.getId())));
@@ -175,7 +185,8 @@ public class ProjectManager implements SecuredEntityManager {
             Assert.notNull(topProject,
                     MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, parentId));
             topProject.setNestedProjects(hierarchyMap.get(parentId));
-            return Arrays.asList(topProject);
+            attachMetadataToTopProject(parentId, topProject);
+            return Collections.singletonList(topProject);
         }
         allProjects.forEach(p -> p.setNestedProjects(hierarchyMap.get(p.getId())));
         return hierarchyMap.get(null);
@@ -582,6 +593,7 @@ public class ProjectManager implements SecuredEntityManager {
         projectDao.deleteProjectItems(projectToDelete.getId());
         projectDao.deleteProject(projectToDelete.getId());
         fileManager.deleteProjectDirectory(projectToDelete);
+        metadataManager.delete(projectToDelete.getId(), AclClass.PROJECT.name());
     }
 
     private void deleteNestedProjects(Long projectId) throws IOException {
@@ -644,5 +656,82 @@ public class ProjectManager implements SecuredEntityManager {
                           MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
         }
         return newProject;
+    }
+
+    private void attachMetadata(final List<Project> allProjects, final Map<Long, Set<ProjectItem>> itemMap) {
+        attachMetadataToProjects(allProjects);
+        attachMetadataToItems(itemMap);
+    }
+
+    private void attachMetadataToProjects(List<Project> allProjects) {
+        final Map<EntityVO, MetadataVO> projectsMetadata = metadataManager.getItems(allProjects.stream()
+                .map(project -> EntityVO.builder()
+                        .entityId(project.getId())
+                        .entityClass(project.getAclClass())
+                        .build())
+                .collect(Collectors.toList()));
+        allProjects.forEach(project -> attachMetadataToProject(project, projectsMetadata));
+    }
+
+    private void attachMetadataToProject(final Project project, final Map<EntityVO, MetadataVO> projectMetadata) {
+        final MetadataVO metadataVO = projectMetadata.get(EntityVO.builder()
+                .entityId(project.getId())
+                .entityClass(project.getAclClass())
+                .build());
+
+        if (Objects.isNull(metadataVO)) {
+            return;
+        }
+
+        project.setMetadata(metadataVO.getMetadata());
+    }
+
+    private void attachMetadataToItems(final Map<Long, Set<ProjectItem>> itemMap) {
+        final Map<EntityVO, MetadataVO> projectItemsMetadata = metadataManager.getItems(itemMap.values().stream()
+                .flatMap(Collection::stream)
+                .map(ProjectItem::getBioDataItem)
+                .map(projectItem -> EntityVO.builder()
+                        .entityId(projectItem.getId())
+                        .entityClass(projectItem.getAclClass())
+                        .build())
+                .distinct()
+                .collect(Collectors.toList()));
+        itemMap.values().forEach(items -> SetUtils.emptyIfNull(items).stream()
+                .map(ProjectItem::getBioDataItem)
+                .forEach(item -> attachMetadataToItem(item, projectItemsMetadata)));
+    }
+
+    private void attachMetadataToItem(final BiologicalDataItem item,
+                                      final Map<EntityVO, MetadataVO> projectItemsMetadata) {
+        final MetadataVO metadataVO = projectItemsMetadata.get(EntityVO.builder()
+                .entityId(item.getId())
+                .entityClass(item.getAclClass())
+                .build());
+
+        if (Objects.isNull(metadataVO)) {
+            return;
+        }
+
+        item.setMetadata(metadataVO.getMetadata());
+    }
+
+    private void attachMetadataToTopProject(final Long parentId, final Project topProject) {
+        final MetadataVO parentMetadata = metadataManager.get(parentId, AclClass.PROJECT.name());
+        if (Objects.nonNull(parentMetadata)) {
+            topProject.setMetadata(parentMetadata.getMetadata());
+        }
+
+        final Map<EntityVO, MetadataVO> parentItemsMetadata = metadataManager.getItems(
+                ListUtils.emptyIfNull(topProject.getItems()).stream()
+                        .map(ProjectItem::getBioDataItem)
+                        .map(item -> EntityVO.builder()
+                                .entityId(item.getId())
+                                .entityClass(item.getAclClass())
+                                .build())
+                        .distinct()
+                        .collect(Collectors.toList()));
+        ListUtils.emptyIfNull(topProject.getItems()).stream()
+                .map(ProjectItem::getBioDataItem)
+                .forEach(item -> attachMetadataToItem(item, parentItemsMetadata));
     }
 }

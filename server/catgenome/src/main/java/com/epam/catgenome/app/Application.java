@@ -6,6 +6,8 @@ import com.epam.catgenome.util.NgbSeekableStreamFactory;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -35,6 +37,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         SecurityFilterAutoConfiguration.class,
         FallbackWebSecurityAutoConfiguration.class,
         OAuth2AutoConfiguration.class})
+@Slf4j
 public class Application extends SpringBootServletInitializer {
 
     @Autowired
@@ -78,8 +81,12 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
-    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account}") final String storageAccount,
-                                           @Value("${azure.storage.key}") final String storageKey) {
+    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account:}") final String storageAccount,
+                                           @Value("${azure.storage.key:}") final String storageKey) {
+        if (StringUtils.isEmpty(storageAccount) || StringUtils.isEmpty(storageKey)) {
+            log.debug("Azure authentication is not configured");
+            return new AzureBlobClient();
+        }
         return new AzureBlobClient(storageAccount, storageKey);
     }
 }

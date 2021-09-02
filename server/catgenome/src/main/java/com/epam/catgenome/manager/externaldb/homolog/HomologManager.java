@@ -34,6 +34,8 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.util.db.Filter;
@@ -57,10 +59,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGeneSpeciesNames;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -75,6 +79,8 @@ public class HomologManager {
     private int batchSize;
 
     @Autowired
+    private BlastTaxonomyManager taxonomyManager;
+    @Autowired
     private HomologGroupDao homologGroupDao;
     @Autowired
     private HomologGroupGeneDao homologGroupGeneDao;
@@ -84,35 +90,47 @@ public class HomologManager {
     private NCBIGeneManager ncbiGeneManager;
 
     public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest request)
-            throws IOException, ExternalDbUnavailableException {
+            throws IOException {
         Assert.isTrue(request.getGeneId() != null, "Gene id is required");
 
         final SearchResult<HomologGroup> searchResult = new SearchResult<>();
 
-        NCBIGeneVO gene = ncbiGeneManager.fetchGeneById(request.getGeneId());
-        final QueryParameters groupQueryParams = buildSearchQuery(request);
-        final List<String> groupIds = homologGroupDao.loadGroupIds(groupQueryParams, gene.getGeneId());
+        try {
+            NCBIGeneVO gene = ncbiGeneManager.fetchGeneById(request.getGeneId());
+            final QueryParameters groupQueryParams = buildSearchQuery(request);
+            final List<Filter> geneIdFilters = Collections.singletonList(Filter.builder()
+                    .field("gene_id")
+                    .operator("=")
+                    .value(gene.getGeneId())
+                    .build());
+            groupQueryParams.setFilters(geneIdFilters);
+            final List<String> groupIds = homologGroupGeneDao.loadGroupIds(groupQueryParams);
+            if (!CollectionUtils.isEmpty(groupIds)) {
+                final Filter groupIdsFilter = Filter.builder()
+                        .field("group_id")
+                        .operator("in")
+                        .value("(" + join(groupIds, ",") + ")")
+                        .build();
+                final QueryParameters queryParams = QueryParameters.builder()
+                        .filters(Collections.singletonList(groupIdsFilter))
+                        .build();
+                final List<HomologGroup> homologGroups = homologGroupDao.load(queryParams);
+                final List<Gene> genes = homologGroupGeneDao.load(queryParams);
 
-        if (groupIds.size() > 0) {
-            final Filter groupIdsFilter = Filter.builder()
-                    .field("group_id")
-                    .operator("in")
-                    .value("(" + join(groupIds, ",") + ")")
-                    .build();
-            final QueryParameters queryParams = QueryParameters.builder()
-                    .filters(Collections.singletonList(groupIdsFilter))
-                    .build();
-            final List<HomologGroup> homologGroups = homologGroupDao.load(queryParams);
-            final List<Gene> genes = homologGroupGeneDao.load(queryParams);
-            for (HomologGroup group: homologGroups) {
-                List<Gene> groupGenes = genes.stream()
-                        .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
-                        .collect(Collectors.toList());
-                group.setHomologs(groupGenes);
+                setSpeciesNames(homologGroups, genes);
+
+                for (HomologGroup group: homologGroups) {
+                    List<Gene> groupGenes = genes.stream()
+                            .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
+                            .collect(Collectors.toList());
+                    group.setHomologs(groupGenes);
+                }
+                searchResult.setItems(homologGroups);
+                List<Long> allGroupIds = homologGroupGeneDao.loadAllGroupIds(geneIdFilters);
+                searchResult.setTotalCount(allGroupIds.size());
             }
-            searchResult.setItems(homologGroups);
-            List<String> totalGroupIds = homologGroupDao.loadTotalGroupIds(gene.getGeneId());
-            searchResult.setTotalCount(totalGroupIds.size());
+        } catch (ExternalDbUnavailableException e) {
+            log.error(e.getMessage());
         }
         return searchResult;
     }
@@ -189,6 +207,13 @@ public class HomologManager {
                             .type(HomologType.getByName(cells[2].trim()))
                             .build();
                     groups.add(group);
+                    gene = HomologGroupGene.builder()
+                            .databaseId(databaseId)
+                            .groupId(groupId)
+                            .taxId(lineTaxId)
+                            .geneId(lineGeneId)
+                            .build();
+                    genes.add(gene);
                     taxId = lineTaxId;
                     geneId = lineGeneId;
                 }
@@ -214,5 +239,24 @@ public class HomologManager {
         return QueryParameters.builder()
                 .pagingInfo(pagingInfo)
                 .build();
+    }
+
+    private void setSpeciesNames(final List<HomologGroup> homologGroups, final List<Gene> genes) {
+        final List<Long> taxIds = homologGroups.stream().map(HomologGroup::getTaxId).collect(Collectors.toList());
+        taxIds.addAll(genes.stream().map(Gene::getTaxId).collect(Collectors.toList()));
+        final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+        setGeneSpeciesNames(genes, organisms);
+        for (HomologGroup group: homologGroups) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(group.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                group.setSpeciesCommonName(organism.getCommonName());
+                group.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
     }
 }

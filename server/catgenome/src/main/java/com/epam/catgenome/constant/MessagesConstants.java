@@ -264,12 +264,19 @@ public final class MessagesConstants {
     public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
     // BLAST TASK
+    public static final String ERROR_BLAST_NOT_AVAILABLE = "error.blast.not.available";
     public static final String ERROR_TASK_NOT_FOUND = "error.blast.task.not.found";
     public static final String ERROR_TASK_CAN_NOT_BE_DELETED = "error.blast.task.cant.be.deleted";
     public static final String ERROR_BLAST_REQUEST = "error.blast.request.unexpected";
     public static final String ERROR_BLAST_ORGANISMS = "error.blast.organisms";
     public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
     public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
+
+    // METADATA
+    public static final String ERROR_METADATA_ENTITY_ID_NOT_SPECIFIED = "error.metadata.entity.id.not.specified";
+    public static final String ERROR_METADATA_ENTITY_CLASS_NOT_SPECIFIED = "error.metadata.entity.class.not.specified";
+    public static final String ERROR_METADATA_EMPTY_KEY = "error.metadata.empty.key";
+    public static final String ERROR_METADATA_EMPTY_VALUE = "error.metadata.empty.value";
 
     private MessagesConstants() {
         // No-op

@@ -36,6 +36,7 @@ import com.epam.catgenome.manager.blast.dto.Result;
 import com.epam.catgenome.util.QueryUtils;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -48,15 +49,19 @@ public class BlastRequestManager {
 
     private BlastApi blastApi;
 
-    @Value("${blast.server.url}")
+    @Value("${blast.server.url:}")
     private String blastServer;
 
     @PostConstruct
     public void init() {
+        if (StringUtils.isEmpty(blastServer)) {
+            return;
+        }
         this.blastApi = new BlastApiBuilder(0, 0, blastServer).buildClient();
     }
 
     public BlastRequestInfo createTask(final BlastRequest blastRequest) throws BlastRequestException {
+        validateBlastEnabled();
         try {
             Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.createTask(blastRequest));
             Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
@@ -68,6 +73,7 @@ public class BlastRequestManager {
     }
 
     public BlastRequestInfo getTaskStatus(final long id) throws BlastRequestException {
+        validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getTask(id)).getPayload();
         } catch (BlastResponseException e) {
@@ -77,6 +83,7 @@ public class BlastRequestManager {
     }
 
     public Result<BlastRequestInfo> cancelTask(final long id) throws BlastRequestException {
+        validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.cancelTask(id));
         } catch (BlastResponseException e) {
@@ -86,6 +93,7 @@ public class BlastRequestManager {
     }
 
     public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
+        validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getResult(taskId)).getPayload();
         } catch (BlastResponseException e) {
@@ -95,11 +103,16 @@ public class BlastRequestManager {
     }
 
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
+        validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getRawResult(taskId));
         } catch (BlastResponseException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
+    }
+
+    private void validateBlastEnabled() {
+        Assert.notNull(blastApi, MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_NOT_AVAILABLE));
     }
 }

@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.ProjectNote;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Data;
 
 /**
  * Source:      ProjectVO
@@ -43,9 +44,9 @@ import lombok.Setter;
  * A View Object for Project entity representation
  * </p>
  */
-@Getter
-@Setter
+@Data
 public class ProjectVO {
+
     private Long id;
     private String name;
     private Long createdBy;
@@ -58,4 +59,6 @@ public class ProjectVO {
     private List<ProjectVO> nestedProjects;
     private Long parentId;
     private String prettyName;
+    private Map<String, String> metadata;
+    private Integer mask;
 }

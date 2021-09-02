@@ -11,8 +11,11 @@ export default {
         applyToCurrentTrack: '=',
         applyToWigTracks: '=',
         applyToBamTracks: '=',
+        applyToFeatureCountsTracks: '=',
         isLogScale: '=',
-        error: '='
+        error: '=',
+        hasCoverageTracks: '<',
+        hasFeatureCountsTracks: '<'
     }
 };
 

@@ -25,7 +25,6 @@ export default class ngbVariantsTableService {
         const visibleColumns = this.projectContext.vcfInfo.map(c => c.name);
         const result = [];
 
-        const self = this;
         let columnSettings = null;
         let sortDirection = 0;
 
@@ -63,9 +62,7 @@ export default class ngbVariantsTableService {
                         maxWidth: 104,
                         minWidth: 104,
                         name: 'Type',
-                        filterApplied: () => {
-                            return this.projectContext.variantsFieldIsFiltered(column);
-                        },
+                        filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                         menuItems: [
                             {
                                 title: 'Clear column filter',
@@ -84,9 +81,7 @@ export default class ngbVariantsTableService {
                         minWidth: 50,
                         name: 'Chr',
                         width: '*',
-                        filterApplied: () => {
-                            return this.projectContext.variantsFieldIsFiltered(column);
-                        },
+                        filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                         menuItems: [
                             {
                                 title: 'Clear column filter',
@@ -105,9 +100,7 @@ export default class ngbVariantsTableService {
                         minWidth: 50,
                         name: 'Gene',
                         width: '*',
-                        filterApplied: () => {
-                            return this.projectContext.variantsFieldIsFiltered(column);
-                        },
+                        filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                         menuItems: [
                             {
                                 title: 'Clear column filter',
@@ -136,9 +129,7 @@ export default class ngbVariantsTableService {
                         minWidth: 50,
                         name: 'Position',
                         width: '*',
-                        filterApplied: () => {
-                            return this.projectContext.variantsFieldIsFiltered(column);
-                        },
+                        filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                         menuItems: [
                             {
                                 title: 'Clear column filter',
@@ -166,32 +157,26 @@ export default class ngbVariantsTableService {
                 default: {
                     const [infoColumn] = this.projectContext.vcfInfo.filter(c => c.name === column);
                     if (infoColumn) {
+                        const filters = [];
+                        if (infoColumn.type === this.columnTypes.integer) {
+                            filters.push({
+                                condition: this.uiGridConstants.filter.GREATER_THAN,
+                                placeholder: 'greater than'
+                            });
+                            filters.push({
+                                condition: this.uiGridConstants.filter.LESS_THAN,
+                                placeholder: 'less than'
+                            });
+                        }
                         columnSettings = {
                             field: infoColumn.name,
-                            filters: (() => {
-                                if (infoColumn.type === this.columnTypes.integer) {
-                                    return [
-                                        {
-                                            condition: this.uiGridConstants.filter.GREATER_THAN,
-                                            placeholder: 'greater than'
-                                        },
-                                        {
-                                            condition: this.uiGridConstants.filter.LESS_THAN,
-                                            placeholder: 'less than'
-                                        }];
-                                }
-
-                            })(),
+                            filters,
                             headerCellTemplate: headerCells,
                             minWidth: 50,
                             name: infoColumn.name,
                             width: '*',
-                            visible: (() => {
-                                return visibleColumns.indexOf(infoColumn.name) !== -1;
-                            })(),
-                            filterApplied: () => {
-                                return this.projectContext.variantsFieldIsFiltered(column);
-                            },
+                            visible: visibleColumns.indexOf(infoColumn.name) !== -1,
+                            filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                             menuItems: [
                                 {
                                     title: 'Clear column filter',

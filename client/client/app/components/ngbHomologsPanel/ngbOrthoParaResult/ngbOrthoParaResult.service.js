@@ -4,7 +4,11 @@ const DEFAULT_COLUMNS = [
     'name', 'species', 'aa', 'domains', 'type'
 ];
 
-const ORTHO_PARA_COLUMN_TITLES = {
+const ORTHO_PARA_COLUMN_TITLES = {};
+
+const ORTHO_PARA_TYPE_VIEW = {
+    'ORTHOLOG': 'Ortholog',
+    'PARALOG': 'Paralog'
 };
 
 const FIRST_PAGE = 1;
@@ -31,6 +35,10 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
 
     get columnTitleMap() {
         return ORTHO_PARA_COLUMN_TITLES;
+    }
+
+    get typeViewMap() {
+        return ORTHO_PARA_TYPE_VIEW;
     }
 
     static instance(dispatcher, genomeDataService) {
@@ -60,12 +68,28 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
                 }
                 case 'name': {
                     result.push({
-                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link"
-                                       >{{row.entity.name}}</div>`,
+                        cellTemplate: `<div class="ui-grid-cell-contents homologs-link" 
+                                            ng-click="grid.appScope.$ctrl.navigateToTrack(row.entity)">
+                                            {{row.entity.name || 'id: ' + row.entity.geneId}}
+                                       </div>`,
                         enableHiding: false,
                         field: 'name',
                         headerCellTemplate: headerCells,
                         name: column
+                    });
+                    break;
+                }
+                case 'type': {
+                    result.push({
+                        cellTemplate: `<div class="ui-grid-cell-contents">
+                                            {{grid.appScope.$ctrl.typeViewMap[row.entity.type]}}
+                                       </div>`,
+                        enableHiding: false,
+                        field: column,
+                        headerCellTemplate: headerCells,
+                        minWidth: 40,
+                        name: this.columnTitleMap[column] || column,
+                        width: '*'
                     });
                     break;
                 }

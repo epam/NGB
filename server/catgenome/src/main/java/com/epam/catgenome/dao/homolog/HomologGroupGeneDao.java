@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
 import com.epam.catgenome.entity.externaldb.homologene.Alias;
 import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
+import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,6 +48,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
 @Getter
@@ -62,6 +64,7 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     private String deleteQuery;
     private String loadQuery;
     private String totalCountQuery;
+    private String loadGroupIdsQuery;
 
     /**
      * Persists a new Homolog group gene record.
@@ -103,6 +106,16 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     public List<Gene> load(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadQuery, queryParameters);
         return getJdbcTemplate().query(query, GroupGeneParameters.getExtendedRowExtractor());
+    }
+
+    public List<String> loadGroupIds(final QueryParameters queryParameters) {
+        String pageQuery = addParametersToQuery(loadGroupIdsQuery, queryParameters);
+        return getJdbcTemplate().queryForList(pageQuery, String.class);
+    }
+
+    public List<Long> loadAllGroupIds(final List<Filter> filters) {
+        String query = addFiltersToQuery(loadGroupIdsQuery, filters);
+        return getJdbcTemplate().queryForList(query, Long.class);
     }
 
     enum GroupGeneParameters {

@@ -1,9 +1,34 @@
-import {displayModes, scaleModes} from '../../wig/modes';
+import {displayModes} from '../../wig/modes';
+import {generateScaleModesMenu, generateStateMutatorFunctions, scaleModes} from '../../common/scaleModes';
 import {default as coverageColorPerform} from '../../wig/menu/coverageColorPerform';
 import {default as displayModesMenu} from '../../wig/menu/displayModesMenu';
 import {getDivider} from '../../../utilities/menu';
-import {default as scaleModesMenu} from '../../wig/menu/scaleModesMenu';
 
+const scaleModesMenu = generateScaleModesMenu({
+    isVisible: state => state.coverage,
+    logScaleVisible: (state => state.coverageDisplayMode !== displayModes.heatMapDisplayMode)
+});
+
+const coverageStateMutators = generateStateMutatorFunctions({
+    extraFieldsToCheck: ['coverageDisplayMode'],
+    dataTransformFn: track => track.cacheService && track.cacheService.transform(track.viewport, track.state),
+    dataExtremumFn: track => {
+        if (
+            track.cacheService &&
+            track.cacheService.cache &&
+            track.cacheService.cache.coverage &&
+            track.cacheService.cache.coverage.coordinateSystem
+        ) {
+            return {
+                min: track.cacheService.cache.coverage.coordinateSystem.realMinimum,
+                max: track.cacheService.cache.coverage.coordinateSystem.realMaximum
+            };
+        }
+        return {};
+    }
+});
+
+export {coverageStateMutators};
 export default {
     displayName: state => {
         const parts = [];

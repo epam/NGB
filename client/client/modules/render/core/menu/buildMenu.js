@@ -116,9 +116,12 @@ function processMenuEntry(menuEntry, options) {
         afterPerformFn,
         beforeStateMutatorFn,
         preStateMutatorFn,
-        postStateMutatorFn,
+        postStateMutatorFn: passedPostStateMutatorFns,
         afterStateMutatorFn
     } = options || {};
+    const postStateMutatorFn = Array.isArray(passedPostStateMutatorFns)
+        ? (...opts) => passedPostStateMutatorFns.forEach(fn => fn(...opts))
+        : passedPostStateMutatorFns;
     for (const key of Object.keys(menuEntry)) {
         switch (true) {
             case Array.isArray(menuEntry[key]):

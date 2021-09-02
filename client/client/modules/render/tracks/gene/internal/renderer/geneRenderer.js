@@ -1,9 +1,9 @@
-import {CachedTrackRenderer, drawingConfiguration} from '../../../../core';
+import {CachedTrackRendererWithVerticalScroll, drawingConfiguration} from '../../../../core';
 import {FeatureRenderer, GeneHistogram} from './features';
 import {GeneTransformer} from '../data/geneTransformer';
 import PIXI from 'pixi.js';
 
-export default class GeneRenderer extends CachedTrackRenderer {
+export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll {
 
     _featureRenderer: FeatureRenderer = null;
     _geneHistogram: GeneHistogram = null;
@@ -15,7 +15,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
 
     _transformer: GeneTransformer = null;
 
-    _verticalScroll: PIXI.Graphics = null;
     _actualHeight = null;
     _gffColorByFeatureType = false;
     _gffShowNumbersAminoacid = false;
@@ -34,10 +33,10 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._dockableElementsContainer = new PIXI.Container();
         this._attachedElementsContainer = new PIXI.Container();
         this._hoveredItemContainer = new PIXI.Container();
-        this._verticalScroll = new PIXI.Graphics();
         this._mask = new PIXI.Graphics();
+        this.container.removeChild(this.verticalScroll);
         this.container.addChild(this.geneHistogram);
-        this.container.addChild(this._verticalScroll);
+        this.container.addChild(this.verticalScroll);
         this.container.addChild(this._attachedElementsContainer);
         this.container.addChild(this._dockableElementsContainer);
         this.container.addChild(this._labelsContainer);
@@ -54,22 +53,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
 
     get geneHistogram(): GeneHistogram {
         return this._geneHistogram;
-    }
-
-    get verticalScroll(): PIXI.Graphics {
-        return this._verticalScroll;
-    }
-
-    get height() {
-        return this._height;
-    }
-
-    set height(value) {
-        this._height = value;
-    }
-
-    get actualHeight() {
-        return this._actualHeight;
     }
 
     render(
@@ -176,73 +159,6 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.scroll(viewport, null);
     }
 
-    scrollIndicatorBoundaries(viewport) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            return {
-                height: this.height * this.height / this.actualHeight,
-                width: this.config.scroll.width,
-                x: viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                y: -this.dataContainer.y / this.actualHeight * this.height
-            };
-        }
-        return null;
-    }
-
-    drawVerticalScroll(viewport) {
-        this.verticalScroll.clear();
-        if (this.actualHeight && this.height < this.actualHeight) {
-            const scrollHeight = this.height * this.height / this.actualHeight;
-            this.verticalScroll
-                .beginFill(this.config.scroll.fill, this._verticalScrollIsHovered ? this.config.scroll.hoveredAlpha : this.config.scroll.alpha)
-                .drawRect(
-                    viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                    -this.dataContainer.y / this.actualHeight * this.height,
-                    this.config.scroll.width,
-                    scrollHeight
-                )
-                .endFill();
-        }
-    }
-
-    _verticalScrollIsHovered = false;
-
-    hoverVerticalScroll(viewport) {
-        if (!this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = true;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    unhoverVerticalScroll(viewport) {
-        if (this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = false;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    isScrollable() {
-        return this.actualHeight && this.height < this.actualHeight;
-    }
-
-    canScroll(yDelta) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            return __y <= 0 && __y >= this.height - this.actualHeight;
-        }
-        return false;
-    }
-
-    setScrollPosition(viewport, indicatorPosition) {
-        this.scroll(viewport, - indicatorPosition * this.actualHeight / this.height - this.dataContainer.y);
-    }
-
     scroll(viewport, yDelta, cache) {
         this.hoverItem(null);
         if (cache && this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
@@ -250,19 +166,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;
         }
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            __y = Math.min(0, Math.max(this.height - this.actualHeight, __y));
-            this.dataContainer.y = __y;
-            this.drawVerticalScroll(viewport);
-        }
-        else {
-            this.dataContainer.y = 0;
-            this.drawVerticalScroll(null);
-        }
+        super.scroll(viewport, yDelta);
         this._labelsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;

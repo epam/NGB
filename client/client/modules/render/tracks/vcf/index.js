@@ -35,6 +35,10 @@ export class VCFTrack extends GENETrack {
         return ['variantsView', 'header'];
     }
 
+    get featuresFilteringEnabled () {
+        return false;
+    }
+
     static preStateMutatorFn = (track) => ({
         oldVariantsView: track.state.variantsView
     });
@@ -427,5 +431,12 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 this.viewport.selectPosition(data.startIndex);
             }
         );
+    }
+
+    clearData() {
+        if (typeof this._removeHotKeyListener === 'function') {
+            this._removeHotKeyListener();
+        }
+        super.clearData();
     }
 }
