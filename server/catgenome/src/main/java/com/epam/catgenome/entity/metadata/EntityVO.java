@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,38 +22,17 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.controller.vo;
+package com.epam.catgenome.entity.metadata;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.security.AclClass;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
-/**
- * Source:      ProjectVO
- * Created:     22.01.16, 15:03
- * Project:     CATGenome Browser
- * Make:        IntelliJ IDEA 14.1.4, JDK 1.8
- *
- * <p>
- * A View Object for Project entity representation
- * </p>
- */
 @Data
-public class ProjectVO {
-
-    private Long id;
-    private String name;
-    private Long createdBy;
-    private Date createdDate;
-    private List<ProjectItemVO> items;
-    private Integer itemsCount;
-    private Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat;
-    private Date lastOpenedDate;
-    private List<ProjectVO> nestedProjects;
-    private Long parentId;
-    private String prettyName;
-    private Map<String, String> metadata;
+@AllArgsConstructor
+@Builder
+public class EntityVO {
+    private Long entityId;
+    private AclClass entityClass;
 }

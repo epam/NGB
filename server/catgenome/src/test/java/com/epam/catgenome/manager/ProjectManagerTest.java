@@ -30,8 +30,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import com.epam.catgenome.entity.metadata.MetadataVO;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -110,6 +114,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Autowired
     private MafManager mafManager;
 
+    @Autowired
+    private MetadataManager metadataManager;
+
     private final Logger logger = LoggerFactory.getLogger(ProjectManagerTest.class);
 
     @Autowired
@@ -123,6 +130,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
     private static final String TEST_VCF_FILE_NAME1 = "file1";
     private static final String TEST_VCF_FILE_NAME2 = "file2";
     private static final int BOOKMARK_END_INDEX = 10000;
+    private static final Map<String, String> METADATA = Collections.singletonMap("KEY", "VALUE");
+    private static final String TEST_PARENT_NAME = "testParent";
+    private static final String TEST_CHILD_NAME = "testChild1";
 
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
@@ -246,13 +256,13 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testDeleteProjectWithNested() throws IOException {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(TEST_PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(TEST_CHILD_NAME);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
@@ -342,13 +352,13 @@ public class ProjectManagerTest extends AbstractManagerTest {
         throws InterruptedException,
             NoSuchAlgorithmException, IOException {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(TEST_PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(TEST_CHILD_NAME);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
@@ -417,13 +427,13 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadTreeWithParent() {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(TEST_PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(TEST_CHILD_NAME);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
@@ -447,6 +457,38 @@ public class ProjectManagerTest extends AbstractManagerTest {
         List<Project> childProjects = projectManager.loadProjectTree(child1.getId(), null);
         Assert.assertEquals(1, childProjects.size());
         Assert.assertEquals(1, childProjects.get(0).getNestedProjects().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldLoadTreeWithMetadata() {
+        Project parent = new Project();
+        parent.setName(TEST_PARENT_NAME);
+        parent.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        parent = projectManager.create(parent);
+
+        Project child1 = new Project();
+        child1.setName(TEST_CHILD_NAME);
+        child1.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        projectManager.create(child1, parent.getId());
+
+        metadataManager.upsert(MetadataVO.builder()
+                .id(parent.getId())
+                .aclClass(AclClass.PROJECT)
+                .metadata(METADATA)
+                .build());
+        metadataManager.upsert(MetadataVO.builder()
+                .id(testReference.getId())
+                .aclClass(AclClass.REFERENCE)
+                .metadata(METADATA)
+                .build());
+
+        final List<Project> topProjects = projectManager.loadProjectTree(parent.getId(), null);
+        Assert.assertEquals(METADATA, topProjects.get(0).getMetadata());
+        Assert.assertNull(topProjects.get(0).getNestedProjects().get(0).getMetadata());
+        Assert.assertEquals(METADATA, topProjects.get(0).getItems().get(0).getBioDataItem().getMetadata());
     }
 
     @Test
