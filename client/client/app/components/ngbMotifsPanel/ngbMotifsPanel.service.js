@@ -46,25 +46,27 @@ function generateForReference (motif, context, reference) {
     return data;
 }
 
-let id = 0;
 const ROW_HEIGHT = 35;
 
 export default class ngbMotifsPanelService {
 
+    reference = null;
+    requestNumber = 0;
     _isSearchInProgress = false;
     _isSearchFailure = false;
     _errorMessageList = null;
-    _firstLevelData = [];
-    reference = null;
-    _searchInCurrent = true;
-    _data = [];
+    _searchMotifsParams = [];
+    _searchMotifResults = [];
+    searchStopOnPosition = 0;
+    searchStopOnChromosome;
+    currentParams = {};
 
-    static instance(dispatcher, appLayout, projectContext) {
-        return new ngbMotifsPanelService(dispatcher, appLayout, projectContext);
+    static instance(dispatcher, appLayout, projectContext, motifsDataService) {
+        return new ngbMotifsPanelService(dispatcher, appLayout, projectContext, motifsDataService);
     }
 
-    constructor(dispatcher, appLayout, projectContext) {
-        Object.assign(this, {dispatcher, appLayout, projectContext});
+    constructor(dispatcher, appLayout, projectContext, motifsDataService) {
+        Object.assign(this, {dispatcher, appLayout, projectContext, motifsDataService});
         this.dispatcher.on('motifs:search:reset', ::this.resetData);
     }
 
@@ -92,28 +94,37 @@ export default class ngbMotifsPanelService {
         this._errorMessageList = error;
     }
 
-    get searchInCurrent () {
-        return this._searchInCurrent;
-    }
-
-    set searchInCurrent (value) {
-        this._searchInCurrent = value;
-    }
-
     get isSearchResults () {
-        return Boolean(this.firstLevelData.length);
+        return Boolean(this.searchMotifsParams.length);
     }
 
-    get firstLevelData () {
-        return [...this._firstLevelData].reverse();
+    get searchMotifsParams () {
+        return [...this._searchMotifsParams].reverse();
     }
 
-    set firstLevelData (request) {
-        this._firstLevelData.push({
-            id,
-            motif: request.pattern,
-            name: request.title,
-            matches: this.getDataLength(id)
+    set searchMotifsParams (params) {
+        const requestNumber = this.requestNumber;
+        this._searchMotifsParams.push({
+            requestNumber,
+            'search type': params.chromosomeOnly  ? 'CHROMOSOME' : 'WHOLE_GENOME',
+            motif: params.pattern,
+            name: params.title,
+        });
+    }
+
+    get searchMotifResults () {
+        return this._searchMotifResults;
+    }
+
+    set searchMotifResults (result) {
+        this._searchMotifResults = result.map(item => {
+            return {
+                reference: this.reference.id,
+                chromosome: item.contig,
+                start: item.start,
+                end: item.end,
+                strand: item.strand
+            };
         });
     }
 
@@ -125,54 +136,76 @@ export default class ngbMotifsPanelService {
         return Math.floor(window.innerHeight / this.rowHeight);
     }
 
-    allMatches (motif) {
-        const result = this.searchInCurrent ?
-            generateForChromosome(motif, this.projectContext, this.reference.name) :
-            generateForReference(motif, this.projectContext, this.reference);
-        this._data.push(result);
-    }
-
-    getData (index) {
-        return this._data[index-1];
-    }
-
-    motifsRequest(request) {
-        this.isSearchInProgress = true;
-        if (request) {
-            id++;
-            this.reference = request.reference;
-            this.searchInCurrent = request.inCurrent;
-            this.allMatches(request.pattern);
-            this.firstLevelData = request;
-            this.isSearchInProgress = false;
-            this.isSearchFailure = false;
-            this.dispatcher.emitSimpleEvent('motifs:search:change');
-            this.panelAddMotifsPanel();
-        } else {
-            this.isSearchInProgress = false;
-            this.isSearchFailure = true;
-        }
-    }
-
     panelAddMotifsPanel () {
         const layoutChange = this.appLayout.Panels.motifs;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 
-    getDataLength (row) {
-        // find row in firstLevelData and get the matches
-        return this.getData(row).length;
+    searchMotif(params) {
+        this.requestNumber++;
+        this.searchMotifsParams = params;
+        this.searchStopOnChromosome = params.chromosomeOnly ?
+            this.projectContext.currentChromosome.id :
+            this.projectContext.chromosomes[0].id;
+        this.reference = this.projectContext.reference;
+        this.dispatcher.emitSimpleEvent('motifs:search:change');
+        this.panelAddMotifsPanel();
     }
 
-    secondLevelData (row, page) {
-        //find row in firstLevelData and the matches array
-        const dataSlice = this.getData(row.id)
-            .slice((page - 1) * this.pageSize, page * this.pageSize);
-        return dataSlice;
+    searchMotifRequest (request) {
+        this.isSearchInProgress = true;
+        return new Promise((resolve) => {
+            this.motifsDataService.getSearchMotifsResults(request)
+                .then(response => {
+                    this.isSearchInProgress = false;
+                    this.isSearchFailure = false;
+                    this.searchMotifResults = response.result;
+                    this.searchStopOnPosition = response.position;
+                    this.searchStopOnChromosome = response.chromosomeId;
+                    resolve(true);
+                })
+                .catch((error) => {
+                    this.isSearchInProgress = false;
+                    this.isSearchFailure = true;
+                    this.errorMessageList = [error.message];
+                    resolve(false);
+                });
+        });
+    }
+
+    async resultsTableData (row) {
+        const chromosomeOnly = row['search type'] === 'CHROMOSOME';
+        this.currentParams = {
+            referenceId: this.projectContext.reference.id,
+            motif: row.motif,
+            searchType: row['search type'],
+            pageSize: this.pageSize,
+        };
+        const request = chromosomeOnly ?
+            {chromosomeId: this.projectContext.currentChromosome.id, ...this.currentParams} :
+            {...this.currentParams};
+        return this.searchMotifRequest(request);
+    }
+
+    async getNextResults () {
+        const params = this.currentParams;
+        const startPosition = this.searchStopOnPosition;
+        const chromosomeId = this.searchStopOnChromosome;
+        const request = {chromosomeId, startPosition, ...params};
+        return this.searchMotifRequest(request);
+    }
+
+    async getPreviousResults () {
+        const params = this.currentParams;
+        const startPosition = this.searchStopOnPosition;
+        const chromosomeId = this.searchStopOnChromosome;
+        const request = {chromosomeId, startPosition, ...params};
+        return this.searchMotifRequest(request);
     }
 
     resetData () {
-        this._firstLevelData = [];
+        this.currentParams = {};
+        this._searchMotifsParams = [];
     }
 }

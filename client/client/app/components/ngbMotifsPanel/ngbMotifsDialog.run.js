@@ -1,27 +1,26 @@
-export default function run($mdDialog, dispatcher, projectContext, ngbMotifsPanelService) {
+export default function run($mdDialog, dispatcher, ngbMotifsPanelService) {
     const displayMotifsDialog = () => {
         $mdDialog.show({
             template: require('./ngbMotifsDialog.tpl.html'),
             controller: function ($scope) {
-                $scope.isSearchInCurrent = ngbMotifsPanelService.searchInCurrent;
+                $scope.chromosomeOnly = true;
                 $scope.close = () => {
                     $mdDialog.hide();
                 };
                 $scope.search = () => {
-                    const request = {
+                    const params = {
                         pattern: $scope.$ctrl.motif,
                         title: $scope.$ctrl.title || null,
-                        inCurrent: $scope.isSearchInCurrent,
-                        reference: projectContext._reference
+                        chromosomeOnly: $scope.chromosomeOnly,
                     };
-                    ngbMotifsPanelService.motifsRequest(request);
+                    ngbMotifsPanelService.searchMotif(params);
                     $mdDialog.hide();
                 };
                 $scope.cancel = () => {
                     $mdDialog.hide();
                 };
                 $scope.change = () => {
-                    $scope.isSearchInCurrent = !$scope.isSearchInCurrent;
+                    $scope.chromosomeOnly = !$scope.chromosomeOnly;
                 };
             },
             clickOutsideToClose: true

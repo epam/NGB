@@ -1,22 +1,17 @@
 <div class="ui-grid-container motifs-flex-column">
-    <div ng-if="!$ctrl.isLevelFirst" flex="100" layout="row">
+    <div ng-if="!$ctrl.isShowParamsTable" flex="100" layout="row">
         <md-button
             aria-label="back"
             class="md-raised md-primary"
-            ng-click="$ctrl.backToFirstLevel()"
+            ng-click="$ctrl.backToParamsTable()"
             type="button">
             <ng-md-icon class="motif-icon-arrow-back" icon="arrow_back" size="24"></ng-md-icon>
         </md-button>
-        <span flex="50" class="motifs-search-pattern">{{$ctrl.motifPattern}}</span>
-        <ngb-motifs-table-pagination
-            ng-if="$ctrl.totalPages > 1"
-            total-pages="$ctrl.totalPages"
-            current-page="$ctrl.currentPage"
-            change-page="$ctrl.changePage(page)"
-            flex="30"
-        ></ngb-motifs-table-pagination>
+        <span flex="50" class="motifs-search-title">{{$ctrl.motifsSearchTitle}}</span>
+        <ngb-motifs-table-pagination flex="30"></ngb-motifs-table-pagination>
     </div>
-    <div ui-grid="$ctrl.gridOptions"
+    <div ng-hide="$ctrl.hideTable"
+         ui-grid="$ctrl.gridOptions"
          ui-grid-save-state
          ui-grid-resize-columns
          ui-grid-move-columns

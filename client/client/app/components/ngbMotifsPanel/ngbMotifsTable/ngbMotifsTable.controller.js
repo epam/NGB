@@ -9,17 +9,14 @@ export default class ngbMotifsTableController  extends baseController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: true,
+        enableSorting: false,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
         enableHorizontalScrollbar: 0,
         treeRowHeaderAlwaysVisible: false,
     };
-    _motifPattern = null;
-    currentPage = 0;
-    pattern = null;
-    rowNumber = null;
+    _motifsSearchTitle = null;
 
     static get UID() {
         return 'ngbMotifsTableController';
@@ -27,19 +24,25 @@ export default class ngbMotifsTableController  extends baseController {
 
     constructor(
         $scope,
+        $timeout,
         dispatcher,
+        projectContext,
         ngbMotifsPanelService,
         ngbMotifsTableService
     ) {
         super();
         Object.assign(this, {
             $scope,
+            $timeout,
             dispatcher,
+            projectContext,
             ngbMotifsPanelService,
             ngbMotifsTableService
         });
         this.gridOptions.rowHeight = this.ngbMotifsPanelService.rowHeight;
-        this.dispatcher.on('motifs:search:change', ::this.backToFirstLevel);
+        this.dispatcher.on('motifs:search:change', ::this.backToParamsTable);
+        this.dispatcher.on('motifs:pagination:next', ::this.getNextPage);
+        this.dispatcher.on('motifs:pagination:previous', ::this.getPreviousPage);
     }
 
     $onInit() {
@@ -48,90 +51,87 @@ export default class ngbMotifsTableController  extends baseController {
 
     async initialize() {
         Object.assign(this.gridOptions, {
-            data: this.ngbMotifsPanelService.firstLevelData,
-            appScopeProvider: this.$scope,
             columnDefs: this.ngbMotifsTableService.getMotifsGridColumns(),
+            data: this.ngbMotifsPanelService.searchMotifsParams,
+            appScopeProvider: this.$scope,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
     }
 
-    get isLevelFirst () {
-        return this.ngbMotifsTableService.isLevelFirst;
+    get isShowParamsTable () {
+        return this.ngbMotifsTableService.isShowParamsTable;
     }
 
-    get isLevelSecond () {
-        return this.ngbMotifsTableService.isLevelSecond;
+    get hideTable () {
+        return !this.isShowParamsTable && this.ngbMotifsPanelService.isSearchInProgress;
     }
 
-    get motifPattern () {
-        return this._motifPattern;
+    get motifsSearchTitle () {
+        return this._motifsSearchTitle;
     }
 
-    set motifPattern (row) {
-        this._motifPattern = row.name ? row.name : row.motif;
-    }
-
-    get totalPages () {
-        const dataLength = this.ngbMotifsPanelService.getDataLength(this.rowNumber);
-        const pageSize = this.ngbMotifsPanelService.pageSize;
-        return Math.ceil(dataLength / pageSize);
+    set motifsSearchTitle (row) {
+        this._motifsSearchTitle = row.name ? row.name : row.motif;
     }
 
     rowClick(row) {
-        if (this.isLevelFirst) {
-            this.showResults(row.entity);
+        if (this.ngbMotifsTableService.isShowParamsTable) {
+            this.showResultsTable(row.entity);
         } else {
             this.ngbMotifsTableService.addTracks({id: this.rowNumber, motif: this.motifPattern, ...row.entity});
         }
     }
 
-    showResults (row) {
-        this.rowNumber = row.id;
-        this.pattern = row;
-        this.ngbMotifsTableService.isLevelFirst = false;
-        this.motifPattern = row;
-        this.currentPage = 1;
-        const data = this.ngbMotifsPanelService.secondLevelData(row, this.currentPage);
-        this.gridOptions.data = data;
+    async showResultsTable (row) {
+        this.ngbMotifsTableService.isShowParamsTable = false;
+        this.motifsSearchTitle = row;
+        const data = await this.ngbMotifsPanelService.resultsTableData(row)
+            .then(success => {
+                if (success) {
+                    return this.ngbMotifsPanelService.searchMotifResults;
+                }
+            });
+        if (data && data.length) {
+            this.gridOptions.columnDefs = this.ngbMotifsTableService.getMotifsGridColumns();
+            await this.loadData(data);
+        }
+    }
+
+    backToParamsTable() {
+        this.ngbMotifsTableService.isShowParamsTable = true;
+        this.gridOptions.data = this.ngbMotifsPanelService.searchMotifsParams;
         this.gridOptions.columnDefs = this.ngbMotifsTableService.getMotifsGridColumns();
+        this.ngbMotifsPanelService.currentParams = {};
     }
 
-    backToFirstLevel() {
-        this.ngbMotifsTableService.isLevelFirst = true;
-        this.gridOptions.data = this.ngbMotifsPanelService.firstLevelData;
-        this.gridOptions.columnDefs = this.ngbMotifsTableService.getMotifsGridColumns();
+    async loadData (data) {
+        if (data && data.length) {
+            this.gridOptions.data = data;
+            this.$timeout(::this.$scope.$apply);
+        }
     }
 
-    sortChanged(grid, sortColumns) {
-        this.gridApi.saveState.save();
-        const sortingConfiguration = sortColumns
-            .filter(column => !!column.sort)
-            .map((column, priority) => ({
-                field: column.field,
-                sort: ({
-                    ...column.sort,
-                    priority
-                })
-            }));
-        const {columns = []} = grid || {};
-        columns.forEach(columnDef => {
-            const [sortingConfig] = sortingConfiguration
-                .filter(c => c.field === columnDef.field);
-            if (sortingConfig) {
-                columnDef.sort = sortingConfig.sort;
-            }
-        });
-        this.changePage(1);
+    async getNextPage () {
+        const data = await this.ngbMotifsPanelService.getNextResults()
+            .then(success => {
+                if (success) {
+                    return this.ngbMotifsPanelService.searchMotifResults;
+                }
+            });
+        await this.loadData(data);
     }
 
-    changePage (page) {
-        this.currentPage = page;
-        const data = this.ngbMotifsPanelService.secondLevelData(this.pattern, this.currentPage);
-        this.gridOptions.data = data;
+    async getPreviousPage () {
+        const data = await this.ngbMotifsPanelService.getPreviousResults()
+            .then(success => {
+                if (success) {
+                    return this.ngbMotifsPanelService.searchMotifResults;
+                }
+            });
+        await this.loadData(data);
     }
 }

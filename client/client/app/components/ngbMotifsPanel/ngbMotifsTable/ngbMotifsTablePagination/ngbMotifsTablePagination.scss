@@ -20,14 +20,9 @@ ngb-motifs-table-pagination {
     line-height: 24px;
     color: rgb(51, 103, 214);
     ng-md-icon {
-      fill: black;
+      fill: rgb(51, 103, 214);
       min-height: 24px;
       height: 24px;
-    }
-    &.active {
-      color: black;
-      text-decoration: underline;
-      font-weight: bold;
     }
   }
 }

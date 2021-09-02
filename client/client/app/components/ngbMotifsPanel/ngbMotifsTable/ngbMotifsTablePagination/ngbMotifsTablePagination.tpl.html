@@ -1,14 +1,20 @@
-<div ng-if="$ctrl.totalPages > 1" class="motifs-pagination">
-  <md-button
-      class="motifs-pagination-item"
-      md-no-ink
-      ng-repeat="page in $ctrl.pages track by $index"
-      ng-class="{active:page.value === $ctrl.currentPage}"
-      ng-click="$ctrl.setPage(page.value, true)"
-      aria-label="Page {{page.value}}"
-  >
-      <ng-md-icon ng-if="page.isFirst" icon="keyboard_arrow_left" size="24"></ng-md-icon>
-      <span ng-if="!page.isFirst && !page.isLast">{{page.value}}</span>
-      <ng-md-icon ng-if="page.isLast" icon="keyboard_arrow_right" size="24"></ng-md-icon>
-  </md-button>
+<div class="motifs-pagination">
+    <md-button
+        class="motifs-pagination-item"
+        md-no-ink
+        ng-disabled="!$ctrl.isFirstPage"
+        ng-click="$ctrl.getPreviousPage()"
+        aria-label="Previous page"
+    >
+        <ng-md-icon icon="keyboard_arrow_left" size="24"></ng-md-icon>
+    </md-button>
+    <md-button
+        class="motifs-pagination-item"
+        md-no-ink
+        ng-disabled="$ctrl.isLastPage"
+        ng-click="$ctrl.getNextPage()"
+        aria-label="Next page"
+        >
+        <ng-md-icon icon="keyboard_arrow_right" size="24"></ng-md-icon>
+    </md-button>
 </div>

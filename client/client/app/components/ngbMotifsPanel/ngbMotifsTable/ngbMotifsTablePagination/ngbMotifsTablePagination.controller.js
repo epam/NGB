@@ -1,67 +1,58 @@
-const PAGE_DEEPNESS = 3;
 export default class ngbMotifsTablePagination {
+
+    firstChromosome;
+    lastChromosome;
+    lastPosition;
 
     static get UID() {
         return 'ngbMotifsTablePagination';
     }
 
-    constructor() {
+    constructor($scope, dispatcher, projectContext, ngbMotifsPanelService) {
+        Object.assign(this, {$scope, dispatcher, projectContext, ngbMotifsPanelService});
     }
 
-    $onChanges(changes) {
-        if (!!changes.totalPages && (changes.totalPages.previousValue !== changes.totalPages.currentValue)) {
-            this.setTotalPages(changes.totalPages.currentValue);
-        }
-        if (!!changes.currentPage && (changes.currentPage.previousValue !== changes.currentPage.currentValue)) {
-            this.setPage(changes.currentPage.currentValue);
+    $onInit () {
+        const type = this.ngbMotifsPanelService.currentParams.searchType;
+        if (type === 'CHROMOSOME') {
+            this.firstChromosome = this.projectContext.currentChromosome.id;
+            this.lastChromosome = this.projectContext.currentChromosome.id;
+            this.lastPosition = this.projectContext.currentChromosome.size;
+        } else if (type === 'WHOLE_GENOME') {
+            const last = this.projectContext.chromosomes.length - 1;
+            this.firstChromosome = this.projectContext.chromosomes[0].id;
+            this.lastChromosome = this.projectContext.chromosomes[last].id;
+            this.lastPosition = this.projectContext.chromosomes[last].size;
         }
     }
 
-    setTotalPages(totalPages) {
-        this.totalPages = totalPages;
-        this.pages = this.getPages();
+    get currentChromosome () {
+        return this.ngbMotifsPanelService.searchStopOnChromosome;
     }
 
-    setPage(page) {
-        this.currentPage = page;
-        this.pages = this.getPages();
-        this.changePage({page: this.currentPage});
+    get currentPosition () {
+        return this.ngbMotifsPanelService.searchStopOnPosition;
     }
 
-    getPages() {
-        const totalPages = this.totalPages;
-        const currentPage = this.currentPage;
-        if (totalPages === undefined || currentPage === undefined) {
-            return [];
-        }
+    get isFirstPage () {
+        return (
+            this.currentChromosome === this.firstChromosome &&
+            this.currentPosition === 0
+        );
+    }
 
-        let minimumPage = Math.max(1, currentPage - PAGE_DEEPNESS);
-        let maximumPage = Math.min(totalPages, currentPage + PAGE_DEEPNESS);
-        minimumPage = Math.max(1, Math.min(minimumPage, maximumPage - PAGE_DEEPNESS*2));
-        maximumPage = Math.min(Math.max(maximumPage, minimumPage + PAGE_DEEPNESS*2), totalPages);
+    get isLastPage () {
+        return (
+            this.currentChromosome === this.lastChromosome &&
+            this.currentPosition <= this.lastPosition
+        );
+    }
 
-        const pages = [];
-        for (let i = minimumPage; i <= maximumPage; i++) {
-            if (i === minimumPage && minimumPage > 1) {
-                pages.push({
-                    isFirst: true,
-                    isLast: false,
-                    value: 1
-                });
-            } else if (i === maximumPage && maximumPage < totalPages) {
-                pages.push({
-                    isFirst: false,
-                    isLast: true,
-                    value: totalPages
-                });
-            } else {
-                pages.push({
-                    isFirst: false,
-                    isLast: false,
-                    value: i
-                });
-            }
-        }
-        return pages;
+    getNextPage () {
+        this.dispatcher.emitSimpleEvent('motifs:pagination:next');
+    }
+
+    getPreviousPage () {
+        this.dispatcher.emitSimpleEvent('motifs:pagination:previous');
     }
 }

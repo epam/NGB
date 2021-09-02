@@ -1,9 +1,9 @@
-const MOTIFS_FIRST_LEVEL_COLUMNS = ['name', 'motif', 'matches'];
-const MOTIFS_SECOND_LEVEL_COLUMNS = ['reference', 'chromosome', 'start', 'end', 'strand'];
+const MOTIFS_SEARCH_PARAMS_COLUMNS = ['search type', 'name', 'motif'];
+const MOTIFS_SEARCH_RESULTS_COLUMNS = ['reference', 'chromosome', 'start', 'end', 'strand'];
 
 export default class ngbMotifsTableService {
 
-    _isLevelFirst = true;
+    _isShowParamsTable = true;
 
     static instance(
         dispatcher,
@@ -37,35 +37,35 @@ export default class ngbMotifsTableService {
         });
     }
 
-    get isLevelFirst () {
-        return this._isLevelFirst;
+    get isShowParamsTable () {
+        return this._isShowParamsTable;
     }
 
-    set isLevelFirst (isFirst) {
-        this._isLevelFirst = isFirst;
+    set isShowParamsTable (value) {
+        this._isShowParamsTable = value;
     }
 
-    get motifsFirstLevelColumns() {
-        return MOTIFS_FIRST_LEVEL_COLUMNS;
+    get motifsSearchParamsColumns() {
+        return MOTIFS_SEARCH_PARAMS_COLUMNS;
     }
 
-    get motifsSecondLevelColumns() {
-        return MOTIFS_SECOND_LEVEL_COLUMNS;
+    get motifsSearchResultsColumns() {
+        return MOTIFS_SEARCH_RESULTS_COLUMNS;
     }
 
     getMotifsGridColumns() {
         const headerCells = require('./ngbMotifsTable_header.tpl.html');
 
         const result = [];
-        const columnsList = this.isLevelFirst ?
-            this.motifsFirstLevelColumns : this.motifsSecondLevelColumns;
+        const columnsList = this.isShowParamsTable ?
+            this.motifsSearchParamsColumns : this.motifsSearchResultsColumns;
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
             columnSettings = {
                 enableHiding: false,
-                enableFiltering: true,
-                enableSorting: true,
+                enableFiltering: false,
+                enableSorting: false,
                 field: column,
                 headerCellTemplate: headerCells,
                 headerTooltip: column,
