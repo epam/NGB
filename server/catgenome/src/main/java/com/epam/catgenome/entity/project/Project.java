@@ -38,9 +38,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -54,8 +52,6 @@ import org.springframework.util.CollectionUtils;
  * </p>
  */
 @NoArgsConstructor
-@Getter
-@Setter
 public class Project extends AbstractHierarchicalEntity {
 
     private List<ProjectItem> items;
@@ -201,5 +197,13 @@ public class Project extends AbstractHierarchicalEntity {
 
     public void setMetadata(final Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public List<ProjectNote> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<ProjectNote> notes) {
+        this.notes = notes;
     }
 }

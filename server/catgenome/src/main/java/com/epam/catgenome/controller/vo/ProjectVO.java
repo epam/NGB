@@ -30,8 +30,6 @@ import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.ProjectNote;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.Data;
 
 /**

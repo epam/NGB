@@ -298,7 +298,7 @@
                         title = :TITLE,
                         content = :CONTENT
                     WHERE
-                        note_id = :NOTE_ID
+                        note_id = :NOTE_ID and project_id = :PROJECT_ID
                 ]]>
             </value>
         </property>
