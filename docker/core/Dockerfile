@@ -8,7 +8,7 @@ ENV PATH $PATH:$CLI_HOME
 
 #Install OpenJDK 8
 RUN apt-get -y update && \
-    apt-get -y install wget openjdk-8-jre
+    apt-get -y install wget openjdk-8-jre nginx
 
 #Install NGB server binaries
 RUN mkdir ${NGB_HOME}
@@ -29,6 +29,8 @@ RUN mkdir $NGS_DATA_DIR && \
 	echo "file.browsing.allowed=true" >> catgenome.properties && \
     echo "ngs.data.root.path=${NGS_DATA_DIR}" >> catgenome.properties
 
+# Configure nginx
+ADD nginx.conf /etc/nginx.conf
 
 EXPOSE 8080
-CMD cd $NGB_HOME && java -Xmx2G -jar catgenome.jar
+CMD nginx && cd $NGB_HOME && java -Xmx2G -jar catgenome.jar
