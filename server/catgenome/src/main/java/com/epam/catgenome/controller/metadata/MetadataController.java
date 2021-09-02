@@ -44,12 +44,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Api(value = "metadata", description = "Metadata Management")
-@RequestMapping(value = "/metadata")
 public class MetadataController extends AbstractRESTController {
 
     private final MetadataSecurityService metadataSecurityService;
 
-    @PostMapping
+    @PostMapping(value = "/metadata")
     @ApiOperation(
             value = "Creates or updates metadata",
             notes = "Creates or updates metadata",
@@ -61,7 +60,7 @@ public class MetadataController extends AbstractRESTController {
         return Result.success(metadataSecurityService.upsert(metadataVO));
     }
 
-    @GetMapping
+    @GetMapping(value = "/metadata")
     @ApiOperation(
             value = "Loads metadata by entity ID and class",
             notes = "Loads metadata by entity ID and class",
