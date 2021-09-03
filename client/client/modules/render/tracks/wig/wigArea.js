@@ -1,5 +1,5 @@
 import {Viewport, drawingConfiguration} from '../../core';
-import * as ScaleModes from './modes/scaleModes';
+import {scaleModes} from '../common/scaleModes';
 import wigConfig from './wigConfig';
 import PIXI from 'pixi.js';
 
@@ -74,8 +74,7 @@ export default class WIGArea{
         if (this.groupAutoScaleManager) {
             const group = this.groupAutoScaleManager.getGroup(features.groupAutoScale);
             if (group) {
-                const colors = this._config.autoScaleGroupsColors || wigConfig.autoScaleGroupsColors || [];
-                const color = colors[group.index % colors.length];
+                const color = this.groupAutoScaleManager.getGroupColor(group);
                 this._groupAutoScaleIndicator.removeChildren();
                 const graphics = new PIXI.Graphics();
                 graphics.beginFill(color, 1.0);
@@ -96,14 +95,14 @@ export default class WIGArea{
             return;
         this._logScaleIndicator.visible = !coordinateSystem.isHeatMap && coordinateSystem.isLogScale;
         this._groupAutoScaleIndicator.visible = !coordinateSystem.isHeatMap &&
-            features.coverageScaleMode === ScaleModes.groupAutoScaleMode;
+            features.coverageScaleMode === scaleModes.groupAutoScaleMode;
         if (this._area.children.length > 0) {
             this._area.removeChildren(0, this._area.children.length);
         }
         if (coordinateSystem.isHeatMap) {
             return;
         }
-        if (!coordinateSystem.isHeatMap && features.coverageScaleMode === ScaleModes.groupAutoScaleMode) {
+        if (!coordinateSystem.isHeatMap && features.coverageScaleMode === scaleModes.groupAutoScaleMode) {
             this._renderGroupAutoScaleIndicator(features);
         }
         const dashSize = 2;

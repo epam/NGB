@@ -53,7 +53,7 @@ export default class ngbHomologsService {
 
     initEvents() {
         this.dispatcher.on('read:show:homologs', data => {
-            this.currentSearch = data.search;
+            this.currentSearch = data;
         });
     }
 }

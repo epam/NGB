@@ -102,6 +102,33 @@ export default class SelectionContext {
         }
     }
 
+    setTracksOfTypeAreSelected(type, browserId, selected) {
+        const tracks = (this.projectContext.getTrackInstances(browserId) || [])
+            .filter(track => track.config.format === type)
+            .map(track => track.config);
+        this.setTracksAreSelected(tracks, browserId, selected);
+    }
+
+    setTracksAreSelected(tracks, browserId, selected) {
+        const selectedArray = this.getSelected(browserId);
+        let modified = false;
+        tracks.forEach(track => {
+            const isSelected = this.getTrackIsSelected(track, browserId);
+            modified = modified || isSelected !== selected;
+            if (isSelected && !selected) {
+                const index = selectedArray.findIndex(t => getIdentifier(t) === getIdentifier(track));
+                selectedArray.splice(index, 1);
+                this.setSelected(browserId, selectedArray);
+            } else if (!isSelected && selected) {
+                selectedArray.push({...track});
+                this.setSelected(browserId, selectedArray);
+            }
+        });
+        if (modified) {
+            this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selectedArray);
+        }
+    }
+
     getTrackIsSelected(track, browserId) {
         if (!track) {
             return false;

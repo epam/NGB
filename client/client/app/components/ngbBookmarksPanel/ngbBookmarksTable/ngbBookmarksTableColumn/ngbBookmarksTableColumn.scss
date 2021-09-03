@@ -1,0 +1,29 @@
+ngb-bookmarks-table-column {
+  display: block;
+  md-menu {
+    padding: 0;
+    .md-button.md-icon-button {
+      padding: 0;
+      margin: 0;
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      min-height: 24px;
+      ng-md-icon {
+        fill: #FFF;
+      }
+    }
+  }
+}
+
+.ngb-bookmarks-table-columns-configuration {
+  max-height: 90vh;
+}
+
+.restore_view_button {
+  font-size: 14px;
+  padding-left: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  color: rgb(0, 0, 238);
+}

@@ -54,6 +54,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
+    private Map<String, String> metadata;
 
     public Project(Long id) {
         super(id);
@@ -181,5 +182,13 @@ public class Project extends AbstractHierarchicalEntity {
     @Override
     public AclClass getAclClass() {
         return  AclClass.PROJECT;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 }

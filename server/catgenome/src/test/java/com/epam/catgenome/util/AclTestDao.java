@@ -107,6 +107,7 @@ public class AclTestDao extends NamedParameterJdbcDaoSupport {
         for (AclPermission p : permissions) {
             AclTestDao.AclEntry groupAclEntry = new AclTestDao.AclEntry(identity, maxOrder++, sid,
                                                                         p.getMask(), p.isGranting());
+            groupAclEntry.setId(entity.getId());
             createAclEntry(groupAclEntry);
         }
 

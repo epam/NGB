@@ -91,7 +91,7 @@ export default class ngbOrthoParaTableController extends baseController {
     async loadData() {
         this.isProgressShown = true;
         try {
-            await this.ngbOrthoParaTableService.searchOrthoPara(this.ngbHomologsService.currentSearch);
+            await this.ngbOrthoParaTableService.searchOrthoPara(this.ngbHomologsService.currentSearch.featureId);
             const dataLength = this.ngbOrthoParaTableService.orthoPara.length;
             if (this.ngbOrthoParaTableService.pageError) {
                 this.errorMessageList = [this.ngbOrthoParaTableService.pageError];

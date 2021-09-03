@@ -27,7 +27,7 @@ const closeAllTracksAction = {
 const fitAllTracksAction = {
     name: 'fitAllTracks',
     isDefault: true,
-    event:'tracks:fit:height',
+    event: 'tracks:fit:height',
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
@@ -43,7 +43,7 @@ const variantsResetFilterActions = {
 const organizeTracksAction = {
     name: 'organizeTracks',
     isDefault: true,
-    event:'tracks:organize',
+    event: 'tracks:organize',
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
@@ -91,6 +91,17 @@ const genesResetFilterActions = {
     label: 'Reset genes filter',
     isVisible: context => !context.genesFilterIsDefault
 };
+const bookmarksTableColumnAction = {
+    name: 'bookmarksTableColumn',
+    isDefault: false
+};
+const bookmarksTablePaginationAction = {
+    name: 'bookmarksTablePagination',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
 
 export default {
     actions: {
@@ -107,11 +118,14 @@ export default {
         variantsTablePagination: variantsTablePaginationAction,
         genesTableDownloadAction: genesTableDownloadAction,
         genesTableColumn: genesTableColumnAction,
-        genesResetFilter: genesResetFilterActions
+        genesResetFilter: genesResetFilterActions,
+        bookmarksTableColumn: bookmarksTableColumnAction,
+        bookmarksTablePagination: bookmarksTablePaginationAction
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
-        ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction]
+        ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
+        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksTableColumnAction]
     }
 };

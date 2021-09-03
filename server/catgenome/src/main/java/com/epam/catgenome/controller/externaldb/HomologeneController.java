@@ -26,9 +26,9 @@ package com.epam.catgenome.controller.externaldb;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSecurityService;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
-import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchResult;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -51,7 +51,7 @@ public class HomologeneController extends AbstractRESTController {
 
     private final HomologeneSecurityService homologeneSecurityService;
 
-    @PostMapping(value = "/search")
+    @PostMapping(value = "/homologene/search")
     @ApiOperation(
             value = "Returns list of Homologenes",
             notes = "Returns list of Homologenes",
@@ -59,13 +59,13 @@ public class HomologeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<HomologeneSearchResult<HomologeneEntry>> searchHomologenes(
+    public Result<SearchResult<HomologeneEntry>> search(
             @RequestBody final HomologeneSearchRequest query)
             throws IOException {
         return Result.success(homologeneSecurityService.searchHomologenes(query));
     }
 
-    @PutMapping(value = "/import")
+    @PutMapping(value = "/homologene/import")
     @ApiOperation(
             value = "Creates Homologene Lucene Index from Homologene file",
             notes = "Creates Homologene Lucene Index from Homologene file",

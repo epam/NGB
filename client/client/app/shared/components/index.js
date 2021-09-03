@@ -8,7 +8,7 @@ import ngbSearch from './ngbSearch';
 import ngbUiParts from './ngbUiParts';
 import ngbVariantDetails from './ngbVariantDetails';
 import ngbDatasetItemDownloadUrlController from './ngbDatasetItemDownloadUrl';
-
+import ngbMarkdown from './ngbMarkdown';
 
 import collapsiblePanel from './widgets/collapsiblePanel';
 import textBox from './widgets/TextBox';
@@ -23,5 +23,6 @@ export default angular.module('SharedComponents', [
     ngbVariantDetails,
     collapsiblePanel,
     textBox,
-    ngbDatasetItemDownloadUrlController
+    ngbDatasetItemDownloadUrlController,
+    ngbMarkdown
 ]).name;

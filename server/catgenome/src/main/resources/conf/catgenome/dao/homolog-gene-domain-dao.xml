@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.homolog.HomologGeneDomainDao" id="homologGeneDomainDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_homolog_gene_domain"/>
+        <property name="insertQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.homolog_gene_domain (
+                        domain_id,
+                        gene_id,
+                        begin,
+                        end,
+                        pssmid,
+                        cddid,
+                        cddname
+                    ) VALUES (
+                        :DOMAIN_ID,
+                        :GENE_ID,
+                        :BEGIN,
+                        :END,
+                        :PSSMID,
+                        :CDDID,
+                        :CDDNAME
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteAllQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.homolog_gene_domain
+                ]]>
+            </value>
+        </property>
+        <property name="loadQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        domain_id,
+                        gene_id,
+                        begin,
+                        end,
+                        pssmid,
+                        cddid,
+                        cddname
+                    FROM catgenome.homolog_gene_domain
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

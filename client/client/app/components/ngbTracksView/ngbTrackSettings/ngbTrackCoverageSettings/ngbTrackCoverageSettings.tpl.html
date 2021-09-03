@@ -18,9 +18,29 @@
             <md-checkbox flex aria-label="is log scale" ng-model="ctrl.isLogScale">Log scale</md-checkbox>
         </md-input-container>
     </div>
-    <md-checkbox flex aria-label="apply to current track" ng-model="ctrl.applyToCurrentTrack">Apply to current track</md-checkbox>
-    <md-checkbox flex aria-label="apply to all alignments tracks" ng-model="ctrl.applyToBamTracks">Apply to all alignments tracks</md-checkbox>
-    <md-checkbox flex aria-label="apply to all WIG tracks" ng-model="ctrl.applyToWigTracks">Apply to all WIG tracks</md-checkbox>
+    <md-checkbox flex
+                 aria-label="apply to current track"
+                 ng-model="ctrl.applyToCurrentTrack">
+        Apply to current track
+    </md-checkbox>
+    <md-checkbox flex
+                 ng-if="ctrl.hasCoverageTracks"
+                 aria-label="apply to all alignments tracks"
+                 ng-model="ctrl.applyToBamTracks">
+        Apply to all alignments tracks
+    </md-checkbox>
+    <md-checkbox flex
+                 ng-if="ctrl.hasCoverageTracks"
+                 aria-label="apply to all WIG tracks"
+                 ng-model="ctrl.applyToWigTracks">
+        Apply to all WIG tracks
+    </md-checkbox>
+    <md-checkbox flex
+                 ng-if="ctrl.hasFeatureCountsTracks"
+                 aria-label="apply to all Feature Counts tracks"
+                 ng-model="ctrl.applyToFeatureCountsTracks">
+        Apply to all Feature Counts tracks
+    </md-checkbox>
     <div ng-if="ctrl.error" class="coverage-scale-error">
         {{ctrl.error}}
     </div>

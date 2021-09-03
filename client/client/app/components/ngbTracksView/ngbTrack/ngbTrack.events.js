@@ -190,13 +190,14 @@ export default class ngbTrackEvents {
                         },
                         {
                             data: {
-                                search: data.feature.name
+                                search: data.feature.name,
+                                featureId: data.feature.groupId
                             },
                             name: 'read:show:homologs'
                         }],
                     title: 'Show similar genes',
-                    disabled: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name,
-                    warning: data.feature.feature.toLowerCase() !== 'gene' || !data.feature.name
+                    disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
+                    warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
                         ? 'Feature type is not Gene or Name is missing'
                         : undefined,
                 });

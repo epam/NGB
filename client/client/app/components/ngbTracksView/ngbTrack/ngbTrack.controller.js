@@ -14,6 +14,7 @@ export default class ngbTrackController {
     dispatcher = null;
     projectContext;
     groupAutoScaleManager;
+    fcSourcesManager;
     selectionContext: SelectionContext;
     blastContext: BLASTContext;
 
@@ -61,6 +62,7 @@ export default class ngbTrackController {
         selectionContext,
         trackNamingService,
         groupAutoScaleManager,
+        fcSourcesManager,
         blastContext
     ) {
         this.trackNamingService = trackNamingService;
@@ -70,6 +72,7 @@ export default class ngbTrackController {
         this.selectionContext = selectionContext;
         this.blastContext = blastContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
+        this.fcSourcesManager = fcSourcesManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
@@ -172,6 +175,7 @@ export default class ngbTrackController {
                 (
                     (state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
                     (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
+                    (state.data.applyToFeatureCountsTracks && this.track.format === 'FEATURE_COUNTS') ||
                     (state.data.applyToBAMTracks && this.track.format === 'BAM')
                 )
             ) {
@@ -350,6 +354,26 @@ export default class ngbTrackController {
             .setTrackIsSelected(this.track, this.browserId, value);
     }
 
+    trackSelectionChanged(event) {
+        const trackIsSelected = this.trackIsSelected;
+        const {shiftKey, ctrlKey, metaKey} = event;
+        if (shiftKey && (ctrlKey || metaKey)) {
+            !trackIsSelected
+                ? this.selectionContext.selectAll(this.browserId)
+                : this.selectionContext.clearSelection(this.browserId);
+        } else if (shiftKey) {
+            this.selectionContext
+                .setTracksOfTypeAreSelected(
+                    this.track ? this.track.format : undefined,
+                    this.browserId,
+                    !trackIsSelected
+                );
+        } else {
+            this.selectionContext
+                .setTrackIsSelected(this.track, this.browserId, !trackIsSelected);
+        }
+    }
+
     changeTrackHeight(newHeight) {
         this.trackInstance.height = newHeight;
         this.track.height = this.trackInstance.height;
@@ -383,6 +407,7 @@ export default class ngbTrackController {
             ...this.track,
             dispatcher: this.dispatcher,
             groupAutoScaleManager: this.groupAutoScaleManager,
+            fcSourcesManager: this.fcSourcesManager,
             projectContext: this.projectContext,
             blastContext: this.blastContext,
             reloadScope: () => this.scope.$apply(),

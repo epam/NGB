@@ -15,14 +15,18 @@ export default class ngbMolecularViewerController extends baseController {
     selectedItemId = null;
     selectedItem = null;
     region = null;
+    currentMode = null;
+    currentColor = null;
 
-    constructor($sce, $scope, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant) {
+    constructor($sce, $scope, $mdMenu, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant, miewSettings) {
         super();
 
         Object.assign(this, {$scope, dispatcher, ngbMolecularViewerConstant, ngbMolecularViewerService});
 
         this.defaultMessage = $sce.trustAsHtml(ngbMolecularViewerConstant.defaultMessage);
-
+        this.colorer = miewSettings.displayColors;
+        this.modes = miewSettings.displayModes;
+        this.menu = $mdMenu;
 
         this.initEvents();
 
@@ -102,6 +106,16 @@ export default class ngbMolecularViewerController extends baseController {
             await this.geneTrackChanged();
         }
     }
-
+    loadImage(imagePath) {
+        return require(`../../assets/images/${imagePath}`);
+    }
+    changeDisplaySettings(name, type) {
+        if (type === 'mode') {
+            this.currentMode = name;
+        }
+        if (type === 'color') {
+            this.currentColor = name;
+        }
+    }
 
 }

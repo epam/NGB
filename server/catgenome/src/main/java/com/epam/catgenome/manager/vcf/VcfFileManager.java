@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,9 @@ public class VcfFileManager implements SecuredEntityManager {
 
     @Autowired
     private ProjectDao projectDao;
+
+    @Autowired
+    private MetadataManager metadataManager;
 
     /**
      * Persists {@code VcfFile} record to the database
@@ -156,6 +160,7 @@ public class VcfFileManager implements SecuredEntityManager {
         vcfFileDao.deleteVcfFile(vcfFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
+        metadataManager.delete(vcfFile);
     }
 
     /**

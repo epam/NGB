@@ -28,7 +28,7 @@
     </button>
     <md-menu-content width="4" class="track-menu-content">
         <div layout="column" ng-repeat="subfield in field.fields track by subfield.label">
-            <md-divider ng-if="subfield.type === 'divider'">
+            <md-divider ng-if="subfield.type === 'divider' && (subfield.isVisible === undefined || subfield.isVisible())">
             </md-divider>
             <md-menu-item
                     ng-if="subfield.type === 'button' && (subfield.isVisible === undefined || subfield.isVisible())"

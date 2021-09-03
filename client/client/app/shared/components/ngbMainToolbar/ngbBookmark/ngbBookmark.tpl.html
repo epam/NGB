@@ -1,17 +1,5 @@
-<md-menu>
-    <md-button class="md-icon-button"
-               aria-label="save bookmark"
-               ng-class="{'success-save':$ctrl.isSaveSuccess===true,'error-save':$ctrl.isSaveSuccess===false}"
-               ng-click="$mdOpenMenu($event)">
-        <ng-md-icon icon="place"></ng-md-icon>
-    </md-button>
-    <md-menu-content width="3" class="ngb-session-save-menu" md-whiteframe="4">
-        <input class="input-container"
-               placeholder="Enter session name"
-               ng-model="$ctrl.getterSetterName"
-               ng-model-options="{getterSetter: true}"
-               ng-keydown="$ctrl.onKeyDown($event)"
-               ng-blur="$ctrl.onBlur()"
-        >
-    </md-menu-content>
-</md-menu>
+<md-button aria-label="save bookmark"
+           class="md-icon-button"
+           ng-click="$ctrl.openDlg($event)">
+    <ng-md-icon icon="place"></ng-md-icon>
+</md-button>

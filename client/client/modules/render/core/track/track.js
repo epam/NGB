@@ -3,7 +3,8 @@ import PIXI from 'pixi.js';
 import {Subject} from 'rx';
 import {getRenderer} from '../configuration';
 import menuFactory from './menu';
-import {scaleModes, displayModes} from '../../tracks/wig/modes';
+import {scaleModes} from '../../tracks/common/scaleModes';
+import {displayModes} from '../../tracks/wig/modes';
 import tooltipFactory from './tooltip';
 
 const DEBOUNCE_TIMEOUT = 100;
