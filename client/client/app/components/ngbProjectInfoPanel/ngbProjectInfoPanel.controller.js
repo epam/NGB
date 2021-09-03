@@ -25,12 +25,31 @@ export default class ngbProjectInfoPanelController extends BaseController {
         this.initEvents();
     }
 
+    get projectInfoModeList () {
+        return this.ngbProjectInfoService.projectInfoModeList;
+    }
+
+    get currentMode () {
+        return this.ngbProjectInfoService.currentMode;
+    }
+
     get isProgressShown () {
         return this.ngbProjectInfoService.descriptionIsLoading;
     }
 
-    get showDescription () {
-        return this.ngbProjectInfoService.showDescription;
+    get currentNote() {
+        return this.ngbProjectInfoService.currentNote;
+    }
+
+    get editingNote() {
+        return this.ngbProjectInfoService.editingNote;
+    }
+
+    editNote($event) {
+        this.ngbProjectInfoService.editNote(this.currentNote.id);
+        $event.stopPropagation();
+        $event.preventDefault();
+        return false;
     }
 
     refreshProjectInfo() {

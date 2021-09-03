@@ -8,8 +8,8 @@
     <iframe frameborder="0"
             class="description-frame"
             ng-src="{{$ctrl.ngbProjectInfoService.blobUrl}}"
-            ng-if="$ctrl.showDescription"></iframe>
-    <div ng-if="!$ctrl.showDescription">
+            ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.DESCRIPTION"></iframe>
+    <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.SUMMARY">
         <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
         <div class="u-column-padding u-padding_t-0" flex layout="row"
              ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
@@ -32,5 +32,17 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
+        <ngb-project-info-edit-note></ngb-project-info-edit-note>
+    </div>
+    <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.EDIT_NOTE">
+        <ngb-project-info-edit-note note="this.editingNote"></ngb-project-info-edit-note>
+    </div>
+    <div class="project-note-container" ng-if="$ctrl.currentMode >= 0">
+        <md-button class="md-primary" ng-click="$ctrl.editNote($event)" ng-if="$ctrl.currentNote.canEdit">
+            Edit
+        </md-button>
+        <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>
     </div>
 </div>

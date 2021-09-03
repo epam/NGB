@@ -4,18 +4,34 @@
              style="width: auto; padding-left: 7px"
              ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
   >
-    {{$ctrl.ngbProjectInfoService.showDescription ? 'Description' : 'Summary'}}
+    {{$ctrl.ngbProjectInfoService.currentName}}
     <ng-md-icon icon="keyboard_arrow_down"
                 size="20"></ng-md-icon>
   </md-button>
   <md-menu-content width="4" class="ngb-project-info-sections-menu" md-whiteframe="4">
     <md-checkbox aria-label="Description"
-                 ng-model="$ctrl.ngbProjectInfoService.showDescription">
+                 ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
+                 ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                 ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
+    >
       <span>Description</span>
     </md-checkbox>
     <md-checkbox aria-label="Summary"
-                 ng-model="$ctrl.ngbProjectInfoService.showSummary">
+                 ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
+                 ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                 ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}">
       <span>Summary</span>
+    </md-checkbox>
+    <md-divider></md-divider>
+    <md-menu-item>
+      <div ng-click="$ctrl.ngbProjectInfoService.addNote()">Add note</div>
+    </md-menu-item>
+    <md-checkbox aria-label="{{note.title}}"
+                 ng-false-value="{{$ctrl.ngbProjectInfoService.previousMode}}"
+                 ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                 ng-repeat="(index, note) in $ctrl.ngbProjectInfoService.noteList track by note.id"
+                 ng-true-value="{{index}}">
+      <span>{{note.title}}</span>
     </md-checkbox>
   </md-menu-content>
 </md-menu>
