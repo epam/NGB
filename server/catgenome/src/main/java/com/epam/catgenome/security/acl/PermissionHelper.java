@@ -125,6 +125,18 @@ public class PermissionHelper {
                         type, permissionName);
     }
 
+    public boolean isAllowed(final String permissionName, final Long entityId, final AclClass entityClass) {
+        final AbstractSecuredEntity entity = securedEntityManager.getEntityManager(entityClass).load(entityId);
+        Assert.notNull(entity, "Entity cannot be found");
+
+        if (isAdmin(getSids()) || isOwner(entity)) {
+            return true;
+        }
+
+        return permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(), entity.getId(),
+                entity.getClass().getCanonicalName(), permissionName);
+    }
+
     public boolean isAllowedByBioItemId(String permissionName, Long bioItemId) {
         BiologicalDataItem bioItem = dataItemManager.findFileByBioItemId(bioItemId);
         if (isOwner(bioItem)) {
