@@ -78,7 +78,7 @@ export default class ngbHomologsDomainsController {
         const domainsDesc = {
             domains: domainsView.filter(d => !d.isFiller),
             accession_id: domains.accession_id,
-            aa: domains.maxHomologLength,
+            aa: domains.homologLength,
             toggleTooltip: false
         };
         return {
