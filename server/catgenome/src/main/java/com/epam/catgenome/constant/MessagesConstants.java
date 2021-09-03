@@ -271,6 +271,10 @@ public final class MessagesConstants {
     public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
     public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
 
+    //MOTIF SEARCH
+    public static final String ERROR_POSITION_OUT_OF_RANGE = "error.position.out.of.range";
+    public static final String ERROR_REFERENCE_SEQUENCE_READING = "error.reference.sequence.reading";
+
     private MessagesConstants() {
         // No-op
     }

@@ -40,5 +40,6 @@ public class MotifSearchRequest {
     Integer endPosition;
     StrandSerializable strand;
     Integer pageSize;
-
+    Boolean includeSequence;
+    Integer slidingWindow;
 }

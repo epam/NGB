@@ -46,49 +46,57 @@ public class MotifSearchIterator implements Iterator<Motif> {
     private static final byte LOWERCASE_T = 't';
     private static final byte LOWERCASE_N = 'n';
 
-    private final Deque<Match> positiveMatches = new LinkedList<>();
-    private final Deque<Match> negativeMatches = new LinkedList<>();
+    private final Deque<Match> positiveMatches;
+    private final Deque<Match> negativeMatches;
     private final String contig;
-    private final StrandSerializable strand;
     private final byte[] sequence;
-    private final String regex;
+    private final int offset;
+    private final boolean includeSequence;
 
 
     public MotifSearchIterator(final byte[] seq, final String iupacRegex,
-                               final StrandSerializable strand, final String contig) {
+                               final StrandSerializable strand, final String contig,
+                               final int start, final boolean includeSequence) {
         if (strand != null && strand != StrandSerializable.POSITIVE && strand != StrandSerializable.NEGATIVE) {
             throw new IllegalStateException("Not supported strand: " + strand);
         }
-        this.strand = strand;
         this.contig = contig;
         this.sequence = seq;
-        this.regex = MotifSearcher.convertIupacToRegex(iupacRegex);
-        init();
-    }
+        this.offset = start;
+        this.includeSequence = includeSequence;
 
-    private void init() {
-        if(strand == null) {
-            populateMatches(new String(sequence), true);
-            populateMatches(reverseAndComplement(sequence), false);
+        final Pattern pattern =
+                Pattern.compile(MotifSearcher.convertIupacToRegex(iupacRegex), Pattern.CASE_INSENSITIVE);
+        if (strand == null) {
+            this.positiveMatches = populatePositiveMatches(pattern.matcher(new String(seq)));
+            this.negativeMatches = populateNegativeMatches(pattern.matcher(reverseAndComplement(seq)), seq.length);
         } else if (strand == StrandSerializable.POSITIVE) {
-            populateMatches(new String(sequence), true);
+            this.positiveMatches = populatePositiveMatches(pattern.matcher(new String(seq)));
+            this.negativeMatches = new LinkedList<>();
         } else {
-            populateMatches(reverseAndComplement(sequence), false);
+            this.positiveMatches = new LinkedList<>();
+            this.negativeMatches = populateNegativeMatches(pattern.matcher(reverseAndComplement(seq)), seq.length);
         }
     }
 
-    private void populateMatches(final String seq, final boolean positive) {
-        final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        final Matcher matcher = pattern.matcher(seq);
+    private Deque<Match> populatePositiveMatches(final Matcher matcher) {
         int position = 0;
+        LinkedList<Match> matches = new LinkedList<>();
         while (matcher.find(position)) {
-            if (positive) {
-                positiveMatches.add(new Match(matcher.start(), matcher.end()));
-            } else {
-                negativeMatches.add(new Match(seq.length() - matcher.end(), seq.length() - matcher.start()));
-            }
+            matches.add(new Match(matcher.start(), matcher.end()));
             position = matcher.start() + 1;
         }
+        return matches;
+    }
+
+    private Deque<Match> populateNegativeMatches(final Matcher matcher, final int seqLength) {
+        int position = 0;
+        LinkedList<Match> matches = new LinkedList<>();
+        while (matcher.find(position)) {
+            matches.add(new Match(seqLength - matcher.end(), seqLength - matcher.start()));
+            position = matcher.start() + 1;
+        }
+        return matches;
     }
 
     @Override
@@ -110,7 +118,10 @@ public class MotifSearchIterator implements Iterator<Motif> {
             match = positiveMatches.removeFirst();
             currentStrand = StrandSerializable.POSITIVE;
         }
-        return getMotif(contig, match.start, match.end, currentStrand);
+        if (includeSequence) {
+            return getMotif(contig, match.start, match.end, currentStrand);
+        }
+        return new Motif(contig, match.start + offset, match.end + offset, currentStrand, null);
     }
 
     private Motif getMotif(final String contig, final int start, final int end,  StrandSerializable strand) {
@@ -118,7 +129,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         for (int i = start; i < end; i++) {
             result.append((char) sequence[i]);
         }
-        return new Motif(contig, start, end, strand, result.toString());
+        return new Motif(contig, start + offset, end + offset, strand, result.toString());
     }
 
     /**

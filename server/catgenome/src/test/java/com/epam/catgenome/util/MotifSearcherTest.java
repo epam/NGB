@@ -15,7 +15,7 @@ public class MotifSearcherTest {
     public void searchTest() {
         byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
-        Assert.assertEquals(3, MotifSearcher.search(testSequence, testRegex, "").size());
+        Assert.assertEquals(3, MotifSearcher.search(testSequence, testRegex, "", 0, true).size());
     }
 
     @Test
@@ -23,7 +23,7 @@ public class MotifSearcherTest {
         byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(2, MotifSearcher.search(testSequence, testRegex,
-                StrandSerializable.POSITIVE, "").size());
+                StrandSerializable.POSITIVE, "", 0, true).size());
     }
 
     @Test
@@ -31,14 +31,14 @@ public class MotifSearcherTest {
         byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(1, MotifSearcher.search(testSequence, testRegex,
-                StrandSerializable.NEGATIVE, "").size());
+                StrandSerializable.NEGATIVE, "", 0, true).size());
     }
 
     @Test(expected = IllegalStateException.class)
     public void searchThrowsExceptionOnInvalidSequence() {
         byte[] testSequence = "zxcontig".getBytes(StandardCharsets.UTF_8);
         String testRegex = "con";
-        MotifSearcher.search(testSequence, testRegex, "");
+        MotifSearcher.search(testSequence, testRegex, "", 0, true);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class MotifSearcherTest {
         testSequence = pattern.matcher(testSequence).replaceAll("n");
         buf = testSequence.getBytes(StandardCharsets.UTF_8);
         String testRegex = "tacyrw";
-        Assert.assertEquals(expectedSize, MotifSearcher.search(buf, testRegex, "").size());
+        Assert.assertEquals(expectedSize, MotifSearcher.search(buf, testRegex, "", 0, true).size());
     }
 
     @Test
@@ -81,8 +81,8 @@ public class MotifSearcherTest {
         testSequence = pattern.matcher(testSequence).replaceAll("n");
         buf = testSequence.getBytes(StandardCharsets.UTF_8);
         String testRegex = "tacyrw";
-        final int sumResult = MotifSearcher.search(buf, testRegex, StrandSerializable.POSITIVE, "").size() +
-                MotifSearcher.search(buf, testRegex, StrandSerializable.NEGATIVE, "").size();
+        final int sumResult = MotifSearcher.search(buf, testRegex, StrandSerializable.POSITIVE, "", 0, true).size() +
+                MotifSearcher.search(buf, testRegex, StrandSerializable.NEGATIVE, "", 0, true).size();
         Assert.assertEquals(expectedSize, sumResult);
     }
 }
