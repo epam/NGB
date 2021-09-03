@@ -3,6 +3,7 @@
 - [Panels](#panels)
     - [Variants panel](#variants-panel)
         - [Filters](#filters-for-variants-panel)
+        - [Download the variants table data](#download-the-variants-table-data)
         - [Highlight variants of interest](#highlight-variants-of-interest)
     - [Genes panel](#genes-panel)
         - [Navigate to track](#navigate-to-track)
@@ -56,6 +57,8 @@ You can rearrange the list of variants as follows:
     ![NGB GUI](images/overview-4.png)
 - **To display or hide extra columns** - select/unselect them from the panel options menu. The menu is located on the bar above the table (*hamburger* icon):  
     ![NGB GUI](images/overview-6.png)
+- **To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will hide all addition columns, show default columns and restore their order, cancel all configured sortings and filters:  
+  ![NGB GUI](images/overview-27.png)
 
 #### Filters for variants panel
 
@@ -77,6 +80,24 @@ To reset the filter(s):
     ![NGB GUI](images/overview-16.png)
 
 To hide the filters row - click the _hamburger_ icon in the **Variants** panel header and unset the "**Show filters**" item.
+
+#### Download the variants table data
+
+To download the data displayed in the **Variants** table - click the _download_ icon in the panel header:  
+  ![NGB GUI](images/overview-28.png)  
+The pop-up will appear:  
+  ![NGB GUI](images/overview-29.png)
+
+Here:
+
+- select the format for the downloading table data (CSV or TSV, _CSV by default_)
+- set the checkbox if the the header should be included to the downloading file (_header is not included by default_)
+
+Once the setup is finished, click the **Download** button. Table will be downloaded automatically:  
+  ![NGB GUI](images/overview-30.png)
+
+The downloaded table will contain only the same data that was displayed in the **Variants** table before the download (considering all filters and sortings):  
+  ![NGB GUI](images/overview-31.png)
 
 #### Highlight variants of interest
 
@@ -225,7 +246,7 @@ You can rearrange the list of features as follows:
   ![NGB GUI](images/genes-08.png)  
   ![NGB GUI](images/genes-09.png)  
   ![NGB GUI](images/genes-10.png)
-- **To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will hide all addition columns, show default columns, cancel all configured sortings and filters:  
+- **To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will hide all addition columns, show default columns and restore their order, cancel all configured sortings and filters:  
   ![NGB GUI](images/genes-06.png)
 
 #### Navigate to track
