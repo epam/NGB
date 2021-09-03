@@ -40,11 +40,14 @@ function _preprocessNode(node: Node, parent: Node = null) {
     }
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
     const mapTrackFn = function (track) {
+        const metadata = track.metadata
+        ? Object.entries(track.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+        : '';
         track.isTrack = true;
         track.project = node;
         track.projectId = node.name;
         track.reference = reference;
-        track.hint = `${getTrackFileName(track)}${reference ? `\r\nReference: ${reference.name}` : ''}`;
+        track.hint = `${getTrackFileName(track)}${metadata}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
         track.roles = ['ROLE_ADMIN'];
         track.displayName = getTrackFileName(track);

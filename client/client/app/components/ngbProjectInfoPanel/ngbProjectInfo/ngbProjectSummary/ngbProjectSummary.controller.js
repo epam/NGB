@@ -5,8 +5,8 @@ export default class ngbProjectSummaryController {
 
     projectContext;
     showTrackOriginalName = true;
+    datasetName;
     datasetMetadata = {};
-    dataset={}
 
     /**
      * @constructor
@@ -30,7 +30,6 @@ export default class ngbProjectSummaryController {
         this.localDataService = localDataService;
         this.$scope = $scope;
         this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
-
         this.INIT();
         const reloadPanel = ::this.INIT;
         const self = this;
@@ -38,10 +37,12 @@ export default class ngbProjectSummaryController {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
         this._dispatcher.on('tracks:state:change', reloadPanel);
+        this._dispatcher.on('metadata:change', reloadPanel);
         this._dispatcher.on('settings:change', globalSettingsChangedHandler);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
             __dispatcher.removeListener('tracks:state:change', reloadPanel);
+            __dispatcher.removeListener('metadata:change', reloadPanel);
             __dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
     }
@@ -52,13 +53,15 @@ export default class ngbProjectSummaryController {
 
         const files = [];
         const items = this.projectContext.tracks;
-        this.dataset = items.reduce((dataset, item) => {
-            if (item.projectId) {
-                dataset = item.project;
+        const datasetId = items.reduce((datasetID, item) => {
+            if (item.projectId && item.project) {
+                datasetID = item.project.id;
             }
-            return dataset;
-        }, {});
-        this.datasetMetadata = this.dataset.metadata;
+            return datasetID;
+        }, null);
+        const [dataset] = this.projectContext.datasets.filter(project => project.id === datasetId);
+        this.datasetMetadata = dataset.metadata;
+        this.datasetName = dataset.name;
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);

@@ -356,4 +356,18 @@ export class ProjectDataService extends DataService {
             }, reject);
         });
     }
+    getMetadata(id, entityClass) {
+        return new Promise((resolve, reject) => {
+            this.get(`metadata?id=${id}&entityClass=${entityClass}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
 }

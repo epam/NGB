@@ -2,12 +2,14 @@
     <md-content class="u-space_r u-scroll__auto" flex>
         <div ng-if="ctrl.datasetMetadata" class="frame u-column-padding" flex>
             <h5 class="format-header">DATASET</h5>
-            <h5 style="font-weight: normal;">{{ctrl.dataset.name}}</h5>
+            <h5 style="font-weight: normal;">{{ctrl.datasetName}}</h5>
             <md-list flex class="md-dense md-list__text">
                 <md-list-item class="md-list-item__sm md-list-item__nospace"
                               ng-repeat="(key, value) in ctrl.datasetMetadata"
                 >
-                    <span class="structure-card">{{key}}:{{value}}</span>
+                    <span class="structure-card" title="{{key}}:{{value}}">
+                        {{key}}:{{value}}
+                    </span>
                 </md-list-item>
             </md-list>
         </div>
@@ -28,12 +30,15 @@
                     >
                         {{nameObject.name}}
                     </div>
-                    <span
-                        ng-repeat="(key, value) in nameObject.metadata"
-                        class="structure-card"
-                    >
-                        {{key}}:{{value}}
-                    </span>
+                    <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
+                        <span
+                            ng-repeat="(key, value) in nameObject.metadata"
+                            class="structure-card"
+                            title="{{key}}:{{value}}"
+                        >
+                            {{key}}:{{value}}
+                        </span>
+                    </div>
                 </md-list-item>
             </md-list>
         </div>

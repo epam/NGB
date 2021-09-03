@@ -9,7 +9,14 @@ function metadataIsEqual(o1, o2) {
             return false;
         }
         for(const p in o1) {
-            if(o1.hasOwnProperty(p) && o2.hasOwnProperty(p)){
+            if(o1.hasOwnProperty(p)){
+                if(o1[p] !== o2[p]) {
+                    return false;
+                }
+            }
+        }
+        for(const p in o2) {
+            if(o2.hasOwnProperty(p)){
                 if(o1[p] !== o2[p]) {
                     return false;
                 }
@@ -29,11 +36,12 @@ export default class ngbDataSetMetadataController extends BaseController {
         return 'ngbDataSetMetadataController';
     }
 
-    constructor($mdDialog, $scope, node, ngbDataSetsService) {
+    constructor($mdDialog, $state, dispatcher, node, ngbDataSetsService) {
         super();
         Object.assign(this, {
             $mdDialog,
-            $scope,
+            $state,
+            dispatcher,
             node,
             service: ngbDataSetsService.projectDataService
         });
@@ -61,14 +69,23 @@ export default class ngbDataSetMetadataController extends BaseController {
         return Object.values(this.existedKeys).filter(v => v > 1).length;
     }
     async saveMetadata() {
+        const node = this.node;
         const requestBody = {
-            id: this.node.id,
-            aclClass: this.service.getNodeAclClass(this.node),
+            id: node.id,
+            aclClass: this.service.getNodeAclClass(node),
             metadata: this.metadata
         };
         this.saving = true;
         await this.service.saveMetadata(requestBody);
         this.saving = false;
+        this.dispatcher.emitSimpleEvent('metadata:change', {
+            id: node.id,
+            projectId: node.isProject ? node.id : node.project.id,
+            metadata: this.metadata,
+            isFile: node.type === 'FILE',
+            displayName: node.displayName
+        });
+        this.$state.reload();
         this.$mdDialog.hide();
     }
     closeDialog() { 

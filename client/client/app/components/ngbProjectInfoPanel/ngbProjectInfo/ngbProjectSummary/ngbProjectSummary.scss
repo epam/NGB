@@ -43,6 +43,10 @@ ngb-project-summary {
   font-size: x-small;
   display: inline-block;
   text-align: center;
+  // overflow: hidden;
+  // white-space: nowrap;
+  // text-overflow: ellipsis;
+  max-width: 100px;
   background-color: #f9f9f9;
   border-radius: 3px;
   border: 1px solid #e0e0e0;

@@ -83,6 +83,8 @@ $folder-line: #cccccc;
   font-size: 12px;
   cursor: pointer;
   margin-top: 3px;
+  display: flex;
+  align-items: center;
   &.selected {
     font-weight: bold;
   }
@@ -95,6 +97,8 @@ $folder-line: #cccccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
   display: flex;
   align-items: center;
   &.selected {
@@ -184,6 +188,15 @@ $folder-line: #cccccc;
   border-radius: 3px;
   border: 1px solid darken($selected-color, 10%);
   font-weight: normal;
+  &:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
+  }
+  &.hidden {
+    display:none;
+  }
 }
 
 .datasets-warning {
