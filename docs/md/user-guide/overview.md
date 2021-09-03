@@ -623,8 +623,9 @@ This form contains:
     - _Gene_ - for a gene info with two sub-columns:
         - _Name_ - for a gene name
         - _Species_ - for a species name
-    - _Protein_ - for a protein info with three sub-columns:
+    - _Protein_ - for a protein info with following sub-columns:
         - _Accession ID_ - for a protein sequence accession ID. It is a hyperlink. User can click it and navigate to the corresponding protein page in NCBI (in a new tab)
+        - _Protein_ - for a protein name
         - _Aa_ - for a protein sequence length
         - _Domains_ - for an approximate image of the conserved protein domains. Each image contains:
             - a line for a full protein length
