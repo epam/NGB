@@ -3,8 +3,9 @@
 - [Navigating to a specific genome location](#navigating-to-a-specific-genome-location)
 - [Tracks selection](#tracks-selection)
 - [Tracks renaming](#tracks-renaming)
-- [Resize tracks height](#resize-tracks-height)
-- [Customize the font size of track label](#customize-the-font-size-of-track-label)
+- [General control](#general-control)
+    - [Resize tracks height](#resize-tracks-height)
+    - [Customize the font size of track label](#customize-the-font-size-of-track-label)
 
 ## Navigating to a specific genome location
 
@@ -150,7 +151,17 @@ The behavior (whether to show the original name) is being controlled via separat
 
 **_Note_**: once the track is renamed - the new name will be stored in the session. So the next time the track is loaded – the settings are restored.
 
-## Resize tracks height
+## General control
+
+**General** sub-menu contains several items with actions that user can perform with a track.  
+The list of these actions can differ according to the specific track type.  
+But all tracks contain at least the following items (full description see below):
+
+- _Resize_ - to resize a track height
+- _Font size_ - to change a track header font size
+- _Download_ - to download an original track file
+
+### Resize tracks height
 
 NGB allows to change the tracks height individually using the “drag-and-drop” method.  
 
@@ -175,7 +186,7 @@ Also, you can manage the height for a group of selected tracks. For that, use th
 In such case, the set height will be applied only to selected tracks:  
   ![NGB GUI](images/tracks-34.png)
 
-## Customize the font size of track label
+### Customize the font size of track label
 
 Users have the ability to change the font size of track labels (individually or multiple at a time).
 
