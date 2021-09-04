@@ -6,6 +6,7 @@
 - [General control](#general-control)
     - [Resize tracks height](#resize-tracks-height)
     - [Customize the font size of track label](#customize-the-font-size-of-track-label)
+    - [Download original file](#download-original-file)
 
 ## Navigating to a specific genome location
 
@@ -207,3 +208,15 @@ Also, you can manage the label font size for a group of selected tracks. For tha
   ![NGB GUI](images/tracks-38.png)  
 In such case, the set height will be applied only to selected tracks:  
   ![NGB GUI](images/tracks-39.png)
+
+### Download original file
+
+Users have the ability to download an original file that was loaded for the track.
+For that:
+
+1. Click the **General** control in the track header:  
+  ![NGB GUI](images/tracks-27.png)
+2. In the appeared list, click the **Download file** item:  
+  ![NGB GUI](images/tracks-41.png)
+3. Download will start automatically:  
+  ![NGB GUI](images/tracks-42.png)
