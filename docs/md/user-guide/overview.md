@@ -410,7 +410,16 @@ By default, the chain that contains a protein corresponding to the gene will be 
 The selected chain or multiple changes are opaque, non-selected chains are semi-transparent:  
     ![NGB GUI](images/overview-12.png)
 
-You can rotate the protein's 3D structure and zoom in/out on it.
+You can:
+
+- rotate the protein's 3D structure
+- zoom in/out on the protein's 3D structure
+- change the color scheme - click the ![NGB GUI](images/overview-35.png) icon:  
+  ![NGB GUI](images/overview-37.png)  
+  ![NGB GUI](images/overview-38.png)
+- change the display mode - click the ![NGB GUI](images/overview-36.png) icon:  
+  ![NGB GUI](images/overview-39.png)  
+  ![NGB GUI](images/overview-40.png)
 
 ### BLAST panel
 
