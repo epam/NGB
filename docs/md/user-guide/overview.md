@@ -31,7 +31,8 @@ The NGB user interface is implemented as a set of panels that can be resized, mo
 You can use the **VIEWS** menu to see the complete list of available panels and select the panels to be shown or hidden. The **VIEWS** menu is located on the main toolbar of the application:  
     ![NGB GUI](images/overview-1.png)
 
-By default, only following panels are shown: **Browser**, **Datasets**, **Genes** and **Variants**.
+By default, only following panels are shown: **Browser**, **Datasets**, **Genes** and **Variants**.  
+Let's take a look at these and other panels below.
 
 You can rearrange the layout of the NGB as follows:
 
@@ -361,26 +362,33 @@ You can bookmark a specific location in the browser.
 This action saves the state of the browser and opened tracks as well - so, it is called "saving the session".  
 It can be performed as follows:
 
-- Click the **Location** icon located in the main menu on the left page side. **_Note_**: the **Location** icon is being displayed only when any position/chromosome/reference is opened.
-- When clicked, the **Location** button will expand into a textbox.
-- Enter the desired session's name in a textbox.
-- Press **Enter** key to save the session.  
-    ![NGB GUI](images/overview-9.png)
+- Click the **Location** icon located in the main menu on the left page side.  
+  **_Note_**: the **Location** icon is being displayed only when any position/chromosome/reference is opened.
+- The pop-up will appear where session name (_mandatory_) and description (_optionally_) should be specified:  
+  ![NGB GUI](images/overview-9.png)
+- Once all desired data is specified - click the **Save** button to confirm:  
+  ![NGB GUI](images/overview-32.png)
 
-**_Note_**: session bookmarks are stored globally. Panel will show all saved **Sessions**
+**_Note_**: session bookmarks are stored globally. Panel will show all saved **Sessions** - from all NGB users.
 
 ![NGB GUI](images/overview-7.png)
 
 The **Sessions** panel has the following columns:
 
-- _Name_
-- _Chromosome_
-- _Start position_
-- _End position_
+- _Name_ - session name
+- _Description_ - session description
+- _Reference_ - reference name that was opened when the session was saved
+- _Chr_ - chromosome name that was opened when the session was saved
+- _Start position_ - start position at the reference
+- _End position_ - end position at the reference
+- _Owner_ - user name who saved the session
 
 **To sort the sessions** according to a specific property - click the header of the corresponding column, e.g.:  
-    ![NGB GUI](images/overview-8.png)  
-**To navigate to a location** bookmarked in the certain session - click the corresponding row of the table.  
+  ![NGB GUI](images/overview-8.png)  
+**To navigate to a location** bookmarked in the certain session - click the corresponding row of the table:  
+  ![NGB GUI](images/overview-33.png)  
+  ![NGB GUI](images/overview-34.png)
+
 **To delete a session** bookmark - click the **Trash** icon of the corresponding row.
 
 ### Molecular viewer panel
