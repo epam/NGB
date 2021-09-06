@@ -50,6 +50,8 @@ $folder-line: #cccccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
 }
 
 .dataset-genome {
@@ -97,9 +99,8 @@ $folder-line: #cccccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  display: flex;
+  display: inline-block;
+  min-width: 100px;
   align-items: center;
   &.selected {
     font-weight: bold;
@@ -180,6 +181,7 @@ $folder-line: #cccccc;
 .structure-card-search-result {
   padding: 1px 4px 1px 4px;
   margin-left: 2px;
+  margin-bottom: 2px;
   cursor: pointer;
   font-size: xx-small;
   display: inline-block;
@@ -188,15 +190,20 @@ $folder-line: #cccccc;
   border-radius: 3px;
   border: 1px solid darken($selected-color, 10%);
   font-weight: normal;
-  &:last-of-type {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100px;
-  }
-  &.hidden {
-    display:none;
-  }
+  height: 13.6px;
+  box-sizing: border-box;
+}
+
+.metadata-info-row {
+  background-color: transparent;
+  display: inline-block;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items:center;
+  width: auto;
+  padding-top: 4px;
+  height:18.8px;
 }
 
 .datasets-warning {

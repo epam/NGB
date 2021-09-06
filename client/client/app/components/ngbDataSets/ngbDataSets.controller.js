@@ -1,10 +1,6 @@
 import baseController from '../../shared/baseController';
 import ngbDataSetsService, {toPlainList} from './ngbDataSets.service';
 
-function isElementInDatasetRow (el, offset, trackRight) {
-    const rect = el.getBoundingClientRect();
-    return rect.right <= trackRight - offset - 20 && rect.left < trackRight - offset - 20;
-}
 export default class ngbDataSetsController extends baseController {
     static get UID() {
         return 'ngbDataSetsController';
@@ -16,7 +12,6 @@ export default class ngbDataSetsController extends baseController {
     _isLoading = true;
     projectContext;
     showTrackOriginalName = true;
-    offsetWidth = 0;
 
     service;
 
@@ -67,7 +62,6 @@ export default class ngbDataSetsController extends baseController {
             dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
             dispatcher.removeListener('track:custom:name', trackNameChanged);
         });
-        window.addEventListener('resize', this.calculateVisibleMetadata);
     }
 
     async $onInit() {
@@ -177,22 +171,6 @@ Open dataset files manually.`;
         } else {
             this.nothingFound = false;
         }
-    }
-
-    calculateVisibleMetadata(){
-        const rowTrackRight = document.querySelector('.dataset-item-row-track') 
-        ? document.querySelector('.dataset-item-row-track').getBoundingClientRect().right
-        : 0;
-        this.offsetWidth = document.querySelector('.dataset-genome')
-        ? document.querySelector('.dataset-genome').getBoundingClientRect().width
-        : 0;
-        document.querySelectorAll('.structure-card-search-result').forEach((node) =>{
-            if (isElementInDatasetRow(node, this.offsetWidth, rowTrackRight)) {
-                node.classList.remove('hidden');
-            } else {
-                node.classList.add('hidden');
-            }
-        }); 
     }
 
     get searchLength() {
