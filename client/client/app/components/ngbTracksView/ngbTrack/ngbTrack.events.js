@@ -180,27 +180,31 @@ export default class ngbTrackEvents {
                         });
                     }
                 }
-                const layoutChange = this.appLayout.Panels.homologs;
-                layoutChange.displayed = true;
-                menuData.push({
-                    events: [
-                        {
-                            data: {layoutChange},
-                            name: 'layout:item:change'
-                        },
-                        {
-                            data: {
-                                search: data.feature.name,
-                                featureId: data.feature.groupId
+                if (data.feature.feature
+                    && data.feature.feature.toLowerCase() === 'gene'
+                    && data.feature.name) {
+                    const layoutChange = this.appLayout.Panels.homologs;
+                    layoutChange.displayed = true;
+                    menuData.push({
+                        events: [
+                            {
+                                data: {layoutChange},
+                                name: 'layout:item:change'
                             },
-                            name: 'read:show:homologs'
-                        }],
-                    title: 'Show similar genes',
-                    disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
-                    warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
-                        ? 'Feature type is not Gene or Name is missing'
-                        : undefined,
-                });
+                            {
+                                data: {
+                                    search: data.feature.name,
+                                    featureId: data.feature.groupId
+                                },
+                                name: 'read:show:homologs'
+                            }],
+                        title: 'Show similar genes',
+                        disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
+                        warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
+                            ? 'Feature type is not Gene or Name is missing'
+                            : undefined,
+                    });
+                }
                 if (menuData.length > 0) {
                     const childScope = this.$scope.$new(false);
                     childScope.menuData = menuData;
