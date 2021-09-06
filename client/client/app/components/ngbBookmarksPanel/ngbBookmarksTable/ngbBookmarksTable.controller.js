@@ -7,7 +7,6 @@ export default class ngbBookmarksTableController extends baseController {
 
     isDataLoaded = false;
     isNothingFound = false;
-    displayBookmarksFilter = false;
 
     gridOptions = {
         enableHorizontalScrollbar: 0,
@@ -32,7 +31,6 @@ export default class ngbBookmarksTableController extends baseController {
             this.isDataLoaded = false;
             return this.loadData();
         },
-        'bookmarks:restore': this.restoreState.bind(this),
         'display:bookmarks:filter': this.refreshScope.bind(this),
         'bookmarks:page:change': this.getDataOnPage.bind(this),
         'reference:change': () => {
@@ -45,7 +43,6 @@ export default class ngbBookmarksTableController extends baseController {
     constructor($scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
         super();
         Object.assign(this, {$scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
-        this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
         this.initEvents();
     }
 
@@ -138,18 +135,7 @@ export default class ngbBookmarksTableController extends baseController {
         return false;
     }
 
-    restoreState() {
-        this.ngbBookmarksTableService.orderByBookmarks = null;
-        this.ngbBookmarksTableService.clearBookmarksFilter();
-        this.ngbBookmarksTableService.setDisplayBookmarksFilter(false, false);
-        if (!this.gridApi || !this.defaultState) {
-            return;
-        }
-        this.gridApi.saveState.restore(this.$scope, this.defaultState);
-    }
-
     refreshScope(needRefresh) {
-        this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
         if (needRefresh) {
             this.$scope.$apply();
         }

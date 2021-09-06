@@ -91,10 +91,6 @@ const genesResetFilterActions = {
     label: 'Reset genes filter',
     isVisible: context => !context.genesFilterIsDefault
 };
-const bookmarksTableColumnAction = {
-    name: 'bookmarksTableColumn',
-    isDefault: false
-};
 const bookmarksTablePaginationAction = {
     name: 'bookmarksTablePagination',
     liStyle: {
@@ -119,13 +115,12 @@ export default {
         genesTableDownloadAction: genesTableDownloadAction,
         genesTableColumn: genesTableColumnAction,
         genesResetFilter: genesResetFilterActions,
-        bookmarksTableColumn: bookmarksTableColumnAction,
         bookmarksTablePagination: bookmarksTablePaginationAction
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
-        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksTableColumnAction]
+        ngbBookmarksPanel: [bookmarksTablePaginationAction]
     }
 };
