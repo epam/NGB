@@ -16,10 +16,11 @@ const PAGE_SIZE = 15;
 
 export default class ngbOrthoParaResultService extends ClientPaginationService {
 
-    constructor(dispatcher, genomeDataService) {
+    constructor(dispatcher, genomeDataService, uiGridConstants) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'homologs:orthoPara:result:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
+        this.uiGridConstants = uiGridConstants;
     }
 
     get orthoParaResultColumns() {
@@ -41,8 +42,8 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
         return ORTHO_PARA_TYPE_VIEW;
     }
 
-    static instance(dispatcher, genomeDataService) {
-        return new ngbOrthoParaResultService(dispatcher, genomeDataService);
+    static instance(dispatcher, genomeDataService, uiGridConstants) {
+        return new ngbOrthoParaResultService(dispatcher, genomeDataService, uiGridConstants);
     }
 
     getOrthoParaResultGridColumns() {
@@ -75,7 +76,8 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
                         enableHiding: false,
                         field: 'name',
                         headerCellTemplate: headerCells,
-                        name: column
+                        name: column,
+                        sortingAlgorithm: this.sortName
                     });
                     break;
                 }
@@ -107,5 +109,19 @@ export default class ngbOrthoParaResultService extends ClientPaginationService {
             }
         }
         return result;
+    }
+
+    sortName = (a, b, rowA, rowB)  => {
+        if (a) {
+            if (b) {
+                return a > b ? 1 : a < b ? -1 : 0;
+            } else {
+                return -1;
+            }
+        } else if (b) {
+            return 1;
+        } else {
+            return rowA.entity.geneId - rowB.entity.geneId;
+        }
     }
 }
