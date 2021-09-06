@@ -1,4 +1,4 @@
-# Working with tracks
+# Tracks
 
 - [Navigating to a specific genome location](#navigating-to-a-specific-genome-location)
 - [Tracks selection](#tracks-selection)

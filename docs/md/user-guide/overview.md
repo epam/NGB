@@ -1,27 +1,11 @@
 # NGB User Interface
 
 - [Panels](#panels)
-    - [Variants panel](#variants-panel)
-        - [Filters](#filters-for-variants-panel)
-        - [Download the variants table data](#download-the-variants-table-data)
-        - [Highlight variants of interest](#highlight-variants-of-interest)
-    - [Genes panel](#genes-panel)
-        - [Navigate to track](#navigate-to-track)
-        - [Display feature info](#display-feature-info)
-        - [Edit features attributes](#edit-features-attributes)
-        - [Genes context menu](#genes-context-menu)
-        - [Download the gene table data](#download-the-gene-table-data)
-    - [Sessions panel](#sessions-panel)
-    - [Molecular viewer panel](#molecular-viewer-panel)
-    - [BLAST panel](#blast-panel)
-        - [Search history](#search-history)
-        - [Search results](#search-results)
-        - [Alignments info](#alignments-info)
-        - [View alignment at track](#view-alignment-at-track)
-        - [Search from track](#search-from-track)
-    - [Homologs panel](#homologs-panel)
-        - [Homologene sub-tab](#homologene-sub-tab)
-        - [Orthologs and paralogs sub-tab](#orthologs-and-paralogs-sub-tab)
+    - [Variants](#variants-panel)
+    - [Genes](#genes-panel)
+    - [Sessions](#sessions-panel)
+    - [Molecular viewer](#molecular-viewer-panel)
+    - [BLAST search](#blast-panel)
 - [Taking screenshots](#taking-screenshots)
 
 ## Panels
@@ -31,7 +15,7 @@ The NGB user interface is implemented as a set of panels that can be resized, mo
 You can use the **VIEWS** menu to see the complete list of available panels and select the panels to be shown or hidden. The **VIEWS** menu is located on the main toolbar of the application:  
     ![NGB GUI](images/overview-1.png)
 
-By default, only following panels are shown: **Browser**, **Datasets**, **Genes** and **Variants**.  
+By default, only following panels are shown: **Browser**, [**Datasets**](datasets.md), **Genes** and **Variants**.  
 Let's take a look at these and other panels below.
 
 You can rearrange the layout of the NGB as follows:
@@ -61,155 +45,7 @@ You can rearrange the list of variants as follows:
 - **To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will hide all addition columns, show default columns and restore their order, cancel all configured sortings and filters:  
   ![NGB GUI](images/overview-27.png)
 
-#### Filters for variants panel
-
-**Filters** are used to filter variants displayed in the **Variants** panel. You can use one or more parameters to filter variants.  
-To open them - click the _hamburger_ icon and select the "**Show filters**" item in the list:  
-    ![NGB GUI](images/overview-5.png)
-
-Filter fields will appear under the column headers:  
-    ![NGB GUI](images/overview-13.png)
-
-Changing one or more filtering parameters triggers the refreshing of the **Variants** panel:  
-    ![NGB GUI](images/overview-14.png)  
-    ![NGB GUI](images/overview-15.png)
-
-To reset the filter(s):
-
-- for the certain column, click the arrow icon at the column header and select the "**Clear column filter**" item (see **1** at the picture below)
-- for all columns simultaneously, click the _trash bin_ icon in the **Variants** panel header (see **2** at the picture below)  
-    ![NGB GUI](images/overview-16.png)
-
-To hide the filters row - click the _hamburger_ icon in the **Variants** panel header and unset the "**Show filters**" item.
-
-#### Download the variants table data
-
-To download the data displayed in the **Variants** table - click the _download_ icon in the panel header:  
-  ![NGB GUI](images/overview-28.png)  
-The pop-up will appear:  
-  ![NGB GUI](images/overview-29.png)
-
-Here:
-
-- select the format for the downloading table data (CSV or TSV, _CSV by default_)
-- set the checkbox if the the header should be included to the downloading file (_header is not included by default_)
-
-Once the setup is finished, click the **Download** button. Table will be downloaded automatically:  
-  ![NGB GUI](images/overview-30.png)
-
-The downloaded table will contain only the same data that was displayed in the **Variants** table before the download (considering all filters and sortings):  
-  ![NGB GUI](images/overview-31.png)
-
-#### Highlight variants of interest
-
-VCF files may include a large number of variants and it could be helpful to highlight variants of interest based on values of the panel fields (variant attributes).
-
-System admin can create/edit the special JSON-file (`interest_profiles.json` in the NGB config directory) where a list of condition profiles is described.  
-Each profile in that file contains an own set of conditions based on the variant attributes. For a condition, the color is being specified.  
-At the GUI, user can select any profile from the described file and:
-
-- in the variants table, if the variant is satisfy to the certain condition of the profile - variant row is being highlighted in that condition color
-- at the VCF track, if the variant is satisfy to the certain condition of the profile - this variant is being highlighted in that condition color
-
-The format of the JSON-file with condition profiles is the following:
-
-``` json
-{
-  "<profile_name1>" : {
-    "is_default" : "<is_default_value>",
-    "conditions" : [
-      {
-        "condition" : "<condition_set1>",
-        "highlight_color" : "<highlight_color1>"
-      },
-      {
-        "condition" : "<condition_set2>",
-        "highlight_color" : "<highlight_color2>"
-      },
-      ...
-    ]
-  },
-  "<profile_name2>" : {
-    "conditions" : [ ... ]
-  },
-  ...
-}
-```
-
-> Where:
->
-> - `<profile_name>` - a profile name
-> - "**is_default**" (_boolean_, _not-required_) - key for specifying whether the current profile is default one. If several profiles are marked as "default" profile (have `"is_default" : "true"`) - only first of them becomes "default" profile, other are ignored
-> - "**conditions**" - an array of condition sets. For each set, conditions are being specified for variants' matching check and the color in which these variants will be highlighted:  
->     - "**condition**" - a condition set. May include one or several conditions for VCF info fields which values may be of interest (for which the conditions are being specified and comparisons will be performed). If the condition set is not specified - no variants will be highlighted in the corresponding color
->     - "**highlight_color**" - key for specifying a color. The variants matched the conditions of the current set will be highlighted in the GUI in this color (color should be specified in HEX)
->
-> Each `<condition_set>` should have a structure: `(<id1> <comparison_operator1> <value1>) <logic_operator1> (<id2> <comparison_operator2> <value2>) ...`  
-> Where:
->
-> - `<id>` (_string_) - VCF info field ID. Should be specified in quotes (examples: `'ac'`, `"mp"`, `'excess het'`)
-> - `<comparison_operator>` - operator that will be used for the comparison of the VCF info field value with the specified in the current condition. Possible values:
->     - `==` - **equals** - for string, numeric and boolean values
->     - `!=` - **not equals** - for string, numeric and boolean values
->     - `>` - **greater than** - for numeric values
->     - `>=` - **greater than or equal to** - for numeric values
->     - `<` - **less than** - for numeric values
->     - `<=` - **less than or equal to** - for numeric values
->     - `in` - **in** - for arrays
->     - `notin` - **not in** - for arrays
-> - `<value>` (_string_) - value with which the comparison is being performed. Should be specified in quotes, arrays should be specified in square brackets (examples: `'2'`, `"true"`, `'[1, 10, 22]'`)
-> - `<logic_operator>` - defines how specified comparisons will combinate:
->     - variants of interest should match both comparisons. In this case, `<logic_operator>` should be `and`
->     - variants of interest should match any comparison (at least one). In this case, `<logic_operator>` should be `or`
->
-> More complex sets from several comparisons can be specified by rules of Boolean algebra, using additional brackets, e.g.: `((<comparison1>) or (<comparison2>)) and ((<comparison3>) or (<comparison4>))`.
-
-Example of the JSON-file with a single profile:
-
-``` json
-{
-  "Example conditions" : {
-    "is_default" : true,
-    "conditions" : [
-      {
-        "highlight_color" : "ffff00",
-        "condition" : "('ac' == '2') and ('mq' >= '80')"
-      }
-    ]
-  }
-}
-```
-
-By the example above, the default profile was described that has the following properties - variants of interest will be highlighted in color `#FFFF00` (yellow) if they match both conditions: allele count equals `2` and mapping quality greater than or equals to `80`.
-
-By default, the variants highlighting is disabled.  
-To enable it and select the certain conditions profile:
-
-1. Click the _gear_ icon in the main menu to open the **Settings**:  
-  ![NGB GUI](images/overview-19.png)
-2. The settings pop-up will be opened. Select the **VCF** tab:  
-  ![NGB GUI](images/overview-20.png)
-3. At the **VCF** tab, enable the variants highlighting feature. For that - set the corresponding checkbox:  
-  ![NGB GUI](images/overview-21.png)
-4. If the checkbox is enabled - the list with condition profiles will appear:  
-  ![NGB GUI](images/overview-22.png)
-5. Select the desired profile from the list. _In our example, we will use the profile described above - "Example conditions"_:  
-  ![NGB GUI](images/overview-23.png)  
-  Click the **SAVE** button to confirm changes.
-6. Once the profile is selected, the variants satisfied to the profile conditions will be highlighted in the condition colors:  
-  ![NGB GUI](images/overview-24.png)  
-  **_Note_**: rows not satisfied the conditions will remain the same (without additional highlighting)
-7. If open any of the highlighted variants - it will be highlighted at the VCF-track as well:  
-  ![NGB GUI](images/overview-25.png)
-8. For the collapsed VCF-tracks, when several variants are merged into a "bubble" and among them there are some variants of interest from different condition sets - such "bubble" is being highlighted in all corresponding colors (like pie chart diagram), e.g.:  
-  ![NGB GUI](images/overview-26.png)
-
-> **_Notes_**:
->
-> - Conditions profile doesn't consider the dataset (will be automatically applied to any dataset with VCF files).
-> - If the same variant matches different condition sets from the profile, it should be highlighted only in a color of the first condition set in the list
-
-To disable the highlighting feature - disable the checkbox in the settings.
+For more details, options and capabilities see [here](variants.md).
 
 ### Genes panel
 
@@ -243,118 +79,14 @@ You can rearrange the list of features as follows:
     ![NGB GUI](images/genes-05.png)
 - **Another way to hide an extra column** - use the corresponding item in the menu appeared by click the arrow icon near the column name, e.g.:  
   ![NGB GUI](images/genes-07.png)
-- **To filter displayed features** - use one or more parameters to filter features in the **Genes** panel. The approach is fully the same as described for the [Variants panel](#filters-for-variants-panel):  
+- **To filter displayed features** - use one or more parameters to filter features in the **Genes** panel. The approach is fully the same as described for the [Variants panel](variants.md#filters-for-variants-panel):  
   ![NGB GUI](images/genes-08.png)  
   ![NGB GUI](images/genes-09.png)  
   ![NGB GUI](images/genes-10.png)
 - **To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will hide all addition columns, show default columns and restore their order, cancel all configured sortings and filters:  
   ![NGB GUI](images/genes-06.png)
 
-#### Navigate to track
-
-To navigate to a feature, click the certain feature row in the **Genes** table. This feature will be opened in the "**Browser**" panel, at the GENE track, e.g.:  
-  ![NGB GUI](images/genes-11.png)
-
-The GENE track will be auto zoomed so that the selected feature appears at the full size and approximately at the center of the track's visible part.
-
-#### Display feature info
-
-To view the info details about the certain feature, click the **Info** button in the row of that feature in the **Genes** table, e.g.:  
-  ![NGB GUI](images/genes-12.png)
-
-The info pop-up contains all feature info:
-
-- mandatory fields with their values from the corresponding columns of the origin gene files (shown as is)
-- additional attributes with their values from the "**Attributes**" column of the origin gene file (shown with the `ATTR` label)
-- **Sequence** field with a feature nucleotide sequence
-
-#### Edit features attributes
-
-Users can modify gene/feature attributes shown in the **Genes** panel via the GUI.  
-These changes will be saved in NGB and will be available to all other users, but they don't touch the original GENE files.
-
-Details:
-
-- user can modify the attribute values manually for any gene/feature from the GENES panel
-- all field values can be changed, no matter the type attribute has - mandatory or optional/additional (except "_Chromosome_", "_Start_", "_End_")
-- user can add a new attribute and specify a value for it to the feature. Such attribute will be shown as additional and marked with the `ATTR` label
-- user can remove any additional attribute from the feature (mandatory fields can not be removed)
-- modified/created/deleted attributes don't affect the original GENE files. All changes are being done only in the inner NGB database
-
-Modifying attributes is being performed via the **Info** pop-up of the gene/feature - click the **Info** button in the row of the desired feature in the **Genes** table, then click the **Edit** button, e.g.:  
-  ![NGB GUI](images/genes-18.png)
-
- The modifying regimen will be enabled:  
-  ![NGB GUI](images/genes-19.png)
-
-All fields that values can be modified are displayed with the underline.  
-To change such value - click it and specify a new one, e.g.:  
-  ![NGB GUI](images/genes-20.png)  
-  ![NGB GUI](images/genes-21.png)
-
-To remove the attribute with its value - click the minus button near the attribute, e.g.:  
-  ![NGB GUI](images/genes-22.png)  
-This attribute will disappear from the list.
-
-To add a new attribute - click the **Add** button under the list. Two fields will appear - left one for the attribute name and the right one for the attribute value, e.g.:  
-  ![NGB GUI](images/genes-23.png)  
-Both fields should be filled in for a new attribute (empty values are not allowed), e.g.:  
-  ![NGB GUI](images/genes-24.png)  
-To add another attribute - click the **Add** button again.
-
-Once all changes are done - click the **Save** button:  
-  ![NGB GUI](images/genes-25.png)  
-Changes will be saved:  
-  ![NGB GUI](images/genes-26.png)  
-You can check it at the **Genes** panel as well:  
-  ![NGB GUI](images/genes-27.png)
-
-##### History of changes
-
-User can view all changes that were performed with the certain feature attributes - what was changed, when and by whom.  
-It can be done via the **History** tab in the feature **Info** pop-up:  
-  ![NGB GUI](images/genes-28.png)  
-  ![NGB GUI](images/genes-29.png)
-
-Here the list of performed actions is displayed.  
-Each action record in the list contains:
-
-- username who performed changes
-- date and time of changes
-- details of changing (names of the changed attributes, their old and new values)
-
-History is being sorted by date - from the newest to older events.
-
-#### Genes context menu
-
-Users can use the context menu from the **Genes** table for the quick access to some additional functionality. To open the context menu, click the right mouse button on a feture row, e.g.:  
-  ![NGB GUI](images/genes-16.png)
-
-From here, user can for the current feature:
-
-- open the [BLAST](#blast-panel) search
-- open a visualized 3D protein structure in the [Molecular viewer](#molecular-viewer-panel)
-- open the [Homologs](#homologs-panel) search
-
-**_Note_**: not all context menu items are available for all features. In case of some restrictions, the corresponding warning message will be shown, e.g.:  
-  ![NGB GUI](images/genes-17.png)
-
-#### Download the gene table data
-
-To download the data displayed in the **Genes** table - click the _download_ icon in the panel header.  
-The pop-up will appear:  
-  ![NGB GUI](images/genes-13.png)
-
-Here:
-
-- select the format for the downloading table data (CSV or TSV, _CSV by default_)
-- set the checkbox if the the header should be included to the downloading file (_header is not included by default_)
-
-Once the setup is finished, click the **Download** button. Table will be downloaded automatically:  
-  ![NGB GUI](images/genes-14.png)
-
-The downloaded table will contain only the same data that was displayed in the **Genes** table before the download (considering all filters and sortings):  
-  ![NGB GUI](images/genes-15.png)
+For more details, options and capabilities see [here](genes.md).
 
 ### Sessions panel
 
@@ -397,7 +129,11 @@ The **Molecular Viewer** panel shows the 3D structure of a protein.
 This panel is hidden by default. Select **Molecular Viewer** from the **VIEWS** menu to show the panel.
 
 To view a protein's 3D structure, navigate to a specific location in a browser and click a gene or a transcript on the gene's track.  
-This will load the 3D structure of the protein from the RCSB database. Refer to [**Working with Annotations**](annotations.md#retrieving-protein-3d-structures) for details.
+This will load the 3D structure of the protein from the RCSB database. To enable this, external databases are used:
+
+- A call to `Ensembl` is performed to retrieve a list of transcripts of a gene and the link to uniprot entry for each transcript
+- A list of corresponding PDB IDs with the current chain in a PDB is retrieved from the uniprot entry
+- Finally, a PDB file is retrieved from RCSB and visualized.
 
 ![NGB GUI](images/overview-10.png)
 
@@ -433,37 +169,8 @@ The BLAST panel contains two sub-tabs:
 - **Search** (_opened by default_) - to display and specify search settings, and also start a new search
 - **History** - to display the history of searches
 
-To start the search, user should specify:
-
-1. The BLAST **Tool** that will be used for the search. Only one tool can be selected:  
-  ![NGB GUI](images/blast-02.png)
-    - `blastn` (_default_) - for the search over nucleotide databases using a nucleotide query
-    - `blastp` - for the search over protein databases using an amino acid query
-    - `blastx` - for the search over protein databases using a translated nucleotide query
-    - `tblastn` - for the search over translated nucleotide databases using an amino acid query
-    - `tblastx` - for the search over translated nucleotide databases using a translated nucleotide query
-2. **Query sequence**, e.g.:  
-  ![NGB GUI](images/blast-03.png)
-3. The search **Task title** (_optionally_). In this field, user may specify the title for the current search operation - to easier find it later, e.g.:  
-  ![NGB GUI](images/blast-04.png)
-4. Search "set". Here user should specify where the search should be performed:
-    - **Database** - dropdown list to select the BLAST database (one from the list of all uploaded databases). The list of databases corresponds one of the types - protein or nucleotide. This type is defined by the selected tool type at the tool selector: for `blastn`, `tblastn`, `tblastx` - nucleotide databases are being displayed, for `blastp`, `blastx` - protein databases are being displayed
-    - **Organism** (_optionally_) - dropdown list to select/specify the species for which the search should be performed. Multi-select is supported.
-        - Separately, user can set the certain checkbox next to the **Organism** field to exclude specified organism(s) from the list for which the search will be performed
-    - **Algorithm** - dropdown list to select algorithms available for the current BLAST tool. Use the _info_ icon next to that dropdown list to view a short help  
-    ![NGB GUI](images/blast-05.png)
-5. **Additional parameters** - collapsible section to specify additional "technical" BLAST parameters that should be used for the search. Expanded view of that section:  
-  ![NGB GUI](images/blast-06.png)  
-  Here:
-    - **Max target sequences** - field to set the maximum number of aligned sequences to display in results (CLI BLAST option `max_target_seqs`)
-    - **Expect threshold** - field to set expect value for saving hits (CLI BLAST option `evalue`)
-    - **Options** (_optionally_) - field to specify additional BLAST options in CLI style. If user will try to specify such options in incorrect format or with incorrect names - they will be ignored during the search. To view the full list of supported options use the _info_ icon next to that field  
-    **_Note_**: **Max target sequences** and **Expect threshold** settings have _default_ values. I.e. if user doesn't forcibly specify values for these parameters (e.g., even doesn't expand the "**Additional parameters**" section) - their default values shall be used for the search
-
 Once the BLAST search setup is finished - click the **Search** button to start:  
   ![NGB GUI](images/blast-12.png)
-
-#### Search history
 
 Since the BLAST search can take a long time, the results are not displayed immediately - and for each search - a new "search task" is being created.  
 The list of such tasks is displayed at the **History** sub-tab.  
@@ -471,265 +178,14 @@ This sub-tab is being opened automatically after the search starts:
   ![NGB GUI](images/blast-07.png)  
 Just-started search task is shown on the top of the tasks list.
 
-This table contains all user's BLAST search requests.  
-Here:
-
-- **Task ID** - automatic created ID of the certain search task
-- **Task title** - title of the certain search task (if it was specified before the search)
-- **Current state** - status of the search task:
-    - _Searching_ - for task being performed at the moment. All new tasks get this status by default
-    - _Done_ - for task successfully finished
-    - _Interrupted_ - for task canceled during the searching
-    - _Failure_ - for failed task (task finished with errors)
-- **Submitted at** - date and time when the certain search was started
-- **Duration** - duration of the certain search task
-- block of the controls near each request:
-    - button to cancel search ![NGB GUI](images/blast-08.png). This button allows to break the search and change the state of that task to "_Interrupted_". _Note_: available only for the task that is being currently performed
-    - button to re-open the search setup ![NGB GUI](images/blast-09.png). This button allows to open the **Search** setup sub-tab and set the search parameters in the same values as they were in the current request
-- Clear history button ![NGB GUI](images/blast-10.png) at the top of the tab - to clear all BLAST search history
-
-Table supports sorting by any column (except **Duration**).  
-Table has the auto-refresh every 5 sec (only if the sub-tab is opened).  
-If the certain search is finished, its state changes to _Done_ and task ID becomes a hyperlink.  User can click such hyperlink (or just a row) to open the corresponding search results, e.g.:  
-  ![NGB GUI](images/blast-11.png)  
-
-#### Search results
-
-Search results will be opened in the same tab (**History**):  
+User can click such hyperlink (or just a row) to open the corresponding search results. Search results will be opened in the same tab (**History**):  
   ![NGB GUI](images/blast-13.png)
-
-This table contains:
-
-- **Back** button (near the search task title) - to hide current results and return to the search history view:  
-  ![NGB GUI](images/blast-14.png)
-- Header with the opened search task title (if it was specified before the search)
-- BLAST parameters collapsible section (_collapsed by default_). This section contains details of the opened search:  
-  ![NGB GUI](images/blast-15.png)  
-    - **Query info** button - to open the search query details (sequence and its length), e.g.:  
-    ![NGB GUI](images/blast-16.png)  
-    - **Additional parameters** section - collapsible section where user can view additional "technical" BLAST parameters that were used for the search:
-    ![NGB GUI](images/blast-17.png)
-- Block of additional buttons at the right-upper corner of the form:
-    - button to re-open the search setup ![NGB GUI](images/blast-09.png) - to open the the **Search** setup sub-tab and set the search parameters in the same values as they were in the current request
-    - button to download results ![NGB GUI](images/blast-18.png) - to download full BLAST search results (raw) as CSV file to the local workstation
-- **Sequences table** - to show the search results summary grouped by sequences:  
-  ![NGB GUI](images/blast-19.png)
-
-**Sequences table** contains BLAST search aggregated results grouped by their sequences.  
-Table contains the following columns:
-
-- _Sequence ID_ - IDs of the sequences in which hits were found
-- _Organism_ - organism specified in the sequence
-- _Tax ID_ - taxonomy ID specified in the sequence
-- _Max score_ - the highest alignment score from all matches of the search query to the certain sequence
-- _Total score_ - sum of alignment scores from all matches of the search query to the certain sequence
-- _Query cover_ - the percent of the query length that is included in the aligned segments
-- _E value_ - the number of alignments expected by chance with the calculated score or better. By this column the default sorting is set (ascending)
-- _Percent identity_ - the highest percent identity for a set of aligned segments to the same subject sequence
-- _Matches_ - number of matches of the search query to the certain sequence
-
-Maximal count of rows in this table is defined by **Max target sequences** parameter that is specified before the search.  
-User have the ability to sort this table by any column and manually configure the column order.
-
-#### Alignments info
 
 User can click any row in the **Sequence table** and the form with details about all matches (alignments) of the search query to the certain sequence will be opened.  
 This form is being opened in the same tab (**History**), e.g.:  
-  ![NGB GUI](images/blast-20.png)  
   ![NGB GUI](images/blast-21.png)
 
-This form contains:
-
-- **Back** button - to hide the **Alignments info** form and return to the **Sequences table** view:  
-  ![NGB GUI](images/blast-22.png)
-- **Sequence ID**. ID is a hyperlink:
-    - if the search was performed on the NCBI database - this hyperlink opens a corresponding sequence page on NCBI
-    - if the search was performed on the "custom" database - this hyperlink opens a corresponding reference and its chromosome (to which this sequence belongs) in the "**Browser**" panel
-- Details about all matches of the search query to the current sequence (match blocks)
-
-Each match block contains:
-
-- _Range_ - positions of the current sequence where the match is defined
-- "_View at track_" link - hyperlink to view the certain match (alignment) to the current sequence. This hyperlink is visible only for those sequences which references are in NGB databases
-- _Score_ and _bit-score_, _Expect_ value (E-value)
-- Count of _Identities_ between sequences (by symbols) and its percent value
-- Count of _Gaps_ (by symbols) and its percent value
-- _Strands_ of each sequence (query and subject) - only for nucleotide sequences
-- block with the conventional figure of the query string alignment to the current sequence segment:  
-    - start and end position of the query string segment
-    - aligned query string segment
-    - start and end position of the current sequence segment
-    - the current sequence segment to which the query string segment was aligned
-    - symbols that "link" the corresponding letters in both sequences:
-        - straight line (`|`) if letters are equal
-        - nothing (empty) if letters are not equal (mismatch)
-        - minus symbol (`-`) in any sequence - for gaps
-
-#### View alignment at track
-
-User can view any found match (alignment) at a track (graphic visualization) in the "**Browser**" panel. **_Note_**: it is possible only for those sequences which references are in NGB databases.  
-To open the visualization track, user should click the "_View at track_" link near the match in the "**Alignments info**" form:  
-  ![NGB GUI](images/blast-23.png)  
-  ![NGB GUI](images/blast-24.png)
-
-Opened alignment is shown at the separate track.  
-Track is being displayed in the similar manner as a single read at the [Alignment](tracks-bam.md) track in the "Browser":  
-
-- query matches - shown as a gray line by width of aligned matches
-- query strand - shown as an arrow on the edge of the query line
-- mismatches - shown as separate color rectangles with the corresponding letters
-- gaps in sequence - shown as insertions (a perpendicular violet line in the gap position)
-- gaps in query - shown as deletions (a black line linked two "separate" parts of the query)
-- additionally, near the each end of the query line at the track, are conventionally shown counts of the query positions that were not aligned to sequence
-
-Example:  
-  ![NGB GUI](images/blast-25.png)
-
-If there are several matches (alignments) were found for the same sequence - they all will be shown at that track, e.g.:  
-  ![NGB GUI](images/blast-26.png)
-
-> Please note, that described behavior is valid only for searches over _nucleotide_ sequences.  
-> Visualization for searches over _amino acid_ sequences does not show exact location of the alignment. In such cases, only whole gene feature is highlighted instead.  
-> ![NGB GUI](images/blast-27.png)
-
-#### Search from track
-
-Users have the ability to start BLAST Search from the genomic feature via the "**Browser**" panel as well.
-
-To prepare the search in such way, user shall just click a read (or any other feature) at a track and select any "**BLAST search**" option (`BLASTn` or `BLASTp`) from the context menu, e.g.:  
-  ![NGB GUI](images/blast-28.png)
-
-After that, the BLAST panel will be opened. Also, some default values will be set:
-
-- if user selected "**BLASTn Search**" option, at the "**BLAST**" panel:
-    - `blastn` tool type will be selected
-    - the corresponding _nucleotide_ sequence (according to the selected in GUI) will appear in the **Query sequence** field
-- if user selected "**BLASTp Search**" option, at the "**BLAST**" panel:
-    - `blastp` tool type will be selected
-    - the corresponding _amino acids_ sequence (according to the selected in GUI) will appear in the **Query sequence** field
-
-Example for the gene at the picture above when the "**BLASTn Search**" option was selected:  
-  ![NGB GUI](images/blast-29.png)
-
-> **_Note_**: this feature has a number of limitations. If the BLAST search can not be performed from the context menu (due to some restrictions) - the corresponding item will be disabled and a short info with a reason will be shown. E.g. if the read/feature/gene selected at the GUI for the search is too large to be inserted into the **Query sequence** field:  
-> ![NGB GUI](images/blast-30.png)
-
-### Homologs panel
-
-Users can search for the homologous genes.  
-The search is being performed in the inner copy of [`NCBI Homologene`](https://www.ncbi.nlm.nih.gov/homologene/) database or in uploaded custom databases.
-
-There are two ways to start the search of homologous genes:
-
-- from the context menu at the **Browser** panel by the left-click on any gene at the GENE track:  
-  ![NGB GUI](images/homologs-01.png)
-- from the context menu at the **Genes** panel by the right-click on any gene:  
-  ![NGB GUI](images/homologs-02.png)
-
-**_Note_**: in both cases, these items in menus are available only if the feature has `gene` feature type and non-empty gene name.
-
-After, the search in the inner copy of NCBI Homologene database is being performed using the gene name and the current species.  
-**Homologs** panel will be opened automatically (_at the picture below the search results for `ETNK1` gene is shown_):  
-  ![NGB GUI](images/homologs-03.png)
-
-This panel contains two sub-tabs:
-
-- "**Homologene**" (_opened by default_) - for displaying search results of gene homologs from the NCBI Homologene database
-- "**Orthologs & paralogs**" - for displaying search results of gene orthologs and paralogs from the corresponding NCBI Database (`NCBI Orthologs`) and/or inner NGB databases
-
-#### Homologene sub-tab
-
-Here, the search results over NCBI Homologene database are being shown:  
-  ![NGB GUI](images/homologs-04.png)
-
-Each record contains:
-
-- _Gene name_ - gene names of all homologs of the certain record (ordered alphabetically)
-- _Protein name_ - the most "popular" protein name among all homologs of the certain record (the one that meet the most times)
-- _Info_ - additional record info (_optionally_)
-
-Click any row in that table to open details of the certain Homologene record:  
-  ![NGB GUI](images/homologs-05.png)  
-  ![NGB GUI](images/homologs-06.png)
-
-This form contains:
-
-- button to return to the previous table (with the list of found Homologene records)  
-  ![NGB GUI](images/homologs-07.png)
-- additional record info where homologs were found (if exists) - as the **Homologs** table header
-- **Homologs** table that contains two columns:
-    - _Gene_ - for a gene info with two sub-columns:
-        - _Name_ - for a gene name
-        - _Species_ - for a species name
-    - _Protein_ - for a protein info with following sub-columns:
-        - _Accession ID_ - for a protein sequence accession ID. It is a hyperlink. User can click it and navigate to the corresponding protein page in NCBI (in a new tab)
-        - _Protein_ - for a protein name
-        - _Aa_ - for a protein sequence length
-        - _Domains_ - for an approximate image of the conserved protein domains. Each image contains:
-            - a line for a full protein length
-            - one or several color rectangles - each for the specific conserved domain. Different domains are drawn by different colors, the same domains are drawn in the same colors
-
-The table supports sorting by any sub-column, except "Domains".
-
-Gene names in this table are hyperlinks.  
-User can click any gene of interest and navigate:
-
-- to the corresponding location of the selected species at the GENE track in "**Browser**" panel (if the reference is uploaded in NGB)  
-  ![NGB GUI](images/homologs-08.png)  
-  ![NGB GUI](images/homologs-09.png)
-- to the corresponding gene page in NCBI (if the reference is not uploaded in NGB)
-
-User can click any domain rectangle in the table and a tooltip will appear with a full "legend" of the corresponding gene domains:  
-  ![NGB GUI](images/homologs-10.png)  
-Tooltip contains:
-
-- accession ID as a hyperlink to the corresponding protein page in NCBI
-- full protein sequence length
-- list of domains. For each domain are specified:
-    - domain color and positions
-    - domain ID as a hyperlink to the corresponding conserved domains database page in NCBI
-    - domain name
-
-#### Orthologs and paralogs sub-tab
-
-This sub-tab can be opened manually (after the search of "similar genes" is performed).  
-Here, the search results over orthologs and paralogs NGB databases (NCBI Orthologs or custom) should be shown, e.g.:  
-  ![NGB GUI](images/homologs-11.png)
-
-Each record contains:
-
-- _Gene name_ - gene name of all homologs of the certain record (ordered alphabetically)
-- _Protein name_ - the most "popular" protein name among all homologs of the certain record (the one that meet the most times)
-- _Info_ - record info with database name where the results were found
-
-Click any row in that table to open results details from the certain database:  
-  ![NGB GUI](images/homologs-12.png)  
-  ![NGB GUI](images/homologs-13.png)
-
-This form contains:
-
-- arrow-button to return to the previous table (with the list of found records)
-- additional record info where orthologs and paralogs were found (if exists)
-- **Orthologs and paralogs** table that contains columns:
-    - _Name_ - for a gene name
-    - _Species_ - for a species name
-    - _Aa_ - for a protein sequence length
-    - _Domains_ - for an approximate image of the conserved protein domains (similar to **Homologs** table)
-    - _Type_ - for a type of the homolog - _`Ortholog`_ or _`Paralog`_
-
-The table supports sorting by any sub-column, except "Domains".
-
-Gene names in this table are hyperlinks.  
-User can click any gene of interest and navigate to the GENE track in the "**Browser**" panel (if the reference is uploaded in NGB) or to the corresponding gene page in NCBI (if the reference is not uploaded in NGB) - similarly to the **Homologs** table.
-
-User can click any domain rectangle in the table and a tooltip will appear with a full "legend" of the corresponding gene domains - similarly to the **Homologs** table.
-
-> **_Note_**: some data may often be missing in the **Orthologs and paralogs** table.  
-> In this case:
->
-> - if the gene name is unknown - gene ID is displayed instead
-> - if the protein sequence length is unknown - zero is displayed in the corresponding column
-> - if there is no info about domains - nothing is displayed in the corresponding column
+For more details, options and capabilities see [here](blast-search.md).
 
 ## Taking screenshots
 
