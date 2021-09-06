@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,9 @@ public class BamFileManager implements SecuredEntityManager {
 
     @Autowired
     private ProjectDao projectDao;
+
+    @Autowired
+    private MetadataManager metadataManager;
 
     /**
      * Persists {@code BamFile} record to the database
@@ -107,6 +111,7 @@ public class BamFileManager implements SecuredEntityManager {
         bamFileDao.deleteBamFile(bamFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getBioDataItemId());
+        metadataManager.delete(bamFile);
     }
 
     @Override

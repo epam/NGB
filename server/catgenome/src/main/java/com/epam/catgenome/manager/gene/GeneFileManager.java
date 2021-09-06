@@ -31,6 +31,7 @@ import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,9 @@ public class GeneFileManager implements SecuredEntityManager {
     @Autowired
     private ReferenceGenomeDao referenceGenomeDao;
 
+    @Autowired
+    private MetadataManager metadataManager;
+
     /**
      * Persists {@code GeneFile} record to the database
      *
@@ -114,6 +118,7 @@ public class GeneFileManager implements SecuredEntityManager {
         geneFileDao.deleteGeneFile(geneFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(geneFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+        metadataManager.delete(geneFile);
     }
 
     /**

@@ -432,4 +432,11 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
             }
         );
     }
+
+    clearData() {
+        if (typeof this._removeHotKeyListener === 'function') {
+            this._removeHotKeyListener();
+        }
+        super.clearData();
+    }
 }

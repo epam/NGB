@@ -24,18 +24,22 @@
 
 package com.epam.catgenome.controller;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.epam.catgenome.constant.Constants;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Source:      JsonMapper.java
@@ -60,6 +64,7 @@ public class JsonMapper extends ObjectMapper {
     private static final JsonMapper INSTANCE = new JsonMapper();
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern(Constants.DATE_TIME_FORMAT);
+    private static final String EMPTY_JSON = "{}";
 
     /**
      * {@code String} specifies date format without offset used to serialize
@@ -98,5 +103,33 @@ public class JsonMapper extends ObjectMapper {
 
     public static JsonMapper getInstance() {
         return INSTANCE;
+    }
+
+    public static <T> String convertDataToJsonStringForQuery(final T data) {
+        if (data == null) {
+            return EMPTY_JSON;
+        }
+        String resultData;
+        try {
+            resultData = getInstance().writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+        if (StringUtils.isNotBlank(resultData)) {
+            return resultData;
+        }
+        return EMPTY_JSON;
+    }
+
+    public static <T> T parseData(final String data, final TypeReference<T> type) {
+        if (StringUtils.isBlank(data)) {
+            return null;
+        }
+
+        try {
+            return getInstance().readValue(data, type);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not parse json data " + data, e);
+        }
     }
 }

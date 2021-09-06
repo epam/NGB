@@ -93,23 +93,14 @@ export default class LocalDataService {
         return dictionary;
     }
 
-    recoverSettings(settingsObject, defaultSettingsObject = null) {
-        let somethingRecovered = false;
-        if (defaultSettingsObject === null) {
-            defaultSettingsObject = DefaultLocalData.defaultSettings;
+    static newUUUID() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
         }
-        for (const key in defaultSettingsObject) {
-            if (defaultSettingsObject.hasOwnProperty(key)) {
-                if (settingsObject[key] === undefined) {
-                    settingsObject[key] = defaultSettingsObject[key];
-                    somethingRecovered = true;
-                }
-                else if ((typeof defaultSettingsObject[key]).toLowerCase() === 'object') {
-                    somethingRecovered = this.recoverSettings(settingsObject[key], defaultSettingsObject[key]) || somethingRecovered;
-                }
-            }
-        }
-        return somethingRecovered;
+
+        return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
     }
 
     rebuildSettings(settingsObject, defaultSettingsObject = null) {
@@ -128,13 +119,21 @@ export default class LocalDataService {
         }
     }
 
-    static newUUUID() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
+    recoverSettings(settingsObject, defaultSettingsObject = null) {
+        let somethingRecovered = false;
+        if (defaultSettingsObject === null) {
+            defaultSettingsObject = DefaultLocalData.defaultSettings;
         }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
+        for (const key in defaultSettingsObject) {
+            if (defaultSettingsObject.hasOwnProperty(key)) {
+                if (settingsObject[key] === undefined) {
+                    settingsObject[key] = defaultSettingsObject[key];
+                    somethingRecovered = true;
+                } else if ((typeof defaultSettingsObject[key]).toLowerCase() === 'object') {
+                    somethingRecovered = this.recoverSettings(settingsObject[key], defaultSettingsObject[key]) || somethingRecovered;
+                }
+            }
+        }
+        return somethingRecovered;
     }
 }

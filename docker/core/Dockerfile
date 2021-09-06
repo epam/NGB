@@ -8,7 +8,7 @@ ENV PATH $PATH:$CLI_HOME
 
 #Install OpenJDK 8
 RUN apt-get -y update && \
-    apt-get -y install wget openjdk-8-jre
+    apt-get -y install wget openjdk-8-jre nginx
 
 #Install NGB server binaries
 RUN mkdir ${NGB_HOME}

@@ -71,6 +71,8 @@ public final class ProjectConverter {
         vo.setItemsCountPerFormat(project.getItemsCountPerFormat());
         vo.setParentId(project.getParentId());
         vo.setPrettyName(project.getPrettyName());
+        vo.setMetadata(project.getMetadata());
+        vo.setMask(project.getMask());
 
         if (project.getNestedProjects() != null) {
             vo.setNestedProjects(convertTo(project.getNestedProjects()));
@@ -115,8 +117,9 @@ public final class ProjectConverter {
             vo.setPath(item.getBioDataItem().getPath());
             vo.setCreatedDate(item.getBioDataItem().getCreatedDate());
             vo.setPrettyName(item.getBioDataItem().getPrettyName());
-
+            vo.setMetadata(item.getBioDataItem().getMetadata());
             vo.setId(item.getBioDataItem().getId());
+            vo.setMask(item.getBioDataItem().getMask());
 
             if (item.getBioDataItem() instanceof FeatureFile) {
                 FeatureFile featureFile = (FeatureFile) item.getBioDataItem();

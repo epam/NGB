@@ -27,6 +27,9 @@ package com.epam.catgenome.entity.project;
 import java.util.Objects;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Source:      ProjectItem
@@ -38,50 +41,17 @@ import com.epam.catgenome.entity.BiologicalDataItem;
  * Represents a track, that is included in a project.
  * </p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProjectItem {
     private Long id;
     private Boolean hidden;
     private BiologicalDataItem bioDataItem;
     private Short ordinalNumber;
 
-    public ProjectItem() {
-        // No-op
-    }
-
     public ProjectItem(BiologicalDataItem bioDataItem) {
         this.bioDataItem = bioDataItem;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Boolean getHidden() {
-        return hidden;
-    }
-
-    public void setHidden(Boolean hidden) {
-        this.hidden = hidden;
-    }
-
-    public BiologicalDataItem getBioDataItem() {
-        return bioDataItem;
-    }
-
-    public void setBioDataItem(BiologicalDataItem bioDataItem) {
-        this.bioDataItem = bioDataItem;
-    }
-
-    public Short getOrdinalNumber() {
-        return ordinalNumber;
-    }
-
-    public void setOrdinalNumber(Short ordinalNumber) {
-        this.ordinalNumber = ordinalNumber;
     }
 
     @Override
