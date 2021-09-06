@@ -3,6 +3,7 @@
         ng-cloak
         name="metadataForm"
         ng-submit="ctrl.saveMetadata()"
+        class="metadata-form"
     >
         <md-toolbar>
             <div class="md-toolbar-tools">
@@ -17,7 +18,7 @@
               </div>
         </md-toolbar>
         <md-dialog-content>
-            <div class="md-dialog-content">
+            <div class="md-dialog-content scrollable-container">
                 <div
                     class="dialog-content-inner"
                 >
@@ -98,12 +99,12 @@
             <span flex></span>
             <md-button
                 type="submit"
-                class="md-primary"
+                class="md-primary save-metadata-btn"
                 aria-label="save attribute"
                 ng-disabled="!ctrl.metadataIsChanged || ctrl.formHasDuplicates"
             >
               SAVE
-              <md-progress-circular ng-show="ctrl.saving" md-mode="indeterminate"></md-progress-circular>
+              <md-progress-circular class="save-loader"  md-diameter="20px" ng-show="ctrl.saving" md-mode="indeterminate"></md-progress-circular>
             </md-button>
             <md-button
                 aria-label="cancel changes and close metadata popup"

@@ -31,6 +31,7 @@ export default class ngbDataSetMetadataController extends BaseController {
     initial_metadata;
     metadata;
     saving;
+    scrollableEl = null;
 
     static get UID() {
         return 'ngbDataSetMetadataController';
@@ -96,6 +97,12 @@ export default class ngbDataSetMetadataController extends BaseController {
     }
     addFormItem() {
         this.formData.push(['', '']);
+        if (!this.scrollableEl) {
+            this.scrollableEl = document.querySelector('.scrollable-container');
+        }
+        setTimeout(() => {
+            this.scrollableEl.scrollIntoView({behavior: 'smooth', block: 'end'});
+        }, 0);
     }
     removeAttribute(index) {
         this.formData = this.formData.filter((_el, elIndex) => index !== elIndex);

@@ -31,3 +31,11 @@
 .message {
     text-align:center;
 }
+.save-loader {
+    display: inline-block
+}
+.save-metadata-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
