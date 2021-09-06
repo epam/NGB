@@ -84,8 +84,8 @@ $folder-line: #cccccc;
   outline: none;
   font-size: 12px;
   cursor: pointer;
-  margin-top: 3px;
   display: flex;
+  height: 1rem;
   align-items: center;
   &.selected {
     font-weight: bold;
@@ -180,8 +180,7 @@ $folder-line: #cccccc;
 }
 .structure-card-search-result {
   padding: 1px 4px 1px 4px;
-  margin-left: 2px;
-  margin-bottom: 2px;
+  margin: 1px 2px;
   cursor: pointer;
   font-size: xx-small;
   display: inline-block;
@@ -190,7 +189,6 @@ $folder-line: #cccccc;
   border-radius: 3px;
   border: 1px solid darken($selected-color, 10%);
   font-weight: normal;
-  height: 13.6px;
   box-sizing: border-box;
 }
 
@@ -202,8 +200,7 @@ $folder-line: #cccccc;
   flex-wrap: wrap;
   align-items:center;
   width: auto;
-  padding-top: 4px;
-  height:18.8px;
+  height:1rem;
 }
 
 .datasets-warning {
