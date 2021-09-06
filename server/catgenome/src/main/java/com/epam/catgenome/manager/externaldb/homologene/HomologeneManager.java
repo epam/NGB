@@ -198,7 +198,6 @@ public class HomologeneManager {
         domainDao.save(domains);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteGenes() {
         domainDao.deleteAll();
         aliasDao.deleteAll();
@@ -213,7 +212,7 @@ public class HomologeneManager {
         XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(inputStream);
         List<HomologeneEntry> homologeneEntries = new ArrayList<>();
         List<Gene> genes = new ArrayList<>();
-        List<String> aliases = new ArrayList<>();
+        Set<String> aliases = new HashSet<>();
         List<Domain> domains = new ArrayList<>();
         HomologeneEntry homologeneEntry = null;
         Gene gene = null;
@@ -327,7 +326,7 @@ public class HomologeneManager {
                         gene.setAliases(aliases);
                         gene.setDomains(domains);
                         genes.add(gene);
-                        aliases = new ArrayList<>();
+                        aliases = new HashSet<>();
                         domains = new ArrayList<>();
                         gene = null;
                         break;

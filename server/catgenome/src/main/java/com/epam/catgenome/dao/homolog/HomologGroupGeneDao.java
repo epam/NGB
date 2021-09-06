@@ -46,7 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -158,11 +160,11 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
                 Alias alias;
                 List<Gene> genes = new ArrayList<>();
                 List<Domain> domains = new ArrayList<>();
-                List<String> aliases = new ArrayList<>();
+                Set<String> aliases = new HashSet<>();
                 while (rs.next()) {
                     if (geneId != rs.getLong(GENE_ID.name())) {
                         domains = new ArrayList<>();
-                        aliases = new ArrayList<>();
+                        aliases = new HashSet<>();
                         gene = HomologGeneDescDao.GeneDescParameters.parseGene(rs);
                         gene.setDomains(domains);
                         gene.setAliases(aliases);

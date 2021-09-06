@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb.homolog;
 
 import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.controller.vo.externaldb.NCBIGeneVO;
 import com.epam.catgenome.dao.homolog.HomologDatabaseDao;
 import com.epam.catgenome.dao.homolog.HomologGroupDao;
 import com.epam.catgenome.dao.homolog.HomologGroupGeneDao;
@@ -96,12 +95,12 @@ public class HomologManager {
         final SearchResult<HomologGroup> searchResult = new SearchResult<>();
 
         try {
-            NCBIGeneVO gene = ncbiGeneManager.fetchGeneById(request.getGeneId());
+            String geneId = ncbiGeneManager.fetchExternalId(request.getGeneId());
             final QueryParameters groupQueryParams = buildSearchQuery(request);
             final List<Filter> geneIdFilters = Collections.singletonList(Filter.builder()
                     .field("gene_id")
                     .operator("=")
-                    .value(gene.getGeneId())
+                    .value(geneId)
                     .build());
             groupQueryParams.setFilters(geneIdFilters);
             final List<String> groupIds = homologGroupGeneDao.loadGroupIds(groupQueryParams);

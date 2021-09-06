@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -40,7 +41,7 @@ public class Gene {
     private Long geneId;
     private Long groupId;
     private String symbol;
-    private List<String> aliases;
+    private Set<String> aliases;
     private String title;
     private Long taxId;
     private String speciesCommonName;
