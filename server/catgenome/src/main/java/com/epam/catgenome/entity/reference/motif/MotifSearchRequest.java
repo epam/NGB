@@ -29,7 +29,7 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class MotifSearchRequest {
 
     MotifSearchType searchType;

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,7 +83,7 @@ public class MotifSearchManager {
                         .chromosomeId(track.getChromosome().getId())
                         .motif(motif)
                         .searchType(MotifSearchType.REGION)
-                        .pageSize(0)
+                        .pageSize(Integer.MAX_VALUE)
                         .strand(strand)
                         .build()).getResult().stream()
                 .map(m -> new StrandedSequence(m.getStart(), m.getEnd(), m.getSequence(), m.getStrand()))
@@ -106,26 +106,26 @@ public class MotifSearchManager {
         }
     }
 
-    private void verifyMotifSearchRequest(final MotifSearchRequest motifSearchRequest) {
-        Assert.notNull(motifSearchRequest.getMotif(), getMessage("Motif is empty!"));
-        final Integer start = motifSearchRequest.getStartPosition();
-        final Integer end = motifSearchRequest.getEndPosition();
-        final MotifSearchType searchType = motifSearchRequest.getSearchType();
-        if (searchType.equals(MotifSearchType.REGION)) {
-            Assert.notNull(motifSearchRequest.getChromosomeId(), getMessage("Chromosome not provided!"));
-            Assert.notNull(start, getMessage("Start position is empty!"));
-            Assert.notNull(end, getMessage("End position is empty!"));
+    private void verifyMotifSearchRequest(final MotifSearchRequest request) {
+        Assert.notNull(request.getSearchType(), getMessage("Search type is empty!"));
+        Assert.notNull(request.getMotif(), getMessage("Motif is empty!"));
+        Assert.notNull(request.getReferenceId(), getMessage("Genome id is empty!"));
+        final Integer start = request.getStartPosition();
+        final Integer end = request.getEndPosition();
+        final MotifSearchType searchType = request.getSearchType();
+        if (searchType.equals(MotifSearchType.WHOLE_GENOME)) {
+            return;
+        }
+        Assert.notNull(request.getChromosomeId(), getMessage("Chromosome not provided!"));
+        if (end != null && start != null) {
             Assert.isTrue(end - start > 0,
                     getMessage("Provided end and start are not valid: " + end + " < " + start));
-        } else if (searchType.equals(MotifSearchType.CHROMOSOME)) {
-            Assert.notNull(motifSearchRequest.getChromosomeId(), getMessage("Chromosome not provided!"));
-            if (end != null && start != null) {
-                Assert.isTrue(end - start > 0,
-                        getMessage("Provided end and start are not valid: " + end + " < " + start));
-            }
-        } else if (searchType.equals(MotifSearchType.WHOLE_GENOME)) {
-            Assert.notNull(motifSearchRequest.getReferenceId(), getMessage("Genome id is empty!"));
         }
+        if (searchType.equals(MotifSearchType.CHROMOSOME)) {
+            return;
+        }
+        Assert.notNull(start, getMessage("Start position is empty!"));
+        Assert.notNull(end, getMessage("End position is empty!"));
     }
 
     private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request) {
@@ -221,21 +221,57 @@ public class MotifSearchManager {
         return overlap;
     }
 
-    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest motifSearchRequest) {
-        final Chromosome chr = loadChrById(motifSearchRequest.getReferenceId(), motifSearchRequest.getChromosomeId());
-        int start = motifSearchRequest.getStartPosition() == null
-                ? 0
-                : motifSearchRequest.getStartPosition();
-        int end = motifSearchRequest.getEndPosition() == null
-                ? chr.getSize()
-                : motifSearchRequest.getEndPosition();
-
+    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request) {
+        final int pageSize = request.getPageSize() == null ? defaultPageSize : request.getPageSize();
+        int start = request.getStartPosition() == null ? 0 : request.getStartPosition();
+        Chromosome chromosome = loadChrById(request.getReferenceId(), request.getChromosomeId());
+        long chrId = chromosome.getId();
+        final int end = request.getEndPosition() == null ? chromosome.getSize() : request.getEndPosition();
+        if (end < chromosome.getSize()) {
+            return searchRegionMotifs(
+                    request.toBuilder()
+                            .pageSize(pageSize)
+                            .searchType(MotifSearchType.REGION)
+                            .chromosomeId(chrId)
+                            .startPosition(start)
+                            .endPosition(end)
+                            .build());
+        }
+        final List<Chromosome> chromosomes = getChromosomesOfGenome(request.getReferenceId());
+        final List<Motif> motifs = new ArrayList<>();
+        while (chromosome != null && pageSize - motifs.size() > 0) {
+            chrId = chromosome.getId();
+            motifs.addAll(searchChromosomeMotifs(
+                    request.toBuilder()
+                            .pageSize(pageSize - motifs.size())
+                            .searchType(MotifSearchType.CHROMOSOME)
+                            .chromosomeId(chrId)
+                            .startPosition(start)
+                            .endPosition(chromosome.getSize())
+                            .build())
+                    .getResult()
+                    .stream()
+                    .limit(pageSize - motifs.size())
+                    .collect(Collectors.toList()));
+            start = 0;
+            chromosome = getNextChromosome(chromosomes, chromosome);
+        }
         return MotifSearchResult.builder()
-                .result(new ArrayList<>())
-                .chromosomeId(chr.getId())
-                .pageSize(motifSearchRequest.getPageSize())
-                .position(end)
+                .result(motifs)
+                .pageSize(pageSize)
+                .chromosomeId(chrId)
+                .position(chromosome == null && pageSize - motifs.size() > 0 ? null
+                        : motifs.get(motifs.size() - 1).getStart())
                 .build();
+    }
+
+    private Chromosome getNextChromosome(final List<Chromosome> chromosomes, final Chromosome chromosome) {
+        for (int i = 0; i < chromosomes.size() - 1; i++) {
+            if (chromosomes.get(i).getName().equals(chromosome.getName())) {
+                return chromosomes.get(i + 1);
+            }
+        }
+        return null;
     }
 
     private Chromosome loadChrById(final Long referenceId, final Long chromosomeId) {
@@ -246,7 +282,11 @@ public class MotifSearchManager {
         }
     }
 
-    private Chromosome getFirstChromosomeFromGenome(Long referenceId) {
+    private Chromosome getFirstChromosomeFromGenome(final Long referenceId) {
         return referenceGenomeManager.loadChromosomes(referenceId).get(0);
+    }
+
+    private List<Chromosome> getChromosomesOfGenome(final Long referenceId) {
+        return referenceGenomeManager.loadChromosomes(referenceId);
     }
 }
