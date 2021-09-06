@@ -10,8 +10,8 @@
                     INSERT INTO catgenome.homolog_gene_domain (
                         domain_id,
                         gene_id,
-                        begin,
-                        end,
+                        "BEGIN",
+                        "END",
                         pssmid,
                         cddid,
                         cddname
@@ -40,8 +40,8 @@
                     SELECT
                         domain_id,
                         gene_id,
-                        begin,
-                        end,
+                        "BEGIN",
+                        "END",
                         pssmid,
                         cddid,
                         cddname
