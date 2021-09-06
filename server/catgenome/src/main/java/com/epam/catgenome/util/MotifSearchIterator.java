@@ -118,7 +118,9 @@ public class MotifSearchIterator implements Iterator<Motif> {
         for (int i = start; i < end; i++) {
             result.append((char) sequence[i]);
         }
-        return new Motif(contig, start, end, strand, result.toString());
+        return Motif.builder().contig(contig).start(start)
+                .end(end).strand(strand)
+                .value(result.toString()).build();
     }
 
     /**
