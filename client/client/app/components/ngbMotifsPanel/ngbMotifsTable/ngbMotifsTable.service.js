@@ -80,24 +80,40 @@ export default class ngbMotifsTableService {
         return result;
     }
 
-    addTracks (currentMatch) {
-        const allMatches = this.ngbMotifsPanelService.getData(currentMatch.id);
 
+    async addTracks (row) {
         const {
-            motif,
+            chromosome,
             start,
             end,
-            chromosome
-        } = currentMatch;
-        const strand = currentMatch.strand.toLowerCase();
+        } = row;
+        const {
+            referenceId,
+            motif,
+            searchType,
+        } = this.ngbMotifsPanelService.currentParams;
+        const currentMatch = {
+            chromosome,
+            start,
+            end,
+            referenceId,
+            motif,
+            searchType
+        };
+
+        const range = Math.abs(end - start);
+        const rangeStart = Math.min(start, end) - range;
+        const rangeEnd = Math.max(start, end) + range;
+
+        const strand = row.strand.toLowerCase();
+        const name = (strand) => `${motif}_${strand}`;
         const reference = this.ngbMotifsPanelService.reference;
-        const referenceId = reference.id;
+
         const tracksOptions = {};
         const motifsTracks = (this.projectContext.tracks || [])
             .filter(track => track.format === 'MOTIFS');
-        const trackId = motifsTracks.length;
+        const trackId = this.ngbMotifsPanelService.requestNumber;
 
-        const name = (strand) => `${motif}_${strand}`;
         const motifsTrackPattern = (strand) => {
             return ({
                 name: name(strand),
@@ -183,8 +199,8 @@ export default class ngbMotifsTableService {
         }
         this.projectContext.changeState({
             viewport: {
-                start: Math.min(start, end),
-                end: Math.max(start, end)
+                start: rangeStart,
+                end: rangeEnd
             },
             chromosome: {
                 name: chromosome
@@ -192,11 +208,11 @@ export default class ngbMotifsTableService {
             ...tracksOptions,
             keepMotifTrack: true
         }, false, () => {
-            this.setMotifs(currentMatch, allMatches);
+            this.setMotif(currentMatch);
         });
     }
 
-    setMotifs (currentMatch, allMatches) {
-        this.motifsContext.setMotifs(currentMatch, allMatches);
+    setMotif (currentMatch) {
+        this.motifsContext.setMotif(currentMatch);
     }
 }

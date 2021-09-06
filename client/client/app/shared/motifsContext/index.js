@@ -4,16 +4,7 @@ export default class MotifsContext {
     }
 
     dispatcher;
-    _matches = [];
-    _match = null;
-
-    get matches () {
-        return this._matches;
-    }
-
-    set matches (value) {
-        this._matches = value;
-    }
+    _match = {};
 
     get match () {
         return this._match;
@@ -29,16 +20,13 @@ export default class MotifsContext {
         this.dispatcher.on('chromosome:change', () => this.clear(true));
     }
 
-    setMotifs(currentMatch, allMatches) {
-        const changed = JSON.stringify(currentMatch) === JSON.stringify(this.match) ||
-            JSON.stringify(allMatches) === JSON.stringify(this.matches);
+    setMotif(currentMatch) {
+        const changed = JSON.stringify(currentMatch) === JSON.stringify(this.match);
 
-        if (allMatches && currentMatch) {
-            this.matches = allMatches;
+        if (currentMatch) {
             this.match = currentMatch;
         } else {
-            this.matches = [];
-            this.match = null;
+            this.match = {};
         }
         if (changed) {
             this.dispatcher.emitSimpleEvent('motifs:results:change');
@@ -46,7 +34,7 @@ export default class MotifsContext {
     }
 
     clear (silent = false) {
-        this.matches = [];
+        this.match = {};
         if (!silent) {
             this.dispatcher.emitSimpleEvent('motifs:results:change');
         }

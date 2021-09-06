@@ -3,15 +3,13 @@ import PIXI from 'pixi.js';
 
 export default class MotifsMatchesRenderer extends CachedTrackRenderer {
 
-    constructor(track, config, pixiRenderer, options, motifsContext, motifStrand) {
+    constructor(track, config, pixiRenderer, options) {
         super();
         this.track = track;
         this._config = config;
         this._height = config.height;
         this.options = options;
         this.pixiRenderer = pixiRenderer;
-        this.motifsContext = motifsContext;
-        this.motifStrand = motifStrand;
         this.initializeCentralLine();
     }
 
@@ -46,14 +44,10 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
     }
 
     initializeMatches(viewport, cache) {
-        if (cache.data) {
-            const matches = this.motifStrand === 'positive' ?
-                cache.data.positive : cache.data.negative;
-            if (matches.length > 0) {
-                matches.forEach(match => {
-                    this.initializeMatch(viewport, match);
-                });
-            }
+        if (cache.data && cache.data.length > 0) {
+            cache.data.forEach(match => {
+                this.initializeMatch(viewport, match);
+            });
         }
     }
 
@@ -61,9 +55,9 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         const strand = this.options.name.split('_')[1].toLowerCase();
         if (strand === match.strand.toLowerCase()) {
             const pixelsInBp = viewport.factor;
-            const {start, end, levelY} = match;
-            const startX = viewport.project.brushBP2pixel(start) + (pixelsInBp / 2);
-            const endX = viewport.project.brushBP2pixel(end) + (pixelsInBp / 2);
+            const {startIndex, endIndex, levelY} = match;
+            const startX = viewport.project.brushBP2pixel(startIndex) + (pixelsInBp / 2);
+            const endX = viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2);
 
             if (startX > -viewport.canvasSize && endX < 2 * viewport.canvasSize) {
                 const height = this.config.matches.height;

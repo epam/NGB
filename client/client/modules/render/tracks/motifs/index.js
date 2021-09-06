@@ -1,8 +1,9 @@
 import {CachedTrack} from '../../core';
 import Menu from '../../core/menu';
-import MotifsMatchesRenderer from './motifsRenderer';
-import motifsMenuConfig from './exterior/motifsMenuConfig';
+import {MotifsDataService} from '../../../../dataServices';
 import MotifsConfig from './motifsConfig';
+import motifsMenuConfig from './exterior/motifsMenuConfig';
+import MotifsMatchesRenderer from './motifsRenderer';
 
 export class MOTIFSTrack extends CachedTrack {
 
@@ -15,7 +16,7 @@ export class MOTIFSTrack extends CachedTrack {
         this.dispatcher = opts.dispatcher;
         this.motifsContext = opts.motifsContext;
         this.motifStrand = opts.state.motifStrand;
-        this.setCache();
+        this._dataService = new MotifsDataService();
         this.renderer = new MotifsMatchesRenderer(
             this,
             Object.assign({}, this.trackConfig, this.config),
@@ -34,6 +35,18 @@ export class MOTIFSTrack extends CachedTrack {
         ];
     }
 
+    get trackIsResizable() {
+        return true;
+    }
+
+    get dataService() {
+        return this._dataService;
+    }
+
+    get motifTrack() {
+        return ::this.dataService.loadMotifTrack;
+    }
+
     static Menu = Menu(
         motifsMenuConfig,
         {
@@ -45,10 +58,6 @@ export class MOTIFSTrack extends CachedTrack {
         return MotifsConfig;
     }
 
-    get trackIsResizable() {
-        return true;
-    }
-
     getSettings() {
         if (this._menu) {
             return this._menu;
@@ -57,53 +66,52 @@ export class MOTIFSTrack extends CachedTrack {
         return this._menu;
     }
 
-    updateCache () {
-        const updated = super.updateCache();
-        if (updated) {
-            return this.setCache();
+    async updateCache () {
+        const viewport = this.cacheUpdateParameters(this.viewport);
+        const request = {
+            id: viewport.id,
+            chromosomeId: viewport.chromosomeId,
+            startIndex: viewport.startIndex,
+            endIndex: viewport.endIndex,
+            scaleFactor: viewport.scaleFactor,
+            option: {},
+            collapsed: false,
+            projectId: 0,
+            motif: this.motifsContext.match.motif,
+            strand: this.motifStrand.toUpperCase()
+        };
+        const data = await this.motifTrack(request);
+        if (!this.cache) {
+            return false;
         }
-        return false;
+        const transformedData = this.transformData(data);
+        this.cache.data = transformedData;
+        return await super.updateCache();
     }
 
-    setCache() {
-        if (this.cache && this.motifsContext) {
-            const matches = this.motifsContext.matches;
-            const setStrandMatches = (allMatches, strand) => {
-                const strandMatches = allMatches
-                    .filter(match => match.chromosome === this.opts.chromosome.name &&
-                        match.strand.toLowerCase() === strand.toLowerCase())
-                    .map(match => {
-                        const start = Math.min(match.start, match.end);
-                        const end = Math.max(match.start, match.end);
-                        match.start = start;
-                        match.end = end;
-                        return match;
-                    })
-                    .sort((a, b) => a.start >= b.start);
-                if (strandMatches.length && strandMatches.length === 1) {
-                    strandMatches[0].levelY = 1;
-                }
-                for (let i = 0; i < strandMatches.length - 1; i++) {
-                    strandMatches[i].levelY = strandMatches[i].levelY ? strandMatches[i].levelY : 1;
-                    strandMatches[i + 1].levelY = strandMatches[i + 1].levelY ? strandMatches[i + 1].levelY : 1;
-                    if (strandMatches[i].start === strandMatches[i + 1].start) {
-                        strandMatches[i + 1].levelY = strandMatches[i].levelY + 1;
-                    }  else if (strandMatches[i].end >= strandMatches[i + 1].start) {
-                        strandMatches[i + 1].levelY = strandMatches[i].levelY + 1;
-                    }
-                }
-                return strandMatches;
-            };
-            const positiveMatches = setStrandMatches(matches, 'positive');
-            const negativeMatches = setStrandMatches(matches, 'negative');
-
-            this.cache.data = {
-                positive: positiveMatches,
-                negative: negativeMatches
-            };
-            return true;
+    transformData(data) {
+        const matches = data.blocks
+            .map(block => {
+                const start = Math.min(block.startIndex, block.endIndex);
+                const end = Math.max(block.startIndex, block.endIndex);
+                block.startIndex = start;
+                block.endIndex = end;
+                return block;
+            })
+            .sort((a, b) => a.start >= b.start);
+        if (matches.length && matches.length === 1) {
+            matches[0].levelY = 1;
         }
-        return false;
+        for (let i = 0; i < matches.length - 1; i++) {
+            matches[i].levelY = matches[i].levelY ? matches[i].levelY : 1;
+            matches[i + 1].levelY = matches[i + 1].levelY ? matches[i + 1].levelY : 1;
+            if (matches[i].start === matches[i + 1].start) {
+                matches[i + 1].levelY = matches[i].levelY + 1;
+            }  else if (matches[i].end >= matches[i + 1].start) {
+                matches[i + 1].levelY = matches[i].levelY + 1;
+            }
+        }
+        return matches;
     }
 
     reload () {

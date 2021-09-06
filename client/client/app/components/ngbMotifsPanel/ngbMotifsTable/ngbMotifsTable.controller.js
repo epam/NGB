@@ -82,7 +82,7 @@ export default class ngbMotifsTableController  extends baseController {
         if (this.ngbMotifsTableService.isShowParamsTable) {
             this.showResultsTable(row.entity);
         } else {
-            this.ngbMotifsTableService.addTracks({id: this.rowNumber, motif: this.motifPattern, ...row.entity});
+            this.ngbMotifsTableService.addTracks(row.entity);
         }
     }
 

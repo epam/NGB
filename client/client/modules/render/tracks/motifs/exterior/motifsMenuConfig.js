@@ -37,6 +37,8 @@ function colorPerform (tracks, options) {
     }
 }
 
+const [resize, header] = commonMenu;
+
 export default [
     {
         fields: [
@@ -47,7 +49,8 @@ export default [
                 type: 'button'
             },
             getDivider(),
-            ...commonMenu
+            resize,
+            header
         ],
         label:'General',
         name:'motifs>general',
