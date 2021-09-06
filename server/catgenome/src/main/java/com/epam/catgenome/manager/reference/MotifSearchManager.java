@@ -148,7 +148,7 @@ public class MotifSearchManager {
         final List<Motif> result = fillMotifList(chr, start, end,
                 request.getPageSize() != null ? request.getPageSize() : DEFAULT_PAGE_SIZE, request.getStrand());
 
-        final Chromosome next = nextChromosome(chromosomes, request.getChromosomeId());
+        final Chromosome next = nextChromosome(chromosomes, chr.getId());
         final MotifSearchResult.MotifSearchResultBuilder resultBuilder = MotifSearchResult.builder()
                 .result(result).pageSize(request.getPageSize());
         if (next != null) {
