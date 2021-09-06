@@ -134,6 +134,18 @@ task buildDoc(type: Tar) {
     compression = Compression.GZIP
 }
 
+task buildDocs(dependsOn: buildDoc) {
+    doFirst {
+        delete fileTree("$uiFilesDestination/docs")
+    }
+    doLast {
+        copy {
+            from tarTree("$distDir/ngb-docs.tar.gz")
+            into "$uiFilesDestination/docs"
+        }
+    }
+}
+
 task buildDocker(type: Exec) {
     dependsOn buildJar, buildCli
     doFirst {
@@ -236,7 +248,7 @@ task buildDesktop(type: GradleBuild) {
 }
 
 task buildAll(type: GradleBuild) {
-    tasks = ['buildWar', 'buildCli', 'buildJar', 'buildDoc', 'buildDocker', 'buildDesktop']
+    tasks = ['buildWar', 'buildCli', 'buildJar', 'buildDocs', 'buildDocker', 'buildDesktop']
     buildFile = "$rootDir/build.gradle"
     dir = "$rootDir"
     if (runTests) {
