@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,13 @@
 
 package com.epam.catgenome.entity.project;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -54,6 +60,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
+    private List<ProjectNote> notes;
     private Map<String, String> metadata;
 
     public Project(Long id) {
@@ -190,5 +197,13 @@ public class Project extends AbstractHierarchicalEntity {
 
     public void setMetadata(final Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public List<ProjectNote> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<ProjectNote> notes) {
+        this.notes = notes;
     }
 }
