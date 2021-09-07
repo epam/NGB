@@ -8,11 +8,13 @@ export default class ngbAppController extends baseController {
 
     dispatcher;
     projectContext;
+    miewContext;
     isAuthenticationInProgress;
 
     /* @ngInject */
     constructor(dispatcher,
                 projectContext,
+                miewContext,
                 eventHotkey,
                 $stateParams,
                 $rootScope,
@@ -34,6 +36,7 @@ export default class ngbAppController extends baseController {
             eventHotkey,
             genomeDataService,
             projectContext,
+            miewContext,
             projectDataService,
             utilsDataService,
             apiService
@@ -178,7 +181,17 @@ export default class ngbAppController extends baseController {
     }
 
     _changeStateFromParams(params) {
-        const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;
+        const {
+            referenceId,
+            chromosome,
+            end,
+            rewrite,
+            start,
+            tracks,
+            filterByGenome,
+            collapsedTrackHeaders,
+            miew
+        } = params;
         const position = start
             ? {end, start}
             : null;
@@ -188,6 +201,7 @@ export default class ngbAppController extends baseController {
         if (rewrite) {
             this.projectContext.rewriteLayout = this.dictionaryState.on.toLowerCase() === rewrite.toLowerCase();
         }
+        this.miewContext.routeInfo = miew;
         const tracksState = tracks
             ? this.projectContext
                 .convertTracksStateFromJson(tracks)
@@ -246,11 +260,13 @@ export default class ngbAppController extends baseController {
         };
         const options = {
             notify: false,
-            inherit: false
+            inherit: false,
+            location: true
         };
         if (tracks) {
             state.tracks = tracks;
         }
+        state.miew = this.miewContext.routeInfo;
         this.$state.go(this.$state.current.name, state, options);
     }
 

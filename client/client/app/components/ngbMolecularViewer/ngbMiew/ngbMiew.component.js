@@ -10,7 +10,8 @@ export default  {
         chains: '<',
         region: '<',
         displayMode: '<',
-        displayColor: '<'
+        displayColor: '<',
+        camera: '<'
     },
     controller: ngbMiewController
 };

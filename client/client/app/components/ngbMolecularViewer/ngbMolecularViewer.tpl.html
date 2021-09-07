@@ -8,7 +8,9 @@
     <div layout="column" flex class="u-height__full">
         <div>
             <md-input-container class="md-block" ng-if="$ctrl.geneTracks.length > 1">
-                <md-select aria-label="geneTracks" ng-model="$ctrl.selectedGeneTrack">
+                <md-select aria-label="geneTracks"
+                           ng-model="$ctrl.selectedGeneTrack"
+                           ng-change="$ctrl.resetCamera()">
                     <md-option ng-repeat="track in $ctrl.geneTracks track by $index" value="{{track.id}}">{{track.name}}</md-option>
                 </md-select>
             </md-input-container>
@@ -21,7 +23,9 @@
         </div>
         <div ng-if="!$ctrl.loading">
             <md-input-container class="md-block" ng-if="$ctrl.PDBids.length">
-                <md-select aria-label="PDBids" ng-model="$ctrl.selectedItemId">
+                <md-select aria-label="PDBids"
+                           ng-model="$ctrl.selectedItemId"
+                           ng-change="$ctrl.resetCamera()">
                     <md-option ng-repeat="pdb in $ctrl.PDBids" value="{{pdb.id}}">{{pdb.id}}
                         <span class="option-hack" ng-if="$ctrl.description.structureTitle">&nbsp;-&nbsp;{{$ctrl.description.structureTitle}}</span>
                     </md-option>
@@ -47,7 +51,7 @@
                         >
                             <ng-md-icon
                                 icon="invert_colors"
-                                style="fill:#4285f4"
+                                style="fill: white"
                                 class="miew-action"
                             ></ng-md-icon>
                         </md-button>
@@ -73,7 +77,7 @@
                            >
                             <ng-md-icon
                                 icon="texture"
-                                style="fill:#4285f4"
+                                style="fill: white"
                                 class="miew-action"
                             ></ng-md-icon>
                         </md-button>
@@ -92,15 +96,17 @@
                     </md-menu>
                 </div>
                 </div>
-                <div class="ngb-miew-container" ng-if="$ctrl.descriptionDone">
+                <div class="ngb-miew-container"
+                     ng-if="$ctrl.descriptionDone">
                     <ngb-miew pdb="$ctrl.selectedItemId"
                               position="$ctrl.selectedItem ? $ctrl.selectedItem.position : undefined"
                               transcript="$ctrl.selectedItem ? $ctrl.selectedItem.transcript : undefined"
-                            chain-id="$ctrl.descriptionChainId"
-                            chains="$ctrl.description ? $ctrl.description.entities : []"
-                            region="$ctrl.region"
-                            display-color="$ctrl.currentColor"
-                            display-mode="$ctrl.currentMode"
+                              chain-id="$ctrl.descriptionChainId"
+                              chains="$ctrl.description ? $ctrl.description.entities : []"
+                              region="$ctrl.region"
+                              display-color="$ctrl.currentColor"
+                              display-mode="$ctrl.currentMode"
+                              camera="$ctrl.camera"
                     ></ngb-miew>
                 </div>
             </div>

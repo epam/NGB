@@ -42,9 +42,19 @@ export default class ngbBookmarksTableController extends baseController {
         }
     };
 
-    constructor($scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
+    constructor($scope, ngbBookmarksTableService, dispatcher, projectContext, miewContext, $mdDialog, trackNamingService) {
         super();
-        Object.assign(this, {$scope, ngbBookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
+        Object.assign(
+            this,
+            {
+                $scope,
+                ngbBookmarksTableService,
+                dispatcher,
+                projectContext,
+                $mdDialog,
+                trackNamingService,
+                miewContext
+            });
         this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
         this.initEvents();
     }
@@ -98,11 +108,15 @@ export default class ngbBookmarksTableController extends baseController {
 
     rowClick(row) {
         const entity = row.entity;
-        const position = {
-            end: entity.endIndex,
-            start: entity.startIndex
-        };
-        const chromosomeName = `${entity.chromosome.name}`.toLowerCase();
+        const position = entity.startIndex && entity.endIndex
+            ? {
+                end: entity.endIndex,
+                start: entity.startIndex
+            }
+            : undefined;
+        const chromosomeName = entity.chromosome
+            ? `${entity.chromosome.name}`.toLowerCase()
+            : undefined;
         const tracksState = entity.tracks;
         tracksState.forEach(t => {
             if (t.projectId === '') {
@@ -118,7 +132,14 @@ export default class ngbBookmarksTableController extends baseController {
         if (customNames) {
             this.trackNamingService.setCustomNames(customNames);
         }
-        this.projectContext.changeState({chromosome: {name: chromosomeName}, viewport: position, tracksState, layout, forceVariantsFilter: true});
+        this.miewContext.routeInfo = entity.miew;
+        this.projectContext.changeState({
+            chromosome: chromosomeName ? {name: chromosomeName} : undefined,
+            viewport: position,
+            tracksState,
+            layout,
+            forceVariantsFilter: true
+        });
     }
 
     onRemove(row, event) {
