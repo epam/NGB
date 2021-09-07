@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.user;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -161,6 +162,10 @@ public class RoleManager {
     public Role loadRoleByName(String name) {
         return roleDao.loadRoleByName(getValidName(name)).orElseThrow(
             () -> new IllegalArgumentException("Role with name " + name + " not found!"));
+    }
+
+    public Optional<Role> findRoleByName(final String name) {
+        return roleDao.loadRoleByName(getValidName(name));
     }
 
     public Map<Long, List<Role>> loadRolesByUserIds(List<Long> userIds) {
