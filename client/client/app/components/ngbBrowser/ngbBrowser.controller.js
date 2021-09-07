@@ -7,17 +7,21 @@ export default class ngbBrowserController extends baseController {
     }
 
     projectContext;
+    markdown;
+    homePageUrl;
 
-    constructor(dispatcher, projectContext, $scope, $timeout, $sce) {
+    constructor(dispatcher, projectContext, $scope, $timeout, $sce, ngbBrowserService) {
         super(dispatcher);
         Object.assign(this, {
             dispatcher,
             projectContext,
+            ngbBrowserService,
             $scope,
             $timeout,
             $sce
         });
         this.initEvents();
+        this.homePageUrl = this.projectContext.browserHomePageUrl;
     }
 
     events = {
@@ -28,6 +32,7 @@ export default class ngbBrowserController extends baseController {
 
     $onInit() {
         this.onStateChange();
+        this.getMarkdown();
     }
 
     onStateChange() {
@@ -41,6 +46,14 @@ export default class ngbBrowserController extends baseController {
     }
 
     browserHomePageUrl() {
-        return this.$sce.trustAsResourceUrl(this.projectContext.browserHomePageUrl);
+        return this.$sce.trustAsResourceUrl(this.homePageUrl);
+    }
+    homePageUrlIsMd(){
+        return this.homePageUrl && /.md$/.test(this.homePageUrl);
+    }
+    async getMarkdown() {
+        if (!this.markdown && this.homePageUrlIsMd()) {
+            this.markdown = await this.ngbBrowserService.getMarkdown(this.homePageUrl);
+        }
     }
 }

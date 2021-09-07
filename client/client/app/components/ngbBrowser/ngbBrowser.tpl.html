@@ -10,7 +10,7 @@
     </div>
 </div>
 <div layout-fill ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome" class="browser-welcome-container">
-    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.projectContext.browserHomePageUrl">
+    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homePageUrl">
         <div>
             <h1>
                 Choose files or folders<br/>
@@ -24,5 +24,14 @@
                 and select the "Datasets" option.</p>
         </div>
     </div>
-    <iframe class="ngb-browser-iFrame" ng-if="$ctrl.projectContext.browserHomePageUrl" ng-src="{{$ctrl.browserHomePageUrl()}}"></iframe>
+    <iframe
+        class="ngb-browser-iFrame"
+        ng-if="$ctrl.homePageUrl && !$ctrl.homePageUrlIsMd()"
+        ng-src="{{$ctrl.browserHomePageUrl()}}"
+    ></iframe>
+    <ngb-markdown
+        class="ngb-browser-markdown"
+        ng-if="$ctrl.homePageUrl && $ctrl.homePageUrlIsMd()"
+        markdown="$ctrl.markdown"
+    ></ngb-markdown>
 </div>
