@@ -60,8 +60,8 @@ export default class ngbProjectSummaryController {
             return datasetID;
         }, null);
         const [dataset] = this.projectContext.datasets.filter(project => project.id === datasetId);
-        this.datasetMetadata = dataset.metadata;
-        this.datasetName = dataset.name;
+        this.datasetMetadata = dataset ? dataset.metadata : null;
+        this.datasetName = dataset? dataset.name : '';
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
