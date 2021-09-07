@@ -14,6 +14,7 @@ export default class ngbMiewController {
             settings: this.settings.viewer
         });
         if (this.viewer.init()) {
+            this.viewer.enableHotKeys(false);
             this.viewer.run();
             $scope.$watch('$ctrl.pdb', this.changePdb.bind(this));
             $scope.$watch('$ctrl.position', this.changePdb.bind(this));
