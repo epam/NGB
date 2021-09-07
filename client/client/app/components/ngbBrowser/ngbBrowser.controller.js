@@ -6,7 +6,6 @@ export default class ngbBrowserController extends baseController {
         return 'ngbBrowserController';
     }
 
-    projectContext;
     markdown;
     homePageUrl;
 
@@ -27,12 +26,12 @@ export default class ngbBrowserController extends baseController {
     events = {
         'chromosome:change': ::this.onStateChange,
         'reference:change': ::this.onStateChange,
-        'reference:pre:change': ::this.onStateChange
+        'reference:pre:change': ::this.onStateChange,
+        'defaultSettings:change': ::this.onStateChange
     };
 
     $onInit() {
         this.onStateChange();
-        this.getMarkdown();
     }
 
     onStateChange() {
@@ -41,8 +40,9 @@ export default class ngbBrowserController extends baseController {
         this.isChromosome = chromosome !== null;
         this.isProject = reference !== null && reference !== undefined;
         this.isProjectLoading = this.projectContext.referenceIsPromised;
-
+        this.homePageUrl = this.projectContext.browserHomePageUrl;
         this.$timeout(::this.$scope.$apply);
+        this.getMarkdown();
     }
 
     browserHomePageUrl() {
