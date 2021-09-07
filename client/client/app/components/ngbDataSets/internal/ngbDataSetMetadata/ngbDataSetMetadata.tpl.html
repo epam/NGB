@@ -25,8 +25,8 @@
                     <div
                         ng-if="ctrl.metadataIsEmpty"
                         class="message">
-                        <h3>This dataset does not contain any attributes.</h3>
-                        <h4>Click to the add button to create new one</h4>
+                        <h3>This dataset does not contain any attributes</h3>
+                        <h4>Click to the ADD button to create new one</h4>
                     </div>
                      <h2
                         ng-if="!ctrl.metadataIsEmpty"
@@ -37,11 +37,8 @@
                     <div
                         layout="row"
                         ng-repeat="attr in ctrl.formData"
-                        
                     >
-                        <md-input-container
-                            ng-class="{'hide-excessive-space':ctrl.isDuplicate(attr[0]), 'md-block': true}"
-                        >
+                        <md-input-container class="hide-excessive-space md-block">
                             <label>Key</label>
                             <input
                                 ng-model="attr[0]"
@@ -62,7 +59,7 @@
                                 </div>
                             </div>
                         </md-input-container>
-                        <md-input-container class="md-block" class="input-container">
+                        <md-input-container class="hide-excessive-space md-block input-container">
                             <label>Value</label>
                             <input
                                 ng-model="attr[1]"
