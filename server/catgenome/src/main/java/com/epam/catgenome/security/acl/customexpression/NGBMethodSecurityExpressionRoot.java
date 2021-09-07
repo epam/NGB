@@ -61,6 +61,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return permissionHelper.isAllowed(permission, item);
     }
 
+    public boolean isAllowed(final Long entityId, final AclClass entityClass, final String permission) {
+        return permissionHelper.isAllowed(permission, entityId, entityClass);
+    }
+
     public boolean hasSpecificRole(AclClass aclClass) {
         switch (aclClass) {
             case BAM:

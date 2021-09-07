@@ -29,21 +29,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
-
 @Service
 @RequiredArgsConstructor
 public class MetadataSecurityService {
 
     private final MetadataManager metadataManager;
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize("isAllowed(#metadataVO.id, #metadataVO.aclClass, 'WRITE')")
     public MetadataVO upsert(final MetadataVO metadataVO) {
         return metadataManager.upsert(metadataVO);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public MetadataVO get(final Long id, final String entityClass) {
-        return metadataManager.get(id, entityClass);
+    @PreAuthorize("isAllowed(#entityId, #entityClass, 'READ')")
+    public MetadataVO get(final Long entityId, final String entityClass) {
+        return metadataManager.get(entityId, entityClass);
     }
 }
