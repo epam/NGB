@@ -65,6 +65,9 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("#{'${jwt.required.claims}'.split(',')}")
     private List<String> requiredClaims;
 
+    @Value("${security.frame-options.disable:false}")
+    private boolean frameOptionsDisable;
+
     @Autowired(required = false)
     private SAMLAuthenticationProvider samlAuthenticationProvider;
 
@@ -100,6 +103,10 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(getJwtAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class);
+
+        if (frameOptionsDisable) {
+            http.headers().frameOptions().disable();
+        }
     }
 
     @Bean
