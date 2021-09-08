@@ -146,6 +146,9 @@ function $http(method, url, data, config) {
         xhr.addEventListener('abort', reject);
         xhr.responseType = (config && config.customResponseType) || 'json';
         xhr.open(method, url);
+        if (token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        }
         switch (true) {
             case data === undefined:
                 return xhr.send();
@@ -155,7 +158,6 @@ function $http(method, url, data, config) {
                 return xhr.send(data);
             default:
                 xhr.setRequestHeader('Content-Type', 'application/json');
-                if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
                 return xhr.send(JSON.stringify(data));
         }
     });
