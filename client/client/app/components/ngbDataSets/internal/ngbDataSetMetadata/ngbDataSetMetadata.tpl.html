@@ -25,8 +25,8 @@
                     <div
                         ng-if="ctrl.metadataIsEmpty"
                         class="message">
-                        <h3>This dataset does not contain any attributes</h3>
-                        <h4>Click to the ADD button to create new one</h4>
+                        <h3>This {{ctrl.node.isProject ? 'dataset' : 'file'}} does not contain any attributes</h3>
+                        <h4>Click the ADD button to create new one</h4>
                     </div>
                      <h2
                         ng-if="!ctrl.metadataIsEmpty"
