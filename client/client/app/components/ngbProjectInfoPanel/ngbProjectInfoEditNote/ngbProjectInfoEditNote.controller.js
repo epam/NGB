@@ -12,9 +12,7 @@ export default class ngbProjectInfoEditNoteController {
     saveNote() {
         this.isLoading = true;
         this.ngbProjectInfoService.saveNote(this.note).then(data => {
-            if (data.error) {
-                this.error = 'Error during adding note happened';
-            }
+            this.error = data.error;
             this.isLoading = false;
         });
     }

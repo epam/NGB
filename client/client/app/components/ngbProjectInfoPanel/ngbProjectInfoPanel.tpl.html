@@ -34,13 +34,13 @@
         </div>
     </div>
     <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
-        <ngb-project-info-edit-note></ngb-project-info-edit-note>
+        <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>
     </div>
     <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.EDIT_NOTE">
-        <ngb-project-info-edit-note note="this.editingNote"></ngb-project-info-edit-note>
+        <ngb-project-info-edit-note note="$ctrl.editingNote"></ngb-project-info-edit-note>
     </div>
     <div class="project-note-container" ng-if="$ctrl.currentMode >= 0">
-        <md-button class="md-primary" ng-click="$ctrl.editNote($event)" ng-if="$ctrl.currentNote.canEdit">
+        <md-button class="md-primary project-note-edit-button" ng-click="$ctrl.editNote($event)" ng-if="$ctrl.canEdit">
             Edit
         </md-button>
         <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>

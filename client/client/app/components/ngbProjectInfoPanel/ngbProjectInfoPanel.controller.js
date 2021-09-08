@@ -9,6 +9,7 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     projectContext;
+    newNote;
     events = {
         'project:description:url': this.refreshProjectInfo.bind(this),
     };
@@ -23,6 +24,9 @@ export default class ngbProjectInfoPanelController extends BaseController {
             projectContext, $scope, $element, $timeout, dispatcher, ngbProjectInfoService
         });
         this.initEvents();
+        this.newNote = {
+            projectId: this.ngbProjectInfoService.currentProject.id
+        };
     }
 
     get projectInfoModeList () {
@@ -43,6 +47,10 @@ export default class ngbProjectInfoPanelController extends BaseController {
 
     get editingNote() {
         return this.ngbProjectInfoService.editingNote;
+    }
+
+    get canEdit() {
+        return this.ngbProjectInfoService.canEdit;
     }
 
     editNote($event) {

@@ -30,6 +30,15 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.displayName = node.prettyName || node.name;
     node.searchInfo = new SearchInfo();
     node.modifiedNameSearchInfo = new SearchInfo();
+    const mapNoteFn = function (note) {
+        return {
+            id: note.noteId,
+            projectId: note.projectId,
+            title: note.title,
+            description: note.content
+        };
+    };
+    node.notes = (node.notes || []).map(mapNoteFn);
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -66,6 +75,45 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.reference = reference;
     node.tracks = tracks;
     return node;
+}
+
+export function convertProjectToServer(project) {
+    function _convertProjectItemToServer(item) {
+        return {
+            hidden: item.hidden,
+            ordinalNumber: item.ordinalNumber,
+            id: item.id,
+            bioDataItemId: item.bioDataItemId,
+            name: item.name,
+            type: item.type,
+            path: item.path,
+            format: item.format,
+            createdBy: item.createdBy,
+            createdDate: item.createdDate,
+            prettyName: item.prettyName,
+            referenceId: item.referenceId || item.reference.id,
+            compressed: item.compressed,
+            samples: item.samples,
+            metadata: item.metadata,
+            mask: item.mask
+        };
+    }
+    return {
+        id: project.id,
+        name: project.name,
+        createdBy: project.createdBy,
+        createdDate: project.createdDate,
+        items: (project.items || []).map(_convertProjectItemToServer),
+        notes: project.notes,
+        itemsCount: project.itemsCount,
+        itemsCountPerFormat: project.itemsCountPerFormat,
+        lastOpenedDate: project.lastOpenedDate,
+        nestedProjects: project.nestedProjects ? project.nestedProjects.map(convertProjectToServer) : undefined,
+        parentId: project.parentId,
+        prettyName: project.prettyName,
+        metadata: project.metadata,
+        mask: project.mask
+    };
 }
 
 function getTrackFileName(track) {

@@ -10,16 +10,27 @@ function findSelectedDatasets(candidates) {
                     .filter(track => !track.isProject && track.__selected)
                     .length > 0;
                 if (hasSelectedTracks) {
-                    result.push(candidate.id);
+                    result.push(candidate);
                 }
             } else if (candidate.__selected || candidate.__indeterminate) {
-                result.push(candidate.id);
+                result.push(candidate);
             }
         } else if (candidate.isProject && (candidate.__selected || candidate.__indeterminate)) {
-            result.push(candidate.id);
+            result.push(candidate);
         }
     }
     return result;
+}
+
+function processNestedProjects(projects, ident) {
+    if (projects.length === 1) {
+        return projects;
+    }
+    if (projects.filter(p => p.ident === ident).length !== 1) {
+        // if there are more than one project with the current nesting level, then allow summary only
+        return projects;
+    }
+    return processNestedProjects(projects.filter(p => p.ident !== ident), ident++);
 }
 
 const PROJECT_INFO_MODE = {
@@ -35,16 +46,15 @@ const PROJECT_INFO_MODE_NAME = {
     '-3': 'Add note'
 };
 
-export default class ngbProjectInfoSectionsService {
-    static instance($sce, dispatcher, projectContext) {
-        return new ngbProjectInfoSectionsService($sce, dispatcher, projectContext);
-    }
+const EDIT_RIGHT = 2;
 
-    constructor($sce, dispatcher, projectContext) {
+export default class ngbProjectInfoService {
+    constructor($sce, dispatcher, projectContext, projectDataService) {
         this.sce = $sce;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this.currentProject = undefined;
+        this.projectDataService = projectDataService;
+        this.currentProject = {};
         this._descriptionIsLoading = true;
         this._currentMode = undefined;
         this._previousMode = undefined;
@@ -52,10 +62,21 @@ export default class ngbProjectInfoSectionsService {
         this._editingNote = {};
         this._summaryAvailable = false;
         this._descriptionAvailable = false;
-        this._noteList = [];
         const projectChanged = this.projectChanged.bind(this);
-        this.dispatcher.on('tracks:state:change', projectChanged);
+        this.dispatcher.on('dataset:selection:change', projectChanged);
         projectChanged();
+    }
+
+    set currentMode(value) {
+        if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
+        || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
+            return;
+        }
+        if (this.currentMode !== this.projectInfoModeList.ADD_NOTE && this.currentMode !== this.projectInfoModeList.EDIT_NOTE) {
+            this._previousMode = this.currentMode;
+        }
+        this._currentMode = value;
+        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
     }
 
     get projectInfoModeList() {
@@ -70,20 +91,16 @@ export default class ngbProjectInfoSectionsService {
         return this._currentMode;
     }
 
-    set currentMode(value) {
-        if (this.currentMode !== this.projectInfoModeList.ADD_NOTE && this.currentMode !== this.projectInfoModeList.EDIT_NOTE) {
-            this._previousMode = this.currentMode;
-        }
-        this._currentMode = value;
-        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+    get noteList() {
+        return this.currentProject.notes || [];
     }
 
     get previousMode() {
         return this._previousMode;
     }
 
-    get noteList() {
-        return this._noteList;
+    get currentNote() {
+        return this.noteList.find(note => note.id === this.currentMode) || {};
     }
 
     get descriptionAvailable() {
@@ -98,33 +115,38 @@ export default class ngbProjectInfoSectionsService {
         return this._descriptionIsLoading;
     }
 
-    get currentNote() {
-        return this.noteList[this.currentMode];
+    get canEdit() {
+        return !!(this.currentProject.mask & EDIT_RIGHT);
     }
 
     get editingNote() {
         return this._editingNote;
     }
 
+    static instance($sce, dispatcher, projectContext, projectDataService) {
+        return new ngbProjectInfoService($sce, dispatcher, projectContext, projectDataService);
+    }
+
     projectChanged() {
         this._summaryAvailable = this.projectContext.containsVcfFiles;
-        const projectIds = [
+        const selectedDatasets = [
             ...(
                 new Set(findSelectedDatasets(this.projectContext.datasets || []))
             )
         ];
+        const projects = processNestedProjects(selectedDatasets, 0);
         const clearURLObject = () => {
             if (this.blobUrl) {
                 URL.revokeObjectURL(this.blobUrl);
                 this.blobUrl = undefined;
             }
         };
-        if (projectIds.length === 1 && this.currentProject !== projectIds[0]) {
+        if (projects.length === 1 && this.currentProject.id !== projects[0].id) {
             clearURLObject();
-            this.currentProject = projectIds[0];
+            this.currentProject = projects[0];
             this._descriptionIsLoading = true;
             this._descriptionAvailable = false;
-            this.projectContext.loadDatasetDescription(this.currentProject).then(data => {
+            this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
                 if (data && data.byteLength) {
                     this.currentMode = this.projectInfoModeList.DESCRIPTION;
                     this._descriptionAvailable = true;
@@ -135,15 +157,19 @@ export default class ngbProjectInfoSectionsService {
                 } else {
                     this._descriptionAvailable = false;
                     this._descriptionIsLoading = false;
-                    this.currentMode = this.projectInfoModeList.SUMMARY;
                     this._descriptionAvailable = false;
+                    this.currentMode = this.summaryAvailable
+                        ? this.projectInfoModeList.SUMMARY
+                        : this.projectInfoModeList.ADD_NOTE;
                 }
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
-        } else if (projectIds.length !== 1) {
-            this.currentProject = undefined;
+        } else if (projects.length !== 1) {
+            this.currentProject = {};
             this._descriptionIsLoading = false;
-            this.currentMode = this.projectInfoModeList.SUMMARY;
+            this.currentMode = this.summaryAvailable
+                ? this.projectInfoModeList.SUMMARY
+                : undefined;
             this._descriptionAvailable = false;
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
@@ -165,6 +191,7 @@ export default class ngbProjectInfoSectionsService {
     }
 
     saveNote(note) {
+        note = this._convertClientToServer(note);
         if (note.id) {
             const index = this.noteList.findIndex(item => item.id === note.id);
             if (~index) {
@@ -173,18 +200,9 @@ export default class ngbProjectInfoSectionsService {
                 this.noteList.push(note);
             }
         } else {
-            this.noteList.push({
-                id: this.noteList.length,
-                canEdit: Math.ceil(Math.random() - 0.5),
-                ...note
-            });
+            this.noteList.push(note);
         }
-        this._editingNote = {};
-        return new Promise(resolve => {
-            const data = {};
-            this.currentMode = this.previousMode;
-            resolve(data);
-        });
+        this._saveProject(this.currentProject);
     }
 
     deleteNote(id) {
@@ -192,5 +210,34 @@ export default class ngbProjectInfoSectionsService {
         if (~index) {
             this.noteList.splice(index, 1);
         }
+        this._saveProject(this.currentProject);
+    }
+
+    _saveProject(project) {
+        this.projectDataService.saveProject(this.projectContext.convertProjectToServer(project))
+            .then(data => {
+                this._editingNote = {};
+                if (data.error) {
+                    return new Promise(resolve => {
+                        resolve(data);
+                    });
+                } else {
+                    this.currentProject.notes = data.notes || [];
+                    this.projectContext.refreshDatasetNotes(data.notes, this.currentProject.id);
+                    this.currentMode = this.previousMode;
+                    return new Promise(resolve => {
+                        resolve();
+                    });
+                }
+            });
+    }
+
+    _convertClientToServer(note) {
+        return {
+            noteId: note.id,
+            projectId: note.projectId,
+            title: note.title,
+            content: note.description
+        };
     }
 }

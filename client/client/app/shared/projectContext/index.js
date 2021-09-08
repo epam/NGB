@@ -908,6 +908,15 @@ export default class projectContext {
         return this.projectDataService.getProjectIdDescription(id);
     }
 
+    convertProjectToServer = utilities.convertProjectToServer;
+
+    refreshDatasetNotes(notes, projectId) {
+        const index = this._datasets.findIndex(d => d.id === projectId);
+        if (~index) {
+            this._datasets[index].notes = notes;
+        }
+    }
+
     addLastLocalTrack(track) {
         if (this.lastLocalTracks.filter(t => t.name.toLowerCase() === track.name.toLowerCase()).length === 0) {
             this.lastLocalTracks.push(track);
@@ -995,7 +1004,7 @@ export default class projectContext {
                             r.annotationFiles.push(r.geneFile);
                         }
                         r.annotationFiles.forEach(annotationFile => {
-                           annotationFile.projectId = '';
+                            annotationFile.projectId = '';
                         });
                     });
                     this._referencesAreLoading = false;
