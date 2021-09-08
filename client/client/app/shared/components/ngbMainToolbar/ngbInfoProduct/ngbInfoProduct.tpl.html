@@ -15,5 +15,8 @@
             <span>Report issues: </span>
             <a href="https://github.com/epam/NGB/issues" target="_blank">https://github.com/epam/NGB/issues</a>
         </div>
+        <div flex class="docs" layout="row" ng-if="$ctrl.docsUrl">
+            <a href="{{$ctrl.docsUrl}}" target="_blank">Documentation</a>
+        </div>
     </md-menu-content>
 </md-menu>

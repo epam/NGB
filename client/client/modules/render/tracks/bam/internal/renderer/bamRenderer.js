@@ -1,10 +1,10 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     AlignmentsRenderProcessor,
     BP_OFFSET,
     CAN_SHOW_DETAILS_FACTOR,
     CoverageRenderer,
     RegionsRenderer,
-    PlaceholderRenderer,
     SashimiRenderer,
     renderDownSampleIndicators,
     renderGroups,
@@ -13,7 +13,7 @@ import {
 } from './features';
 import {renderCenterLine} from '../../../../utilities';
 import CoverageArea from '../../../wig/wigArea.js';
-import PIXI from 'pixi.js';
+import {PlaceholderRenderer} from '../../../../utilities';
 import {readsViewTypes} from '../../modes';
 
 const Math = window.Math;
@@ -68,6 +68,20 @@ export class BamRenderer {
     _scrollBarFrame = null;
 
     _lastHoveredFeature = null;
+
+    /**
+     * @return {LabelsManager | null}
+     * */
+    get labelsManager() {
+        return this.track ? this.track.labelsManager : null;
+    }
+
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
+     * */
+    get pixiRenderer() {
+        return this.track ? this.track._pixiRenderer : null;
+    }
 
     set height(value) {
         this._height = value;
@@ -182,10 +196,10 @@ export class BamRenderer {
         return this._config.yScale;
     }
 
-    constructor(viewport, config, renderer, cacheService, opts) {
+    constructor(viewport, config, cacheService, opts, track) {
+        this.track = track;
         this._config = config;
         this._viewport = viewport;
-        this._pixiRenderer = renderer;
         this._cacheService = cacheService;
         this._settings = opts;
         this._maximumAlignmentsRange = opts.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
@@ -244,6 +258,9 @@ export class BamRenderer {
     }
 
     render(flags, features) {
+        if (!this.pixiRenderer) {
+            return false;
+        }
         this._state = features;
         if (flags.renderReset) {
             this._initializeSubRenderers();
@@ -252,8 +269,8 @@ export class BamRenderer {
 
         if (flags.widthChanged) {
             this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
-                height: this._pixiRenderer.height,
-                width: this._pixiRenderer.width
+                height: this.pixiRenderer.height,
+                width: this.pixiRenderer.width
             });
         }
 
@@ -329,13 +346,18 @@ export class BamRenderer {
     }
 
     _initAlignments() {
-        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor(this._pixiRenderer);
+        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor();
         this._dataContainer.addChild(this._alignmentsRenderProcessor.container);
     }
 
     _initCoverage() {
         this._dataContainer.addChild(this._coverageContainer = new PIXI.Container());
-        this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config, this._state);
+        this._coverageRenderer = new CoverageRenderer(
+            this._config.coverage,
+            this._config,
+            this._state,
+            this.track
+        );
         this._coverageArea = new CoverageArea(this._viewport, this._config.coverage);
         this._coverageArea.registerGroupAutoScaleManager(this._groupAutoScaleManager);
         this._coverageContainer.addChild(this._coverageRenderer.container);
@@ -355,7 +377,11 @@ export class BamRenderer {
         this._spliceJunctionsGraphics = new PIXI.Graphics();
         this._dataContainer.addChild(this._sashimiContainer = new PIXI.Container());
         this._dataContainer.addChild(this._spliceJunctionsGraphics);
-        this._sashimiRenderer = new SashimiRenderer(this._config.spliceJunctions.sashimi, this._config);
+        this._sashimiRenderer = new SashimiRenderer(
+            this._config.spliceJunctions.sashimi,
+            this._config,
+            this.track
+        );
         this._sashimiArea = new CoverageArea(this._viewport, this._config.spliceJunctions.sashimi.coverage);
         this._sashimiContainer.addChild(this._sashimiRenderer.container);
         this._sashimiContainer.addChild(this._sashimiArea.axis);
@@ -389,12 +415,12 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     _initPlaceholder() {
-        this._zoomInPlaceholderRenderer = new PlaceholderRenderer();
-        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this.track);
+        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._zoomInPlaceholderContainer.addChild(this._zoomInPlaceholderRenderer.container);
 
-        this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer();
-        this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer(this.track);
+        this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this.pixiRenderer.height, width: this.pixiRenderer.width});
         this._noReadsInRangePlaceholderContainer.addChild(this._noReadsInRangePlaceholderRenderer.container);
     }
 
@@ -402,7 +428,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         const topMargin = this.downsampleIndicatorsTopMargin;
         this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(),
             {
-                height: this._pixiRenderer.height - topMargin, width: this._pixiRenderer.width
+                height: this.pixiRenderer.height - topMargin, width: this.pixiRenderer.width
             });
         this._zoomInPlaceholderContainer.y = topMargin;
     }
@@ -411,7 +437,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         this._groupsBackground.removeChildren();
         this._groupsNamesContainer.removeChildren();
         if (features.alignments && this._viewport.actualBrushSize <= this.maximumAlignmentsRange) {
-            renderGroups(this._state, this._cacheService.cache.groups,
+            renderGroups(
+                this._state,
+                this._cacheService.cache.groups,
                 {
                     alignmentRowHeight: this.alignmentsRowHeight,
                     config: this._config,
@@ -422,7 +450,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     scrollY: this._yPosition,
                     topMargin: this.alignmentsDrawingTopMargin,
                     viewport: this._viewport
-                });
+                },
+                this.track ? this.track.labelsManager : undefined
+            );
         }
     }
 
@@ -443,7 +473,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 currentY: this._yPosition,
                 features: this._state,
                 height: this._height,
-                renderer: this._pixiRenderer,
+                renderer: this.pixiRenderer,
+                labelsManager: this.labelsManager,
                 topMargin: this.alignmentsDrawingTopMargin
             }
         );
@@ -665,7 +696,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                             currentY: this._yPosition,
                             features: this._state,
                             height: this._height,
-                            renderer: this._pixiRenderer,
+                            renderer: this.pixiRenderer,
+                            labelsManager: this.labelsManager,
                             topMargin: this.alignmentsDrawingTopMargin
                         }, this._hoveredItemContainer, feature.item, feature.line
                     );

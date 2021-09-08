@@ -6,34 +6,80 @@ export default class ngbMiewController {
         return 'ngbMiewController';
     }
 
-    constructor($element, $scope, $window, miewSettings) {
+    constructor($element, $scope, $window, dispatcher, miewSettings, miewContext) {
+        this.$scope = $scope;
         this.miewContainer = $element[0];
         this.settings = miewSettings;
-        this.viewer = new Miew({
-            container: this.miewContainer,
-            settings: this.settings.viewer
-        });
-        if (this.viewer.init()) {
-            this.viewer.run();
-            $scope.$watch('$ctrl.pdb', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.position', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.transcript', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.chains', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.chainId', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.region', this.changePdb.bind(this));
-            $scope.$watch('$ctrl.displayMode', this.setChainMaterials.bind(this));
-            $scope.$watch('$ctrl.displayColor', this.setChainMaterials.bind(this));
-            this.changePdb();
-        }
+        this.miewContext = miewContext;
+        this.dispatcher = dispatcher;
+        this.miewCameraChanged = this.miewCameraChangedCallback.bind(this);
+        const onChange = this.changePdb.bind(this);
+        $scope.$watch('$ctrl.pdb', onChange);
+        $scope.$watch('$ctrl.position', onChange);
+        $scope.$watch('$ctrl.transcript', onChange);
+        $scope.$watch('$ctrl.chains', onChange);
+        $scope.$watch('$ctrl.chainId', onChange);
+        $scope.$watch('$ctrl.region', onChange);
+        $scope.$watch('$ctrl.displayMode', this.setChainMaterials.bind(this));
+        $scope.$watch('$ctrl.displayColor', this.setChainMaterials.bind(this));
         const resizeHandler = () => {
             if (this.viewer) {
                 this.viewer._onResize();
             }
         };
         angular.element($window).on('resize', resizeHandler);
+        const miewActiveEventHandler = this.miewPanelActiveChanged.bind(this);
+        this.dispatcher.on('miew:panel:active', miewActiveEventHandler);
         $scope.$on('$destroy', () => {
+            if (this.cameraReportTimer) {
+                clearTimeout(this.cameraReportTimer);
+                this.cameraReportTimer = undefined;
+            }
+            if (this.viewer) {
+                this.viewer.removeEventListener('transform', this.miewCameraChanged);
+            }
+            this.dispatcher.removeListener('miew:panel:active', miewActiveEventHandler);
             angular.element($window).off('resize', resizeHandler);
         });
+        this.miewPanelActiveChanged(true);
+    }
+
+    miewPanelActiveChanged(active) {
+        if (active) {
+            this.loadCurrentPdb = undefined;
+            if (this.viewer) {
+                this.viewer.removeEventListener('transform', this.miewCameraChanged);
+                this.viewer = null;
+            }
+            this.viewer = new Miew({
+                container: this.miewContainer,
+                settings: this.settings.viewer
+            });
+            if (this.viewer.init()) {
+                this.viewer.enableHotKeys(false);
+                this.viewer.run();
+                this.viewer.addEventListener('transform', this.miewCameraChanged);
+                this.changePdb();
+            }
+        }
+    }
+
+    miewCameraChangedCallback () {
+        const report = () => {
+            if (this.viewer) {
+                this.camera = this.viewer.view();
+                this.miewContext.update({camera: this.camera});
+                if (this.$scope) {
+                    this.$scope.$apply();
+                }
+            }
+        };
+        const DEBOUNCE = 250;
+        if (this.cameraReportTimer) {
+            clearTimeout(this.cameraReportTimer);
+            this.cameraReportTimer = undefined;
+        }
+        this.cameraReportTimer = setTimeout(report, DEBOUNCE);
     }
 
     changePdb () {
@@ -48,9 +94,16 @@ export default class ngbMiewController {
             }
             this.loadCurrentPdb
                 .then(() => {
-                    // eslint-disable-next-line
-                    console.log(`Miew: pdb ${this.currentPdb} loaded`);
                     this.setChainMaterials();
+                })
+                .then(() => {
+                    if (this.camera && this.camera !== this.viewer.view()) {
+                        try {
+                            this.viewer.view(this.camera);
+                        } catch (e) {
+                            this.viewer.resetView();
+                        }
+                    }
                 })
                 .catch((e) => {
                     // eslint-disable-next-line

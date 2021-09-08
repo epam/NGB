@@ -1,17 +1,11 @@
+import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
 export default class FCFeatureRenderer extends FeatureBaseRenderer {
-    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement);
-        this.track = track;
-    }
-
     get strandIndicatorConfig(): undefined {
         return this.config && this.config.gene && this.config.gene.strand
             ? this.config.gene.strand
@@ -135,18 +129,19 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
         let geneNameLabelHeight = 0;
         const gene = this.config.gene;
 
-        if (feature.name) {
-            const label = new PIXI.Text(feature.name, this.config.gene.label);
-            label.resolution = drawingConfiguration.resolution;
-            label.x = Math.round(position.x);
-            label.y = Math.round(position.y);
-            dockableElementsContainer.addChild(label);
-            geneNameLabelHeight = label.height;
-            this.registerLabel(label, position, {
-                end: feature.endIndex,
-                height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
-                start: feature.startIndex
-            }, true);
+        if (feature.name && this.labelsManager) {
+            const label = this.labelsManager.getLabel(feature.name, this.config.gene.label);
+            if (label) {
+                label.x = Math.round(position.x);
+                label.y = Math.round(position.y);
+                dockableElementsContainer.addChild(label);
+                geneNameLabelHeight = label.height;
+                this.registerLabel(label, position, {
+                    end: feature.endIndex,
+                    height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
+                    start: feature.startIndex
+                }, true);
+            }
         }
 
         const geneBar = gene.bar;
@@ -292,11 +287,13 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
                     exon,
                     layer
                 } = layers[l];
-                const {
+                const {layer: layerIndex} = layer;
+                let {
                     x1,
                     x2,
-                    layer: layerIndex
                 } = layer;
+                x1 = Math.max(x1, -viewport.canvasSize);
+                x2 = Math.min(x2, 2 * viewport.canvasSize);
                 const y1 = transcriptY +
                     layerIndex * (this.config.transcript.height + this.config.transcript.marginTop) +
                     this.config.transcript.marginTop;
@@ -366,22 +363,6 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
                     y2
                 });
             }
-
-            // for (let i = 0; i < transcriptLength; i++) {
-            //     this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
-            //         x: position.x,
-            //         y: transcriptY
-            //     });
-            //
-            //     const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
-            //
-            //     if (transcripts[i].name !== null) {
-            //         const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
-            //         transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-            //     } else {
-            //         transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-            //     }
-            // }
 
             this.registerDockableElement(dockableGraphics, {
                 topMargin: geneNameLabelHeight,

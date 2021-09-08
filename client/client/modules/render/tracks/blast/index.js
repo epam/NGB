@@ -24,9 +24,9 @@ export class BLASTTrack extends CachedTrackWithVerticalScroll {
         this.dispatcher = opts.dispatcher;
         this.renderer = new BLASTAlignmentRenderer(
             Object.assign({}, this.trackConfig, this.config),
-            this._pixiRenderer,
             opts,
-            opts.blastContext
+            opts.blastContext,
+            this
         );
         this.reload = this.reload.bind(this);
         this.dispatcher.on(BLASTResultEvents.changed, this.reload);

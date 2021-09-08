@@ -1,7 +1,7 @@
+import * as PIXI from 'pixi.js-legacy';
 import {CachedTrackRendererWithVerticalScroll, drawingConfiguration} from '../../../../core';
 import {FeatureRenderer, GeneHistogram} from './features';
 import {GeneTransformer} from '../data/geneTransformer';
-import PIXI from 'pixi.js';
 
 export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll {
 
@@ -22,11 +22,13 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
     _geneFeatures = [];
     _showCenterLine;
 
-    constructor(config, transformer: GeneTransformer, pixiRenderer) {
-        super();
-        this._config = config;
-        this._pixiRenderer = pixiRenderer;
-        this._featureRenderer = new FeatureRenderer(config);
+    _graphicsSprite: PIXI.Sprite = null;
+    _hoveredGraphicsSprite: PIXI.Sprite = null;
+
+    constructor(config, transformer: GeneTransformer, track) {
+        super(track);
+        this._config = {...config};
+        this._featureRenderer = new FeatureRenderer(this._config, track);
         this._geneHistogram = new GeneHistogram(config);
         this._transformer = transformer;
         this._labelsContainer = new PIXI.Container();
@@ -59,9 +61,9 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
         viewport,
         cache,
         isRedraw,
+        _showCenterLine,
         _gffColorByFeatureType = false,
         _gffShowNumbersAminoacid,
-        _showCenterLine,
         _collapsedMode = false,
         _geneFeatures = []
     ) {
@@ -74,7 +76,7 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
         }
-        super.render(viewport, cache, isRedraw, null, _showCenterLine);
+        super.render(viewport, cache, isRedraw, _showCenterLine);
     }
 
     get needConvertGraphicsToTexture() {
@@ -82,12 +84,21 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
     }
 
     rebuildContainer(viewport, cache) {
+        if (!this.pixiRenderer) {
+            return;
+        }
         super.rebuildContainer(viewport, cache);
-
+        const clearPreviousSprite = sprite => {
+            if (sprite && sprite.texture && sprite.texture.baseTexture) {
+                sprite.texture.destroy(true);
+            }
+        };
         this.dataContainer.removeChildren();
         this._dockableElementsContainer.removeChildren();
         this._attachedElementsContainer.removeChildren();
         this._labelsContainer.removeChildren();
+        clearPreviousSprite(this._graphicsSprite);
+        clearPreviousSprite(this._hoveredGraphicsSprite);
 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
@@ -107,52 +118,69 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
                 geneFeatures: this._geneFeatures
             };
             this.featureRenderer.prepare();
-            const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
+            const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(
+                cache.data,
+                viewport,
+                this._labelsContainer,
+                this._dockableElementsContainer,
+                this._attachedElementsContainer
+            );
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
-                    if (highlightGraphics.children.length > 0) {
+                    if (highlightGraphics && highlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(highlightGraphics);
                     }
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
-                    const sprite = new PIXI.Sprite(texture);
-                    sprite.position.x = coordinates.x;
-                    sprite.position.y = coordinates.y;
-                    this.dataContainer.addChild(sprite);
+                    const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
+                        scale: drawingConfiguration.scale,
+                        resolution: drawingConfiguration.resolution
+                    });
+                    if (this._graphicsSprite) {
+                        this._graphicsSprite.texture = texture;
+                    } else {
+                        this._graphicsSprite = new PIXI.Sprite(texture);
+                    }
+                    this._graphicsSprite.position.x = coordinates.x;
+                    this._graphicsSprite.position.y = coordinates.y;
+                    this.dataContainer.addChild(this._graphicsSprite);
                     graphics.clear();
                     temporaryContainer = null;
                 } else {
-                    this.dataContainer.addChild(highlightGraphics);
+                    highlightGraphics && this.dataContainer.addChild(highlightGraphics);
                     this.dataContainer.addChild(graphics);
                 }
             }
-            if (hoveredGraphics !== null) {
+            if (hoveredGraphics) {
                 this._hoveredItemContainer.removeChildren();
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
-                    if (hoveredHighlightGraphics.children.length > 0) {
+                    if (hoveredHighlightGraphics && hoveredHighlightGraphics.children.length > 0) {
                         temporaryContainer.addChild(hoveredHighlightGraphics);
                     }
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
-                    const sprite = new PIXI.Sprite(texture);
-                    sprite.position.x = coordinates.x;
-                    sprite.position.y = coordinates.y;
-                    this._hoveredItemContainer.addChild(sprite);
+                    const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
+                        scale: drawingConfiguration.scale,
+                        resolution: drawingConfiguration.resolution
+                    });
+                    if (this._hoveredGraphicsSprite) {
+                        this._hoveredGraphicsSprite.texture = texture;
+                    } else {
+                        this._hoveredGraphicsSprite = new PIXI.Sprite(texture);
+                    }
+                    this._hoveredGraphicsSprite.position.x = coordinates.x;
+                    this._hoveredGraphicsSprite.position.y = coordinates.y;
+                    this._hoveredItemContainer.addChild(this._hoveredGraphicsSprite);
                     hoveredGraphics.clear();
                     temporaryContainer = null;
                 } else {
-                    this._hoveredItemContainer.addChild(hoveredHighlightGraphics);
+                    hoveredHighlightGraphics && this._hoveredItemContainer.addChild(hoveredHighlightGraphics);
                     this._hoveredItemContainer.addChild(hoveredGraphics);
                 }
                 this.hoverItem(null, viewport, false);
             }
-            this.featureRenderer.manageLabels(viewport);
-            this.featureRenderer.manageDockableElements(viewport);
-            this.featureRenderer.manageAttachedElements(viewport);
             this._actualHeight = this.featureRenderer.getActualHeight();
             this.dataContainer.addChild(this._hoveredItemContainer);
         }
@@ -171,9 +199,9 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.scale = this.dataContainer.scale;
-        this.featureRenderer.manageLabels(viewport);
+        this.featureRenderer.manageLabels(viewport, this.height, this.dataContainer.y);
         this.featureRenderer.manageDockableElements(viewport);
-        this.featureRenderer.manageAttachedElements(viewport);
+        this.featureRenderer.manageAttachedElements(viewport, this.height, this.dataContainer.y);
         this.manageMask(viewport);
     }
 
@@ -186,9 +214,9 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
             this._dockableElementsContainer.x = this.dataContainer.x;
             this._dockableElementsContainer.y = this.dataContainer.y;
             this._dockableElementsContainer.scale = this.dataContainer.scale;
-            this.featureRenderer.manageLabels(viewport);
+            this.featureRenderer.manageLabels(viewport, this.height, this.dataContainer.y);
             this.featureRenderer.manageDockableElements(viewport);
-            this.featureRenderer.manageAttachedElements(viewport);
+            this.featureRenderer.manageAttachedElements(viewport, this.height, this.dataContainer.y);
             this.hoverItem(null);
         }
         this.manageMask(viewport);

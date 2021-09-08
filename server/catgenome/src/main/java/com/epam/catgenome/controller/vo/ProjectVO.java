@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.project.ProjectNote;
 import lombok.Data;
 
 /**
@@ -49,6 +50,7 @@ public class ProjectVO {
     private Long createdBy;
     private Date createdDate;
     private List<ProjectItemVO> items;
+    private List<ProjectNote> notes;
     private Integer itemsCount;
     private Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat;
     private Date lastOpenedDate;

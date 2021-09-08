@@ -30,6 +30,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.displayName = node.prettyName || node.name;
     node.searchInfo = new SearchInfo();
     node.modifiedNameSearchInfo = new SearchInfo();
+    node.metadataSearchInfo = new SearchInfo();
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -39,11 +40,14 @@ function _preprocessNode(node: Node, parent: Node = null) {
     }
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
     const mapTrackFn = function (track) {
+        const metadata = track.metadata
+        ? Object.entries(track.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+        : '';
         track.isTrack = true;
         track.project = node;
         track.projectId = node.name;
         track.reference = reference;
-        track.hint = `${getTrackFileName(track)}${reference ? `\r\nReference: ${reference.name}` : ''}`;
+        track.hint = `${getTrackFileName(track)}${metadata}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
         track.roles = ['ROLE_ADMIN'];
         track.displayName = getTrackFileName(track);
@@ -82,13 +86,17 @@ function getTrackFileName(track) {
 
 function _getProjectHint(project, reference) {
     let tracksFormats = '';
+    const attributes = project.metadata
+    ? Object.entries(project.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+    : '';
+
     for (let i = 0; i < __tracks_formats.length; i++) {
         const count = project.items.filter(track => track.format === __tracks_formats[i]).length;
         if (count) {
             tracksFormats += `\r\n${count} ${__tracks_formats[i]} ${count === 1 ? 'file' : 'files'}`;
         }
     }
-    return `${project.name}${reference ? `\r\nReference: ${reference.name}` : ''}${tracksFormats}`;
+    return `${project.name}${reference ? `\r\nReference: ${reference.name}` : ''}${attributes}${tracksFormats}`;
 }
 
 export function sortDatasets(content, sortFn) {
@@ -320,9 +328,21 @@ export function search(pattern, items: Array<Node>) {
         if (!item.modifiedNameSearchInfo) {
             item.modifiedNameSearchInfo = new SearchInfo();
         }
+        if (!item.metadataSearchInfo) {
+            item.metadataSearchInfo = new SearchInfo();
+        }
         item.searchInfo.test(pattern, item.displayName);
         item.modifiedNameSearchInfo.test(pattern, item.modifiedName);
-        item.searchFilterPassed = searchFilterPassed || item.searchInfo.passed || item.modifiedNameSearchInfo.passed;
+        for (const key in item.metadata) {
+            if (item.metadata.hasOwnProperty(key)) {
+                item.metadataSearchInfo.test(pattern, item.metadata[key], key);
+            }
+            searchFilterPassed = searchFilterPassed || item.metadataSearchInfo.metadata[key];
+        }
+        item.searchFilterPassed = searchFilterPassed ||
+        item.searchInfo.passed ||
+        item.modifiedNameSearchInfo.passed;
+
         if (item.childrenFilterPassed && item.isProject && pattern.length > 0) {
             expandNodeWithChilds(item);
             item.__expanded = true;

@@ -1,21 +1,19 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     BTOPPartType,
     parseBtop
 } from '../../../../app/shared/blastContext';
 import {CachedTrackRendererWithVerticalScroll} from '../../core';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
-import PIXI from 'pixi.js';
-import {drawingConfiguration} from '../../core/configuration';
 
 class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
     get config() {
         return this._config;
     }
 
-    constructor(config, pixiRenderer, options, blastContext) {
-        super();
+    constructor(config, options, blastContext, track) {
+        super(track);
         this._config = config;
-        this.pixiRenderer = pixiRenderer;
         this.options = options;
         this._hoveringGraphics = new PIXI.Graphics();
         this.blastContext = blastContext;
@@ -99,7 +97,7 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
                     queryEnd,
                 } = alignment;
                 if (!sequenceStart || !sequenceEnd) {
-                    return false;
+                    continue;
                 }
                 const positiveStrand = !sequenceStrandView || sequenceStrandView === '+';
                 if (!positiveStrand) {
@@ -274,12 +272,13 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
             )
             .endFill();
         if (alt && renderLabel) {
-            const label = new PIXI.Text(
-                alt,
-                this.config.sequence.mismatch.label,
-                drawingConfiguration.resolution
-            );
-            if (label.width < x2 - x1) {
+            const label = this.labelsManager
+                ? this.labelsManager.getLabel(
+                    alt,
+                    this.config.sequence.mismatch.label
+                )
+                : undefined;
+            if (label && label.width < x2 - x1) {
                 label.x = Math.round((x1 + x2) / 2.0 - label.width / 2.0);
                 label.y = Math.round(
                     y + height / 2.0 - label.height / 2.0
@@ -404,20 +403,23 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
                     height
                 );
             if (renderLabel) {
-                const label = new PIXI.Text(
-                    `${size}`,
-                    this.config.sequence.notAligned.label,
-                    drawingConfiguration.resolution
-                );
-                label.x = Math.round(
-                    direction < 0
-                        ? (x - notAlignedMarkerWidth - label.width - margin)
-                        : (x + notAlignedMarkerWidth + margin)
-                );
-                label.y = Math.round(
-                    y + height / 2.0 - label.height / 2.0
-                );
-                this.dataContainer.addChild(label);
+                const label = this.labelsManager
+                    ? this.labelsManager.getLabel(
+                        `${size}`,
+                        this.config.sequence.notAligned.label
+                    )
+                    : undefined;
+                if (label) {
+                    label.x = Math.round(
+                        direction < 0
+                            ? (x - notAlignedMarkerWidth - label.width - margin)
+                            : (x + notAlignedMarkerWidth + margin)
+                    );
+                    label.y = Math.round(
+                        y + height / 2.0 - label.height / 2.0
+                    );
+                    this.dataContainer.addChild(label);
+                }
             }
         }
     }
@@ -637,7 +639,7 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
         }
-        super.render(viewport, cache, isRedraw, null, showCenterLine);
+        super.render(viewport, cache, isRedraw, showCenterLine);
     }
 }
 

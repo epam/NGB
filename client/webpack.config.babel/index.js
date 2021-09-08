@@ -32,11 +32,6 @@ export const output = {
     filename: '[name].bundle.js',
     chunkFilename: '[id].[name].js'
 };
-export const resolve = {
-    alias: {
-        'pixi.js': 'pixi.js/bin/pixi.js',
-    }
-};
 export const devtool = DEV ? 'source-map' : undefined;
 export const module = {loaders};
 export const cache = DEV;

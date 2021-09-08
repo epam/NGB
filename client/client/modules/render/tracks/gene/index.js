@@ -10,6 +10,8 @@ import geneMenuConfig from './exterior/geneMenuConfig';
 import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
 
+const PREFER_WEBGL = true;
+
 export class GENETrack extends CachedTrackWithVerticalScroll {
 
     _dataService = null;
@@ -44,6 +46,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
     );
 
     constructor(opts) {
+        opts.preferWebGL = PREFER_WEBGL;
         super(opts);
         const self = this;
         const handleClick = async() => {
@@ -209,7 +212,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
 
     get renderer(): GeneRenderer {
         if (!this._renderer) {
-            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this);
         }
         return this._renderer;
     }
@@ -255,9 +258,9 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
                 this.viewport,
                 this.cache,
                 flags.heightChanged || flags.dataChanged,
+                this._showCenterLine,
                 this._gffColorByFeatureType,
                 this._gffShowNumbersAminoacid,
-                this._showCenterLine,
                 this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed,
                 this.state.geneFeatures || this.state.availableFeatures
             );
@@ -390,15 +393,14 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
 
     async updateCache() {
         if (this.cache.histogramData === null || this.cache.histogramData === undefined) {
-            await this.downloadHistogramFn(
+            const data = await this.downloadHistogramFn(
                 this.cacheUpdateInitialParameters(this.viewport)
-            ).then((data) => {
-                const downloadedData = GeneTransformer.transformFullHistogramData(data);
-                if (!this.cache) {
-                    return false;
-                }
-                this.cache.histogramData = downloadedData;
-            });
+            );
+            const downloadedData = GeneTransformer.transformFullHistogramData(data);
+            if (!this.cache) {
+                return false;
+            }
+            this.cache.histogramData = downloadedData;
         }
         if (!this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache)) {
             const reqToken = this.__currentDataUpdateReq = {};

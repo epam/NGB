@@ -27,7 +27,9 @@ export default {
         margin: 4,
         label: {
             fill: 0x000000,
-            font: 'normal 7pt arial',
+            fontFamily: 'arial',
+            fontSize: '7pt',
+            fontWeight: 'normal'
         }
     },
     chromosomeArea: {
@@ -42,7 +44,9 @@ export default {
             margin: 10,
             style: {
                 fill: 0x000000,
-                font: 'normal 7pt arial',
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             }
         },
         margin: 5,
@@ -60,7 +64,7 @@ export default {
     },
     gridSize: 5,
     grid: {
-        oddChromosomeBackground: 0xfafafa,  
+        oddChromosomeBackground: 0xfafafa,
     },
     hit: {
         width: 3,

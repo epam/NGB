@@ -722,6 +722,7 @@ export default class projectContext {
         this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
         this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
         this.dispatcher.on('settings:change', ::this.globalSettingsChangedHandler);
+        this.dispatcher.on('metadata:change', ::this.metadataChangedHandler);
         this.dispatcher.on('track:duplicate', this.duplicateTrack.bind(this));
     }
 
@@ -840,6 +841,35 @@ export default class projectContext {
 
     globalSettingsChangedHandler(state) {
         this.setHighlightProfileConditions(state.highlightProfile);
+    }
+
+    metadataChangedHandler(node) {
+        const {id, projectId, isFile, metadata, displayName} = node;
+        const datasetIndex = this._datasets.findIndex((dataset) => dataset.id === projectId);
+        if (datasetIndex > 0) {
+            if (id === projectId && !isFile) {
+                // change dataset metadata
+                this._datasets[datasetIndex].metadata = metadata;
+            } else {
+                // change metadata in file and track of the dataset
+                const tracks = this._datasets[datasetIndex].tracks;
+                const items = this._datasets[datasetIndex].items;
+                const trackIndex = tracks ? tracks.findIndex(track => track.id === id && track.displayName === displayName) : -1;
+                if (trackIndex > 0) {
+                    tracks[trackIndex].metadata = metadata;
+                }
+                const fileIndex = items ? items.findIndex(item => item.id === id && item.displayName === displayName) : -1;
+                if (fileIndex > 0) {
+                    items[fileIndex].metadata = metadata;
+                }
+            }
+        }
+        if (isFile) {
+            const tracksIdx = this._tracks.findIndex(track => track.id === id && track.displayName === displayName);
+            if (tracksIdx > 0) {
+                this._tracks[tracksIdx].metadata = metadata;
+            }
+        }
     }
 
     _getVcfCallbacks() {
@@ -995,7 +1025,7 @@ export default class projectContext {
                             r.annotationFiles.push(r.geneFile);
                         }
                         r.annotationFiles.forEach(annotationFile => {
-                           annotationFile.projectId = '';
+                            annotationFile.projectId = '';
                         });
                     });
                     this._referencesAreLoading = false;

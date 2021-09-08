@@ -6,6 +6,13 @@ import {DataService} from '../data-service';
  */
 export class ProjectDataService extends DataService {
 
+    getNodeAclClass(node) {
+        if (node.isProject) {
+            return 'PROJECT';
+        } else {
+            return (node.format || '').toUpperCase();
+        }
+    }
     getProjects(referenceName) {
         return new Promise((resolve) => {
             const url = referenceName ? `project/tree?referenceName=${referenceName}` : 'project/tree';
@@ -323,6 +330,35 @@ export class ProjectDataService extends DataService {
     getDatasetFileInfo(bioDataItemId) {
         return new Promise((resolve, reject) => {
             this.get(`dataitem/${bioDataItemId}/downloadUrl`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    saveMetadata(metadata) {
+        return new Promise((resolve, reject) => {
+            this.post('metadata', metadata)
+            .catch((response) => resolve({...response, error: true}))
+            .then((data) => {
+                if (data) {
+                    resolve(data);
+                } else {
+                    data = {};
+                    resolve(data);
+                }
+            }, reject);
+        });
+    }
+    getMetadata(id, entityClass) {
+        return new Promise((resolve, reject) => {
+            this.get(`metadata?id=${id}&entityClass=${entityClass}`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

@@ -11,6 +11,34 @@ export default class ngbMolecularViewerService {
         this.projectDataService = projectDataService;
     }
 
+    getPDBKey(geneTrack, event: EventGeneInfo) {
+        if (!event || !geneTrack) {
+            return '';
+        }
+        const {
+            transcriptId,
+            startIndex,
+            endIndex,
+            geneId
+        } = event;
+        const {
+            id,
+            chromosomeId,
+            projectId
+        } = geneTrack;
+        const ensureEmpty = o => !o ? '' : `${o}`;
+        return [
+            ensureEmpty(id),
+            ensureEmpty(chromosomeId),
+            ensureEmpty(projectId),
+            ensureEmpty(geneId),
+            ensureEmpty(transcriptId),
+            ensureEmpty(startIndex),
+            ensureEmpty(endIndex)
+        ]
+            .join('|');
+    }
+
     async loadPDB(geneTrack, event: EventGeneInfo) {
         const {startIndex, endIndex, geneId, transcriptId} = event;
         const pdbIds = [];

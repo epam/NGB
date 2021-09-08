@@ -1,6 +1,6 @@
+import * as PIXI from 'pixi.js-legacy';
 import {StatisticsContainer, initializeContainer} from './variants';
 import {CachedTrackRenderer} from '../../../../../core';
-import PIXI from 'pixi.js';
 import {ZonesManager} from '../../../../../utilities';
 
 export default class VcfRenderer extends CachedTrackRenderer {
@@ -9,8 +9,8 @@ export default class VcfRenderer extends CachedTrackRenderer {
     _variantContainers = [];
     _mask = null;
 
-    constructor(config) {
-        super();
+    constructor(config, track) {
+        super(track);
         this._config = config;
         this._height = config.height;
         this._manager = new ZonesManager();
@@ -62,14 +62,17 @@ export default class VcfRenderer extends CachedTrackRenderer {
     }
 
     _rebuildMask() {
-        const mask = new PIXI.Graphics();
-        for (let i = 0; i < this._mask.length; i++) {
-            const rect = this._mask[i];
-            mask.beginFill(0x000000, 1);
-            mask.drawRect(rect.x1 + this._drawScope.translateFactor, rect.y1 + this.container.parent.y, rect.x2 - rect.x1, rect.y2 - rect.y1);
-            mask.endFill();
+        this._linesArea.mask = undefined;
+        if (this._mask.length > 0) {
+            const mask = new PIXI.Graphics();
+            for (let i = 0; i < this._mask.length; i++) {
+                const rect = this._mask[i];
+                mask.beginFill(0x000000, 1);
+                mask.drawRect(rect.x1 + this._drawScope.translateFactor, rect.y1 + this.container.parent.y, rect.x2 - rect.x1, rect.y2 - rect.y1);
+                mask.endFill();
+            }
+            this._linesArea.mask = mask;
         }
-        this._linesArea.mask = mask;
     }
 
     _drawChromosomeLine(viewport) {
@@ -92,7 +95,12 @@ export default class VcfRenderer extends CachedTrackRenderer {
 
         for (let i = 0; i < data.variants.length; i++) {
             const variant = data.variants[i];
-            const variantContainer = initializeContainer(variant, this._config, this._tooltipArea);
+            const variantContainer = initializeContainer(
+                variant,
+                this._config,
+                this._track,
+                this._tooltipArea
+            );
             variantContainer.container.y = this.height - this._config.chromosomeLine.thickness;
             variantContainer.render(viewport, this._manager);
             if (variantContainer instanceof StatisticsContainer) {

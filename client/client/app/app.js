@@ -19,6 +19,7 @@ import angularUiRouter from 'angular-ui-router';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
+import MiewContext from './shared/miewContext';
 import SelectionContext from './shared/selectionContext';
 import BLASTContext from './shared/blastContext';
 import NotificationsContext from './shared/notificationsContext';
@@ -72,5 +73,6 @@ export default angular.module('NGB', [
     .service('fcSourcesManager', FCSourcesManager.instance)
     .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
     .service('notificationsContext', NotificationsContext.instance)
+    .service('miewContext', MiewContext.instance)
     .service('motifsContext', MotifsContext.instance)
     .name;

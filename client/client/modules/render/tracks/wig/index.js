@@ -11,7 +11,7 @@ import {scaleModes} from '../common/scaleModes';
 
 export class WIGTrack extends CachedTrack {
 
-    _wigArea = new WIGArea(this.viewport, this.trackConfig);
+    _wigArea = new WIGArea(this.viewport, this.trackConfig, this);
     _wigRenderer = new WIGRenderer(this.trackConfig, this.state);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
@@ -130,7 +130,7 @@ export class WIGTrack extends CachedTrack {
                 }
             }
             this._wigArea.render(this.viewport, this.cache.coordinateSystem, this.state);
-            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
+            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._showCenterLine);
             somethingChanged = true;
 
         }

@@ -11,5 +11,6 @@ export {default as renderCenterLine} from './renderCenterLine';
 export {default as ensureEmptyValue} from './ensureEmptyValue';
 export {default as generateCoordinateSystemTicks} from './coordinateSystem';
 export {default as linearDimensionsConflict} from './linearDimensionsConflicts';
+export {default as PlaceholderRenderer} from './placeholderRenderer';
 
 export {menu};

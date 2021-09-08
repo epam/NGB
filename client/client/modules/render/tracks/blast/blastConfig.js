@@ -32,7 +32,9 @@ export default {
         mismatch: {
             label: {
                 fill: 0xFFFFFF,
-                font: 'normal 7pt arial',
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal',
                 align: 'center'
             }
         },
@@ -42,7 +44,9 @@ export default {
             margin: 5,
             label: {
                 fill: 0xFF0000,
-                font: 'normal 8pt arial',
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'normal',
                 align: 'center'
             }
         }

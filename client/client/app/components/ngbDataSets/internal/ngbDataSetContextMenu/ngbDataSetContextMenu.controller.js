@@ -1,5 +1,6 @@
 import angular from 'angular';
 import ngbPermissionsFormController from '../ngbPermissionsForm/ngbPermissionsForm.controller';
+import ngbDataSetMetadataController from '../ngbDataSetMetadata/ngbDataSetMetadata.controller';
 
 export default class NgbDataSetContextMenuController {
 
@@ -69,5 +70,23 @@ export default class NgbDataSetContextMenuController {
                 e.filename = splitPath[splitPath.length - 1];
             });
         }
+    }
+    openMetadataPopup(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (this.ngbDataSetContextMenu.visible()) {
+            this.ngbDataSetContextMenu.close();
+        }
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbDataSetMetadataController,
+            controllerAs: 'ctrl',
+            locals: {
+                node: this.node
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('../ngbDataSetMetadata/ngbDataSetMetadata.tpl.html'),
+        });
     }
 }

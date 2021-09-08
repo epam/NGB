@@ -1,9 +1,9 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import CachedTrackRenderer from './cachedTrackRenderer';
 
 export default class CachedTrackRendererWithVerticalScroll extends CachedTrackRenderer {
-    constructor(...props) {
-        super(...props);
+    constructor(track) {
+        super(track);
         this._verticalScroll = new PIXI.Graphics();
         this._verticalScrollIsHovered = false;
         this.container.addChild(this._verticalScroll);

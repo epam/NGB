@@ -26,11 +26,23 @@ package com.epam.catgenome.manager.project;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.project.ProjectNote;
 import com.epam.catgenome.entity.metadata.EntityVO;
 import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
@@ -40,6 +52,7 @@ import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
+import com.epam.catgenome.util.db.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,7 +80,10 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Source:      ProjectManager
@@ -237,6 +253,7 @@ public class ProjectManager implements SecuredEntityManager {
     private void loadProjectStuff(Project project) {
         loadProjectItems(project);
         project.setNestedProjects(projectDao.loadNestedProjects(project.getId()));
+        project.setNotes(projectDao.loadProjectNotes(project.getId()));
     }
 
     private void updateLastOpenedDate(Project project) {
@@ -319,12 +336,12 @@ public class ProjectManager implements SecuredEntityManager {
 
         projectDao.saveProject(helpProject, parentId);
 
+        Project loadedProject = this.load(helpProject.getId());
+
         if (helpProject.getItems() != null) {
             List<ProjectItem> newProjectItems = helpProject.getItems()
                     .stream().distinct().collect(Collectors.toList());
             if (!newProject) {
-                Project loadedProject = this.load(helpProject.getId());
-
                 Set<Long> existingBioIds = new HashSet<>();
                 Set<Long> newBioIds = new HashSet<>();
                 existingBioIds.addAll(loadedProject.getItems().stream()
@@ -399,43 +416,8 @@ public class ProjectManager implements SecuredEntityManager {
                 dataItems.forEach(i -> fillFileTypeLists(i, newGeneFiles, newVcfFiles));
             }
         }
-
+        processNotes(project, helpProject, newProject, loadedProject);
         return helpProject;
-    }
-
-    private void checkReference(Reference reference, List<BiologicalDataItem> projectItems) {
-        for (BiologicalDataItem item : projectItems) {
-            if (FeatureFile.class.isAssignableFrom(item.getClass())) {
-                FeatureFile file = (FeatureFile) item;
-                Assert.isTrue(reference.getId().equals(file.getReferenceId()),
-                        MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NON_MATCHING_REFERENCE,
-                                file.getName()));
-            }
-        }
-    }
-
-    private Reference findReference(List<ProjectItem> projectItems) {
-        List<Reference> references = projectItems.stream()
-                .filter(item -> item.getBioDataItem().getFormat()
-                        == BiologicalDataItemFormat.REFERENCE)
-                .map(item -> (Reference) item.getBioDataItem()).collect(Collectors.toList());
-        Assert.isTrue(!references.isEmpty(),
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        Assert.isTrue(references.size() == 1,
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        return references.get(0);
-    }
-
-    private Reference findReferenceFromBioItems(List<BiologicalDataItem> projectItems) {
-        List<Reference> references = projectItems.stream()
-                .filter(item -> item.getFormat()
-                        == BiologicalDataItemFormat.REFERENCE)
-                .map(item -> (Reference) item).collect(Collectors.toList());
-        Assert.isTrue(!references.isEmpty(),
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        Assert.isTrue(references.size() == 1,
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        return references.get(0);
     }
 
     /**
@@ -552,6 +534,7 @@ public class ProjectManager implements SecuredEntityManager {
 
     private void deleteProjectWithNested(Project projectToDelete) throws IOException {
         deleteNestedProjects(projectToDelete.getId());
+        projectDao.deleteAllProjectNotes(projectToDelete.getId());
         projectDao.deleteProjectItems(projectToDelete.getId());
         projectDao.deleteProject(projectToDelete.getId());
         fileManager.deleteProjectDirectory(projectToDelete);
@@ -695,5 +678,81 @@ public class ProjectManager implements SecuredEntityManager {
         ListUtils.emptyIfNull(topProject.getItems()).stream()
                 .map(ProjectItem::getBioDataItem)
                 .forEach(item -> attachMetadataToItem(item, parentItemsMetadata));
+    }
+
+    private void processNotes(final Project project, final Project helpProject, final boolean newProject,
+                              final Project loadedProject) {
+        if (!newProject && !CollectionUtils.isEmpty(loadedProject.getNotes())) {
+            final List<Long> existingNoteIds = loadedProject.getNotes().stream()
+                    .map(ProjectNote::getNoteId)
+                    .collect(Collectors.toList());
+            final List<Long> newNoteIds = helpProject.getNotes() == null ? Collections.emptyList() :
+                    helpProject.getNotes().stream()
+                            .map(ProjectNote::getNoteId)
+                            .collect(Collectors.toList());
+            final List<Long> notesToDelete = existingNoteIds.stream()
+                    .filter(o -> !newNoteIds.contains(o))
+                    .collect(Collectors.toList());
+            if (!notesToDelete.isEmpty()) {
+                final Filter notesFilter = Filter.builder()
+                        .field("note_id")
+                        .operator("in")
+                        .value("(" + join(notesToDelete, ",") + ")")
+                        .build();
+                final Filter projectFilter = Filter.builder()
+                        .field("project_id")
+                        .operator("=")
+                        .value(String.valueOf(helpProject.getId()))
+                        .build();
+                projectDao.deleteProjectNotes(Arrays.asList(notesFilter, projectFilter));
+            }
+        }
+        List<ProjectNote> notes = project.getNotes();
+        if (!CollectionUtils.isEmpty(notes)) {
+            List<ProjectNote> notesToAdd = notes.stream()
+                    .filter(n -> n.getNoteId() == null)
+                    .collect(Collectors.toList());
+            List<ProjectNote> notesToUpdate = notes.stream()
+                    .filter(n -> n.getNoteId() != null)
+                    .collect(Collectors.toList());
+            notes = projectDao.saveProjectNotes(notesToAdd, project.getId());
+            notes.addAll(projectDao.updateProjectNotes(notesToUpdate));
+        }
+        helpProject.setNotes(notes);
+    }
+
+    private void checkReference(Reference reference, List<BiologicalDataItem> projectItems) {
+        for (BiologicalDataItem item : projectItems) {
+            if (FeatureFile.class.isAssignableFrom(item.getClass())) {
+                FeatureFile file = (FeatureFile) item;
+                Assert.isTrue(reference.getId().equals(file.getReferenceId()),
+                        MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NON_MATCHING_REFERENCE,
+                                file.getName()));
+            }
+        }
+    }
+
+    private Reference findReference(List<ProjectItem> projectItems) {
+        List<Reference> references = projectItems.stream()
+                .filter(item -> item.getBioDataItem().getFormat()
+                        == BiologicalDataItemFormat.REFERENCE)
+                .map(item -> (Reference) item.getBioDataItem()).collect(Collectors.toList());
+        Assert.isTrue(!references.isEmpty(),
+                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+        Assert.isTrue(references.size() == 1,
+                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+        return references.get(0);
+    }
+
+    private Reference findReferenceFromBioItems(List<BiologicalDataItem> projectItems) {
+        List<Reference> references = projectItems.stream()
+                .filter(item -> item.getFormat()
+                        == BiologicalDataItemFormat.REFERENCE)
+                .map(item -> (Reference) item).collect(Collectors.toList());
+        Assert.isTrue(!references.isEmpty(),
+                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+        Assert.isTrue(references.size() == 1,
+                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+        return references.get(0);
     }
 }

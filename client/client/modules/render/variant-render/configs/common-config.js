@@ -2,11 +2,15 @@ export default {
     reference: {
         label: {
             fill: 0x000000,
-            font: 'bold 12pt arial'
+            fontFamily: 'arial',
+            fontSize: '12pt',
+            fontWeight: 'bold'
         },
         smallLabel: {
             fill: 0x000000,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         width: 20,
         margin: {

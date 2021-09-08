@@ -1,11 +1,10 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     ensureEmptyValue,
     generateCoordinateSystemTicks,
     linearDimensionsConflict
 } from '../../../utilities';
-import PIXI from 'pixi.js';
 import defaultConfig from './config';
-import {drawingConfiguration} from '../../../core';
 
 export default class CoordinateSystem extends PIXI.Container {
     static getConverter = (coordinateSystem, height) => (value) => {
@@ -40,29 +39,22 @@ export default class CoordinateSystem extends PIXI.Container {
         this.config = {...(defaultConfig || {}), ...(config || {})};
         this.labelsContainer = new PIXI.Container();
         this.graphics = new PIXI.Graphics();
-        this.logLabel = new PIXI.Text('LOG', this.config.log.label);
-        this.logLabel.resolution = drawingConfiguration.resolution;
         this.addChild(this.graphics);
         this.addChild(this.labelsContainer);
-        this.addChild(this.logLabel);
+        if (this.track && this.track.labelsManager) {
+            this.logLabel = this.track.labelsManager.getLabel('LOG', this.config.log.label);
+            if (this.logLabel) {
+                this.addChild(this.logLabel);
+            }
+        }
     }
 
     getTickLabel = (text) => {
         const tickStyle = this.config.tick.label;
-        const [label] = this.labelsContainer.children.filter(o => !o.visible);
-        if (!label) {
-            const newLabel = new PIXI.Text(text, tickStyle);
-            newLabel.resolution = drawingConfiguration.resolution;
-            this.labelsContainer.addChild(newLabel);
-            return newLabel;
-        }
-        label.visible = true;
-        label.style = tickStyle;
-        label.text = text;
-        return label;
+        return this.track.labelsManager.getLabel(text, tickStyle);
     };
 
-    render (viewport, coordinateSystem, height, options = {}) {
+    renderCoordinateSystem (viewport, coordinateSystem, height, options = {}) {
         const {
             yBoundaries = {},
             renderBaseLineAsBottomBorder = true
@@ -73,7 +65,7 @@ export default class CoordinateSystem extends PIXI.Container {
         } = yBoundaries;
         const correctPositionToFitBoundaries = position => Math.max(top, Math.min(bottom, position));
         this.graphics.clear();
-        this.labelsContainer.children.forEach(child => child.visible = false);
+        this.labelsContainer.removeChildren();
         if (coordinateSystem) {
             const converter = CoordinateSystem.getConverter(coordinateSystem, height);
             const {
@@ -90,22 +82,23 @@ export default class CoordinateSystem extends PIXI.Container {
                     ticksCount
                 )
                 : [];
-            this.logLabel.visible = log;
-            this.logLabel.x = Math.round(
-                ensureEmptyValue(this.config.log.margin) +
-                ensureEmptyValue(this.config.log.padding)
-            );
-            this.logLabel.y = correctPositionToFitBoundaries(0) +
-                ensureEmptyValue(this.config.log.padding);
+            if (this.logLabel) {
+                this.logLabel.visible = log;
+                this.logLabel.x = Math.round(
+                    ensureEmptyValue(this.config.log.margin) +
+                    ensureEmptyValue(this.config.log.padding)
+                );
+                this.logLabel.y = correctPositionToFitBoundaries(0) +
+                    ensureEmptyValue(this.config.log.padding);
+            }
             const axisTopBorderY = log
                 ? (
                     correctPositionToFitBoundaries(
-                        this.logLabel.y +
-                        this.logLabel.height
+                        this.logLabel ? (this.logLabel.y + this.logLabel.height) : 0
                     ) + ensureEmptyValue(this.config.log.margin)
                 )
                 : correctPositionToFitBoundaries(0);
-            if (log) {
+            if (log && this.logLabel) {
                 this.graphics
                     .lineStyle(1, this.config.log.stroke, 1)
                     .beginFill(
@@ -136,27 +129,28 @@ export default class CoordinateSystem extends PIXI.Container {
                     continue;
                 }
                 const tickLabel = this.getTickLabel(`${tick.display}`);
-                const y1 = y - tickLabel.height / 2.0;
-                const y2 = y + tickLabel.height / 2.0;
-                const shouldRenderTickLabel = (y < height - tickLabel.height) &&
-                    (y > minTickYPosition) &&
-                    (tick.value !== 0) &&
-                    (
-                        !tickPreviousLabelCoordinates ||
-                        !linearDimensionsConflict(
-                            y1,
-                            y2,
-                            tickPreviousLabelCoordinates.y1,
-                            tickPreviousLabelCoordinates.y2
-                        )
-                    );
-                if (shouldRenderTickLabel) {
-                    tickLabel.y = Math.round(y - tickLabel.height / 2.0);
-                    tickLabel.x = Math.round(ensureEmptyValue(this.config.tick.margin));
-                    this.labelsContainer.addChild(tickLabel);
-                    tickPreviousLabelCoordinates = {y1, y2};
-                } else {
-                    tickLabel.visible = false;
+                let shouldRenderTickLabel = !!tickLabel;
+                if (tickLabel) {
+                    const y1 = y - tickLabel.height / 2.0;
+                    const y2 = y + tickLabel.height / 2.0;
+                    shouldRenderTickLabel = (y < height - tickLabel.height) &&
+                        (y > minTickYPosition) &&
+                        (tick.value !== 0) &&
+                        (
+                            !tickPreviousLabelCoordinates ||
+                            !linearDimensionsConflict(
+                                y1,
+                                y2,
+                                tickPreviousLabelCoordinates.y1,
+                                tickPreviousLabelCoordinates.y2
+                            )
+                        );
+                    if (shouldRenderTickLabel) {
+                        tickLabel.y = Math.round(y - tickLabel.height / 2.0);
+                        tickLabel.x = Math.round(ensureEmptyValue(this.config.tick.margin));
+                        this.labelsContainer.addChild(tickLabel);
+                        tickPreviousLabelCoordinates = {y1, y2};
+                    }
                 }
                 this.graphics
                     .lineStyle(
@@ -166,7 +160,7 @@ export default class CoordinateSystem extends PIXI.Container {
                     )
                     .drawDashLine(
                         Math.round(
-                            shouldRenderTickLabel
+                            shouldRenderTickLabel && tickLabel
                                 ? tickLabel.x + tickLabel.width
                                 : 0
                         ),

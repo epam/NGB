@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 
 export default class DragManager{
 
@@ -17,11 +17,12 @@ export default class DragManager{
 
     addDraggableZone(boundaries, callback) {
         const graphics = new PIXI.Graphics();
+        graphics.interactive = true;
         graphics
-            .beginFill(0xFFFFFF, 0)
+            .beginFill(0xFFFFFF, 1)
             .drawRect(boundaries.x, boundaries.y, boundaries.width, boundaries.height)
             .endFill();
-        graphics.interactive = true;
+        graphics.alpha = 0;
         this._registerDraggableGraphics(graphics, callback);
         this.container.addChild(graphics);
     }

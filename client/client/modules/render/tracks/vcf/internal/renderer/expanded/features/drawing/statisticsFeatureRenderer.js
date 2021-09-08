@@ -1,6 +1,5 @@
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
 
 export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
@@ -39,29 +38,30 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
-        const label = new PIXI.Text(symbol, labelStyle);
-        label.resolution = drawingConfiguration.resolution;
+        const label = this.labelsManager ? this.labelsManager.getLabel(symbol, labelStyle) : undefined;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
         const cY = Math.round(position.y + position.height - height / 2);
-        const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
-        const labelPosition = {
-            x: Math.round(textX1),
-            y: Math.round(position.y + position.height - height - this.config.variant.allele.height / 2 - label.height / 2)
-        };
-        label.x = Math.round(labelPosition.x);
-        label.y = Math.round(labelPosition.y);
-        labelContainer.addChild(label);
-        this.registerLabel(
-            label,
-            labelPosition,
-            {
-                end: feature.startIndex,
-                start: feature.startIndex,
-            },
-            false,
-            true);
+        if (label) {
+            const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
+            const labelPosition = {
+                x: Math.round(textX1),
+                y: Math.round(position.y + position.height - height - this.config.variant.allele.height / 2 - label.height / 2)
+            };
+            label.x = Math.round(labelPosition.x);
+            label.y = Math.round(labelPosition.y);
+            labelContainer.addChild(label);
+            this.registerLabel(
+                label,
+                labelPosition,
+                {
+                    end: feature.startIndex,
+                    start: feature.startIndex,
+                },
+                false,
+                true);
+        }
         const white = 0xFFFFFF;
         graphics.graphics.lineStyle(0, white, 0);
         graphics.graphics

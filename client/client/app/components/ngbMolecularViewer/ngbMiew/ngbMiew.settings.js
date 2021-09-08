@@ -1,10 +1,7 @@
-const baseUrl = '../../assets'
 export default {
     viewer: {
         axes: false,
-        bg: {
-            color: 0xFFFFFF,
-        },
+        ao: true,
         fog: false,
         fps: false,
         menu: false,

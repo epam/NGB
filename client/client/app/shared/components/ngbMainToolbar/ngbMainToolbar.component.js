@@ -2,13 +2,24 @@ import ngbConstants from '../../../../constants';
 
 export default  {
     controller: class ngbHeaderProjectController {
-        constructor(projectContext, dispatcher, $scope, $location, $window, utilsDataService, userDataService) {
+        constructor(
+            projectContext,
+            miewContext,
+            dispatcher,
+            $scope,
+            $location,
+            $window,
+            utilsDataService,
+            userDataService
+        ) {
             this.toolbarVisibility = projectContext.toolbarVisibility;
             this.showBookmark = projectContext.currentChromosome !== null;
             this.browsingAllowed = () => projectContext.browsingAllowed;
 
             const onStateChange = async () => {
                 this.showBookmark = projectContext.currentChromosome !== null;
+                // todo: do we need an ability to save Miew state ONLY?
+                // this.showBookmark = projectContext.currentChromosome !== null || !!miewContext.info;
             };
 
             this.isRoleModelEnabled = false;
@@ -41,9 +52,11 @@ export default  {
 
             dispatcher.on('chromosome:change', onStateChange);
             dispatcher.on('reference:change', onStateChange);
+            dispatcher.on('miew:structure:change', onStateChange);
             $scope.$on('$destroy', () => {
                 dispatcher.removeListener('chromosome:change', onStateChange);
                 dispatcher.removeListener('reference:change', onStateChange);
+                dispatcher.removeListener('miew:structure:change', onStateChange);
             });
         }
     },

@@ -79,6 +79,16 @@
                             {{node.displayName}}
                         </span>
                     </span>
+                    <span class="metadata-info-row">
+                        <span
+                            class="structure-card-search-result"
+                            ng-if="$ctrl.searchLength && node.metadataSearchInfo && node.metadataSearchInfo.metadata"
+                            ng-repeat="attr in node.metadataSearchInfo.metadata"
+                        >
+                            <md-tooltip>{{attr.key}}:{{attr.pre}}{{attr.match}}{{attr.post}}</md-tooltip>
+                            {{attr.key}}:{{attr.pre}}<span class="metadata-value"><span class="search-result">{{attr.match}}</span>{{attr.post}}</span>
+                        </span>
+                    </span>
                 </div>
                 <div class="dataset-genome"
                      ng-if="node.reference && !$ctrl.hiddenReference(node.reference)">

@@ -68,14 +68,33 @@ export class PairReadInfo {
 
 export class EventGeneInfo {
     constructor(obj) {
-        const {geneId, transcriptId, startIndex, endIndex, geneTracks, highlight}=obj;
+        const {
+            geneId,
+            transcriptId,
+            startIndex,
+            endIndex,
+            geneTracks,
+            trackId,
+            highlight,
+            camera,
+            mode,
+            color,
+            pdb,
+            chain
+        } = obj;
 
-        this._geneTracks = geneTracks;
+        this._trackId = trackId;
+        this.geneTracks = geneTracks;
         this._geneId = geneId;
         this._transcriptId = transcriptId;
         this._startIndex = startIndex;
         this._endIndex = endIndex;
         this._highlight = highlight;
+        this._camera = camera;
+        this._mode = mode;
+        this._color = color;
+        this._pdb = pdb;
+        this._chain = chain;
     }
 
     get geneId() {
@@ -88,10 +107,19 @@ export class EventGeneInfo {
 
     set geneTracks(val) {
         this._geneTracks = val;
+        this._trackId = (val || [])
+            .filter(track => +(track.id) === this.trackId)
+            .map(track => track.id)
+            .pop()
+            || (val || []).map(track => track.id).pop();
     }
 
     get geneTracks() {
         return this._geneTracks;
+    }
+
+    get trackId() {
+        return Number.isNaN(Number(this._trackId)) ? undefined : Number(this._trackId);
     }
 
     get startIndex() {
@@ -106,5 +134,24 @@ export class EventGeneInfo {
         return this._highlight;
     }
 
+    get pdb() {
+        return this._pdb;
+    }
+
+    get camera() {
+        return this._camera;
+    }
+
+    get mode() {
+        return this._mode;
+    }
+
+    get color() {
+        return this._color;
+    }
+
+    get chain() {
+        return this._chain;
+    }
 
 }

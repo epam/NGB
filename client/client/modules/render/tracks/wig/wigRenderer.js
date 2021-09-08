@@ -1,5 +1,5 @@
+import * as PIXI from 'pixi.js-legacy';
 import { CachedTrackRenderer } from '../../core';
-import PIXI from 'pixi.js';
 import {ColorProcessor} from '../../utilities';
 
 const Math = window.Math;
@@ -8,8 +8,8 @@ const VIEWPORT_PADDING = 0.5;
 export default class WIGRenderer extends CachedTrackRenderer {
     _hoveredItemContainer;
 
-    constructor(config, trackState) {
-        super();
+    constructor(config, trackState, track) {
+        super(track);
         this._config = config;
         this._height = config.height;
         this.trackState = trackState || {};

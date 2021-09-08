@@ -155,7 +155,7 @@ public class NCBIGeneManager {
         return ncbiGeneVO;
     }
 
-    private String fetchExternalId(String id) throws ExternalDbUnavailableException {
+    public String fetchExternalId(String id) throws ExternalDbUnavailableException {
         String externalID = id;
         // if ID contains literals then we consider this external ID and perform search
         if (!id.matches("\\d+")) {

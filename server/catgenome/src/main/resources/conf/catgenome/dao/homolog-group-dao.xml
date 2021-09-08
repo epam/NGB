@@ -38,12 +38,12 @@
                         homolog_group.primary_gene_id as primary_gene_id,
                         homolog_group.primary_gene_tax_id as primary_gene_tax_id,
                         homolog_group.type as type,
-                        desc.symbol as gene_name,
-                        desc.title as protein_name,
-                        database.name as homolog_database
+                        gene_desc.symbol as gene_name,
+                        gene_desc.title as protein_name,
+                        homolog_database.name as homolog_database
                     FROM catgenome.homolog_group homolog_group
-                         join catgenome.homolog_database database on homolog_group.database_id = database.database_id
-                         left join catgenome.homolog_gene_desc desc on homolog_group.primary_gene_id = desc.gene_id
+                         join catgenome.homolog_database homolog_database on homolog_group.database_id = homolog_database.database_id
+                         left join catgenome.homolog_gene_desc gene_desc on homolog_group.primary_gene_id = gene_desc.gene_id
                 ]]>
             </value>
         </property>

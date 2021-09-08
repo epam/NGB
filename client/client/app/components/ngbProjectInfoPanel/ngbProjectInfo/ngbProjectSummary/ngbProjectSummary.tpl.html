@@ -1,5 +1,18 @@
 <div layout="column" flex  class="project-summary-layout">
     <md-content class="u-space_r u-scroll__auto" flex>
+        <div ng-if="ctrl.datasetMetadata" class="frame u-column-padding" flex>
+            <h5 class="format-header">DATASET</h5>
+            <h5 style="font-weight: normal;">{{ctrl.datasetName}}</h5>
+            <md-list flex class="md-dense md-list__text">
+                <md-list-item class="md-list-item__sm md-list-item__nospace"
+                              ng-repeat="(key, value) in ctrl.datasetMetadata"
+                >
+                    <span class="structure-card" title="{{key}}:{{value}}">
+                        {{key}}:{{value}}
+                    </span>
+                </md-list-item>
+            </md-list>
+        </div>
         <div class="frame u-column-padding" flex ng-repeat="file in ctrl.files">
             <h5 class="format-header">{{file.type}}</h5>
             <md-list flex class="md-dense md-list__text">
@@ -16,6 +29,15 @@
                          ng-hide="nameObject.customName && !ctrl.showTrackOriginalName"
                     >
                         {{nameObject.name}}
+                    </div>
+                    <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
+                        <span
+                            ng-repeat="(key, value) in nameObject.metadata"
+                            class="structure-card"
+                            title="{{key}}:{{value}}"
+                        >
+                            {{key}}:{{value}}
+                        </span>
                     </div>
                 </md-list-item>
             </md-list>

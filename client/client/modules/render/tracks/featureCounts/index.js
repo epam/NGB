@@ -77,10 +77,9 @@ export class FeatureCountsTrack extends GENETrack {
     get renderer(): FCRenderer {
         if (!this._renderer) {
             this._renderer = new FCRenderer(
-                this,
                 this.trackConfig,
                 this.transformer,
-                this._pixiRenderer
+                this
             );
         }
         return this._renderer;
@@ -234,9 +233,9 @@ export class FeatureCountsTrack extends GENETrack {
                     this.viewport,
                     this.cache,
                     flags.heightChanged || flags.dataChanged,
+                    this._showCenterLine,
                     this._gffColorByFeatureType,
                     false,
-                    this._showCenterLine,
                     true
                 );
             }

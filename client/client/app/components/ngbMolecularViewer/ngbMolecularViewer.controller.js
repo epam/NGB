@@ -1,4 +1,5 @@
 import  baseController from '../../shared/baseController';
+import MiewContext from '../../shared/miewContext';
 import {EventGeneInfo} from '../../shared/utils/events';
 import ngbMolecularViewerService from './ngbMolecularViewer.service';
 
@@ -9,6 +10,7 @@ export default class ngbMolecularViewerController extends baseController {
 
     PDBids = null;
     geneTracks = [];
+    appLayout;
     selectedGeneTrack = null;
     service: ngbMolecularViewerService;
     event: EventGeneInfo = null;
@@ -17,11 +19,32 @@ export default class ngbMolecularViewerController extends baseController {
     region = null;
     currentMode = null;
     currentColor = null;
+    miewContext: MiewContext = undefined;
 
-    constructor($sce, $scope, $mdMenu, dispatcher, ngbMolecularViewerService, ngbMolecularViewerConstant, miewSettings) {
+    constructor(
+        $sce,
+        $scope,
+        $mdMenu,
+        dispatcher,
+        ngbMolecularViewerService,
+        ngbMolecularViewerConstant,
+        miewSettings,
+        miewContext,
+        appLayout
+    ) {
         super();
 
-        Object.assign(this, {$scope, dispatcher, ngbMolecularViewerConstant, ngbMolecularViewerService});
+        Object.assign(
+            this,
+            {
+                $scope,
+                dispatcher,
+                ngbMolecularViewerConstant,
+                ngbMolecularViewerService,
+                miewContext,
+                appLayout
+            }
+        );
 
         this.defaultMessage = $sce.trustAsHtml(ngbMolecularViewerConstant.defaultMessage);
         this.colorer = miewSettings.displayColors;
@@ -34,35 +57,54 @@ export default class ngbMolecularViewerController extends baseController {
             this.descriptionDone = false;
             if (!this.PDBids || this.PDBids.length === 0) {
                 this.selectedItem = null;
-            }
-            else {
+            } else {
                 this.selectedItem = this.PDBids.filter(x => x.id === this.selectedItemId)[0];
             }
+            this.updateMiewContext();
         });
-
+        this.$scope.$watch('$ctrl.descriptionChainId', this.updateMiewContext.bind(this));
         this.$scope.$watch('$ctrl.selectedGeneTrack', ::this.geneTrackChanged);
 
         this.descriptionDone = false;
+        this.miewContext.emit();
     }
 
     events = {
-        'miew:show:structure': ::this.geneClick,
-        'miew:highlight:region': ::this.geneClick
+        'layout:active:panel:change': this.activePanelChanged.bind(this),
+        'miew:show:structure': this.geneClick.bind(this),
+        'miew:highlight:region': this.geneClick.bind(this)
     };
 
+    activePanelChanged (o) {
+        const isActive = o === this.appLayout.Panels.molecularViewer.panel;
+        this.dispatcher.emit('miew:panel:active', isActive);
+    }
+
+    resetCamera () {
+        this.camera = undefined;
+    }
+
     async geneTrackChanged() {
-        if (!this.selectedGeneTrack || !this.event)
+        if (!this.selectedGeneTrack || !this.event) {
+            this.hash = undefined;
             return;
+        }
+        const [track] = this.geneTracks.filter(x => x.id === this.selectedGeneTrack);
+        const hash = this.ngbMolecularViewerService.getPDBKey(track, this.event);
+        if (this.hash === hash) {
+            return Promise.resolve();
+        }
+        this.hash = hash;
+
         this.descriptionDone = false;
         this.PDBids = null;
         this.errorMessageList = [];
         this.selectedItem = null;
+
         this.selectedItemId = null;
+        this.geneName = this.event.geneId;
 
-        this.geneName = event.geneId;
         this.loading = true;
-
-        const [track] = this.geneTracks.filter(x => x.id === this.selectedGeneTrack);
 
         try {
             const listPDBids = await this.ngbMolecularViewerService.loadPDB(track, this.event);
@@ -70,10 +112,13 @@ export default class ngbMolecularViewerController extends baseController {
                 const distinctList = Array.from(new Set(listPDBids.map(m => m.id)));
 
                 this.PDBids = distinctList.map(m => listPDBids.filter(p => p.id === m)[0]);
-                this.selectedItemId = this.PDBids[0].id;
-
+                this.selectedItemId = this.event.pdb || this.PDBids[0].id;
                 this.mdSelectSource = this.PDBids.map(m => listPDBids.filter(p => p.id === m.id)[0]);
-
+                this.descriptionChainId = this.event.chain;
+                this.camera = this.event.camera;
+                this.currentMode = this.event.mode;
+                this.currentColor = this.event.color;
+                this.updateMiewContext();
             } else {
                 this.errorMessageList.push(this.ngbMolecularViewerConstant.errorNoPDB);
             }
@@ -98,13 +143,11 @@ export default class ngbMolecularViewerController extends baseController {
         else {
             this.region = null;
         }
-        const shouldReload = this.selectedGeneTrack && this.selectedGeneTrack === event.geneTracks[0].id;
+        const trackId = event.trackId || event.geneTracks[0].id;
         this.event = event;
         this.geneTracks = event.geneTracks;
-        this.selectedGeneTrack = event.geneTracks[0].id;
-        if (shouldReload) {
-            await this.geneTrackChanged();
-        }
+        this.selectedGeneTrack = trackId;
+        await this.geneTrackChanged();
     }
     loadImage(imagePath) {
         return require(`../../assets/images/${imagePath}`);
@@ -116,6 +159,34 @@ export default class ngbMolecularViewerController extends baseController {
         if (type === 'color') {
             this.currentColor = name;
         }
+        this.updateMiewContext();
     }
-
+    updateMiewContext () {
+        const pdb = this.selectedItemId;
+        const mode = this.currentMode;
+        const color = this.currentColor;
+        const trackId = this.selectedGeneTrack;
+        const [track] = (this.geneTracks || []).filter(x => x.id === this.selectedGeneTrack);
+        const chain = this.descriptionChainId;
+        const {
+            startIndex,
+            endIndex,
+            geneId,
+            transcriptId,
+            highlight
+        } = this.event || {};
+        this.miewContext.update({
+            startIndex,
+            endIndex,
+            geneId,
+            transcriptId,
+            highlight,
+            pdb,
+            mode,
+            color,
+            trackId,
+            geneTracks: track ? [track] : undefined,
+            chain
+        });
+    }
 }

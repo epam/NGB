@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 import {PixiTextSize} from '../../utilities';
 import {drawingConfiguration} from '../../core';
 import getRulerHeight from './rulerHeightManager';
@@ -137,16 +137,18 @@ export default class RulerBrush {
     createSelectableArea() {
         const area = this._createInteractiveElement(false);
         const white = 0xFFFFFF;
-        area.beginFill(white, 0)
+        area.beginFill(white, 1)
             .drawRect(0, this._localRulerOffsetY, this.viewport.canvasSize, this._localRulerHeight);
+        area.alpha = 0;
         return area;
     }
 
     createPickLocationArea() {
         const area = this._createInteractiveElement(false);
         const white = 0xFFFFFF;
-        area.beginFill(white, 0)
+        area.beginFill(white, 1)
             .drawRect(0, this._globalRulerOffsetY, this.viewport.canvasSize, this._globalRulerHeight);
+        area.alpha = 0;
         return area;
     }
 
@@ -282,7 +284,7 @@ export default class RulerBrush {
     }
 
     onDragStart(event) {
-        this.drag.set(event.target, {
+        this.drag.set(event.currentTarget, {
             brush: this.viewport.brush,
             point: event.data.global.clone()
         });
@@ -293,27 +295,27 @@ export default class RulerBrush {
     }
 
     onDragEnd(event) {
-        const dragData = this.drag.get(event.target);
+        const dragData = this.drag.get(event.currentTarget);
         if (dragData) {
             const oldPoint = Math.round(this.viewport.project.pixel2chromoBP(this.container.toLocal(dragData.point).x));
             const newPoint = Math.round(this.viewport.project.pixel2chromoBP(this.container.toLocal(event.data.global).x));
             const wasDragging = oldPoint !== newPoint;
-            if (event.target === this.selectableArea && wasDragging) {
+            if (event.currentTarget === this.selectableArea && wasDragging) {
                 const region = this._getSelectionRegion(event);
                 this._doSelection(region);
             }
-            else if (event.target === this.pickLocationArea && !wasDragging) {
+            else if (event.currentTarget === this.pickLocationArea && !wasDragging) {
                 if (oldPoint < this.viewport.brush.start || oldPoint > this.viewport.brush.end) {
                     const delta = Math.round(oldPoint - (this.viewport.brush.start + this.viewport.brush.end) / 2);
-                    this.moveBrush(this.createNewBrush(event.target, dragData, delta));
+                    this.moveBrush(this.createNewBrush(event.currentTarget, dragData, delta));
                 }
             }
-            else if (event.target === this.startCursor || event.target === this.endCursor || event.target === this.brushArea) {
+            else if (event.currentTarget === this.startCursor || event.currentTarget === this.endCursor || event.currentTarget === this.brushArea) {
                 const dx = newPoint - oldPoint;
-                this.moveBrush(this.createNewBrush(event.target, dragData, dx));
+                this.moveBrush(this.createNewBrush(event.currentTarget, dragData, dx));
             }
         }
-        this.drag.set(event.target, null);
+        this.drag.set(event.currentTarget, null);
         this._drawSelection(this.viewport.brush, false, true, true);
         if (this.updateScene) {
             this.updateScene();
@@ -321,9 +323,9 @@ export default class RulerBrush {
     }
 
     onDragMove(event) {
-        const dragData = this.drag.get(event.target);
+        const dragData = this.drag.get(event.currentTarget);
         if (dragData !== null) {
-            const target = event.target;
+            const target = event.currentTarget;
             if (target === this.selectableArea) {
                 const region = this._getSelectionRegion(event);
                 if (region) {
@@ -335,8 +337,8 @@ export default class RulerBrush {
                 const newPoint = this.container.toLocal(event.data.global);
                 const dx = this.viewport.convert.pixel2chromoBP(newPoint.x - oldPoint.x);
                 this.moveBrush(this.createNewBrush(target, dragData, dx));
-                if (event.target === this.brushArea) {
-                    this.drag.set(event.target, {
+                if (event.currentTarget === this.brushArea) {
+                    this.drag.set(event.currentTarget, {
                         brush: this.viewport.brush,
                         point: event.data.global.clone()
                     });
@@ -349,7 +351,7 @@ export default class RulerBrush {
     }
 
     _getSelectionRegion(event) {
-        const dragData = this.drag.get(event.target);
+        const dragData = this.drag.get(event.currentTarget);
         if (dragData !== null) {
             const oldPoint = Math.max(0, Math.min(this.container.toLocal(dragData.point).x, this.viewport.canvasSize));
             const newPoint = Math.max(0, Math.min(this.container.toLocal(event.data.global).x, this.viewport.canvasSize));

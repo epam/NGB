@@ -1,0 +1,41 @@
+.hide-excessive-space .md-errors-spacer { display: none; }
+.dialog-content-inner {
+    width: 550px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.warning-container {
+    display:flex;
+    align-items: center;
+    width:250px;
+    margin: 0;
+    padding: 0;
+    .warning {
+        color:darkorange;
+        margin:0;
+        font-size: 12px;
+    }
+}
+.input-container {
+    width: 250px;
+}
+.title, .message {
+    width: 550px;
+    color: #999999;
+}
+.title {
+    text-align: left;
+}
+.message {
+    text-align:center;
+}
+.save-loader {
+    display: inline-block
+}
+.save-metadata-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}

@@ -125,7 +125,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
         // generates next values for sequence with the given name
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HelperParameters.SEQUENCE_NAME.name(), sequenceName.trim());
-        return getNamedParameterJdbcTemplate().queryForList(query, params, Long.class);
+        return getNamedParameterJdbcTemplate().queryForList(query + "as foo", params, Long.class);
     }
 
     /**
