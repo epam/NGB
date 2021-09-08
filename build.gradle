@@ -37,7 +37,7 @@ task ui(type: Copy) {
     dependsOn ':client:buildUI'
     doFirst {
         delete fileTree(uiFilesDestination) {
-            exclude ('swagger-ui/**', 'blast**', 'tblast**')
+            exclude ('swagger-ui/**', 'blast**', 'tblast**', 'docs/**')
         }
     }
     from "$rootDir/client/dist"
@@ -47,6 +47,37 @@ task ui(type: Copy) {
         copy {
             from "$rootDir/server/catgenome/src/main/resources/templates"
             into uiFilesDestination
+        }
+    }
+}
+
+task runMkdocs(type: Exec) {
+    doFirst {
+        delete fileTree("$rootDir/docs/site")
+        delete fileTree(dir: "$rootDir/docs", include: '**/ngb_docs_*')
+    }
+    commandLine "mkdocs", "build"
+    workingDir = "$rootDir/docs"
+}
+
+task buildDoc(type: Tar) {
+    dependsOn runMkdocs
+    from("$rootDir/docs/site") {
+    }
+    archiveName = "ngb-docs.tar.gz"
+    destinationDir file(distDir)
+    extension = 'tar.gz'
+    compression = Compression.GZIP
+}
+
+task buildDocs(dependsOn: buildDoc) {
+    doFirst {
+        delete fileTree("$uiFilesDestination/docs")
+    }
+    doLast {
+        copy {
+            from tarTree("$distDir/ngb-docs.tar.gz")
+            into "$uiFilesDestination/docs"
         }
     }
 }
@@ -75,7 +106,7 @@ task buildWar(type: GradleBuild) {
 }
 
 task buildJar(type: GradleBuild) {
-    dependsOn ui
+    dependsOn ui, buildDocs
     if (runTests) {
         tasks = ['clean', 'build']
     } else {
@@ -113,37 +144,6 @@ task buildCli(type: GradleBuild) {
 apply from: "e2e/cli/cli-tests.gradle"
 task integrationCliTest() {
     doLast {e2eCliTests()}
-}
-
-task runMkdocs(type: Exec) {
-    doFirst {
-        delete fileTree("$rootDir/docs/site")
-        delete fileTree(dir: "$rootDir/docs", include: '**/ngb_docs_*')
-    }
-    commandLine "mkdocs", "build"
-    workingDir = "$rootDir/docs"
-}
-
-task buildDoc(type: Tar) {
-    dependsOn runMkdocs
-    from("$rootDir/docs/site") {
-    }
-    archiveName = "ngb-docs.tar.gz"
-    destinationDir file(distDir)
-    extension = 'tar.gz'
-    compression = Compression.GZIP
-}
-
-task buildDocs(dependsOn: buildDoc) {
-    doFirst {
-        delete fileTree("$uiFilesDestination/docs")
-    }
-    doLast {
-        copy {
-            from tarTree("$distDir/ngb-docs.tar.gz")
-            into "$uiFilesDestination/docs"
-        }
-    }
 }
 
 task buildDocker(type: Exec) {
