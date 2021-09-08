@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.StrandedSequence;
 import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
@@ -94,13 +95,19 @@ public class MotifSearchManager {
 
     public MotifSearchResult search(final MotifSearchRequest request) {
         verifyMotifSearchRequest(request);
+        Reference reference = referenceGenomeManager.getOnlyReference(request.getReferenceId());
+        if (reference == null) {
+            throw new IllegalStateException(getMessage(
+                    MessagesConstants.ERROR_REFERENCE_READING, request.getReferenceId()));
+        }
+        reference.setChromosomes(referenceGenomeManager.loadChromosomes(request.getReferenceId()));
         switch (request.getSearchType()) {
             case WHOLE_GENOME:
-                return searchWholeGenomeMotifs(request);
+                return searchWholeGenomeMotifs(request, reference);
             case CHROMOSOME:
-                return searchChromosomeMotifs(request);
+                return searchChromosomeMotifs(request, reference);
             case REGION:
-                return searchRegionMotifs(request);
+                return searchRegionMotifs(request, reference);
             default:
                 throw new IllegalStateException("Unexpected search type: " + request.getSearchType());
         }
@@ -128,15 +135,16 @@ public class MotifSearchManager {
         Assert.notNull(end, getMessage("End position is empty!"));
     }
 
-    private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request) {
-        final Chromosome chromosome = loadChrById(request.getReferenceId(), request.getChromosomeId());
-        Assert.isTrue(request.getEndPosition() == null || request.getEndPosition() <= chromosome.getSize(),
+    private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request, final Reference reference) {
+        final Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
+        Assert.isTrue(request.getEndPosition() <= chromosome.getSize(),
                 getMessage(MessagesConstants.ERROR_POSITION_OUT_OF_RANGE, request.getEndPosition()));
         final boolean includeSequence = request.getIncludeSequence() == null
                         ? defaultIncludeSequence
                         : request.getIncludeSequence();
         final List<Motif> searchResult =
-                MotifSearcher.search(getSequence(request, chromosome), request.getMotif(), request.getStrand(),
+                MotifSearcher.search(getSequence(request, reference, chromosome),
+                        request.getMotif(), request.getStrand(),
                         chromosome.getName(), request.getStartPosition(), includeSequence);
         final int lastStart = searchResult.isEmpty()
                 ? request.getStartPosition()
@@ -149,19 +157,30 @@ public class MotifSearchManager {
                 .build();
     }
 
-    private byte[] getSequence(final MotifSearchRequest request, final Chromosome chromosome) {
+    /**
+     * Loads a reference sequence for a given request for a specified chromosome
+     *
+     * @param request     request containing the interval of interest
+     *                    (the start position for the beginning of the chromosome: "1",
+     *                    the end position of the whole chromosome: chromosome.size(),
+     *                    start positions less than 1 (e.g. "0") will be turned into "1")
+     * @param chromosome  chromosome for search
+     * @return a byte array representation of a reference sequence for the specified
+     */
+    private byte[] getSequence(final MotifSearchRequest request, final Reference reference,
+                               final Chromosome chromosome) {
         final byte[] sequence;
         try {
             sequence= referenceManager.getSequenceByteArray(request.getStartPosition(),
-                            request.getEndPosition(), request.getReferenceId(), chromosome.getName());
+                            request.getEndPosition(), reference, chromosome.getName());
         } catch (IOException e) {
             throw new IllegalStateException(getMessage(MessagesConstants.ERROR_REFERENCE_SEQUENCE_READING));
         }
         return sequence;
     }
 
-    private MotifSearchResult searchChromosomeMotifs(final MotifSearchRequest request) {
-        final Chromosome chromosome = loadChrById(request.getReferenceId(), request.getChromosomeId());
+    private MotifSearchResult searchChromosomeMotifs(final MotifSearchRequest request, final Reference reference) {
+        final Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         Assert.isTrue(request.getEndPosition() == null || request.getEndPosition() <= chromosome.getSize(),
                 getMessage(MessagesConstants.ERROR_POSITION_OUT_OF_RANGE, request.getEndPosition()));
         final int pageSize = request.getPageSize() == null || request.getPageSize() <= 0
@@ -180,14 +199,16 @@ public class MotifSearchManager {
         while (result.size() < pageSize && currentStart < end) {
 
             result.addAll(searchRegionMotifs(MotifSearchRequest.builder()
-                    .motif(request.getMotif())
-                    .referenceId(request.getReferenceId())
-                    .chromosomeId(request.getChromosomeId())
-                    .startPosition(currentStart)
-                    .endPosition(currentEnd)
-                    .strand(request.getStrand())
-                    .build()
-                    ).getResult());
+                            .motif(request.getMotif())
+                            .referenceId(request.getReferenceId())
+                            .chromosomeId(request.getChromosomeId())
+                            .startPosition(currentStart)
+                            .endPosition(currentEnd)
+                            .includeSequence(request.getIncludeSequence())
+                            .strand(request.getStrand())
+                            .build(),
+                    reference
+            ).getResult());
 
             currentStart = currentStart + bufferSize - overlap;
             currentEnd = Math.min(currentEnd + bufferSize - overlap, end);
@@ -209,7 +230,7 @@ public class MotifSearchManager {
                 .build();
     }
 
-    private int validateAndAdjustOverlap(MotifSearchRequest request, int bufferSize) {
+    private int validateAndAdjustOverlap(final MotifSearchRequest request, int bufferSize) {
         int overlap = request.getSlidingWindow() == null
                 || request.getSlidingWindow() <= 0
                 || request.getSlidingWindow() >= bufferSize
@@ -221,10 +242,10 @@ public class MotifSearchManager {
         return overlap;
     }
 
-    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request) {
+    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request, final Reference reference) {
         final int pageSize = request.getPageSize() == null ? defaultPageSize : request.getPageSize();
         int start = request.getStartPosition() == null ? 0 : request.getStartPosition();
-        Chromosome chromosome = loadChrById(request.getReferenceId(), request.getChromosomeId());
+        Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         long chrId = chromosome.getId();
         final int end = request.getEndPosition() == null ? chromosome.getSize() : request.getEndPosition();
         if (end < chromosome.getSize()) {
@@ -235,7 +256,8 @@ public class MotifSearchManager {
                             .chromosomeId(chrId)
                             .startPosition(start)
                             .endPosition(end)
-                            .build());
+                            .build(),
+                    reference);
         }
         final List<Chromosome> chromosomes = getChromosomesOfGenome(request.getReferenceId());
         final List<Motif> motifs = new ArrayList<>();
@@ -248,7 +270,8 @@ public class MotifSearchManager {
                             .chromosomeId(chrId)
                             .startPosition(start)
                             .endPosition(chromosome.getSize())
-                            .build())
+                            .build(),
+                    reference)
                     .getResult()
                     .stream()
                     .limit(pageSize - motifs.size())
@@ -274,16 +297,12 @@ public class MotifSearchManager {
         return null;
     }
 
-    private Chromosome loadChrById(final Long referenceId, final Long chromosomeId) {
-        if (chromosomeId == null) {
-            return getFirstChromosomeFromGenome(referenceId);
-        } else {
-            return referenceGenomeManager.loadChromosome(chromosomeId);
-        }
-    }
-
-    private Chromosome getFirstChromosomeFromGenome(final Long referenceId) {
-        return referenceGenomeManager.loadChromosomes(referenceId).get(0);
+    private Chromosome fetchChromosomeById(final Reference reference, final Long chromosomeId) {
+        return reference.getChromosomes().stream()
+                .filter(chr -> chromosomeId == null || chromosomeId.equals(chr.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        getMessage(MessagesConstants.ERROR_WRONG_CHROMOSOME_ID, chromosomeId)));
     }
 
     private List<Chromosome> getChromosomesOfGenome(final Long referenceId) {

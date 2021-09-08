@@ -1,5 +1,6 @@
 package com.epam.catgenome.util;
 
+import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,6 +17,23 @@ public class MotifSearcherTest {
         byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(3, MotifSearcher.search(testSequence, testRegex, "", 0, true).size());
+    }
+
+    @Test
+    public void searchBoundsTest() {
+        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        String testRegex = "ca";
+        final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
+        Assert.assertEquals(4, firstSearchResult.getStart());
+        Assert.assertEquals(5, firstSearchResult.getEnd());
+    }
+
+    @Test
+    public void searchSequenceTest() {
+        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        String testRegex = "ca";
+        final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
+        Assert.assertEquals(testRegex, firstSearchResult.getSequence());
     }
 
     @Test

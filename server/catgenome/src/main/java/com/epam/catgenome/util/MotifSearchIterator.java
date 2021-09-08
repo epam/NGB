@@ -83,7 +83,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         int position = 0;
         LinkedList<Match> matches = new LinkedList<>();
         while (matcher.find(position)) {
-            matches.add(new Match(matcher.start(), matcher.end()));
+            matches.add(new Match(matcher.start(), matcher.end() - 1));
             position = matcher.start() + 1;
         }
         return matches;
@@ -93,7 +93,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         int position = 0;
         LinkedList<Match> matches = new LinkedList<>();
         while (matcher.find(position)) {
-            matches.add(new Match(seqLength - matcher.end(), seqLength - matcher.start()));
+            matches.add(new Match(seqLength - matcher.end(), seqLength - matcher.start() -1));
             position = matcher.start() + 1;
         }
         return matches;
@@ -126,7 +126,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
 
     private Motif getMotif(final String contig, final int start, final int end,  StrandSerializable strand) {
         final StringBuilder result = new StringBuilder();
-        for (int i = start; i < end; i++) {
+        for (int i = start; i <= end; i++) {
             result.append((char) sequence[i]);
         }
         return new Motif(contig, start + offset, end + offset, strand, result.toString());
@@ -170,7 +170,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
             case LOWERCASE_N:
                 return CAPITAL_N;
             default:
-                throw new IllegalStateException("Not supported nucleotide: " + nucleotide);
+                throw new IllegalStateException("Not supported nucleotide: " + (char)nucleotide);
         }
     }
 
