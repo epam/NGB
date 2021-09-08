@@ -131,7 +131,7 @@ export class DataService {
 }
 
 
-function $http(method, url, data, config) {
+export function $http(method, url, data, config) {
     if (arguments.length < 4)
         return $http(arguments[0], arguments[1], undefined, arguments[2]);
 
