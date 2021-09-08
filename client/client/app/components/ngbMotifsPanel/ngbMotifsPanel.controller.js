@@ -20,7 +20,7 @@ export default class ngbMotifsPanelController{
         return this.ngbMotifsPanelService.errorMessageList;
     }
 
-    get isSearchResults () {
-        return this.ngbMotifsPanelService.isSearchResults;
+    get isShowParamsTable () {
+        return this.ngbMotifsPanelService.isShowParamsTable;
     }
 }

@@ -3,15 +3,15 @@ export default function run($mdDialog, dispatcher, ngbMotifsPanelService) {
         $mdDialog.show({
             template: require('./ngbMotifsDialog.tpl.html'),
             controller: function ($scope) {
-                $scope.chromosomeOnly = true;
+                $scope.inReference = false;
                 $scope.close = () => {
                     $mdDialog.hide();
                 };
                 $scope.search = () => {
                     const params = {
                         pattern: $scope.$ctrl.motif,
-                        title: $scope.$ctrl.title || null,
-                        chromosomeOnly: $scope.chromosomeOnly,
+                        title: $scope.$ctrl.title,
+                        inReference: $scope.inReference,
                     };
                     ngbMotifsPanelService.searchMotif(params);
                     $mdDialog.hide();
@@ -20,7 +20,7 @@ export default function run($mdDialog, dispatcher, ngbMotifsPanelService) {
                     $mdDialog.hide();
                 };
                 $scope.change = () => {
-                    $scope.chromosomeOnly = !$scope.chromosomeOnly;
+                    $scope.inReference = !$scope.inReference;
                 };
             },
             clickOutsideToClose: true

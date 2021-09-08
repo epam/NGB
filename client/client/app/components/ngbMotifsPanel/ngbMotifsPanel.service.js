@@ -1,72 +1,53 @@
-function generateForChromosome (motif, context, reference) {
-    const chr = context.currentChromosome.name;
-    const size = context.currentChromosome.size;
-    const length = motif.length;
-    const data = [];
-
-    for (let i = 0; i < 50; i++) {
-        const strandBoolean = [true, false][ Math.floor( Math.random() * 2 ) ];
-        const randomNumber = Math.floor(Math.random() * size) + 1;
-        const start = strandBoolean ? randomNumber : (randomNumber - length);
-        const end = strandBoolean ? (randomNumber + length) : randomNumber;
-        data.push({
-            motif,
-            reference,
-            chromosome : chr,
-            start,
-            end,
-            strand: strandBoolean ? 'POSITIVE' : 'NEGATIVE'
-        });
-    }
-    return data;
-}
-
-function generateForReference (motif, context, reference) {
-    const data = [];
-
-    for (let i = 0; i < 100; i++) {
-        const randomChr = Math.floor(Math.random() * context.chromosomes.length);
-        const chr = context.chromosomes[randomChr].name;
-        const size = context.chromosomes[randomChr].size;
-        const length = motif.length;
-
-        const strandBoolean = [true, false][ Math.floor( Math.random() * 2 ) ];
-        const randomNumber = Math.floor(Math.random() * size) + 1;
-        const start = strandBoolean ? randomNumber : (randomNumber - length);
-        const end = strandBoolean ? (randomNumber + length) : randomNumber;
-        data.push({
-            motif,
-            reference: reference.name,
-            chromosome : chr,
-            start,
-            end,
-            strand: strandBoolean ? 'POSITIVE' : 'NEGATIVE'
-        });
-    }
-    return data;
-}
-
-const ROW_HEIGHT = 35;
+const REFERENCE = 'REFERENCE';
+const CHROMOSOME = 'CHROMOSOME';
+const POSITIVE = 'POSITIVE';
+const NEGATIVE = 'NEGATIVE';
+const POSITIVE_STRAND = '+';
+const NEGATIVE_STRAND = '-';
 
 export default class ngbMotifsPanelService {
 
-    reference = null;
-    requestNumber = 0;
     _isSearchInProgress = false;
     _isSearchFailure = false;
     _errorMessageList = null;
+    _isShowParamsTable = true;
+
+    requestNumber = 0;
+
     _searchMotifsParams = [];
     _searchMotifResults = [];
-    searchStopOnPosition = 0;
-    searchStopOnChromosome;
-    currentParams = {};
+    searchStopOn = {};
 
-    static instance(dispatcher, appLayout, projectContext, motifsDataService) {
-        return new ngbMotifsPanelService(dispatcher, appLayout, projectContext, motifsDataService);
+    get referenceType () {
+        return REFERENCE;
     }
 
-    constructor(dispatcher, appLayout, projectContext, motifsDataService) {
-        Object.assign(this, {dispatcher, appLayout, projectContext, motifsDataService});
+    get chromosomeType () {
+        return CHROMOSOME;
+    }
+
+    get positive () {
+        return POSITIVE;
+    }
+
+    get negative () {
+        return NEGATIVE;
+    }
+
+    get positiveStrand () {
+        return POSITIVE_STRAND;
+    }
+
+    get negativeStrand () {
+        return NEGATIVE_STRAND;
+    }
+
+    static instance (appLayout, dispatcher, projectContext, motifsDataService) {
+        return new ngbMotifsPanelService(appLayout, dispatcher, projectContext, motifsDataService);
+    }
+
+    constructor(appLayout, dispatcher, projectContext, motifsDataService) {
+        Object.assign(this, {appLayout, dispatcher, projectContext, motifsDataService});
         this.dispatcher.on('motifs:search:reset', ::this.resetData);
     }
 
@@ -94,8 +75,12 @@ export default class ngbMotifsPanelService {
         this._errorMessageList = error;
     }
 
-    get isSearchResults () {
-        return Boolean(this.searchMotifsParams.length);
+    get isShowParamsTable () {
+        return this._isShowParamsTable;
+    }
+
+    set isShowParamsTable (value) {
+        this._isShowParamsTable = value;
     }
 
     get searchMotifsParams () {
@@ -103,12 +88,13 @@ export default class ngbMotifsPanelService {
     }
 
     set searchMotifsParams (params) {
-        const requestNumber = this.requestNumber;
+        const currentChromosomeId = this.projectContext.currentChromosome.id;
         this._searchMotifsParams.push({
-            requestNumber,
-            'search type': params.chromosomeOnly  ? 'CHROMOSOME' : 'WHOLE_GENOME',
-            motif: params.pattern,
+            currentChromosomeId,
             name: params.title,
+            motif: params.pattern,
+            'search type': params.inReference ?
+                this.referenceType : this.chromosomeType,
         });
     }
 
@@ -117,23 +103,34 @@ export default class ngbMotifsPanelService {
     }
 
     set searchMotifResults (result) {
-        this._searchMotifResults = result.map(item => {
+        this._searchMotifResults = [...result.map(item => {
+            const strand = this.setStrand(item.strand);
             return {
-                reference: this.reference.id,
+                reference: this.projectContext.reference.id,
                 chromosome: item.contig,
                 start: item.start,
                 end: item.end,
-                strand: item.strand
+                strand
             };
-        });
+        })];
     }
 
-    get rowHeight () {
-        return ROW_HEIGHT;
+    setStrand (strand) {
+        if (strand === this.positive) {
+            return this.positiveStrand;
+        }
+        if (strand === this.negative) {
+            return this.negativeStrand;
+        }
     }
 
-    get pageSize () {
-        return Math.floor(window.innerHeight / this.rowHeight);
+    getStrand (strand) {
+        if (strand === this.positiveStrand) {
+            return this.positive;
+        }
+        if (strand === this.negativeStrand) {
+            return this.negative;
+        }
     }
 
     panelAddMotifsPanel () {
@@ -142,13 +139,9 @@ export default class ngbMotifsPanelService {
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 
-    searchMotif(params) {
+    searchMotif (params) {
         this.requestNumber++;
         this.searchMotifsParams = params;
-        this.searchStopOnChromosome = params.chromosomeOnly ?
-            this.projectContext.currentChromosome.id :
-            this.projectContext.chromosomes[0].id;
-        this.reference = this.projectContext.reference;
         this.dispatcher.emitSimpleEvent('motifs:search:change');
         this.panelAddMotifsPanel();
     }
@@ -161,8 +154,10 @@ export default class ngbMotifsPanelService {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = false;
                     this.searchMotifResults = response.result;
-                    this.searchStopOnPosition = response.position;
-                    this.searchStopOnChromosome = response.chromosomeId;
+                    this.searchStopOn = {
+                        startPosition: response.position !== undefined ? response.position : null,
+                        chromosomeId: response.chromosomeId || null
+                    };
                     resolve(true);
                 })
                 .catch((error) => {
@@ -174,38 +169,8 @@ export default class ngbMotifsPanelService {
         });
     }
 
-    async resultsTableData (row) {
-        const chromosomeOnly = row['search type'] === 'CHROMOSOME';
-        this.currentParams = {
-            referenceId: this.projectContext.reference.id,
-            motif: row.motif,
-            searchType: row['search type'],
-            pageSize: this.pageSize,
-        };
-        const request = chromosomeOnly ?
-            {chromosomeId: this.projectContext.currentChromosome.id, ...this.currentParams} :
-            {...this.currentParams};
-        return this.searchMotifRequest(request);
-    }
-
-    async getNextResults () {
-        const params = this.currentParams;
-        const startPosition = this.searchStopOnPosition;
-        const chromosomeId = this.searchStopOnChromosome;
-        const request = {chromosomeId, startPosition, ...params};
-        return this.searchMotifRequest(request);
-    }
-
-    async getPreviousResults () {
-        const params = this.currentParams;
-        const startPosition = this.searchStopOnPosition;
-        const chromosomeId = this.searchStopOnChromosome;
-        const request = {chromosomeId, startPosition, ...params};
-        return this.searchMotifRequest(request);
-    }
-
     resetData () {
-        this.currentParams = {};
         this._searchMotifsParams = [];
+        this.searchStopOn = {};
     }
 }

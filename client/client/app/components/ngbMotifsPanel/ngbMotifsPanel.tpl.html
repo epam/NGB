@@ -1,4 +1,4 @@
-<div>
+<div class="u-height__full">
     <div ng-if="$ctrl.isSearchInProgress">
         <div class="progress" layout-align="center center">
             <span>Loading results...</span>
@@ -8,6 +8,6 @@
     <div class="md-padding" ng-if="$ctrl.isSearchFailure">
         <ngb-panel-error-list message-list="['Error']"></ngb-panel-error-list>
     </div>
-    <ngb-motifs-table ng-if="$ctrl.isSearchResults"></ngb-motifs-table>
+    <ngb-motifs-table ng-hide="$ctrl.isSearchInProgress && $ctrl.isShowParamsTable"></ngb-motifs-table>
 </div>
 

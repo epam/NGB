@@ -39,11 +39,12 @@
             </div>
         </div>
         <md-checkbox
-            aria-label="Search current chromosome only"
+            aria-label="Search whole reference"
             class="motifs-dialog-checkbox"
-            ng-checked="chromosomeOnly"
+            ng-checked="inReference"
             ng-click="change()">
-            Search current chromosome only
+            <p>Search whole reference</p>
+            <p class="motifs-dialog-checkbox-warning"><b>Warning:</b> this can take a long time</p>
         </md-checkbox>
     </md-dialog-content>
     <md-dialog-actions layout="row">

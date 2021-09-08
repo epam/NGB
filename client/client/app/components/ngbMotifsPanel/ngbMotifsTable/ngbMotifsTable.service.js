@@ -1,20 +1,20 @@
-const MOTIFS_SEARCH_PARAMS_COLUMNS = ['search type', 'name', 'motif'];
-const MOTIFS_SEARCH_RESULTS_COLUMNS = ['reference', 'chromosome', 'start', 'end', 'strand'];
+const MOTIFS_SEARCH_PARAMS_COLUMNS = ['name', 'motif', 'search type'];
+const MOTIFS_SEARCH_RESULTS_COLUMNS = ['chromosome', 'start', 'end', 'strand'];
+const WHOLE_GENOME = 'WHOLE_GENOME';
+const PAGE_SIZE = 100;
 
 export default class ngbMotifsTableService {
 
-    _isShowParamsTable = true;
+    _currentParams = {};
 
     static instance(
         dispatcher,
-        uiGridConstants,
         projectContext,
         motifsContext,
         ngbMotifsPanelService
     ) {
         return new ngbMotifsTableService(
             dispatcher,
-            uiGridConstants.dispatcher,
             projectContext,
             motifsContext,
             ngbMotifsPanelService
@@ -23,14 +23,12 @@ export default class ngbMotifsTableService {
 
     constructor(
         dispatcher,
-        uiGridConstants,
         projectContext,
         motifsContext,
         ngbMotifsPanelService
     ) {
         Object.assign(this, {
             dispatcher,
-            uiGridConstants,
             projectContext,
             motifsContext,
             ngbMotifsPanelService
@@ -38,11 +36,7 @@ export default class ngbMotifsTableService {
     }
 
     get isShowParamsTable () {
-        return this._isShowParamsTable;
-    }
-
-    set isShowParamsTable (value) {
-        this._isShowParamsTable = value;
+        return this.ngbMotifsPanelService.isShowParamsTable;
     }
 
     get motifsSearchParamsColumns() {
@@ -51,6 +45,44 @@ export default class ngbMotifsTableService {
 
     get motifsSearchResultsColumns() {
         return MOTIFS_SEARCH_RESULTS_COLUMNS;
+    }
+
+    get positiveStrand () {
+        return this.ngbMotifsPanelService.positive.toLowerCase();
+    }
+
+    get negativeStrand () {
+        return this.ngbMotifsPanelService.negative.toLowerCase();
+    }
+
+    get wholeGenomeType () {
+        return WHOLE_GENOME;
+    }
+
+    get pageSize () {
+        return PAGE_SIZE;
+    }
+
+    get currentParams () {
+        return this._currentParams;
+    }
+
+    set currentParams (params) {
+        if (JSON.stringify(params) === '{}') {
+            this._currentParams = {};
+        } else {
+            const referenceId = this.projectContext.reference.id;
+            const setSearchType = (type) => {
+                return type === this.ngbMotifsPanelService.referenceType ?
+                    this.wholeGenomeType : type;
+            };
+            this._currentParams = {
+                referenceId,
+                motif: params.motif,
+                searchType: setSearchType(params['search type']),
+                pageSize: this.pageSize,
+            };
+        }
     }
 
     getMotifsGridColumns() {
@@ -90,8 +122,8 @@ export default class ngbMotifsTableService {
         const {
             referenceId,
             motif,
-            searchType,
-        } = this.ngbMotifsPanelService.currentParams;
+            searchType
+        } = this.currentParams;
         const currentMatch = {
             chromosome,
             start,
@@ -105,9 +137,9 @@ export default class ngbMotifsTableService {
         const rangeStart = Math.min(start, end) - range;
         const rangeEnd = Math.max(start, end) + range;
 
-        const strand = row.strand.toLowerCase();
+        const strand = this.ngbMotifsPanelService.getStrand(row.strand).toLowerCase();
         const name = (strand) => `${motif}_${strand}`;
-        const reference = this.ngbMotifsPanelService.reference;
+        const reference = this.projectContext.reference;
 
         const tracksOptions = {};
         const motifsTracks = (this.projectContext.tracks || [])
@@ -121,7 +153,7 @@ export default class ngbMotifsTableService {
                 isLocal: true,
                 projectId: '',
                 bioDataItemId: name(strand),
-                id: strand === 'positive' ? trackId : trackId + 1,
+                id: strand === this.positiveStrand ? trackId : trackId + 1,
                 reference,
                 referenceId
             });
@@ -162,31 +194,31 @@ export default class ngbMotifsTableService {
         let negativeTrackPosition = 0;
 
         if (
-            !motifsTracksNames.includes(name('positive')) &&
-            !motifsTracksNames.includes(name('negative'))
+            !motifsTracksNames.includes(name(this.positiveStrand)) &&
+            !motifsTracksNames.includes(name(this.negativeStrand))
         ) {
             positiveTrackPosition = 1;
             negativeTrackPosition = 2;
         } else {
             if (!motifsTracksNames.includes(name(strand))) {
-                positiveTrackPosition = strand === 'positive' ? 1 : 0;
-                negativeTrackPosition = strand === 'negative' ? 1 : 0;
+                positiveTrackPosition = strand === this.positiveStrand ? 1 : 0;
+                negativeTrackPosition = strand === this.negativeStrand ? 1 : 0;
             }
         }
         if (positiveTrackPosition !== 0) {
-            tracksOptions.tracks.push(motifsTrackPattern('positive'));
+            tracksOptions.tracks.push(motifsTrackPattern(this.positiveStrand));
             tracksOptions.tracksState.splice(
                 referenceTrackStateIndex + positiveTrackPosition,
                 0,
-                motifsTrackStatePattern('positive')
+                motifsTrackStatePattern(this.positiveStrand)
             );
         }
         if (negativeTrackPosition !== 0) {
-            tracksOptions.tracks.push(motifsTrackPattern('negative'));
+            tracksOptions.tracks.push(motifsTrackPattern(this.negativeStrand));
             tracksOptions.tracksState.splice(
                 referenceTrackStateIndex + negativeTrackPosition,
                 0,
-                motifsTrackStatePattern('negative')
+                motifsTrackStatePattern(this.negativeStrand)
             );
         }
         const [currentReferenceTrack] = this.projectContext.getActiveTracks()

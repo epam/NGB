@@ -1,15 +1,3 @@
-.motifs-flex-column {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  height: 100%;
-  margin: 0;
-
-  .ui-grid-column-menu-button-last-col {
-    margin-right: 0px;
-  }
-}
-
 .motifs-search-title {
   align-self: center;
 }
@@ -17,9 +5,13 @@
 .motifs-search-table {
   display: flex;
   flex-direction: column;
-  height: auto;
+  height: 100%;
     .ui-grid-viewport {
       height: 100% !important;
+    }
+
+    .ui-grid-header-cell-label {
+      text-transform: capitalize;
     }
 }
 

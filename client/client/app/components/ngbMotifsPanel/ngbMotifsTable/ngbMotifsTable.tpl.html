@@ -1,4 +1,4 @@
-<div class="ui-grid-container motifs-flex-column">
+<div class="ui-grid-container">
     <div ng-if="!$ctrl.isShowParamsTable" flex="100" layout="row">
         <md-button
             aria-label="back"
@@ -8,15 +8,15 @@
             <ng-md-icon class="motif-icon-arrow-back" icon="arrow_back" size="24"></ng-md-icon>
         </md-button>
         <span flex="50" class="motifs-search-title">{{$ctrl.motifsSearchTitle}}</span>
-        <ngb-motifs-table-pagination flex="30"></ngb-motifs-table-pagination>
     </div>
-    <div ng-hide="$ctrl.hideTable"
-         ui-grid="$ctrl.gridOptions"
-         ui-grid-save-state
+    <div ui-grid="$ctrl.gridOptions"
          ui-grid-resize-columns
          ui-grid-move-columns
          ui-grid-auto-resize
+         ui-grid-infinite-scroll
          ui-grid-selection
+         ui-grid-save-state
+         ui-grid-pinning
          class="motifs-search-table">
     </div>
 </div>
