@@ -10,6 +10,7 @@ import trackResizePreference from './ngbTrackResizePreference';
 import wigColorPreference from './ngbWigColorPreference';
 import bedColorPreference from './ngbBedColorPreference';
 import collapsibleMenu from './ngbTrackSettings.collapsible.menu';
+import ngbHeatmapColorSchemePreference from './ngbHeatmapColorSchemePreference';
 import ngbPreventAutoClose from './ngbPreventAutoClose';
 
 export default angular
@@ -20,6 +21,7 @@ export default angular
         wigColorPreference,
         bedColorPreference,
         ngbTrackFontSize,
+        ngbHeatmapColorSchemePreference
     ])
     .directive('ngbPreventAutoClose', ngbPreventAutoClose)
     .controller(controller.UID, controller)

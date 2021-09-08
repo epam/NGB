@@ -1,0 +1,63 @@
+.color-scheme-preferences {
+  padding: 10px;
+}
+
+.heatmap-color-pickers {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heatmap-color-picker {
+  display: inline-flex;
+  align-items: center;
+
+  color-picker {
+    display: inline-flex;
+  }
+
+  .heatmap-color-legend {
+    margin-left: 5px;
+    font-size: smaller;
+  }
+}
+
+.heatmap-config-section {
+  margin: 5px 0;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #eeeeee;
+  }
+}
+
+.heatmap-gradient-stop-configuration {
+  margin: 5px 0;
+  padding: 5px 0;
+}
+
+.heatmap-color-value-input-container {
+  margin: 0;
+  padding: 0;
+  .md-errors-spacer {
+    display: none;
+  }
+}
+
+.heatmap-add-color-button {
+  margin: 0;
+}
+
+.color-configuration {
+  width: 100%;
+
+  .color-configuration-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+
+    md-input-container {
+      flex: 1;
+    }
+  }
+}
