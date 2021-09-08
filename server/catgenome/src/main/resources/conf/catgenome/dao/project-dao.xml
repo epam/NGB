@@ -277,6 +277,18 @@
                 ]]>
             </value>
         </property>
+        <property name="loadAllProjectNotesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        note_id,
+                        project_id,
+                        title,
+                        content
+                    FROM catgenome.project_note
+                ]]>
+            </value>
+        </property>
         <property name="deleteProjectNotesQuery">
             <value>
                 <![CDATA[

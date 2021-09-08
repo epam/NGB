@@ -66,6 +66,7 @@ import com.epam.catgenome.entity.project.ProjectItem;
 import com.epam.catgenome.entity.reference.Reference;
 
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Source:      ProjectDao
@@ -120,6 +121,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String deleteProjectNotesQuery;
     private String deleteAllProjectNotesQuery;
     private String loadProjectNotesQuery;
+    private String loadAllProjectNotesQuery;
     private String updateProjectNotesQuery;
 
     /**
@@ -410,9 +412,31 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         getJdbcTemplate().update(deleteAllProjectNotesQuery, projectId);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
     public List<ProjectNote> loadProjectNotes(final long projectId) {
         return getJdbcTemplate().query(loadProjectNotesQuery, ProjectNoteParameters.getRowMapper(), projectId);
+    }
+
+    public Map<Long, Set<ProjectNote>> loadAllProjectNotes(List<Project> projects) {
+        String query = loadAllProjectNotesQuery;
+        if (!CollectionUtils.isEmpty(projects)) {
+            List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
+            Filter filter = Filter.builder()
+                    .field("project_id")
+                    .operator("in")
+                    .value("(" + join(projectIds, ",") + ")")
+                    .build();
+            query = addFiltersToQuery(loadAllProjectNotesQuery, Collections.singletonList(filter));
+        }
+        List<ProjectNote> notes = getJdbcTemplate().query(query, ProjectNoteParameters.getRowMapper());
+        Map<Long, Set<ProjectNote>> notesMap = new HashMap<>();
+        for (ProjectNote note: notes) {
+            Long projectId = note.getProjectId();
+            if (!notesMap.containsKey(projectId)) {
+                notesMap.put(projectId, new HashSet<>());
+            }
+            notesMap.get(projectId).add(note);
+        }
+        return notesMap;
     }
 
     /**
@@ -548,18 +572,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 MapSqlParameterSource[items.size()]));
     }
 
-    private Long getBioDataItemId(BiologicalDataItem item) {
-        if (item instanceof FeatureFile) {
-            return ((FeatureFile) item).getBioDataItemId();
-        } else {
-            if (item instanceof Reference) {
-                return ((Reference) item).getBioDataItemId();
-            } else {
-                return item.getId();
-            }
-        }
-    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateOwner(Long id, String owner) {
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -629,6 +641,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
 
     }
+
     enum ProjectItemParameters {
         PROJECT_ITEM_ID,
         PROJECT_ID,
@@ -745,6 +758,18 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                     .title(rs.getString(TITLE.name()))
                     .content(rs.getString(CONTENT.name()))
                     .build();
+        }
+    }
+
+    private Long getBioDataItemId(BiologicalDataItem item) {
+        if (item instanceof FeatureFile) {
+            return ((FeatureFile) item).getBioDataItemId();
+        } else {
+            if (item instanceof Reference) {
+                return ((Reference) item).getBioDataItemId();
+            } else {
+                return item.getId();
+            }
         }
     }
 }
