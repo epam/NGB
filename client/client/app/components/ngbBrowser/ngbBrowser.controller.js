@@ -58,6 +58,7 @@ export default class ngbBrowserController extends baseController {
             try {
                 this.pageIsLoading = true;
                 this.markdown = await this.ngbBrowserService.getMarkdown(this.homeUrl);
+                this.errorMessages = [];
             } catch(err) {
                 this.errorMessages.push(err.message);
             } finally {
