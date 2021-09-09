@@ -24,7 +24,6 @@
 package com.epam.catgenome.dao.heatmap;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -75,7 +74,7 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
      * @param heatmap {@code Heatmap} a Heatmap to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public Heatmap save(final Heatmap heatmap) {
+    public Heatmap saveHeatmap(final Heatmap heatmap) {
         heatmap.setHeatmapId(daoHelper.createId(heatmapSequenceName));
         getNamedParameterJdbcTemplate().update(insertHeatmapQuery, HeatmapParameters.getParameters(heatmap));
         return heatmap;
@@ -141,10 +140,24 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(updateHeatmapAnnotationQuery, params);
     }
 
+    public InputStream loadHeatmapContent(final Long heatmapId) {
+        final LobHandler lobHandler = new DefaultLobHandler();
+        final List<InputStream> result = getJdbcTemplate().query(loadHeatmapContentQuery, (rs, rowNum) ->
+                lobHandler.getBlobAsBinaryStream(rs, HeatmapParameters.CONTENT.name()), heatmapId);
+        return result.isEmpty() ? null : result.get(0);
+    }
+
     public InputStream loadHeatmapAnnotation(final Long heatmapId) {
         final LobHandler lobHandler = new DefaultLobHandler();
         final List<InputStream> result = getJdbcTemplate().query(loadHeatmapAnnotationQuery, (rs, rowNum) ->
                 lobHandler.getBlobAsBinaryStream(rs, HeatmapParameters.ANNOTATION.name()), heatmapId);
+        return result.isEmpty() ? null : result.get(0);
+    }
+
+    public InputStream loadHeatmapTree(final Long heatmapId) {
+        final LobHandler lobHandler = new DefaultLobHandler();
+        final List<InputStream> result = getJdbcTemplate().query(loadHeatmapTreeQuery, (rs, rowNum) ->
+                lobHandler.getBlobAsBinaryStream(rs, HeatmapParameters.TREE.name()), heatmapId);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -181,6 +194,9 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
             params.addValue(COLUMN_COUNT.name(), heatmap.getColumnCount());
             params.addValue(MAX_CELL_VALUE.name(), heatmap.getMaxCellValue());
             params.addValue(MIN_CELL_VALUE.name(), heatmap.getMinCellValue());
+            params.addValue(CONTENT.name(), heatmap.getContent());
+            params.addValue(ANNOTATION.name(), heatmap.getAnnotation());
+            params.addValue(TREE.name(), heatmap.getTree());
             return params;
         }
 

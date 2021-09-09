@@ -26,27 +26,22 @@ package com.epam.catgenome.controller.heatmap;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.result.BlastSequence;
-import com.epam.catgenome.exception.BlastRequestException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.manager.heatmap.HeatmapSecurityService;
-import com.epam.catgenome.util.db.Filter;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
 
 @RestController
 @Api(value = "heatmap", description = "Heatmap files Management")
@@ -55,82 +50,52 @@ public class HeatmapController extends AbstractRESTController {
 
     private final HeatmapSecurityService heatmapSecurityService;
 
-    @GetMapping(value = "/task/{taskId}")
+    @GetMapping(value = "/heatmap/{heatmapId}")
     @ApiOperation(
-            value = "Returns a task by given id",
-            notes = "Returns a task by given id",
+            value = "Returns a heatmap by given id",
+            notes = "Returns a heatmap by given id",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastTask> loadTask(@PathVariable final long taskId) {
-        return Result.success(heatmapSecurityService.load(taskId));
+    public Result<Heatmap> getHeatmap(@PathVariable final long heatmapId) {
+        return Result.success(heatmapSecurityService.getHeatmap(heatmapId));
     }
 
-    @GetMapping(value = "/task/{taskId}/result")
+    @GetMapping(value = "/heatmap/{heatmapId}/content")
     @ApiOperation(
-            value = "Returns a task result",
-            notes = "Returns a task result",
+            value = "Returns heatmap content",
+            notes = "Returns heatmap content",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastRequestResult> getResult(@PathVariable final long taskId) throws BlastRequestException {
-        return Result.success(heatmapSecurityService.getResult(taskId));
+    public Result<String[][]> getContent(@PathVariable final long heatmapId) {
+        return Result.success(heatmapSecurityService.getContent(heatmapId));
     }
 
-    @GetMapping(value = "/task/{taskId}/raw")
+    @GetMapping(value = "/heatmap/{heatmapId}/annotation")
     @ApiOperation(
-            value = "Returns a file with task result",
-            notes = "Returns a file with task result",
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public void getRawResult(@PathVariable final long taskId, final HttpServletResponse response)
-            throws BlastRequestException, IOException {
-        okhttp3.ResponseBody body = heatmapSecurityService.getRawResult(taskId);
-        InputStream is = body.byteStream();
-        org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
-        response.flushBuffer();
-    }
-
-    @GetMapping(value = "/task/{taskId}/group")
-    @ApiOperation(
-            value = "Returns BLAST tasks results grouped by sequence",
-            notes = "Returns BLAST tasks results grouped by sequence",
+            value = "Returns heatmap annotation",
+            notes = "Returns heatmap annotation",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Collection<BlastSequence>> getGroupedResult(@PathVariable final long taskId)
-            throws BlastRequestException {
-        return Result.success(heatmapSecurityService.getGroupedResult(taskId));
+    public Result<String[][]> getAnnotation(@PathVariable final long heatmapId) {
+        return Result.success(heatmapSecurityService.getAnnotation(heatmapId));
     }
 
-    @PostMapping(value = "/tasks/count")
+    @GetMapping(value = "/heatmap/{heatmapId}/tree")
     @ApiOperation(
-            value = "Returns tasks count",
-            notes = "Returns tasks count",
+            value = "Returns heatmap tree",
+            notes = "Returns heatmap tree",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Long> getTasksCount(@RequestBody final List<Filter> filters) {
-        return Result.success(heatmapSecurityService.getTasksCount(filters));
-    }
-
-    @DeleteMapping(value = "/tasks")
-    @ApiOperation(
-            value = "Delete all not running tasks for current user",
-            notes = "Delete all not running tasks for current user",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Boolean> deleteTasks() {
-        heatmapSecurityService.deleteTasks();
-        return Result.success(null);
+    public Result<String[][]> getTree(@PathVariable final long heatmapId) {
+        return Result.success(heatmapSecurityService.getTree(heatmapId));
     }
 
     @PostMapping(value = "/heatmap")
@@ -141,34 +106,20 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastTask> createTask(@RequestBody final TaskVO taskVO)
-            throws FeatureIndexException, BlastRequestException {
-        return Result.success(heatmapSecurityService.create(taskVO));
+    public Result<Heatmap> createHeatmap(@RequestBody final Heatmap heatmap) {
+        return Result.success(heatmapSecurityService.createHeatmap(heatmap));
     }
 
-    @PutMapping(value = "/task/{taskId}/cancel")
+    @DeleteMapping(value = "/heatmap/{heatmapId}")
     @ApiOperation(
-            value = "Cancels a task with given id",
-            notes = "Cancels a task with given id",
+            value = "Deletes a heatmap, specified by id",
+            notes = "Deletes a heatmap, specified by id",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> cancelTask(@PathVariable final long taskId) throws BlastRequestException {
-        heatmapSecurityService.cancel(taskId);
-        return Result.success(null);
-    }
-
-    @DeleteMapping(value = "/task/{taskId}")
-    @ApiOperation(
-            value = "Deletes a task, specified by task ID",
-            notes = "Deletes a task, specified by task ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Boolean> deleteTask(@PathVariable final long taskId) throws IOException {
-        heatmapSecurityService.deleteTask(taskId);
+    public Result<Boolean> deleteHeatmap(@PathVariable final long heatmapId) throws IOException {
+        heatmapSecurityService.deleteHeatmap(heatmapId);
         return Result.success(null);
     }
 }

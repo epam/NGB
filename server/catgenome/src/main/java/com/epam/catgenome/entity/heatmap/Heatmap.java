@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -44,9 +45,15 @@ public class Heatmap {
     private String columnTreePath;
     private String cellAnnotationPath;
     private String labelAnnotationPath;
+    private Set<String> values;
+    private String cellValueType;
     private Long rowCount;
     private Long columnCount;
-    private Set<String> values;
     private Double maxCellValue;
     private Double minCellValue;
+    private List<String> columnLabels;
+    private List<String> rowLabels;
+    private byte[] content;
+    private byte[] annotation;
+    private byte[] tree;
 }
