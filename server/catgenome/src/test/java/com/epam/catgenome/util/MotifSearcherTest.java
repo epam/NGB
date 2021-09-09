@@ -12,16 +12,19 @@ import java.util.regex.Pattern;
 
 public class MotifSearcherTest {
 
+
+    public static final String TEST_MOTIF = "cgCGcattgcGcaaGGG";
+
     @Test
     public void searchTest() {
-        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(3, MotifSearcher.search(testSequence, testRegex, "", 0, true).size());
     }
 
     @Test
     public void searchBoundsTest() {
-        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
         Assert.assertEquals(4, firstSearchResult.getStart());
@@ -30,7 +33,7 @@ public class MotifSearcherTest {
 
     @Test
     public void searchSequenceTest() {
-        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
         Assert.assertEquals(testRegex, firstSearchResult.getSequence());
@@ -38,7 +41,7 @@ public class MotifSearcherTest {
 
     @Test
     public void searchInPositiveStrandTest() {
-        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(2, MotifSearcher.search(testSequence, testRegex,
                 StrandSerializable.POSITIVE, "", 0, true).size());
@@ -46,7 +49,7 @@ public class MotifSearcherTest {
 
     @Test
     public void searchInNegativeStrandTest() {
-        byte[] testSequence = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
         String testRegex = "ca";
         Assert.assertEquals(1, MotifSearcher.search(testSequence, testRegex,
                 StrandSerializable.NEGATIVE, "", 0, true).size());
