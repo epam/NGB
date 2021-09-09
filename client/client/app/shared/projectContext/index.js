@@ -911,13 +911,27 @@ export default class projectContext {
     convertProjectForSave = utilities.convertProjectForSave;
 
     refreshDatasetNotes(notes, projectId) {
-        const index = this._datasets.findIndex(d => d.id === projectId);
-        if (~index) {
-            this._datasets[index].notes = notes
-                .map(utilities.preprocessDatasetNote)
-                .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0);
-        }
-        return this._datasets[index].notes;
+        const processedNotes = notes
+            .map(utilities.preprocessDatasetNote)
+            .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0);
+        const changeNotes = items => {
+            if (items && items.length) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.id === projectId) {
+                        item.notes = processedNotes;
+                        return true;
+                    } else if (item.nestedProjects && item.nestedProjects.length) {
+                        if (changeNotes(item.nestedProjects)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+        const hasChanged = changeNotes(this._datasets);
+        return hasChanged ? processedNotes : [];
     }
 
     addLastLocalTrack(track) {
@@ -1346,7 +1360,7 @@ export default class projectContext {
         if (filterDatasets) {
             this._datasetsFilter = filterDatasets;
         }
-        const layoutDidChange = layout ? true : false;
+        const layoutDidChange = !!layout;
         return {
             chromosomeDidChange,
             datasetsFilterChanged,
