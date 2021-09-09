@@ -5,9 +5,10 @@ export default class ngbBrowserController extends baseController {
     static get UID() {
         return 'ngbBrowserController';
     }
-
     markdown;
-    homePageUrl;
+    homeUrl;
+    errorMessages=[];
+    pageIsLoading=false;
 
     constructor(dispatcher, projectContext, $scope, $timeout, $sce, ngbBrowserService) {
         super(dispatcher);
@@ -19,15 +20,17 @@ export default class ngbBrowserController extends baseController {
             $timeout,
             $sce
         });
+        $scope.$watch('$ctrl.homeUrl', ::this.getMarkdown);
         this.initEvents();
-        this.homePageUrl = this.projectContext.browserHomePageUrl;
+    }
+    get homeUrl() {
+        return this.projectContext && this.projectContext.browserHomePageUrl;
     }
 
     events = {
         'chromosome:change': ::this.onStateChange,
         'reference:change': ::this.onStateChange,
-        'reference:pre:change': ::this.onStateChange,
-        'defaultSettings:change': ::this.onStateChange
+        'reference:pre:change': ::this.onStateChange
     };
 
     $onInit() {
@@ -40,20 +43,27 @@ export default class ngbBrowserController extends baseController {
         this.isChromosome = chromosome !== null;
         this.isProject = reference !== null && reference !== undefined;
         this.isProjectLoading = this.projectContext.referenceIsPromised;
-        this.homePageUrl = this.projectContext.browserHomePageUrl;
         this.$timeout(::this.$scope.$apply);
-        this.getMarkdown();
     }
 
     browserHomePageUrl() {
-        return this.$sce.trustAsResourceUrl(this.homePageUrl);
+        return this.$sce.trustAsResourceUrl(this.homeUrl);
     }
-    homePageUrlIsMd(){
-        return this.homePageUrl && /.md$/.test(this.homePageUrl);
+
+    homeUrlIsMd() {
+        return this.homeUrl && /.md$/.test(this.homeUrl);
     }
     async getMarkdown() {
-        if (!this.markdown && this.homePageUrlIsMd()) {
-            this.markdown = await this.ngbBrowserService.getMarkdown(this.homePageUrl);
+        if (this.homeUrl) {
+            try {
+                this.pageIsLoading = true;
+                this.markdown = await this.ngbBrowserService.getMarkdown(this.homeUrl);
+            } catch(err) {
+                this.errorMessages.push(err.message);
+            } finally {
+                this.pageIsLoading = false;
+                this.$scope.$apply();
+            }
         }
     }
 }

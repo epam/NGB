@@ -1,6 +1,6 @@
 <ngb-tracks-view layout-fill ng-if="$ctrl.isChromosome"></ngb-tracks-view>
 <ngb-project-info-panel layout-fill ng-if="!$ctrl.isChromosome && $ctrl.isProject"></ngb-project-info-panel>
-<div layout-fill ng-if="$ctrl.isProjectLoading" class="browser-welcome-container">
+<div layout-fill ng-if="$ctrl.isProjectLoading || $ctrl.pageIsLoading" class="browser-welcome-container">
     <div layout="column" layout-align="center center" class="browser-welcome">
         <div>
             <h1>
@@ -9,8 +9,8 @@
         </div>
     </div>
 </div>
-<div layout-fill ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome" class="browser-welcome-container">
-    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homePageUrl">
+<div layout-fill ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome && !$ctrl.pageIsLoading" class="browser-welcome-container">
+    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homeUrl">
         <div>
             <h1>
                 Choose files or folders<br/>
@@ -26,12 +26,15 @@
     </div>
     <iframe
         class="ngb-browser-iFrame"
-        ng-if="$ctrl.homePageUrl && !$ctrl.homePageUrlIsMd()"
+        ng-if="$ctrl.homeUrl && !$ctrl.homeUrlIsMd()"
         ng-src="{{$ctrl.browserHomePageUrl()}}"
     ></iframe>
     <ngb-markdown
         class="ngb-browser-markdown"
-        ng-if="$ctrl.homePageUrl && $ctrl.homePageUrlIsMd()"
+        ng-if="$ctrl.homeUrl && $ctrl.homeUrlIsMd()"
         markdown="$ctrl.markdown"
     ></ngb-markdown>
+    <div ng-if="$ctrl.errorMessages.length" class="md-padding">
+        <ngb-panel-error-list message-list="ctrl.errorMessages"></ngb-panel-error-list>
+    </div>
 </div>
