@@ -116,7 +116,15 @@ The **Sessions** panel has the following columns:
 - _Owner_ - user name who saved the session
 
 **To sort the sessions** according to a specific property - click the header of the corresponding column, e.g.:  
-  ![NGB GUI](images/overview-8.png)  
+  ![NGB GUI](images/overview-8.png)
+
+**To filter displayed sessions** - use one or more parameters to filter sessions in the **Sessions** panel. The approach is fully the same as described for the [Variants panel](variants.md#filters-for-variants-panel):  
+  ![NGB GUI](images/overview-41.png)  
+  ![NGB GUI](images/overview-42.png)
+
+**To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will restore default columns order, cancel all configured sortings and filters:  
+  ![NGB GUI](images/overview-43.png)
+
 **To navigate to a location** bookmarked in the certain session - click the corresponding row of the table:  
   ![NGB GUI](images/overview-33.png)  
   ![NGB GUI](images/overview-34.png)

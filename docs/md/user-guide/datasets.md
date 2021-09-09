@@ -6,6 +6,7 @@
         - [Description view](#description-view)
         - [Change view](#change-view)
     - [Download original files](#download-original-files)
+    - [Metadata](#metadata)
 - [Viewing tracks](#viewing-tracks)
 
 ## Viewing datasets
@@ -42,6 +43,7 @@ Data can be closed:
 
 > **_Note_**: the NGB has a restriction for maximum allowed count of the inner dataset files that can be opened automatically at once (default value - `10`).  
 > If any dataset has more files than this count and the user tries to open such dataset (by clicking a checkbox next to a dataset name) - checkbox will stay unselected, no files will be opened.  
+> When hovering such dataset object - a corresponding warning about large count of files will appear in a tooltip.  
 > User should expand such dataset and select necessary files manually.  
 > Described rules are applied as for simple dataset and for nested datasets (in this case, a number of all files in nested datasets is being counted).
 >
@@ -82,6 +84,50 @@ You may select the view as you wish. For that, use the selector in the "**Browse
     ![NGB GUI](images/projects-17.png)
 
 **_Note_**: this selector is visible only if the dataset has an own description file.
+
+### Metadata
+
+NGB allows to attach text key-value metadata to datasets and files.  
+This can be used:
+
+- to create specific tags/labels to datasets or files
+- to find datasets and files by their metadata values
+- to display tags as dataset/file details (in a tooltip or the summary page)
+
+To manage metadata for a dataset/file - right-click the desired object in the **Datasets** panel and select the "_Edit attributes item_" in the context menu:  
+    ![NGB GUI](images/projects-23.png)
+
+The pop-up will appear, where user can add/edit/remove attributes for the selected dataset/file.
+By default, any dataset/file has no attributes:  
+    ![NGB GUI](images/projects-24.png)
+
+Click the **Add** button to create a new attribute. A new pair of text fields will appear - for a key and a value of the attribute being created:  
+    ![NGB GUI](images/projects-25.png)
+
+Then:
+
+- specify a key and a value for a new attribute
+- you can click the **Add** button again to add another attribute
+- you can click the cross-button near the _Value_ field to remove the certain attribute
+
+After all changes, click the **Save** button, e.g.:  
+    ![NGB GUI](images/projects-26.png)
+
+**_Notes_**:
+
+- there is no ability to save attributes if any of them has empty key or value
+- there is no ability to save several attributes for a single dataset/file with the same key (case-insensitive)
+
+Saved attributes can be viewed:
+
+- in a tooltip when hovering over the object:  
+    ![NGB GUI](images/projects-27.png)
+- in the **Summary** page of the dataset:  
+    ![NGB GUI](images/projects-28.png)
+
+Search in the dataset panel supports the search by attributes (_only by values_) as well.  
+If a file/dataset is found by its attribute - near it, the label(s) of the corresponding attribute(s) appear with the selected match, e.g.:  
+    ![NGB GUI](images/projects-29.png)
 
 ### Download original files
 
