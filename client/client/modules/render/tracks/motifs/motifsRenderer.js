@@ -1,15 +1,14 @@
 import {CachedTrackRenderer} from '../../core';
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 
 export default class MotifsMatchesRenderer extends CachedTrackRenderer {
 
-    constructor(track, config, pixiRenderer, options) {
-        super();
+    constructor(track, config, options) {
+        super(track);
         this.track = track;
         this._config = config;
         this._height = config.height;
         this.options = options;
-        this.pixiRenderer = pixiRenderer;
         this.initializeCentralLine();
     }
 
@@ -96,6 +95,6 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
     }
 
     render (viewport, cache, isRedraw, showCenterLine) {
-        super.render(viewport, cache, isRedraw, null, showCenterLine);
+        super.render(viewport, cache, isRedraw, showCenterLine);
     }
 }

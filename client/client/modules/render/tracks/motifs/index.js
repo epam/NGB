@@ -12,7 +12,6 @@ export class MOTIFSTrack extends CachedTrack {
 
     constructor(opts) {
         super(opts);
-        this.opts = opts;
         this.dispatcher = opts.dispatcher;
         this.motifsContext = opts.motifsContext;
         this.motifStrand = opts.state.motifStrand;
@@ -20,7 +19,6 @@ export class MOTIFSTrack extends CachedTrack {
         this.renderer = new MotifsMatchesRenderer(
             this,
             Object.assign({}, this.trackConfig, this.config),
-            this._pixiRenderer,
             opts,
             opts.motifsContext,
             this.motifStrand
@@ -139,8 +137,7 @@ export class MOTIFSTrack extends CachedTrack {
             this.renderer.render(
                 this.viewport,
                 this.cache,
-                flags.heightChanged ||
-                flags.dataChanged,
+                flags.heightChanged || flags.dataChanged,
                 this._showCenterLine
             );
             somethingChanged = true;
