@@ -58,8 +58,10 @@ export default class ngbProjectInfoService {
         this._descriptionIsLoading = true;
         this._currentMode = undefined;
         this._previousMode = undefined;
+        this._afterRemoveMode = undefined;
         this._currentName = undefined;
         this._editingNote = {};
+        this._newNote = {};
         this._summaryAvailable = false;
         this._descriptionAvailable = false;
         const projectChanged = this.projectChanged.bind(this);
@@ -69,14 +71,21 @@ export default class ngbProjectInfoService {
 
     set currentMode(value) {
         if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
-        || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
+            || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
             return;
         }
-        if (this.currentMode !== this.projectInfoModeList.ADD_NOTE && this.currentMode !== this.projectInfoModeList.EDIT_NOTE) {
+        if (this._previousMode !== this.currentMode && this._previousMode !== value) {
+            this._afterRemoveMode = value === this.projectInfoModeList.EDIT_NOTE ? this._previousMode : undefined;
+        }
+        if (value !== undefined
+            && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.EDIT_NOTE].includes(this.currentMode)) {
             this._previousMode = this.currentMode;
         }
-        this._currentMode = value;
-        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+        const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] || this.currentNote.title;
+        this._currentMode = value || this._previousMode;
+        this._currentName = value === this.projectInfoModeList.EDIT_NOTE
+            ? previousNoteName
+            : PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
     }
 
     get projectInfoModeList() {
@@ -100,7 +109,7 @@ export default class ngbProjectInfoService {
     }
 
     get currentNote() {
-        return this.noteList.find(note => note.id === this.currentMode) || {};
+        return this.noteList.filter(note => note.id === this.currentMode)[0] || {};
     }
 
     get descriptionAvailable() {
@@ -121,6 +130,10 @@ export default class ngbProjectInfoService {
 
     get editingNote() {
         return this._editingNote;
+    }
+
+    get newNote() {
+        return this._newNote;
     }
 
     static instance($sce, dispatcher, projectContext, projectDataService) {
@@ -144,6 +157,9 @@ export default class ngbProjectInfoService {
         if (projects.length === 1 && this.currentProject.id !== projects[0].id) {
             clearURLObject();
             this.currentProject = projects[0];
+            this._newNote = {
+                projectId: this.currentProject.id
+            };
             this._descriptionIsLoading = true;
             this._descriptionAvailable = false;
             this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
@@ -166,6 +182,7 @@ export default class ngbProjectInfoService {
             });
         } else if (projects.length !== 1) {
             this.currentProject = {};
+            this._newNote = {};
             this._descriptionIsLoading = false;
             this.currentMode = this.summaryAvailable
                 ? this.projectInfoModeList.SUMMARY
@@ -181,7 +198,7 @@ export default class ngbProjectInfoService {
     }
 
     editNote(id) {
-        this._editingNote = this.noteList.find(item => item.id === id)[0] || {};
+        this._editingNote = this.noteList.filter(item => item.id === id)[0] || {};
         this.currentMode = this.projectInfoModeList.EDIT_NOTE;
     }
 
@@ -191,53 +208,44 @@ export default class ngbProjectInfoService {
     }
 
     saveNote(note) {
-        note = this._convertClientToServer(note);
+        const notes = [...this.noteList];
         if (note.id) {
-            const index = this.noteList.findIndex(item => item.id === note.id);
+            const index = notes.findIndex(item => item.id === note.id);
             if (~index) {
-                this.noteList[index] = note;
+                notes[index] = note;
             } else {
-                this.noteList.push(note);
+                notes.push(note);
             }
         } else {
-            this.noteList.push(note);
+            notes.push(note);
         }
-        this._saveProject(this.currentProject);
+        return this._saveProject(this.currentProject, notes, this.previousMode);
     }
 
     deleteNote(id) {
-        const index = this.noteList.findIndex(item => item.id === id);
+        const notes = [...this.noteList];
+        const index = notes.findIndex(item => item.id === id);
         if (~index) {
-            this.noteList.splice(index, 1);
+            notes.splice(index, 1);
         }
-        this._saveProject(this.currentProject);
+        return this._saveProject(this.currentProject, notes, this._afterRemoveMode);
     }
 
-    _saveProject(project) {
-        this.projectDataService.saveProject(this.projectContext.convertProjectToServer(project))
-            .then(data => {
+    _saveProject(project, notes, nextMode) {
+        return this.projectDataService.saveProject(this.projectContext.convertProjectForSave({
+            ...project,
+            notes
+        }))
+            .then(data => new Promise(resolve => {
                 this._editingNote = {};
-                if (data.error) {
-                    return new Promise(resolve => {
-                        resolve(data);
-                    });
-                } else {
-                    this.currentProject.notes = data.notes || [];
-                    this.projectContext.refreshDatasetNotes(data.notes, this.currentProject.id);
-                    this.currentMode = this.previousMode;
-                    return new Promise(resolve => {
-                        resolve();
-                    });
+                this._newNote = {
+                    projectId: this.currentProject.id
+                };
+                if (!data.error) {
+                    this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes, this.currentProject.id);
+                    this.currentMode = nextMode;
                 }
-            });
-    }
-
-    _convertClientToServer(note) {
-        return {
-            noteId: note.id,
-            projectId: note.projectId,
-            title: note.title,
-            content: note.description
-        };
+                resolve(data);
+            }));
     }
 }

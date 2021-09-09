@@ -6,9 +6,10 @@ ngb-project-info-panel {
   .project-note-container {
     width: 100%;
     padding: 20px;
+    box-sizing: border-box;
   }
   .project-note-edit-button {
-    float: left;
+    float: right;
   }
 }
 

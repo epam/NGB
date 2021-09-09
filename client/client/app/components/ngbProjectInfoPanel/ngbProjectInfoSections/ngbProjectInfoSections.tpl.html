@@ -10,14 +10,14 @@
   </md-button>
   <md-menu-content width="4" class="ngb-project-info-sections-menu" md-whiteframe="4">
     <md-checkbox aria-label="Description" ng-if="$ctrl.ngbProjectInfoService.descriptionAvailable"
-                 ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
+                 ng-false-value="undefined"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
                  ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
     >
       <span>Description</span>
     </md-checkbox>
     <md-checkbox aria-label="Summary" ng-if="$ctrl.ngbProjectInfoService.summaryAvailable"
-                 ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
+                 ng-false-value="undefined"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
                  ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}">
       <span>Summary</span>
@@ -27,7 +27,7 @@
       <div ng-click="$ctrl.ngbProjectInfoService.addNote()">Add note</div>
     </md-menu-item>
     <md-checkbox aria-label="{{note.title}}"
-                 ng-false-value="{{$ctrl.ngbProjectInfoService.previousMode}}"
+                 ng-false-value="undefined"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
                  ng-repeat="(index, note) in $ctrl.ngbProjectInfoService.noteList track by note.id"
                  ng-true-value="{{note.id}}">

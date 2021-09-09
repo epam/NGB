@@ -80,13 +80,15 @@ export class ProjectDataService extends DataService {
      */
     saveProject(project) {
         return new Promise((resolve, reject) => {
-            this.post('project/save', project).then((data) => {
-                if (data) {
-                    resolve(data);
-                } else {
-                    reject('ERROR on saving project');
-                }
-            });
+            this.post('project/save', project)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject('ERROR on saving project');
+                    }
+                });
         });
     }
 

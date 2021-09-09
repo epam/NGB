@@ -908,13 +908,16 @@ export default class projectContext {
         return this.projectDataService.getProjectIdDescription(id);
     }
 
-    convertProjectToServer = utilities.convertProjectToServer;
+    convertProjectForSave = utilities.convertProjectForSave;
 
     refreshDatasetNotes(notes, projectId) {
         const index = this._datasets.findIndex(d => d.id === projectId);
         if (~index) {
-            this._datasets[index].notes = notes;
+            this._datasets[index].notes = notes
+                .map(utilities.preprocessDatasetNote)
+                .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0);
         }
+        return this._datasets[index].notes;
     }
 
     addLastLocalTrack(track) {
