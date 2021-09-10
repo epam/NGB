@@ -148,6 +148,17 @@ The **Sessions** panel has the following columns:
 
 **To delete a session** bookmark - click the **Trash** icon of the corresponding row.
 
+> **_Note_**:
+> Additionally, if any model was opened in the [Molecular viewer](#molecular-viewer-panel) at the saving session moment - full state of the opened model will be stored in such session.
+> The following options will be saved:
+>
+> - model, selected structure and chain
+> - view of the model - display mode and color scheme
+> - the set angle
+> - the set zoom level
+>
+> So, if user will open such session - the **Molecular viewer** panel will be opened with the full same model image as it was saved.
+
 ### Molecular viewer panel
 
 The **Molecular Viewer** panel shows the 3D structure of a protein.  
