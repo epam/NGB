@@ -2,6 +2,10 @@
   align-self: center;
 }
 
+.motifs-back-button {
+  min-width: 44px;
+}
+
 .motifs-search-table {
   display: flex;
   flex-direction: column;
@@ -13,8 +17,4 @@
     .ui-grid-header-cell-label {
       text-transform: capitalize;
     }
-}
-
-.motif-icon-arrow-back {
-  fill: #fff;
 }

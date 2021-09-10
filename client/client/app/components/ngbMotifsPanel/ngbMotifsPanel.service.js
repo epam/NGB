@@ -48,7 +48,7 @@ export default class ngbMotifsPanelService {
 
     constructor(appLayout, dispatcher, projectContext, motifsDataService) {
         Object.assign(this, {appLayout, dispatcher, projectContext, motifsDataService});
-        this.dispatcher.on('motifs:search:reset', ::this.resetData);
+        this.dispatcher.on('reference:change', ::this.panelCloseMotifsPanel);
     }
 
     get isSearchInProgress () {
@@ -136,6 +136,13 @@ export default class ngbMotifsPanelService {
     panelAddMotifsPanel () {
         const layoutChange = this.appLayout.Panels.motifs;
         layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+    }
+
+    panelCloseMotifsPanel () {
+        this.resetData();
+        const layoutChange = this.appLayout.Panels.motifs;
+        layoutChange.displayed = false;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 

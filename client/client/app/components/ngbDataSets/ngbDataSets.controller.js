@@ -147,16 +147,10 @@ Open dataset files manually.`;
                 .ariaLabel('Change reference')
                 .ok('OK')
                 .cancel('Cancel');
-            self.$mdDialog.show(confirm)
-                .then(function () {
-                    const layoutChange = self.appLayout.Panels.motifs;
-                    if (layoutChange.displayed) {
-                        layoutChange.displayed = false;
-                        self.dispatcher.emitSimpleEvent('motifs:search:reset');
-                        self.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
-                    }
-                    self.service.selectItem(item, isSelected, tree);
-                }, function () {});
+            self.$mdDialog.show(confirm).then(function () {
+                self.service.selectItem(item, isSelected, tree);
+            }, function () {
+            });
         } else {
             this.$timeout(() => {
                 self.service.selectItem(item, isSelected, tree);

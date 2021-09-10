@@ -65,26 +65,30 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     async updateCache () {
-        const viewport = this.cacheUpdateParameters(this.viewport);
-        const request = {
-            id: viewport.id,
-            chromosomeId: viewport.chromosomeId,
-            startIndex: viewport.startIndex,
-            endIndex: viewport.endIndex,
-            scaleFactor: viewport.scaleFactor,
+        const updated = super.updateCache();
+        if (updated && this.cache) {
+            const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
+            this.cache.data = (data && data.blocks) ? this.transformData(data) : [];
+            return true;
+        }
+        return false;
+    }
+
+    cacheUpdateParameters (viewport) {
+        const payload = super.cacheUpdateParameters(viewport);
+        const parameters = {
+            id: payload.id,
+            chromosomeId: payload.chromosomeId,
+            startIndex: payload.startIndex,
+            endIndex: payload.endIndex,
+            scaleFactor: payload.scaleFactor,
             option: {},
             collapsed: false,
             projectId: 0,
             motif: this.motifsContext.match.motif,
             strand: this.motifStrand.toUpperCase()
         };
-        const data = await this.motifTrack(request);
-        if (!this.cache) {
-            return false;
-        }
-        const transformedData = this.transformData(data);
-        this.cache.data = transformedData;
-        return await super.updateCache();
+        return parameters;
     }
 
     transformData(data) {
