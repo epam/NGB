@@ -1,5 +1,6 @@
 import {NumberFormatter, Sorting} from '../../utilities';
-import {displayModes, scaleModes} from './modes';
+import {scaleModes} from '../common/scaleModes';
+import {displayModes} from './modes';
 const Math = window.Math;
 
 export default class WIGTransformer {
@@ -64,7 +65,7 @@ export default class WIGTransformer {
         switch (coverageScaleMode) {
             case scaleModes.manualScaleMode: {
                 maximum = !isNaN(coverageScaleTo) ? +coverageScaleTo : extremumValues.maximum;
-                minimum = !isNaN(coverageScaleTo) ? +coverageScaleFrom : extremumValues.minimum;
+                minimum = !isNaN(coverageScaleFrom) ? +coverageScaleFrom : extremumValues.minimum;
             } break;
             default: {
                 maximum = extremumValues.maximum;

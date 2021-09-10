@@ -4,27 +4,27 @@
          title="{{$ctrl.getNodeHint(node)}}">
         <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
             <div layout="row" layout-align="space-between center">
-                <div layout="row" layout-align="start center">
-                                    <span>
-                                        <ng-md-icon icon="play_arrow"
-                                                    class="dataset-icon"
-                                                    ng-class="{opened: node.__expanded, empty: node.isEmpty}"
-                                                    ng-click="$ctrl.expanded(node)"
-                                                    size="13pt"></ng-md-icon>
-                                    </span>
+                <div layout="row" layout-align="start center" class="dataset-info">
+                    <span>
+                        <ng-md-icon icon="play_arrow"
+                                    class="dataset-icon"
+                                    ng-class="{opened: node.__expanded, empty: node.isEmpty}"
+                                    ng-click="$ctrl.expanded(node)"
+                                    size="13pt"></ng-md-icon>
+                    </span>
 
                     <span class="ivh-treeview-checkbox-wrapper project"
                           ng-if="node.reference">
-                                        <span class="ng-isolate-scope">
-                                            <input type="checkbox"
-                                                   element="node.__selected"
-                                                   property="node.__indeterminate"
-                                                   class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
-                                                   ng-change="$ctrl.toggle(node)" ng-model="node.__selected"
-                                                   ng-disabled="!node.__selected && $ctrl.datasetSelectionDisabled(node)"
-                                                   aria-invalid="false">
-                                        </span>
-                                    </span>
+                        <span class="ng-isolate-scope">
+                            <input type="checkbox"
+                                    element="node.__selected"
+                                    property="node.__indeterminate"
+                                    class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
+                                    ng-change="$ctrl.toggle(node)" ng-model="node.__selected"
+                                    ng-disabled="!node.__selected && $ctrl.datasetSelectionDisabled(node)"
+                                    aria-invalid="false">
+                        </span>
+                    </span>
 
                     <span class="ivh-treeview-node-label dataset-project-title" ng-click="$ctrl.expanded(node)"
                           ng-class="{selected: node.__selected || node.__indeterminate, empty: node.isEmpty}">
@@ -36,6 +36,16 @@
                         </span>
                         <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
                         <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
+                    </span>
+                    <span class="metadata-info-row">
+                        <span
+                            class="structure-card-search-result"
+                            ng-if="$ctrl.searchLength && node.metadataSearchInfo && node.metadataSearchInfo.metadata"
+                            ng-repeat="attr in node.metadataSearchInfo.metadata"
+                    >
+                            <md-tooltip>{{attr.key}}:{{attr.pre}}{{attr.match}}{{attr.post}}</md-tooltip>
+                            {{attr.key}}:{{attr.pre}}<span class="metadata-value"><span class="search-result">{{attr.match}}</span>{{attr.post}}</span>
+                        </span>
                     </span>
                 </div>
                 <div class="dataset-genome"

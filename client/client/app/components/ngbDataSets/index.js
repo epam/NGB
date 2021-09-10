@@ -1,6 +1,7 @@
 // Import Style
 import './ngbDataSets.scss';
 import './internal/ngbPermissionsForm/ngbPermissionsForm.scss';
+import './internal/ngbDataSetMetadata/ngbDataSetMetadata.styles.scss';
 // Import internal modules
 import angular from 'angular';
 import component from './ngbDataSets.component';

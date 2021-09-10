@@ -1,5 +1,5 @@
-import {CachedTrackRenderer, drawingConfiguration} from '../../core';
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
+import {CachedTrackRenderer} from '../../core';
 
 const Math = window.Math;
 
@@ -63,13 +63,13 @@ export default class SegRenderer extends CachedTrackRenderer {
         this._blocks = value;
     }
 
-    constructor(config) {
-        super();
+    constructor(config, track) {
+        super(track);
         this._config = config;
         this.initializeCentralLine();
     }
 
-    render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
+    render(viewport, cache, heightChanged, _showCenterLine) {
         const showCenterLineChanged = this._showCenterLine !== _showCenterLine;
         this._showCenterLine = _showCenterLine;
         const isRedraw = showCenterLineChanged;
@@ -83,7 +83,7 @@ export default class SegRenderer extends CachedTrackRenderer {
             });
         }
         else {
-            super.render(viewport, cache, isRedraw, null, _showCenterLine);
+            super.render(viewport, cache, isRedraw, _showCenterLine);
         }
     }
 
@@ -225,11 +225,12 @@ export default class SegRenderer extends CachedTrackRenderer {
     }
 
     _drawTrackLabel(index, name) {
-        const label = new PIXI.Text(name, this._config.label);
-        label.resolution = drawingConfiguration.resolution;
-        label.x = 0;
-        label.y = index * (this.sampleHeight);
-        this._backgroundContainer.addChild(label);
+        const label = this.labelsManager ? this.labelsManager.getLabel(name, this._config.label) : undefined;
+        if (label) {
+            label.x = 0;
+            label.y = index * (this.sampleHeight);
+            this._backgroundContainer.addChild(label);
+        }
     }
 
     _drawVerticalScroll(viewport) {

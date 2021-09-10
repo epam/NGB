@@ -1,26 +1,18 @@
-import {NumberFormatter, PixiTextSize} from '../../utilities';
+import {PixiTextSize} from '../../utilities';
+import generateCoordinateSystemTicks from '../../utilities/coordinateSystem';
 
 const Math = window.Math;
 
 export default class RulerTransformer {
-
     static _buildTicks(viewport, _config, isGlobal, ticksCount) {
-        const brushSize = isGlobal ? viewport.chromosomeSize : viewport.brushSize;
         const brushStart = isGlobal ? 1 : viewport.brush.start;
         const brushEnd = isGlobal ? viewport.chromosomeSize : viewport.brush.end;
-        const module = NumberFormatter.findClosestDecimalDegree(brushSize, ticksCount);
-        const decimalBase = 10;
-        const tickStep = Math.floor(brushSize / (ticksCount * (decimalBase ** module))) * (decimalBase ** module);
-        let tickValue = Math.floor(brushStart / tickStep) * tickStep;
-        while (tickValue < brushStart){
-            tickValue += tickStep;
-        }
-        const ticks = [];
         const start = Math.floor(brushStart);
         const center = viewport.isShortenedIntronsMode ?
             viewport.shortenedIntronsViewport.brush.center :
             (viewport.brush.start + viewport.brush.end) / 2;
         const end = Math.floor(brushEnd);
+        const ticks = [];
         ticks.push({
             isFirst: true,
             labelStyle: _config.tick.label,
@@ -33,7 +25,9 @@ export default class RulerTransformer {
             realValue: end,
             value: end
         });
+        const ignore = new Set([start, end]);
         if (!isGlobal) {
+            ignore.add(center);
             ticks.push({
                 isCenter: true,
                 labelStyle: _config.centerTick.label,
@@ -41,17 +35,15 @@ export default class RulerTransformer {
                 value: Math.round(center)
             });
         }
-
-        while(tickValue < brushEnd){
-            if (tickValue !== start && tickValue !== end && (isGlobal || tickValue !== Math.round(center))) {
+        generateCoordinateSystemTicks(start, end, false, ticksCount)
+            .filter(({value}) => !ignore.has(value))
+            .forEach(({value}) => {
                 ticks.push({
                     labelStyle: _config.tick.label,
-                    realValue: tickValue,
-                    value: tickValue
+                    realValue: value,
+                    value
                 });
-            }
-            tickValue += tickStep;
-        }
+            });
         return ticks;
     }
 

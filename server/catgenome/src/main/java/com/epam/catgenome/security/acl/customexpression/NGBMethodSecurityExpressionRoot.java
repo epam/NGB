@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.entity.session.NGBSession;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
@@ -58,6 +59,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
             return true;
         }
         return permissionHelper.isAllowed(permission, item);
+    }
+
+    public boolean isAllowed(final Long entityId, final AclClass entityClass, final String permission) {
+        return permissionHelper.isAllowed(permission, entityId, entityClass);
     }
 
     public boolean hasSpecificRole(AclClass aclClass) {
@@ -102,6 +107,23 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         } else {
             return hasPermission(projectId, Project.class.getCanonicalName(), permission);
         }
+    }
+
+    public boolean hasPermissionOnSession(Long sessionId, String permission) {
+        // if sessionId does not specified just return true
+        if (sessionId == null) {
+            return true;
+        } else {
+            return isOwner(AclClass.SESSION, sessionId)
+                    || hasPermission(sessionId, NGBSession.class.getCanonicalName(), permission);
+        }
+    }
+
+    public boolean sessionIsReadable(final NGBSession session) {
+        if (session == null) {
+            return false;
+        }
+        return permissionHelper.sessionIsReadable(session);
     }
 
     public boolean hasPermissionOnGeneFile(Long projectId, String permission) {

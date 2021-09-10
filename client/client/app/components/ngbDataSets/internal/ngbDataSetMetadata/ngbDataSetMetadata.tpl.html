@@ -1,0 +1,114 @@
+<md-dialog style="max-height: 75vh;top: 0px">
+    <form
+        ng-cloak
+        name="metadataForm"
+        ng-submit="ctrl.saveMetadata()"
+        class="metadata-form"
+    >
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>{{ctrl.node.name}}</h2>
+                <span flex></span>
+                <md-button
+                    class="md-icon-button"
+                    ng-click="ctrl.closeDialog()"
+                >
+                  <ng-md-icon icon="close" aria-label="Close dialog"></ng-md-icon>
+                </md-button>
+              </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content scrollable-container">
+                <div
+                    class="dialog-content-inner"
+                >
+                    <div
+                        ng-if="ctrl.metadataIsEmpty"
+                        class="message">
+                        <h3>This {{ctrl.node.isProject ? 'dataset' : 'file'}} does not contain any attributes</h3>
+                        <h4>Click the ADD button to create new one</h4>
+                    </div>
+                     <h2
+                        ng-if="!ctrl.metadataIsEmpty"
+                        class="title"
+                    >
+                        Attributes
+                    </h2>
+                    <div
+                        layout="row"
+                        ng-repeat="attr in ctrl.formData"
+                    >
+                        <md-input-container class="hide-excessive-space md-block">
+                            <label>Key</label>
+                            <input
+                                ng-model="attr[0]"
+                                name="attrKey"
+                                required
+                                style="width: 250px">
+                            <div
+                                ng-if="ctrl.isDuplicate(attr[0])"
+                                class="warning-container"
+                            >
+                                <ng-md-icon
+                                    icon="warning"
+                                    style="fill:orange"
+                                    size="12"
+                                ></ng-md-icon>
+                                <div style="height: 24px">
+                                    <span class="warning">Please, enter unique key</span>
+                                </div>
+                            </div>
+                        </md-input-container>
+                        <md-input-container class="hide-excessive-space md-block input-container">
+                            <label>Value</label>
+                            <input
+                                ng-model="attr[1]"
+                                name="attrValue"
+                                required
+                                style="width: 250px"
+                            >
+                        </md-input-container>
+                        <md-button class="md-icon-button" ng-click="ctrl.removeAttribute($index)">
+                            <ng-md-icon
+                                icon="clear"
+                                aria-label="remove attribute"
+                                style="fill: #999999"
+                                size="16">
+                            </ng-md-icon>
+                        </md-button>
+                    </div>
+                </div>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions
+            layout="row"
+            class="layout-row"
+            style="padding: 15px;"
+        >
+            <md-button
+                class="md-raised md-primary"
+                ng-click="ctrl.addFormItem()"
+                aria-label="add attribute"
+            >
+                ADD
+            </md-button>
+            </md-button>
+            <span flex></span>
+            <md-button
+                type="submit"
+                class="md-primary save-metadata-btn"
+                aria-label="save attribute"
+                ng-disabled="!ctrl.metadataIsChanged || ctrl.formHasDuplicates"
+            >
+              SAVE
+              <md-progress-circular class="save-loader"  md-diameter="20px" ng-show="ctrl.saving" md-mode="indeterminate"></md-progress-circular>
+            </md-button>
+            <md-button
+                aria-label="cancel changes and close metadata popup"
+                ng-click="ctrl.cancelChanges()"
+                >
+              CANCEL
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

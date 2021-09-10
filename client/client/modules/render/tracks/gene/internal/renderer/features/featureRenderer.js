@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     AminoacidFeatureRenderer,
     FeatureBaseRenderer,
@@ -6,7 +7,6 @@ import {
     ZONES_MANAGER_DEFAULT_ZONE_NAME
 } from './drawing';
 import {Sorting, ZonesManager} from '../../../../../utilities';
-import PIXI from 'pixi.js';
 import {Viewport} from '../../../../../core';
 
 const Math = window.Math;
@@ -28,22 +28,32 @@ export default class FeatureRenderer {
     _featuresPositions = null;
     _opts;
 
-    constructor(config) {
+    constructor(config, track) {
         this._config = config;
-        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(config,
+        this._track = track;
+        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
-            ::this.registerFeaturePosition);
-        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(config,
+            ::this.registerFeaturePosition
+        );
+        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            this._aminoacidFeatureRenderer);
-        this._geneFeatureRenderer = new GeneFeatureRenderer(config,
+            this._aminoacidFeatureRenderer
+        );
+        this._geneFeatureRenderer = new GeneFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            this._transcriptFeatureRenderer);
+            this._transcriptFeatureRenderer
+        );
 
         this._labels = [];
         this._dockableLabels = [];
@@ -113,6 +123,7 @@ export default class FeatureRenderer {
         highlightGraphics: PIXI.Graphics = null, hoveredHighlightGraphics: PIXI.Graphics) {
         if (features === null || features === undefined)
             return null;
+
         this.prepareRenderers();
         this._labels = [];
         this._dockableLabels = [];
@@ -145,41 +156,59 @@ export default class FeatureRenderer {
             hoveredHighlightGraphics: hoveredFeatureHighlightGraphics
         };
         this._geneFeatureRenderer._opts = this._opts;
-        const maxIterations = 10000000;
         const {
             geneFeatures
         } = this._opts || {};
-        for (let i = 0; i < features.length; i++) {
-            const item = features[i];
-            if (
+        const featureOutOfViewport = ({startIndex, endIndex}) => {
+            if (startIndex === undefined || endIndex === undefined) {
+                return true;
+            }
+            const x1 = viewport.project.brushBP2pixel(startIndex);
+            const x2 = viewport.project.brushBP2pixel(endIndex);
+            return x2 <= -viewport.canvasSize || x1 >= 2.0 * viewport.canvasSize;
+        };
+        const filteredFeatures = (features || []).filter(item =>
+            !featureOutOfViewport(item) &&
+            this.getRendererForFeature(item) &&
+            !(
                 geneFeatures &&
                 geneFeatures.length > 0 &&
                 !/^statistic$/i.test(item.feature) &&
                 geneFeatures.indexOf(item.feature) === -1
-            ) {
-                continue;
-            }
+            )
+        );
+        const featureBoundariesArray = filteredFeatures.map(item => ({
+            feature: item,
+            boundary: Object.assign(
+                {
+                    global: {
+                        x: 0,
+                        y: zoneBoundaries.y1
+                    }
+                },
+                this.getRendererForFeature(item).analyzeBoundaries(item, viewport)
+            )
+        }));
+        const getFeatureBoundaries = (feature) => {
+            const [boundaries] = featureBoundariesArray.filter(o => o.feature === feature);
+            return boundaries ? boundaries.boundary : undefined;
+        };
+        for (let i = 0; i < filteredFeatures.length; i++) {
+            const item = filteredFeatures[i];
             const renderer = this.getRendererForFeature(item);
             if (!renderer) {
-                continue;
+                return;
             }
+            const boundary = getFeatureBoundaries(item);
             const boundaries = this._zonesManager.checkArea(
                 ZONES_MANAGER_DEFAULT_ZONE_NAME,
-                Object.assign(
-                    {
-                        global: {
-                            x: 0,
-                            y: zoneBoundaries.y1
-                        }
-                    },
-                    renderer.analyzeBoundaries(item, viewport)
-                ),
+                boundary,
                 {
                     translateX: 0,
                     translateY: 1
                 },
-                maxIterations);
-            if (!boundaries.conflicts) {
+            );
+            if (boundaries && !boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
                 renderer.render(item, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
@@ -192,7 +221,7 @@ export default class FeatureRenderer {
         return graphicsObj;
     }
 
-    manageLabels(viewport) {
+    manageLabels(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._labels.length; i++) {
             const labelData = this._labels[i];
             if (labelData.label.parent === null || labelData.label.parent === undefined)
@@ -221,6 +250,11 @@ export default class FeatureRenderer {
                     const relativeYEndPosition = labelData.label.parent.y + labelData.position.y + labelData.range.height - labelData.label.height;
                     labelData.label.y = Math.round(Math.max(relativeYStartPosition, Math.min(relativeYEndPosition, 0))) - labelData.label.parent.y;
                 }
+                const verticallyInvisible = (labelData.label.y + labelData.label.height) < -yOffset ||
+                    labelData.label.y > (-yOffset) + height;
+                if (verticallyInvisible) {
+                    labelData.visible = false;
+                }
             }
         }
     }
@@ -238,13 +272,16 @@ export default class FeatureRenderer {
         }
     }
 
-    manageAttachedElements(viewport) {
+    manageAttachedElements(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._attachedElements.length; i++) {
             const {attachedInfo, element} = this._attachedElements[i];
-            element.y = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            const elementY = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            element.y = elementY;
             const startPx = viewport.project.brushBP2pixel(attachedInfo.range.start);
             const endPx = viewport.project.brushBP2pixel(attachedInfo.range.end);
-            if (startPx > viewport.canvasSize || endPx < 0) {
+            const verticallyInvisible = elementY < -yOffset || elementY + attachedInfo.renderInfo.height > (-yOffset) + height;
+
+            if (startPx > viewport.canvasSize || endPx < 0 || verticallyInvisible) {
                 element.visible = false;
                 continue;
             }
@@ -290,7 +327,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element: PIXI.Text = labels[i].label;
+            const element = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -435,9 +472,10 @@ export default class FeatureRenderer {
             if (item.graphicsBoundaries.ignore) {
                 return true;
             }
+            const diff = container.getGlobalPosition().y;
             const graphics = new PIXI.Graphics();
             graphics.beginFill(0x00FF00, 1);
-            graphics.drawRect(x1, y1, x2 - x1, y2 - y1);
+            graphics.drawRect(x1, y1 + diff, x2 - x1, y2 - y1);
             graphics.endFill();
             container.mask = graphics;
             container.visible = true;

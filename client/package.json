@@ -37,9 +37,11 @@
     "jquery-mousewheel": "3.1.13",
     "jquery-ui": "1.12.1",
     "keyboardjs": "2.5.1",
+    "miew": "^0.9.0",
     "moment": "^2.23.0",
-    "pixi.js": "3.0.11",
+    "pixi.js-legacy": "6.1.2",
     "rx": "4.1.0",
+    "showdown": "^1.9.1",
     "tether": "1.3.2"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 const Math = window.Math;
 export function drawDashLine(graphics: PIXI.Graphics, dashSize, start, end, drawConfig) {
     const {xStart, yStart} = start;

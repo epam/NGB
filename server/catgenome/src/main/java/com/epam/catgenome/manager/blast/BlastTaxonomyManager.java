@@ -71,7 +71,6 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Slf4j
 public class BlastTaxonomyManager {
 
-    private static final String AUTHORITY = "authority";
     private static final String COMMON_NAME = "common name";
     private static final String SCIENTIFIC_NAME = "scientific name";
     private static final String TAXONOMY_LINE_DELIMITER = "|";
@@ -244,21 +243,17 @@ public class BlastTaxonomyManager {
         final List<String> synonyms = new ArrayList<>();
         final BlastTaxonomy.BlastTaxonomyBuilder blastTaxonomy = BlastTaxonomy.builder()
                 .taxId(taxId).synonyms(synonyms);
-        boolean hasAuthority = false;
         for (final TaxonomyRecord record : records) {
             final String name = record.line.split(TAXONOMY_TOKEN_DELIMITER_PATTERN)[1].trim();
             if (record.line.contains(COMMON_NAME)) {
                 blastTaxonomy.commonName(name);
             } else if (record.line.contains(SCIENTIFIC_NAME)) {
                 blastTaxonomy.scientificName(name);
-            } else if (record.line.contains(AUTHORITY)) {
-                hasAuthority = true;
-                synonyms.add(name);
             } else if (!excludeLine(record.line)) {
                 synonyms.add(name);
             }
         }
-        return hasAuthority ? blastTaxonomy.build() : null;
+        return blastTaxonomy.build();
     }
 
     private List<TaxonomyRecord> readTaxonomyLines(final String path) {

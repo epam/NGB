@@ -24,11 +24,16 @@
 package com.epam.catgenome.manager.externaldb.homologene;
 
 import com.epam.catgenome.component.MessageCode;
+import com.epam.catgenome.dao.homolog.HomologGeneAliasDao;
+import com.epam.catgenome.dao.homolog.HomologGeneDescDao;
+import com.epam.catgenome.dao.homolog.HomologGeneDomainDao;
+import com.epam.catgenome.entity.externaldb.homologene.Alias;
 import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -58,6 +63,8 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -83,18 +90,24 @@ public class HomologeneManager {
 
     private static final String TERM_SPLIT_TOKEN = " ";
     private static final String GENE_FIELDS_LINE_DELIMITER = "|";
-    public static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
+    private static final String INCORRECT_XML_FORMAT = "Incorrect XML format";
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
     @Autowired
-    BlastTaxonomyManager taxonomyManager;
+    private BlastTaxonomyManager taxonomyManager;
+    @Autowired
+    private HomologGeneDomainDao domainDao;
+    @Autowired
+    private HomologGeneAliasDao aliasDao;
+    @Autowired
+    private HomologGeneDescDao geneDescDao;
 
-    public HomologeneSearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
+    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException {
         final List<HomologeneEntry> entries = new ArrayList<>();
-        final HomologeneSearchResult<HomologeneEntry> searchResult = new HomologeneSearchResult<>();
+        final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -104,7 +117,7 @@ public class HomologeneManager {
             final int hits = page * pageSize;
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(buildSearchQuery(query.getQuery()), hits);
+            TopDocs topDocs = searcher.search(buildSearchQuery(query.getQuery() == null ? "" : query.getQuery()), hits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -123,7 +136,7 @@ public class HomologeneManager {
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
                 List<Gene> genes = getGenes(doc);
-                setSpeciesName(genes, organisms);
+                setGeneSpeciesNames(genes, organisms);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
@@ -140,23 +153,11 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    private void setSpeciesName(final List<Gene> genes, List<BlastTaxonomy> organisms) {
-        for (Gene gene: genes) {
-            BlastTaxonomy organism = organisms
-                    .stream()
-                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
-                    .findFirst()
-                    .orElse(null);
-            if (organism != null) {
-                gene.setSpeciesCommonName(organism.getCommonName());
-                gene.setSpeciesScientificName(organism.getScientificName());
-            }
-        }
-    }
-
+    @Transactional(propagation = Propagation.REQUIRED)
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         File file = new File(databasePath);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        List<Gene> genes = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
@@ -164,68 +165,43 @@ public class HomologeneManager {
             writer.deleteAll();
             for (HomologeneEntry entry: readHomologenes(databasePath)) {
                 addDoc(writer, entry);
+                genes.addAll(entry.getGenes());
             }
         }
+        deleteGenes();
+        saveGenes(genes);
     }
 
-    private Query buildSearchQuery(final String terms) {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        for (String term: terms.split(TERM_SPLIT_TOKEN)) {
-            mainBuilder.add(
-                new BooleanQuery.Builder()
-                    .add(buildPrefixQuery(term, IndexFields.QUERY_FIELDS), BooleanClause.Occur.SHOULD)
-                    .build(),
-                BooleanClause.Occur.MUST
-            );
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void saveGenes(final List<Gene> genes) {
+        List<Alias> aliases = new ArrayList<>();
+        List<Domain> domains = new ArrayList<>();
+        List<Gene> distinctGenes = genes.stream()
+                .collect(Collectors.groupingBy(Gene::getGeneId))
+                .values()
+                .stream()
+                .flatMap(group -> group.stream().limit(1))
+                .collect(Collectors.toList());
+        for (Gene gene: distinctGenes) {
+            gene.getAliases().forEach(a -> aliases.add(Alias.builder()
+                    .geneId(gene.getGeneId())
+                    .name(a)
+                    .build()));
         }
-        return mainBuilder.build();
-    }
-
-    private PrefixQuery buildPrefixQuery(final String term, final IndexFields field) {
-        return new PrefixQuery(new Term(field.getFieldName(), term.toLowerCase()));
-    }
-
-    private long getGroupId(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.GROUP_ID.getFieldName()).stringValue());
-    }
-
-    private long getVersion(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.VERSION.getFieldName()).stringValue());
-    }
-
-    private String getCaption(final Document doc) {
-        return doc.getField(IndexFields.CAPTION.getFieldName()).stringValue();
-    }
-
-    private long getTaxId(final Document doc) {
-        return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
-    }
-
-    private List<Gene> getGenes(final Document doc) {
-        return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
-                : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
-    }
-
-    @Getter
-    private enum IndexFields {
-        GROUP_ID("groupId"),
-        VERSION("version"),
-        CAPTION("caption"),
-        TAX_ID("taxId"),
-        QUERY_FIELDS("queryFields"),
-        GENES("genes");
-
-        private final String fieldName;
-
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
+        for (Gene gene: distinctGenes) {
+            List<Domain> geneDomains = gene.getDomains();
+            geneDomains.forEach(d -> d.setGeneId(gene.getGeneId()));
+            domains.addAll(geneDomains);
         }
+        geneDescDao.save(distinctGenes);
+        aliasDao.save(aliases);
+        domainDao.save(domains);
     }
 
-    private static <T> void requireNonNull(T obj) {
-        if (obj == null) {
-            throw new IllegalStateException(INCORRECT_XML_FORMAT);
-        }
+    public void deleteGenes() {
+        domainDao.deleteAll();
+        aliasDao.deleteAll();
+        geneDescDao.deleteAll();
     }
 
     @SneakyThrows
@@ -236,7 +212,7 @@ public class HomologeneManager {
         XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(inputStream);
         List<HomologeneEntry> homologeneEntries = new ArrayList<>();
         List<Gene> genes = new ArrayList<>();
-        List<String> aliases = new ArrayList<>();
+        Set<String> aliases = new HashSet<>();
         List<Domain> domains = new ArrayList<>();
         HomologeneEntry homologeneEntry = null;
         Gene gene = null;
@@ -350,7 +326,7 @@ public class HomologeneManager {
                         gene.setAliases(aliases);
                         gene.setDomains(domains);
                         genes.add(gene);
-                        aliases = new ArrayList<>();
+                        aliases = new HashSet<>();
                         domains = new ArrayList<>();
                         gene = null;
                         break;
@@ -366,6 +342,80 @@ public class HomologeneManager {
         streamReader.close();
         inputStream.close();
         return homologeneEntries;
+    }
+
+    public static void setGeneSpeciesNames(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+        for (Gene gene: genes) {
+            BlastTaxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(gene.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                gene.setSpeciesCommonName(organism.getCommonName());
+                gene.setSpeciesScientificName(organism.getScientificName());
+            }
+        }
+    }
+
+    private Query buildSearchQuery(final String terms) {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        for (String term: terms.split(TERM_SPLIT_TOKEN)) {
+            mainBuilder.add(
+                new BooleanQuery.Builder()
+                    .add(buildPrefixQuery(term, IndexFields.QUERY_FIELDS), BooleanClause.Occur.SHOULD)
+                    .build(),
+                BooleanClause.Occur.MUST
+            );
+        }
+        return mainBuilder.build();
+    }
+
+    private PrefixQuery buildPrefixQuery(final String term, final IndexFields field) {
+        return new PrefixQuery(new Term(field.getFieldName(), term.toLowerCase()));
+    }
+
+    private long getGroupId(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.GROUP_ID.getFieldName()).stringValue());
+    }
+
+    private long getVersion(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.VERSION.getFieldName()).stringValue());
+    }
+
+    private String getCaption(final Document doc) {
+        return doc.getField(IndexFields.CAPTION.getFieldName()).stringValue();
+    }
+
+    private long getTaxId(final Document doc) {
+        return Long.parseLong(doc.getField(IndexFields.TAX_ID.getFieldName()).stringValue());
+    }
+
+    private List<Gene> getGenes(final Document doc) {
+        return doc.getField(IndexFields.GENES.getFieldName()) == null ? null
+                : deserializeGenes(doc.getField(IndexFields.GENES.getFieldName()).stringValue());
+    }
+
+    @Getter
+    private enum IndexFields {
+        GROUP_ID("groupId"),
+        VERSION("version"),
+        CAPTION("caption"),
+        TAX_ID("taxId"),
+        QUERY_FIELDS("queryFields"),
+        GENES("genes");
+
+        private final String fieldName;
+
+        IndexFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+    }
+
+    private static <T> void requireNonNull(T obj) {
+        if (obj == null) {
+            throw new IllegalStateException(INCORRECT_XML_FORMAT);
+        }
     }
 
     private static void addDoc(final IndexWriter writer, final HomologeneEntry entry) throws IOException {

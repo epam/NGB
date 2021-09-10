@@ -1,8 +1,11 @@
 import Sorting from './sorting';
+import linearDimensionsConflict from './linearDimensionsConflicts';
 
 export default class ZonesManager {
 
     _zones = null;
+
+    useCaches = false;
 
     constructor() {
         this._zones = new Map();
@@ -13,8 +16,12 @@ export default class ZonesManager {
     }
 
     configureZone(zone, boundaries) {
+        const current = this.zones.get(zone) || {};
+        const {areas: cachedAreas = []} = current;
         this.zones.set(zone, {
             areas: [],
+            cachedAreas: cachedAreas
+                .filter(area => !!area.key),
             boundaries: boundaries
         });
     }
@@ -31,8 +38,35 @@ export default class ZonesManager {
         return null;
     }
 
-    checkArea(zoneName, area, translationVector, maxIterations) {
-        const {rect, global} = area;
+    cacheExists(zoneName, area, translationVector) {
+        if (!this.useCaches) {
+            return false;
+        }
+        const {key, rect} = area;
+        const zone = this.zones.get(zoneName);
+        if (!key || !rect || !zone) {
+            return false;
+        }
+        const {translateX, translateY} = translationVector;
+        const {cachedAreas = []} = zone;
+        if ((!translateY && !translateX) || cachedAreas.length === 0) {
+            return false;
+        }
+        const desiredArea = {
+            height: rect.y2 - rect.y1,
+            width: rect.x2 - rect.x1
+        };
+        const sameKeys = cachedAreas.filter(a => !!key && a.key === key);
+        const equalDimensions = (a, b) => Math.abs(a - b) < 1;
+        const [cache] = sameKeys
+            .filter(a => equalDimensions(a.width, desiredArea.width) &&
+                equalDimensions(a.height, desiredArea.height)
+            );
+        return !!cache;
+    }
+
+    checkArea(zoneName, area, translationVector) {
+        const {key, rect, global} = area || {};
         let {margin} = area;
         if (rect === null || rect === undefined)
             return null;
@@ -41,10 +75,9 @@ export default class ZonesManager {
             marginX: 0,
             marginY: 0
         };
-        const defaultMaxIterations = 10;
-        maxIterations = maxIterations ? maxIterations : defaultMaxIterations;
         const zone = this.zones.get(zoneName);
         if (zone !== undefined && zone !== null) {
+            const {cachedAreas = []} = zone;
             const desiredArea = {
                 height: rect.y2 - rect.y1,
                 width: rect.x2 - rect.x1,
@@ -53,36 +86,64 @@ export default class ZonesManager {
                 y1: rect.y1 + global.y,
                 y2: rect.y2 + global.y
             };
-            let iteration = 0;
+            const [cache] = this.useCaches
+                ? cachedAreas
+                    .filter(a => !!key && a.key === key &&
+                        a.width === desiredArea.width &&
+                        a.height === desiredArea.height
+                    )
+                : [];
             let conflicts = true;
-            while (ZonesManager._rectangleFitBoundaries(desiredArea, zone.boundaries) && conflicts && iteration < maxIterations) {
+            if (cache && (translateY || translateX)) {
                 conflicts = false;
-                for (let i = 0; i < zone.areas.length; i++) {
-                    const testArea = zone.areas[i];
-                    if (ZonesManager._rectanglesConflict(testArea, desiredArea, margin)) {
-                        let newX = desiredArea.x1;
-                        let newY = desiredArea.y1;
-                        if (translateX > 0) {
-                            newX = testArea.x2 + margin.marginX;
-                        }
-                        else if (translateX < 0) {
-                            newX = testArea.x1 - desiredArea.width - margin.marginX;
-                        }
-                        if (translateY > 0) {
-                            newY = testArea.y2 + margin.marginY;
-                        }
-                        else if (translateY < 0) {
-                            newY = testArea.y1 - desiredArea.height - margin.marginY;
-                        }
-                        desiredArea.x1 = newX;
-                        desiredArea.x2 = newX + desiredArea.width;
-                        desiredArea.y1 = newY;
-                        desiredArea.y2 = newY + desiredArea.height;
-                        conflicts = true;
-                        break;
+                if (translateY) {
+                    desiredArea.y1 = cache.y1;
+                    desiredArea.y2 = cache.y2;
+                }
+                if (translateX) {
+                    desiredArea.x1 = cache.x1;
+                    desiredArea.x2 = cache.x2;
+                }
+                cachedAreas.splice(cachedAreas.indexOf(cache), 1);
+            } else {
+                const checkZone = {
+                    height: translateY !== 0 ? Infinity : desiredArea.height,
+                    y1: translateY !== 0 ? -Infinity : desiredArea.y1,
+                    y2: translateY !== 0 ? Infinity : desiredArea.y2,
+                    width: translateX !== 0 ? Infinity : desiredArea.width,
+                    x1: translateX !== 0 ? -Infinity : desiredArea.x1,
+                    x2: translateX !== 0 ? Infinity : desiredArea.x2
+                };
+                const areasToCheck = zone.areas.filter(area => ZonesManager._rectanglesConflict(area, checkZone, margin));
+                const testXZones = ZonesManager._getEmptyZones(zone.boundaries, areasToCheck, 'x', desiredArea.width + 2 * margin.marginX);
+                const testYZones = ZonesManager._getEmptyZones(zone.boundaries, areasToCheck, 'y', desiredArea.height + 2 * margin.marginY);
+                const yCandidate = ZonesManager._getZonePlacement(
+                    testYZones,
+                    translateY,
+                    desiredArea.y1,
+                    desiredArea.y2,
+                    margin.marginX
+                );
+                const xCandidate = ZonesManager._getZonePlacement(
+                    testXZones,
+                    translateX,
+                    desiredArea.x1,
+                    desiredArea.x2,
+                    margin.marginX
+                );
+                if (!xCandidate || !yCandidate) {
+                    conflicts = true;
+                } else {
+                    desiredArea.x1 = xCandidate.start;
+                    desiredArea.x2 = xCandidate.end;
+                    desiredArea.y1 = yCandidate.start;
+                    desiredArea.y2 = yCandidate.end;
+                    if (xCandidate.conflicts && yCandidate.conflicts) {
+                        conflicts = areasToCheck.filter(a => ZonesManager._rectanglesConflict(a, desiredArea, margin)).length > 0;
+                    } else {
+                        conflicts = false;
                     }
                 }
-                iteration++;
             }
             conflicts = conflicts || !ZonesManager._rectangleFitBoundaries(desiredArea, zone.boundaries);
             if (conflicts) {
@@ -96,6 +157,7 @@ export default class ZonesManager {
             desiredArea.y1 -= global.y;
             desiredArea.y2 -= global.y;
             return {
+                key,
                 conflicts: conflicts,
                 global: global,
                 margin: margin,
@@ -116,10 +178,11 @@ export default class ZonesManager {
     }
 
     submitArea(zoneName, area) {
-        const {rect, global} = area;
+        const {key, rect, global} = area;
         const zone = this.zones.get(zoneName);
         if (zone !== undefined && zone !== null) {
             const submittingArea = {
+                key,
                 height: rect.y2 - rect.y1,
                 width: rect.x2 - rect.x1,
                 x1: rect.x1 + global.x,
@@ -211,6 +274,115 @@ export default class ZonesManager {
         return rects;
     }
 
+    static _getAreasPoints (areas, extend, ...properties) {
+        const points = (areas || []).map(area =>
+            properties
+                .map(p => area.hasOwnProperty(p) ? area[p] : undefined)
+                .filter(p => p !== undefined)
+        )
+            .reduce((r, c) => ([...r, ...c]), []);
+        return [...(new Set(points.concat(extend)))]
+            .sort((a, b) => a - b);
+    }
+
+    static _getEmptyZones (boundaries, areas, axis = 'x', ofSize) {
+        const isX = /^x$/i.test(axis);
+        const {
+            x1 = -Infinity,
+            x2 = Infinity,
+            y1 = -Infinity,
+            y2 = Infinity
+        } = boundaries || {};
+        const coordinates = ZonesManager._getAreasPoints(
+            areas,
+            (isX ? [x1, x2] : [y1, y2]),
+            ...(isX ? ['x1', 'x2'] : ['y1', 'y2'])
+        );
+        function intersects (test, o) {
+            const {x1, x2, y1, y2} = test;
+            const {start, end} = o;
+            const tStart = isX ? Math.min(x1, x2) : Math.min(y1, y2);
+            const tEnd = isX ? Math.max(x1, x2) : Math.max(y1, y2);
+            if (tEnd < start) {
+                return false;
+            }
+            if (end < tStart) {
+                return false;
+            }
+            const o1size = Math.abs(tEnd - tStart);
+            const o2size = Math.abs(end - start);
+            const oSize = Math.max(tEnd, tStart, end, start) - Math.min(tEnd, tStart, end, start);
+            return o1size + o2size > oSize;
+        }
+        const zones = [];
+        for (let i = 1; i <= coordinates.length - 1; i++) {
+            const c1 = coordinates[i - 1];
+            const c2 = coordinates[i];
+            if (c2 - c1 > ofSize) {
+                let isEmpty = true;
+                for (let a = 0; a < areas.length; a++) {
+                    if (intersects(areas[a], {start: c1, end: c2})) {
+                        isEmpty = false;
+                        break;
+                    }
+                }
+                if (isEmpty) {
+                    zones.push({
+                        start: c1,
+                        end: c2
+                    });
+                }
+            }
+        }
+        return zones;
+    }
+
+    static _getZonePlacement (zones, translate, start, end, margin) {
+        const _start = Math.min(start, end);
+        const _end = Math.max(start, end);
+        const size = _end - _start;
+        const _center = (_start + _end) / 2.0;
+        function getZoneDistance (zone) {
+            const {start: zStart, end: zEnd} = zone;
+            if (zStart === -Infinity && zEnd === Infinity) {
+                return 0;
+            }
+            if (zStart <= _start && zEnd >= _end) {
+                return 0;
+            }
+            return (zStart + zEnd) / 2.0 - _center;
+        }
+        const [candidate] = zones
+            .map(zone => ({...zone, distance: getZoneDistance(zone)}))
+            .filter(zone => zone.distance === 0 ||
+                Math.sign(zone.distance) === Math.sign(translate)
+            )
+            .sort((a, b) => Math.abs(a.distance) - Math.abs(b.distance));
+        if (!candidate || translate === 0 || candidate.distance === 0) {
+            return {
+                start: _start,
+                end: _end,
+                conflicts: !candidate
+            };
+        }
+        if (candidate.start === -Infinity || translate < 0) {
+            return {
+                start: candidate.end - margin - size,
+                end: candidate.end - margin
+            };
+        }
+        if (candidate.end === Infinity || translate > 0) {
+            return {
+                start: candidate.start + margin,
+                end: candidate.start + margin + size
+            };
+        }
+        return {
+            start: _start,
+            end: _end
+        };
+    }
+
     static _rectangleFitBoundaries(rect, boundaries) {
         return (boundaries.y1 === null || boundaries.y1 === undefined || rect.y1 >= boundaries.y1) &&
             (boundaries.y2 === null || boundaries.y2 === undefined || rect.y2 <= boundaries.y2);
@@ -229,10 +401,7 @@ export default class ZonesManager {
         const o1p2 = o1[prop2];
         const o2p1 = o2[prop1];
         const o2p2 = o2[prop2];
-        const o1size = Math.abs(o1p2 - o1p1);
-        const o2size = Math.abs(o2p2 - o2p1);
-        const oSize = Math.max(o1p1, o1p2, o2p1, o2p2) - Math.min(o1p1, o1p2, o2p1, o2p2);
-        return o1size + o2size > oSize + margin;
+        return linearDimensionsConflict(o1p1, o1p2, o2p1, o2p2, margin);
     }
 
     static _rectanglesConflict(rect1, rect2, margin = {marginX: 0, marginY: 0}) {

@@ -1,14 +1,18 @@
 import BLASTAlignmentRenderer from './renderer';
 import BLASTConfig from './blastConfig';
 import {BLASTResultEvents} from '../../../../app/shared/blastContext';
-import {CachedTrack} from '../../core';
+import {CachedTrackWithVerticalScroll} from '../../core';
 
-export class BLASTTrack extends CachedTrack {
+export class BLASTTrack extends CachedTrackWithVerticalScroll {
     static getTrackDefaultConfig() {
         return BLASTConfig;
     }
 
     renderer: BLASTAlignmentRenderer;
+
+    get verticalScrollRenderer() {
+        return this.renderer;
+    }
 
     get trackIsResizable() {
         return true;
@@ -20,9 +24,9 @@ export class BLASTTrack extends CachedTrack {
         this.dispatcher = opts.dispatcher;
         this.renderer = new BLASTAlignmentRenderer(
             Object.assign({}, this.trackConfig, this.config),
-            this._pixiRenderer,
             opts,
-            opts.blastContext
+            opts.blastContext,
+            this
         );
         this.reload = this.reload.bind(this);
         this.dispatcher.on(BLASTResultEvents.changed, this.reload);
@@ -62,38 +66,6 @@ export class BLASTTrack extends CachedTrack {
         this.invalidateCache();
         this._flags.renderFeaturesChanged = true;
         this.requestRenderRefresh();
-    }
-
-    hoverVerticalScroll() {
-        return this.renderer.hoverVerticalScroll(this.viewport);
-    }
-
-    unhoverVerticalScroll() {
-        return this.renderer.unhoverVerticalScroll(this.viewport);
-    }
-
-    canScroll(delta) {
-        return this.renderer.canScroll(delta);
-    }
-
-    isScrollable() {
-        return this.renderer.isScrollable();
-    }
-
-    scrollIndicatorBoundaries() {
-        return this.renderer.scrollIndicatorBoundaries(this.viewport);
-    }
-
-    setScrollPosition(value) {
-        this.renderer.setScrollPosition(this.viewport, value);
-    }
-
-    onScroll({delta}) {
-        if (this.tooltip) {
-            this.tooltip.hide();
-        }
-        this.renderer.scroll(this.viewport, delta);
-        this.updateScene();
     }
 
     onHover({x, y}) {

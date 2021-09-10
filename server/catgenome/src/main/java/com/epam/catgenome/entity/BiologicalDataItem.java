@@ -25,6 +25,7 @@
 package com.epam.catgenome.entity;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 import com.epam.catgenome.entity.reference.Reference;
@@ -50,6 +51,7 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
     private BiologicalDataItemFormat format;
     private Date createdDate;
     private Long bucketId;
+    private Map<String, String> metadata;
 
     public BiologicalDataItem() {
         // no-op
@@ -115,6 +117,14 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
 
     public void setBucketId(Long bucketId) {
         this.bucketId = bucketId;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(final Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override

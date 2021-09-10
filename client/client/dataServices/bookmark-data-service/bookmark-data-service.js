@@ -17,7 +17,7 @@ export class BookmarkDataService extends DataService {
      * @returns {promise}
      */
     deleteBookmark(bookmarkId) {
-        return this.delete(`bookmark/${bookmarkId}`);
+        return this.delete(`session/${bookmarkId}`);
     }
 
     /**
@@ -25,7 +25,15 @@ export class BookmarkDataService extends DataService {
      * @returns {promise}
      */
     loadBookmarks() {
-        return this.get('bookmarks');
+        return new Promise(resolve => {
+            this.post('session/filter')
+                .then((data) => {
+                    resolve(data || []);
+                })
+                .catch(() => {
+                    resolve([]);
+                });
+        });
     }
 
     /**
@@ -33,6 +41,6 @@ export class BookmarkDataService extends DataService {
      * @returns {promise}
      */
     saveBookmark(query) {
-        return this.post('bookmark/save', query);
+        return this.post('session', query);
     }
 }

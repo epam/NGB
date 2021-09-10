@@ -4,109 +4,31 @@ import WIGConfig from './wigConfig';
 import WIGRenderer from './wigRenderer';
 import WIGTransformer from './wigTransformer';
 import {WigDataService} from '../../../../dataServices';
-import {default as menu} from './menu';
+import {default as menu, scaleModesMutators} from './menu';
 import {menu as menuUtilities} from '../../utilities';
 import Menu from '../../core/menu';
-import {scaleModes} from './modes';
+import {scaleModes} from '../common/scaleModes';
 
 export class WIGTrack extends CachedTrack {
 
-    _wigArea = new WIGArea(this.viewport, this.trackConfig);
+    _wigArea = new WIGArea(this.viewport, this.trackConfig, this);
     _wigRenderer = new WIGRenderer(this.trackConfig, this.state);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
 
-    static preStateMutatorFn = (track) => ({
-        currentDisplayMode: track.state.coverageDisplayMode,
-        currentScaleMode: track.state.coverageScaleMode,
-        logScaleEnabled: track.state.coverageLogScale
-    });
-
     static postStateMutatorFn = (track, key, prePayload) => {
-        const {
-            currentDisplayMode,
-            currentScaleMode,
-            logScaleEnabled
-        } = prePayload || {};
-        let shouldReportTrackState = true;
-        if (key === 'coverage>scale>manual') {
-            shouldReportTrackState = false;
-        } else if (key === 'coverage>scale>group-auto-scale') {
-            shouldReportTrackState = true;
-            if (track.cache && track.cache.originalData) {
-                track.cache.data = track._wigTransformer.transform(track.cache.originalData, track.viewport);
-            }
-        } else if (currentScaleMode !== track.state.coverageScaleMode) {
-            track._flags.dataChanged = true;
-            track.state.coverageScaleFrom = undefined;
-            track.state.coverageScaleTo = undefined;
-            shouldReportTrackState = currentScaleMode === scaleModes.groupAutoScaleMode;
-            track._flags.dataChanged = true;
-        } else if (logScaleEnabled !== track.state.coverageLogScale) {
-            track._flags.dataChanged = true;
-        } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
-            track._flags.dataChanged = true;
-        }
-        if (shouldReportTrackState) {
+        if (scaleModesMutators.postStateMutatorFn(track, key, prePayload)) {
             track.reportTrackState();
         }
         track.requestRenderRefresh();
-    }
-
-    static afterStateMutatorFn = (tracks, key) => {
-        if (key === 'coverage>scale>manual') {
-            const getCoverageExtremum = (track) => {
-                let max = track.state.coverageScaleTo;
-                let min = track.state.coverageScaleFrom;
-                const hasRealValues = track.cache &&
-                    track.cache.coordinateSystem;
-                const isNone = o => o === undefined || o === null;
-                if (isNone(max) && hasRealValues) {
-                    max = track.cache.coordinateSystem.realMaximum;
-                }
-                if (isNone(min) && hasRealValues) {
-                    min = track.cache.coordinateSystem.realMinimum;
-                }
-                return {max, min};
-            };
-            const getCoverageExtremums = () => {
-                const values = (tracks || []).map(getCoverageExtremum);
-                return values.reduce((r, c) => ({
-                    max: Math.min(c.max, r.max),
-                    min: Math.max(c.min, r.min)
-                }), {max: Infinity, min: -Infinity});
-            };
-            const isLogScale = (tracks || [])
-                .map(track => track.state.coverageLogScale)
-                .reduce((r, c) => r && c, true);
-            const [dispatcher] = (tracks || [])
-                .map(track => track.config.dispatcher)
-                .filter(Boolean);
-            const [browserId] = (tracks || [])
-                .map(track => track.config.browserId)
-                .filter(Boolean);
-            if (dispatcher) {
-                dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    config: {
-                        extremumFn: getCoverageExtremums,
-                        isLogScale
-                    },
-                    options: {
-                        browserId,
-                        group: (tracks || []).length > 1
-                    },
-                    sources: (tracks || []).map(track => track.config.name),
-                });
-            }
-        }
     }
 
     static Menu = Menu(
         menu,
         {
             postStateMutatorFn: WIGTrack.postStateMutatorFn,
-            preStateMutatorFn: WIGTrack.preStateMutatorFn,
-            afterStateMutatorFn: WIGTrack.afterStateMutatorFn
+            preStateMutatorFn: scaleModesMutators.preStateMutatorFn,
+            afterStateMutatorFn: scaleModesMutators.afterStateMutatorFn
         }
     );
 
@@ -208,7 +130,7 @@ export class WIGTrack extends CachedTrack {
                 }
             }
             this._wigArea.render(this.viewport, this.cache.coordinateSystem, this.state);
-            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
+            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._showCenterLine);
             somethingChanged = true;
 
         }

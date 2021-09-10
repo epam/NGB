@@ -8,14 +8,14 @@ import {
     HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './internal';
-import {default as bamMenu, sashimiMenu} from './menu';
+import {default as bamMenu, coverageStateMutators, sashimiMenu} from './menu';
 import {dataModes, groupModes, sortTypes} from './modes';
 import BAMConfig from './bamConfig';
 import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
 import {menu as menuUtilities} from '../../utilities';
 import Menu from '../../core/menu';
-import {scaleModes} from '../wig/modes';
+import {scaleModes} from '../common/scaleModes';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
@@ -40,16 +40,11 @@ export class BAMTrack extends ScrollableTrack {
     static preStateMutatorFn = (track) => {
         const viewAsPairsFlag = track.state.viewAsPairs;
         const groupingMode = track.state.groupMode;
-        const currentDisplayMode = track.state.coverageDisplayMode;
-        const currentScaleMode = track.state.coverageScaleMode;
-        const logScaleEnabled = track.state.coverageLogScale;
         const alignments = track.state.alignments;
         return {
+            ...coverageStateMutators.preStateMutatorFn(track),
             alignments,
-            currentDisplayMode,
-            currentScaleMode,
             groupingMode,
-            logScaleEnabled,
             viewAsPairsFlag
         };
     };
@@ -58,10 +53,7 @@ export class BAMTrack extends ScrollableTrack {
         let shouldReportTracksState = true;
         const {
             alignments,
-            currentDisplayMode,
-            currentScaleMode,
             groupingMode,
-            logScaleEnabled,
             viewAsPairsFlag
         } = prePayload;
         if ((!track.state.alignments || track.state.alignments !== alignments) && track.changeTrackHeight) {
@@ -78,23 +70,8 @@ export class BAMTrack extends ScrollableTrack {
                 track.changeTrackHeight(newHeight);
             }
         }
-        if (key === 'coverage>scale>manual') {
-            shouldReportTracksState = false;
-        } else if (key === 'coverage>scale>group-auto-scale') {
+        if (coverageStateMutators.postStateMutatorFn(track, key, prePayload)) {
             shouldReportTracksState = true;
-            if (track.cacheService) {
-                track.cacheService.transform(track.viewport, track.state);
-            }
-        } else if (currentScaleMode !== track.state.coverageScaleMode) {
-            track._flags.dataChanged = true;
-            track.state.coverageScaleFrom = undefined;
-            track.state.coverageScaleTo = undefined;
-            shouldReportTracksState = currentScaleMode === scaleModes.groupAutoScaleMode;
-            track._flags.dataChanged = true;
-        } else if (logScaleEnabled !== track.state.coverageLogScale) {
-            track._flags.dataChanged = true;
-        } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
-            track._flags.dataChanged = true;
         }
         const viewAsPairsFlagChanged = viewAsPairsFlag !== track.state.viewAsPairs;
         if (viewAsPairsFlagChanged) {
@@ -130,53 +107,7 @@ export class BAMTrack extends ScrollableTrack {
     };
 
     static afterStateMutatorFn = (tracks, key) => {
-        if (key === 'coverage>scale>manual') {
-            const getCoverageExtremum = (track) => {
-                let max = track.state.coverageScaleTo;
-                let min = track.state.coverageScaleFrom;
-                const hasRealValues = track.cacheService &&
-                    track.cacheService.cache &&
-                    track.cacheService.cache.coverage &&
-                    track.cacheService.cache.coverage.coordinateSystem;
-                const isNone = o => o === undefined || o === null;
-                if (isNone(max) && hasRealValues) {
-                    max = track.cacheService.cache.coverage.coordinateSystem.realMaximum;
-                }
-                if (isNone(min) && hasRealValues) {
-                    min = track.cacheService.cache.coverage.coordinateSystem.realMinimum;
-                }
-                return {max, min};
-            };
-            const getCoverageExtremums = () => {
-                const values = (tracks || []).map(getCoverageExtremum);
-                return values.reduce((r, c) => ({
-                    max: Math.min(c.max, r.max),
-                    min: Math.max(c.min, r.min)
-                }), {max: Infinity, min: -Infinity});
-            };
-            const isLogScale = (tracks || [])
-                .map(track => track.state.coverageLogScale)
-                .reduce((r, c) => r && c, true);
-            const [dispatcher] = (tracks || [])
-                .map(track => track.config.dispatcher)
-                .filter(Boolean);
-            const [browserId] = (tracks || [])
-                .map(track => track.config.browserId)
-                .filter(Boolean);
-            if (dispatcher) {
-                dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    config: {
-                        extremumFn: getCoverageExtremums,
-                        isLogScale
-                    },
-                    options: {
-                        browserId,
-                        group: (tracks || []).length > 1
-                    },
-                    sources: (tracks || []).map(track => track.config.name)
-                });
-            }
-        }
+        coverageStateMutators.afterStateMutatorFn(tracks, key);
     }
 
     static Menu = Menu(
@@ -291,7 +222,13 @@ export class BAMTrack extends ScrollableTrack {
             ? opts.spliceJunctionsCoverageThreshold
             : 0;
         this.cacheService = opts.cacheService || new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
-        this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
+        this._bamRenderer = new BamRenderer(
+            this.viewport,
+            Object.assign({}, this.trackConfig, this.config),
+            this.cacheService,
+            opts,
+            this
+        );
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,

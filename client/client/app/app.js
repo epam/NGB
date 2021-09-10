@@ -19,6 +19,7 @@ import angularUiRouter from 'angular-ui-router';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
+import MiewContext from './shared/miewContext';
 import SelectionContext from './shared/selectionContext';
 import BLASTContext from './shared/blastContext';
 import NotificationsContext from './shared/notificationsContext';
@@ -36,7 +37,7 @@ import appConstants from '../constants/angular-module';
 import appServices from './shared/services';
 import components from './components';
 import dataServices from '../dataServices/angular-module';
-import {GroupAutoScaleManager} from '../modules/render/index';
+import {GroupAutoScaleManager, FCSourcesManager} from '../modules/render/index';
 import sharedComponents from './shared/components';
 
 //Import styles
@@ -68,6 +69,8 @@ export default angular.module('NGB', [
     .service('eventHotkey', eventHotkey.instance)
     .service('lastActionRepeater', lastActionRepeater.instance)
     .constant('appLayout', layoutConstant)
+    .service('fcSourcesManager', FCSourcesManager.instance)
     .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
     .service('notificationsContext', NotificationsContext.instance)
+    .service('miewContext', MiewContext.instance)
     .name;

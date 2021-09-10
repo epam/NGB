@@ -29,18 +29,21 @@ export default class ngbPdbDescriptionController {
         const chainLetter = firstChain.position && firstChain.position.substring(0, 1);
 
         try {
-            this.description = await  this.service.loadPdbDescription(pdb.id);
+            this.description = await this.service.loadPdbDescription(pdb.id);
             let chain;
-
-            if (chainLetter) {
-                [chain] = this.description.entities.filter(m => m.chainId === chainLetter);
-            }
-            if (!chain) {
-                [chain] = this.description.entities;
-            }
-
-            if (chain) {
-                this.chainId = chain.chainId;
+            if (!/^all$/i.test(this.chainId)) {
+                if (this.chainId) {
+                    [chain] = this.description.entities.filter(m => m.chainId === this.chainId);
+                }
+                if (!chain && chainLetter) {
+                    [chain] = this.description.entities.filter(m => m.chainId === chainLetter);
+                }
+                if (!chain) {
+                    [chain] = this.description.entities;
+                }
+                if (chain) {
+                    this.chainId = chain.chainId;
+                }
             }
 
         } catch (exception) {

@@ -10,38 +10,55 @@ export default class VCFFeatureRenderer extends FeatureRenderer {
     _intraChromosomeRenderer = null;
     _variantAltFeatureRenderer = null;
 
-    constructor(config) {
-        super(config);
-        this._commonFeatureRenderer = new renderers.CommonVariantFeatureRenderer(config,
+    constructor(config, track) {
+        super(config, track);
+        this._commonFeatureRenderer = new renderers.CommonVariantFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
             ::this.registerAttachedElement);
-        this._variantAltFeatureRenderer = new renderers.VariantAltFeatureRenderer(config,
+        this._variantAltFeatureRenderer = new renderers.VariantAltFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.registerAttachedElement);
-        this._deletionFeatureRenderer = new renderers.DeletionRenderer(config,
+            ::this.registerAttachedElement
+        );
+        this._deletionFeatureRenderer = new renderers.DeletionRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.registerAttachedElement);
-        this._statisticsFeatureRenderer = new renderers.StatisticsRenderer(config,
+            ::this.registerAttachedElement
+        );
+        this._statisticsFeatureRenderer = new renderers.StatisticsRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.registerAttachedElement);
-        this._interChromosomeRenderer = new renderers.InterChromosomeRenderer(config,
+            ::this.registerAttachedElement
+        );
+        this._interChromosomeRenderer = new renderers.InterChromosomeRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.registerAttachedElement);
-        this._intraChromosomeRenderer = new renderers.IntraChromosomeRenderer(config,
+            ::this.registerAttachedElement
+        );
+        this._intraChromosomeRenderer = new renderers.IntraChromosomeRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            ::this.registerAttachedElement);
+            ::this.registerAttachedElement
+        );
     }
 
     getRendererForFeature(feature) {

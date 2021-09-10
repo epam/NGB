@@ -37,8 +37,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.project.ProjectNote;
+import com.epam.catgenome.util.db.Filter;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -59,6 +65,9 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.project.ProjectItem;
 import com.epam.catgenome.entity.reference.Reference;
 
+import static com.epam.catgenome.util.Utils.addFiltersToQuery;
+import static org.apache.commons.lang3.StringUtils.join;
+
 /**
  * Source:      ProjectDao
  * Created:     21.12.15, 18:15
@@ -69,12 +78,17 @@ import com.epam.catgenome.entity.reference.Reference;
  * A DAO component that handles database interaction for {@code Project} instances.
  * </p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Autowired
     private DaoHelper daoHelper;
 
     private String projectSequenceName;
     private String projectItemSequenceName;
+    private String projectNoteSequenceName;
 
     private String insertProjectQuery;
     private String updateProjectQuery;
@@ -102,6 +116,13 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadAllProjectItemsQuery;
     private String saveProjectDescriptionQuery;
     private String loadProjectDescriptionQuery;
+
+    private String addProjectNoteQuery;
+    private String deleteProjectNotesQuery;
+    private String deleteAllProjectNotesQuery;
+    private String loadProjectNotesQuery;
+    private String loadAllProjectNotesQuery;
+    private String updateProjectNotesQuery;
 
     /**
      * Persists a new or updates existing project in the database.
@@ -343,6 +364,81 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 params.toArray(new MapSqlParameterSource[items.size()]));
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<ProjectNote> saveProjectNotes(final List<ProjectNote> notes, final long projectId) {
+        if (!CollectionUtils.isEmpty(notes)) {
+            List<Long> newIds = daoHelper.createIds(projectNoteSequenceName, notes.size());
+            List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
+            int i = 0;
+            for (ProjectNote note: notes) {
+                note.setNoteId(newIds.get(i));
+                note.setProjectId(projectId);
+                MapSqlParameterSource param = ProjectNoteParameters.getParameters(note);
+                params.add(param);
+                i++;
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(addProjectNoteQuery,
+                    params.toArray(new MapSqlParameterSource[notes.size()]));
+            return notes;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<ProjectNote> updateProjectNotes(final List<ProjectNote> notes) {
+        if (!CollectionUtils.isEmpty(notes)) {
+            List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
+            for (ProjectNote note: notes) {
+                MapSqlParameterSource param = ProjectNoteParameters.getParameters(note);
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(updateProjectNotesQuery,
+                    params.toArray(new MapSqlParameterSource[notes.size()]));
+            return notes;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteProjectNotes(final List<Filter> filters) {
+        String query = addFiltersToQuery(deleteProjectNotesQuery, filters);
+        getJdbcTemplate().update(query);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteAllProjectNotes(final long projectId) {
+        getJdbcTemplate().update(deleteAllProjectNotesQuery, projectId);
+    }
+
+    public List<ProjectNote> loadProjectNotes(final long projectId) {
+        return getJdbcTemplate().query(loadProjectNotesQuery, ProjectNoteParameters.getRowMapper(), projectId);
+    }
+
+    public Map<Long, Set<ProjectNote>> loadAllProjectNotes(List<Project> projects) {
+        String query = loadAllProjectNotesQuery;
+        if (!CollectionUtils.isEmpty(projects)) {
+            List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
+            Filter filter = Filter.builder()
+                    .field("project_id")
+                    .operator("in")
+                    .value("(" + join(projectIds, ",") + ")")
+                    .build();
+            query = addFiltersToQuery(loadAllProjectNotesQuery, Collections.singletonList(filter));
+        }
+        List<ProjectNote> notes = getJdbcTemplate().query(query, ProjectNoteParameters.getRowMapper());
+        Map<Long, Set<ProjectNote>> notesMap = new HashMap<>();
+        for (ProjectNote note: notes) {
+            Long projectId = note.getProjectId();
+            if (!notesMap.containsKey(projectId)) {
+                notesMap.put(projectId, new HashSet<>());
+            }
+            notesMap.get(projectId).add(note);
+        }
+        return notesMap;
+    }
+
     /**
      * Removes an item from a project, specified by ID
      * @param projectId {@code Long} ID of a project
@@ -476,18 +572,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 MapSqlParameterSource[items.size()]));
     }
 
-    private Long getBioDataItemId(BiologicalDataItem item) {
-        if (item instanceof FeatureFile) {
-            return ((FeatureFile) item).getBioDataItemId();
-        } else {
-            if (item instanceof Reference) {
-                return ((Reference) item).getBioDataItemId();
-            } else {
-                return item.getId();
-            }
-        }
-    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateOwner(Long id, String owner) {
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -557,6 +641,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
 
     }
+
     enum ProjectItemParameters {
         PROJECT_ITEM_ID,
         PROJECT_ID,
@@ -646,139 +731,45 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             }
         }
     }
-    @Required
-    public void setProjectSequenceName(String projectSequenceName) {
-        this.projectSequenceName = projectSequenceName;
+
+    enum ProjectNoteParameters {
+        NOTE_ID,
+        PROJECT_ID,
+        TITLE,
+        CONTENT;
+
+        static MapSqlParameterSource getParameters(final ProjectNote note) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue(NOTE_ID.name(), note.getNoteId());
+            params.addValue(PROJECT_ID.name(), note.getProjectId());
+            params.addValue(TITLE.name(), note.getTitle());
+            params.addValue(CONTENT.name(), note.getContent());
+            return params;
+        }
+
+        static RowMapper<ProjectNote> getRowMapper() {
+            return (rs, rowNum) -> parseNote(rs);
+        }
+
+        static ProjectNote parseNote(final ResultSet rs) throws SQLException {
+            return ProjectNote.builder()
+                    .noteId(rs.getLong(NOTE_ID.name()))
+                    .projectId(rs.getLong(PROJECT_ID.name()))
+                    .title(rs.getString(TITLE.name()))
+                    .content(rs.getString(CONTENT.name()))
+                    .build();
+        }
     }
 
-    @Required
-    public void setProjectItemSequenceName(String projectItemSequenceName) {
-        this.projectItemSequenceName = projectItemSequenceName;
-    }
-
-    @Required
-    public void setInsertProjectQuery(String insertProjectQuery) {
-        this.insertProjectQuery = insertProjectQuery;
-    }
-
-    @Required
-    public void setUpdateProjectQuery(String updateProjectQuery) {
-        this.updateProjectQuery = updateProjectQuery;
-    }
-
-    @Required
-    public void setLoadTopLevelProjectsForUserOrderByLastOpenedQuery(String
-                                                                    loadTopLevelProjectsForUserOrderByLastOpenedQuery) {
-        this.loadTopLevelProjectsForUserOrderByLastOpenedQuery = loadTopLevelProjectsForUserOrderByLastOpenedQuery;
-    }
-
-    @Required
-    public void setLoadProjectByIdQuery(String loadProjectByIdQuery) {
-        this.loadProjectByIdQuery = loadProjectByIdQuery;
-    }
-
-    @Required
-    public void setUpdateLastOpenedDateQuery(String updateLastOpenedDateQuery) {
-        this.updateLastOpenedDateQuery = updateLastOpenedDateQuery;
-    }
-
-    @Required
-    public void setAddProjectItemQuery(String addProjectItemQuery) {
-        this.addProjectItemQuery = addProjectItemQuery;
-    }
-
-    @Required
-    public void setDeleteProjectItemQuery(String deleteProjectItemQuery) {
-        this.deleteProjectItemQuery = deleteProjectItemQuery;
-    }
-
-    @Required
-    public void setLoadProjectItemsMaxNumberQuery(String loadProjectItemsMaxNumberQuery) {
-        this.loadProjectItemsMaxNumberQuery = loadProjectItemsMaxNumberQuery;
-    }
-
-    @Required
-    public void setLoadProjectItemsIdsQuery(String loadProjectItemsIdsQuery) {
-        this.loadProjectItemsIdsQuery = loadProjectItemsIdsQuery;
-    }
-
-    @Required
-    public void setUpdateProjectItemOrderingNumberQuery(String updateProjectItemOrderingNumberQuery) {
-        this.updateProjectItemOrderingNumberQuery = updateProjectItemOrderingNumberQuery;
-    }
-
-    @Required
-    public void setHideProjectItemQuery(String hideProjectItemQuery) {
-        this.hideProjectItemQuery = hideProjectItemQuery;
-    }
-
-    @Required
-    public void setIsProjectItemHiddenQuery(String isProjectItemHiddenQuery) {
-        this.isProjectItemHiddenQuery = isProjectItemHiddenQuery;
-    }
-
-    @Required
-    public void setLoadProjectByNameQuery(String loadProjectByNameQuery) {
-        this.loadProjectByNameQuery = loadProjectByNameQuery;
-    }
-
-    @Required
-    public void setLoadProjectItemsByProjectIdQuery(String loadProjectItemsByProjectIdQuery) {
-        this.loadProjectItemsByProjectIdQuery = loadProjectItemsByProjectIdQuery;
-    }
-
-    @Required
-    public void setLoadProjectsByBioDataItemIdQuery(String loadProjectsByDioDataItemId) {
-        this.loadProjectsByBioDataItemIdQuery = loadProjectsByDioDataItemId;
-    }
-
-    @Required
-    public void setDeleteAllProjectItemsQuery(String deleteAllProjectItemsQuery) {
-        this.deleteAllProjectItemsQuery = deleteAllProjectItemsQuery;
-    }
-
-    @Required
-    public void setDeleteProjectQuery(String deleteProjectQuery) {
-        this.deleteProjectQuery = deleteProjectQuery;
-    }
-
-    @Required
-    public void setLoadProjectItemsByProjectIdsQuery(String loadProjectItemsByProjectIdsQuery) {
-        this.loadProjectItemsByProjectIdsQuery = loadProjectItemsByProjectIdsQuery;
-    }
-
-    @Required
-    public void setLoadProjectsByParentIdQuery(String loadProjectsByParentIdQuery) {
-        this.loadProjectsByParentIdQuery = loadProjectsByParentIdQuery;
-    }
-
-    @Required
-    public void setMoveProjectToParentQuery(String moveProjectToParentQuery) {
-        this.moveProjectToParentQuery = moveProjectToParentQuery;
-    }
-
-    @Required
-    public void setLoadAllProjectsQuery(String loadAllProjectsQuery) {
-        this.loadAllProjectsQuery = loadAllProjectsQuery;
-    }
-
-    @Required
-    public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
-        this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
-    }
-
-    @Required
-    public void setUpdateProjectOwnerQuery(String updateProjectOwnerQuery) {
-        this.updateProjectOwnerQuery = updateProjectOwnerQuery;
-    }
-
-    @Required
-    public void setSaveProjectDescriptionQuery(String saveProjectDescriptionQuery) {
-        this.saveProjectDescriptionQuery = saveProjectDescriptionQuery;
-    }
-
-    @Required
-    public void setLoadProjectDescriptionQuery(String loadProjectDescriptionQuery) {
-        this.loadProjectDescriptionQuery = loadProjectDescriptionQuery;
+    private Long getBioDataItemId(BiologicalDataItem item) {
+        if (item instanceof FeatureFile) {
+            return ((FeatureFile) item).getBioDataItemId();
+        } else {
+            if (item instanceof Reference) {
+                return ((Reference) item).getBioDataItemId();
+            } else {
+                return item.getId();
+            }
+        }
     }
 }

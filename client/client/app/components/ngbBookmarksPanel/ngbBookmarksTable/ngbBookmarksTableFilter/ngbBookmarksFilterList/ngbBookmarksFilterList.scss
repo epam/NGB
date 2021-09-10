@@ -1,0 +1,28 @@
+ngb-variants-filter-list {
+  md-select {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.ngb-filter-list-container {
+  background-color: #ffffff;
+  position: fixed;
+  width: 200px;
+  max-height: 300px;
+  overflow-y: scroll;
+  z-index: 10;
+  .ngb-filter-list-item {
+    min-height: 20px;
+    padding: 3px;
+    .ngb-filter-list-item-placeholder {
+      font-style: italic;
+    }
+  }
+  .ngb-filter-list-loading {
+    padding: 10px;
+  }
+}
+.ngb-filter-list-container-wide {
+  width: 400px;
+}

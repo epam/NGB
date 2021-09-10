@@ -13,7 +13,7 @@ export default {
         labelDisplayAfterPixelsPerBp: 10,
         labelStyle: {
             fill: 0xFFFFFF,
-            font: '8pt'
+            fontSize: '8pt'
         },
         separateBarsAfterBp: 5
     },
@@ -25,7 +25,9 @@ export default {
     noGCContent: {
         labelStyle: {
             fill: 0x666666,
-            font: 'normal 10pt arial'
+            fontFamily: 'arial',
+            fontSize: '10pt',
+            fontWeight: 'normal'
         },
         text: 'GC content is not provided.'
     },
@@ -41,13 +43,17 @@ export default {
         label: {
             defaultStyle: {
                 fill: 0x030E24,
-                font: 'normal 7pt arial'
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'normal'
             },
             margin: 2
         },
         number: {
             fill: 0x030E24,
-            font: 'normal 7pt arial'
+            fontFamily: 'arial',
+            fontSize: '7pt',
+            fontWeight: 'normal'
         },
         odd: {
             fill: 0x3D62AC,
@@ -60,7 +66,9 @@ export default {
             oddFill: 0xED1C24,
             label: {
                 fill: 0xFFFFFF,
-                font: 'normal 10pt arial'
+                fontFamily: 'arial',
+                fontSize: '10pt',
+                fontWeight: 'normal'
             }
         },
         start: {

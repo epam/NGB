@@ -42,6 +42,7 @@ import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
@@ -86,6 +87,9 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
 
     @Autowired
     private SpeciesDao speciesDao;
+
+    @Autowired
+    private MetadataManager metadataManager;
 
     private static final Set<BiologicalDataItemFormat> ANNOTATION_FORMATS = new HashSet<>();
     static {
@@ -163,6 +167,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         }
         referenceGenomeDao.unregisterReferenceGenome(reference.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(reference.getBioDataItemId());
+        metadataManager.delete(reference);
     }
 
     /**

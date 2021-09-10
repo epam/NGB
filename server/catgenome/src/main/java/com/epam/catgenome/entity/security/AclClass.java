@@ -12,5 +12,6 @@ public enum AclClass {
     SEG,
     WIG,
     BOOKMARK,
-    BUCKET
+    BUCKET,
+    SESSION
 }

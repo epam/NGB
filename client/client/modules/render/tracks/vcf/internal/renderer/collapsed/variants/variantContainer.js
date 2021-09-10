@@ -1,9 +1,8 @@
+import * as PIXI from 'pixi.js-legacy';
 import {drawDashLine, drawZygosityBar} from './internalDrawing';
 import {NumberFormatter} from '../../../../../../utilities';
-import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import VcfAnalyzer from '../../../../../../../../dataServices/vcf/vcf-analyzer';
-import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
@@ -18,8 +17,8 @@ export class VariantContainer extends VariantBaseContainer {
         return this._endContainers;
     }
 
-    constructor(variant, config, tooltipContainer) {
-        super(variant, config);
+    constructor(variant, config, track, tooltipContainer) {
+        super(variant, config, track);
         this._tooltipParentContainer = tooltipContainer;
     }
 
@@ -118,23 +117,26 @@ export class VariantContainer extends VariantBaseContainer {
 
     buildVariantTypeLabel(manager) {
         if (this._variant.symbol) {
-            const label = new PIXI.Text(this._variant.symbol, this._config.variant.allele.defaultLabel);
-            label.resolution = drawingConfiguration.resolution;
-            label.y = Math.round(-this._config.variant.height - this._config.variant.allele.margin - label.height);
-            label.x = -Math.round(label.width / 2);
-            this._container.addChild(label);
-            manager.submitArea('default', {
-                global: {
-                    x: this.container.x,
-                    y: this.container.y
-                },
-                rect: {
-                    x1: label.x,
-                    x2: label.x + label.width,
-                    y1: label.y,
-                    y2: label.y + label.height
-                }
-            });
+            const label = this.labelsManager
+                ? this.labelsManager.getLabel(this._variant.symbol, this._config.variant.allele.defaultLabel)
+                : undefined;
+            if (label) {
+                label.y = Math.round(-this._config.variant.height - this._config.variant.allele.margin - label.height);
+                label.x = -Math.round(label.width / 2);
+                this._container.addChild(label);
+                manager.submitArea('default', {
+                    global: {
+                        x: this.container.x,
+                        y: this.container.y
+                    },
+                    rect: {
+                        x1: label.x,
+                        x2: label.x + label.width,
+                        y1: label.y,
+                        y2: label.y + label.height
+                    }
+                });
+            }
         }
     }
 
@@ -191,13 +193,18 @@ export class VariantContainer extends VariantBaseContainer {
             if (!this._variant.alternativeAllelesInfo[i].displayText) {
                 continue;
             }
-            const label = new PIXI.Text(this._variant.alternativeAllelesInfo[i].displayText,
-                this._config.variant.allele.label);
-            label.resolution = drawingConfiguration.resolution;
-            label.x = -Math.round(label.width / 2);
-            label.y = Math.round(y);
-            allelesContainer.addChild(label);
-            y += label.height + this._config.variant.allele.margin;
+            const label = this.labelsManager
+                ? this.labelsManager.getLabel(
+                    this._variant.alternativeAllelesInfo[i].displayText,
+                    this._config.variant.allele.label
+                )
+                : undefined;
+            if (label) {
+                label.x = -Math.round(label.width / 2);
+                label.y = Math.round(y);
+                allelesContainer.addChild(label);
+                y += label.height + this._config.variant.allele.margin;
+            }
         }
         const line = {
             end: {
@@ -212,33 +219,36 @@ export class VariantContainer extends VariantBaseContainer {
         if (allelesArea.conflicts) {
             const tooltipZone = manager.getZoneBoundaries('tooltip', {x: this.container.x, y: this.container.y});
             if (tooltipZone) {
-                const tooltipLabel = new PIXI.Text('...', this._config.variant.allele.detailsTooltipLabel);
-                tooltipLabel.resolution = drawingConfiguration.resolution;
-                const tooltipRect = {
-                    global: {
-                        x: this.container.x,
-                        y: this.container.y
-                    },
-                    rect: {
-                        x1: -tooltipLabel.width / 2,
-                        x2: tooltipLabel.width / 2,
-                        y1: (tooltipZone.y1 + tooltipZone.y2) / 2 - tooltipLabel.height / 2,
-                        y2: (tooltipZone.y1 + tooltipZone.y2) / 2 + tooltipLabel.height / 2
+                const tooltipLabel = this.labelsManager
+                    ? this.labelsManager.getLabel('...', this._config.variant.allele.detailsTooltipLabel)
+                    : undefined;
+                if (tooltipLabel) {
+                    const tooltipRect = {
+                        global: {
+                            x: this.container.x,
+                            y: this.container.y
+                        },
+                        rect: {
+                            x1: -tooltipLabel.width / 2,
+                            x2: tooltipLabel.width / 2,
+                            y1: (tooltipZone.y1 + tooltipZone.y2) / 2 - tooltipLabel.height / 2,
+                            y2: (tooltipZone.y1 + tooltipZone.y2) / 2 + tooltipLabel.height / 2
+                        }
+                    };
+                    this._tooltipArea = manager.checkArea('tooltip', tooltipRect, {translateX: 1, translateY: 0});
+                    if (!this._tooltipArea.conflicts) {
+                        manager.submitArea('tooltip', this._tooltipArea);
+                        tooltipLabel.x =
+                            Math.round((this._tooltipArea.rect.x1 + this._tooltipArea.rect.x2) / 2 - tooltipLabel.width
+                                / 2);
+                        tooltipLabel.y = Math.round(this._tooltipArea.rect.y2 - tooltipLabel.height);
+
+                        this._container.addChild(tooltipLabel);
+
+                        line.end.x = (this._tooltipArea.rect.x1 + this._tooltipArea.rect.x2) / 2;
+                        line.end.y = this._tooltipArea.rect.y2;
+                        this._tooltipPosition = new PIXI.Point(tooltipZone.x1, tooltipZone.y1);
                     }
-                };
-                this._tooltipArea = manager.checkArea('tooltip', tooltipRect, {translateX: 1, translateY: 0});
-                if (!this._tooltipArea.conflicts) {
-                    manager.submitArea('tooltip', this._tooltipArea);
-                    tooltipLabel.x =
-                        Math.round((this._tooltipArea.rect.x1 + this._tooltipArea.rect.x2) / 2 - tooltipLabel.width
-                            / 2);
-                    tooltipLabel.y = Math.round(this._tooltipArea.rect.y2 - tooltipLabel.height);
-
-                    this._container.addChild(tooltipLabel);
-
-                    line.end.x = (this._tooltipArea.rect.x1 + this._tooltipArea.rect.x2) / 2;
-                    line.end.y = this._tooltipArea.rect.y2;
-                    this._tooltipPosition = new PIXI.Point(tooltipZone.x1, tooltipZone.y1);
                 }
             }
         }
@@ -430,7 +440,6 @@ export class VariantContainer extends VariantBaseContainer {
     buildVariantEndLabel(info) {
         const {layer, alignment, chromosome, position, symbol, displayPosition, prefix, postfix, color} = info;
         const container = new PIXI.Container();
-
         const positionText = (displayPosition !== null && displayPosition !== undefined)
             ? NumberFormatter.formattedText(parseInt(displayPosition))
             : NumberFormatter.formattedText(parseInt(position));
@@ -440,38 +449,41 @@ export class VariantContainer extends VariantBaseContainer {
         if (!variantStyle) {
             variantStyle = this._config.variant.multipleNucleotideVariant.label.default;
         }
-        const label = new PIXI.Text(text, variantStyle.font);
-        label.resolution = drawingConfiguration.resolution;
-        let dX = 0;
-        const margin = 1;
-        if (alignment === 'left') {
-            dX = -label.width;
-        }
-        const background = new PIXI.Graphics();
-        background
-            .beginFill(color, !!color)
-            .drawRoundedRect(dX, -label.height / 2, label.width + 2 * margin, label.height + 2 * margin,
-                (label.height + 2 * margin) / 2)
-            .endFill();
-        container.addChild(background);
-        container.addChild(label);
-        label.x = Math.round(margin + dX);
-        label.y = Math.round(-label.height / 2);
-        container.y = Math.round(layer);
-        const endContainer = Object.assign(
-            {
-                alignmentDirection: alignment === 'left' ? -1 : 1,
-                conflicts: false,
-                container: container,
-                size: {
-                    height: label.height,
-                    width: label.width
+        const label = this.labelsManager
+            ? this.labelsManager.getLabel(text, variantStyle.font)
+            : undefined;
+        if (label) {
+            let dX = 0;
+            const margin = 1;
+            if (alignment === 'left') {
+                dX = -label.width;
+            }
+            const background = new PIXI.Graphics();
+            background
+                .beginFill(color, !!color)
+                .drawRoundedRect(dX, -label.height / 2, label.width + 2 * margin, label.height + 2 * margin,
+                    (label.height + 2 * margin) / 2)
+                .endFill();
+            container.addChild(background);
+            container.addChild(label);
+            label.x = Math.round(margin + dX);
+            label.y = Math.round(-label.height / 2);
+            container.y = Math.round(layer);
+            const endContainer = Object.assign(
+                {
+                    alignmentDirection: alignment === 'left' ? -1 : 1,
+                    conflicts: false,
+                    container: container,
+                    size: {
+                        height: label.height,
+                        width: label.width
+                    },
+                    visible: false
                 },
-                visible: false
-            },
-            info);
-        this._container.addChild(container);
-        this.endContainers.push(endContainer);
+                info);
+            this._container.addChild(container);
+            this.endContainers.push(endContainer);
+        }
     }
 
     unhover() {

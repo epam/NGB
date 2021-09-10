@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.metadata.MetadataDao" id="metadataDao" autowire="byName">
+        <property name="insertMetadataQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.metadata (
+                        entity_id,
+                        entity_class,
+                        data)
+                    VALUES (
+                        :ENTITY_ID,
+                        :ENTITY_CLASS,
+                        :DATA)
+                ]]>
+            </value>
+        </property>
+        <property name="loadMetadataQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        entity_id,
+                        entity_class,
+                        data
+                    FROM catgenome.metadata
+                    WHERE entity_id = ? AND entity_class = ?
+                ]]>
+            </value>
+        </property>
+        <property name="updateMetadataQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.metadata SET
+                        data = :DATA
+                    WHERE
+                        entity_id = :ENTITY_ID
+                    AND
+                        entity_class = :ENTITY_CLASS
+                ]]>
+            </value>
+        </property>
+        <property name="deleteMetadataQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM
+                        catgenome.metadata
+                    WHERE
+                        entity_id = ?
+                    AND
+                        entity_class = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadMetadataItemsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                            entity_id,
+                            entity_class,
+                            data
+                        FROM catgenome.metadata
+                        WHERE (entity_id, entity_class) IN (@ENTITIES@)
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

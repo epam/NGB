@@ -117,7 +117,7 @@ public class ProjectSecurityService {
         return projectManager.saveProjectDescription(projectId, file);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER +  OR + "hasPermissionOnProject(#projectId, 'READ')")
     public InputStream loadProjectDescription(final Long projectId) {
         return projectManager.loadProjectDescription(projectId);
     }

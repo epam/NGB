@@ -44,7 +44,7 @@ import java.util.List;
 public class BlastTaxonomyManagerTest extends TestCase {
 
     public static final int ORGANISMS_COUNT = 2;
-    public static final int TOTAL_ORGANISMS_COUNT = 12;
+    public static final int TOTAL_ORGANISMS_COUNT = 14;
 
     @Autowired
     private BlastTaxonomyManager blastTaxonomyManager;

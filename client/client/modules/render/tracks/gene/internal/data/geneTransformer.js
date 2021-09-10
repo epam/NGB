@@ -16,6 +16,11 @@ export class GeneTransformer {
         return this._config;
     }
 
+    registerGroupAutoScaleManager(manager, track) {
+        this.groupAutoScaleManager = manager;
+        this.track = track;
+    }
+
     isHistogramDrawingModeForViewport(viewport: Viewport, data) {
         let count = 0, left = 0, right = 0;
         if (!data || !data.histogramData)
@@ -109,6 +114,14 @@ export class GeneTransformer {
             .filter(Boolean)
             .filter(feature => !/^statistic$/i.test(feature))
             .sort();
+    }
+
+    getSourcesInfo () {
+        return undefined;
+    }
+
+    getCoordinateSystem () {
+        return undefined;
     }
 
     static analyzeGene(gene) {

@@ -9,14 +9,6 @@ export default {
     autoScaleGroupIndicator: {
         width: 5
     },
-    autoScaleGroupsColors: [
-        0xFF7700,
-        0x14BC0F,
-        0x0F54BC,
-        0x710FBC,
-        0xBC0F8E,
-        0xBC0F43
-    ],
     centerLine:{
         dash: {
             fill: 0x000000,
@@ -29,12 +21,20 @@ export default {
     },
     fitHeightFactor: 1,
     height: 50,
+    label: {
+        fill: 0x000000,
+        fontFamily: 'arial',
+        fontSize: '7pt',
+        fontWeight: 'normal'
+    },
     logScaleIndicator: {
         alpha: 0.5,
         fill: 0x92AEE7,
         label: {
             fill: 0xFFFFFF,
-            font: 'normal 8pt arial'
+            fontFamily: 'arial',
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         margin: 1,
         padding: 2,

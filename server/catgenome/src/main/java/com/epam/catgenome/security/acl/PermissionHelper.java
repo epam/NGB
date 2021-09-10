@@ -32,6 +32,8 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.entity.session.NGBSession;
+import com.epam.catgenome.entity.session.NGBSessionValue;
 import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.gene.GeneFileManager;
@@ -40,6 +42,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +61,10 @@ import com.epam.catgenome.manager.AuthManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -68,8 +73,10 @@ import static java.util.stream.Collectors.toList;
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class PermissionHelper {
 
+    public static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionHelper.class);
     private static final String WRITE_PERMISSION = "WRITE";
+    public static final String READ = "READ";
 
     @Autowired
     private final PermissionEvaluator permissionEvaluator;
@@ -116,6 +123,18 @@ public class PermissionHelper {
         return permissionEvaluator
                 .hasPermission(SecurityContextHolder.getContext().getAuthentication(), id,
                         type, permissionName);
+    }
+
+    public boolean isAllowed(final String permissionName, final Long entityId, final AclClass entityClass) {
+        final AbstractSecuredEntity entity = securedEntityManager.getEntityManager(entityClass).load(entityId);
+        Assert.notNull(entity, "Entity cannot be found");
+
+        if (isAdmin(getSids()) || isOwner(entity)) {
+            return true;
+        }
+
+        return permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(), entity.getId(),
+                entity.getClass().getCanonicalName(), permissionName);
     }
 
     public boolean isAllowedByBioItemId(String permissionName, Long bioItemId) {
@@ -285,5 +304,29 @@ public class PermissionHelper {
         Reference reference = referenceGenomeManager.load(geneFile.getReferenceId());
         GeneFile referenceGeneFile = reference.getGeneFile();
         return referenceGeneFile != null && referenceGeneFile.getId().equals(id);
+    }
+
+    public boolean sessionIsReadable(final NGBSession session) {
+        if (isOwner(AclClass.SESSION, session.getId())) {
+            return true;
+        }
+        try {
+            final NGBSessionValue value = MAPPER.readValue(session.getSessionValue(), NGBSessionValue.class);
+            return value.getTracks().stream().anyMatch(t -> {
+                final Optional<Project> project = Optional.ofNullable(t.getProject()).map(projectManager::load);
+                final Optional<BiologicalDataItem> bioDataItem = Optional.ofNullable(t.getBiologicalDataItem())
+                        .flatMap(i -> dataItemManager.findFilesByName(i, true).stream().findFirst());
+                if (bioDataItem.isPresent()) {
+                    return isAllowedByBioItemId(READ, BiologicalDataItem.getBioDataItemId(bioDataItem.get()))
+                            || project.map(p -> isAllowed(READ, p)).orElse(false);
+                } else if (project.isPresent()) {
+                    return isAllowed(READ, project.get());
+                }
+                return false;
+            });
+        } catch (IOException e) {
+            LOGGER.warn("Can't parse session_value and check availability of the session id: " + session.getId(), e);
+        }
+        return false;
     }
 }

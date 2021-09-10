@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.homolog.HomologGroupDao" id="homologGroupDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_homolog_group"/>
+        <property name="insertQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.homolog_group (
+                        group_id,
+                        primary_gene_id,
+                        primary_gene_tax_id,
+                        type,
+                        database_id
+                    ) VALUES (
+                        :GROUP_ID,
+                        :PRIMARY_GENE_ID,
+                        :PRIMARY_GENE_TAX_ID,
+                        :TYPE,
+                        :DATABASE_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.homolog_group WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        homolog_group.group_id as group_id,
+                        homolog_group.primary_gene_id as primary_gene_id,
+                        homolog_group.primary_gene_tax_id as primary_gene_tax_id,
+                        homolog_group.type as type,
+                        gene_desc.symbol as gene_name,
+                        gene_desc.title as protein_name,
+                        homolog_database.name as homolog_database
+                    FROM catgenome.homolog_group homolog_group
+                         join catgenome.homolog_database homolog_database on homolog_group.database_id = homolog_database.database_id
+                         left join catgenome.homolog_gene_desc gene_desc on homolog_group.primary_gene_id = gene_desc.gene_id
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

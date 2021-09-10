@@ -1,17 +1,11 @@
 import {NumberFormatter} from '../../../../../../utilities';
-import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
 export class StatisticsContainer extends VariantBaseContainer {
-
     _bubbleInfo = null;
-
-    constructor(variant, config) {
-        super(variant, config);
-    }
 
     render(viewport, manager) {
         super.render(viewport, manager);
@@ -28,12 +22,18 @@ export class StatisticsContainer extends VariantBaseContainer {
 
     buildBubble(manager) {
         this.drawBubble(this._getColorStructure(this._variant), 0);
-        const label = new PIXI.Text(NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
-            this._config.statistics.label);
-        label.resolution = drawingConfiguration.resolution;
-        label.x = Math.floor(-label.width / 2);
-        label.y = Math.floor(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
-        this._container.addChild(label);
+        const label = this.labelsManager
+            ? this.labelsManager.getLabel(
+                NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
+                this._config.statistics.label
+            )
+            : undefined;
+        if (label) {
+            label.resolution = drawingConfiguration.resolution;
+            label.x = Math.floor(-label.width / 2);
+            label.y = Math.floor(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
+            this._container.addChild(label);
+        }
         manager.submitArea('default', {
             global: {
                 x: this.container.x,

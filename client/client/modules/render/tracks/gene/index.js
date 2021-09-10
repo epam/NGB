@@ -1,6 +1,6 @@
 import * as GeneTypes from './geneTypes';
 import {GeneRenderer, GeneTransformer} from './internal';
-import {CachedTrack} from '../../core';
+import {CachedTrackWithVerticalScroll} from '../../core';
 import GeneConfig from './geneConfig';
 import {
     CachedGeneDataService,
@@ -10,7 +10,9 @@ import geneMenuConfig from './exterior/geneMenuConfig';
 import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
 
-export class GENETrack extends CachedTrack {
+const PREFER_WEBGL = true;
+
+export class GENETrack extends CachedTrackWithVerticalScroll {
 
     _dataService = null;
     _transformer = null;
@@ -27,6 +29,10 @@ export class GENETrack extends CachedTrack {
         return ['geneTranscript', 'header', 'geneFeatures'];
     }
 
+    get featuresFilteringEnabled () {
+        return true;
+    }
+
     static postStateMutatorFn = (track) => {
         track.updateAndRefresh();
         track.reportTrackState();
@@ -40,6 +46,7 @@ export class GENETrack extends CachedTrack {
     );
 
     constructor(opts) {
+        opts.preferWebGL = PREFER_WEBGL;
         super(opts);
         const self = this;
         const handleClick = async() => {
@@ -103,6 +110,9 @@ export class GENETrack extends CachedTrack {
     }
 
     fetchAvailableFeatureTypes () {
+        if (!this.featuresFilteringEnabled) {
+            return;
+        }
         const {
             id,
             project,
@@ -150,10 +160,14 @@ export class GENETrack extends CachedTrack {
     }
 
     updateAvailableFeatures(features) {
-        const availableFeatures = (this.state.availableFeatures || []).concat(features || []);
-        this.state.availableFeatures = [...(new Set(availableFeatures))]
-            .filter(Boolean)
-            .sort();
+        if (this.featuresFilteringEnabled) {
+            const availableFeatures = (this.state.availableFeatures || []).concat(features || []);
+            this.state.availableFeatures = [...(new Set(availableFeatures))]
+                .filter(Boolean)
+                .sort();
+        } else {
+            this.state.availableFeatures = undefined;
+        }
     }
 
     currentTrackManagesShortenedIntronsMode() {
@@ -198,9 +212,13 @@ export class GENETrack extends CachedTrack {
 
     get renderer(): GeneRenderer {
         if (!this._renderer) {
-            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this);
         }
         return this._renderer;
+    }
+
+    get verticalScrollRenderer() {
+        return this.renderer;
     }
 
     trackSettingsChanged(params) {
@@ -240,9 +258,9 @@ export class GENETrack extends CachedTrack {
                 this.viewport,
                 this.cache,
                 flags.heightChanged || flags.dataChanged,
+                this._showCenterLine,
                 this._gffColorByFeatureType,
                 this._gffShowNumbersAminoacid,
-                this._showCenterLine,
                 this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed,
                 this.state.geneFeatures || this.state.availableFeatures
             );
@@ -251,16 +269,21 @@ export class GENETrack extends CachedTrack {
         return somethingChanged;
     }
 
-    onClick({x, y}) {
-        super.onClick({x, y});
+    getFeaturesByCoordinates ({x, y}) {
         const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
-        const checkPositionResult = this.renderer.checkPosition(
+        return this.renderer.checkPosition(
             this.viewport,
             this.cache,
             {x, y},
             isHistogram,
             this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed
         );
+    }
+
+    onClick({x, y}) {
+        super.onClick({x, y});
+        const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
+        const checkPositionResult = this.getFeaturesByCoordinates({x, y});
 
         if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -285,19 +308,24 @@ export class GENETrack extends CachedTrack {
 
     onMouseOut() {
         super.onMouseOut();
+        this.hoverItem(null);
+        this.requestRenderRefresh();
+    }
+
+    hoverItem (items) {
         if (this.renderer && this.renderer.hoverItem) {
-            this.renderer.hoverItem(null);
-            this.requestRenderRefresh();
+            const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
+            return this.renderer.hoverItem(items, this.viewport, isHistogram, this.cache);
         }
+        return false;
     }
 
     onHover({x, y}) {
         if (super.onHover({x, y})) {
             this.tooltip.hide();
             const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
-            const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
-                {x, y}, isHistogram);
-            if (this.hoveringEffects && this.renderer.hoverItem(checkPositionResult, this.viewport, isHistogram, this.cache)) {
+            const checkPositionResult = this.getFeaturesByCoordinates({x, y});
+            if (this.hoveringEffects && this.hoverItem(checkPositionResult)) {
                 this.requestRenderRefresh();
             }
             if (this.shouldDisplayTooltips && checkPositionResult && checkPositionResult.length > 0) {
@@ -308,14 +336,6 @@ export class GENETrack extends CachedTrack {
             return false;
         }
         return true;
-    }
-
-    hoverVerticalScroll() {
-        return this.renderer.hoverVerticalScroll(this.viewport);
-    }
-
-    unhoverVerticalScroll() {
-        return this.renderer.unhoverVerticalScroll(this.viewport);
     }
 
     getTooltipDataObject(isHistogram, geneData) {
@@ -360,43 +380,27 @@ export class GENETrack extends CachedTrack {
         }
     }
 
-    canScroll(delta) {
-        return this.renderer.canScroll(delta);
-    }
-
-    isScrollable() {
-        return this.renderer.isScrollable();
-    }
-
-    scrollIndicatorBoundaries() {
-        return this.renderer.scrollIndicatorBoundaries(this.viewport);
-    }
-
-    setScrollPosition(value) {
-        this.renderer.setScrollPosition(this.viewport, value);
-    }
-
-    onScroll({delta}) {
-        this.tooltip.hide();
-        this.renderer.scroll(this.viewport, delta);
-        this.updateScene();
-    }
-
     applyAdditionalRequestParameters(params) {
         params.collapsed = this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
     }
 
+    updateCacheData (data) {
+        if (this.cache) {
+            delete this.cache.data;
+            this.cache.data = data;
+        }
+    }
+
     async updateCache() {
         if (this.cache.histogramData === null || this.cache.histogramData === undefined) {
-            await this.downloadHistogramFn(
+            const data = await this.downloadHistogramFn(
                 this.cacheUpdateInitialParameters(this.viewport)
-            ).then((data) => {
-                const downloadedData = GeneTransformer.transformFullHistogramData(data);
-                if (!this.cache) {
-                    return false;
-                }
-                this.cache.histogramData = downloadedData;
-            });
+            );
+            const downloadedData = GeneTransformer.transformFullHistogramData(data);
+            if (!this.cache) {
+                return false;
+            }
+            this.cache.histogramData = downloadedData;
         }
         if (!this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache)) {
             const reqToken = this.__currentDataUpdateReq = {};
@@ -416,8 +420,7 @@ export class GENETrack extends CachedTrack {
                 if (!this.cache) {
                     return false;
                 }
-                delete this.cache.data;
-                this.cache.data = downloadedData;
+                this.updateCacheData(downloadedData);
                 return await super.updateCache(this.viewport);
             }
             return false;

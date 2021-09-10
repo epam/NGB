@@ -1,39 +1,20 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     BTOPPartType,
     parseBtop
 } from '../../../../app/shared/blastContext';
-import {CachedTrackRenderer} from '../../core';
+import {CachedTrackRendererWithVerticalScroll} from '../../core';
 import {ColorProcessor, PixiTextSize} from '../../utilities';
-import PIXI from 'pixi.js';
-import {drawingConfiguration} from '../../core/configuration';
 
-class BLASTAlignmentRenderer extends CachedTrackRenderer {
+class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
     get config() {
         return this._config;
     }
 
-    get verticalScroll(): PIXI.Graphics {
-        return this._verticalScroll;
-    }
-
-    get height() {
-        return this._height;
-    }
-
-    set height(value) {
-        this._height = value;
-    }
-
-    get actualHeight() {
-        return this._actualHeight;
-    }
-
-    constructor(config, pixiRenderer, options, blastContext) {
-        super();
+    constructor(config, options, blastContext, track) {
+        super(track);
         this._config = config;
-        this.pixiRenderer = pixiRenderer;
         this.options = options;
-        this._verticalScroll = new PIXI.Graphics();
         this._hoveringGraphics = new PIXI.Graphics();
         this.blastContext = blastContext;
         this.container.addChild(this._verticalScroll);
@@ -41,87 +22,9 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         this.initializeCentralLine();
     }
 
-    scrollIndicatorBoundaries(viewport) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            return {
-                height: this.height * this.height / this.actualHeight,
-                width: this.config.scroll.width,
-                x: viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                y: -this.dataContainer.y / this.actualHeight * this.height
-            };
-        }
-        return null;
-    }
-
-    drawVerticalScroll(viewport) {
-        this.verticalScroll.clear();
-        if (this.actualHeight && this.height < this.actualHeight) {
-            const scrollHeight = this.height * this.height / this.actualHeight;
-            this.verticalScroll
-                .beginFill(this.config.scroll.fill, this._verticalScrollIsHovered ? this.config.scroll.hoveredAlpha : this.config.scroll.alpha)
-                .drawRect(
-                    viewport.canvasSize - this.config.scroll.width - this.config.scroll.margin,
-                    -this.dataContainer.y / this.actualHeight * this.height,
-                    this.config.scroll.width,
-                    scrollHeight
-                )
-                .endFill();
-        }
-    }
-
-    _verticalScrollIsHovered = false;
-
-    hoverVerticalScroll(viewport) {
-        if (!this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = true;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    unhoverVerticalScroll(viewport) {
-        if (this._verticalScrollIsHovered) {
-            this._verticalScrollIsHovered = false;
-            this.drawVerticalScroll(viewport);
-            return true;
-        }
-        return false;
-    }
-
-    isScrollable() {
-        return this.actualHeight && this.height < this.actualHeight;
-    }
-
-    canScroll(yDelta) {
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            return __y <= 0 && __y >= this.height - this.actualHeight;
-        }
-        return false;
-    }
-
-    setScrollPosition(viewport, indicatorPosition) {
-        this.scroll(viewport, - indicatorPosition * this.actualHeight / this.height - this.dataContainer.y);
-    }
-
     scroll(viewport, yDelta) {
         this.hoverItem(null);
-        if (this.actualHeight && this.height < this.actualHeight) {
-            let __y = this.dataContainer.y;
-            if (yDelta !== null) {
-                __y += yDelta;
-            }
-            __y = Math.min(0, Math.max(this.height - this.actualHeight, __y));
-            this.dataContainer.y = __y;
-            this.drawVerticalScroll(viewport);
-        } else {
-            this.dataContainer.y = 0;
-            this.drawVerticalScroll(null);
-        }
+        super.scroll(viewport, yDelta);
     }
 
     translateContainer(viewport, cache) {
@@ -194,7 +97,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                     queryEnd,
                 } = alignment;
                 if (!sequenceStart || !sequenceEnd) {
-                    return false;
+                    continue;
                 }
                 const positiveStrand = !sequenceStrandView || sequenceStrandView === '+';
                 if (!positiveStrand) {
@@ -369,12 +272,13 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             )
             .endFill();
         if (alt && renderLabel) {
-            const label = new PIXI.Text(
-                alt,
-                this.config.sequence.mismatch.label,
-                drawingConfiguration.resolution
-            );
-            if (label.width < x2 - x1) {
+            const label = this.labelsManager
+                ? this.labelsManager.getLabel(
+                    alt,
+                    this.config.sequence.mismatch.label
+                )
+                : undefined;
+            if (label && label.width < x2 - x1) {
                 label.x = Math.round((x1 + x2) / 2.0 - label.width / 2.0);
                 label.y = Math.round(
                     y + height / 2.0 - label.height / 2.0
@@ -499,20 +403,23 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                     height
                 );
             if (renderLabel) {
-                const label = new PIXI.Text(
-                    `${size}`,
-                    this.config.sequence.notAligned.label,
-                    drawingConfiguration.resolution
-                );
-                label.x = Math.round(
-                    direction < 0
-                        ? (x - notAlignedMarkerWidth - label.width - margin)
-                        : (x + notAlignedMarkerWidth + margin)
-                );
-                label.y = Math.round(
-                    y + height / 2.0 - label.height / 2.0
-                );
-                this.dataContainer.addChild(label);
+                const label = this.labelsManager
+                    ? this.labelsManager.getLabel(
+                        `${size}`,
+                        this.config.sequence.notAligned.label
+                    )
+                    : undefined;
+                if (label) {
+                    label.x = Math.round(
+                        direction < 0
+                            ? (x - notAlignedMarkerWidth - label.width - margin)
+                            : (x + notAlignedMarkerWidth + margin)
+                    );
+                    label.y = Math.round(
+                        y + height / 2.0 - label.height / 2.0
+                    );
+                    this.dataContainer.addChild(label);
+                }
             }
         }
     }
@@ -732,7 +639,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
         }
-        super.render(viewport, cache, isRedraw, null, showCenterLine);
+        super.render(viewport, cache, isRedraw, showCenterLine);
     }
 }
 
