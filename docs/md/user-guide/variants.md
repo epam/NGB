@@ -1,6 +1,6 @@
 # Variants
 
-- [Viewing variation results](#viewing-variation-results)
+- [Viewing variation annotation](#viewing-variation-annotation)
 - [Filters](#filters-for-variants-panel)
 - [Download the variants table data](#download-the-variants-table-data)
 - [Highlight variants of interest](#highlight-variants-of-interest)
@@ -10,7 +10,7 @@
 
 To navigate to a variant, click the variant's row in the table. This variant will be opened in the "**Browser**" panel, at the corressponding VCF track.
 
-## Viewing variation results
+## Viewing variation annotation
 
 When you click a variation at the VCF track, a popup with the results of a DNA rearrangement appears.
 There are two types of visualization:

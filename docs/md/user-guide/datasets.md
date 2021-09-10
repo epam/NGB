@@ -144,7 +144,7 @@ Some simple ways you can view the loaded tracks as follows:
 - Click a chromosome's bar in the chart at the **Summary** view to open the whole chromosome scale in the "**Browser**" panel:  
     ![NGB GUI](images/projects-3.png)  
     ![NGB GUI](images/projects-4.png)
-- Use **unified coordinates and search control** in the header of the "**Browser**" panel to open a specific position or a feature (it can be found by the feature name):  
+- Use [**unified coordinates and search control**](tracks.md#using-unified-coordinates-and-search-control) in the header of the "**Browser**" panel to open a specific position or a feature (it can be found by the feature name):  
     ![NGB GUI](images/projects-18.png)
 - Click a variation in the "**Variants**" panel to open this variation (load the variation's position) at the VCF track in the "**Browser**" panel:  
     ![NGB GUI](images/projects-19.png)

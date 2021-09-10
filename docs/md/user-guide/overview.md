@@ -1,5 +1,6 @@
 # NGB User Interface
 
+- [Main menu](#main-menu)
 - [Panels](#panels)
     - [Variants](#variants-panel)
     - [Genes](#genes-panel)
@@ -8,15 +9,31 @@
     - [BLAST search](#blast-panel)
 - [Taking screenshots](#taking-screenshots)
 
-## Panels
+The NGB user interface is implemented as the main menu on the left side and a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.  
+  ![NGB GUI](images/overview-44.png)
 
-The NGB user interface is implemented as a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.
+## Main menu
+
+Main menu contains the following items:
+
+- **INFO** - to view the current NGB version and links to the NGB GitHub project and to the documentation page:  
+  ![NGB GUI](images/overview-45.png)
+- **OPEN FILE** - to open and view separate file from the NGB server or from external URL:  
+  ![NGB GUI](images/overview-46.png)
+- **VIEWS** - to see the complete list of available [panels](#panels) and select the panels to be shown or hidden
+- **SHARE LINK** - to share a link to the current view of the opened files with other NGB users:  
+  ![NGB GUI](images/overview-47.png)
+- **SETTINGS** - to open the main settings pop-up:  
+  ![NGB GUI](images/overview-48.png)
+
+## Panels
 
 You can use the **VIEWS** menu to see the complete list of available panels and select the panels to be shown or hidden. The **VIEWS** menu is located on the main toolbar of the application:  
     ![NGB GUI](images/overview-1.png)
 
-By default, only following panels are shown: **Browser**, [**Datasets**](datasets.md), **Genes** and **Variants**.  
-Let's take a look at these and other panels below.
+By default, only following panels are shown: **Browser**, [**Datasets**](datasets.md), [**Genes**](#genes-panel) and [**Variants**](#variants-panel).  
+The **Browser** panel is one of the main panel where user can open, view and configure file track and also view datasets' summary details.  
+Let's take a look at panels below.
 
 You can rearrange the layout of the NGB as follows:
 
