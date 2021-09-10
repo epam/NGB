@@ -61,7 +61,6 @@ export default class ngbProjectInfoService {
         this._currentName = undefined;
         this._editingNote = {};
         this._newNote = {};
-        this._summaryAvailable = false;
         this._descriptionAvailable = false;
         const projectChanged = this.projectChanged.bind(this);
         this.dispatcher.on('dataset:selection:change', projectChanged);
@@ -113,7 +112,7 @@ export default class ngbProjectInfoService {
     }
 
     get summaryAvailable() {
-        return this._summaryAvailable;
+        return true;
     }
 
     get descriptionIsLoading() {
@@ -147,7 +146,6 @@ export default class ngbProjectInfoService {
     }
 
     projectChanged() {
-        this._summaryAvailable = this.projectContext.containsVcfFiles;
         const selectedDatasets = [
             ...(
                 new Set(findSelectedDatasets(this.projectContext.datasets || []))
@@ -180,9 +178,7 @@ export default class ngbProjectInfoService {
                     this._descriptionAvailable = false;
                     this._descriptionIsLoading = false;
                     this._descriptionAvailable = false;
-                    this.currentMode = this.summaryAvailable
-                        ? this.projectInfoModeList.SUMMARY
-                        : this.projectInfoModeList.ADD_NOTE;
+                    this.currentMode = this.projectInfoModeList.SUMMARY;
                 }
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
@@ -190,9 +186,7 @@ export default class ngbProjectInfoService {
             this.currentProject = {};
             this._newNote = {};
             this._descriptionIsLoading = false;
-            this.currentMode = this.summaryAvailable
-                ? this.projectInfoModeList.SUMMARY
-                : undefined;
+            this.currentMode = this.projectInfoModeList.SUMMARY;
             this._descriptionAvailable = false;
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
