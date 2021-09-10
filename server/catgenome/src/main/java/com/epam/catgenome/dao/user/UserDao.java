@@ -76,6 +76,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     private String loadUsersByNamesQuery;
     private String loadUserByNameAndGroupQuery;
     private String deleteUserGroupsQuery;
+    private String deleteUserGroupByUserIdAndGroupIdQuery;
     private String loadUserListQuery;
     private String deleteRoleFromUserQuery;
 
@@ -115,44 +116,9 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
         insertUserRoles(user.getId(), appliedRoles);
         if (!CollectionUtils.isEmpty(user.getGroups())) {
-            insertUserGroups(user.getId(), user.getGroups());
+            insertUserGroups(user.getId(), user.getGroups(), false);
         }
         return user;
-    }
-
-    private void insertUserGroups(Long id, List<String> groups) {
-        List<NgbSecurityGroup> existingGroups = loadExistingGroupsFromList(groups);
-        Set<String> existingGroupsNames = existingGroups.stream()
-                .map(NgbSecurityGroup::getGroupName)
-                .collect(Collectors.toSet());
-
-        List<String> newGroups = groups.stream()
-                .filter(g -> !existingGroupsNames.contains(g))
-                .collect(Collectors.toList());
-        List<Long> ids = daoHelper.createIds(groupSequence, newGroups.size());
-
-        MapSqlParameterSource[] groupParams = new MapSqlParameterSource[newGroups.size()];
-        for (int i = 0; i < newGroups.size(); i++) {
-            NgbSecurityGroup group = new NgbSecurityGroup(ids.get(i), newGroups.get(i));
-            MapSqlParameterSource param = new MapSqlParameterSource();
-            param.addValue(GroupParameters.GROUP_ID.name(), group.getId());
-            param.addValue(GroupParameters.GROUP_NAME.name(), group.getGroupName());
-            groupParams[i] = param;
-
-            existingGroups.add(group);
-        }
-        getNamedParameterJdbcTemplate().batchUpdate(insertGroupQuery, groupParams);
-
-        List<NgbSecurityGroup> existingNewGroups = getExistingNewGroups(id, groups, existingGroups);
-        MapSqlParameterSource[] userGroupParams = existingNewGroups.stream()
-                .map(group -> {
-                    MapSqlParameterSource param = new MapSqlParameterSource();
-                    param.addValue(GroupParameters.USER_ID.name(), id);
-                    param.addValue(GroupParameters.GROUP_ID.name(), group.getId());
-                    return param;
-                }).toArray(MapSqlParameterSource[]::new);
-
-        getNamedParameterJdbcTemplate().batchUpdate(insertUserGroupQuery, userGroupParams);
     }
 
     public List<NgbUser> loadAllUsers() {
@@ -200,9 +166,9 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public NgbUser updateUser(NgbUser user) {
+    public NgbUser updateUser(final NgbUser user) {
         getNamedParameterJdbcTemplate().update(updateUserQuery, UserParameters.getParameters(user));
-        insertUserGroups(user.getId(), user.getGroups());
+        insertUserGroups(user.getId(), user.getGroups(), true);
         return user;
     }
 
@@ -275,20 +241,83 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().batchUpdate(query, batchParameters);
     }
 
-    private List<NgbSecurityGroup> getExistingNewGroups(final Long userId, final List<String> groups,
+    private void insertUserGroups(final Long id, final List<String> groups, final boolean cleanup) {
+        final List<NgbSecurityGroup> existingGroups = loadExistingGroupsFromList(groups);
+        createNotExistingGroups(groups, existingGroups);
+
+        final List<NgbSecurityGroup> currentUsersGroups = loadGroupsByUsersIds(Collections.singletonList(id))
+                .getOrDefault(id, Collections.emptyList());
+        createNonExistingUserGroups(id, currentUsersGroups, groups, existingGroups);
+        if (cleanup) {
+            removeNotPresentUserGroups(groups, id, currentUsersGroups);
+        }
+    }
+
+    private void removeNotPresentUserGroups(final List<String> groups, final Long userId,
+                                            final List<NgbSecurityGroup> currentUsersGroups) {
+        final MapSqlParameterSource[] userGroupParams = currentUsersGroups.stream()
+                .filter(usersGroup -> !groups.contains(usersGroup.getGroupName()))
+                .map(NgbSecurityGroup::getId)
+                .map(groupId -> buildUserGroupParameter(userId, groupId))
+                .toArray(MapSqlParameterSource[]::new);
+
+        getNamedParameterJdbcTemplate().batchUpdate(deleteUserGroupByUserIdAndGroupIdQuery, userGroupParams);
+    }
+
+    private MapSqlParameterSource buildUserGroupParameter(final Long userId, final Long groupId) {
+        final MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue(GroupParameters.USER_ID.name(), userId);
+        param.addValue(GroupParameters.GROUP_ID.name(), groupId);
+        return param;
+    }
+
+    private List<NgbSecurityGroup> getExistingNewGroups(final List<NgbSecurityGroup> userGroups,
+                                                        final List<String> groups,
                                                         final List<NgbSecurityGroup> existingGroups) {
-        Set<String> userGroupNames = loadGroupsByUsersIds(Collections.singletonList(userId))
-                .getOrDefault(userId, Collections.emptyList())
-                .stream()
+        final Set<String> userGroupNames = userGroups.stream()
                 .map(NgbSecurityGroup::getGroupName)
                 .collect(Collectors.toSet());
-        Set<String> newUserGroups = groups.stream()
+        final Set<String> newUserGroups = groups.stream()
                 .filter(group -> !userGroupNames.contains(group))
                 .collect(Collectors.toSet());
         return existingGroups
                 .stream()
                 .filter(group -> newUserGroups.contains(group.getGroupName()))
                 .collect(Collectors.toList());
+    }
+
+    private void createNotExistingGroups(final List<String> groups, final List<NgbSecurityGroup> existingGroups) {
+        final Set<String> existingGroupsNames = existingGroups.stream()
+                .map(NgbSecurityGroup::getGroupName)
+                .collect(Collectors.toSet());
+
+        final List<String> newGroups = groups.stream()
+                .filter(g -> !existingGroupsNames.contains(g))
+                .collect(Collectors.toList());
+        final List<Long> ids = daoHelper.createIds(groupSequence, newGroups.size());
+
+        final MapSqlParameterSource[] groupParams = new MapSqlParameterSource[newGroups.size()];
+        for (int i = 0; i < newGroups.size(); i++) {
+            final NgbSecurityGroup group = new NgbSecurityGroup(ids.get(i), newGroups.get(i));
+            final MapSqlParameterSource param = new MapSqlParameterSource();
+            param.addValue(GroupParameters.GROUP_ID.name(), group.getId());
+            param.addValue(GroupParameters.GROUP_NAME.name(), group.getGroupName());
+            groupParams[i] = param;
+
+            existingGroups.add(group);
+        }
+
+        getNamedParameterJdbcTemplate().batchUpdate(insertGroupQuery, groupParams);
+    }
+
+    private void createNonExistingUserGroups(final Long userId, final List<NgbSecurityGroup> userGroups,
+                                             final List<String> groups, final List<NgbSecurityGroup> existingGroups) {
+        final MapSqlParameterSource[] userGroupParams =
+                getExistingNewGroups(userGroups, groups, existingGroups).stream()
+                        .map(group -> buildUserGroupParameter(userId, group.getId()))
+                        .toArray(MapSqlParameterSource[]::new);
+
+        getNamedParameterJdbcTemplate().batchUpdate(insertUserGroupQuery, userGroupParams);
     }
 
     enum GroupParameters {
@@ -523,6 +552,11 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setDeleteUserGroupsQuery(String deleteUserGroupsQuery) {
         this.deleteUserGroupsQuery = deleteUserGroupsQuery;
+    }
+
+    @Required
+    public void setDeleteUserGroupByUserIdAndGroupIdQuery(String deleteUserGroupByUserIdAndGroupIdQuery) {
+        this.deleteUserGroupByUserIdAndGroupIdQuery = deleteUserGroupByUserIdAndGroupIdQuery;
     }
 
     @Required

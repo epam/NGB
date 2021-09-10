@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +37,7 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.acl.GrantPermissionManager;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +99,8 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     public Object loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
         String userName = credential.getNameID().getValue().toUpperCase();
         List<String> groups = readAuthorities(credential);
-        Set<Long> requiredRoles = readRequiredRoles(groups);
+        Map<String, Long> requiredGroupByRole = readSamlRolesMapping();
+        Set<Long> requiredRoles = getRequiredRoleIds(groups, requiredGroupByRole);
         Map<String, String> attributes = readAttributes(credential);
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
@@ -126,9 +127,8 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         } else {
             LOGGER.debug("Found user by name {}", userName);
             loadedUser.setUserName(userName);
-            List<Long> roles = loadedUser.getRoles().stream().map(Role::getId).collect(Collectors.toList());
 
-            addRequiredRoles(requiredRoles, roles);
+            List<Long> roles = buildUserRoles(groups, requiredGroupByRole, requiredRoles, loadedUser);
 
             boolean needToUpdateToAdmin = userName.equalsIgnoreCase(defaultAdmin)
                     && roles.stream().noneMatch(roleId -> DefaultRoles.ROLE_ADMIN.getId().equals(roleId));
@@ -221,10 +221,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         return parsedAttributes;
     }
 
-    private Set<Long> readRequiredRoles(final List<String> groups) {
-        if (CollectionUtils.isEmpty(samlRoleMappings)) {
-            return Collections.emptySet();
-        }
+    private Map<String, Long> readSamlRolesMapping() {
         final Map<String, Long> roles = new HashMap<>();
         for (String attribute : samlRoleMappings) {
             if (!attribute.contains(ATTRIBUTES_DELIMITER)) {
@@ -239,21 +236,45 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                 continue;
             }
 
-            if (groups.contains(key) && !roles.containsKey(value)) {
-                final Optional<Role> role = roleManager.findRoleByName(value);
-                if (role.isPresent()) {
-                    roles.put(value, role.get().getId());
-                    continue;
-                }
-                LOGGER.warn("Requested role '{}' doesn't exist.", value);
+            final Optional<Role> role = roleManager.findRoleByName(value);
+            if (role.isPresent()) {
+                roles.putIfAbsent(key, role.get().getId());
+                continue;
             }
+            LOGGER.warn("Requested role '{}' doesn't exist.", value);
         }
-        return new HashSet<>(roles.values());
+        return roles;
     }
 
     private void addRequiredRoles(final Set<Long> requiredRoles, final List<Long> roles) {
         requiredRoles.stream()
                 .filter(roleId -> !roles.contains(roleId))
                 .forEach(roles::add);
+    }
+
+    private List<Long> buildUserRoles(final List<String> groups, final Map<String, Long> requiredGroupByRole,
+                                      final Set<Long> requiredRoles, final NgbUser loadedUser) {
+        final Set<Long> roleIdsToDelete = ListUtils.emptyIfNull(loadedUser.getGroups()).stream()
+                .map(StringUtils::upperCase)
+                .filter(group -> !groups.contains(group))
+                .filter(requiredGroupByRole::containsKey)
+                .map(requiredGroupByRole::get)
+                .collect(Collectors.toSet());
+
+        final List<Long> roles = ListUtils.emptyIfNull(loadedUser.getRoles()).stream()
+                .map(Role::getId)
+                .filter(roleId -> !roleIdsToDelete.contains(roleId))
+                .collect(Collectors.toList());
+
+        addRequiredRoles(requiredRoles, roles);
+        return roles;
+    }
+
+    private Set<Long> getRequiredRoleIds(final List<String> groups, final Map<String, Long> requiredGroupByRole) {
+        return groups.stream()
+                .map(StringUtils::upperCase)
+                .filter(requiredGroupByRole::containsKey)
+                .map(requiredGroupByRole::get)
+                .collect(Collectors.toSet());
     }
 }
