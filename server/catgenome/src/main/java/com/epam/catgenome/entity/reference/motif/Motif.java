@@ -26,8 +26,10 @@ package com.epam.catgenome.entity.reference.motif;
 
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class Motif {
 
     public Motif(final String contig, final int start, final int end,
@@ -39,9 +41,9 @@ public class Motif {
         this.sequence = sequence;
     }
 
-    private final String contig;
-    private final int start;
-    private final int end;
-    private final StrandSerializable strand;
-    private final String sequence;
+    private String contig;
+    private int start;
+    private int end;
+    private StrandSerializable strand;
+    private String sequence;
 }

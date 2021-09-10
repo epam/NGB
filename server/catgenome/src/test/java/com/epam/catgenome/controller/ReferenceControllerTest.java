@@ -35,6 +35,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.entity.reference.StrandedSequence;
+import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
+import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
+import com.epam.catgenome.entity.reference.motif.MotifSearchType;
+import com.epam.catgenome.entity.reference.motif.MotifTrackQuery;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -104,6 +109,8 @@ public class ReferenceControllerTest extends AbstractControllerTest {
     private static final String LOAD_REFERENCE = "/restapi/reference/%s/load";
     private static final String LOAD_ALL_REFERENCES = "/restapi/reference/loadAll";
     private static final String GET_REFERENCE_TRACK = "/restapi/reference/track/get";
+    private static final String GET_MOTIF_TRACK = "/restapi/reference/motif";
+    private static final String GET_MOTIF_TABLE = "/restapi/reference/motif/table";
     private static final String LOAD_CHROMOSOME = "/restapi/reference/chromosomes/%s/load";
     private static final String LOAD_ALL_CHROMOSOMES = "/restapi/reference/%s/loadChromosomes";
     private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/restapi/secure/reference/register/fasta";
@@ -337,6 +344,128 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         }
         actions.andDo(print());
 
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testGetMotifTableFromReferenceFile() throws Exception {
+
+        final String testMotif = "TAACCCTA";
+        final int expectedNumberOfMatches = 29;
+
+        ResultActions actions;
+        ReferenceRegistrationRequest request;
+
+        File fasta = getTemplate("Test2.fa");
+        FastaUtils.indexFasta(fasta);
+
+        request = new ReferenceRegistrationRequest();
+        request.setPath(fasta.getAbsolutePath());
+
+        actions = mvc()
+                .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(getObjectMapper().writeValueAsString(request))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        final Reference reference =
+                parseReference(actions.andReturn().getResponse().getContentAsByteArray()).getPayload();
+        actions.andDo(print());
+
+
+        final MotifSearchRequest motifSearchRequest = MotifSearchRequest.builder()
+                .referenceId(reference.getId())
+                .chromosomeId(reference.getChromosomes().iterator().next().getId())
+                .motif(testMotif)
+                .searchType(MotifSearchType.CHROMOSOME)
+                .startPosition(1)
+                .includeSequence(true)
+                .build();
+
+        actions = mvc()
+                .perform(post(GET_MOTIF_TABLE).content(getObjectMapper().writeValueAsString(motifSearchRequest))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+
+        final ResponseResult<MotifSearchResult> result = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsString(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                MotifSearchResult.class));
+        final MotifSearchResult motifSearchResult = result.getPayload();
+
+        Assert.assertEquals(expectedNumberOfMatches, motifSearchResult.getResult().size());
+        Assert.assertEquals(testMotif, motifSearchResult.getResult().get(0).getSequence());
+        Assert.assertEquals(expectedNumberOfMatches, motifSearchResult.getPageSize().longValue());
+        Assert.assertNull(motifSearchResult.getPosition());
+
+        actions.andDo(print());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testGetMotifTrackFromReferenceFile() throws Exception {
+
+        final String testMotif = "TAACCCTA";
+        final int expectedNumberOfMatches = 29;
+
+        ResultActions actions;
+        ReferenceRegistrationRequest request;
+
+        File fasta = getTemplate("Test2.fa");
+        FastaUtils.indexFasta(fasta);
+
+        request = new ReferenceRegistrationRequest();
+        request.setPath(fasta.getAbsolutePath());
+
+        actions = mvc()
+                .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(getObjectMapper().writeValueAsString(request))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        final Reference reference =
+                parseReference(actions.andReturn().getResponse().getContentAsByteArray()).getPayload();
+        actions.andDo(print());
+
+
+        MotifTrackQuery motifTrackQuery = new MotifTrackQuery();
+        motifTrackQuery.setId(reference.getId());
+        motifTrackQuery.setChromosomeId(reference.getChromosomes().iterator().next().getId());
+        motifTrackQuery.setMotif(testMotif);
+        motifTrackQuery.setStartIndex(1);
+        motifTrackQuery.setEndIndex(reference.getChromosomes().iterator().next().getSize());
+
+        actions = mvc()
+                .perform(post(GET_MOTIF_TRACK).content(getObjectMapper().writeValueAsString(motifTrackQuery))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+
+        final ResponseResult<Track<StrandedSequence>> result = getObjectMapper()
+                .readValue(
+                        actions.andReturn().getResponse().getContentAsString(),
+                        getTypeFactory().constructParametrizedType(
+                                ResponseResult.class,
+                                ResponseResult.class,
+                                getTypeFactory().constructParametrizedType(
+                                        Track.class,
+                                        Track.class,
+                                        StrandedSequence.class)));
+
+        final Track<StrandedSequence> track = result.getPayload();
+
+        Assert.assertEquals(expectedNumberOfMatches, track.getBlocks().size());
+        Assert.assertEquals(reference.getChromosomes().iterator().next().getSize().longValue(),
+                track.getEndIndex().longValue());
+
+        actions.andDo(print());
     }
 
     @Test
