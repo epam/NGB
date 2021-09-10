@@ -8,7 +8,7 @@ export default class ngbBrowserController extends baseController {
     markdown;
     homeUrl;
     errorMessages=[];
-    pageIsLoading=false;
+    rootPageIsLoading=true;
 
     constructor(dispatcher, projectContext, $scope, $timeout, $sce, ngbBrowserService) {
         super(dispatcher);
@@ -20,7 +20,7 @@ export default class ngbBrowserController extends baseController {
             $timeout,
             $sce
         });
-        $scope.$watch('$ctrl.homeUrl', ::this.getMarkdown);
+        this.$scope.$watch('$ctrl.homeUrl', this.homeUrlChanged.bind(this));
         this.initEvents();
     }
     get homeUrl() {
@@ -30,7 +30,8 @@ export default class ngbBrowserController extends baseController {
     events = {
         'chromosome:change': ::this.onStateChange,
         'reference:change': ::this.onStateChange,
-        'reference:pre:change': ::this.onStateChange
+        'reference:pre:change': ::this.onStateChange,
+        'defaultSettings:change': :: this.homeUrlChanged
     };
 
     $onInit() {
@@ -53,18 +54,17 @@ export default class ngbBrowserController extends baseController {
     homeUrlIsMd() {
         return this.homeUrl && /.md$/.test(this.homeUrl);
     }
-    async getMarkdown() {
+    async homeUrlChanged() {
         if (this.homeUrl) {
+            this.rootPageIsLoading = true;
             try {
-                this.pageIsLoading = true;
                 this.markdown = await this.ngbBrowserService.getMarkdown(this.homeUrl);
                 this.errorMessages = [];
             } catch(err) {
                 this.errorMessages.push(err.message);
-            } finally {
-                this.pageIsLoading = false;
-                this.$scope.$apply();
             }
+            this.rootPageIsLoading = false;
+            this.$scope.$apply();
         }
     }
 }
