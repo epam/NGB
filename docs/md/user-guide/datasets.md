@@ -4,6 +4,7 @@
     - [Default dataset view](#default-dataset-view)
         - [Summary view](#summary-view)
         - [Description view](#description-view)
+        - [Dataset notes](#dataset-notes)
         - [Change view](#change-view)
     - [Download original files](#download-original-files)
     - [Metadata](#metadata)
@@ -77,6 +78,45 @@ Dataset may have an `html` description file:
 - This file is being attached to a dataset during its registration or can be added to the registered dataset separately
 - Such file is not displayed in the datasets tree (at the "**Datasets**" panel)
     ![NGB GUI](images/projects-16.png)
+
+#### Dataset notes
+
+Additionally to description, each dataset may have any count of notes - text pages attached to the dataset.  
+This pages are created as plain text notes, `Markdown` formatting is supported as well.  
+To create new notes or edit/remove existing ones user shall have the `write` access to the dataset.  
+Any user that has access to the dataset, can open and view such notes.
+
+Notes management is organized via the menu in the "**Browser**" panel header, where user can select what page should be shown in the panel until any position from the reference will be opened.  
+To create a new note page - click that menu and select the **Add note** item from the list:  
+    ![NGB GUI](images/projects-30.png)
+
+A new form will appear in the "**Browser**" panel that contains:
+
+- text field to specify a note title
+- text field to specify a note content (description)
+- buttons to save/cancel note creation  
+    ![NGB GUI](images/projects-31.png)
+
+User should specify a title for a note (_mandatory_), content (_optional_) and click the **SAVE** button to create a new note, e.g.:  
+    ![NGB GUI](images/projects-32.png)
+
+After, the just-created notes page will appear in the browser:
+
+- note title is shown in the header of the "**Browser**" panel
+- note content is shown in the "**Browser**" panel, `Markdown` formatting is applied
+- additionally, button to edit the note is shown  
+    ![NGB GUI](images/projects-33.png)
+
+Created notes pages are displayed and can be selected from the notes management section in the "**Browser**" display menu, e.g.:  
+    ![NGB GUI](images/projects-34.png)
+
+If user opens a note and then clicks the **Edit** button for it, a form similar to the note creation one will be opened, where user has the ability:
+
+- to edit a note title
+- to edit a note content
+- to save/cancel changes
+- to remove the note  
+    ![NGB GUI](images/projects-35.png)
 
 #### Change view
 
