@@ -170,6 +170,13 @@ public class UserDaoTest extends AbstractDaoTest {
                 .collect(Collectors.toList());
         Assert.assertEquals(TEST_GROUPS_1, allLoadedGroups);
 
+        user1.setGroups(TEST_GROUPS_2);
+        userDao.updateUser(user1);
+
+        List<String> groupsAfterUpdate = userDao.loadUserById(user1.getId()).getGroups();
+        Assert.assertEquals(TEST_GROUPS_2.size(), groupsAfterUpdate.size());
+        Assert.assertTrue(TEST_GROUPS_2.containsAll(groupsAfterUpdate));
+
         userDao.deleteUserGroups(user1.getId());
         userDao.deleteUserRoles(user1.getId());
         userDao.deleteUser(user1.getId());
