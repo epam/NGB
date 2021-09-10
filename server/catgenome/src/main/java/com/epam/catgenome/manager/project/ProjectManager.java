@@ -178,11 +178,17 @@ public class ProjectManager implements SecuredEntityManager {
             itemMap = projectDao.loadProjectItemsByProjects(allProjects);
         }
 
+        Map<Long, Set<ProjectNote>> noteMap = projectDao.loadAllProjectNotes(StringUtils.isEmpty(referenceName) ?
+                null : allProjects);
+
         attachMetadata(allProjects, itemMap);
 
         allProjects.forEach(p -> {
             if (itemMap.containsKey(p.getId())) {
                 p.setItems(new ArrayList<>(itemMap.get(p.getId())));
+            }
+            if (noteMap.containsKey(p.getId())) {
+                p.setNotes(new ArrayList<>(noteMap.get(p.getId())));
             }
 
             if (!hierarchyMap.containsKey(p.getParentId())) {

@@ -198,7 +198,7 @@ public class MotifSearchManager {
     private List<Motif> getStubMotifList(final Chromosome chromosome, final int trackStart, final int trackEnd,
                                          final StrandSerializable strand, final Integer pageSize) {
         int motifStart = trackStart;
-        int count = pageSize != null && pageSize > 0 ? pageSize : (trackEnd - trackStart) / TRACK_LENGTH;
+        int count = pageSize != null && pageSize > 0 ? pageSize : Math.max(1, (trackEnd - trackStart) / TRACK_LENGTH);
         int distance = (trackEnd - trackStart) / count;
 
         final List<Motif> motifs = new ArrayList<>();
