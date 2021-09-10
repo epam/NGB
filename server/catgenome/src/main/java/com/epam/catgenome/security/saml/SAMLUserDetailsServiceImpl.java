@@ -175,8 +175,9 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                 attributeValues = getParsedLdapGroupName(attributeValues.clone());
                 grantedAuthorities.addAll(
                     Arrays.stream(attributeValues)
-                        .map(String::toUpperCase)
-                        .collect(Collectors.toList()));
+                            .filter(StringUtils::isNotBlank)
+                            .map(String::toUpperCase)
+                            .collect(Collectors.toList()));
             }
         });
         return grantedAuthorities;
@@ -185,6 +186,10 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     private String[] getParsedLdapGroupName(String[] attributeValues) {
         for (int i = 0; i < attributeValues.length; i++) {
             try {
+                if (StringUtils.isBlank(attributeValues[i])) {
+                    continue;
+                }
+
                 LdapName ldapName = new LdapName(attributeValues[i]);
                 for (Rdn rdn : ldapName.getRdns()) {
                     if (rdn.getType().equalsIgnoreCase(LDAP_CN_FIELD)) {
