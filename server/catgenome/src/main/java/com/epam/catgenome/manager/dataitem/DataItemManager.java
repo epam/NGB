@@ -223,7 +223,7 @@ public class DataItemManager {
 
     private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
                                                                           final BiologicalDataItem biologicalDataItem) {
-        final Path dataItemPath = Paths.get(biologicalDataItem.getPath());
+        final Path dataItemPath = Paths.get(biologicalDataItem.getSource());
         try {
             Assert.state(Files.exists(dataItemPath),
                     getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
