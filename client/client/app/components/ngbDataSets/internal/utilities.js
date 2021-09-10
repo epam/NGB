@@ -366,7 +366,7 @@ export function search(pattern, items: Array<Node>) {
     return result;
 }
 
-export function toPlainList(items, namingService, ident = 0) {
+export function toPlainList(items, namingService, indent = 0) {
     const result = [];
     if (items && items.length) {
         const sortedItems = items.map(item => {
@@ -389,10 +389,11 @@ export function toPlainList(items, namingService, ident = 0) {
         });
         for (let i = 0; i < sortedItems.length; i++) {
             const item = sortedItems[i];
-            item.ident = ident;
+            item.indent = indent;
+            item.nesting = indent;
             result.push(item);
             if (item.isProject && item.__expanded) {
-                result.push(...toPlainList(item.items, namingService, ident + 1));
+                result.push(...toPlainList(item.items, namingService, indent + 1));
             }
         }
     }
