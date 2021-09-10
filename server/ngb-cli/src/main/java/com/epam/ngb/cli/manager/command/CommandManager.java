@@ -41,6 +41,7 @@ import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.command.handler.simple.AbstractSimpleCommandHandler;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * {@code CommandManager} provides service creating and running CLI commands
@@ -67,6 +68,8 @@ public class CommandManager {
     private static final String HANDLER_PACKAGE = "com.epam.ngb.cli.manager.command.handler";
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
     private static final String PROJECT_DESCRIPTION_URL_PROPERTY = "project_description_url";
+    private static final String SERVER_URL_ENV_VAR = "NGB_API";
+    private static final String TOKEN_ENV_VAR = "NGB_TOKEN";
 
     /**
      * Creates {@code CommandManager} for an input {@param command}, loads it's configuration and
@@ -138,8 +141,8 @@ public class CommandManager {
 
     private ServerParameters loadServerParameters(Properties serverProperties) {
         ServerParameters parameters = new ServerParameters();
-        parameters.setJwtAuthenticationToken(serverProperties.getProperty(JWT_AUTHENTICATION_TOKEN_PROPERTY));
-        parameters.setServerUrl(serverProperties.getProperty(SERVER_URL_PROPERTY));
+        parameters.setJwtAuthenticationToken(findToken(serverProperties));
+        parameters.setServerUrl(findServerUrl(serverProperties));
         parameters.setSearchUrl(serverProperties.getProperty(SEARCH_URL_PROPERTY));
         parameters.setRegistrationUrl(serverProperties.getProperty(REGISTRATION_URL_PROPERTY));
         parameters.setProjectLoadUrl(serverProperties.getProperty(PROJECT_URL_PROPERTY));
@@ -160,5 +163,20 @@ public class CommandManager {
 
     CommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    private String findServerUrl(final Properties serverProperties) {
+        return findValue(SERVER_URL_ENV_VAR, serverProperties, SERVER_URL_PROPERTY);
+    }
+
+    private String findToken(final Properties serverProperties) {
+        return findValue(TOKEN_ENV_VAR, serverProperties, JWT_AUTHENTICATION_TOKEN_PROPERTY);
+    }
+
+    private String findValue(final String envVarName, final Properties serverProperties, final String propertyName) {
+        final String envVarValue = System.getenv(envVarName);
+        return StringUtils.isBlank(envVarValue)
+                ? serverProperties.getProperty(propertyName)
+                : envVarValue;
     }
 }
