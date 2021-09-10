@@ -21,6 +21,15 @@ const dummyReferenceNamesRegExp = dummyReferenceNames
 
 export {dummyReferenceNamesRegExp as dummyReferenceNames};
 
+export function preprocessDatasetNote(note) {
+    return {
+        id: note.noteId,
+        projectId: note.projectId,
+        title: note.title,
+        description: note.content
+    };
+}
+
 function _preprocessNode(node: Node, parent: Node = null) {
     node.isProject = true;
     node.project = parent;
@@ -31,6 +40,9 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.searchInfo = new SearchInfo();
     node.modifiedNameSearchInfo = new SearchInfo();
     node.metadataSearchInfo = new SearchInfo();
+    node.notes = (node.notes || [])
+        .map(preprocessDatasetNote)
+        .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0);
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -70,6 +82,28 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.reference = reference;
     node.tracks = tracks;
     return node;
+}
+
+export function convertProjectForSave(project) {
+    function _convertClientToServer(note) {
+        return {
+            noteId: note.id,
+            projectId: note.projectId,
+            title: note.title,
+            content: note.description
+        };
+    }
+
+    return {
+        id: project.id,
+        name: project.name,
+        createdBy: project.createdBy,
+        notes: project.notes.map(_convertClientToServer),
+        parentId: project.parentId,
+        prettyName: project.prettyName,
+        metadata: project.metadata,
+        mask: project.mask
+    };
 }
 
 function getTrackFileName(track) {
@@ -352,7 +386,7 @@ export function search(pattern, items: Array<Node>) {
     return result;
 }
 
-export function toPlainList(items, namingService, ident = 0) {
+export function toPlainList(items, namingService, indent = 0) {
     const result = [];
     if (items && items.length) {
         const sortedItems = items.map(item => {
@@ -375,10 +409,11 @@ export function toPlainList(items, namingService, ident = 0) {
         });
         for (let i = 0; i < sortedItems.length; i++) {
             const item = sortedItems[i];
-            item.ident = ident;
+            item.indent = indent;
+            item.nesting = indent;
             result.push(item);
             if (item.isProject && item.__expanded) {
-                result.push(...toPlainList(item.items, namingService, ident + 1));
+                result.push(...toPlainList(item.items, namingService, indent + 1));
             }
         }
     }

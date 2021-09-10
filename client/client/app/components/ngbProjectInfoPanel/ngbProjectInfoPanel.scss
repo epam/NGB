@@ -3,6 +3,14 @@ ngb-project-info-panel {
     width: 100%;
     height: 100%;
   }
+  .project-note-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .project-note-edit-button {
+    float: right;
+  }
 }
 
 .selected-files-summary {
