@@ -1,5 +1,4 @@
 import  baseController from '../../shared/baseController';
-
 export default class ngbBrowserController extends baseController {
 
     static get UID() {
@@ -55,16 +54,16 @@ export default class ngbBrowserController extends baseController {
         return this.homeUrl && /.md$/.test(this.homeUrl);
     }
     async homeUrlChanged() {
+        this.rootPageIsLoading = true;
         if (this.homeUrl) {
-            this.rootPageIsLoading = true;
             try {
                 this.markdown = await this.ngbBrowserService.getMarkdown(this.homeUrl);
                 this.errorMessages = [];
             } catch(err) {
                 this.errorMessages.push(err.message);
             }
-            this.rootPageIsLoading = false;
-            this.$scope.$apply();
         }
+        this.rootPageIsLoading = false;
+        this.$scope.$apply();
     }
 }
