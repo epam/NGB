@@ -57,6 +57,10 @@ import java.util.stream.IntStream;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class MotifSearchManagerTest {
 
+    public static final int START_POSITION = 50;
+    public static final int END_POSITION = 1000;
+    public static final int PAGE_SIZE = 100;
+
     @Autowired
     ApplicationContext context;
 
@@ -123,7 +127,7 @@ public class MotifSearchManagerTest {
     public void searchRegionMotifsBounds() throws IOException {
         final int expectedStartPosition = 10000;
         final int expectedEndPosition = 11000;
-        final int shift = 1000;
+        final int shift = END_POSITION;
 
         final String testMotif = referenceManager.getSequenceString(
                 expectedStartPosition,
@@ -150,7 +154,7 @@ public class MotifSearchManagerTest {
     public void searchRegionMotifsSequence() throws IOException {
         final int startPosition = 20000;
         final int endPosition = 21000;
-        final int shift = 1000;
+        final int shift = END_POSITION;
 
         final String expectedSequence = referenceManager.getSequenceString(
                 startPosition,
@@ -174,7 +178,7 @@ public class MotifSearchManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void searchRegionMotifsReturnsEmptyValidRespondWhenMatchesNotFound() {
 
-        final int testStart = 1000;
+        final int testStart = END_POSITION;
         final int testEnd = 1050;
         final String testMotif = "acgttcgaacgttcga";
 
@@ -198,8 +202,8 @@ public class MotifSearchManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void searchChromosomeMotifsBounds() throws IOException {
         final int expectedEndPosition = testChromosome.getSize();
-        final int expectedStartPosition = expectedEndPosition - 1000;
-        final int shift = 1000;
+        final int expectedStartPosition = expectedEndPosition - END_POSITION;
+        final int shift = END_POSITION;
 
         final String testMotif = referenceManager.getSequenceString(
                 expectedStartPosition,
@@ -254,7 +258,6 @@ public class MotifSearchManagerTest {
         final int pageSize = 10000;
         final int slidingWindow = 15;
         final int expectedResultSize = 160;
-        final int initialTestBufferSize = 50;
         final int testBufferSizeStep = 123;
         final int numberOfBufferSteps = 5;
         final String testMotif = "acrywagt";
@@ -275,7 +278,7 @@ public class MotifSearchManagerTest {
         final MotifSearchResult searchWithNormalBuffer = motifSearchManager.search(testRequest);
         Assert.assertEquals(expectedResultSize, searchWithNormalBuffer.getResult().size());
 
-        IntStream.iterate(initialTestBufferSize, i -> i + testBufferSizeStep).limit(numberOfBufferSteps).forEach(i -> {
+        IntStream.iterate(START_POSITION, i -> i + testBufferSizeStep).limit(numberOfBufferSteps).forEach(i -> {
             ReflectionTestUtils.setField(motifSearchManager, "bufferSize", i);
             final MotifSearchResult searchWithSmallBuffer = motifSearchManager.search(testRequest);
             Assert.assertEquals(searchWithNormalBuffer.getResult().size(), searchWithSmallBuffer.getResult().size());
@@ -287,8 +290,8 @@ public class MotifSearchManagerTest {
     public void searchForSpecifiedPositionsShouldReturnNotEmptyResultsTest() {
         MotifSearchRequest request = MotifSearchRequest.builder()
                 .referenceId(a3TestReference.getId())
-                .startPosition(50)
-                .endPosition(1000)
+                .startPosition(START_POSITION)
+                .endPosition(END_POSITION)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
@@ -308,7 +311,7 @@ public class MotifSearchManagerTest {
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
-                .pageSize(100)
+                .pageSize(PAGE_SIZE)
                 .strand(StrandSerializable.POSITIVE)
                 .build();
         MotifSearchResult search = motifSearchManager.search(request);
@@ -323,7 +326,7 @@ public class MotifSearchManagerTest {
                 .chromosomeId(hpGenomeTestReference.getChromosomes().get(1).getId())
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
-                .pageSize(10000)
+                .pageSize(PAGE_SIZE)
                 .strand(StrandSerializable.POSITIVE)
                 .build();
         MotifSearchResult search = motifSearchManager.search(att);
@@ -341,7 +344,7 @@ public class MotifSearchManagerTest {
                 .startPosition(1)
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
-                .pageSize(10000)
+                .pageSize(PAGE_SIZE)
                 .strand(StrandSerializable.POSITIVE)
                 .build();
         MotifSearchResult search = motifSearchManager.search(att);
@@ -358,7 +361,7 @@ public class MotifSearchManagerTest {
                 .chromosomeId(testWgTestReference.getChromosomes().get(0).getId())
                 .motif("CCC")
                 .searchType(MotifSearchType.WHOLE_GENOME)
-                .pageSize(10000)
+                .pageSize(PAGE_SIZE)
                 .strand(StrandSerializable.POSITIVE)
                 .build();
         MotifSearchResult search = motifSearchManager.search(att);
