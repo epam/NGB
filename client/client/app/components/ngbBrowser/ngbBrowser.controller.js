@@ -19,7 +19,7 @@ export default class ngbBrowserController extends baseController {
             $timeout,
             $sce
         });
-        this.$scope.$watch('$ctrl.homeUrl', this.homeUrlChanged.bind(this));
+        
         this.initEvents();
     }
     get homeUrl() {
@@ -35,6 +35,7 @@ export default class ngbBrowserController extends baseController {
 
     $onInit() {
         this.onStateChange();
+        this.homeUrlChanged();
     }
 
     onStateChange() {
