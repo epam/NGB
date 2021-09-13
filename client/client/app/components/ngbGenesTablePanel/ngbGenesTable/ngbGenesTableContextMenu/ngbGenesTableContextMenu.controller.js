@@ -1,6 +1,7 @@
+import BaseController from '../../../../shared/baseController';
 import {EventGeneInfo} from '../../../../shared/utils/events';
 
-export default class NgbGenesTableContextMenuController {
+export default class NgbGenesTableContextMenuController extends BaseController{
 
     entity = {};
     featureName;
@@ -8,8 +9,14 @@ export default class NgbGenesTableContextMenuController {
     sequenceTooLong = false;
     maxSequenceLength = Infinity;
 
+    events = {
+        'feature:info:select': this.close.bind(this)
+    };
+
+
     constructor($scope, dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService) {
-        Object.assign(this, {dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
+        super();
+        Object.assign(this, {$scope, dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
         this.entity = $scope.row.entity;
         this.featureName = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
         this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE'
@@ -28,10 +35,15 @@ export default class NgbGenesTableContextMenuController {
         );
         this.sequenceTooLong = this.maxSequenceLength < featureSize;
 
+        this.initEvents();
+    }
+
+    close() {
+        this.ngbGenesTableContextMenu.close();
     }
 
     blastSearch(tool, event) {
-        this.ngbGenesTableContextMenu.close();
+        this.close();
         const layoutChange = this.appLayout.Panels.blast;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
@@ -57,7 +69,7 @@ export default class NgbGenesTableContextMenuController {
     }
 
     openMolecularView(event) {
-        this.ngbGenesTableContextMenu.close();
+        this.close();
         const layoutChange = this.appLayout.Panels.molecularViewer;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
@@ -75,7 +87,7 @@ export default class NgbGenesTableContextMenuController {
     }
 
     homologsSearch() {
-        this.ngbGenesTableContextMenu.close();
+        this.close();
         const layoutChange = this.appLayout.Panels.homologs;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
