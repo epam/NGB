@@ -127,7 +127,7 @@ public class MotifSearchManagerTest {
     public void searchRegionMotifsBounds() throws IOException {
         final int expectedStartPosition = 10000;
         final int expectedEndPosition = 11000;
-        final int shift = END_POSITION;
+        final int shift = 1000;
 
         final String testMotif = referenceManager.getSequenceString(
                 expectedStartPosition,
@@ -151,10 +151,138 @@ public class MotifSearchManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void searchRegionMotifDividedWithBeginningBound() throws IOException {
+        final int expectedStartPosition = 10000;
+        final int expectedEndPosition = 10099;
+        final int hidingShift = 100;
+        final int nonHidingShift = 99;
+        final int shift = 3000;
+
+        final String testMotif = referenceManager.getSequenceString(
+                expectedStartPosition,
+                expectedEndPosition,
+                testReference.getId(),
+                testChromosome.getName());
+
+        final MotifSearchRequest testRequest = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedStartPosition + nonHidingShift)
+                .endPosition(expectedEndPosition + shift)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotif)
+                .build();
+        final MotifSearchResult search = motifSearchManager.search(testRequest);
+        Assert.assertEquals(expectedStartPosition, search.getResult().get(0).getStart());
+        Assert.assertEquals(expectedEndPosition, search.getResult().get(0).getEnd());
+
+        final MotifSearchRequest testUnsuccessfulRequest = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedStartPosition + hidingShift)
+                .endPosition(expectedEndPosition + shift)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotif)
+                .build();
+        final MotifSearchResult unsuccessfulSearch = motifSearchManager.search(testUnsuccessfulRequest);
+        Assert.assertEquals(0, unsuccessfulSearch.getResult().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void searchRegionMotifDividedWithEndBound() throws IOException {
+        final int expectedStartPosition = 10000;
+        final int expectedEndPosition = 10099;
+        final int hidingShift = 100;
+        final int nonHidingShift = 99;
+        final int shift = 3000;
+
+        final String testMotif = referenceManager.getSequenceString(
+                expectedStartPosition,
+                expectedEndPosition,
+                testReference.getId(),
+                testChromosome.getName());
+
+        final MotifSearchRequest testRequest = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedStartPosition - shift)
+                .endPosition(expectedEndPosition - nonHidingShift)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotif)
+                .build();
+        final MotifSearchResult search = motifSearchManager.search(testRequest);
+        Assert.assertEquals(expectedStartPosition, search.getResult().get(0).getStart());
+        Assert.assertEquals(expectedEndPosition, search.getResult().get(0).getEnd());
+
+        final MotifSearchRequest testUnsuccessfulRequest = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedStartPosition - shift)
+                .endPosition(expectedEndPosition - hidingShift)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotif)
+                .build();
+        final MotifSearchResult unsuccessfulSearch = motifSearchManager.search(testUnsuccessfulRequest);
+        Assert.assertEquals(0, unsuccessfulSearch.getResult().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void searchRegionMotifAtEdges() throws IOException {
+        final int expectedStartPosition = 1;
+        final int expectedEndPosition = testChromosome.getSize();
+        final int smallShift = 100;
+        final int shift = 3000;
+
+        final String testMotifAtBeginning = referenceManager.getSequenceString(
+                expectedStartPosition,
+                expectedStartPosition + smallShift,
+                testReference.getId(),
+                testChromosome.getName());
+
+        final MotifSearchRequest testRequestAtBeginning = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedStartPosition)
+                .endPosition(expectedStartPosition + shift)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotifAtBeginning)
+                .build();
+        final MotifSearchResult searchAtBeginning = motifSearchManager.search(testRequestAtBeginning);
+        Assert.assertEquals(expectedStartPosition, searchAtBeginning.getResult().get(0).getStart());
+
+
+        final String testMotifAtEnd = referenceManager.getSequenceString(
+                expectedEndPosition - smallShift,
+                expectedEndPosition,
+                testReference.getId(),
+                testChromosome.getName());
+
+        final MotifSearchRequest testRequestAtEnd = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .chromosomeId(testChromosome.getId())
+                .startPosition(expectedEndPosition - shift)
+                .endPosition(expectedEndPosition)
+                .includeSequence(true)
+                .searchType(MotifSearchType.REGION)
+                .motif(testMotifAtEnd)
+                .build();
+        final MotifSearchResult searchAtEnd = motifSearchManager.search(testRequestAtEnd);
+        Assert.assertEquals(expectedEndPosition - smallShift, searchAtEnd.getResult().get(0).getStart());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void searchRegionMotifsSequence() throws IOException {
         final int startPosition = 20000;
         final int endPosition = 21000;
-        final int shift = END_POSITION;
+        final int shift = 1000;
 
         final String expectedSequence = referenceManager.getSequenceString(
                 startPosition,

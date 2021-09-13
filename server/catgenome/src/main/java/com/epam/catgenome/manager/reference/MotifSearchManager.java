@@ -142,10 +142,19 @@ public class MotifSearchManager {
         final boolean includeSequence = request.getIncludeSequence() == null
                         ? defaultIncludeSequence
                         : request.getIncludeSequence();
+
+        int overlap = validateAndAdjustOverlap(request);
+        int startPosition = Math.max(1, request.getStartPosition() - overlap);
+        int endPosition = Math.min(chromosome.getSize(), request.getEndPosition() + overlap);
+
         final List<Motif> searchResult =
-                MotifSearcher.search(getSequence(request, reference, chromosome),
+                MotifSearcher.search(getSequence(startPosition, endPosition, reference, chromosome),
                         request.getMotif(), request.getStrand(),
-                        chromosome.getName(), request.getStartPosition(), includeSequence);
+                        chromosome.getName(), startPosition, includeSequence).stream()
+                        .filter(motif -> motif.getEnd() >= request.getStartPosition()
+                                && motif.getStart() <= request.getEndPosition())
+                        .collect(Collectors.toList());
+
         final int lastStart = searchResult.isEmpty()
                 ? request.getStartPosition()
                 : searchResult.get(searchResult.size() - 1).getStart();
@@ -160,19 +169,20 @@ public class MotifSearchManager {
     /**
      * Loads a reference sequence for a given request for a specified chromosome
      *
-     * @param request     request containing the interval of interest
-     *                    (the start position for the beginning of the chromosome: "1",
-     *                    the end position of the whole chromosome: chromosome.size(),
-     *                    start positions less than 1 (e.g. "0") will be turned into "1")
-     * @param chromosome  chromosome for search
+     * @param startPosition  start position in chromosome sequence
+     *                       (the start position for the beginning of the chromosome: "1",
+     *                       the end position of the whole chromosome: chromosome.size(),
+     *                       start positions less than 1 (e.g. "0") will be turned into "1")
+     *  @param endPosition   end position in chromosome sequence
+     * @param chromosome     chromosome for search
      * @return a byte array representation of a reference sequence for the specified
      */
-    private byte[] getSequence(final MotifSearchRequest request, final Reference reference,
+    private byte[] getSequence(final int startPosition, final int endPosition, final Reference reference,
                                final Chromosome chromosome) {
         final byte[] sequence;
         try {
-            sequence= referenceManager.getSequenceByteArray(request.getStartPosition(),
-                            request.getEndPosition(), reference, chromosome.getName());
+            sequence= referenceManager.getSequenceByteArray(startPosition,
+                            endPosition, reference, chromosome.getName());
         } catch (IOException e) {
             throw new IllegalStateException(getMessage(MessagesConstants.ERROR_REFERENCE_SEQUENCE_READING));
         }
@@ -190,7 +200,6 @@ public class MotifSearchManager {
         final int end = request.getEndPosition() == null ? chromosome.getSize() : request.getEndPosition();
 
         final int bufferSize = Math.min(this.bufferSize, end - start);
-        int overlap = validateAndAdjustOverlap(request, bufferSize);
 
         final Set<Motif> result = new LinkedHashSet<>();
         int currentStart = start;
@@ -210,8 +219,8 @@ public class MotifSearchManager {
                     reference
             ).getResult());
 
-            currentStart = currentStart + bufferSize - overlap;
-            currentEnd = Math.min(currentEnd + bufferSize - overlap, end);
+            currentStart = currentStart + bufferSize;
+            currentEnd = Math.min(currentEnd + bufferSize, end);
         }
         final List<Motif> pageSizedResult = result.stream()
                 .limit(Math.min(result.size(), pageSize))
@@ -230,16 +239,12 @@ public class MotifSearchManager {
                 .build();
     }
 
-    private int validateAndAdjustOverlap(final MotifSearchRequest request, int bufferSize) {
-        int overlap = request.getSlidingWindow() == null
+    private int validateAndAdjustOverlap(final MotifSearchRequest request) {
+        return request.getSlidingWindow() == null
                 || request.getSlidingWindow() <= 0
                 || request.getSlidingWindow() >= bufferSize
                 ? defaultOverlap
                 : request.getSlidingWindow();
-        if (bufferSize < this.bufferSize) {
-            overlap = 0;
-        }
-        return overlap;
     }
 
     private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request, final Reference reference) {
