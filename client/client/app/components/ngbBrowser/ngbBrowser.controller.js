@@ -64,6 +64,6 @@ export default class ngbBrowserController extends baseController {
             }
         }
         this.rootPageIsLoading = false;
-        this.$scope.$apply();
+        this.$timeout(::this.$scope.$apply);
     }
 }

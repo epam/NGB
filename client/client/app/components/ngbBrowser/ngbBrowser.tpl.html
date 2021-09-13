@@ -12,8 +12,9 @@
 <div layout-fill
     ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome && !$ctrl.rootPageIsLoading"
     class="browser-welcome-container"
+    ng-cloak
     >
-    <div ng-cloak layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homeUrl">
+    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homeUrl">
         <div>
             <h1>
                 Choose files or folders<br />
