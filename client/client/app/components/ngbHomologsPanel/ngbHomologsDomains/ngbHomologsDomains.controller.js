@@ -1,17 +1,25 @@
+import baseController from '../../../shared/baseController';
+
 const DEFAULT_COLOR = '#000000';
 const TRANSPARENT_COLOR = 'transparent';
 
-export default class ngbHomologsDomainsController {
+export default class ngbHomologsDomainsController extends baseController {
     domainsView = [];
     domainsDesc = [];
 
+    events = {
+        'layout:item:activeChanged': this.close.bind(this)
+    };
+
     constructor($scope, $timeout, $window, dispatcher) {
+        super();
         Object.assign(this, {
             $scope,
             $timeout,
             $window,
             dispatcher
         });
+        this.initEvents();
     }
 
     static get UID() {
@@ -85,5 +93,9 @@ export default class ngbHomologsDomainsController {
             domainsView: domainsView,
             domainsDesc: domainsDesc
         };
+    }
+
+    close() {
+        this.domainsDesc.toggleTooltip = false;
     }
 }

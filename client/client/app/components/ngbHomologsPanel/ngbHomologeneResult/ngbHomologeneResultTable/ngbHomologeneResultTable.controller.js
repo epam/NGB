@@ -200,8 +200,6 @@ export default class ngbHomologeneResultTableController extends baseController {
             if (switchingReference) {
                 const [chosenReference] = (this.projectContext.references || []).filter(r => r.id === +coordinates.referenceId);
                 if (chosenReference) {
-
-
                     const tracksOptions = {};
                     const referenceTrackState = {
                         referenceShowForwardStrand: true,
@@ -233,8 +231,6 @@ export default class ngbHomologeneResultTableController extends baseController {
                         currentReferenceTrack.instance.reportTrackState(true);
                         currentReferenceTrack.instance.requestRender();
                     }
-
-
                     const confirm = this.$mdDialog.confirm()
                         .title(`Switch reference ${this.projectContext.reference ? this.projectContext.reference.name : ''}` +
                             ` to ${chosenReference.name}?`)

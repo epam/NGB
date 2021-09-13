@@ -44,13 +44,14 @@ export default class ngbOrthoParaResultTableController extends baseController {
         'homologs:orthoPara:result:page:change': ::this.getDataOnPage
     };
 
-    constructor($scope, $timeout, projectContext, projectDataService,
+    constructor($scope, $timeout, $mdDialog, projectContext, projectDataService,
         ngbOrthoParaTableService, ngbOrthoParaResultService, ngbHomologsService, dispatcher) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
+            $mdDialog,
             dispatcher,
             projectContext,
             projectDataService,
@@ -199,13 +200,70 @@ export default class ngbOrthoParaResultTableController extends baseController {
             const range = Math.abs(coordinates.end - coordinates.start);
             const start = Math.min(coordinates.start, coordinates.end) - range / 10.0;
             const end = Math.max(coordinates.start, coordinates.end) + range / 10.0;
-            this.projectContext.changeState({
-                chromosome: {id: coordinates.chromosomeId},
-                viewport: {
-                    start,
-                    end
+            const switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +coordinates.referenceId;
+
+            if (switchingReference) {
+                const [chosenReference] = (this.projectContext.references || []).filter(r => r.id === +coordinates.referenceId);
+                if (chosenReference) {
+                    const tracksOptions = {};
+                    const referenceTrackState = {
+                        referenceShowForwardStrand: true,
+                        referenceShowReverseStrand: true,
+                        referenceShowTranslation: false
+                    };
+                    tracksOptions.reference = chosenReference;
+                    tracksOptions.shouldAddAnnotationTracks = true;
+                    tracksOptions.tracks = [chosenReference].map(track => ({
+                        ...track,
+                        projectId: '',
+                        isLocal: true
+                    }));
+                    tracksOptions.tracksState = [
+                        {...chosenReference, state: referenceTrackState}
+                    ].map(track => ({
+                        bioDataItemId: track.name,
+                        duplicateId: track.duplicateId,
+                        projectId: '',
+                        isLocal: true,
+                        format: track.format,
+                        state: track.state
+                    }));
+                    const [currentReferenceTrack] = this.projectContext.getActiveTracks()
+                        .filter(track => track.format === 'REFERENCE');
+                    if (currentReferenceTrack && currentReferenceTrack.instance) {
+                        currentReferenceTrack.instance.state.referenceShowForwardStrand = true;
+                        currentReferenceTrack.instance.state.referenceShowReverseStrand = true;
+                        currentReferenceTrack.instance.reportTrackState(true);
+                        currentReferenceTrack.instance.requestRender();
+                    }
+                    const confirm = this.$mdDialog.confirm()
+                        .title(`Switch reference ${this.projectContext.reference ? this.projectContext.reference.name : ''}` +
+                            ` to ${chosenReference.name}?`)
+                        .textContent('All opened tracks will be closed.')
+                        .ariaLabel('Change reference')
+                        .ok('OK')
+                        .cancel('Cancel');
+
+                    this.$mdDialog.show(confirm)
+                        .then(() => this.projectContext.changeState({
+                            reference: chosenReference,
+                            chromosome: {id: coordinates.chromosomeId},
+                            viewport: {
+                                start,
+                                end
+                            },
+                            ...tracksOptions
+                        }));
                 }
-            });
+            } else {
+                this.projectContext.changeState({
+                    chromosome: {id: coordinates.chromosomeId},
+                    viewport: {
+                        start,
+                        end
+                    }
+                });
+            }
             // navigate to track
         } else {
             event.stopImmediatePropagation();
@@ -213,5 +271,4 @@ export default class ngbOrthoParaResultTableController extends baseController {
             return false;
         }
     }
-
 }
