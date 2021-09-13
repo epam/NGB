@@ -9,13 +9,13 @@ export default {
         opacity: 0.5
     },
     log: {
-        fill: 0xfafafa,
-        opacity: 0.8,
-        stroke: 0xaaaaaa,
+        fill: 0x92AEE7,
+        opacity: 0.5,
+        stroke: undefined,
         label: {
-            fill: 0x333333,
+            fill: 0xFFFFFF,
             fontFamily: 'arial',
-            fontSize: '7pt',
+            fontSize: '8pt',
             fontWeight: 'normal'
         },
         padding: 2,
