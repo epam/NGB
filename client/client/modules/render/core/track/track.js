@@ -406,8 +406,9 @@ export class Track extends BaseTrack {
             this.state.coverageScaleFrom = state.data.from;
             this.state.coverageScaleTo = state.data.to;
             this.state.coverageScaleMode = scaleModes.manualScaleMode;
+            this.state.coverageDisplayMode =  this.state.coverageDisplayMode || displayModes.defaultDisplayMode;
             this.state.coverageLogScale = this.state.coverageDisplayMode === displayModes.defaultDisplayMode &&
-                state.data.isLogScale;
+            state.data.isLogScale;
             this._flags.dataChanged = true;
             this.reportTrackState();
             this.requestRenderRefresh();
