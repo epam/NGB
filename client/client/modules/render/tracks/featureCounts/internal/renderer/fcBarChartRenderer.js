@@ -23,8 +23,10 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
         this.container.addChild(this.verticalScroll);
         this.placeholder = new PlaceholderRenderer(this._track);
         this.noSourcesPlaceholder = new PlaceholderRenderer(this._track);
+        this.noDataPlaceholder = new PlaceholderRenderer(this._track);
         this.container.addChild(this.placeholder.container);
         this.container.addChild(this.noSourcesPlaceholder.container);
+        this.container.addChild(this.noDataPlaceholder.container);
         this.sourceRenderers = [];
         this.initializeCentralLine();
     }
@@ -310,6 +312,12 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
                 height: this._pixiRenderer.height,
                 width: this._pixiRenderer.width
             });
+        this.noDataPlaceholder.init(
+            'No data found',
+            {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
         const {
             coordinateSystem,
             sources: sourcesData = {},
@@ -319,7 +327,12 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
             sources = [],
             values: data = {}
         } = sourcesData;
-        this.noSourcesPlaceholder.container.visible = cache && cache.sources && sources.length === 0;
+        this.noSourcesPlaceholder.container.visible = cache &&
+            cache.sources &&
+            cache.data &&
+            cache.data.length > 0 &&
+            sources.length === 0;
+        this.noDataPlaceholder.container.visible = cache && (!cache.data || cache.data.length === 0);
         this.dataContainer.visible = sources.length > 0;
         this.background.visible = sources.length > 0;
         // removing unused source renderers:

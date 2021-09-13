@@ -70,9 +70,9 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
         if (feature.items && feature.items.length > 0) {
             const exons = feature.items.reduce((r, c) => ([...r, ...(c.items || [])]), []);
             const layers = this.getExonLayers(exons, viewport).map(info => info.layer);
-            const maxLayer = Math.max(...(layers.map(layer => layer.layer)));
-            const x1 = Math.min(...(layers.map(layer => layer.x1)));
-            const x2 = Math.min(...(layers.map(layer => layer.x2)));
+            const maxLayer = Math.max(...(layers.map(layer => layer.layer)), 0);
+            const x1 = layers.length > 0 ? Math.min(...(layers.map(layer => layer.x1))) : Infinity;
+            const x2 = layers.length > 0 ? Math.min(...(layers.map(layer => layer.x2))) : -Infinity;
             boundaries.rect.x1 = Math.min(boundaries.rect.x1, x1);
             boundaries.rect.x2 = Math.max(boundaries.rect.x2, x2);
             boundaries.rect.y2 += (maxLayer + 1) * (this.config.transcript.height + this.config.transcript.marginTop);
