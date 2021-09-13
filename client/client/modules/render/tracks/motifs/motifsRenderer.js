@@ -3,12 +3,13 @@ import * as PIXI from 'pixi.js-legacy';
 
 export default class MotifsMatchesRenderer extends CachedTrackRenderer {
 
-    constructor(track, config, options) {
+    constructor(track, config, options, strand) {
         super(track);
         this.track = track;
         this._config = config;
         this._height = config.height;
         this.options = options;
+        this.strand = strand;
         this.initializeCentralLine();
     }
 
@@ -28,12 +29,7 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         if (state && state.color && state.color[strand]) {
             return state.color[strand];
         }
-        const color = this.config.matches.defaultColor[strand];
-        return color;
-    }
-
-    translateContainer(viewport, cache) {
-        super.translateContainer(viewport, cache);
+        return this.config.matches.defaultColor[strand];
     }
 
     rebuildContainer(viewport, cache) {
@@ -51,7 +47,7 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
     }
 
     initializeMatch (viewport, match) {
-        const strand = this.options.name.split('_')[1].toLowerCase();
+        const strand = this.strand.toLowerCase();
         if (strand === match.strand.toLowerCase()) {
             const pixelsInBp = viewport.factor;
             const {startIndex, endIndex, levelY} = match;

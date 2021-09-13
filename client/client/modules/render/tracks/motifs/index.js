@@ -20,7 +20,6 @@ export class MOTIFSTrack extends CachedTrack {
             this,
             Object.assign({}, this.trackConfig, this.config),
             opts,
-            opts.motifsContext,
             this.motifStrand
         );
         this.dispatcher.on('motifs:results:change', this.reload.bind(this));
@@ -65,7 +64,7 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     async updateCache () {
-        const updated = super.updateCache();
+        const updated = await super.updateCache();
         if (updated && this.cache) {
             const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
             this.cache.data = (data && data.blocks) ? this.transformData(data) : [];
@@ -76,11 +75,14 @@ export class MOTIFSTrack extends CachedTrack {
 
     cacheUpdateParameters (viewport) {
         const payload = super.cacheUpdateParameters(viewport);
-        const parameters = {
+        const motifLength = this.motifsContext.match.motif.length;
+        const startIndex = Math.max(payload.startIndex - motifLength, 1);
+        const endIndex = Math.min(payload.endIndex + motifLength, viewport.chromosome.end);
+        return {
             id: payload.id,
             chromosomeId: payload.chromosomeId,
-            startIndex: payload.startIndex,
-            endIndex: payload.endIndex,
+            startIndex,
+            endIndex,
             scaleFactor: payload.scaleFactor,
             option: {},
             collapsed: false,
@@ -88,7 +90,6 @@ export class MOTIFSTrack extends CachedTrack {
             motif: this.motifsContext.match.motif,
             strand: this.motifStrand.toUpperCase()
         };
-        return parameters;
     }
 
     transformData(data) {
