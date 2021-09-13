@@ -24,13 +24,21 @@
 
 package com.epam.catgenome.client.blast;
 
+import com.epam.catgenome.client.CookieInterceptor;
+import com.epam.catgenome.client.TokenInterceptor;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.util.QueryUtils;
 import lombok.RequiredArgsConstructor;
 import okhttp3.OkHttpClient;
+import org.apache.commons.lang3.StringUtils;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
@@ -42,6 +50,8 @@ public class BlastApiBuilder {
     private final int connectTimeout;
     private final int readTimeout;
     private final String apiHost;
+    private final String token;
+    private final String cookie;
 
     public BlastApi buildClient() {
         return new Retrofit.Builder()
@@ -53,11 +63,47 @@ public class BlastApiBuilder {
     }
 
     private OkHttpClient buildHttpClient() {
-        return new OkHttpClient.Builder()
-                .hostnameVerifier((hostname, session) -> true)
-                .readTimeout(readTimeout, TimeUnit.SECONDS)
+        final TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new java.security.cert.X509Certificate[]{};
+                }
+            }
+        };
+        final SSLContext sslContext = buildSSLContext(trustAllCerts);
+        final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
+        builder.hostnameVerifier((hostname, session) -> true);
+        if (StringUtils.isNotBlank(token)) {
+            builder.addInterceptor(new TokenInterceptor(token));
+        }
+        if (StringUtils.isNotBlank(cookie)) {
+            builder.addInterceptor(new CookieInterceptor(cookie));
+        }
+        return builder.readTimeout(readTimeout, TimeUnit.SECONDS)
                 .connectTimeout(connectTimeout, TimeUnit.SECONDS)
                 .hostnameVerifier((s, sslSession) -> true)
                 .build();
+    }
+
+    private SSLContext buildSSLContext(TrustManager[] trustAllCerts) {
+        try {
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            return sslContext;
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 }
