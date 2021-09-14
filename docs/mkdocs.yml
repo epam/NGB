@@ -9,15 +9,7 @@ docs_dir: md
 use_directory_urls: false
 nav:
     - Home: index.md
-    - Release notes:
-        - 2.1: release-notes/2.1/v2.1.md
-        - 2.2: release-notes/2.2/v2.2.md
-        - 2.3: release-notes/2.3/v2.3.md
-        - 2.4: release-notes/2.4/v2.4.md
-        - 2.5: release-notes/2.5/v2.5.md
-        - 2.5.1: release-notes/2.5.1/v2.5.1.md
-        - 2.6: release-notes/2.6/v2.6.md
-        - 2021-09: release-notes/2021-09/2021_09.md
+    - Release notes: release-notes/release-notes.md
     - Installation guide:
         - Overview: installation/overview.md
         - Using standalone JAR: installation/standalone.md
@@ -32,16 +24,33 @@ nav:
         - Command reference: cli/command-reference.md
     - User Interface Guide:
         - Overview: user-guide/overview.md
-        - Working with datasets: user-guide/datasets.md
-        - Working with annotations: user-guide/annotations.md
-        - Working with tracks: user-guide/tracks.md
-        - Reference track: user-guide/tracks-reference.md
-        - Genes track: user-guide/tracks-genes.md
-        - Alignments track: user-guide/tracks-bam.md
-        - VCF track: user-guide/tracks-vcf.md
-        - WIG track: user-guide/tracks-wig.md
-        - BED track: user-guide/tracks-bed.md
-        - FeatureCounts track: user-guide/tracks-featurecounts.md
-        - ENCODE-specific tracks: user-guide/tracks-encode.md
+        - Datasets: user-guide/datasets.md
+        - Tracks/file formats:
+            - Overview: user-guide/tracks.md
+            - Reference track: user-guide/tracks-reference.md
+            - Genes track: user-guide/tracks-genes.md
+            - Alignments track: user-guide/tracks-bam.md
+            - VCF track: user-guide/tracks-vcf.md
+            - WIG track: user-guide/tracks-wig.md
+            - BED track: user-guide/tracks-bed.md
+            - FeatureCounts track: user-guide/tracks-featurecounts.md
+            - ENCODE-specific tracks: user-guide/tracks-encode.md
+        - Variants: user-guide/variants.md
+        - Genes: user-guide/genes.md
+        - BLAST search: user-guide/blast-search.md
+        - Homologs search: user-guide/homologs-search.md
+    - Administrator guide:
+        - Overview: user-guide/um-overview.md
+        - Users: user-guide/um-users.md
+        - Groups: user-guide/um-groups.md
+        - Roles: user-guide/um-roles.md
+        - Permissions management: user-guide/um-permissions.md
+    - Developer guide:
         - Embedding NGB with URL: user-guide/embedding-url.md
         - Embedding NGB with JS: user-guide/embedding-js.md
+theme: material
+theme_dir: material-epam-theme
+docs_dir: md
+use_directory_urls: false
+extra:
+  logo: assets/images/logo.png

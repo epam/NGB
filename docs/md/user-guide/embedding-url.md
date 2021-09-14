@@ -1,10 +1,9 @@
 # Embedding NGB via iFrame controlled with URL
 
-NGB could be embedded into 3rd paty web application using an iFrame approach
+NGB could be embedded into 3rd paty web application using an iFrame approach.  
+iFrame in this case should point to `http://${server}:${port}/catgenome` URL (e.g. `http://ngb.opensource.epam.com/catgenome`).
 
-iFrame in this case should point to `http://${server}:${port}/catgenome` URL (e.g. `http://ngb.opensource.epam.com/catgenome`)
-
-```
+``` html
 <iframe width="1024px" 
         height="768px" 
         frameborder="0"
@@ -12,15 +11,16 @@ iFrame in this case should point to `http://${server}:${port}/catgenome` URL (e.
 </iframe>
 ```
 
-This URL would load full browser view, including all panels and toolbars.
-
+This URL would load full browser view, including all panels and toolbars.  
 To manipulate apearance settings and/or specify files and genome position to be loaded by default - NGB URL supports a set of parameters
 
 ## URL format
 
-Basic format of the NGB URL looks like the following
+Basic format of the NGB URL looks like the following:
 
-`http://${server}:${port}/catgenome/#/${genome}/${chromosome}/${start-position}/${end-position}`
+```
+http://${server}:${port}/catgenome/#/${genome}/${chromosome}/${start-position}/${end-position}
+```
 
 * `${server}` - NGB server name/ip-address (e.g. ngb.opensource.epam.com)
 * `${port}` - NGB server port (e.g. 8080)
@@ -29,9 +29,8 @@ Basic format of the NGB URL looks like the following
 * `${start-position}` - start of the chromosome range to show (e.g. 29224676)
 * `${end-position}` - end of the chromosome range to show (e.g. 29224887)
 
-
-In addition, the several optional parameters could be used to fine-tune browser view
-They should follow basic parameters and start with a `?` symbol and delimited by `&`
+In addition, the several optional parameters could be used to fine-tune browser view.  
+They should follow basic parameters and start with a `?` symbol and delimited by `&`:
 
 ```
 http://...?screenshot=${screenshotVisibility}&toolbar=${toolbarVisibility}&layout=${layout-config}&tracks=[{"b":"${file-name}","p":"${parent-dataset-name}","h":"${track-height}"]&filterByGenome=${genome}
@@ -51,7 +50,7 @@ http://...?screenshot=${screenshotVisibility}&toolbar=${toolbarVisibility}&layou
 
 ### Default layout
 
-This example URL will load NGB default layout and open `sv_sample_1.bam`, `sv_sample_1-lumpy.vcf` and `GRCH38_genes` tracks at `chr2: 29224747-29224816` position
+This example URL will load NGB default layout and open `sv_sample_1.bam`, `sv_sample_1-lumpy.vcf` and `GRCH38_genes` tracks at `chr2: 29224747-29224816` position:
 
 ```
 http://ngb.opensource.epam.com/catgenome/#/GRCh38/2/29224747/29224816?tracks=[{"b":"GRCh38","p":"SV_Sample1","h":20},{"b":"sv_sample_1.bam","p":"SV_Sample1","h":424}]
@@ -61,7 +60,7 @@ http://ngb.opensource.epam.com/catgenome/#/GRCh38/2/29224747/29224816?tracks=[{"
 
 ### "Browser-only" layout
 
-This example URL will load NGB layout that is ready for embedding as a "browser-only" view and open `sv_sample_1.bam`, `sv_sample_1-lumpy.vcf` and `GRCH38_genes` tracks at `chr2: 29224747-29224816` position
+This example URL will load NGB layout that is ready for embedding as a "browser-only" view and open `sv_sample_1.bam`, `sv_sample_1-lumpy.vcf` and `GRCH38_genes` tracks at `chr2: 29224747-29224816` position:
 
 ```
 http://ngb.opensource.epam.com/catgenome/#/GRCh38/2/29224747/29224816?screenshot=Off&toolbar=Off&layout={"0":{"1":"0","2":"0","3":"1","t":"0","p":"1","blockedPopoutsThrowError":"0","closePopoutsOnUnload":"0","showPopoutIcon":"1","showMaximiseIcon":"0","showCloseIcon":"0","hasHeaders":"1"},"4":{"5":3,"6":50,"7":100,"8":30,"9":300,"a":200},"b":{"c":"6","d":"7","e":"8","f":"9","popin":"pop in"},"g":[{"n":"1","l":"2","k":100,"m":100,"t":"0","o":"","g":[{"l":"4","i":{"position":"center"},"k":100,"n":"0","t":"0","o":"","s":0,"g":[{"o":"Browser","l":"5","h":"angularModule","i":{"icon":"video_label","panel":"ngbBrowser","position":"center","o":"Browser","name":"layout>browser","key":"browser","htmlModule":"ngb-browser"},"n":"0","t":"0"}]}]}],"n":"0","t":"0","o":"","q":[],"maximisedItemId":{}}&tracks=[{"b":"GRCh38","p":"SV_Sample1","h":20},{"b":"GRCh38_genes","p":"SV_Sample1","h":61},{"b":"sample_1-lumpy.vcf","p":"SV_Sample1","h":41},{"b":"sv_sample_1.bam","p":"SV_Sample1","h":424}]
