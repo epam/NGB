@@ -64,7 +64,17 @@ export default class NgbDataSetContextMenuController {
             this.projectElements = [
                 referenceList[0],
                 ...referenceList[0].annotationFiles
-            ];
+            ]
+                .reduce((result, item) => {
+                    const [fileWithThisSource] = result.filter(resultItem => resultItem.source &&
+                        item.source &&
+                        resultItem.source === item.source
+                    );
+                    if (fileWithThisSource) {
+                        return result;
+                    }
+                    return [...result, item];
+                }, []);
             this.projectElements.forEach(e => {
                 const splitPath = (e.source || e.path || '').split('/');
                 e.filename = splitPath[splitPath.length - 1];
