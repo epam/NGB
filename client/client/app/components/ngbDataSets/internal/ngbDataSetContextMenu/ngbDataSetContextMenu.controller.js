@@ -66,7 +66,7 @@ export default class NgbDataSetContextMenuController {
                 ...referenceList[0].annotationFiles
             ];
             this.projectElements.forEach(e => {
-                const splitPath = e.path.split('/');
+                const splitPath = (e.source || e.path || '').split('/');
                 e.filename = splitPath[splitPath.length - 1];
             });
         }
