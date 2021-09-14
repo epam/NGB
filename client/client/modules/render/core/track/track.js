@@ -5,6 +5,7 @@ import {getRenderer} from '../configuration';
 import menuFactory from './menu';
 import {scaleModes} from '../../tracks/common/scaleModes';
 import {displayModes} from '../../tracks/wig/modes';
+import { displayModes as featureCountsDisplayModes } from '../../tracks/featureCounts/modes';
 import tooltipFactory from './tooltip';
 import LabelsManager from '../labelsManager';
 
@@ -398,7 +399,7 @@ export class Track extends BaseTrack {
         return false;
     }
 
-    coverageScaleSettingsChanged(state) {
+    coverageScaleSettingsChanged(state, trackFormat) {
         if (this.trackHasCoverageSubTrack && !state.cancel) {
             if (this.state.coverageScaleMode === scaleModes.groupAutoScaleMode) {
                 this.groupAutoScaleManager.unregisterTrack(this);
@@ -406,9 +407,13 @@ export class Track extends BaseTrack {
             this.state.coverageScaleFrom = state.data.from;
             this.state.coverageScaleTo = state.data.to;
             this.state.coverageScaleMode = scaleModes.manualScaleMode;
-            this.state.coverageDisplayMode =  this.state.coverageDisplayMode || displayModes.defaultDisplayMode;
-            this.state.coverageLogScale = this.state.coverageDisplayMode === displayModes.defaultDisplayMode &&
-            state.data.isLogScale;
+            if (trackFormat === 'FEATURE_COUNTS') {
+                this.state.coverageLogScale = this.state.featureCountsDisplayMode === featureCountsDisplayModes.barChart &&
+                state.data.isLogScale;
+            } else {
+                this.state.coverageLogScale = this.state.coverageDisplayMode === displayModes.defaultDisplayMode &&
+                state.data.isLogScale;
+            }
             this._flags.dataChanged = true;
             this.reportTrackState();
             this.requestRenderRefresh();

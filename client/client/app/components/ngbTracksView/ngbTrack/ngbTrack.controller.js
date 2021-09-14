@@ -179,9 +179,9 @@ export default class ngbTrackController {
                     (state.data.applyToBAMTracks && this.track.format === 'BAM')
                 )
             ) {
-                this.trackInstance.coverageScaleSettingsChanged(state);
+                this.trackInstance.coverageScaleSettingsChanged(state, this.track.format);
             } else if (state.cancel && state.sources.indexOf(this.track.name) >= 0 && this.trackInstance.trackHasCoverageSubTrack) {
-                this.trackInstance.coverageScaleSettingsChanged(state);
+                this.trackInstance.coverageScaleSettingsChanged(state, this.track.format);
             }
         };
 
