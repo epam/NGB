@@ -54,6 +54,7 @@ public class ProjectItemVO {
     private String name;
     private BiologicalDataItemResourceType type;
     private String path;
+    private String source;
     private BiologicalDataItemFormat format;
     private Long createdBy;
     private Date createdDate;
