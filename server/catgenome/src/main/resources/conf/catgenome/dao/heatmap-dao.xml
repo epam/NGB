@@ -4,7 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.heatmap.HeatmapDao" id="heatmapDao" autowire="byName">
         <property name="heatmapSequenceName" value="catgenome.s_heatmap"/>
-        <property name="heatmapValueSequenceName" value="catgenome.s_heatmap_value"/>
         <property name="insertHeatmapQuery">
             <value>
                 <![CDATA[
@@ -13,29 +12,43 @@
                         name,
                         pretty_name,
                         type,
+                        cell_value_type,
                         path,
                         row_tree_path,
                         column_tree_path,
                         cell_annotation_path,
                         label_annotation_path,
-                        row_count,
-                        column_count,
                         max_cell_value,
-                        min_cell_value
+                        min_cell_value,
+                        column_labels,
+                        row_labels,
+                        cell_values,
+                        content,
+                        cell_annotation,
+                        label_annotation,
+                        row_tree,
+                        column_tree
                     ) VALUES (
                         :HEATMAP_ID,
                         :NAME,
                         :PRETTY_NAME,
                         :TYPE,
+                        :CELL_VALUE_TYPE,
                         :PATH,
                         :ROW_TREE_PATH,
                         :COLUMN_TREE_PATH,
                         :CELL_ANNOTATION_PATH,
                         :LABEL_ANNOTATION_PATH,
-                        :ROW_COUNT,
-                        :COLUMN_COUNT,
                         :MAX_CELL_VALUE,
-                        :MIN_CELL_VALUE
+                        :MIN_CELL_VALUE,
+                        :COLUMN_LABELS,
+                        :ROW_LABELS,
+                        :CELL_VALUES,
+                        :CONTENT,
+                        :CELL_ANNOTATION,
+                        :LABEL_ANNOTATION,
+                        :ROW_TREE,
+                        :COLUMN_TREE
                     )
                 ]]>
             </value>
@@ -55,20 +68,22 @@
                         name,
                         pretty_name,
                         type,
+                        cell_value_type,
                         path,
                         row_tree_path,
                         column_tree_path,
                         cell_annotation_path,
                         label_annotation_path,
-                        row_count,
-                        column_count,
                         max_cell_value,
-                        min_cell_value
-                    FROM catgenome.heatmap
+                        min_cell_value,
+                        row_labels,
+                        column_labels,
+                        cell_values
+                    FROM catgenome.heatmap WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>
-        <property name="saveHeatmapContentQuery">
+        <property name="updateHeatmapContentQuery">
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
@@ -85,68 +100,71 @@
                 ]]>
             </value>
         </property>
-        <property name="saveHeatmapAnnotationQuery">
+        <property name="updateCellAnnotationQuery">
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        annotation = :ANNOTATION
+                        cell_annotation = :CELL_ANNOTATION
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
             </value>
         </property>
-        <property name="loadHeatmapAnnotationQuery">
+        <property name="loadCellAnnotationQuery">
             <value>
                 <![CDATA[
-                    SELECT annotation FROM catgenome.heatmap WHERE heatmap_id = ?
+                    SELECT cell_annotation FROM catgenome.heatmap WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>
-        <property name="saveHeatmapTreeQuery">
+        <property name="updateLabelAnnotationQuery">
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        tree = :TREE
+                        label_annotation = :LABEL_ANNOTATION
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
             </value>
         </property>
-        <property name="loadHeatmapTreeQuery">
+        <property name="loadLabelAnnotationQuery">
             <value>
                 <![CDATA[
-                    SELECT tree FROM catgenome.heatmap WHERE heatmap_id = ?
+                    SELECT label_annotation FROM catgenome.heatmap WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>
-        <property name="insertHeatmapValueQuery">
+        <property name="updateHeatmapRowTreeQuery">
             <value>
                 <![CDATA[
-                    INSERT INTO catgenome.heatmap_value (
-                        value_id,
-                        heatmap_id,
-                        heatmap_value
-                    ) VALUES (
-                        :VALUE_ID,
-                        :HEATMAP_ID,
-                        :HEATMAP_VALUE
-                    )
+                    UPDATE catgenome.heatmap SET
+                        row_tree = :ROW_TREE
+                    WHERE
+                        heatmap_id = :HEATMAP_ID
                 ]]>
             </value>
         </property>
-        <property name="loadHeatmapValuesQuery">
+        <property name="loadHeatmapRowTreeQuery">
             <value>
                 <![CDATA[
-                    SELECT
-                        heatmap_value
-                    FROM catgenome.heatmap WHERE heatmap_id = ?
+                    SELECT row_tree FROM catgenome.heatmap WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>
-        <property name="deleteHeatmapValuesQuery">
+        <property name="updateHeatmapColumnTreeQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.heatmap_value WHERE heatmap_id = ?
+                    UPDATE catgenome.heatmap SET
+                        column_tree = :COLUMN_TREE
+                    WHERE
+                        heatmap_id = :HEATMAP_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadHeatmapColumnTreeQuery">
+            <value>
+                <![CDATA[
+                    SELECT column_tree FROM catgenome.heatmap WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>

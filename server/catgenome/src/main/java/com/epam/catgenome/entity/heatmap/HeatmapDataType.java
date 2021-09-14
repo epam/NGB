@@ -23,30 +23,37 @@
  */
 package com.epam.catgenome.entity.heatmap;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.List;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class Heatmap {
-    private Long heatmapId;
-    private String name;
-    private String prettyName;
-    private HeatmapType type;
-    private String path;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private String labelAnnotationPath;
-    private Set<?> cellValues;
-    private HeatmapDataType cellValueType;
-    private Double maxCellValue;
-    private Double minCellValue;
-    private List<String> columnLabels;
-    private List<String> rowLabels;
+public enum HeatmapDataType {
+    INTEGER(0, "Integer"),
+    DOUBLE(1, "Double"),
+    STRING(2, "String");
+
+    private final int id;
+    private final String name;
+    private static final Map<Integer, HeatmapDataType> ID_MAP = new HashMap<>();
+    private static final Map<String, HeatmapDataType> NAME_MAP = new HashMap<>();
+
+    static {
+        ID_MAP.put(0, INTEGER);
+        ID_MAP.put(1, DOUBLE);
+        ID_MAP.put(2, STRING);
+        NAME_MAP.put("Integer", INTEGER);
+        NAME_MAP.put("Double", DOUBLE);
+        NAME_MAP.put("String", STRING);
+    }
+
+    public static HeatmapDataType getById(int id) {
+        return ID_MAP.get(id);
+    }
+    public static HeatmapDataType getByName(String name) {
+        return NAME_MAP.get(name);
+    }
 }

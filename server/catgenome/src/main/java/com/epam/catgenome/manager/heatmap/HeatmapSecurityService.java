@@ -26,10 +26,14 @@
 package com.epam.catgenome.manager.heatmap;
 
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
@@ -44,7 +48,7 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Heatmap createHeatmap(final Heatmap heatmap) {
+    public Heatmap createHeatmap(final Heatmap heatmap) throws IOException {
         return heatmapManager.createHeatmap(heatmap);
     }
 
@@ -54,17 +58,27 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public String[][] getContent(final long heatmapId) {
+    public List<List<Map<?, String>>> getContent(final long heatmapId) throws IOException {
         return heatmapManager.getContent(heatmapId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public String[][] getAnnotation(final long heatmapId) {
+    public List<List<String>> getAnnotation(final long heatmapId) throws IOException {
         return heatmapManager.getAnnotation(heatmapId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public String[][] getTree(final long heatmapId) {
+    public void updateAnnotation(final long heatmapId, final String path) throws IOException {
+        heatmapManager.updateAnnotation(heatmapId, path);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
+        heatmapManager.updateCellAnnotation(heatmapId, path);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public HeatmapTree getTree(final long heatmapId) {
         return heatmapManager.getTree(heatmapId);
     }
 }

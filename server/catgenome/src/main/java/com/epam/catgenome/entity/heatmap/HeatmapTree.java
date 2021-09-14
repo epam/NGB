@@ -23,30 +23,16 @@
  */
 package com.epam.catgenome.entity.heatmap;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Getter
 @Setter
-@Builder
-public class Heatmap {
-    private Long heatmapId;
-    private String name;
-    private String prettyName;
-    private HeatmapType type;
-    private String path;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private String labelAnnotationPath;
-    private Set<?> cellValues;
-    private HeatmapDataType cellValueType;
-    private Double maxCellValue;
-    private Double minCellValue;
-    private List<String> columnLabels;
-    private List<String> rowLabels;
+@NoArgsConstructor
+public class HeatmapTree {
+    private Map<HeatmapTreeValue, Double> column;
+    private Map<HeatmapTreeValue, Double> row;
 }

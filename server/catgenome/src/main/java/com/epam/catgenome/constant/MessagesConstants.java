@@ -278,6 +278,10 @@ public final class MessagesConstants {
     public static final String ERROR_METADATA_EMPTY_KEY = "error.metadata.empty.key";
     public static final String ERROR_METADATA_EMPTY_VALUE = "error.metadata.empty.value";
 
+//    HEATMAP
+    public static final String ERROR_HEATMAP_NOT_FOUND = "error.heatmap.not.found";
+    public static final String ERROR_INCORRECT_FILE_FORMAT = "error.incorrect.file.format";
+
     private MessagesConstants() {
         // No-op
     }

@@ -40,8 +40,6 @@ import java.io.IOException;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class HeatmapManagerTest extends TestCase {
 
-    public static final int ENTRIES_COUNT = 7;
-
     @Autowired
     private HeatmapManager heatmapManager;
 
@@ -57,7 +55,11 @@ public class HeatmapManagerTest extends TestCase {
 
     @Test
     public void readHeatmapTest() throws IOException {
-        Heatmap heatmap = heatmapManager.readHeatmap(fileName);
+        Heatmap heatmap = Heatmap.builder()
+                .name("test")
+                .path(fileName)
+                .build();
+        heatmapManager.readHeatmap(heatmap);
         assertNotNull(heatmap);
     }
 }
