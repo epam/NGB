@@ -14,9 +14,25 @@ export default class NgbGenesTableContextMenuController extends BaseController{
     };
 
 
-    constructor($scope, dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService) {
+    constructor(
+        $scope,
+        dispatcher,
+        appLayout,
+        projectContext,
+        ngbGenesTableContextMenu,
+        ngbGenesTableService,
+        miewContext
+    ) {
         super();
-        Object.assign(this, {$scope, dispatcher, appLayout, projectContext, ngbGenesTableContextMenu, ngbGenesTableService});
+        Object.assign(this, {
+            $scope,
+            dispatcher,
+            appLayout,
+            projectContext,
+            ngbGenesTableContextMenu,
+            ngbGenesTableService,
+            miewContext
+        });
         this.entity = $scope.row.entity;
         this.featureName = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`];
         this.isGene = this.entity[`${this.ngbGenesTableService.defaultPrefix}featureType`] === 'GENE'
@@ -70,6 +86,7 @@ export default class NgbGenesTableContextMenuController extends BaseController{
 
     openMolecularView(event) {
         this.close();
+        this.miewContext.update();
         const layoutChange = this.appLayout.Panels.molecularViewer;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});

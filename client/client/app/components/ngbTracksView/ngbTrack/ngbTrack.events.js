@@ -167,6 +167,9 @@ export default class ngbTrackEvents {
                         menuData.push({
                             events: [
                                 {
+                                    name: 'miew:clear:structure'
+                                },
+                                {
                                     data: {layoutChange},
                                     name: 'layout:item:change'
                                 },
