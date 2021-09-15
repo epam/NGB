@@ -712,6 +712,7 @@ export default class projectContext {
             await this.getDefaultTrackSettings();
             await this.refreshReferences();
             this.setHighlightProfileConditions(this.localDataService.getSettings().highlightProfile);
+            this.dispatcher.emitGlobalEvent('ngb:init:finished');
         })();
         this.initEvents();
     }

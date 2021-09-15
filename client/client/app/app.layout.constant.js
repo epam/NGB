@@ -46,6 +46,7 @@ export default {
             name: 'layout>variants'
         },
         genes: {
+            displayed: false,
             icon: 'format_list_numbered',
             panel: 'ngbGenesTablePanel',
             position: 'right',

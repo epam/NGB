@@ -1,8 +1,15 @@
 <div flex>
     <ngb-bookmarks-filter-list field="$ctrl.column"
-                           list="$ctrl.list"
-                           ng-if="$ctrl.isList"></ngb-bookmarks-filter-list>
-    <div flex ng-if="$ctrl.isString">
+                               list="$ctrl.list"
+                               ng-if="!$ctrl.isLoading && $ctrl.isList"></ngb-bookmarks-filter-list>
+    <div flex ng-if="!$ctrl.isLoading && $ctrl.isString">
         <ngb-bookmarks-filter-input field="$ctrl.column"></ngb-bookmarks-filter-input>
+    </div>
+    <div class="filter-loading" flex ng-if="$ctrl.isLoading">
+        <md-progress-circular
+                md-diameter="16"
+                md-mode="indeterminate"
+                ng-show="$ctrl.isLoading">
+        </md-progress-circular>
     </div>
 </div>

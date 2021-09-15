@@ -126,6 +126,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                         field: 'info',
                         headerCellTemplate: headerCells,
                         enableSorting: false,
+                        enableFiltering: false,
                         enableColumnMenu: false,
                         minWidth: 20,
                         maxWidth: 40,
