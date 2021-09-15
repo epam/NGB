@@ -4,4 +4,8 @@ ngb-bookmarks-table-filter {
   input.ngb-filter-input {
     height: 14px;
   }
+  .filter-loading {
+    display: flex;
+    justify-content: center;
+  }
 }

@@ -1,6 +1,6 @@
 <div layout="column">
     <div aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}"
-         ng-class="{'sortable': sortable, 'bookmark-column-filtered': col.colDef.filterApplied()}"
+         ng-class="{'sortable': sortable}"
          role="columnheader"
          ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'">
 

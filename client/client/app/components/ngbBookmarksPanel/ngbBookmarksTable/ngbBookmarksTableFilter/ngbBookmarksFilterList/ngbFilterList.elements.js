@@ -31,7 +31,7 @@ export default class ListElements {
                     view: filteredList
                 };
             };
-        } else if(listFn.hasOwnProperty('model')) {
+        } else if (listFn.hasOwnProperty('model')) {
             list = {
                 model: listFn.model
             };
@@ -42,10 +42,14 @@ export default class ListElements {
             }
             this.listFn = (searchCriteria) => {
                 if (!searchCriteria || !searchCriteria.length) {
-                    return {
-                        model: list,
-                        view: list
-                    };
+                    if (list.model) {
+                        return list;
+                    } else {
+                        return {
+                            model: list,
+                            view: list
+                        };
+                    }
                 }
                 const result = {
                     model: [],
@@ -78,7 +82,7 @@ export default class ListElements {
         if (this.onSearchStartCallback) {
             this.onSearchStartCallback(searchString);
         }
-        (async() => {
+        (async () => {
             let items;
             let shouldUpdateScope = true;
             if ((!searchString || !searchString.length) && this.fullList) {
@@ -89,11 +93,16 @@ export default class ListElements {
                     items = await this.listFn(searchString);
                 } else if (searchString && searchString.length > 0) {
                     if (this.fullList && this.fullList.model.length) {
-                        const filteredList = this.fullList.model.filter(i => i.toLowerCase().indexOf(searchString.toLowerCase()) === 0);
                         items = {
-                            model: filteredList,
-                            view: filteredList
+                            model: [],
+                            view: []
                         };
+                        this.fullList.model.forEach((item, index) => {
+                            if (item.toLowerCase().indexOf(searchString.toLowerCase()) === 0) {
+                                items.model.push(item);
+                                items.view.push(this.fullList.view[index]);
+                            }
+                        });
                         shouldUpdateScope = false;
                     } else {
                         items = await this.listFn(searchString);
@@ -123,7 +132,10 @@ export default class ListElements {
                             placeholder: true,
                             message: `Too much results (${items.model.length}). Top ${MAX_ITEMS_TO_DISPLAY} are shown`
                         }],
-                        view: [{placeholder: true}]
+                        view: [{
+                            placeholder: true,
+                            message: `Too much results (${items.model.length}). Top ${MAX_ITEMS_TO_DISPLAY} are shown`
+                        }]
                     };
                     this.preLoadedList.model.push({divider: true});
                     this.preLoadedList.view.push({divider: true});

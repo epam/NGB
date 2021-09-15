@@ -7,6 +7,7 @@ export default class ngbBookmarksTableController extends baseController {
 
     isDataLoaded = false;
     isNothingFound = false;
+    isInitialized = false;
 
     gridOptions = {
         enableHorizontalScrollbar: 0,
@@ -34,8 +35,16 @@ export default class ngbBookmarksTableController extends baseController {
         'display:bookmarks:filter': this.refreshScope.bind(this),
         'bookmarks:page:change': this.getDataOnPage.bind(this),
         'reference:change': () => {
-            if (this.gridOptions.data && this.projectContext.reference) {
+            if (this.gridOptions.data && this.projectContext.reference && this.isInitialized) {
                 this.isDataLoaded = true;
+                this.$scope.$apply();
+            }
+        },
+        'ngb:init:finished': () => {
+            this.isInitialized = true;
+            if (this.gridOptions.data) {
+                this.isDataLoaded = true;
+                this.$scope.$apply();
             }
         }
     };
@@ -54,6 +63,9 @@ export default class ngbBookmarksTableController extends baseController {
                 miewContext
             });
         this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
+        if (this.projectContext.references.length) {
+            this.isInitialized = true;
+        }
         this.initEvents();
     }
 
@@ -91,7 +103,7 @@ export default class ngbBookmarksTableController extends baseController {
             this.gridOptions.totalItems = 0;
             this.isNothingFound = true;
         }
-        if (this.projectContext.reference) {
+        if (this.isInitialized) {
             this.isDataLoaded = true;
             this.$scope.$apply();
         }
