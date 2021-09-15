@@ -51,6 +51,11 @@ export default class ngbTrackEvents {
                 }
                 const menuData = [];
                 if (!data.feature.grouping) {
+                    const geneFileExists = (
+                        this.projectContext &&
+                        this.projectContext.reference &&
+                        this.projectContext.reference.geneFile
+                    );
                     menuData.push({
                         events: [{
                             data: {
@@ -63,7 +68,7 @@ export default class ngbTrackEvents {
                                 startIndex: data.feature.startIndex,
                                 geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                                 title: 'FEATURE',
-                                fileId: this.projectContext._reference.geneFile.id,
+                                fileId: geneFileExists ? this.projectContext.reference.geneFile.id : undefined,
                                 feature: data.feature
                             },
                             name: 'feature:info:select'
