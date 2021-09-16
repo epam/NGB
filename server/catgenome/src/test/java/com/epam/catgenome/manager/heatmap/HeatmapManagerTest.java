@@ -50,7 +50,7 @@ public class HeatmapManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        this.fileName = context.getResource("classpath:heatmap//Halo_pallet_skmer.txt").getFile().getPath();
+        this.fileName = context.getResource("classpath:heatmap//Halo_pallet_skmer.tsv").getFile().getPath();
     }
 
     @Test

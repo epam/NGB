@@ -63,13 +63,13 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<List<String>> getAnnotation(final long heatmapId) throws IOException {
-        return heatmapManager.getAnnotation(heatmapId);
+    public List<List<String>> getLabelAnnotation(final long heatmapId) throws IOException {
+        return heatmapManager.getLabelAnnotation(heatmapId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void updateAnnotation(final long heatmapId, final String path) throws IOException {
-        heatmapManager.updateAnnotation(heatmapId, path);
+    public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
+        heatmapManager.updateLabelAnnotation(heatmapId, path);
     }
 
     @PreAuthorize(ROLE_USER)

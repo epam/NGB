@@ -126,19 +126,21 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateCellAnnotation(final Long heatmapId, final byte[] annotation) {
+    public void updateCellAnnotation(final Long heatmapId, final byte[] annotation, final String path) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmapId);
         params.addValue(HeatmapParameters.CELL_ANNOTATION.name(), annotation);
+        params.addValue(HeatmapParameters.CELL_ANNOTATION_PATH.name(), path);
 
         getNamedParameterJdbcTemplate().update(updateCellAnnotationQuery, params);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateLabelAnnotation(final Long heatmapId, final byte[] annotation) {
+    public void updateLabelAnnotation(final Long heatmapId, final byte[] annotation, final String path) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmapId);
         params.addValue(HeatmapParameters.LABEL_ANNOTATION.name(), annotation);
+        params.addValue(HeatmapParameters.LABEL_ANNOTATION_PATH.name(), path);
 
         getNamedParameterJdbcTemplate().update(updateLabelAnnotationQuery, params);
     }

@@ -43,7 +43,7 @@ import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.export.ExportManager;
-import com.epam.catgenome.manager.export.ExportFormat;
+import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.manager.export.GeneExportFilterForm;
 import com.epam.catgenome.manager.export.VcfExportFilterForm;
 import org.apache.commons.lang3.StringUtils;
@@ -1462,7 +1462,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setFeatureId("ENSFCAG000000");
         geneFilterForm.setExportFields(Arrays.asList("source", "featureId", "gene_version", "gene_source", "empty"));
 
-        assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
+        assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, FileFormat.TSV, true));
     }
 
     @Test
@@ -1668,7 +1668,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 Collections.singletonList(samplesVcf.getId())));
         form.setExportFields(Arrays.asList("variationType", "featureType", "chromosome", "empty"));
 
-        final byte[] exportResult = exportManager.exportVariations(form, ExportFormat.CSV, true);
+        final byte[] exportResult = exportManager.exportVariations(form, FileFormat.CSV, true);
         assertNotNull(exportResult);
     }
 

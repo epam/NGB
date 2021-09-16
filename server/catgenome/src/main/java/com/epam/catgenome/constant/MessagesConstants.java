@@ -135,7 +135,7 @@ public final class MessagesConstants {
 
     public static final String INFO_UNREGISTER = "info.unregister.done";
     //Genes
-    public static final String ERROR_UNSUPPORTED_GENE_FILE_EXTESION = "error.unsupported.gene.file.extension";
+    public static final String ERROR_UNSUPPORTED_GENE_FILE_EXTENSION = "error.unsupported.gene.file.extension";
     public static final String INFO_GENE_INDEX_WRITING = "info.gene.index.write";
     public static final String INFO_GENE_REGISTER = "info.gene.register";
     public static final String INFO_GENE_UPLOAD = "info.gene.upload";
@@ -280,7 +280,10 @@ public final class MessagesConstants {
 
 //    HEATMAP
     public static final String ERROR_HEATMAP_NOT_FOUND = "error.heatmap.not.found";
+    public static final String PATH_IS_REQUIRED = "error.path.is.required";
+    public static final String HEATMAP_NAME_IS_REQUIRED = "error.heatmap.name.is.required";
     public static final String ERROR_INCORRECT_FILE_FORMAT = "error.incorrect.file.format";
+    public static final String ERROR_UNSUPPORTED_HEATMAP_FILE_EXTENSION = "error.unsupported.heatmap.file.extension";
 
     private MessagesConstants() {
         // No-op

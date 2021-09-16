@@ -87,8 +87,8 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<List<String>>> getAnnotation(@PathVariable final long heatmapId) throws IOException {
-        return Result.success(heatmapSecurityService.getAnnotation(heatmapId));
+    public Result<List<List<String>>> getLabelAnnotation(@PathVariable final long heatmapId) throws IOException {
+        return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId));
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/annotation")
@@ -99,9 +99,9 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> updateAnnotation(@PathVariable final long heatmapId,
+    public Result<Boolean> updateLabelAnnotation(@PathVariable final long heatmapId,
                                             @RequestParam final String path) throws IOException {
-        heatmapSecurityService.updateAnnotation(heatmapId, path);
+        heatmapSecurityService.updateLabelAnnotation(heatmapId, path);
         return Result.success(null);
     }
 

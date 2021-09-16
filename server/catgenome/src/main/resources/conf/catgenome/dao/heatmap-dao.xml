@@ -104,7 +104,8 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        cell_annotation = :CELL_ANNOTATION
+                        cell_annotation = :CELL_ANNOTATION,
+                        cell_annotation_path = :CELL_ANNOTATION_PATH
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
@@ -121,7 +122,8 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        label_annotation = :LABEL_ANNOTATION
+                        label_annotation = :LABEL_ANNOTATION,
+                        label_annotation_path = :LABEL_ANNOTATION_PATH
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
