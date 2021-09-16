@@ -24,8 +24,9 @@
     </md-checkbox>
     <md-divider ng-if="$ctrl.ngbProjectInfoService.canEdit"></md-divider>
     <md-menu-item class="ngb-project-info-sections-add-note" ng-if="$ctrl.ngbProjectInfoService.canEdit">
-      <div ng-click="$ctrl.ngbProjectInfoService.addNote()">Add note</div>
+      <div ng-click="$ctrl.ngbProjectInfoService.addNote()">+ Add note</div>
     </md-menu-item>
+    <md-divider ng-if="$ctrl.ngbProjectInfoService.noteList.length"></md-divider>
     <md-checkbox aria-label="{{note.title}}"
                  ng-false-value="undefined"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"

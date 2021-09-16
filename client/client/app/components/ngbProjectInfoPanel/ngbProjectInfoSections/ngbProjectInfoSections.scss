@@ -37,8 +37,10 @@ ngb-project-info-sections {
     min-height: 32px;
     div {
       font-size: 14px;
-      margin: 12px 0;
       padding: 0 8px;
+      cursor: pointer;
+      text-decoration: underline;
+      color: rgb(0, 0, 238);
     }
   }
 }

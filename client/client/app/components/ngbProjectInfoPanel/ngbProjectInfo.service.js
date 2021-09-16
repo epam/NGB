@@ -257,7 +257,7 @@ export default class ngbProjectInfoService {
                     projectId: this.currentProject.id
                 };
                 if (!data.error) {
-                    this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes, this.currentProject.id);
+                    this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes || [], this.currentProject.id);
                 }
                 return data;
             });
