@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -219,15 +220,30 @@ public class HeatmapManager {
             heatmap.setCellValueType(cellValueType);
             switch (cellValueType) {
                 case INTEGER:
-                    Set<Integer> intValues = values.stream().map(Integer::parseInt).collect(Collectors.toSet());
-                    heatmap.setCellValues(intValues.stream().limit(valuesMaxSize).collect(Collectors.toSet()));
+                    List<Integer> intValues = values.stream()
+                            .map(Integer::parseInt)
+                            .sorted()
+                            .collect(Collectors.toList());
+                    Set<Integer> limitedIntValues = new LinkedHashSet<>();
+                    for (int i = 0; i < valuesMaxSize - 1; i++) {
+                        limitedIntValues.add(intValues.get(i));
+                    }
+                    heatmap.setCellValues(limitedIntValues);
                     break;
                 case DOUBLE:
-                    Set<Double> doubleValues = values.stream().map(Double::parseDouble).collect(Collectors.toSet());
-                    heatmap.setCellValues(doubleValues.stream().limit(valuesMaxSize).collect(Collectors.toSet()));
+                    List<Double> doubleValues = values.stream()
+                            .map(Double::parseDouble)
+                            .sorted()
+                            .collect(Collectors.toList());
+                    Set<Double> limitedDoubleValues = new LinkedHashSet<>();
+                    for (int i = 0; i < valuesMaxSize - 1; i++) {
+                        limitedDoubleValues.add(doubleValues.get(i));
+                    }
+                    heatmap.setCellValues(limitedDoubleValues);
                     break;
                 default:
-                    heatmap.setCellValues(values);
+                    heatmap.setCellValues(values.stream().limit(valuesMaxSize).collect(Collectors.toSet()));
+                    break;
             }
             if (cellValueType != HeatmapDataType.STRING) {
                 heatmap.setMaxCellValue(Collections.max(values
