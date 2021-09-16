@@ -117,6 +117,37 @@ export default class ngbBookmarksTableController extends baseController {
     }
 
     rowClick(row) {
+        const sessionsDefaultTab = {
+            'o': 'Sessions',
+            'l': '5',
+            'h': 'angularModule',
+            'i': {
+                'displayed': '1',
+                'icon': 'bookmark_outline',
+                'panel': 'ngbBookmarksPanel',
+                'position': 'left',
+                'o': 'Sessions',
+                'name': 'layout>bookmark',
+                'key': 'bookmark',
+                'iconColor': 'accent-100',
+                'hotkey': 'ALT + B',
+                'htmlModule': 'ngb-bookmarks-panel'
+            },
+            'n': '0',
+            't': '0'
+        };
+        const sessionsDefaultPanel = {
+            'l': '4',
+            'k': 33.33333333333333,
+            'i': {
+                'position': 'left'
+            },
+            'n': '0',
+            't': '0',
+            'o': '',
+            's': 0,
+            'g': [sessionsDefaultTab]
+        };
         const entity = row.entity;
         const position = entity.startIndex && entity.endIndex
             ? {
@@ -134,6 +165,21 @@ export default class ngbBookmarksTableController extends baseController {
             }
         });
         const layout = entity.layout;
+        if (layout && layout.g && layout.g[0] && layout.g[0].g) {
+            const isSession = layout.g[0].g.some(gg => gg.g ? gg.g.some(ggg => ggg.o === 'Sessions') : false);
+            const NEW_LAYOUT_WIDTH_PERCENTAGE = 0.6666;
+            if (!isSession) {
+                const leftPanelIndex = layout.g[0].g.findIndex(g => g.i && g.i.position === 'left');
+                if (~leftPanelIndex) {
+                    layout.g[0].g[leftPanelIndex].g.unshift(sessionsDefaultTab);
+                } else {
+                    layout.g[0].g.forEach(g => {
+                        g.k *= NEW_LAYOUT_WIDTH_PERCENTAGE;
+                    });
+                    layout.g[0].g.unshift(sessionsDefaultPanel);
+                }
+            }
+        }
         const vcfColumns = entity.vcfColumns;
         if (vcfColumns) {
             this.projectContext.vcfColumns = vcfColumns;
