@@ -101,7 +101,7 @@ public class ProjectManager implements SecuredEntityManager {
      *
      * @return a {@code List&lt;Project&gt;} of projects, created by current user
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadTopLevelProjects() {
         List<Project> projects = projectDao.loadTopLevelProjectsOrderByLastOpened();
         final Map<Long, Set<ProjectItem>> itemsMap = projectDao.loadProjectItemsByProjectIds(
@@ -130,7 +130,7 @@ public class ProjectManager implements SecuredEntityManager {
      * @param referenceName
      * @return all project hierarchy for current user, with all items
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadProjectTree(final Long parentId, String referenceName) {
         List<Project> allProjects;
         if (StringUtils.isEmpty(referenceName)) {
@@ -180,7 +180,7 @@ public class ProjectManager implements SecuredEntityManager {
      * @param projectId {@code long} ID of a project to load
      * @return a {@code Project} from the database
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Project load(Long projectId) {
         Project project = projectDao.loadProject(projectId);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
@@ -210,7 +210,7 @@ public class ProjectManager implements SecuredEntityManager {
      * @param projectName {@code String} name of a project to load
      * @return a {@code Project} from the database
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Project load(String projectName) {
         Project project = projectDao.loadProject(projectName);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectName));

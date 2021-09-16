@@ -141,7 +141,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
      * @return an {@code Reference} instance persisted in the system
      * @throws IOException
      */
-    @Transactional(propagation = Propagation.REQUIRED)
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
 
         final String name;
