@@ -51,11 +51,10 @@ public class Project extends BaseEntity implements Printable<Project>, RequestPa
      * List of files, included in the dataset. Al least one reference file is required for each dataset.
      */
     private List<BiologicalDataItem> items;
-    private Integer itemsCount;
-
     /**
      * Number of files in the dataset
      */
+    private Integer itemsCount;
     private List<ProjectNote> notes;
     /**
      * A helper {@code Map}, that stores information on number of files of each file format, present
