@@ -32,7 +32,6 @@ import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.http.client.methods.HttpPost;
 
 import java.util.List;
 
@@ -81,9 +80,7 @@ public class DatasetNoteDeleteHandler extends AbstractHTTPCommandHandler {
         }
         projectNotes.removeIf(p -> p.getNoteId().equals(noteId));
         project.setNotes(projectNotes);
-        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
-                getServerParameters().getServerUrl() + getServerParameters().getProjectSaveUrl());
-        getPostResult(project, request);
+        saveProject(project);
         return 0;
     }
 }

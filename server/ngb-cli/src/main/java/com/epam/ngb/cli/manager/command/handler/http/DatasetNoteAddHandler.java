@@ -31,7 +31,6 @@ import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
-import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,8 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
 public class DatasetNoteAddHandler extends AbstractHTTPCommandHandler {
 
     private Project project;
+    private String title;
+    private String content;
 
     /**
       * Verifies input arguments
@@ -60,10 +61,14 @@ public class DatasetNoteAddHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ERROR_PROJECT_NOT_FOUND, arguments.get(0)));
         }
-        String title = arguments.get(1);
-        String content = arguments.get(2);
-        List<ProjectNote> projectNotes = project.getNotes() == null ? new ArrayList<>() : project.getNotes();
+        title = arguments.get(1);
+        content = arguments.get(2);
+    }
 
+    @Override public int runCommand() {
+        List<ProjectNote> projectNotes = project.getNotes() == null ?
+                new ArrayList<>() :
+                project.getNotes();
         ProjectNote projectNote = ProjectNote.builder()
                 .projectId(project.getId())
                 .title(title)
@@ -71,12 +76,7 @@ public class DatasetNoteAddHandler extends AbstractHTTPCommandHandler {
                 .build();
         projectNotes.add(projectNote);
         project.setNotes(projectNotes);
-    }
-
-    @Override public int runCommand() {
-        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
-                getServerParameters().getServerUrl() + getServerParameters().getProjectSaveUrl());
-        getPostResult(project, request);
+        saveProject(project);
         return 0;
     }
 }
