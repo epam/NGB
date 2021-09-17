@@ -225,7 +225,7 @@ export default class SegRenderer extends CachedTrackRenderer {
     }
 
     _drawTrackLabel(index, name) {
-        const label = this.labelsManager ? this.labelsManager.getLabel(name, this._config.label) : undefined;
+        const label = this.labelsManager ? this.labelsManager.getSprite(name, this._config.label) : undefined;
         if (label) {
             label.x = 0;
             label.y = index * (this.sampleHeight);

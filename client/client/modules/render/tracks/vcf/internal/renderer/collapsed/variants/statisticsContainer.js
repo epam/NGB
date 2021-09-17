@@ -23,7 +23,7 @@ export class StatisticsContainer extends VariantBaseContainer {
     buildBubble(manager) {
         this.drawBubble(this._getColorStructure(this._variant), 0);
         const label = this.labelsManager
-            ? this.labelsManager.getLabel(
+            ? this.labelsManager.getSprite(
                 NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
                 this._config.statistics.label
             )

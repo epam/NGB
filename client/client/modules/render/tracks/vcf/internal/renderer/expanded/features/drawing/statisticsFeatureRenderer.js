@@ -38,7 +38,7 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
-        const label = this.labelsManager ? this.labelsManager.getLabel(symbol, labelStyle) : undefined;
+        const label = this.labelsManager ? this.labelsManager.getSprite(symbol, labelStyle) : undefined;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));

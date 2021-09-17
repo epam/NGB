@@ -55,7 +55,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         let labelWidth = 0;
         if (feature.name && feature.name !== '.') {
             const label = this.labelsManager
-                ? this.labelsManager.getLabel(feature.name, this.config.bed.label)
+                ? this.labelsManager.getSprite(feature.name, this.config.bed.label)
                 : undefined;
             if (label) {
                 label.x = Math.round(position.x);
@@ -70,7 +70,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label).width;
             if (descriptionLabelWidth < position.width) {
                 const descriptionLabel = this.labelsManager
-                    ? this.labelsManager.getLabel(feature.description, this.config.bed.description.label)
+                    ? this.labelsManager.getSprite(feature.description, this.config.bed.description.label)
                     : undefined;
                 if (descriptionLabel) {
                     descriptionLabel.x = Math.round(position.x);

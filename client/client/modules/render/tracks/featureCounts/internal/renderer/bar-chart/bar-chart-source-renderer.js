@@ -27,7 +27,7 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         this.addChild(this.dataContainer);
         this.addChild(this.coordinateSystemRenderer);
         if (this.track && this.track.labelsManager) {
-            this.sourceNameLabel = this.track.labelsManager.getLabel(source, config.barChart.title.font);
+            this.sourceNameLabel = this.track.labelsManager.getSprite(source, config.barChart.title.font);
             if (this.sourceNameLabel) {
                 this.addChild(this.sourceNameLabel);
             }

@@ -303,7 +303,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
             !feature.canonical &&
             this.labelsManager
         ) {
-            const label = this.labelsManager.getLabel(feature.name, transcriptConfig.label, true);
+            const label = this.labelsManager.getSprite(feature.name, transcriptConfig.label, true);
             if (label) {
                 let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
                 labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);

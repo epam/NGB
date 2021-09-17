@@ -44,7 +44,7 @@ export function renderGroups(features, groups, drawingConfig, labelsManager) {
     for (let i = 0; i < groups.length; i++) {
         const group = groups[i];
         const label = labelsManager
-            ? labelsManager.getLabel(group.displayName.toUpperCase(), config.groupNames.label)
+            ? labelsManager.getSprite(group.displayName.toUpperCase(), config.groupNames.label)
             : undefined;
         labels.push(label);
     }

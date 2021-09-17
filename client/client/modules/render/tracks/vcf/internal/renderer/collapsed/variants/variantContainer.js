@@ -118,7 +118,7 @@ export class VariantContainer extends VariantBaseContainer {
     buildVariantTypeLabel(manager) {
         if (this._variant.symbol) {
             const label = this.labelsManager
-                ? this.labelsManager.getLabel(this._variant.symbol, this._config.variant.allele.defaultLabel)
+                ? this.labelsManager.getSprite(this._variant.symbol, this._config.variant.allele.defaultLabel)
                 : undefined;
             if (label) {
                 label.y = Math.round(-this._config.variant.height - this._config.variant.allele.margin - label.height);
@@ -194,7 +194,7 @@ export class VariantContainer extends VariantBaseContainer {
                 continue;
             }
             const label = this.labelsManager
-                ? this.labelsManager.getLabel(
+                ? this.labelsManager.getSprite(
                     this._variant.alternativeAllelesInfo[i].displayText,
                     this._config.variant.allele.label
                 )
@@ -220,7 +220,7 @@ export class VariantContainer extends VariantBaseContainer {
             const tooltipZone = manager.getZoneBoundaries('tooltip', {x: this.container.x, y: this.container.y});
             if (tooltipZone) {
                 const tooltipLabel = this.labelsManager
-                    ? this.labelsManager.getLabel('...', this._config.variant.allele.detailsTooltipLabel)
+                    ? this.labelsManager.getSprite('...', this._config.variant.allele.detailsTooltipLabel)
                     : undefined;
                 if (tooltipLabel) {
                     const tooltipRect = {
@@ -450,7 +450,7 @@ export class VariantContainer extends VariantBaseContainer {
             variantStyle = this._config.variant.multipleNucleotideVariant.label.default;
         }
         const label = this.labelsManager
-            ? this.labelsManager.getLabel(text, variantStyle.font)
+            ? this.labelsManager.getSprite(text, variantStyle.font)
             : undefined;
         if (label) {
             let dX = 0;

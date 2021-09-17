@@ -35,44 +35,55 @@ export default class LabelsManager {
      * @param {boolean} removable
      * @returns {PIXI.Text | PIXI.Sprite}
      */
-    getLabel (text, style, removable = false) {
-        if (!this.renderer) {
+    getSprite (text, style, removable = false) {
+        if (this.renderer) {
+            const texture = this.getTexture(text, style, removable);
+            return new Sprite(texture);
+        } else {
             const label = new Text(text, style);
             label.resolution = drawingConfiguration.resolution;
             return label;
         }
-        const styleKey = this.getLabelStyleKey(style);
-        if (!this.labelStyles.hasOwnProperty(styleKey)) {
-            this.labelStyles[styleKey] = new TextStyle(style);
-        }
+    }
+    getTexture (text, style, removable = false) {
+        let texture = null;
+        const {key, styleKey} = this.getKeys(text, style);
         const textStyle = this.labelStyles[styleKey];
-        const key = `${text || ''}|${styleKey}`;
         if (
             !this.texturesCache.has(key) ||
             !this.texturesCache.get(key).baseTexture
         ) {
-            if (this.label.style !== textStyle) {
+            if (this.label.style !== textStyle && textStyle) {
                 this.label.style = textStyle;
             }
             this.label.text = text;
-            const texture = this.renderer.generateTexture(this.label, {
+            texture = this.renderer.generateTexture(this.label, {
                 scale: drawingConfiguration.scale,
                 resolution: drawingConfiguration.resolution
             });
             this.texturesCache.set(key, texture);
+            if (removable) {
+                this.removableTextureKeys.add(key);
+            } else if (this.removableTextureKeys.has(key)) {
+                this.removableTextureKeys.delete(key);
+            }
+            if (removable && this.textureKeysToRemove.has(key)) {
+                this.textureKeysToRemove.delete(key);
+            }
         }
-        const texture = this.texturesCache.get(key);
-        if (removable) {
-            this.removableTextureKeys.add(key);
-        } else if (this.removableTextureKeys.has(key)) {
-            this.removableTextureKeys.delete(key);
-        }
-        if (removable && this.textureKeysToRemove.has(key)) {
-            this.textureKeysToRemove.delete(key);
-        }
-        return new Sprite(texture);
+        return this.texturesCache.get(key, texture);
     }
 
+    getKeys(text, style) {
+        const styleKey = this.getLabelStyleKey(style);
+        if (!this.labelStyles.hasOwnProperty(styleKey)) {
+            this.labelStyles[styleKey] = new TextStyle(style);
+        }
+        return {
+            key: `${text || ''}|${styleKey}`,
+            styleKey
+        };
+    }
     startSession () {
         this.textureKeysToRemove = new Set(this.removableTextureKeys);
     }
@@ -118,5 +129,10 @@ export default class LabelsManager {
         this.label.destroy({texture: true, baseTexture: true});
         this.label = null;
         this.texturesCache = null;
+    }
+    ensureLabel(label, text, style) {
+        if (label && (!label.texture || !label.texture.baseTexture)) {
+            label.texture = this.getTexture(text, style);
+        }
     }
 }

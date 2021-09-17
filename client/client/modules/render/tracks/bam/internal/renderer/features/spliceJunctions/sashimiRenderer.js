@@ -98,7 +98,7 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig, labe
                 y: centerLine
             };
             const label = labelsManager
-                ? labelsManager.getLabel(
+                ? labelsManager.getSprite(
                     NumberFormatter.textWithPrefix(+count, false),
                     config.label
                 )
