@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS CATGENOME.HEATMAP (
     HEATMAP_ID             BIGINT NOT NULL PRIMARY KEY,
     NAME                   VARCHAR NOT NULL,
     PRETTY_NAME            VARCHAR,
-    TYPE                   INTEGER NOT NULL,
     PATH                   VARCHAR NOT NULL,
     ROW_TREE_PATH          VARCHAR,
     COLUMN_TREE_PATH       VARCHAR,

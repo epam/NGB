@@ -26,7 +26,6 @@ package com.epam.catgenome.dao.heatmap;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
-import com.epam.catgenome.entity.heatmap.HeatmapType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -202,7 +201,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         HEATMAP_ID,
         NAME,
         PRETTY_NAME,
-        TYPE,
         PATH,
         ROW_TREE_PATH,
         COLUMN_TREE_PATH,
@@ -225,7 +223,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
             params.addValue(HEATMAP_ID.name(), heatmap.getHeatmapId());
             params.addValue(NAME.name(), heatmap.getName());
             params.addValue(PRETTY_NAME.name(), heatmap.getPrettyName());
-            params.addValue(TYPE.name(), heatmap.getType().getId());
             params.addValue(PATH.name(), heatmap.getPath());
             params.addValue(ROW_TREE_PATH.name(), heatmap.getRowTreePath());
             params.addValue(COLUMN_TREE_PATH.name(), heatmap.getColumnTreePath());
@@ -281,7 +278,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
                     .heatmapId(rs.getLong(HEATMAP_ID.name()))
                     .name(rs.getString(NAME.name()))
                     .prettyName(rs.getString(PRETTY_NAME.name()))
-                    .type(HeatmapType.getById(rs.getInt(TYPE.name())))
                     .cellValueType(rs.wasNull() ? null : HeatmapDataType.getById(rs.getInt(CELL_VALUE_TYPE.name())))
                     .path(rs.getString(PATH.name()))
                     .rowTreePath(rs.getString(ROW_TREE_PATH.name()))

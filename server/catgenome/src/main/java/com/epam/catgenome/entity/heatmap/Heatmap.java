@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.heatmap;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,11 +34,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class Heatmap {
+public class Heatmap extends BiologicalDataItem {
     private Long heatmapId;
     private String name;
     private String prettyName;
-    private HeatmapType type;
     private String path;
     private String rowTreePath;
     private String columnTreePath;
