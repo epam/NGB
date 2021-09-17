@@ -28,48 +28,55 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.BlastDatabaseVO;
+import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import org.apache.http.client.methods.HttpPost;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PROJECT_NOT_FOUND;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_SOURCE;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
 
-@Command(type = Command.Type.REQUEST, command = {"reg_blast_db"})
-public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"add_note"})
+public class DatasetNoteAddHandler extends AbstractHTTPCommandHandler {
 
-    private BlastDatabaseVO database;
+    private Project project;
 
     /**
       * Verifies input arguments
-      * @param arguments command line arguments for 'reg_blast_db' command
+      * @param arguments command line arguments for 'add_note' command
       * @param options
       */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 4) {
+        if (arguments.size() != 3) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 4, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 3, arguments.size()));
         }
-        String type = arguments.get(2);
-        String source = arguments.get(3);
-        if (!BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
+        project = loadProjectByName(arguments.get(0));
+        if (project == null) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_DATABASE_TYPE, type));
+                    ERROR_PROJECT_NOT_FOUND, arguments.get(0)));
         }
-        if (!BlastDatabaseVO.BLAST_DATABASE_SOURCES.contains(source)) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_DATABASE_SOURCE, source));
-        }
-        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type, source);
+        String title = arguments.get(1);
+        String content = arguments.get(2);
+        List<ProjectNote> projectNotes = project.getNotes() == null ? new ArrayList<>() : project.getNotes();
+
+        ProjectNote projectNote = ProjectNote.builder()
+                .projectId(project.getId())
+                .title(title)
+                .content(content)
+                .build();
+        projectNotes.add(projectNote);
+        project.setNotes(projectNotes);
     }
 
     @Override public int runCommand() {
-        HttpPost request = (HttpPost) getRequest(getRequestUrl());
-        getResult(getPostResult(database, request), Boolean.class);
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getProjectSaveUrl());
+        getPostResult(project, request);
         return 0;
     }
 }

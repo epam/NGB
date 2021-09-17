@@ -526,6 +526,52 @@ $ ngb del_dataset new_dataset
 $ ngb dd 1
 ```
 
+### Add dataset note
+```
+ngb add_note|adn [<DATASET_NAME>] [<NOTE_TITLE>] [<NOTE_CONTENT>]
+```
+*Description*
+
+Adds a note to specified dataset.
+
+*Example*
+```bash
+# Add note to dataset, named "new_dataset"
+$ ngb add_note new_dataset note_title note_content
+```
+
+### List dataset notes 
+```
+ngb list_note|ldn [<DATASET_NAME>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Lists all notes for specified dataset from NGB server.
+
+*Example*
+```bash
+# List notes for dataset, named "new_dataset"
+$ ngb list_note new_dataset
+```
+
+### Delete dataset note 
+```
+ngb remove_note|rdn [<DATASET_NAME>] [<NOTE_ID>]
+```
+*Description*
+
+Deletes a specified dataset note from NGB server.
+
+*Example*
+```bash
+# Delete note with note_id id for dataset, named "new_dataset"
+$ ngb remove_note new_dataset note_id
+```
+
 ### Generate URL for browsing selected files
 ```
 ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]
