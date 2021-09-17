@@ -36,8 +36,7 @@ function processNestedProjects(projects, nesting) {
 const PROJECT_INFO_MODE = {
     SUMMARY: -1,
     DESCRIPTION: -2,
-    ADD_NOTE: -3,
-    EDIT_NOTE: -4
+    ADD_NOTE: -3
 };
 
 const PROJECT_INFO_MODE_NAME = {
@@ -49,8 +48,9 @@ const PROJECT_INFO_MODE_NAME = {
 const EDIT_RIGHT = 2;
 
 export default class ngbProjectInfoService {
-    constructor($sce, dispatcher, projectContext, projectDataService) {
+    constructor($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
         this.sce = $sce;
+        this.$mdDialog = $mdDialog;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.projectDataService = projectDataService;
@@ -59,6 +59,7 @@ export default class ngbProjectInfoService {
         this._currentMode = undefined;
         this._previousMode = undefined;
         this._currentName = undefined;
+        this._isEdit = false;
         this._editingNote = {};
         this._newNote = {};
         this._descriptionAvailable = false;
@@ -72,15 +73,25 @@ export default class ngbProjectInfoService {
             || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
             return;
         }
-        if (value !== undefined
-            && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.EDIT_NOTE].includes(this.currentMode)) {
-            this._previousMode = this.currentMode;
+        if (value === this.currentMode) {
+            return;
         }
-        const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] || this.currentNote.title;
-        this._currentMode = value || this.defaultMode;
-        this._currentName = value === this.projectInfoModeList.EDIT_NOTE
-            ? previousNoteName
-            : PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+        if (this._hasChanges()) {
+            const alert = this.$mdDialog.alert()
+                .title('There is an unsaved changes.')
+                .textContent('Save it or cancel editing.')
+                .ariaLabel('Unsaved changes')
+                .ok('OK');
+            this.$mdDialog.show(alert);
+        } else {
+            if (value !== undefined
+                && ![this.projectInfoModeList.ADD_NOTE].includes(this.currentMode)) {
+                this._previousMode = this.currentMode;
+            }
+            this._currentMode = value || this.defaultMode;
+            this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+            this._finishEditing();
+        }
     }
 
     get projectInfoModeList() {
@@ -123,6 +134,10 @@ export default class ngbProjectInfoService {
         return !!(this.currentProject.mask & EDIT_RIGHT);
     }
 
+    get isEdit() {
+        return this._isEdit;
+    }
+
     get editingNote() {
         return this._editingNote;
     }
@@ -141,8 +156,8 @@ export default class ngbProjectInfoService {
         }
     }
 
-    static instance($sce, dispatcher, projectContext, projectDataService) {
-        return new ngbProjectInfoService($sce, dispatcher, projectContext, projectDataService);
+    static instance($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
+        return new ngbProjectInfoService($sce, $mdDialog, dispatcher, projectContext, projectDataService);
     }
 
     projectChanged() {
@@ -198,13 +213,15 @@ export default class ngbProjectInfoService {
     }
 
     editNote(id) {
-        this._editingNote = this.noteList.filter(item => item.id === id)[0] || {};
-        this.currentMode = this.projectInfoModeList.EDIT_NOTE;
+        this.currentMode = id;
+        const filteredNoteList = this.noteList.filter(item => item.id === id);
+        this._editingNote = filteredNoteList.length ? {...filteredNoteList[0]} : {};
+        this._isEdit = true;
     }
 
     cancelNote() {
-        this._editingNote = {};
         this.currentMode = this.previousMode;
+        this._finishEditing();
     }
 
     saveNote(note) {
@@ -252,7 +269,7 @@ export default class ngbProjectInfoService {
             notes
         }))
             .then(data => {
-                this._editingNote = {};
+                this._finishEditing();
                 this._newNote = {
                     projectId: this.currentProject.id
                 };
@@ -261,5 +278,19 @@ export default class ngbProjectInfoService {
                 }
                 return data;
             });
+    }
+
+    _finishEditing() {
+        this._isEdit = false;
+        this._editingNote = {};
+    }
+
+    _hasChanges() {
+        let result = false;
+        if (this.isEdit) {
+            const currentNote = this.currentNote;
+            result = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
+        }
+        return result;
     }
 }

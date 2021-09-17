@@ -54,6 +54,10 @@ export default class ngbProjectInfoPanelController extends BaseController {
         return this.ngbProjectInfoService.canEdit;
     }
 
+    get isEdit() {
+        return this.ngbProjectInfoService.isEdit;
+    }
+
     editNote($event) {
         this.ngbProjectInfoService.editNote(this.currentNote.id);
         $event.stopPropagation();
