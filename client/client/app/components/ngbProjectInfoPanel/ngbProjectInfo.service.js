@@ -89,7 +89,7 @@ export default class ngbProjectInfoService {
                 this._previousMode = this.currentMode;
             }
             this._currentMode = value || this.defaultMode;
-            this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+            this._currentName = PROJECT_INFO_MODE_NAME[this.currentMode] || this.currentNote.title;
             this._finishEditing();
         }
     }
