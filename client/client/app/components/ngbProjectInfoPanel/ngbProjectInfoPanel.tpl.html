@@ -33,7 +33,7 @@
             </div>
         </div>
     </div>
-    <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
+    <div class="project-note-container" ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
         <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>
     </div>
     <div class="project-note-container" ng-if="$ctrl.currentMode >= 0">
