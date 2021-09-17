@@ -49,11 +49,9 @@ const EDIT_RIGHT = 2;
 
 export default class ngbProjectInfoService {
     constructor($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
-        this.sce = $sce;
-        this.$mdDialog = $mdDialog;
-        this.dispatcher = dispatcher;
-        this.projectContext = projectContext;
-        this.projectDataService = projectDataService;
+        Object.assign(this, {
+            $sce, $mdDialog, dispatcher, projectContext, projectDataService
+        });
         this.currentProject = {};
         this._descriptionIsLoading = true;
         this._currentMode = undefined;
@@ -217,6 +215,7 @@ export default class ngbProjectInfoService {
         const filteredNoteList = this.noteList.filter(item => item.id === id);
         this._editingNote = filteredNoteList.length ? {...filteredNoteList[0]} : {};
         this._isEdit = true;
+        this._previousMode = this.currentMode;
     }
 
     cancelNote() {
