@@ -184,7 +184,7 @@ export default class ngbProjectInfoService {
                     this.currentMode = this.projectInfoModeList.DESCRIPTION;
                     this._descriptionAvailable = true;
                     this._descriptionIsLoading = false;
-                    this.blobUrl = this.sce.trustAsResourceUrl(
+                    this.blobUrl = this.$sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
                 } else {
