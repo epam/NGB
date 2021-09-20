@@ -32,8 +32,12 @@ export default class Index {
             hovered = false,
             border = false
         } = options;
-        const getColor = (colorIndex = 0) => {
-            const configuration = array[colorIndex];
+        const getColor = (colorIndex = 0, isSingleColor = true) => {
+            let colorsArray = array;
+            if (!isSingleColor) {
+                colorsArray = array.slice(1);
+            }
+            const configuration = colorsArray[colorIndex];
             if (border) {
                 return configuration.border;
             }
@@ -47,11 +51,11 @@ export default class Index {
         }
         if (!this.colors.hasOwnProperty(source)) {
             const all = Object.values(this.colors);
-            const [,best] = array
+            const [best] = array
                 .map((color, index) => ({index, weight: all.filter(c => c === index).length}))
                 .sort((a, b) => a.weight - b.weight);
             this.colors[source] = best.index;
         }
-        return getColor(this.colors[source]);
+        return getColor(this.colors[source], false);
     }
 }
