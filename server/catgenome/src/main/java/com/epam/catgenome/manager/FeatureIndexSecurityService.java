@@ -135,12 +135,13 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.loadVcfFilterInfoForProject(projectId);
     }
 
-    public GeneFilterInfo getAvailableFieldsToSearch(Long referenceId, ItemsByProject fileIdsByProjectId) {
+    public GeneFilterInfo getAvailableFieldsToSearch(Long referenceId, ItemsByProject fileIdsByProjectId)
+            throws IOException {
         return featureIndexManager.getAvailableGeneFieldsToSearch(referenceId, fileIdsByProjectId);
     }
 
     public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
-                                               final String fieldName) {
+                                               final String fieldName) throws IOException {
         return featureIndexManager.getAvailableFieldValues(referenceId, fileIdsByProjectId, fieldName);
     }
 
