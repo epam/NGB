@@ -36,13 +36,15 @@ function processNestedProjects(projects, nesting) {
 const PROJECT_INFO_MODE = {
     SUMMARY: -1,
     DESCRIPTION: -2,
-    ADD_NOTE: -3
+    ADD_NOTE: -3,
+    CHR_SUMMARY: -4
 };
 
 const PROJECT_INFO_MODE_NAME = {
     '-1': 'Summary',
     '-2': 'Description',
-    '-3': 'Add note'
+    '-3': 'Add note',
+    '-4': 'Summary'
 };
 
 const EDIT_RIGHT = 2;
@@ -63,6 +65,7 @@ export default class ngbProjectInfoService {
         this._descriptionAvailable = false;
         const projectChanged = this.projectChanged.bind(this);
         this.dispatcher.on('dataset:selection:change', projectChanged);
+        this.dispatcher.on('chromosome:change', this.chromosomeChanged.bind(this));
         projectChanged();
     }
 
@@ -83,7 +86,7 @@ export default class ngbProjectInfoService {
             this.$mdDialog.show(alert);
         } else {
             if (value !== undefined
-                && ![this.projectInfoModeList.ADD_NOTE].includes(this.currentMode)) {
+                && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.CHR_SUMMARY].includes(this.currentMode)) {
                 this._previousMode = this.currentMode;
             }
             this._currentMode = value || this.defaultMode;
@@ -145,10 +148,10 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.descriptionAvailable) {
-            return this.projectInfoModeList.DESCRIPTION;
-        } else if (this.summaryAvailable) {
+        if (this.summaryAvailable) {
             return this.projectInfoModeList.SUMMARY;
+        } else if (this.descriptionAvailable) {
+            return this.projectInfoModeList.DESCRIPTION;
         } else {
             return this.currentMode;
         }
@@ -203,6 +206,14 @@ export default class ngbProjectInfoService {
             this._descriptionAvailable = false;
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
+        }
+    }
+
+    chromosomeChanged() {
+        if (this.projectContext.currentChromosome !== null) {
+            this.currentMode = this.projectInfoModeList.CHR_SUMMARY;
+        } else if (this.currentMode === this.projectInfoModeList.CHR_SUMMARY) {
+            this.currentMode = this.projectInfoModeList.SUMMARY;
         }
     }
 

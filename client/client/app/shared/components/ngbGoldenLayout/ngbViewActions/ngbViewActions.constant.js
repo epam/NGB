@@ -64,7 +64,7 @@ const projectInfoSectionsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: context => context.tracks && context.tracks.length && !context.currentChromosome,
+    isVisible: context => context.tracks && context.tracks.length,
 };
 
 const tracksSelectionAction = {
