@@ -34,7 +34,7 @@ import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
-import com.epam.catgenome.util.MotifSearcher;
+import com.epam.catgenome.util.motif.MotifSearcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -199,11 +199,9 @@ public class MotifSearchManager {
         final int start = request.getStartPosition() == null ? 0 : request.getStartPosition();
         final int end = request.getEndPosition() == null ? chromosome.getSize() : request.getEndPosition();
 
-        final int bufferSize = Math.min(this.bufferSize, end - start);
-
         final Set<Motif> result = new LinkedHashSet<>();
         int currentStart = start;
-        int currentEnd = bufferSize + start;
+        int currentEnd = Math.min(this.bufferSize, end - start) + start;
 
         while (result.size() < pageSize && currentStart < end) {
 
@@ -215,6 +213,7 @@ public class MotifSearchManager {
                             .endPosition(currentEnd)
                             .includeSequence(request.getIncludeSequence())
                             .strand(request.getStrand())
+                            .slidingWindow(request.getSlidingWindow())
                             .build(),
                     reference
             ).getResult());
@@ -261,6 +260,7 @@ public class MotifSearchManager {
                             .chromosomeId(chrId)
                             .startPosition(start)
                             .endPosition(end)
+                            .slidingWindow(request.getSlidingWindow())
                             .build(),
                     reference);
         }
@@ -275,6 +275,7 @@ public class MotifSearchManager {
                             .chromosomeId(chrId)
                             .startPosition(start)
                             .endPosition(chromosome.getSize())
+                            .slidingWindow(request.getSlidingWindow())
                             .build(),
                     reference)
                     .getResult()

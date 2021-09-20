@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.util;
+package com.epam.catgenome.util.motif;
 
 import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
@@ -66,7 +66,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         this.includeSequence = includeSequence;
 
         final Pattern pattern =
-                Pattern.compile(MotifSearcher.convertIupacToRegex(iupacRegex), Pattern.CASE_INSENSITIVE);
+                Pattern.compile(IupacRegexConverter.convertIupacToRegex(iupacRegex), Pattern.CASE_INSENSITIVE);
         if (strand == null) {
             this.positiveMatches = populatePositiveMatches(pattern.matcher(new String(seq)));
             this.negativeMatches = populateNegativeMatches(pattern.matcher(reverseAndComplement(seq)), seq.length);

@@ -26,6 +26,8 @@ package com.epam.catgenome.util;
 
 import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import com.epam.catgenome.util.motif.IupacRegexConverter;
+import com.epam.catgenome.util.motif.MotifSearcher;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,56 +35,138 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class MotifSearcherTest {
 
-
-    public static final String TEST_MOTIF = "cgCGcattgcGcaaGGG";
+    public static final byte[] TEST_SEQUENCE = "cgCGcattgcGcaaGGG".getBytes(StandardCharsets.UTF_8);
+    public static final String SIMPLE_TEST_MOTIF = "ca";
+    public static final String SIMPLE_REVERSIBLE_TEST_REGEX = "(c[a])";
+    public static final String TEST_REGEX = "ca+?";
+    public static final String TEST_REFERENCE_SOURCE = "/templates/dm606.X.fa";
 
     @Test
     public void searchTest() {
-        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "ca";
-        Assert.assertEquals(3, MotifSearcher.search(testSequence, testRegex, "", 0, true).size());
+        Assert.assertEquals(3, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_TEST_MOTIF, "", 0, true).size());
+        Assert.assertEquals(3, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_REVERSIBLE_TEST_REGEX, "", 0, true).size());
+        Assert.assertEquals(3, MotifSearcher.search(TEST_SEQUENCE, TEST_REGEX, "", 0, true).size());
     }
 
     @Test
-    public void searchBoundsTest() {
-        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "ca";
-        final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
-        Assert.assertEquals(4, firstSearchResult.getStart());
-        Assert.assertEquals(5, firstSearchResult.getEnd());
+    public void searchPalindromeTest() {
+        final String simplePalindromeMotif = "gc";
+        final String simpleReversiblePalindromeRegex = "(g[c])";
+        final String palindromeRegex = "gc+?";
+        Assert.assertEquals(8,
+                MotifSearcher.search(TEST_SEQUENCE, simplePalindromeMotif, "", 0, true).size());
+        Assert.assertEquals(8,
+                MotifSearcher.search(TEST_SEQUENCE, simpleReversiblePalindromeRegex, "", 0, true).size());
+        Assert.assertEquals(8,
+                MotifSearcher.search(TEST_SEQUENCE, palindromeRegex, "", 0, true).size());
     }
 
     @Test
-    public void searchSequenceTest() {
-        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "ca";
-        final Motif firstSearchResult = MotifSearcher.search(testSequence, testRegex, "", 0, true).get(0);
-        Assert.assertEquals(testRegex, firstSearchResult.getSequence());
+    public void searchStartAndEndEdgesWhenGivenSimpleTestMotif() {
+        final int[] actualResults = MotifSearcher.search(TEST_SEQUENCE, SIMPLE_TEST_MOTIF, "", 0, true)
+                .stream()
+                .flatMapToInt(motif -> IntStream.of(motif.getStart(), motif.getEnd()))
+                .toArray();
+        final int[] expectedResults = {4, 5, 7, 8, 11, 12};
+        Assert.assertArrayEquals(expectedResults, actualResults);
     }
 
     @Test
-    public void searchInPositiveStrandTest() {
-        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "ca";
-        Assert.assertEquals(2, MotifSearcher.search(testSequence, testRegex,
+    public void searchStartAndEndEdgesWhenGivenSimpleReversibleTestRegex() {
+        final int[] actualResults = MotifSearcher.search(TEST_SEQUENCE, SIMPLE_REVERSIBLE_TEST_REGEX, "", 0, true)
+                .stream()
+                .flatMapToInt(motif -> IntStream.of(motif.getStart(), motif.getEnd()))
+                .toArray();
+        final int[] expectedResults = {4, 5, 7, 8, 11, 12};
+        Assert.assertArrayEquals(expectedResults, actualResults);
+    }
+
+    @Test
+    public void searchStartAndEndEdgesWhenGivenTestRegex() {
+        final String testRegex = "ca+?";
+        final int[] actualResults = MotifSearcher.search(TEST_SEQUENCE, testRegex, "", 0, true)
+                .stream()
+                .flatMapToInt(motif -> IntStream.of(motif.getStart(), motif.getEnd()))
+                .toArray();
+        final int[] expectedResults = {4, 5, 7, 8, 11, 12};
+        Assert.assertArrayEquals(expectedResults, actualResults);
+    }
+
+    @Test
+    public void comparingSearchedSequenceWhenGivenSimpleTestMotif() {
+        final String[] actualResults = MotifSearcher.search(TEST_SEQUENCE, SIMPLE_TEST_MOTIF, "", 0, true)
+                .stream()
+                .map(Motif::getSequence)
+                .toArray(String[]::new);
+        final String[] expectedResults = {"ca", "tg", "ca"};
+        Assert.assertArrayEquals(expectedResults, actualResults);
+
+    }
+
+    @Test
+    public void comparingSearchedSequenceWhenGivenSimpleReversibleTestRegex() {
+        final String[] actualResults = MotifSearcher.search(TEST_SEQUENCE, SIMPLE_REVERSIBLE_TEST_REGEX, "", 0, true)
+                .stream()
+                .map(Motif::getSequence)
+                .toArray(String[]::new);
+        final String[] expectedResults = {"ca", "tg", "ca"};
+        Assert.assertArrayEquals(expectedResults, actualResults);
+    }
+
+    @Test
+    public void comparingSearchedSequenceWhenGivenTestRegex() {
+        final String[] actualResults = MotifSearcher.search(TEST_SEQUENCE, TEST_REGEX, "", 0, true)
+                .stream()
+                .map(Motif::getSequence)
+                .toArray(String[]::new);
+        final String[] expectedResults = {"ca", "tg", "ca"};
+        Assert.assertArrayEquals(expectedResults, actualResults);
+    }
+
+    @Test
+    public void searchInPositiveStrandWhenGivenSimpleTestMotif() {
+        Assert.assertEquals(2, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_TEST_MOTIF,
                 StrandSerializable.POSITIVE, "", 0, true).size());
     }
 
     @Test
-    public void searchInNegativeStrandTest() {
-        byte[] testSequence = TEST_MOTIF.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "ca";
-        Assert.assertEquals(1, MotifSearcher.search(testSequence, testRegex,
+    public void searchInPositiveStrandWhenGivenSimpleReversibleTestRegex() {
+        Assert.assertEquals(2, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_REVERSIBLE_TEST_REGEX,
+                StrandSerializable.POSITIVE, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInPositiveStrandWhenGivenTestRegex() {
+        Assert.assertEquals(2, MotifSearcher.search(TEST_SEQUENCE, TEST_REGEX,
+                StrandSerializable.POSITIVE, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInNegativeStrandWhenGivenSimpleTestMotif() {
+        Assert.assertEquals(1, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_TEST_MOTIF,
+                StrandSerializable.NEGATIVE, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInNegativeStrandWhenGivenSimpleReversibleTestRegex() {
+        Assert.assertEquals(1, MotifSearcher.search(TEST_SEQUENCE, SIMPLE_REVERSIBLE_TEST_REGEX,
+                StrandSerializable.NEGATIVE, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInNegativeStrandWhenGivenTestRegex() {
+        Assert.assertEquals(1, MotifSearcher.search(TEST_SEQUENCE, TEST_REGEX,
                 StrandSerializable.NEGATIVE, "", 0, true).size());
     }
 
     @Test(expected = IllegalStateException.class)
-    public void searchThrowsExceptionOnInvalidSequence() {
+    public void searchThrowsExceptionOnInvalidSequenceWhenGivenTestRegex() {
         byte[] testSequence = "zxcontig".getBytes(StandardCharsets.UTF_8);
-        String testRegex = "con";
+        String testRegex = "con+?";
         MotifSearcher.search(testSequence, testRegex, "", 0, true);
     }
 
@@ -90,44 +174,92 @@ public class MotifSearcherTest {
     public void convertIupacToRegexTest(){
         String testRegex = "atcgrYmKsWhBvDn[ac]+";
         String expectedResult = "atcg[rga][ytc][mac][kgt][sgc][wat][hact][bgtc][vgca][dgat].[ac]+";
-        Assert.assertEquals(expectedResult, MotifSearcher.convertIupacToRegex(testRegex));
+        Assert.assertEquals(expectedResult, IupacRegexConverter.convertIupacToRegex(testRegex));
     }
 
     @Test
-    public void searchInLargeBufferTest() throws IOException {
+    public void convertIupactoComplementReversedRegexTest(){
+        String testRegex1 = "a[^a[tcg]rY]mK{23}sn[ac]+";
+        String expectedResult1 = "[gt]+.[cgs][acm]{23}[gtk][^[gar][tcy][cga]t]t";
+        Assert.assertEquals(expectedResult1, IupacRegexConverter.convertIupacToComplementReversedRegex(testRegex1));
 
-        final int expectedSize = 57534;
-        final int bufferSize = 50_000_000;
+        String testRegex2 = "a+?c[gt]*?yr{2,}a{7,}";
+        String expectedResult2 = "t{7,}[tcy]{2,}[gar][ac]*?gt+?";
+        Assert.assertEquals(expectedResult2, IupacRegexConverter.convertIupacToComplementReversedRegex(testRegex2));
 
-        byte[] buf = new byte[bufferSize];
-        final InputStream resourceAsStream = getClass().getResourceAsStream("/templates/dm606.X.fa");
-        resourceAsStream.read(buf);
-        resourceAsStream.close();
-        String testSequence = new String(buf);
-        final Pattern pattern = Pattern.compile("[^ATCGNatcgn]");
-        testSequence = pattern.matcher(testSequence).replaceAll("n");
-        buf = testSequence.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "tacyrw";
-        Assert.assertEquals(expectedSize, MotifSearcher.search(buf, testRegex, "", 0, true).size());
+        String testRegex3 = "(ac)|(tc)|[tcc]{12}";
+        String expectedResult3 = "[gga]{12}|(ga)|(gt)";
+        Assert.assertEquals(expectedResult3, IupacRegexConverter.convertIupacToComplementReversedRegex(testRegex3));
+
+        String testRegex4 = "((ac)|(tc))|([tcc]{12,23})";
+        String expectedResult4 = "([gga]{12,23})|((ga)|(gt))";
+        Assert.assertEquals(expectedResult4, IupacRegexConverter.convertIupacToComplementReversedRegex(testRegex4));
     }
 
     @Test
-    public void searchInLargeBufferInPositiveAndNegativeStrandTest() throws IOException {
-
+    public void searchInLargeBufferWhenGivenSimpleTestMotif() throws IOException {
         final int expectedSize = 57534;
-        final int bufferSize = 50_000_000;
+        final byte[] largeTestSequence = getTestSequenceFromResource(TEST_REFERENCE_SOURCE);
+        final String[] testMotifsAsRegexSubstitution =
+            {"taccat", "taccaa", "taccgt", "taccga", "tactat", "tactaa", "tactgt", "tactga"};
+        final int actualSize = IntStream.range(0,  testMotifsAsRegexSubstitution.length)
+                .map(i -> MotifSearcher
+                        .search(largeTestSequence, testMotifsAsRegexSubstitution[i], "", 0, true).size())
+                .sum();
+        Assert.assertEquals(expectedSize, actualSize);
+    }
 
-        byte[] buf = new byte[bufferSize];
-        final InputStream resourceAsStream = getClass().getResourceAsStream("/templates/dm606.X.fa");
-        resourceAsStream.read(buf);
-        resourceAsStream.close();
-        String testSequence = new String(buf);
-        final Pattern pattern = Pattern.compile("[^ATCGNatcgn]");
-        testSequence = pattern.matcher(testSequence).replaceAll("n");
-        buf = testSequence.getBytes(StandardCharsets.UTF_8);
-        String testRegex = "tacyrw";
-        final int sumResult = MotifSearcher.search(buf, testRegex, StrandSerializable.POSITIVE, "", 0, true).size() +
-                MotifSearcher.search(buf, testRegex, StrandSerializable.NEGATIVE, "", 0, true).size();
+    @Test
+    public void searchInLargeBufferWhenGivenSimpleReversibleTestRegex() throws IOException {
+        final int expectedSize = 57534;
+        final byte[] largeTestSequence = getTestSequenceFromResource(TEST_REFERENCE_SOURCE);
+        final String simpleReversibleTestRegex = "(tacyrw)";
+        Assert.assertEquals(expectedSize,
+                MotifSearcher.search(largeTestSequence, simpleReversibleTestRegex, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInLargeBufferWhenGivenTestRegex() throws IOException {
+        final int expectedSize = 57534;
+        final byte[] largeTestSequence = getTestSequenceFromResource(TEST_REFERENCE_SOURCE);
+        final String testRegex = "tacyrw+?";
+        Assert.assertEquals(expectedSize, MotifSearcher.search(largeTestSequence, testRegex, "", 0, true).size());
+    }
+
+    @Test
+    public void searchInLargeBufferInPositiveAndNegativeStrandWhenGivenSimpleTestMotif() throws IOException {
+        final int expectedSize = 57534;
+        final byte[] largeTestSequence = getTestSequenceFromResource(TEST_REFERENCE_SOURCE);
+        final String[] testMotifsAsRegexSubstitution =
+            {"taccat", "taccaa", "taccgt", "taccga", "tactat", "tactaa", "tactgt", "tactga"};
+        final int actualSize = IntStream.range(0, testMotifsAsRegexSubstitution.length)
+                .map(i ->
+                        MotifSearcher.search(largeTestSequence, testMotifsAsRegexSubstitution[i],
+                                StrandSerializable.POSITIVE, "", 0, true).size()
+                                + MotifSearcher.search(largeTestSequence, testMotifsAsRegexSubstitution[i],
+                                StrandSerializable.NEGATIVE, "", 0, true).size()
+                )
+                .sum();
+        Assert.assertEquals(expectedSize, actualSize);
+    }
+
+    @Test
+    public void searchInLargeBufferInPositiveAndNegativeStrandWhenGivenTestRegex() throws IOException {
+        final int expectedSize = 57534;
+        final byte[] largeTestSequence = getTestSequenceFromResource(TEST_REFERENCE_SOURCE);
+        String testRegex = "tacyrw+?";
+        final int sumResult =
+                MotifSearcher.search(largeTestSequence, testRegex, StrandSerializable.POSITIVE, "", 0, true).size() +
+                MotifSearcher.search(largeTestSequence, testRegex, StrandSerializable.NEGATIVE, "", 0, true).size();
         Assert.assertEquals(expectedSize, sumResult);
+    }
+
+    private byte[] getTestSequenceFromResource(final String path) throws IOException {
+        final InputStream resourceAsStream = getClass().getResourceAsStream(path);
+        byte[] buf = new byte[resourceAsStream.available()];
+        resourceAsStream.read(buf);
+        resourceAsStream.close();
+        return Pattern.compile("[^ATCGNatcgn]").matcher(new String(buf))
+                .replaceAll("n").getBytes(StandardCharsets.UTF_8);
     }
 }
