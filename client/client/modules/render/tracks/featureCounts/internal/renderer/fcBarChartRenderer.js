@@ -303,6 +303,8 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
 
     rebuildContainer(viewport, cache){
         if (this.showPlaceholder) {
+            this.noDataPlaceholder.container.visible = false;
+            this.noSourcesPlaceholder.container.visible = false;
             return;
         }
         this.createDrawScope(viewport, cache);
@@ -332,6 +334,7 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
             cache.data &&
             cache.data.length > 0 &&
             sources.length === 0;
+        // console.log('this.noSourcesPlaceholder.container.visible', this.noSourcesPlaceholder.container.visible);
         this.noDataPlaceholder.container.visible = cache && (!cache.data || cache.data.length === 0);
         this.dataContainer.visible = sources.length > 0;
         this.background.visible = sources.length > 0;
