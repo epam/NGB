@@ -1,4 +1,4 @@
-import  baseController from '../../../shared/baseController';
+import baseController from '../../../shared/baseController';
 
 export default class ngbFeatureInfoController extends baseController {
 
@@ -29,9 +29,9 @@ export default class ngbFeatureInfoController extends baseController {
     };
 
     getFeatureInfo(opts) {
-        if(opts.db !== this.$scope.$ctrl.db) return;
+        if (opts.db !== this.$scope.$ctrl.db) return;
 
-        if(this.featureInfoStorage[opts.db]) {
+        if (this.featureInfoStorage[opts.db]) {
             this._updateFeatureInfo(this.featureInfoStorage[opts.db]);
             return;
         }
@@ -56,17 +56,17 @@ export default class ngbFeatureInfoController extends baseController {
         });
     }
 
-    articleInfoToString(article){
+    articleInfoToString(article) {
         const otherAuthor = article.multiple_authors ? ', et all' : '';
-        const info = `${article.author.name}${otherAuthor}. ${article.source}, ${article.pubdate}. PMID ${article.uid}`;
-        return info;
+        return `${article.author.name}${otherAuthor}. ${article.source}, ${article.pubdate}. PMID ${article.uid}`;
     }
 
-    _updateFeatureInfo(featureInfo){
+    _updateFeatureInfo(featureInfo) {
         this.featureInfo = featureInfo.data;
         this.summaryProperties = featureInfo.summaryProperties;
         this.tableProperties = featureInfo.tableProperties;
     }
+
     _onError(message) {
         this.errorMessageList.push(message);
     }

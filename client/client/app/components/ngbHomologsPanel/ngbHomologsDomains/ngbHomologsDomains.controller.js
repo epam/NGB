@@ -8,7 +8,7 @@ export default class ngbHomologsDomainsController extends baseController {
     domainsDesc = [];
 
     events = {
-        'layout:item:activeChanged': this.close.bind(this)
+        'layout:active:panel:change': this.close.bind(this)
     };
 
     constructor($scope, $timeout, $window, dispatcher) {

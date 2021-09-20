@@ -110,7 +110,6 @@ export default class ngbGoldenLayoutController extends baseController {
             stack.header.controlsContainer.prepend(html);
 
             stack.on('activeContentItemChanged', (contentItem) => {
-                this.dispatcher.emit('layout:item:activeChanged');
                 childScope.viewName = contentItem.config.componentState.panel;
                 if (contentItem.config.componentState.panel === this.panels.ngbVariations) {
                     this.dispatcher.emit('activeVariants');

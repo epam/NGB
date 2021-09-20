@@ -90,7 +90,7 @@ export default class ngbProjectInfoService {
                 this._previousMode = this.currentMode;
             }
             this._currentMode = value || this.defaultMode;
-            this._currentName = PROJECT_INFO_MODE_NAME[this.currentMode] || this.currentNote.title;
+            this.setCurrentName(this.currentMode);
             this._finishEditing();
         }
     }
@@ -101,6 +101,10 @@ export default class ngbProjectInfoService {
 
     get currentName() {
         return this._currentName;
+    }
+
+    setCurrentName(value) {
+        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
     }
 
     get currentMode() {
@@ -285,6 +289,7 @@ export default class ngbProjectInfoService {
                 };
                 if (!data.error) {
                     this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes || [], this.currentProject.id);
+                    this.setCurrentName(this.currentMode);
                 }
                 return data;
             });
@@ -300,6 +305,8 @@ export default class ngbProjectInfoService {
         if (this.isEdit) {
             const currentNote = this.currentNote;
             result = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
+        } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
+            result = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
         }
         return result;
     }

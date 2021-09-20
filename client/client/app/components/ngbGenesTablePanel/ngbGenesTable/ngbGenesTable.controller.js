@@ -60,7 +60,9 @@ export default class ngbGenesTableController extends baseController {
         },
         'genes:values:loaded': this.initialize.bind(this),
         'gene:files:changed': this.loadGenesWithProgress.bind(this),
-        'genes:restore': this.restoreState.bind(this)
+        'genes:restore': this.restoreState.bind(this),
+        'feature:info:saved': this.reloadGenes.bind(this),
+        'layout:active:panel:change': this.panelChanged.bind(this)
     };
 
     constructor(
@@ -86,7 +88,6 @@ export default class ngbGenesTableController extends baseController {
         this.getStyle = this.ngbGenesTableService.getStyle(this.ngbGenesTableService);
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
         this.initEvents();
-        this.dispatcher.on('feature:info:saved', this.reloadGenes.bind(this));
     }
 
     static get UID() {
@@ -422,5 +423,14 @@ export default class ngbGenesTableController extends baseController {
             return;
         }
         this.gridApi.saveState.restore(this.$scope, this.defaultState);
+    }
+
+    panelChanged(panel) {
+        if (this.gridApi && panel === 'ngbGenesTablePanel') {
+            this.gridApi.infiniteScroll.dataLoaded(
+                this.ngbGenesTableService.firstPage > 0,
+                this.ngbGenesTableService.hasMoreData
+            );
+        }
     }
 }

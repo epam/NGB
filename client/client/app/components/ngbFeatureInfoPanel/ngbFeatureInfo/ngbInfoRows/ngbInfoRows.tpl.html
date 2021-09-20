@@ -91,16 +91,23 @@
                     {{attribute.value}}
                 </div>
                 <div ng-if="$ctrl.isEditable(attribute)" style="flex: 1">
-                    <input type="string"
-                           required
-                           ng-model="attribute.value"
-                           class="property property-value editable"
-                           ng-class="{'isEmpty': attribute.name && !attribute.value}"
-                           ng-model-options="{updateOn: 'blur'}" />
-                    <div class="property-error-message"
-                         ng-if="!attribute.value && attribute.name"
-                    >
-                        Value is required
+                    <div ng-if="attribute.isInput">
+                        <input class="property property-value editable"
+                               ng-class="{'isEmpty': attribute.name && !attribute.value}"
+                               ng-model="attribute.value"
+                               ng-model-options="{updateOn: 'blur'}"
+                               required
+                               type="string" />
+                        <div class="property-error-message"
+                             ng-if="!attribute.value && attribute.name"
+                        >
+                            Value is required
+                        </div>
+                    </div>
+                    <div ng-if="attribute.isList">
+                        <select class="property property-value editable property-value-select" ng-model="attribute.value">
+                            <option ng-repeat="opt in attribute.listOptions" value="{{opt.value}}">{{opt.label}}</option>
+                        </select>
                     </div>
                 </div>
             </div>
