@@ -32,6 +32,7 @@ import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.List;
 
@@ -56,7 +57,9 @@ public class DatasetNoteDeleteHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 2, arguments.size()));
         }
-        project = loadProjectByName(arguments.get(0));
+        project = NumberUtils.isDigits(arguments.get(0)) ?
+                loadProject(Long.parseLong(arguments.get(0))) :
+                loadProjectByName(arguments.get(0));
         if (project == null) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ERROR_PROJECT_NOT_FOUND, arguments.get(0)));

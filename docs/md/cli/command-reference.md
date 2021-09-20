@@ -528,21 +528,24 @@ $ ngb dd 1
 
 ### Add dataset note
 ```
-ngb add_note|adn [<DATASET_NAME>] [<NOTE_TITLE>] [<NOTE_CONTENT>]
+ngb add_note|adn [<DATASET_NAME>|<DATASET_ID>] [<NOTE_TITLE>] [<NOTE_CONTENT>]
 ```
 *Description*
 
-Adds a note to specified dataset.
+Adds a note to specified dataset. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
 
 *Example*
 ```bash
 # Add note to dataset, named "new_dataset"
 $ ngb add_note new_dataset note_title note_content
+
+# Add note to dataset with id "1"
+$ ngb adn 1 note_title note_content
 ```
 
 ### List dataset notes 
 ```
-ngb list_note|ldn [<DATASET_NAME>] [options]
+ngb list_note|ldn [<DATASET_NAME>|<DATASET_ID>] [options]
 
 //Options:
 //-t (--table)          Print result as a human-readable table
@@ -550,26 +553,32 @@ ngb list_note|ldn [<DATASET_NAME>] [options]
 ```
 *Description*
 
-Lists all notes for specified dataset from NGB server.
+Lists all notes for specified dataset from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
 
 *Example*
 ```bash
 # List notes for dataset, named "new_dataset"
 $ ngb list_note new_dataset
+
+# List notes for dataset with id "1"
+$ ngb ldn 1
 ```
 
 ### Delete dataset note 
 ```
-ngb remove_note|rdn [<DATASET_NAME>] [<NOTE_ID>]
+ngb remove_note|rdn [<DATASET_NAME>|<DATASET_ID>] [<NOTE_ID>]
 ```
 *Description*
 
-Deletes a specified dataset note from NGB server.
+Deletes a specified dataset note from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
 
 *Example*
 ```bash
-# Delete note with note_id id for dataset, named "new_dataset"
-$ ngb remove_note new_dataset note_id
+# Delete note with id 2 from dataset, named "new_dataset"
+$ ngb remove_note new_dataset 2
+
+# Delete note with id 2 from dataset with id "1"
+$ ngb rdn 1 2
 ```
 
 ### Generate URL for browsing selected files

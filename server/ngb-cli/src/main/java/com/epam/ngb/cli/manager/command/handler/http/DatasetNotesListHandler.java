@@ -33,6 +33,8 @@ import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PROJECT_NOT_FOUND;
@@ -57,7 +59,9 @@ public class DatasetNotesListHandler extends AbstractHTTPCommandHandler {
         }
         String projectName = arguments.get(0);
         this.printTable = options.isPrintTable();
-        project = loadProjectByName(projectName);
+        project = NumberUtils.isDigits(arguments.get(0)) ?
+                loadProject(Long.parseLong(arguments.get(0))) :
+                loadProjectByName(arguments.get(0));
         if (project == null) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ERROR_PROJECT_NOT_FOUND, projectName));
