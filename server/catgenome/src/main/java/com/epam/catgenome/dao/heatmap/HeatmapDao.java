@@ -24,6 +24,8 @@
 package com.epam.catgenome.dao.heatmap;
 
 import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import lombok.AllArgsConstructor;
@@ -198,10 +200,18 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     }
 
     enum HeatmapParameters {
-        HEATMAP_ID,
+        BIO_DATA_ITEM_ID,
         NAME,
-        PRETTY_NAME,
+        TYPE,
         PATH,
+        SOURCE,
+        FORMAT,
+        CREATED_DATE,
+        BUCKET_ID,
+        PRETTY_NAME,
+        OWNER,
+
+        HEATMAP_ID,
         ROW_TREE_PATH,
         COLUMN_TREE_PATH,
         CELL_ANNOTATION_PATH,
@@ -221,9 +231,7 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         static MapSqlParameterSource getParameters(final Heatmap heatmap) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(HEATMAP_ID.name(), heatmap.getHeatmapId());
-            params.addValue(NAME.name(), heatmap.getName());
-            params.addValue(PRETTY_NAME.name(), heatmap.getPrettyName());
-            params.addValue(PATH.name(), heatmap.getPath());
+            params.addValue(BIO_DATA_ITEM_ID.name(), heatmap.getBioDataItemId());
             params.addValue(ROW_TREE_PATH.name(), heatmap.getRowTreePath());
             params.addValue(COLUMN_TREE_PATH.name(), heatmap.getColumnTreePath());
             params.addValue(CELL_ANNOTATION_PATH.name(), heatmap.getCellAnnotationPath());
@@ -274,12 +282,9 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         }
 
         static Heatmap parseHeatmap(final ResultSet rs) throws SQLException {
-            return Heatmap.builder()
+            Heatmap heatmap = Heatmap.builder()
                     .heatmapId(rs.getLong(HEATMAP_ID.name()))
-                    .name(rs.getString(NAME.name()))
-                    .prettyName(rs.getString(PRETTY_NAME.name()))
                     .cellValueType(rs.wasNull() ? null : HeatmapDataType.getById(rs.getInt(CELL_VALUE_TYPE.name())))
-                    .path(rs.getString(PATH.name()))
                     .rowTreePath(rs.getString(ROW_TREE_PATH.name()))
                     .columnTreePath(rs.getString(COLUMN_TREE_PATH.name()))
                     .cellAnnotationPath(rs.getString(CELL_ANNOTATION_PATH.name()))
@@ -290,6 +295,17 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
                     .rowLabels(dataToList(rs.getBytes(ROW_LABELS.name())))
                     .cellValues(dataToSet(rs.getBytes(CELL_VALUES.name())))
                     .build();
+            heatmap.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
+            heatmap.setName(rs.getString(NAME.name()));
+            heatmap.setType(BiologicalDataItemResourceType.getById(rs.getLong(TYPE.name())));
+            heatmap.setPrettyName(rs.getString(PRETTY_NAME.name()));
+            heatmap.setOwner(rs.getString(OWNER.name()));
+            heatmap.setPath(rs.getString(PATH.name()));
+            heatmap.setSource(rs.getString(SOURCE.name()));
+            heatmap.setFormat(BiologicalDataItemFormat.getById(rs.getLong(FORMAT.name())));
+            heatmap.setCreatedDate(rs.getDate(CREATED_DATE.name()));
+            heatmap.setBucketId(rs.getLong(BUCKET_ID.name()));
+            return heatmap;
         }
     }
 }

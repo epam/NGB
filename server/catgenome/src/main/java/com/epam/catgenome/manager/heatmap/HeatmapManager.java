@@ -26,10 +26,12 @@ package com.epam.catgenome.manager.heatmap;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.heatmap.HeatmapDao;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +54,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -72,6 +75,7 @@ public class HeatmapManager {
     private int valuesMaxSize;
 
     private final HeatmapDao heatmapDao;
+    private final BiologicalDataItemManager biologicalDataItemManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Heatmap createHeatmap(final Heatmap heatmap) throws IOException {
@@ -79,8 +83,11 @@ public class HeatmapManager {
         String path = heatmap.getPath();
         Assert.isTrue(!TextUtils.isBlank(path), MessagesConstants.PATH_IS_REQUIRED);
         File file = getFile(path);
-        readHeatmap(heatmap);
         heatmap.setType(BiologicalDataItemResourceType.FILE);
+        heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
+        heatmap.setCreatedDate(new Date());
+        heatmap.setSource(path);
+        readHeatmap(heatmap);
         byte[] content = FileUtils.readFileToByteArray(file);
         byte[] labelAnnotation = null;
         byte[] cellAnnotation = null;
@@ -108,6 +115,8 @@ public class HeatmapManager {
             file = getFile(path);
             columnTree = FileUtils.readFileToByteArray(file);
         }
+        biologicalDataItemManager.createBiologicalDataItem(heatmap);
+        heatmap.setBioDataItemId(heatmap.getId());
         return heatmapDao.saveHeatmap(heatmap,
                 content,
                 cellAnnotation,
@@ -148,6 +157,7 @@ public class HeatmapManager {
         Heatmap heatmap = heatmapDao.loadHeatmap(heatmapId);
         Assert.notNull(heatmap, getMessage(MessagesConstants.ERROR_HEATMAP_NOT_FOUND, heatmapId));
         heatmapDao.deleteHeatmap(heatmapId);
+        biologicalDataItemManager.deleteBiologicalDataItem(heatmap.getBioDataItemId());
     }
 
     public Heatmap getHeatmap(final long heatmapId) {

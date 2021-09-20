@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,7 +126,9 @@ public enum BiologicalDataItemFormat {
 
     BED_GRAPH_INDEX(18, true),
 
-    FEATURE_COUNTS(19);
+    FEATURE_COUNTS(19),
+
+    HEATMAP(20);
 
     private long id;
     private boolean index = false;

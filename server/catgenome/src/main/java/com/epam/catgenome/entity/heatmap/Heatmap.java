@@ -36,9 +36,7 @@ import java.util.Set;
 @Builder
 public class Heatmap extends BiologicalDataItem {
     private Long heatmapId;
-    private String name;
-    private String prettyName;
-    private String path;
+    private Long bioDataItemId;
     private String rowTreePath;
     private String columnTreePath;
     private String cellAnnotationPath;

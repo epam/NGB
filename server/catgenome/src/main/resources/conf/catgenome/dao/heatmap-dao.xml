@@ -9,10 +9,8 @@
                 <![CDATA[
                     INSERT INTO catgenome.heatmap (
                         heatmap_id,
-                        name,
-                        pretty_name,
+                        bio_data_item_id,
                         cell_value_type,
-                        path,
                         row_tree_path,
                         column_tree_path,
                         cell_annotation_path,
@@ -29,10 +27,8 @@
                         column_tree
                     ) VALUES (
                         :HEATMAP_ID,
-                        :NAME,
-                        :PRETTY_NAME,
+                        :BIO_DATA_ITEM_ID,
                         :CELL_VALUE_TYPE,
-                        :PATH,
                         :ROW_TREE_PATH,
                         :COLUMN_TREE_PATH,
                         :CELL_ANNOTATION_PATH,
@@ -62,21 +58,31 @@
             <value>
                 <![CDATA[
                     SELECT
-                        heatmap_id,
-                        name,
-                        pretty_name,
-                        cell_value_type,
-                        path,
-                        row_tree_path,
-                        column_tree_path,
-                        cell_annotation_path,
-                        label_annotation_path,
-                        max_cell_value,
-                        min_cell_value,
-                        row_labels,
-                        column_labels,
-                        cell_values
-                    FROM catgenome.heatmap WHERE heatmap_id = ?
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        h.heatmap_id,
+                        h.cell_value_type,
+                        h.row_tree_path,
+                        h.column_tree_path,
+                        h.cell_annotation_path,
+                        h.label_annotation_path,
+                        h.max_cell_value,
+                        h.min_cell_value,
+                        h.row_labels,
+                        h.column_labels,
+                        h.cell_values
+                    FROM catgenome.heatmap h
+                        JOIN catgenome.biological_data_item b ON h.bio_data_item_id = b.bio_data_item_id
+                    WHERE heatmap_id = ?
                 ]]>
             </value>
         </property>
