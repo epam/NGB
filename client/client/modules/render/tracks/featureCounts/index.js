@@ -38,6 +38,25 @@ export class FeatureCountsTrack extends GENETrack {
         }
     };
 
+    onClick({x, y}) {
+        this.tooltip.hide();
+        const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
+        const checkPositionResult = this.getFeaturesByCoordinates({x, y});
+
+        if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
+            if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
+                const feature = checkPositionResult[0].feature;
+                const eventInfo = {
+                    endIndex: feature.endIndex,
+                    feature,
+                    info: this.getTooltipDataObject(false, checkPositionResult),
+                    startIndex: feature.startIndex
+                };
+                this.dataItemClicked(this, eventInfo, {name: 'feature-click', position: {x, y}});
+            }
+        }
+    }
+
     static Menu = Menu(
         featureCountsMenu,
         {
