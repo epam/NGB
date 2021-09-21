@@ -156,6 +156,9 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${saml.lb.enabled:false}")
     private boolean loadBalancerEnabled;
 
+    @Value("${security.frame-options.disable:false}")
+    private boolean frameOptionsDisable;
+
     /**
      * Optional Load balancer configuration
      */
@@ -192,6 +195,10 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers(getUnsecuredResources()).permitAll()
             .antMatchers(getSecuredResourcesRoot()).authenticated();
         http.logout().logoutSuccessUrl("/");
+
+        if (frameOptionsDisable) {
+            http.headers().frameOptions().disable();
+        }
     }
 
     public String[] getUnsecuredResources() {
