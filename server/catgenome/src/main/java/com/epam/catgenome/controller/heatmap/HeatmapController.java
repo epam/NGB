@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.heatmap;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import com.epam.catgenome.manager.heatmap.HeatmapSecurityService;
@@ -63,8 +64,9 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Heatmap> getHeatmap(@PathVariable final long heatmapId) {
-        return Result.success(heatmapSecurityService.getHeatmap(heatmapId));
+    public Result<Heatmap> loadHeatmap(@PathVariable final long heatmapId,
+                                       @RequestParam(required = false) final long projectId) {
+        return Result.success(heatmapSecurityService.loadHeatmap(heatmapId, projectId));
     }
 
     @GetMapping(value = "/heatmap/{heatmapId}/content")
@@ -75,8 +77,10 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<List<Map<?, String>>>> getContent(@PathVariable final long heatmapId) throws IOException {
-        return Result.success(heatmapSecurityService.getContent(heatmapId));
+    public Result<List<List<Map<?, String>>>> getContent(@PathVariable final long heatmapId,
+                                                         @RequestParam(required = false) final long projectId)
+            throws IOException {
+        return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
     }
 
     @GetMapping(value = "/heatmap/{heatmapId}/annotation")
@@ -87,8 +91,10 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<List<String>>> getLabelAnnotation(@PathVariable final long heatmapId) throws IOException {
-        return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId));
+    public Result<Map<String, String>> getLabelAnnotation(@PathVariable final long heatmapId,
+                                                          @RequestParam(required = false) final long projectId)
+            throws IOException {
+        return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId, projectId));
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/annotation")
@@ -100,7 +106,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateLabelAnnotation(@PathVariable final long heatmapId,
-                                            @RequestParam final String path) throws IOException {
+                                                 @RequestParam final String path) throws IOException {
         heatmapSecurityService.updateLabelAnnotation(heatmapId, path);
         return Result.success(null);
     }
@@ -127,8 +133,9 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<HeatmapTree> getTree(@PathVariable final long heatmapId) {
-        return Result.success(heatmapSecurityService.getTree(heatmapId));
+    public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
+                                       @RequestParam(required = false) final long projectId) {
+        return Result.success(heatmapSecurityService.getTree(heatmapId, projectId));
     }
 
     @PostMapping(value = "/heatmap")
@@ -139,7 +146,7 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Heatmap> createHeatmap(@RequestBody final Heatmap heatmap) throws IOException {
+    public Result<Heatmap> createHeatmap(@RequestBody final HeatmapRegistrationRequest heatmap) throws IOException {
         return Result.success(heatmapSecurityService.createHeatmap(heatmap));
     }
 

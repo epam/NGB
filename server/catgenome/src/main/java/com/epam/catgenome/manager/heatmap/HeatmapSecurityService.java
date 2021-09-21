@@ -25,6 +25,7 @@
  */
 package com.epam.catgenome.manager.heatmap;
 
+import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,51 +35,57 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_HEATMAP_MANAGER;
 
 @Service
 public class HeatmapSecurityService {
 
+    private static final String READ_HEATMAP_BY_PROJECT_ID =
+            "hasPermissionOnFileOrParentProject(#heatmapId, 'com.epam.catgenome.entity.heatmap.Heatmap', " +
+                    "#projectId, 'READ')";
+
     @Autowired
     private HeatmapManager heatmapManager;
 
-    @PreAuthorize(ROLE_USER)
-    public Heatmap getHeatmap(final Long heatmapId) {
-        return heatmapManager.getHeatmap(heatmapId);
+    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
+    public Heatmap loadHeatmap(final long heatmapId, final long projectId) {
+        return heatmapManager.loadHeatmap(heatmapId);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public Heatmap createHeatmap(final Heatmap heatmap) throws IOException {
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
+    public Heatmap createHeatmap(final HeatmapRegistrationRequest heatmap) throws IOException {
         return heatmapManager.createHeatmap(heatmap);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
     public void deleteHeatmap(final long heatmapId) throws IOException {
         heatmapManager.deleteHeatmap(heatmapId);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public List<List<Map<?, String>>> getContent(final long heatmapId) throws IOException {
+    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
+    public List<List<Map<?, String>>> getContent(final long heatmapId, final long projectId) throws IOException {
         return heatmapManager.getContent(heatmapId);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public List<List<String>> getLabelAnnotation(final long heatmapId) throws IOException {
+    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
+    public Map<String, String> getLabelAnnotation(final long heatmapId, final long projectId) throws IOException {
         return heatmapManager.getLabelAnnotation(heatmapId);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
     public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
         heatmapManager.updateLabelAnnotation(heatmapId, path);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
     public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
         heatmapManager.updateCellAnnotation(heatmapId, path);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public HeatmapTree getTree(final long heatmapId) {
+    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
+    public HeatmapTree getTree(final long heatmapId, final long projectId) {
         return heatmapManager.getTree(heatmapId);
     }
 }

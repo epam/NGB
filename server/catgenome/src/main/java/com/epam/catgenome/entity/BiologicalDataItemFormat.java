@@ -154,6 +154,7 @@ public enum BiologicalDataItemFormat {
         idMap.put(INDEX.id, INDEX);
         idMap.put(BED_GRAPH_INDEX.id, BED_GRAPH_INDEX);
         idMap.put(FEATURE_COUNTS.id, FEATURE_COUNTS);
+        idMap.put(HEATMAP.id, HEATMAP);
     }
 
     BiologicalDataItemFormat(long id) {
