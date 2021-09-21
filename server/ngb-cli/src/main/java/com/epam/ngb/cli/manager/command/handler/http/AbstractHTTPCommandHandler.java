@@ -330,6 +330,16 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
+    protected BiologicalDataItem loadReference(String strId) {
+        if (NumberUtils.isDigits(strId)) {
+            return loadFileByBioID(strId);
+        } else {
+            List<BiologicalDataItem> items = loadItemsByName(strId);
+            checkLoadedItems(strId, items);
+            return items.get(0);
+        }
+    }
+
     /**
      * Retrieves ID for a dataset(project) from an input String.
      * If input String might be interpreted as a number, this number will be returned as a result.

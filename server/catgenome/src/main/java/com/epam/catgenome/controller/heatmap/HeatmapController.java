@@ -65,7 +65,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Heatmap> loadHeatmap(@PathVariable final long heatmapId,
-                                       @RequestParam(required = false) final long projectId) {
+                                       @RequestParam(required = false) final Long projectId) {
         return Result.success(heatmapSecurityService.loadHeatmap(heatmapId, projectId));
     }
 
@@ -78,7 +78,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<List<Map<?, String>>>> getContent(@PathVariable final long heatmapId,
-                                                         @RequestParam(required = false) final long projectId)
+                                                         @RequestParam(required = false) final Long projectId)
             throws IOException {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
     }
@@ -92,7 +92,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Map<String, String>> getLabelAnnotation(@PathVariable final long heatmapId,
-                                                          @RequestParam(required = false) final long projectId)
+                                                          @RequestParam(required = false) final Long projectId)
             throws IOException {
         return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId, projectId));
     }
@@ -134,7 +134,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
-                                       @RequestParam(required = false) final long projectId) {
+                                       @RequestParam(required = false) final Long projectId) {
         return Result.success(heatmapSecurityService.getTree(heatmapId, projectId));
     }
 

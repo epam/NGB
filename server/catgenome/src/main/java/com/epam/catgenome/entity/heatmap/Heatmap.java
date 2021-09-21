@@ -24,6 +24,7 @@
 package com.epam.catgenome.entity.heatmap;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.security.AclClass;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,4 +48,9 @@ public class Heatmap extends BiologicalDataItem {
     private Double minCellValue;
     private List<String> columnLabels;
     private List<String> rowLabels;
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.HEATMAP;
+    }
 }
