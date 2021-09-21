@@ -42,7 +42,7 @@ export default class CoordinateSystem extends PIXI.Container {
         this.addChild(this.graphics);
         this.addChild(this.labelsContainer);
         if (this.track && this.track.labelsManager) {
-            this.logLabel = this.track.labelsManager.getLabel('LOG', this.config.log.label);
+            this.logLabel = this.track.labelsManager.getLabel('log', this.config.log.label);
             if (this.logLabel) {
                 this.addChild(this.logLabel);
             }
@@ -100,7 +100,11 @@ export default class CoordinateSystem extends PIXI.Container {
                 : correctPositionToFitBoundaries(0);
             if (log && this.logLabel) {
                 this.graphics
-                    .lineStyle(1, this.config.log.stroke, 1)
+                    .lineStyle(
+                        this.config.log.stroke ? 1 : 0,
+                        this.config.log.stroke || 0xffffff,
+                        this.config.log.stroke ? 1 : 0
+                    )
                     .beginFill(
                         this.config.log.fill,
                         this.config.log.opacity

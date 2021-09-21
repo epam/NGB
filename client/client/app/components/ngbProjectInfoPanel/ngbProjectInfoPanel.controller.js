@@ -9,6 +9,7 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     projectContext;
+    newNote;
     events = {
         'project:description:url': this.refreshProjectInfo.bind(this),
     };
@@ -25,12 +26,43 @@ export default class ngbProjectInfoPanelController extends BaseController {
         this.initEvents();
     }
 
+    get projectInfoModeList () {
+        return this.ngbProjectInfoService.projectInfoModeList;
+    }
+
+    get currentMode () {
+        return this.ngbProjectInfoService.currentMode;
+    }
+
     get isProgressShown () {
         return this.ngbProjectInfoService.descriptionIsLoading;
     }
 
-    get showDescription () {
-        return this.ngbProjectInfoService.showDescription;
+    get currentNote() {
+        return this.ngbProjectInfoService.currentNote;
+    }
+
+    get editingNote() {
+        return this.ngbProjectInfoService.editingNote;
+    }
+
+    get newNote() {
+        return this.ngbProjectInfoService.newNote;
+    }
+
+    get canEdit() {
+        return this.ngbProjectInfoService.canEdit;
+    }
+
+    get isEdit() {
+        return this.ngbProjectInfoService.isEdit;
+    }
+
+    editNote($event) {
+        this.ngbProjectInfoService.editNote(this.currentNote.id);
+        $event.stopPropagation();
+        $event.preventDefault();
+        return false;
     }
 
     refreshProjectInfo() {

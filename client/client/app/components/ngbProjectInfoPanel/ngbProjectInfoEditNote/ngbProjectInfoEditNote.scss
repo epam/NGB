@@ -1,0 +1,15 @@
+ngb-project-info-edit-note {
+  .edit-note-container {
+    .edit-note-input-container {
+      width: 100%;
+    }
+
+    .edit-note-buttons-container {
+      justify-content: end;
+    }
+  }
+
+  .edit-note-error {
+    color: rgb(213, 0, 0);
+  }
+}

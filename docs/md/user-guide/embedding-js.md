@@ -1,19 +1,22 @@
 # Embedding NGB via iFrame controlled with JS API
 
-NGB could be embedded into 3rd paty web application using an iFrame approach. Detailed information about embedding NGB via iFrame and controlling it with URL can be viewed [here](./embedding-url.md)
+NGB could be embedded into 3rd paty web application using an iFrame approach.  
+Detailed information about embedding NGB via iFrame and controlling it with URL can be viewed [here](./embedding-url.md).
 
 Communication with NGB window implemented with [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage "MDN web docks"), that is safely enables cross-origin communication.
 
 When loaded NGB will send postMessage to `window.parent`/`window.opener` with following response:
+
 ```javascript
 {
     isSuccessful: true,
     message: 'ready'
 }
 ```
-Once you receive that response, it is safe to start using postMessage with NGB
 
+Once you receive that response, it is safe to start using postMessage with NGB.  
 Common request structure:
+
 ```javascript
 {
     //some unique string identifier that will be in returned object
@@ -25,17 +28,18 @@ Common request structure:
 }
 ```
 
-`callerId` - unique ID to recognize method sending response
+Where:  
 
-`method` - method's name
-
-`params` - method's parameters object
+* `callerId` - unique ID to recognize method sending response
+* `method` - method's name
+* `params` - method's parameters object
 
 To call JS API methods you need to send this object to NGB window via postMessage
 
-#### Example
+## Example
 
 For following request:
+
 ```javascript
 NGBiFrame.contentWindow.postMessage({
         callerId: "loadDatasetUniqueID1",
@@ -49,6 +53,7 @@ NGBiFrame.contentWindow.postMessage({
 ```
 
 You'll get response:
+
 ```javascript
 {
     callerId: "loadDatasetUniqueID1",
@@ -58,6 +63,7 @@ You'll get response:
 ```
 
 To listen response you can use following:
+
 ```javascript
 if (window.addEventListener) {
     window.addEventListener("message", () => {
@@ -67,10 +73,9 @@ if (window.addEventListener) {
 }
 ```
 
-#### Demonstration example
+## Demonstration example
 
-Example of a JS API usage is available at [here](./embedding-js-demo.html)
-
+Example of a JS API usage is available [here](./embedding-js-demo.html).  
 This example demonstrates major capabilities of a JS API
 
 ## Methods
@@ -85,8 +90,7 @@ This example demonstrates major capabilities of a JS API
 
 ### loadDataSet
 
-Opens/closes dataset according to its current state
-
+Opens/closes dataset according to its current state.  
 The object to be passed to NGB window:
 
 ```javascript
@@ -106,10 +110,9 @@ The object to be passed to NGB window:
 }
 ```
 
-###  loadTracks
+### loadTracks
 
-Loads track and opens it in a Browser panel.
-
+Loads track and opens it in the **Browser** panel.  
 The object to be passed to NGB window:
 
 ```javascript
@@ -143,11 +146,9 @@ The object to be passed to NGB window:
 
 **When track is loaded from URL or NGB Server the URL or the path becomes track's ID so further operations with track are performing by this ID.**
 
-
 ### toggleSelectTrack
 
-Opens/closes track according to its current state
-
+Opens/closes track according to its current state.  
 The object to be passed to NGB window:
 
 ```javascript
@@ -188,24 +189,19 @@ The object to be passed to NGB window:
 
 Possibble `coordinates` string format are following:
 
-`chromosome:` - opens requested chromosome on minimum zoom level
-
-`chromosome:  position` - opens requested chromosome on requested position
-
-`chromosome:  start - end` - opens requested chromosome on requested range
+* `chromosome:` - opens requested chromosome on minimum zoom level
+* `chromosome:  position` - opens requested chromosome on requested position
+* `chromosome:  start - end` - opens requested chromosome on requested range
 
 If chromosome have been already selected:
 
-`position` - moves to requested position on current chromosome
-
-`start - end` - moves to requested range on current chromosome
-
-`empty string` - if chromosome is selected opens current chromosome on minimum zoom level
+* `position` - moves to requested position on current chromosome
+* `start - end` - moves to requested range on current chromosome
+* `empty string` - if chromosome is selected opens current chromosome on minimum zoom level
 
 ### setGlobalSettings
 
-Sets global NGB settings
-
+Sets global NGB settings.  
 The object to be passed to NGB window:
 
 ```javascript
@@ -267,8 +263,7 @@ The object to be passed to NGB window:
 
 ### setTrackSettings
 
-Sets requested opened track settings
-
+Sets requested opened track settings.  
 The object to be passed to NGB window:
 
 ```javascript
@@ -309,16 +304,15 @@ The object to be passed to NGB window:
 | ```{name: "gene>transcript>collapsed"}, {name: "gene>transcript>expanded"}``` | Transcript View <br> "gene>transcript>collapsed" - Collapsed <br> "gene>transcript>expanded" - Expanded  <br>  |  |
 | ```{name: "shortenIntrons", value: true}``` | Shorten introns |  |
 
-
 ## Authorization
-If authorization is enabled for NGB server each call to API should include a valid JWT token either in header (**"Authorization: Bearer {TOKEN_VALUE}"**) or in cookies.
-If token is present in localStorage it will be added to HTTP header to all NGB server API calls 
+
+If authorization is enabled for NGB server each call to API should include a valid JWT token either in header (**"Authorization: Bearer {TOKEN_VALUE}"**) or in cookies.  
+If token is present in localStorage it will be added to HTTP header to all NGB server API calls.
 
 ### setToken
 
-Set value of a token item in a localStorage.
-
-Token will be added into HTTP header `Authorization` with value `Bearer {params.token}`
+Set value of a token item in a localStorage.  
+Token will be added into HTTP header `Authorization` with value `Bearer {params.token}`.
 
 The object to be passed to NGB window:
 
@@ -334,4 +328,3 @@ The object to be passed to NGB window:
     }
 }
 ```
-

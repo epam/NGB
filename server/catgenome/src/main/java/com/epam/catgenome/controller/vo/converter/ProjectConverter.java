@@ -121,6 +121,7 @@ public final class ProjectConverter {
             vo.setMetadata(item.getBioDataItem().getMetadata());
             vo.setId(item.getBioDataItem().getId());
             vo.setMask(item.getBioDataItem().getMask());
+            vo.setSource(item.getBioDataItem().getSource());
 
             if (item.getBioDataItem() instanceof FeatureFile) {
                 FeatureFile featureFile = (FeatureFile) item.getBioDataItem();

@@ -1,39 +1,39 @@
 <ngb-tracks-view layout-fill ng-if="$ctrl.isChromosome"></ngb-tracks-view>
 <ngb-project-info-panel layout-fill ng-if="!$ctrl.isChromosome && $ctrl.isProject"></ngb-project-info-panel>
-<div layout-fill ng-if="$ctrl.isProjectLoading || $ctrl.pageIsLoading" class="browser-welcome-container">
+<div layout-fill ng-if="$ctrl.isProjectLoading || $ctrl.rootPageIsLoading" class="browser-welcome-container">
     <div layout="column" layout-align="center center" class="browser-welcome">
         <div>
             <h1>
-                Loading...
+                <md-progress-circular md-mode="indeterminate" md-diameter="70px"></md-progress-circular>
             </h1>
         </div>
     </div>
 </div>
-<div layout-fill ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome && !$ctrl.pageIsLoading" class="browser-welcome-container">
+<div layout-fill
+    ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome && !$ctrl.rootPageIsLoading"
+    class="browser-welcome-container"
+    ng-cloak
+    >
     <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.homeUrl">
         <div>
             <h1>
-                Choose files or folders<br/>
+                Choose files or folders<br />
                 on <strong>Datasets</strong> panel.
             </h1>
             <p><strong>Click</strong> on <strong>expand button</strong>
                 (<ng-md-icon icon="play_arrow" class="dataset-icon" size="13pt"></ng-md-icon>) to open folder.</p>
-            <p><strong>Click</strong> on <strong>checkbox</strong> to select/deselect all folder's <br/>tracks or particular track.</p>
+            <p><strong>Click</strong> on <strong>checkbox</strong> to select/deselect all folder's <br />tracks or
+                particular track.</p>
             <h3>What if there's no Datasets panel?</h3>
-            <p>Click on the "view" (<ng-md-icon icon="dashboard" size="15"></ng-md-icon>) button on the left toolbar<br/>
+            <p>Click on the "view" (<ng-md-icon icon="dashboard" size="15"></ng-md-icon>) button on the left
+                toolbar<br />
                 and select the "Datasets" option.</p>
         </div>
     </div>
-    <iframe
-        class="ngb-browser-iFrame"
-        ng-if="$ctrl.homeUrl && !$ctrl.homeUrlIsMd()"
-        ng-src="{{$ctrl.browserHomePageUrl()}}"
-    ></iframe>
-    <ngb-markdown
-        class="ngb-browser-markdown"
-        ng-if="$ctrl.homeUrl && $ctrl.homeUrlIsMd()"
-        markdown="$ctrl.markdown"
-    ></ngb-markdown>
+    <iframe class="ngb-browser-iFrame" ng-if="$ctrl.homeUrl && !$ctrl.homeUrlIsMd()"
+        ng-src="{{$ctrl.browserHomePageUrl()}}"></iframe>
+    <ngb-markdown class="ngb-browser-markdown" ng-if="$ctrl.homeUrl && $ctrl.homeUrlIsMd()" markdown="$ctrl.markdown">
+    </ngb-markdown>
     <div ng-if="$ctrl.errorMessages.length" class="md-padding">
         <ngb-panel-error-list message-list="$ctrl.errorMessages"></ngb-panel-error-list>
     </div>

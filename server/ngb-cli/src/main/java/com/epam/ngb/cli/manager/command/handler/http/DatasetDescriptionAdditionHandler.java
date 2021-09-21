@@ -59,9 +59,6 @@ public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandle
         }
         projectId = parseProjectId(arguments.get(0));
         path = Utils.getNormalizeAndAbsolutePath(arguments.get(1));
-        if (Files.notExists(Paths.get(path))) {
-            throw new IllegalArgumentException("Specified file does not exist");
-        }
     }
 
     @Override

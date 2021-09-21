@@ -123,6 +123,12 @@ export default class BarChartSourceRenderer extends PIXI.Container {
             height = 0,
             renderBottomBorder = false
         } = options || {};
+        const {
+            groupAutoScale
+        } = coordinateSystem || {};
+        const groupAutoScaleIndicatorVisible = this.groupAutoScaleManager &&
+            groupAutoScale &&
+            this.groupAutoScaleManager.getGroup(groupAutoScale);
         this.renderGroupAutoScaleIndicator(coordinateSystem, height);
         this.background
             .clear()
@@ -143,7 +149,11 @@ export default class BarChartSourceRenderer extends PIXI.Container {
         const barChartConfig = this.config.barChart || {};
         const {top, bottom, height: drawingHeight} = this.getDrawingArea(height);
         if (this.sourceNameLabel) {
-            this.sourceNameLabel.x = Math.round(ensureEmptyValue(barChartConfig.title.margin));
+            this.sourceNameLabel.x = Math.round(ensureEmptyValue(barChartConfig.title.margin)) +
+                (groupAutoScaleIndicatorVisible
+                    ? this.config.barChart.autoScaleGroupIndicator.width
+                    : 0
+                );
             this.sourceNameLabel.y = Math.round(top + ensureEmptyValue(barChartConfig.title.margin));
         }
         this.coordinateSystemRenderer.renderCoordinateSystem(
@@ -160,7 +170,9 @@ export default class BarChartSourceRenderer extends PIXI.Container {
                 }
             }
         );
-        this.coordinateSystemRenderer.x = 0;
+        this.coordinateSystemRenderer.x = groupAutoScaleIndicatorVisible
+            ? this.config.barChart.autoScaleGroupIndicator.width
+            : 0;
         this.coordinateSystemRenderer.y = bottom - drawingHeight;
         this.featurePositions = this.renderFeatures(
             viewport,

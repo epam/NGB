@@ -11,13 +11,8 @@
             </md-button>
         </md-menu-item>
         <md-menu-item>
-            <md-button ng-click="ctrl.featureName && ctrl.blastSearch('blastp', $event)"
-                       ng-disabled="!ctrl.featureName">
+            <md-button ng-click="ctrl.blastSearch('blastp', $event)">
                 <span>BLASTp search</span>
-                <span class="ngb-context-menu-warning" ng-if="!ctrl.featureName">
-                    <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
-                    Feature name is missing
-                </span>
             </md-button>
         </md-menu-item>
         <md-menu-item>

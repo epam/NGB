@@ -78,7 +78,7 @@ public class AclAspect {
             return;
         }
         LOGGER.debug("Creating ACL Object {} {}", entity.getName(), entity.getClass());
-        MutableAcl acl = aclService.createAcl(entity);
+        MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
         if (entity.getParent() != null) {
             updateParent(entity, acl);
         }

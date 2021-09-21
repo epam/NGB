@@ -14,9 +14,16 @@ import ngbProjectInfoSections from './ngbProjectInfoSections';
 // Import app modules
 import dataServices from '../../../dataServices/angular-module';
 import ngbProjectInfo from './ngbProjectInfo';
+import ngbProjectInfoEditNote from './ngbProjectInfoEditNote';
+import service from './ngbProjectInfo.service';
 
-export default angular.module('ngbProjectInfoPanel', [dataServices, ngbProjectInfo, ngbProjectInfoSections])
+export default angular
+    .module('ngbProjectInfoPanel', [
+        dataServices, ngbProjectInfo,
+        ngbProjectInfoSections, ngbProjectInfoEditNote
+    ])
     .controller(controller.UID, controller)
     .component('ngbProjectInfoPanel', component)
+    .service('ngbProjectInfoService', service)
     .run(run)
     .name;

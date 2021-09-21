@@ -31,4 +31,16 @@ ngb-project-info-sections {
       flex-direction: row;
     }
   }
+  .ngb-project-info-sections-add-note {
+    cursor: pointer;
+    height: 38px;
+    min-height: 32px;
+    div {
+      font-size: 14px;
+      padding: 0 8px;
+      cursor: pointer;
+      text-decoration: underline;
+      color: rgb(0, 0, 238);
+    }
+  }
 }

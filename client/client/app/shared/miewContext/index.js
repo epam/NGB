@@ -46,6 +46,9 @@ class MiewContext {
     constructor(dispatcher) {
         this.dispatcher = dispatcher;
         this._info = undefined;
+        this.dispatcher.on('miew:clear:structure', () => {
+            this.update();
+        });
     }
 
     get info() {

@@ -1409,7 +1409,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void getAvailableGeneAttributes() {
+    public void getAvailableGeneAttributes() throws IOException {
         GeneFilterInfo availableFields = featureIndexManager.getAvailableGeneFieldsToSearch(referenceId,
                 new ItemsByProject());
         assertNotNull(availableFields);

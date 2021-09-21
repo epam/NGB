@@ -6,4 +6,8 @@ export default class FCRenderer extends GeneRenderer {
         super(config, transformer, track);
         this._featureRenderer = new FeatureCountRenderer(config, track);
     }
+
+    get needConvertGraphicsToTexture(): boolean {
+        return false;
+    }
 }

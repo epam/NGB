@@ -208,22 +208,33 @@ public class DataItemManager {
 
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
                                                              final BiologicalDataItem biologicalDataItem) {
-        switch (biologicalDataItem.getType()) {
+        final BiologicalDataItemResourceType type = determineType(biologicalDataItem);
+        switch (type) {
             case FILE:
                 return generateDownloadUrlForLocalFile(id, biologicalDataItem);
             case S3:
-                return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getPath());
+                return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getSource());
             case AZ:
-                return azureBlobClient.generatePresignedUrl(biologicalDataItem.getPath());
+                return azureBlobClient.generatePresignedUrl(biologicalDataItem.getSource());
             default:
                 throw new UnsupportedOperationException(String.format(
                         "Cannot generate download url for data type '%s'", biologicalDataItem.getType()));
         }
     }
 
+    private BiologicalDataItemResourceType determineType(final BiologicalDataItem biologicalDataItem) {
+        if (S3Client.isS3Source(biologicalDataItem.getSource())) {
+            return BiologicalDataItemResourceType.S3;
+        }
+        if (AzureBlobClient.isAzSource(biologicalDataItem.getSource())) {
+            return BiologicalDataItemResourceType.AZ;
+        }
+        return biologicalDataItem.getType();
+    }
+
     private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
                                                                           final BiologicalDataItem biologicalDataItem) {
-        final Path dataItemPath = Paths.get(biologicalDataItem.getPath());
+        final Path dataItemPath = Paths.get(biologicalDataItem.getSource());
         try {
             Assert.state(Files.exists(dataItemPath),
                     getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));

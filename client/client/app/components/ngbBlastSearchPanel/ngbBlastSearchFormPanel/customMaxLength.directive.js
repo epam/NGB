@@ -15,7 +15,7 @@ export default function () {
             //     return value;
             // });
             ngModel.$validators.customMaxLength = function(modelValue) {
-                if (ngModel.$isEmpty(modelValue)) {
+                if (!scope.customMaxLength || ngModel.$isEmpty(modelValue)) {
                     return true;
                 }
                 return modelValue.length <= scope.customMaxLength;

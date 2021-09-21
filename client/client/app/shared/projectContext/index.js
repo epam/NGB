@@ -938,6 +938,32 @@ export default class projectContext {
         return this.projectDataService.getProjectIdDescription(id);
     }
 
+    convertProjectForSave = utilities.convertProjectForSave;
+
+    refreshDatasetNotes(notes, projectId) {
+        const processedNotes = notes
+            .map(utilities.preprocessDatasetNote)
+            .sort((a, b) => a.title > b.title ? 1 : a.title < b.title ? -1 : 0);
+        const changeNotes = items => {
+            if (items && items.length) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.id === projectId) {
+                        item.notes = processedNotes;
+                        return true;
+                    } else if (item.nestedProjects && item.nestedProjects.length) {
+                        if (changeNotes(item.nestedProjects)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+        const hasChanged = changeNotes(this._datasets);
+        return hasChanged ? processedNotes : [];
+    }
+
     addLastLocalTrack(track) {
         if (this.lastLocalTracks.filter(t => t.name.toLowerCase() === track.name.toLowerCase()).length === 0) {
             this.lastLocalTracks.push(track);
@@ -1364,7 +1390,7 @@ export default class projectContext {
         if (filterDatasets) {
             this._datasetsFilter = filterDatasets;
         }
-        const layoutDidChange = layout ? true : false;
+        const layoutDidChange = !!layout;
         return {
             chromosomeDidChange,
             datasetsFilterChanged,

@@ -322,7 +322,6 @@
                 ]]>
             </value>
         </property>
-
         <property name="deleteUserGroupsQuery">
             <value>
                 <![CDATA[
@@ -330,7 +329,13 @@
                 ]]>
             </value>
         </property>
-
+        <property name="deleteUserGroupByUserIdAndGroupIdQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_security_group WHERE user_id = :USER_ID AND group_id = :GROUP_ID
+                ]]>
+            </value>
+        </property>
         <property name="loadAllGroupsQuery">
             <value>
                 <![CDATA[
