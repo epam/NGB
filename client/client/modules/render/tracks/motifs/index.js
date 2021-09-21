@@ -74,20 +74,23 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     cacheUpdateParameters (viewport) {
-        const {referenceId} = this.config;
+        const {
+            referenceId,
+            projectId
+        } = this.config;
         const payload = super.cacheUpdateParameters(viewport);
         const motifLength = this.motifsContext.match.motif.length;
         const startIndex = Math.max(payload.startIndex - motifLength, 1);
         const endIndex = Math.min(payload.endIndex + motifLength, viewport.chromosome.end);
         return {
-            id: payload.id,
+            id: referenceId,
             chromosomeId: payload.chromosomeId,
             startIndex,
             endIndex,
             scaleFactor: payload.scaleFactor,
             option: {},
             collapsed: false,
-            projectId: referenceId,
+            projectId: projectId || 0,
             motif: this.motifsContext.match.motif,
             strand: this.motifStrand.toUpperCase()
         };
