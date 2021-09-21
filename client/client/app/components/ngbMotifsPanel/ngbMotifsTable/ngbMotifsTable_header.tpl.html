@@ -1,0 +1,14 @@
+<div layout="column">
+    <div flex
+         role="columnheader"
+         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'">
+        <div flex>
+            <md-button class="ui-grid-cell-contents" ng-disabled="true">
+                <span class="ui-grid-header-cell-label"
+                      ui-grid-one-bind-id-grid="col.uid + '-header-text'">
+                    {{ col.displayName }}
+                </span>
+            </md-button>
+        </div>
+    </div>
+</div>

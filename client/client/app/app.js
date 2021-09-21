@@ -23,6 +23,7 @@ import MiewContext from './shared/miewContext';
 import SelectionContext from './shared/selectionContext';
 import BLASTContext from './shared/blastContext';
 import NotificationsContext from './shared/notificationsContext';
+import MotifsContext from './shared/motifsContext';
 import config from './app.config';
 import controller from './app.controller';
 import {dispatcher} from './shared/dispatcher';
@@ -73,4 +74,5 @@ export default angular.module('NGB', [
     .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
     .service('notificationsContext', NotificationsContext.instance)
     .service('miewContext', MiewContext.instance)
+    .service('motifsContext', MotifsContext.instance)
     .name;
