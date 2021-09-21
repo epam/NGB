@@ -74,6 +74,7 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     cacheUpdateParameters (viewport) {
+        const {referenceId} = this.config;
         const payload = super.cacheUpdateParameters(viewport);
         const motifLength = this.motifsContext.match.motif.length;
         const startIndex = Math.max(payload.startIndex - motifLength, 1);
@@ -86,7 +87,7 @@ export class MOTIFSTrack extends CachedTrack {
             scaleFactor: payload.scaleFactor,
             option: {},
             collapsed: false,
-            projectId: 0,
+            projectId: referenceId,
             motif: this.motifsContext.match.motif,
             strand: this.motifStrand.toUpperCase()
         };
