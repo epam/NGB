@@ -86,7 +86,18 @@ export default function tooltipFactory(track) {
         setContent(content) {
 
             const mapLineElements = function({colspan, content}, index) {
-                return `<td colspan='${colspan}' style='${index === 0 ? 'text-align:left' : 'text-align:right'}; color: #222222'>${content}</td>`;
+                return `<td
+                    colspan='${colspan}'
+                    style='
+                    ${index === 0 ? 'text-align:left' : 'text-align:right'};
+                    color: #222222 ;
+                    max-width: 250px;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    '>
+                        ${content}
+                    </td>`;
             };
 
             const mapLine = function(line) {
