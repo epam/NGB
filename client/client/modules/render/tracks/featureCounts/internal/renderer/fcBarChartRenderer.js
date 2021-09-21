@@ -303,6 +303,8 @@ export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalS
 
     rebuildContainer(viewport, cache){
         if (this.showPlaceholder) {
+            this.noDataPlaceholder.container.visible = false;
+            this.noSourcesPlaceholder.container.visible = false;
             return;
         }
         this.createDrawScope(viewport, cache);
