@@ -13,7 +13,7 @@ export default class ngbProjectInfoSectionsController extends baseController {
 
     onButtonClick($mdOpenMenu, $event) {
         if (this.projectContext.currentChromosome) {
-            this.projectContext.changeState({chromosome: null});
+            this.ngbProjectInfoService.currentMode = this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
         } else {
             this.openMenu($mdOpenMenu, $event);
         }
@@ -22,12 +22,5 @@ export default class ngbProjectInfoSectionsController extends baseController {
     openMenu($mdOpenMenu, $event) {
         $event.stopPropagation();
         $mdOpenMenu($event);
-    }
-
-    onItemClick(newValue, oldValue, falseValue) {
-        if (this.projectContext.currentChromosome) {
-            this.projectContext.changeState({chromosome: null});
-        }
-        this.ngbProjectInfoService.currentMode = newValue === oldValue ? falseValue : newValue;
     }
 }

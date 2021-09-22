@@ -60,6 +60,7 @@ export default class ngbProjectInfoService {
         this._previousMode = undefined;
         this._currentName = undefined;
         this._isEdit = false;
+        this._isCancel = false;
         this._editingNote = {};
         this._newNote = {};
         this._descriptionAvailable = false;
@@ -70,11 +71,20 @@ export default class ngbProjectInfoService {
     }
 
     set currentMode(value) {
+        if (value === this.projectInfoModeList.CHR_SUMMARY) {
+            this._clearEnvironment();
+            this._currentMode = value;
+            this.setCurrentName(this.currentMode);
+            return;
+        }
+        if (this.projectContext.currentChromosome) {
+            this.projectContext.changeState({chromosome: null});
+        }
         if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
             || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
             return;
         }
-        if (value === this.currentMode) {
+        if (value === this.currentMode && !this._isCancel) {
             return;
         }
         if (this._hasChanges()) {
@@ -89,9 +99,9 @@ export default class ngbProjectInfoService {
                 && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.CHR_SUMMARY].includes(this.currentMode)) {
                 this._previousMode = this.currentMode;
             }
+            this._clearEnvironment();
             this._currentMode = value || this.defaultMode;
             this.setCurrentName(this.currentMode);
-            this._finishEditing();
         }
     }
 
@@ -152,10 +162,10 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.summaryAvailable) {
-            return this.projectInfoModeList.SUMMARY;
-        } else if (this.descriptionAvailable) {
+        if (this.descriptionAvailable) {
             return this.projectInfoModeList.DESCRIPTION;
+        } else if (this.summaryAvailable) {
+            return this.projectInfoModeList.SUMMARY;
         } else {
             return this.currentMode;
         }
@@ -188,12 +198,12 @@ export default class ngbProjectInfoService {
             this._descriptionAvailable = false;
             this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
                 if (data && data.byteLength) {
-                    this.currentMode = this.projectInfoModeList.DESCRIPTION;
                     this._descriptionAvailable = true;
                     this._descriptionIsLoading = false;
                     this.blobUrl = this.$sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
+                    this.currentMode = this.projectInfoModeList.DESCRIPTION;
                 } else {
                     this._descriptionAvailable = false;
                     this._descriptionIsLoading = false;
@@ -216,8 +226,6 @@ export default class ngbProjectInfoService {
     chromosomeChanged() {
         if (this.projectContext.currentChromosome !== null) {
             this.currentMode = this.projectInfoModeList.CHR_SUMMARY;
-        } else if (this.currentMode === this.projectInfoModeList.CHR_SUMMARY) {
-            this.currentMode = this.projectInfoModeList.SUMMARY;
         }
     }
 
@@ -234,8 +242,8 @@ export default class ngbProjectInfoService {
     }
 
     cancelNote() {
+        this._isCancel = true;
         this.currentMode = this.previousMode;
-        this._finishEditing();
     }
 
     saveNote(note) {
@@ -284,9 +292,7 @@ export default class ngbProjectInfoService {
         }))
             .then(data => {
                 this._finishEditing();
-                this._newNote = {
-                    projectId: this.currentProject.id
-                };
+                this._finishCreating();
                 if (!data.error) {
                     this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes || [], this.currentProject.id);
                     this.setCurrentName(this.currentMode);
@@ -300,14 +306,31 @@ export default class ngbProjectInfoService {
         this._editingNote = {};
     }
 
-    _hasChanges() {
-        let result = false;
-        if (this.isEdit) {
-            const currentNote = this.currentNote;
-            result = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
-        } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
-            result = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
+    _finishCreating() {
+        this._newNote = {
+            projectId: this.currentProject.id
+        };
+    }
+
+    _clearEnvironment() {
+        if (this._currentMode === this.projectInfoModeList.ADD_NOTE) {
+            this._finishCreating();
+        } else if (this.isEdit) {
+            this._finishEditing();
         }
-        return result;
+        this._isCancel = false;
+    }
+
+    _hasChanges() {
+        let hasChanges = false;
+        if (!this._isCancel) {
+            if (this.isEdit) {
+                const currentNote = this.currentNote;
+                hasChanges = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
+            } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
+                hasChanges = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
+            }
+        }
+        return hasChanges;
     }
 }

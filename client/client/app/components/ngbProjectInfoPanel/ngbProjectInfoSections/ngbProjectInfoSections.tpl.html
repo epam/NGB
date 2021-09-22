@@ -4,7 +4,7 @@
              style="width: auto; padding-left: 7px"
              ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
   >
-    <span >{{$ctrl.ngbProjectInfoService.currentName}}</span>
+    <span>{{$ctrl.ngbProjectInfoService.currentName}}</span>
     <ng-md-icon icon="keyboard_arrow_down"
                 ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
   </md-button>
@@ -12,7 +12,6 @@
     <md-checkbox aria-label="Description" ng-if="$ctrl.ngbProjectInfoService.descriptionAvailable"
                  ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                 ng-change="$ctrl.onItemClick({{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}, {{$ctrl.ngbProjectInfoService.currentMode}})"
                  ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
     >
       <span>Description</span>
@@ -20,7 +19,6 @@
     <md-checkbox aria-label="Summary" ng-if="$ctrl.ngbProjectInfoService.summaryAvailable"
                  ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}}"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                 ng-change="$ctrl.onItemClick({{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}, {{$ctrl.ngbProjectInfoService.currentMode}}, {{$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION}})"
                  ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}">
       <span>Summary</span>
     </md-checkbox>
@@ -32,7 +30,6 @@
     <md-checkbox aria-label="{{note.title}}"
                  ng-false-value="undefined"
                  ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                 ng-change="$ctrl.onItemClick(note.id, {{$ctrl.ngbProjectInfoService.currentMode}})"
                  ng-repeat="(index, note) in $ctrl.ngbProjectInfoService.noteList track by note.id"
                  ng-true-value="{{note.id}}">
       <span>{{note.title}}</span>
