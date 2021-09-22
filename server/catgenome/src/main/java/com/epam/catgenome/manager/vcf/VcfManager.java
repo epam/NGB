@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
@@ -107,7 +108,6 @@ import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
@@ -151,7 +151,7 @@ public class VcfManager {
     private DownloadFileManager downloadFileManager;
 
     @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private GeneTrackManager geneTrackManager;
 
     @Autowired
     private FeatureIndexDao featureIndexDao;
@@ -331,10 +331,8 @@ public class VcfManager {
         VcfFile vcfFile = vcfFileManager.load(query.getId());
         Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         if (reference.getGeneFile() != null) {
-            Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
-                                                                   variation.getEndIndex(),
-                                                                   Collections.singletonList(reference.getGeneFile()),
-                                                                   track.getChromosome());
+            Set<String> geneIds = geneTrackManager.fetchGeneIds(variation.getStartIndex(), variation.getEndIndex(),
+                    Collections.singletonList(reference.getGeneFile()), track.getChromosome());
             variation.setGeneNames(geneIds);
         }
 
@@ -368,10 +366,8 @@ public class VcfManager {
         extendInfoFields(variation);
         Reference reference = referenceGenomeManager.load(track.getChromosome().getReferenceId());
         if (reference.getGeneFile() != null) {
-            Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
-                                                                   variation.getEndIndex(),
-                                                                   Collections.singletonList(reference.getGeneFile()),
-                                                                   track.getChromosome());
+            Set<String> geneIds = geneTrackManager.fetchGeneIds(variation.getStartIndex(), variation.getEndIndex(),
+                    Collections.singletonList(reference.getGeneFile()), track.getChromosome());
             variation.setGeneNames(geneIds);
         }
 

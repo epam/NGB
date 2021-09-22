@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -68,7 +69,6 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 
 /**
@@ -85,7 +85,7 @@ public class ProteinSequenceManager {
     private static final String TRANSCRIPT_ID_FILED = "transcript_id";
 
     @Autowired
-    private GffManager gffManager;
+    private GeneTrackManager geneTrackManager;
 
     @Autowired
     private TrackHelper trackHelper;
@@ -112,7 +112,7 @@ public class ProteinSequenceManager {
         Chromosome chromosome = trackHelper.validateTrack(geneTrack);
 
         Map<Gene, List<ProteinSequenceEntry>> proteinSequences = psReconstructionManager
-                .reconstructProteinSequence(gffManager.loadGenes(geneTrack, false),
+                .reconstructProteinSequence(geneTrackManager.loadGenesFromIndex(geneTrack, false),
                         chromosome, referenceId, false, true);
 
         Track<ProteinSequenceInfo> track = new Track<>(geneTrack);
@@ -179,7 +179,8 @@ public class ProteinSequenceManager {
         TrackQuery trackQuery = psVariationQuery.getTrackQuery();
         Track<ProteinSequence> track = Query2TrackConverter.convertToTrack(trackQuery);
         Chromosome chromosome = trackHelper.validateTrack(track);
-        Track<Gene> geneTrack = gffManager.loadGenes(Query2TrackConverter.convertToTrack(trackQuery), false);
+        Track<Gene> geneTrack = geneTrackManager.loadGenesFromIndex(Query2TrackConverter.convertToTrack(trackQuery),
+                false);
 
         // Check if variations changes CDS.
         Map<Gene, List<Gene>> mrnaToCdsMap = psReconstructionManager.loadCds(geneTrack, chromosome, false);
@@ -225,7 +226,7 @@ public class ProteinSequenceManager {
     @Transactional
     public ProteinSequence loadProteinSequence(final ProteinSequenceConstructRequest request) {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(request.getTrackQuery());
-        final Track<Gene> genes = gffManager.loadGenes(geneTrack, false);
+        final Track<Gene> genes = geneTrackManager.loadGenesFromIndex(geneTrack, false);
 
         final Optional<Gene> geneToTranslate = Optional.ofNullable(
                 lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType())
@@ -281,7 +282,7 @@ public class ProteinSequenceManager {
                                                     final Track<Gene> geneTrack) throws GeneReadingException {
         final String transcript;
         if (request.getFeatureType() == FeatureType.GENE) {
-            transcript = gffManager.loadGenesTranscript(geneTrack, null, null)
+            transcript = geneTrackManager.loadGenesTranscript(geneTrack, null, null)
                     .getBlocks()
                     .stream()
                     .filter(geneTranscript -> geneTranscript.getFeatureName().equalsIgnoreCase(request.getFeatureId()))

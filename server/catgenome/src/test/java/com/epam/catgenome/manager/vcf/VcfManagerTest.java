@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -114,6 +115,7 @@ import com.epam.catgenome.util.Utils;
  *
  * @author Mikhail Miroliubov
  */
+@SuppressWarnings("PMD.UnusedPrivateField")
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -157,6 +159,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Spy
     @Autowired
     private DownloadFileManager downloadFileManager;
+
+    @Spy
+    @Autowired
+    private GeneTrackManager geneTrackManager;
 
     @Autowired
     private ReferenceManager referenceManager;

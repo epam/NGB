@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.gene;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -42,8 +41,6 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.gene.GeneLowLevel;
-import com.epam.catgenome.entity.gene.GeneTranscript;
-import com.epam.catgenome.entity.gene.Transcript;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -62,19 +59,14 @@ import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.activity.ActivityService;
-import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
-import com.epam.catgenome.manager.externaldb.ExtenalDBUtils;
 import com.epam.catgenome.manager.externaldb.PdbDataManager;
-import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Alignment;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
-import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -106,7 +98,6 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -156,12 +147,6 @@ public class GffManager {
     private TrackHelper trackHelper;
 
     @Autowired
-    private EnsemblDataManager ensemblDataManager;
-
-    @Autowired
-    private UniprotDataManager uniprotDataManager;
-
-    @Autowired
     private PdbDataManager pBDataManager;
 
     @Autowired
@@ -189,8 +174,6 @@ public class GffManager {
     private int featureCountsMaxMemory;
 
     private static final String EXON_FEATURE_NAME = "exon";
-
-    private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
 
@@ -446,93 +429,6 @@ public class GffManager {
     }
 
     /**
-     * Loads gene track
-     *
-     * @param track {@code Track} a track, to load genes for
-     * @param collapse {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
-     *                                collapsed
-     * @return {@code Track} a track, filled with {@code Gene} blocks
-     */
-    public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse) throws GeneReadingException {
-        final Chromosome chromosome = trackHelper.validateTrack(track);
-        final GeneFile geneFile = geneFileManager.load(track.getId());
-
-        return loadGenes(track, geneFile, chromosome, collapse);
-    }
-
-    /**
-     * Loads gene track from an unregistered file
-     *
-     * @param track {@code Track} a track, to load genes for
-     * @param collapse {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
-     *                                collapsed
-     * @return {@code Track} a track, filled with {@code Gene} blocks
-     */
-    public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse, String fileUrl, String indexUrl)
-            throws GeneReadingException {
-        final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
-        GeneFile geneFile;
-        try {
-            geneFile = Utils.createNonRegisteredFile(GeneFile.class, fileUrl, indexUrl, chromosome);
-        } catch (InvocationTargetException e) {
-            throw new GeneReadingException(track, e);
-        }
-        return loadGenes(track, geneFile, chromosome, collapse);
-    }
-
-    /**
-     * Loads gene track from a specified {@code GeneFile}
-     *
-     * @param track a track, to load genes for
-     * @param geneFile a {@code GeneFile} from which track should be loaded
-     * @param chromosome a {@code Chromosome} for which track to load
-     * @param collapse {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
-     *                                collapsed
-     * @return a track, filled with {@code Gene} blocks
-     * @throws GeneReadingException
-     */
-    public Track<Gene> loadGenes(final Track<Gene> track, GeneFile geneFile, Chromosome chromosome, boolean collapse)
-        throws GeneReadingException {
-        if (geneFile.getType() == BiologicalDataItemResourceType.FILE && geneFile.getCompressed() &&
-                !setTrackBounds(track, geneFile, chromosome)) {
-            return track;
-        }
-
-        AbstractGeneReader gtfReader = AbstractGeneReader.createGeneReader(taskExecutorService.getExecutorService(),
-                fileManager, geneFile);
-        List<Gene> notSyncGenes = gtfReader.readGenesFromGeneFile(track, chromosome, collapse,
-                taskExecutorService.getTaskNumberOfThreads());
-
-        track.setBlocks(notSyncGenes);
-        return track;
-    }
-
-    private boolean setTrackBounds(Track<Gene> track, GeneFile geneFile, Chromosome chromosome)
-        throws GeneReadingException {
-        final Pair<Integer, Integer> bounds;
-
-        try {
-            bounds = trackHelper.loadBounds(geneFile, chromosome);
-        } catch (IOException e) {
-            throw new GeneReadingException(geneFile, chromosome, track.getStartIndex(), track.getEndIndex(), e);
-        }
-
-        if (bounds == null) {
-            track.setBlocks(Collections.emptyList());
-            return false;
-        }
-
-        // If we are out of variation bounds, return empty list of variations
-        if (track.getStartIndex() > bounds.getRight() || track.getEndIndex() < bounds.getLeft()) {
-            track.setBlocks(Collections.emptyList());
-            return false;
-        }
-
-        trackHelper.setBounds(track, bounds);
-        return true;
-    }
-
-    /**
      * Load genes as a {@code NggbIntervalTreeMap} to allow fast region queries. Only gene and exon features are being
      * loaded: no transcripts and etc.
      *
@@ -628,38 +524,6 @@ public class GffManager {
             log.debug(getMessage(MessagesConstants.DEBUG_THREAD_ENDS, Thread.currentThread().getName()));
             return true;
         }
-    }
-
-    /**
-     * Load transcripts from external databases for a desired interval, specified by track
-     *
-     * @param track a track, for which to load transcripts
-     * @return a track, filled with gene features and transcripts
-     * @throws GeneReadingException
-     */
-    public Track<GeneTranscript> loadGenesTranscript(final Track<Gene> track,
-            String fileUrl, String indexUrl) throws GeneReadingException {
-        final Track<Gene> geneTrack;
-        if (fileUrl == null) {
-            geneTrack = loadGenes(track, false);
-        } else {
-            geneTrack = loadGenes(track, false, fileUrl, indexUrl);
-        }
-
-        final Track<GeneTranscript> geneTranscriptTrack = new Track<>(track);
-        final List<GeneTranscript> geneTranscriptList = new ArrayList<>();
-
-        for (Gene gene : geneTrack.getBlocks()) {
-            try {
-                gene.setTranscripts(getTranscriptFromDB(gene.getGroupId()));
-                geneTranscriptList.add(new GeneTranscript(gene));
-            } catch (ExternalDbUnavailableException e) {
-                log.info("External DB Exception", e);
-                geneTranscriptList.add(new GeneTranscript(gene, e.getMessage()));
-            }
-        }
-        geneTranscriptTrack.setBlocks(geneTranscriptList);
-        return geneTranscriptTrack;
     }
 
     /**
@@ -845,7 +709,7 @@ public class GffManager {
         try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader =
                      fileManager.makeGeneReader(geneFile, GeneFileType.ORIGINAL)) {
             double time2 = Utils.getSystemTimeMilliseconds();
-            log.debug("Reader creation {} ms", Thread.currentThread().getName(), time2 - time1);
+            log.debug("Reader creation {} {} ms", Thread.currentThread().getName(), time2 - time1);
 
             if (forward) {
                 return getNextGeneFeature(featureReader, chromosome, fromPosition, end);
@@ -1138,25 +1002,6 @@ public class GffManager {
 
             return wigs;
         }
-    }
-
-    private List<Transcript> getTranscriptFromDB(final String geneID) throws ExternalDbUnavailableException {
-        final EnsemblEntryVO vo = ensemblDataManager.fetchEnsemblEntry(geneID);
-        Assert.notNull(vo);
-        final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
-        for (Transcript transcript : transcriptList) {
-            if (transcript.getBioType().equals(PROTEIN_CODING)) {
-                try {
-                    final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
-                    ExtenalDBUtils.fillDomain(un, transcript);
-                    ExtenalDBUtils.fillPBP(un, transcript);
-                    ExtenalDBUtils.fillSecondaryStructure(un, transcript);
-                } catch (ExternalDbUnavailableException e) {
-                    log.debug(e.getMessage(), e);
-                }
-            }
-        }
-        return transcriptList;
     }
 
     private DimStructure dimStructureFromRecord(final Record record) {

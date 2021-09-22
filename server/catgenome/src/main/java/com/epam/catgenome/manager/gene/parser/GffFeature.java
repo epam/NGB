@@ -24,7 +24,9 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.gene.GeneUtils;
+import org.thymeleaf.util.MapUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -91,6 +93,19 @@ public class GffFeature implements GeneFeature {
         this.groupId = parseGroupId(line);
     }
 
+    public GffFeature(final GeneIndexEntry indexEntry) {
+        this.seqName = indexEntry.getChromosome().getName();
+        this.source = indexEntry.getSource();
+        this.feature = indexEntry.getFeature();
+        this.start = indexEntry.getStartIndex();
+        this.end = indexEntry.getEndIndex();
+        this.score = indexEntry.getScore();
+        this.strand = StrandSerializable.forValue(indexEntry.getStrand());
+        this.frame = indexEntry.getFrame();
+        this.attributes = MapUtils.isEmpty(indexEntry.getAttributes()) ? new HashMap<>() : indexEntry.getAttributes();
+        this.groupId = getGeneId();
+    }
+
     /**
      * Returns value of gene_id attribute
      * @return value of gene_id attribute
@@ -108,11 +123,7 @@ public class GffFeature implements GeneFeature {
      * @return value of id attribute
      */
     public String getId() {
-        if (attributes == null) {
-            return null;
-        }
-
-        return attributes.get(ID_KEY);
+        return GeneUtils.findAttribute(ID_KEY, attributes);
     }
 
     /**
@@ -120,11 +131,7 @@ public class GffFeature implements GeneFeature {
      * @return value of Parent Id attribute
      */
     public String getParentId() {
-        if (attributes == null) {
-            return null;
-        }
-
-        return attributes.get(PARENT_KEY);
+        return GeneUtils.findAttribute(PARENT_KEY, attributes);
     }
 
     @Override
@@ -139,7 +146,7 @@ public class GffFeature implements GeneFeature {
 
     @Override
     public String getFeatureName() {
-        return attributes.get("Name");
+        return GeneUtils.findAttribute(GeneUtils.NAME_FIELD, attributes);
     }
 
     private int parseIntOrDot(String s) {

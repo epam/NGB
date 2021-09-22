@@ -35,9 +35,13 @@ import java.util.concurrent.ExecutorService;
 
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.track.Block;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.parser.GeneFeature;
+import com.epam.catgenome.manager.gene.parser.GffFeature;
 import com.epam.catgenome.manager.parallel.TreeListMultiset;
 import htsjdk.samtools.util.IntervalTreeMap;
 
@@ -61,6 +65,11 @@ public class GffReader extends AbstractGeneReader {
      */
     public GffReader(ExecutorService executorService, FileManager fileManager, GeneFile geneFile) {
         super(executorService, fileManager, geneFile);
+    }
+
+    public GffReader(final ExecutorService executorService, final FileManager fileManager,
+                     final GeneFile geneFile, final FeatureIndexManager featureIndexManager) {
+        super(executorService, fileManager, geneFile, featureIndexManager);
     }
 
     @Override
@@ -177,5 +186,10 @@ public class GffReader extends AbstractGeneReader {
                 l -> l.stream().forEach(g -> makeStatisticUnmappedFeature(g, scaleFactor, multiset, step))));
 
         genes.addAll(multiset);
+    }
+
+    @Override
+    protected GeneFeature convertGeneIndexEntry(final GeneIndexEntry indexEntry) {
+        return new GffFeature(indexEntry);
     }
 }

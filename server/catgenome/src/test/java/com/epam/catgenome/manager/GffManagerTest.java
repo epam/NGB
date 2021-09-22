@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,10 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBException;
-
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -169,6 +167,9 @@ public class GffManagerTest extends AbstractManagerTest {
     @Autowired
     private FileManager fileManager;
 
+    @Autowired
+    private GeneTrackManager geneTrackManager;
+
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
 
@@ -202,15 +203,13 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterGff() throws InterruptedException, FeatureIndexException, IOException,
-                                         NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {
+    public void testRegisterGff() throws IOException, HistogramReadingException {
         Assert.assertTrue(testRegister("classpath:templates/genes_sorted.gff3"));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterZippedGtf() throws InterruptedException, FeatureIndexException, IOException,
-                                         NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {
+    public void testRegisterZippedGtf() throws IOException, HistogramReadingException {
         Assert.assertTrue(testRegister("classpath:templates/genes_sorted.gtf.gz"));
     }
 
@@ -254,8 +253,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testGetNextFeature() throws IOException, InterruptedException, FeatureIndexException,
-                                            NoSuchAlgorithmException, GeneReadingException {
+    public void testGetNextFeature() throws IOException {
         Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -273,7 +271,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
         Assert.assertNotNull(featureList);
         Assert.assertFalse(featureList.getBlocks().isEmpty());
 
@@ -318,8 +316,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testDeleteGeneWithIndex() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, GeneReadingException {
+    public void testDeleteGeneWithIndex() throws IOException, FeatureIndexException {
         Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -342,8 +339,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testLoadExonsInViewPort() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-            IOException {
+    public void testLoadExonsInViewPort() throws IOException {
         Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -383,8 +379,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testLoadExonsInTrack() throws IOException, FeatureIndexException, InterruptedException,
-            NoSuchAlgorithmException {
+    public void testLoadExonsInTrack() throws IOException {
         Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -413,8 +408,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterGffFail() throws IOException, FeatureIndexException, InterruptedException,
-            NoSuchAlgorithmException {
+    public void testRegisterGffFail() throws IOException {
         Resource resource = context.getResource("classpath:templates/Felis_catus.Felis_catus_6.2.81.gtf");
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -446,8 +440,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadGenesTranscript() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, ExternalDbUnavailableException {
+    public void testLoadGenesTranscript() throws IOException, ExternalDbUnavailableException {
         MockitoAnnotations.initMocks(this);
         String fetchRes1 = readFile("ensembl_id_ENSG00000177663.json");
         String fetchRes2 = readFile("uniprot_id_ENST00000319363.xml");
@@ -485,7 +478,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(otherChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         try {
-            Track<GeneTranscript> featureList = gffManager.loadGenesTranscript(track, null, null);
+            Track<GeneTranscript> featureList = geneTrackManager.loadGenesTranscript(track, null, null);
             Assert.assertNotNull(featureList);
             Assert.assertFalse(featureList.getBlocks().isEmpty());
             Gene testGene = featureList.getBlocks().get(0);
@@ -507,7 +500,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testPBD() throws IOException, InterruptedException, ExternalDbUnavailableException, JAXBException {
+    public void testPBD() throws IOException, ExternalDbUnavailableException {
 
         MockitoAnnotations.initMocks(this);
 
@@ -537,15 +530,14 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testUnmappedGenes() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                           IOException, GeneReadingException, HistogramReadingException {
+    public void testUnmappedGenes() throws IOException, HistogramReadingException {
         Chromosome testChr1 = EntityHelper.createNewChromosome();
         testChr1.setName("chr1");
         testChr1.setSize(TEST_CHROMOSOME_SIZE);
         Reference testRef = EntityHelper.createNewReference(testChr1, referenceGenomeManager.createReferenceId());
 
         referenceGenomeManager.create(testRef);
-        Long testRefId = testReference.getId();
+        Long testRefId = testRef.getId();
 
         Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
 
@@ -564,12 +556,16 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChr1);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
+        final int expectedGenesOriginalSize = 58;
+        final int expectedGenesLargeScaleSize = 14;
+
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading : {} ms", time2 - time1);
         Assert.assertNotNull(featureList);
         Assert.assertFalse(featureList.getBlocks().isEmpty());
+        Assert.assertEquals(expectedGenesOriginalSize, featureList.getBlocks().size());
         Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
 
         Track<Gene> smallScaleFactorTrack = new Track<>();
@@ -580,11 +576,12 @@ public class GffManagerTest extends AbstractManagerTest {
         smallScaleFactorTrack.setScaleFactor(SMALL_SCALE_FACTOR);
 
         time1 = Utils.getSystemTimeMilliseconds();
-        featureList = gffManager.loadGenes(smallScaleFactorTrack, false);
+        featureList = geneTrackManager.loadGenesFromIndex(smallScaleFactorTrack, false);
         time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes large scale loading : {} ms", time2 - time1);
         Assert.assertNotNull(featureList);
         Assert.assertFalse(featureList.getBlocks().isEmpty());
+        Assert.assertEquals(expectedGenesLargeScaleSize, featureList.getBlocks().size());
         Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
         int groupedGenesCount = featureList.getBlocks().stream().collect(Collectors.summingInt(Gene::getFeatureCount));
         logger.debug("{} features total", groupedGenesCount);
@@ -601,15 +598,13 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testCollapsedGtf() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                          IOException, GeneReadingException {
+    public void testCollapsedGtf() throws IOException {
         Assert.assertTrue(testCollapsed(GENES_SORTED_GTF_PATH));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testCollapsedGff() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                          IOException, GeneReadingException {
+    public void testCollapsedGff() throws IOException {
         Assert.assertTrue(testCollapsed("classpath:templates/genes_sorted.gff3"));
     }
 
@@ -645,8 +640,7 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertTrue(geneFile.getSource().endsWith(GBF_EXT));
     }
 
-    private boolean testCollapsed(String path) throws IOException, FeatureIndexException, InterruptedException,
-                                                   NoSuchAlgorithmException, GeneReadingException {
+    private boolean testCollapsed(String path) throws IOException {
         Resource resource = context.getResource(path);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -664,7 +658,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
 
         Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
         Assert.assertTrue(featureList.getBlocks()
@@ -679,7 +673,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListCollapsed = gffManager.loadGenes(track, true);
+        Track<Gene> featureListCollapsed = geneTrackManager.loadGenesFromIndex(track, true);
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading : {} ms", time2 - time1);
         Assert.assertNotNull(featureListCollapsed);
@@ -718,9 +712,7 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertTrue(totalLength >= viewPortSize || isBounded);
     }
 
-    private boolean testRegister(String path) throws IOException, InterruptedException, FeatureIndexException,
-                                                  NoSuchAlgorithmException, HistogramReadingException,
-                                                  GeneReadingException {
+    private boolean testRegister(String path) throws IOException, HistogramReadingException {
         Resource resource = context.getResource(path);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -747,7 +739,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading : {} ms", time2 - time1);
         Assert.assertNotNull(featureList);
@@ -769,11 +761,11 @@ public class GffManagerTest extends AbstractManagerTest {
         track2.setScaleFactor(SMALL_SCALE_FACTOR);
 
         time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListLargeScale = gffManager.loadGenes(track2, false);
+        Track<Gene> featureListLargeScale = geneTrackManager.loadGenesFromIndex(track2, false);
         time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading large scale: {} ms", time2 - time1);
 
-        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
+        Assert.assertEquals(9, featureList.getBlocks().stream()
                 .filter(Gene::isMapped).count());
         Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
         Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
