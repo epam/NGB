@@ -128,6 +128,7 @@ ngb del_ref|dr [<REFERENCE_NAME|REFERENCE_ID>] [options]
 //Options:
 //-t (--table)          Print result as a human-readable table
 //-j (--json)           Print result as a JSON string
+//-f (--force)          Allow to delete reference with annotations
 ```
 *Description*
 

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,14 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.FeatureFile;
+import com.epam.ngb.cli.entity.Reference;
 import com.epam.ngb.cli.manager.command.handler.Command;
 
 /**
@@ -41,10 +45,10 @@ import com.epam.ngb.cli.manager.command.handler.Command;
 @Command(type = Command.Type.REQUEST, command = {"delete_reference"})
 public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
 
-    /**
-     * ID of the reference to delete
-     */
     private Long referenceId;
+    private Long geneFileId;
+    private List<Long> annotationFileIds;
+    private boolean force;
 
     /**
      * Verifies that input arguments contain the required parameters:
@@ -54,11 +58,21 @@ public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.isEmpty() || arguments.size() != 1) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
         referenceId = loadReferenceId(arguments.get(0));
+        force = options.isForceDeletion();
+        if (force) {
+            Reference reference = loadReferenceById(referenceId);
+            geneFileId = reference.getGeneFile() == null ? null : reference.getGeneFile().getId();
+            annotationFileIds = reference.getAnnotationFiles() == null ?
+                    Collections.emptyList() :
+                    reference.getAnnotationFiles().stream()
+                            .map(FeatureFile::getBioDataItemId)
+                            .collect(Collectors.toList());
+        }
     }
 
     /**
@@ -66,6 +80,16 @@ public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
      * @return 0 if request completed successfully
      */
     @Override public int runCommand() {
+        if (force) {
+            removeGenes(referenceId);
+            if (geneFileId != null) {
+                deleteGeneFile(geneFileId);
+            }
+            for (Long annotationId: annotationFileIds) {
+                removeAnnotation(referenceId, annotationId);
+                deleteItem(annotationId);
+            }
+        }
         runDeletion(referenceId);
         return 0;
     }

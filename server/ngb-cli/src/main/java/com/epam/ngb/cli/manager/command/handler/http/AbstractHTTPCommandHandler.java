@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,18 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
-import static com.epam.ngb.cli.constants.MessageConstants.*;
-import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.*;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_DATAITEM_FORMATS_NOT_FOUND;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FAILED_TO_LOAD_USER;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FILE_NOT_FOUND;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_INDEX_REQUIRED;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PERMISSIONS_NOT_FOUND;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PROJECT_NOT_FOUND;
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_REFERENCE_NOT_FOUND;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_PATH_FORMAT;
+import static com.epam.ngb.cli.constants.MessageConstants.SEVERAL_RESULTS_FOR_QUERY;
+import static com.epam.ngb.cli.constants.MessageConstants.getMessage;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.FILE;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -45,6 +55,7 @@ import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.IDList;
 import com.epam.ngb.cli.entity.NgbUser;
 import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.Reference;
 import com.epam.ngb.cli.entity.RequestPayload;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
@@ -693,6 +704,76 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             throw new ApplicationException(ERROR_FAILED_TO_LOAD_USER);
         }
         return responseResult.getPayload();
+    }
+
+    protected Reference loadReferenceById(Long referenceId) {
+        try {
+            HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                    + String.format(serverParameters.getLoadReferenceUrl(), referenceId));
+            String result = RequestManager.executeRequest(request);
+            ResponseResult<Reference> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            Reference.class));
+            if (responseResult == null) {
+                throw new ApplicationException(getMessage(ERROR_FILE_NOT_FOUND, referenceId));
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected void removeGenes(Long referenceId) {
+        HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(serverParameters.getRemoveGeneUrl(), referenceId));
+        RequestManager.executeRequest(request);
+    }
+
+    protected void removeAnnotation(Long referenceId, Long annotationFileId) {
+        try {
+            URI uri = new URIBuilder(serverParameters.getServerUrl()
+                    + String.format(serverParameters.getUpdateAnnotationUrl(), referenceId))
+                    .addParameter("annotationFileId", String.valueOf(annotationFileId))
+                    .addParameter("remove", String.valueOf(true))
+                    .build();
+            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, uri.toString());
+            String result = RequestManager.executeRequest(request);
+            ResponseResult response = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected void deleteGeneFile(Long geneId) {
+        try {
+            URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getDeleteGeneUrl())
+                    .addParameter("geneFileId", String.valueOf(geneId))
+                    .build();
+            HttpRequestBase request = getRequestFromURLByType(HttpDelete.METHOD_NAME, uri.toString());
+            String result = RequestManager.executeRequest(request);
+            ResponseResult response = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected void deleteItem(Long bioDataItemId) {
+        try {
+            URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getDeleteItemUrl())
+                    .addParameter("id", String.valueOf(bioDataItemId))
+                    .build();
+            HttpRequestBase request = getRequestFromURLByType(HttpDelete.METHOD_NAME, uri.toString());
+            String result = RequestManager.executeRequest(request);
+            ResponseResult response = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
     }
 
     /**
