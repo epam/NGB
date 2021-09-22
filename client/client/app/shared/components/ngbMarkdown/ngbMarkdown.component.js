@@ -1,6 +1,7 @@
 import {Converter} from 'showdown';
 
 const converter = new Converter();
+converter.setFlavor('github');
 
 export default {
     restrict: 'E',
