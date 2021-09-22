@@ -35,8 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
