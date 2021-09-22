@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.manager.command.handler.Command;
 
 /**
@@ -45,6 +46,7 @@ public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
      * ID of the reference to delete
      */
     private Long referenceId;
+    private Long geneId;
 
     /**
      * Verifies that input arguments contain the required parameters:

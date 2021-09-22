@@ -63,7 +63,8 @@ public enum BiologicalDataItemFormat {
     GENBANK(16),
     GBK(17),
     GB(18),
-    FEATURE_COUNTS(19);
+    FEATURE_COUNTS(19),
+    HEATMAP(20);
 
     private long id;
     /**

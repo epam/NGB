@@ -41,7 +41,7 @@ import com.epam.catgenome.manager.export.GeneExportFilterForm;
 import com.epam.catgenome.manager.export.VcfExportFilterForm;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import com.epam.catgenome.security.acl.aspect.AclMapFilter;
-import com.epam.catgenome.manager.export.ExportFormat;
+import com.epam.catgenome.util.FileFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -94,7 +94,7 @@ public class FeatureIndexSecurityService {
     @AclFilter
     @PreAuthorize(ROLE_USER)
     public byte[] exportVariations(final VcfExportFilterForm filterForm,
-                                   final ExportFormat format,
+                                   final FileFormat format,
                                    final boolean includeHeader) throws IOException {
         return exportManager.exportVariations(filterForm, format, includeHeader);
     }
@@ -148,7 +148,7 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_USER)
     public byte[] exportFeaturesByReference(final GeneExportFilterForm geneFilterForm,
                                             final Long referenceId,
-                                            final ExportFormat format,
+                                            final FileFormat format,
                                             final boolean includeHeader) throws IOException {
         return exportManager.exportGenesByReference(geneFilterForm, referenceId, format, includeHeader);
     }

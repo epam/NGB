@@ -51,7 +51,7 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.export.GeneExportFilterForm;
 import com.epam.catgenome.manager.reference.ReferenceSecurityService;
-import com.epam.catgenome.manager.export.ExportFormat;
+import com.epam.catgenome.util.FileFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -234,7 +234,7 @@ public class ReferenceController extends AbstractRESTController {
         produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
     public void exportFeatureInProjectWithFilter(@PathVariable final Long referenceId,
-                                                @RequestParam final ExportFormat format,
+                                                @RequestParam final FileFormat format,
                                                 @RequestParam final boolean includeHeader,
                                                 @RequestBody final GeneExportFilterForm geneFilterForm,
                                                 final HttpServletResponse response)

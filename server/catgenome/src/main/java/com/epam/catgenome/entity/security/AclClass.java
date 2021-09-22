@@ -13,5 +13,6 @@ public enum AclClass {
     WIG,
     BOOKMARK,
     BUCKET,
-    SESSION
+    SESSION,
+    HEATMAP
 }
