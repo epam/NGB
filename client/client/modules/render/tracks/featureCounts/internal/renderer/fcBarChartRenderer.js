@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js-legacy';
-import {CachedTrackRendererWithVerticalScroll} from '../../../../core';
 import BarChartSourceRenderer from './bar-chart/bar-chart-source-renderer';
+import {CachedTrackRendererWithVerticalScroll} from '../../../../core';
 import {PlaceholderRenderer} from '../../../../utilities';
 
 export default class FCBarChartRenderer extends CachedTrackRendererWithVerticalScroll {

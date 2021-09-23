@@ -100,7 +100,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 continue;
             if (pixelsPerBp >= this._config.largeScale.labelDisplayAfterPixelsPerBp) {
                 const label = this.labelsManager
-                    ? this.labelsManager.getSprite(item.value, this._config.largeScale.labelStyle)
+                    ? this.labelsManager.getLabel(item.value, this._config.largeScale.labelStyle)
                     : undefined;
                 if (label) {
                     const labelHeight = label.height;
@@ -230,7 +230,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                     continue;
                 if (pixelsPerBp >= this._config.aminoacid.labelDisplayAfterPixelsPerBp) {
                     const label = this.labelsManager
-                        ? this.labelsManager.getSprite(this._getAminoAcidText(item.value), labelStyle)
+                        ? this.labelsManager.getLabel(this._getAminoAcidText(item.value), labelStyle)
                         : undefined;
                     if (label) {
                         let labelPadding;
@@ -295,7 +295,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
     _updateNoGCContentLable(viewport, reference) {
         if (!this._noGCContentLabel) {
             this._noGCContentLabel = this.labelsManager
-                ? this.labelsManager.getSprite(this._config.noGCContent.text, this._config.noGCContent.labelStyle)
+                ? this.labelsManager.getLabel(this._config.noGCContent.text, this._config.noGCContent.labelStyle)
                 : undefined;
             if (this._noGCContentLabel) {
                 this.container.addChild(this._noGCContentLabel);

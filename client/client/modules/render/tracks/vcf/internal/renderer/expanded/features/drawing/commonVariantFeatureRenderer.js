@@ -35,7 +35,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
             return;
         }
         const element = new PIXI.Container();
-        const label = this.labelsManager.getSprite(text, style.font);
+        const label = this.labelsManager.getLabel(text, style.font);
         if (label) {
             const margin = 1;
             label.x = margin;
@@ -98,7 +98,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
         const cY = Math.round(position.y + position.height - height / 2);
         if (this.labelsManager) {
-            const label = this.labelsManager.getSprite(symbol, labelStyle);
+            const label = this.labelsManager.getLabel(symbol, labelStyle);
             if (label) {
                 const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
                 const labelPosition = {

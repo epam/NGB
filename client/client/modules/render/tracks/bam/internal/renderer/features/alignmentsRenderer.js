@@ -353,7 +353,7 @@ export class AlignmentsRenderer {
             !renderEntry.isOverlaps &&
             this._labelsManager
         ) {
-            const sprite = this._labelsManager.getSprite(renderEntry.base, baseLabelStyle);
+            const sprite = this._labelsManager.getLabel(renderEntry.base, baseLabelStyle);
             sprite.x = Math.round(this._projectX(renderEntry.startIndex + BP_OFFSET) - sprite.width / 2);
             sprite.y = Math.round(this._projectY(localYOffset + localYHeight / 2) - sprite.height / 2);
             this._container.addChild(sprite);

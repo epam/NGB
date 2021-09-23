@@ -35,7 +35,7 @@ export default class LabelsManager {
      * @param {boolean} removable
      * @returns {PIXI.Text | PIXI.Sprite}
      */
-    getSprite (text, style, removable = false) {
+    getLabel (text, style, removable = false) {
         if (this.renderer) {
             const texture = this.getTexture(text, style, removable);
             return new Sprite(texture);
@@ -46,7 +46,6 @@ export default class LabelsManager {
         }
     }
     getTexture (text, style, removable = false) {
-        let texture = null;
         const {key, styleKey} = this.getKeys(text, style);
         const textStyle = this.labelStyles[styleKey];
         if (
@@ -57,21 +56,21 @@ export default class LabelsManager {
                 this.label.style = textStyle;
             }
             this.label.text = text;
-            texture = this.renderer.generateTexture(this.label, {
+            const texture = this.renderer.generateTexture(this.label, {
                 scale: drawingConfiguration.scale,
                 resolution: drawingConfiguration.resolution
             });
             this.texturesCache.set(key, texture);
-            if (removable) {
-                this.removableTextureKeys.add(key);
-            } else if (this.removableTextureKeys.has(key)) {
-                this.removableTextureKeys.delete(key);
-            }
-            if (removable && this.textureKeysToRemove.has(key)) {
-                this.textureKeysToRemove.delete(key);
-            }
         }
-        return this.texturesCache.get(key, texture);
+        if (removable) {
+            this.removableTextureKeys.add(key);
+        } else if (this.removableTextureKeys.has(key)) {
+            this.removableTextureKeys.delete(key);
+        }
+        if (removable && this.textureKeysToRemove.has(key)) {
+            this.textureKeysToRemove.delete(key);
+        }
+        return this.texturesCache.get(key);
     }
 
     getKeys(text, style) {

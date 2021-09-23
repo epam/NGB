@@ -136,6 +136,7 @@ export class FeatureCountsTrack extends GENETrack {
                 .forEach(([source, o]) => {
                     o.disabled = selectedSources.length > 0 && !selectedSources.includes(source);
                 });
+            this.requestRenderRefresh();
         }
     }
 

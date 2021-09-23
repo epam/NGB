@@ -175,7 +175,7 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 this.labelsManager
             ) {
                 const indexAcid = acid.index + 1;
-                const aminoacidNumber = this.labelsManager.getSprite(indexAcid, this.config.aminoacid.number, true);
+                const aminoacidNumber = this.labelsManager.getLabel(indexAcid, this.config.aminoacid.number, true);
                 if (aminoacidNumber) {
                     const aminoacidNumberPosition = {
                         x: viewport.project.brushBP2pixel(acid.startIndex) +
@@ -294,7 +294,7 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                 acid.endIndex - acid.startIndex >= 1 &&
                 this.labelsManager
             ) {
-                const label = this.labelsManager.getSprite(acid.text.toUpperCase(), labelStyle, true);
+                const label = this.labelsManager.getLabel(acid.text.toUpperCase(), labelStyle, true);
                 if (label) {
                     const yOffset = 0.5;
                     const labelPosition = {

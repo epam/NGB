@@ -26,7 +26,7 @@ export default class PlaceholderRenderer {
             this._container.removeChild(this._placeholder);
         }
         if (this._track && this._track.labelsManager) {
-            this._placeholder = this._track.labelsManager.getSprite(text, placeholderLabelStyle);
+            this._placeholder = this._track.labelsManager.getLabel(text, placeholderLabelStyle);
             if (this._placeholder) {
                 this._placeholder.x = width / drawingConfiguration.scale / 2 - this._placeholder.width / 2;
                 this._placeholder.y = height / drawingConfiguration.scale / 2 - this._placeholder.height / 2;

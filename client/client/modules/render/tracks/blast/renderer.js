@@ -273,7 +273,7 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
             .endFill();
         if (alt && renderLabel) {
             const label = this.labelsManager
-                ? this.labelsManager.getSprite(
+                ? this.labelsManager.getLabel(
                     alt,
                     this.config.sequence.mismatch.label
                 )
@@ -404,7 +404,7 @@ class BLASTAlignmentRenderer extends CachedTrackRendererWithVerticalScroll {
                 );
             if (renderLabel) {
                 const label = this.labelsManager
-                    ? this.labelsManager.getSprite(
+                    ? this.labelsManager.getLabel(
                         `${size}`,
                         this.config.sequence.notAligned.label
                     )

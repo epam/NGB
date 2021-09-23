@@ -43,7 +43,7 @@ export class VariantAltFeatureRenderer extends CommonVariantFeatureRenderer {
     render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         if (this.labelsManager) {
             for (let i = 0; i < feature.alternativeAllelesInfo.length; i++) {
-                const label = this.labelsManager.getSprite(
+                const label = this.labelsManager.getLabel(
                     feature.alternativeAllelesInfo[i].displayText || '',
                     this.config.variant.allele.label
                 );

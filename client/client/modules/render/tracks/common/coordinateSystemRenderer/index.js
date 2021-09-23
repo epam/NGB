@@ -42,7 +42,7 @@ export default class CoordinateSystem extends PIXI.Container {
         this.addChild(this.graphics);
         this.addChild(this.labelsContainer);
         if (this.track && this.track.labelsManager) {
-            this.logLabel = this.track.labelsManager.getSprite('log', this.config.log.label);
+            this.logLabel = this.track.labelsManager.getLabel('log', this.config.log.label);
             if (this.logLabel) {
                 this.addChild(this.logLabel);
             }
@@ -51,7 +51,7 @@ export default class CoordinateSystem extends PIXI.Container {
 
     getTickLabel = (text) => {
         const tickStyle = this.config.tick.label;
-        return this.track.labelsManager.getSprite(text, tickStyle);
+        return this.track.labelsManager.getLabel(text, tickStyle);
     };
 
     renderCoordinateSystem (viewport, coordinateSystem, height, options = {}) {

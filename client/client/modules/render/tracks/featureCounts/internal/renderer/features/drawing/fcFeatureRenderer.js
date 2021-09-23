@@ -130,7 +130,7 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
         const gene = this.config.gene;
 
         if (feature.name && this.labelsManager) {
-            const label = this.labelsManager.getSprite(feature.name, this.config.gene.label);
+            const label = this.labelsManager.getLabel(feature.name, this.config.gene.label);
             if (label) {
                 label.x = Math.round(position.x);
                 label.y = Math.round(position.y);

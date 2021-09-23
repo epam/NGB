@@ -33,7 +33,7 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
             style = this.config.variant.multipleNucleotideVariant.label[feature.type.toLowerCase()];
         }
         const label = this.labelsManager
-            ? this.labelsManager.getSprite(displayText, Object.assign({}, style.font))
+            ? this.labelsManager.getLabel(displayText, Object.assign({}, style.font))
             : undefined;
         if (label) {
             const margin = 0;

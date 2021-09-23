@@ -126,7 +126,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         const gene = this.config.gene;
 
         if (feature.name && this.labelsManager) {
-            const sprite = this.labelsManager.getSprite(feature.name, this.config.gene.label, true);
+            const sprite = this.labelsManager.getLabel(feature.name, this.config.gene.label, true);
             if (sprite) {
                 geneNameLabelHeight = sprite.height;
                 sprite.x = Math.round(position.x);
