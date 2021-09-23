@@ -125,7 +125,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      * @param ids List of IDs of BiologicalDataItem instances
      * @return List of BiologicalDataItem, matching specified IDs
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadBiologicalDataItemsByIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return Collections.emptyList();
