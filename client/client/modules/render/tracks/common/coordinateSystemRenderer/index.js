@@ -83,6 +83,7 @@ export default class CoordinateSystem extends PIXI.Container {
                 )
                 : [];
             if (this.logLabel) {
+                this.track.labelsManager.ensureLabel(this.logLabel, 'log', this.config.log.label);
                 this.logLabel.visible = log;
                 this.logLabel.x = Math.round(
                     ensureEmptyValue(this.config.log.margin) +
