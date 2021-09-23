@@ -102,7 +102,7 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         return !files.isEmpty() ? (GeneFile) files.get(0) : null;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<GeneFile> loadGeneFiles(final Collection<Long> ids) {
         final List<Long> nonNullIds = ids.stream().filter(Objects::nonNull).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(nonNullIds)) {
