@@ -19,8 +19,56 @@ export default class ngbProjectInfoSectionsController extends baseController {
         }
     }
 
+    get descriptionAvailable () {
+        return this.ngbProjectInfoService.descriptionAvailable;
+    }
+
+    get projects () {
+        return this.ngbProjectInfoService.projects;
+    }
+
+    get multipleProjects() {
+        return this.projects.length > 1;
+    }
+
+    get plainItems() {
+        return this.ngbProjectInfoService.plainItems;
+    }
+
+    setDescription (project, descriptionId) {
+        const [
+            currentMode,
+            currentDescriptionId
+        ] = Array.isArray(this.ngbProjectInfoService.currentMode) ?
+                this.ngbProjectInfoService.currentMode :
+                [this.ngbProjectInfoService.currentMode, null];
+        const currentProjectId = this.ngbProjectInfoService.currentProject.id;
+        if (currentMode === this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION &&
+            currentProjectId === project.id &&
+            currentDescriptionId === descriptionId
+        ) {
+            return;
+        }
+        this.setCurrentProject(project);
+        this.ngbProjectInfoService.setDescription(descriptionId);
+    }
+
+    setCurrentProject (project) {
+        this.ngbProjectInfoService.currentProject = project;
+    }
+
     openMenu($mdOpenMenu, $event) {
         $event.stopPropagation();
         $mdOpenMenu($event);
+    }
+
+    summaryFalseValue () {
+        if (this.projects.length === 1 && this.descriptionList.length) {
+            return [
+                this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
+                this.descriptionList[0].id
+            ];
+        }
+        return this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
     }
 }

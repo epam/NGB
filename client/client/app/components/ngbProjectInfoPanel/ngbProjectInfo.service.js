@@ -22,15 +22,52 @@ function findSelectedDatasets(candidates) {
     return result;
 }
 
-function processNestedProjects(projects, nesting) {
-    if (projects.length === 1) {
-        return projects;
-    }
-    if (projects.filter(p => p.nesting === nesting).length !== 1) {
-        // if there are more than one project with the current nesting level, then allow summary only
-        return projects;
-    }
-    return processNestedProjects(projects.filter(p => p.nesting !== nesting), nesting++);
+function sortDatasets (datasets = []) {
+    const info = datasets.map(dataset => ({
+        id: dataset.id,
+        parentId: dataset.parentId || undefined
+    }));
+    /**
+     * Returns array of [child, child, child, ..., parent] for parent dataset id
+     * @param {number} datasetId - parent dataset id
+     * @returns {{id: number, parentId: number}[]}
+     */
+    const getChildrenDatasets = datasetId => {
+        const [dataset] = info.filter(i => i.id === datasetId);
+        const children = info.filter(i => i.parentId === datasetId);
+        return children
+            .map(child => getChildrenDatasets(child.id))
+            .reduce((r, c) => ([...r, ...c]), [])
+            .concat(dataset)
+            .filter(Boolean);
+    };
+    /**
+     * Root datasets identifiers; "root dataset" is a dataset that is not a child for any other datasets.
+     * Root datasets identifiers are sorted by decreasing of it's children count
+     * @type {number[]}
+     */
+    const rootDatasetIds = Array.from(new Set(
+        info
+            .filter(child => info.filter(parent => parent.id === child.parentId).length === 0)
+            .map(child => child.id)
+    ))
+        .sort((aId, bId) => {
+            const aChildrenLength = info.filter(child => child.parentId === aId).length;
+            const bChildrenLength = info.filter(child => child.parentId === bId).length;
+            return bChildrenLength - aChildrenLength;
+        });
+    const sortedDatasetIds = rootDatasetIds
+        .map(getChildrenDatasets)
+        .reduce((r, c) => ([...r, ...c]), [])
+        .map(o => o.id);
+    const getIndex = id => {
+        const index = sortedDatasetIds.indexOf(id);
+        if (index === -1) {
+            return Infinity;
+        }
+        return index;
+    };
+    datasets.sort((a, b) => getIndex(a.id) - getIndex(b.id));
 }
 
 const PROJECT_INFO_MODE = {
@@ -47,15 +84,16 @@ const PROJECT_INFO_MODE_NAME = {
     '-4': 'Summary'
 };
 
-const EDIT_RIGHT = 2;
+const EDIT_PERMISSION = 2;
+const checkPermission = (mask, permission) => (mask & permission) === permission;
 
 export default class ngbProjectInfoService {
+    _descriptionIsLoading;
     constructor($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
         Object.assign(this, {
             $sce, $mdDialog, dispatcher, projectContext, projectDataService
         });
         this.currentProject = {};
-        this._descriptionIsLoading = true;
         this._currentMode = undefined;
         this._previousMode = undefined;
         this._currentName = undefined;
@@ -63,6 +101,8 @@ export default class ngbProjectInfoService {
         this._isCancel = false;
         this._editingNote = {};
         this._newNote = {};
+        this.projects = [];
+        this.plainItems = [];
         this._descriptionAvailable = false;
         const projectChanged = this.projectChanged.bind(this);
         this.dispatcher.on('dataset:selection:change', projectChanged);
@@ -70,8 +110,17 @@ export default class ngbProjectInfoService {
         projectChanged();
     }
 
+    get currentProject () {
+        return this._currentProject;
+    }
+
+    set currentProject (project) {
+        this._currentProject = project;
+    }
+
     set currentMode(value) {
-        if (value === this.projectInfoModeList.CHR_SUMMARY) {
+        const valueMode = Array.isArray(value) ? value[0] : value;
+        if (valueMode === this.projectInfoModeList.CHR_SUMMARY) {
             // switch to track view
             this._clearEnvironment();
             this._currentMode = value;
@@ -82,8 +131,7 @@ export default class ngbProjectInfoService {
             // switch from track view
             this.projectContext.changeState({chromosome: null});
         }
-        if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
-            || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
+        if (valueMode === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable) {
             // prevent switching to non existing state
             return;
         }
@@ -101,11 +149,20 @@ export default class ngbProjectInfoService {
             this.$mdDialog.show(alert);
         } else {
             if (value !== undefined
-                && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.CHR_SUMMARY].includes(this.currentMode)) {
+                && ![
+                    this.projectInfoModeList.ADD_NOTE,
+                    this.projectInfoModeList.CHR_SUMMARY
+                ].includes(this.currentMode)) {
                 this._previousMode = this.currentMode;
             }
             this._clearEnvironment();
             this._currentMode = value || this.defaultMode;
+            if (this.projects.length > 1 &&
+                this.currentMode === this.projectInfoModeList.SUMMARY
+            ) {
+                this.currentProject = {};
+                this._newNote = {};
+            }
             this.setCurrentName(this.currentMode);
         }
     }
@@ -119,7 +176,20 @@ export default class ngbProjectInfoService {
     }
 
     setCurrentName(value) {
-        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+        const [valueMode, valueId] = Array.isArray(value) ? value : [value, null];
+        if (this.projects.length > 1) {
+            let nameValue = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+            if (valueMode !== undefined && (valueMode > 0 || valueId)) {
+                if (valueMode === this.projectInfoModeList.DESCRIPTION) {
+                    nameValue = this.currentDescription.name;
+                }
+                this._currentName = `${this.currentProject.name}:${nameValue}`;
+            } else {
+                this._currentName = nameValue;
+            }
+        } else {
+            this._currentName = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+        }
     }
 
     get currentMode() {
@@ -128,6 +198,15 @@ export default class ngbProjectInfoService {
 
     get noteList() {
         return this.currentProject.notes || [];
+    }
+
+    get descriptionList () {
+        return this.currentProject.descriptions || [];
+    }
+
+    get currentDescription () {
+        return this.descriptionList
+            .filter(description => description.id === this.currentMode[1])[0] || {};
     }
 
     get previousMode() {
@@ -142,16 +221,20 @@ export default class ngbProjectInfoService {
         return this._descriptionAvailable;
     }
 
-    get summaryAvailable() {
-        return true;
+    set descriptionAvailable (value) {
+        this._descriptionAvailable = value;
     }
 
     get descriptionIsLoading() {
         return this._descriptionIsLoading;
     }
 
+    set descriptionIsLoading (value) {
+        this._descriptionIsLoading = value;
+    }
+
     get canEdit() {
-        return !!(this.currentProject.mask & EDIT_RIGHT);
+        return checkPermission(this.currentProject.mask, EDIT_PERMISSION);
     }
 
     get isEdit() {
@@ -167,17 +250,60 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.descriptionAvailable) {
-            return this.projectInfoModeList.DESCRIPTION;
-        } else if (this.summaryAvailable) {
-            return this.projectInfoModeList.SUMMARY;
+        if (
+            this.projects.length === 1 &&
+            this.descriptionAvailable &&
+            this.descriptionList.length
+        ) {
+            return [
+                this.projectInfoModeList.DESCRIPTION,
+                this.descriptionList[0].id
+            ];
         } else {
-            return this.currentMode;
+            return this.projectInfoModeList.SUMMARY;
         }
     }
 
     static instance($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
         return new ngbProjectInfoService($sce, $mdDialog, dispatcher, projectContext, projectDataService);
+    }
+
+    setDescription (descriptionId = 0) {
+        if (this.descriptionList.length) {
+            descriptionId = descriptionId ? descriptionId : this.descriptionList[0].id;
+            this.descriptionIsLoading = true;
+            this.descriptionAvailable = false;
+            this.projectContext.downloadProjectDescription(descriptionId)
+                .then(data => {
+                    if (data && data.byteLength) {
+                        this.descriptionAvailable = true;
+                        this.descriptionIsLoading = false;
+                        this.blobUrl = this.$sce.trustAsResourceUrl(
+                            URL.createObjectURL(new Blob([data], {type: 'text/html'}))
+                        );
+                        if (!this.projectContext.currentChromosome) {
+                            this._isCancel = false;
+                            this.currentMode = [
+                                this.projectInfoModeList.DESCRIPTION,
+                                descriptionId
+                            ];
+                        }
+                    } else {
+                        this.descriptionAvailable = false;
+                        this.descriptionIsLoading = false;
+                        if (!this.projectContext.currentChromosome) {
+                            this._isCancel = true;
+                            this.currentMode = this.projectInfoModeList.SUMMARY;
+                        }
+                    }
+                    this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
+                });
+        } else {
+            this.descriptionAvailable = false;
+            if (!this.projectContext.currentChromosome) {
+                this.currentMode = this.projectInfoModeList.SUMMARY;
+            }
+        }
     }
 
     projectChanged() {
@@ -186,63 +312,102 @@ export default class ngbProjectInfoService {
                 new Set(findSelectedDatasets(this.projectContext.datasets || []))
             )
         ];
-        const projects = processNestedProjects(selectedDatasets, 0);
+        const parents = new Set(selectedDatasets.map(dataset => dataset.id));
+        selectedDatasets.forEach(item => {
+            if (item.parentId && !parents.has(item.parentId)) {
+                selectedDatasets.add(
+                    ...this.projectContext.datasets
+                        .filter(dataset => dataset.id === item.parentId)
+                );
+                parents.add(item.parentId);
+            }
+        });
+        if (selectedDatasets.length > 1) {
+            sortDatasets(selectedDatasets);
+        }
         const clearURLObject = () => {
             if (this.blobUrl) {
                 URL.revokeObjectURL(this.blobUrl);
                 this.blobUrl = undefined;
             }
         };
-        if (projects.length === 1 && this.currentProject.id !== projects[0].id) {
-            // project list had been changed. One project has been selected
+        if (selectedDatasets.length > 0) {
+            // project list had been (possibly) changed
             clearURLObject();
-            this.currentProject = projects[0];
-            this._newNote = {
-                projectId: this.currentProject.id
-            };
-            this._descriptionIsLoading = true;
-            this._descriptionAvailable = false;
-            this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
-                if (data && data.byteLength) {
-                    this._descriptionAvailable = true;
-                    this._descriptionIsLoading = false;
-                    this.blobUrl = this.$sce.trustAsResourceUrl(
-                        URL.createObjectURL(new Blob([data], {type: 'text/html'}))
-                    );
-                    if (!this.projectContext.currentChromosome) {
-                        this._isCancel = true;
-                        this.currentMode = this.projectInfoModeList.DESCRIPTION;
-                    }
+            this.projects = selectedDatasets.slice();
+            this.projects.forEach(project => {
+                project.canEdit = checkPermission(project.mask, EDIT_PERMISSION);
+            });
+            const currentProjectChanged = this.currentProject && this.currentProject.id &&
+                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0;
+            if (currentProjectChanged) {
+                if (selectedDatasets.length === 1) {
+                    this.currentProject = selectedDatasets[0];
+                    this._newNote = {
+                        projectId: this.currentProject.id
+                    };
+                    this.setDescription();
                 } else {
-                    this._descriptionAvailable = false;
-                    this._descriptionIsLoading = false;
-                    this._descriptionAvailable = false;
+                    this.descriptionIsLoading = false;
+                    this.currentProject = {};
+                    this._newNote = {};
                     if (!this.projectContext.currentChromosome) {
                         this._isCancel = true;
                         this.currentMode = this.projectInfoModeList.SUMMARY;
                     }
                 }
-                this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
-            });
-        } else if (projects.length !== 1) {
-            // project list had been changed. More than one project have been selected
+            }
+        } else {
+            this.projects = [];
             this.currentProject = {};
             this._newNote = {};
-            this._descriptionIsLoading = false;
-            this._descriptionAvailable = false;
+            this.descriptionIsLoading = false;
+            this.descriptionAvailable = false;
             if (!this.projectContext.currentChromosome) {
                 this._isCancel = true;
                 this.currentMode = this.projectInfoModeList.SUMMARY;
             }
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
-        } else {
-            // project list had not been changed. Current project params have changed.
-            if (!this.projectContext.currentChromosome && this.currentMode === this.projectInfoModeList.CHR_SUMMARY) {
-                this._isCancel = true;
-                this.currentMode = this.defaultMode;
-            }
         }
+        this.refreshPlainList();
+    }
+
+    refreshPlainList() {
+        this.plainItems = this.projects
+            .map(project => [
+                {
+                    id: `${project.id}-project-divider`,
+                    isProjectDivider: true
+                },
+                {
+                    id: `${project.id}-project-header`,
+                    isHeader: true,
+                    project
+                },
+                ...(project.descriptions || []).map(description => ({
+                    id: `${project.id}-project-description-${description.id}`,
+                    isDescription: true,
+                    project,
+                    description
+                })),
+                {
+                    id: `${project.id}-project-description-divider`,
+                    isDivider: true
+                },
+                ...(project.notes || []).map(note => ({
+                    id: `${project.id}-project-note-${note.id}`,
+                    isNote: true,
+                    project,
+                    note
+                })),
+                {
+                    id: `${project.id}-project-note-add`,
+                    isAddNote: true,
+                    project
+                }
+            ])
+            .reduce((r, c) => ([...r, ...c]), []);
     }
 
     chromosomeChanged() {
@@ -251,8 +416,16 @@ export default class ngbProjectInfoService {
         }
     }
 
-    addNote() {
-        this.currentMode = this.projectInfoModeList.ADD_NOTE;
+    addNote(project = this.currentProject) {
+        if (this.projects.length > 1) {
+            this.currentProject = project;
+            this._newNote = {
+                projectId: this.currentProject.id
+            };
+            this.currentMode = [this.projectInfoModeList.ADD_NOTE, project.id];
+        } else {
+            this.currentMode = this.projectInfoModeList.ADD_NOTE;
+        }
     }
 
     editNote(id) {
@@ -265,7 +438,11 @@ export default class ngbProjectInfoService {
 
     cancelNote() {
         this._isCancel = true;
-        this.currentMode = this.previousMode;
+        if (this.projects.length > 1) {
+            this.currentMode = this.defaultMode;
+        } else {
+            this.currentMode = this.previousMode;
+        }
     }
 
     saveNote(note) {
@@ -290,6 +467,7 @@ export default class ngbProjectInfoService {
                 } else {
                     this.currentMode = this.previousMode;
                 }
+                this.refreshPlainList();
                 return data;
             });
     }
@@ -303,6 +481,7 @@ export default class ngbProjectInfoService {
         return this._saveProject(this.currentProject, notes)
             .then(data => {
                 this.currentMode = this.defaultMode;
+                this.refreshPlainList();
                 return data;
             });
     }
@@ -318,6 +497,7 @@ export default class ngbProjectInfoService {
                 if (!data.error) {
                     this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes || [], this.currentProject.id);
                     this.setCurrentName(this.currentMode);
+                    this.refreshPlainList();
                 }
                 return data;
             });
@@ -346,11 +526,16 @@ export default class ngbProjectInfoService {
     _hasChanges() {
         let hasChanges = false;
         if (!this._isCancel) {
+            const currentMode = Array.isArray(this.currentMode) ?
+                this.currentMode[0] : this.currentMode;
             if (this.isEdit) {
                 const currentNote = this.currentNote;
-                hasChanges = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
-            } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
-                hasChanges = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
+                hasChanges = Object.keys(this._editingNote)
+                    .some(key => this._editingNote[key] !== currentNote[key]);
+            } else if (currentMode === this.projectInfoModeList.ADD_NOTE) {
+                hasChanges = Object.keys(this._newNote)
+                    .filter(f => f !== 'projectId')
+                    .some(f => !!this.newNote[f]);
             }
         }
         return hasChanges;

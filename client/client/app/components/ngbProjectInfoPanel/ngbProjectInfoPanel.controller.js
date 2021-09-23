@@ -31,7 +31,8 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     get currentMode() {
-        return this.ngbProjectInfoService.currentMode;
+        const currentMode = this.ngbProjectInfoService.currentMode;
+        return Array.isArray(currentMode) ? currentMode[0] : currentMode;
     }
 
     get isProgressShown() {
