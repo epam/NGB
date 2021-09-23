@@ -725,6 +725,7 @@ public class FeatureIndexManager {
 
         final List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
+                .filter(biologicalDataItem -> biologicalDataItem instanceof FeatureFile)
                 .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
                 .collect(Collectors.toList());
         final GeneFile geneFile = reference.getGeneFile();
