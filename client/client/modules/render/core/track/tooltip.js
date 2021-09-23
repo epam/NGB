@@ -86,14 +86,26 @@ export default function tooltipFactory(track) {
         setContent(content) {
 
             const mapLineElements = function({colspan, content}, index) {
-                return `<td colspan='${colspan}' style='${index === 0 ? 'text-align:left' : 'text-align:right'}; color: #222222'>${content}</td>`;
+                return `<td
+                    colspan='${colspan}'
+                    style='
+                    ${index === 0 ? 'text-align:left' : 'text-align:right'};
+                    color: #222222 ;
+                    min-width: 75px;
+                    max-width: 25vw;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    '>
+                        ${content}
+                    </td>`;
             };
 
             const mapLine = function(line) {
                 return `<tr style="border-bottom: 1px solid #ececec">${line.map(mapLineElements).join('')}</tr>`;
             };
 
-            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:100%'><table style='width:100%'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
+            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:100%;position:relative;'><table style='width:100%;max-width: 500px'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
         },
         show(position) {
             if (this.delayedFn) {
