@@ -181,7 +181,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @throws IllegalArgumentException will be thrown in a case, if no reference with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference load(final Long referenceId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
@@ -214,7 +214,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @throws IllegalArgumentException will be thrown in a case, if no reference with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference loadReferenceGenomeByBioItemId(final Long dataItemId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
@@ -239,7 +239,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return loadAllReferenceGenomes(null);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomes(String referenceName) {
         if (!StringUtils.isEmpty(referenceName)) {
             Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
@@ -275,7 +275,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return result;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomesByTaxId(final Long taxId) {
         return ListUtils.emptyIfNull(referenceGenomeDao.loadReferenceGenomesByTaxId(taxId))
                 .stream().peek(ref -> {
@@ -346,6 +346,11 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return reference;
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Long> loadReferenceIdsByAnnotationFileId(final Long annotationId) {
+        return referenceGenomeDao.loadGenomeIdsByAnnotationDataItemId(annotationId);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public Reference updateReferenceGeneFileId(long referenceId, Long geneFileId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
@@ -373,7 +378,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
         List<Long> biologicalDataIds = referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId);
         return biologicalDataItemDao.loadBiologicalDataItemsByIds(biologicalDataIds);

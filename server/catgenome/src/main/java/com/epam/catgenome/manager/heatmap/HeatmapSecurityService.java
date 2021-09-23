@@ -43,14 +43,14 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_HEATMAP_M
 public class HeatmapSecurityService {
 
     private static final String READ_HEATMAP_BY_PROJECT_ID =
-            "hasPermissionOnFileOrParentProject(#heatmapId, 'com.epam.catgenome.entity.heatmap.Heatmap', " +
-                    "#projectId, 'READ')";
+            "readOnAnnotationFileIsAllowed(#heatmapId, 'com.epam.catgenome.entity.heatmap.Heatmap', " +
+                    "#projectId)";
 
     @Autowired
     private HeatmapManager heatmapManager;
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public Heatmap loadHeatmap(final long heatmapId, final long projectId) {
+    public Heatmap loadHeatmap(final long heatmapId, final Long projectId) {
         return heatmapManager.loadHeatmap(heatmapId);
     }
 
@@ -65,12 +65,12 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public List<List<Map<?, String>>> getContent(final long heatmapId, final long projectId) throws IOException {
+    public List<List<Map<?, String>>> getContent(final long heatmapId, final Long projectId) throws IOException {
         return heatmapManager.getContent(heatmapId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public Map<String, String> getLabelAnnotation(final long heatmapId, final long projectId) throws IOException {
+    public Map<String, String> getLabelAnnotation(final long heatmapId, final Long projectId) throws IOException {
         return heatmapManager.getLabelAnnotation(heatmapId);
     }
 
@@ -85,7 +85,7 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public HeatmapTree getTree(final long heatmapId, final long projectId) {
+    public HeatmapTree getTree(final long heatmapId, final Long projectId) {
         return heatmapManager.getTree(heatmapId);
     }
 }
