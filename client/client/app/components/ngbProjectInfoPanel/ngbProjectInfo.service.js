@@ -203,14 +203,18 @@ export default class ngbProjectInfoService {
                     this.blobUrl = this.$sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
-                    this._isCancel = true;
-                    this.currentMode = this.projectInfoModeList.DESCRIPTION;
+                    if (!this.projectContext.currentChromosome) {
+                        this._isCancel = true;
+                        this.currentMode = this.projectInfoModeList.DESCRIPTION;
+                    }
                 } else {
                     this._descriptionAvailable = false;
                     this._descriptionIsLoading = false;
                     this._descriptionAvailable = false;
-                    this._isCancel = true;
-                    this.currentMode = this.projectInfoModeList.SUMMARY;
+                    if (!this.projectContext.currentChromosome) {
+                        this._isCancel = true;
+                        this.currentMode = this.projectInfoModeList.SUMMARY;
+                    }
                 }
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
@@ -219,8 +223,10 @@ export default class ngbProjectInfoService {
             this._newNote = {};
             this._descriptionIsLoading = false;
             this._descriptionAvailable = false;
-            this._isCancel = true;
-            this.currentMode = this.projectInfoModeList.SUMMARY;
+            if (!this.projectContext.currentChromosome) {
+                this._isCancel = true;
+                this.currentMode = this.projectInfoModeList.SUMMARY;
+            }
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
         }
