@@ -33,6 +33,8 @@ function processNestedProjects(projects, nesting) {
     return processNestedProjects(projects.filter(p => p.nesting !== nesting), nesting++);
 }
 
+const EXTENDED_MODE = true;
+
 const PROJECT_INFO_MODE = {
     SUMMARY: -1,
     DESCRIPTION: -2,
@@ -54,7 +56,7 @@ export default class ngbProjectInfoService {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.projectDataService = projectDataService;
-        this.currentProject = {};
+        this._currentProject = {};
         this._descriptionIsLoading = true;
         this._currentMode = undefined;
         this._previousMode = undefined;
@@ -67,20 +69,33 @@ export default class ngbProjectInfoService {
         projectChanged();
     }
 
+    get currentProject () {
+        return this._currentProject;
+    }
+
+    set currentProject (project) {
+        this._currentProject = project;
+    }
+
     set currentMode(value) {
         if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
             || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
             return;
         }
-        if (value !== undefined
-            && ![this.projectInfoModeList.ADD_NOTE, this.projectInfoModeList.EDIT_NOTE].includes(this.currentMode)) {
+        if (value !== undefined &&
+            ![
+                this.projectInfoModeList.ADD_NOTE,
+                this.projectInfoModeList.EDIT_NOTE
+            ].includes(this.currentMode)) {
             this._previousMode = this.currentMode;
         }
-        const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] || this.currentNote.title;
+        const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] ||
+            this.currentNote.title;
         this._currentMode = value || this.defaultMode;
+        const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
         this._currentName = value === this.projectInfoModeList.EDIT_NOTE
             ? previousNoteName
-            : PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+            : PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
     }
 
     get projectInfoModeList() {
@@ -111,12 +126,20 @@ export default class ngbProjectInfoService {
         return this._descriptionAvailable;
     }
 
+    set descriptionAvailable (value) {
+        this._descriptionAvailable = value;
+    }
+
     get summaryAvailable() {
         return true;
     }
 
     get descriptionIsLoading() {
         return this._descriptionIsLoading;
+    }
+
+    set descriptionIsLoading (value) {
+        this._descriptionIsLoading = value;
     }
 
     get canEdit() {
@@ -132,13 +155,25 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.descriptionAvailable) {
-            return this.projectInfoModeList.DESCRIPTION;
-        } else if (this.summaryAvailable) {
-            return this.projectInfoModeList.SUMMARY;
+        if (this.extendedMode) {
+            if (this.summaryAvailable) {
+                return this.projectInfoModeList.SUMMARY;
+            } else {
+                return this.currentMode;
+            }
         } else {
-            return this.currentMode;
+            if (this.descriptionAvailable) {
+                return this.projectInfoModeList.DESCRIPTION;
+            } else if (this.summaryAvailable) {
+                return this.projectInfoModeList.SUMMARY;
+            } else {
+                return this.currentMode;
+            }
         }
+    }
+
+    get extendedMode () {
+        return EXTENDED_MODE;
     }
 
     static instance($sce, dispatcher, projectContext, projectDataService) {
@@ -151,7 +186,20 @@ export default class ngbProjectInfoService {
                 new Set(findSelectedDatasets(this.projectContext.datasets || []))
             )
         ];
-        const projects = processNestedProjects(selectedDatasets, 0);
+        if (this.extendedMode) {
+            const parents = new Set(selectedDatasets.map(dataset => dataset.id));
+            selectedDatasets.forEach(item => {
+                if (item.parentId && !parents.has(item.parentId)) {
+                    selectedDatasets.add(
+                        ...this.projectContext.datasets.filter(dataset => dataset.id === item.parentId)
+                    );
+                    parents.add(item.parentId);
+                }
+            });
+        }
+        const projects = this.extendedMode ?
+            selectedDatasets :
+            processNestedProjects(selectedDatasets, 0);
         const clearURLObject = () => {
             if (this.blobUrl) {
                 URL.revokeObjectURL(this.blobUrl);
@@ -164,32 +212,53 @@ export default class ngbProjectInfoService {
             this._newNote = {
                 projectId: this.currentProject.id
             };
-            this._descriptionIsLoading = true;
-            this._descriptionAvailable = false;
+            this.descriptionIsLoading = true;
+            this.descriptionAvailable = false;
             this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
                 if (data && data.byteLength) {
                     this.currentMode = this.projectInfoModeList.DESCRIPTION;
-                    this._descriptionAvailable = true;
-                    this._descriptionIsLoading = false;
+                    this.descriptionAvailable = true;
+                    this.descriptionIsLoading = false;
                     this.blobUrl = this.sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
                 } else {
-                    this._descriptionAvailable = false;
-                    this._descriptionIsLoading = false;
-                    this._descriptionAvailable = false;
+                    this.descriptionAvailable = false;
+                    this.descriptionIsLoading = false;
+                    this.descriptionAvailable = false;
                     this.currentMode = this.projectInfoModeList.SUMMARY;
                 }
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
         } else if (projects.length !== 1) {
-            this.currentProject = {};
-            this._newNote = {};
-            this._descriptionIsLoading = false;
-            this.currentMode = this.projectInfoModeList.SUMMARY;
-            this._descriptionAvailable = false;
-            clearURLObject();
-            this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
+            if (this.extendedMode && projects.length > 0) {
+                clearURLObject();
+                this.currentMode = this.projectInfoModeList.SUMMARY;
+                this.projects = projects.map(project => {
+                    this.projectContext.loadDatasetDescription(project.id)
+                        .then(data => {
+                            if (data && data.byteLength) {
+                                project.descriptionAvailable = true;
+                                project.blobUrl = this.sce.trustAsResourceUrl(
+                                    URL.createObjectURL(new Blob([data], {type: 'text/html'}))
+                                );
+                            } else {
+                                project.descriptionAvailable = false;
+                            }
+                        }
+                    );
+                    project.canEdit = !!(project.mask & EDIT_RIGHT);
+                    return project;
+                });
+            } else {
+                this.currentProject = {};
+                this._newNote = {};
+                this.descriptionIsLoading = false;
+                this.currentMode = this.projectInfoModeList.SUMMARY;
+                this.descriptionAvailable = false;
+                clearURLObject();
+                this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
+            }
         }
     }
 

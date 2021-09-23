@@ -44,3 +44,20 @@ ngb-project-info-sections {
     }
   }
 }
+
+.project-info-menu-content {
+  display: block;
+}
+
+.project-info-menu-item {
+  min-height: 24px;
+  height: 24px;
+  margin-left: 10px;
+  line-height: 2;
+  font-size: 12px;
+  color: #999;
+}
+
+.project-info-menu-note {
+  display: block;
+}
