@@ -12,6 +12,7 @@ import ngbMarkdown from './ngbMarkdown';
 
 import collapsiblePanel from './widgets/collapsiblePanel';
 import textBox from './widgets/TextBox';
+import ngbColorPicker from './widgets/ngbColorPicker';
 
 export default angular.module('SharedComponents', [
     ngbGoldenLayout,
@@ -24,5 +25,6 @@ export default angular.module('SharedComponents', [
     collapsiblePanel,
     textBox,
     ngbDatasetItemDownloadUrlController,
-    ngbMarkdown
+    ngbMarkdown,
+    ngbColorPicker
 ]).name;

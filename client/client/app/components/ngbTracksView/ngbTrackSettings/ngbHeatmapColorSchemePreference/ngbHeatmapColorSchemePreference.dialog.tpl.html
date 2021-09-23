@@ -34,20 +34,21 @@
                 <div ng-if="scheme.type === constants.HeatmapColorSchemes.continuous"
                      class="heatmap-color-pickers heatmap-config-section">
                     <div class="heatmap-color-picker">
-                        <color-picker options="constants.colorPickerOptionsRight"
-                                      ng-model="scheme.highColor"></color-picker>
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.highColor"></ngb-color-picker>
                         <span class="heatmap-color-legend">High</span>
                     </div>
                     <div class="heatmap-color-picker">
-                        <color-picker options="constants.colorPickerOptionsRight"
-                                      ng-cloak
-                                      ng-model="scheme.mediumColor"></color-picker>
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.mediumColor"></ngb-color-picker>
                         <span class="heatmap-color-legend">Medium</span>
                     </div>
                     <div class="heatmap-color-picker">
-                        <color-picker options="constants.colorPickerOptionsLeft"
-                                      ng-cloak
-                                      ng-model="scheme.lowColor"></color-picker>
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsLeft"
+                                          color="scheme.lowColor"></ngb-color-picker>
                         <span class="heatmap-color-legend">Low</span>
                     </div>
                 </div>
@@ -57,16 +58,16 @@
                          ng-repeat="configuration in scheme.colorConfigurations track by configuration.uid">
                         <div ng-if="scheme.colorConfigurations.length === 1"
                              class="heatmap-color-picker">
-                            <color-picker options="constants.colorPickerOptionsRight"
-                                          ng-cloak
-                                          ng-model="configuration.color"></color-picker>
+                            <ngb-color-picker ng-cloak
+                                              options="constants.colorPickerOptionsRight"
+                                              color="configuration.color"></ngb-color-picker>
                             <span class="heatmap-color-legend">Data color</span>
                         </div>
                         <div ng-if="scheme.colorConfigurations.length > 1"
                              class="heatmap-color-picker color-configuration">
-                            <color-picker options="constants.colorPickerOptionsRight"
-                                          ng-cloak
-                                          ng-model="configuration.color"></color-picker>
+                            <ngb-color-picker ng-cloak
+                                              options="constants.colorPickerOptionsRight"
+                                              color="configuration.color"></ngb-color-picker>
                             <div ng-if="scheme.dataType === constants.dataTypes.number"
                                  class="color-configuration-value">
                                 <md-input-container class="heatmap-color-value-input-container">
@@ -146,9 +147,9 @@
                 </div>
                 <div class="heatmap-config-section">
                     <div class="heatmap-color-picker">
-                        <color-picker options="constants.colorPickerOptionsRight"
-                                      ng-cloak
-                                      ng-model="scheme.missingColor"></color-picker>
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.missingColor"></ngb-color-picker>
                         <span class="heatmap-color-legend">Missing data</span>
                     </div>
                 </div>
