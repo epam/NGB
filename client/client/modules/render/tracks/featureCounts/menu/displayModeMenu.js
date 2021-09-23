@@ -34,7 +34,7 @@ export default {
     },
     fields: [
         {
-            disable: state => state.featureCountsDisplayMode = displayModes.features,
+            disable: state => state.featureCountsDisplayMode = displayModes.barChart,
             enable: state => state.featureCountsDisplayMode = displayModes.features,
             isEnabled: state => state.featureCountsDisplayMode === displayModes.features,
             label: 'Features',
