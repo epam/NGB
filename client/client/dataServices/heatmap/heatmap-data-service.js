@@ -43,6 +43,22 @@ function generateRandomTree(items = []) {
 
 const MOCK = false;
 
+function getHeatmapUrl(url, query) {
+    if (
+        Object
+            .values(query || {})
+            .filter(value => value !== undefined)
+            .length > 0
+    ) {
+        const queryParams = Object
+            .entries(query || {})
+            .map(([key, value]) => `${key}=${value}`)
+            .join('&');
+        return `${url}?${queryParams}`;
+    }
+    return url;
+}
+
 /**
  * data service for heatmap files
  * @extends DataService
@@ -51,7 +67,7 @@ export class HeatmapDataService extends DataService {
     loadHeatmapMetadata(id, projectId) {
         if (!MOCK) {
             return new Promise((resolve, reject) => {
-                this.get(`heatmap/${id}?projectId=${projectId}`)
+                this.get(getHeatmapUrl(`heatmap/${id}`, {projectId}))
                     .then((data)=> {
                         if (data) {
                             resolve(data);
@@ -102,7 +118,7 @@ export class HeatmapDataService extends DataService {
     loadHeatmap(id, projectId) {
         if (!MOCK) {
             return new Promise((resolve, reject) => {
-                this.get(`heatmap/${id}/content?projectId=${projectId}`)
+                this.get(getHeatmapUrl(`heatmap/${id}/content`, {projectId}))
                     .then((data)=> {
                         if (data) {
                             resolve(data);

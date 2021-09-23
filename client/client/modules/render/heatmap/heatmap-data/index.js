@@ -105,7 +105,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
 
     fetchMetadata() {
         const {id, projectId} = this.options;
-        if (!id || !projectId) {
+        if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchMetadataPromise) {
@@ -144,7 +144,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
 
     fetchTree() {
         const {id, projectId} = this.options;
-        if (!id || !projectId) {
+        if (!id) {
             return Promise.resolve();
         }
         if (IGNORE_TREE) {
@@ -200,7 +200,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
 
     fetch() {
         const {id, projectId} = this.options;
-        if (!id || !projectId) {
+        if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchPromise) {
