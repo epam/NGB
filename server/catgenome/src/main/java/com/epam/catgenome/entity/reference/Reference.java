@@ -27,16 +27,20 @@ package com.epam.catgenome.entity.reference;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.IndexedDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.security.AclClass;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * {@code Reference} represents a business entity designed to handle information that
  * describes a reference.
  */
+@Getter
+@Setter
 public class Reference extends IndexedDataItem {
 
     private Long bioDataItemId;
@@ -58,7 +62,7 @@ public class Reference extends IndexedDataItem {
     /**
      * Represents annotation files, containing associated with the reference genome
      */
-    private List<FeatureFile> annotationFiles;
+    private List<BiologicalDataItem> annotationFiles;
 
     /**
      * Represents a species associated with the reference genome
@@ -74,54 +78,6 @@ public class Reference extends IndexedDataItem {
         this();
         setId(id);
         setName(name);
-    }
-
-    public final Long getSize() {
-        return size;
-    }
-
-    public final void setSize(final Long size) {
-        this.size = size;
-    }
-
-    public final List<Chromosome> getChromosomes() {
-        return chromosomes;
-    }
-
-    public final void setChromosomes(final List<Chromosome> chromosomes) {
-        this.chromosomes = chromosomes;
-    }
-
-    public Long getBioDataItemId() {
-        return bioDataItemId;
-    }
-
-    public void setBioDataItemId(Long bioDataItemId) {
-        this.bioDataItemId = bioDataItemId;
-    }
-
-    public GeneFile getGeneFile() {
-        return geneFile;
-    }
-
-    public void setGeneFile(GeneFile geneFile) {
-        this.geneFile = geneFile;
-    }
-
-    public List<FeatureFile> getAnnotationFiles() {
-        return annotationFiles;
-    }
-
-    public void setAnnotationFiles(List<FeatureFile> annotationFiles) {
-        this.annotationFiles = annotationFiles;
-    }
-
-    public Species getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(Species species) {
-        this.species = species;
     }
 
     @Override public boolean equals(Object o) {
