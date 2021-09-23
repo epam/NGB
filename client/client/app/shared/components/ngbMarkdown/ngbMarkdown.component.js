@@ -1,6 +1,11 @@
 import {Converter} from 'showdown';
+import showdownHighlight from 'showdown-highlight';
 
-const converter = new Converter();
+import 'highlight.js/styles/github.css';
+
+const converter = new Converter({
+    extensions: [showdownHighlight]
+});
 converter.setFlavor('github');
 
 export default {
