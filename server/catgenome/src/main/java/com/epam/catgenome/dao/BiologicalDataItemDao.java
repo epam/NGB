@@ -43,6 +43,8 @@ import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.externaldb.ExternalDB;
 import com.epam.catgenome.entity.externaldb.ExternalDBType;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
@@ -271,6 +273,13 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         VG_REFERENCE_GENOME_ID,
         VG_REAL_PATH,
 
+        HEATMAP_ID,
+        HEATMAP_CELL_VALUE_TYPE,
+        HEATMAP_ROW_TREE_PATH,
+        HEATMAP_COLUMN_TREE_PATH,
+        HEATMAP_CELL_ANNOTATION_PATH,
+        HEATMAP_LABEL_ANNOTATION_PATH,
+
         INDEX_ID,
         INDEX_NAME,
         INDEX_TYPE,
@@ -361,10 +370,25 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 case MAF:
                     dataItem = mapMafFile(rs, index);
                     break;
+                case HEATMAP:
+                    dataItem = mapHeatMap(rs);
+                    break;
                 default:
                     dataItem = mapBioDataItem(rs);
             }
             return dataItem;
+        }
+
+        private static BiologicalDataItem mapHeatMap(final ResultSet rs) throws SQLException {
+            final Heatmap heatmap = Heatmap.builder().build();
+            heatmap.setId(rs.getLong(HEATMAP_ID.name()));
+            heatmap.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
+            heatmap.setCellAnnotationPath(rs.getString(HEATMAP_CELL_ANNOTATION_PATH.name()));
+            heatmap.setLabelAnnotationPath(rs.getString(HEATMAP_LABEL_ANNOTATION_PATH.name()));
+            heatmap.setCellValueType(HeatmapDataType.getById(rs.getInt(HEATMAP_CELL_VALUE_TYPE.name())));
+            heatmap.setRowTreePath(rs.getString(HEATMAP_ROW_TREE_PATH.name()));
+            heatmap.setColumnTreePath(rs.getString(HEATMAP_COLUMN_TREE_PATH.name()));
+            return heatmap;
         }
 
         private static BiologicalDataItem mapBioDataItem(ResultSet rs) throws SQLException {

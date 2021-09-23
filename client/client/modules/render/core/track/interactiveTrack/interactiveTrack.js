@@ -27,7 +27,9 @@ export default class InteractiveTrack extends Track {
 
     constructor(opts) {
         super(opts);
-        this.initializeEventListeners();
+        if (!opts.interactionDisabled) {
+            this.initializeEventListeners();
+        }
     }
 
     destructor() {

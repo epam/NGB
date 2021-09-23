@@ -3,6 +3,8 @@ import {displayModes} from '../modes';
 
 const colorsConfigAvailable = (state, tracks, track) => state.featureCountsDisplayMode === displayModes.barChart &&
     track.fcSourcesManager &&
+    track.fcSourcesManager.sources.length;
+const colorsConfigAvailableForSources = (state, tracks, track) => colorsConfigAvailable(state, tracks, track) &&
     track.fcSourcesManager.sources.length > 1;
 
 export default {
@@ -52,7 +54,7 @@ export default {
             disable: state => state.singleBarChartColors = false,
             enable: state => state.singleBarChartColors = true,
             isEnabled: state => !!state.singleBarChartColors,
-            isVisible: colorsConfigAvailable,
+            isVisible: colorsConfigAvailableForSources,
             label: 'Use single color for sources',
             name: 'featurecounts>display>singleColor',
             type: 'checkbox'

@@ -26,11 +26,11 @@ export default class ngbProjectInfoPanelController extends BaseController {
         this.initEvents();
     }
 
-    get projectInfoModeList () {
+    get projectInfoModeList() {
         return this.ngbProjectInfoService.projectInfoModeList;
     }
 
-    get currentMode () {
+    get currentMode() {
         return this.ngbProjectInfoService.currentMode;
     }
 
@@ -42,7 +42,7 @@ export default class ngbProjectInfoPanelController extends BaseController {
         }
     }
 
-    get isProgressShown () {
+    get isProgressShown() {
         return this.ngbProjectInfoService.descriptionIsLoading;
     }
 
@@ -62,6 +62,10 @@ export default class ngbProjectInfoPanelController extends BaseController {
         return this.ngbProjectInfoService.canEdit;
     }
 
+    get isEdit() {
+        return this.ngbProjectInfoService.isEdit;
+    }
+
     editNote($event) {
         this.ngbProjectInfoService.editNote(this.currentNote.id);
         $event.stopPropagation();
@@ -70,7 +74,9 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     refreshProjectInfo() {
-        this.$scope.$apply();
+        if (!this.$scope.$$phase) {
+            this.$scope.$apply();
+        }
     }
 
     get containsVcfFiles() {

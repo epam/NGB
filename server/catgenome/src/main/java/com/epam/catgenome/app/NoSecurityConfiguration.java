@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.app;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -38,9 +39,16 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Order(3)
 public class NoSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    @Value("${security.frame-options.disable:false}")
+    private boolean frameOptionsDisable;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests().antMatchers("/*").permitAll().and().csrf().disable();
+
+        if (frameOptionsDisable) {
+            http.headers().frameOptions().disable();
+        }
     }
 
 }

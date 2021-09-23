@@ -1,13 +1,22 @@
 import baseController from '../../../shared/baseController';
 
-export default class ngbProjectInfoSectionsController extends baseController{
+export default class ngbProjectInfoSectionsController extends baseController {
     static get UID() {
         return 'ngbProjectInfoSectionsController';
     }
 
-    constructor($scope, dispatcher, ngbProjectInfoService) {
+    constructor($scope, dispatcher, ngbProjectInfoService, projectContext) {
         super(dispatcher);
         this.ngbProjectInfoService = ngbProjectInfoService;
+        this.projectContext = projectContext;
+    }
+
+    onButtonClick($mdOpenMenu, $event) {
+        if (this.projectContext.currentChromosome) {
+            this.ngbProjectInfoService.currentMode = this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
+        } else {
+            this.openMenu($mdOpenMenu, $event);
+        }
     }
 
     get descriptionAvailable () {
@@ -24,6 +33,7 @@ export default class ngbProjectInfoSectionsController extends baseController{
     }
 
     openMenu($mdOpenMenu, $event) {
+        $event.stopPropagation();
         $mdOpenMenu($event);
     }
 }

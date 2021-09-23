@@ -39,33 +39,36 @@ const PROJECT_INFO_MODE = {
     SUMMARY: -1,
     DESCRIPTION: -2,
     ADD_NOTE: -3,
-    EDIT_NOTE: -4
+    CHR_SUMMARY: -4
 };
 
 const PROJECT_INFO_MODE_NAME = {
     '-1': 'Summary',
     '-2': 'Description',
-    '-3': 'Add note'
+    '-3': 'Add note',
+    '-4': 'Summary'
 };
 
 const EDIT_RIGHT = 2;
 
 export default class ngbProjectInfoService {
-    constructor($sce, dispatcher, projectContext, projectDataService) {
-        this.sce = $sce;
-        this.dispatcher = dispatcher;
-        this.projectContext = projectContext;
-        this.projectDataService = projectDataService;
-        this._currentProject = {};
+    constructor($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
+        Object.assign(this, {
+            $sce, $mdDialog, dispatcher, projectContext, projectDataService
+        });
+        this.currentProject = {};
         this._descriptionIsLoading = true;
         this._currentMode = undefined;
         this._previousMode = undefined;
         this._currentName = undefined;
+        this._isEdit = false;
+        this._isCancel = false;
         this._editingNote = {};
         this._newNote = {};
         this._descriptionAvailable = false;
         const projectChanged = this.projectChanged.bind(this);
         this.dispatcher.on('dataset:selection:change', projectChanged);
+        this.dispatcher.on('chromosome:change', this.chromosomeChanged.bind(this));
         projectChanged();
     }
 
@@ -78,24 +81,48 @@ export default class ngbProjectInfoService {
     }
 
     set currentMode(value) {
+        if (value === this.projectInfoModeList.CHR_SUMMARY) {
+            this._clearEnvironment();
+            this._currentMode = value;
+            this.setCurrentName(this.currentMode);
+            return;
+        }
+        if (this.projectContext.currentChromosome) {
+            this.projectContext.changeState({chromosome: null});
+        }
         if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
             || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
             return;
         }
-        if (value !== undefined &&
-            ![
-                this.projectInfoModeList.ADD_NOTE,
-                this.projectInfoModeList.EDIT_NOTE
-            ].includes(this.currentMode)) {
-            this._previousMode = this.currentMode;
+        if (value === this.currentMode && !this._isCancel) {
+            return;
         }
-        const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] ||
-            this.currentNote.title;
-        this._currentMode = value || this.defaultMode;
-        const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
-        this._currentName = value === this.projectInfoModeList.EDIT_NOTE
-            ? previousNoteName
-            : PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
+        if (this._hasChanges()) {
+            const alert = this.$mdDialog.alert()
+                .title('There is an unsaved changes.')
+                .textContent('Save it or cancel editing.')
+                .ariaLabel('Unsaved changes')
+                .ok('OK');
+            this.$mdDialog.show(alert);
+        } else {
+            if (value !== undefined
+                && ![
+                    this.projectInfoModeList.ADD_NOTE,
+                    this.projectInfoModeList.CHR_SUMMARY
+                ].includes(this.currentMode)) {
+                this._previousMode = this.currentMode;
+            }
+            this._clearEnvironment();
+            this._currentMode = value || this.defaultMode;
+            this.setCurrentName(this.currentMode);
+        }
+        // const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] ||
+        // this.currentNote.title;
+        // this._currentMode = value || this.defaultMode;
+        // const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
+        // this._currentName = value === this.projectInfoModeList.EDIT_NOTE
+        //     ? previousNoteName
+        //     : PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
     }
 
     get projectInfoModeList() {
@@ -104,6 +131,10 @@ export default class ngbProjectInfoService {
 
     get currentName() {
         return this._currentName;
+    }
+
+    setCurrentName(value) {
+        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
     }
 
     get currentMode() {
@@ -146,6 +177,10 @@ export default class ngbProjectInfoService {
         return !!(this.currentProject.mask & EDIT_RIGHT);
     }
 
+    get isEdit() {
+        return this._isEdit;
+    }
+
     get editingNote() {
         return this._editingNote;
     }
@@ -176,8 +211,8 @@ export default class ngbProjectInfoService {
         return EXTENDED_MODE;
     }
 
-    static instance($sce, dispatcher, projectContext, projectDataService) {
-        return new ngbProjectInfoService($sce, dispatcher, projectContext, projectDataService);
+    static instance($sce, $mdDialog, dispatcher, projectContext, projectDataService) {
+        return new ngbProjectInfoService($sce, $mdDialog, dispatcher, projectContext, projectDataService);
     }
 
     projectChanged() {
@@ -222,11 +257,19 @@ export default class ngbProjectInfoService {
                     this.blobUrl = this.sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
+                    if (!this.projectContext.currentChromosome) {
+                        this._isCancel = true;
+                        this.currentMode = this.projectInfoModeList.DESCRIPTION;
+                    }
                 } else {
                     this.descriptionAvailable = false;
                     this.descriptionIsLoading = false;
                     this.descriptionAvailable = false;
                     this.currentMode = this.projectInfoModeList.SUMMARY;
+                    if (!this.projectContext.currentChromosome) {
+                        this._isCancel = true;
+                        this.currentMode = this.projectInfoModeList.SUMMARY;
+                    }
                 }
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
@@ -254,11 +297,20 @@ export default class ngbProjectInfoService {
                 this.currentProject = {};
                 this._newNote = {};
                 this.descriptionIsLoading = false;
-                this.currentMode = this.projectInfoModeList.SUMMARY;
                 this.descriptionAvailable = false;
+                if (!this.projectContext.currentChromosome) {
+                    this._isCancel = true;
+                    this.currentMode = this.projectInfoModeList.SUMMARY;
+                }
                 clearURLObject();
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             }
+        }
+    }
+
+    chromosomeChanged() {
+        if (this.projectContext.currentChromosome !== null) {
+            this.currentMode = this.projectInfoModeList.CHR_SUMMARY;
         }
     }
 
@@ -267,12 +319,15 @@ export default class ngbProjectInfoService {
     }
 
     editNote(id) {
-        this._editingNote = this.noteList.filter(item => item.id === id)[0] || {};
-        this.currentMode = this.projectInfoModeList.EDIT_NOTE;
+        this.currentMode = id;
+        const filteredNoteList = this.noteList.filter(item => item.id === id);
+        this._editingNote = filteredNoteList.length ? {...filteredNoteList[0]} : {};
+        this._isEdit = true;
+        this._previousMode = this.currentMode;
     }
 
     cancelNote() {
-        this._editingNote = {};
+        this._isCancel = true;
         this.currentMode = this.previousMode;
     }
 
@@ -321,14 +376,46 @@ export default class ngbProjectInfoService {
             notes
         }))
             .then(data => {
-                this._editingNote = {};
-                this._newNote = {
-                    projectId: this.currentProject.id
-                };
+                this._finishEditing();
+                this._finishCreating();
                 if (!data.error) {
                     this.currentProject.notes = this.projectContext.refreshDatasetNotes(data.notes || [], this.currentProject.id);
+                    this.setCurrentName(this.currentMode);
                 }
                 return data;
             });
+    }
+
+    _finishEditing() {
+        this._isEdit = false;
+        this._editingNote = {};
+    }
+
+    _finishCreating() {
+        this._newNote = {
+            projectId: this.currentProject.id
+        };
+    }
+
+    _clearEnvironment() {
+        if (this._currentMode === this.projectInfoModeList.ADD_NOTE) {
+            this._finishCreating();
+        } else if (this.isEdit) {
+            this._finishEditing();
+        }
+        this._isCancel = false;
+    }
+
+    _hasChanges() {
+        let hasChanges = false;
+        if (!this._isCancel) {
+            if (this.isEdit) {
+                const currentNote = this.currentNote;
+                hasChanges = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
+            } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
+                hasChanges = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
+            }
+        }
+        return hasChanges;
     }
 }

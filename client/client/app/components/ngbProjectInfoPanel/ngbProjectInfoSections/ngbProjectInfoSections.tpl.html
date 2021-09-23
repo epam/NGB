@@ -2,11 +2,11 @@
   <md-button aria-label="Project info"
              class="md-icon-button project-info-button"
              style="width: auto; padding-left: 7px"
-             ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
+             ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
   >
-    {{$ctrl.ngbProjectInfoService.currentName}}
+    <span>{{$ctrl.ngbProjectInfoService.currentName}}</span>
     <ng-md-icon icon="keyboard_arrow_down"
-                size="20"></ng-md-icon>
+                ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
   </md-button>
   <md-menu-content width="4" class="ngb-project-info-sections-menu" md-whiteframe="4">
     <md-checkbox aria-label="Summary" ng-if="$ctrl.ngbProjectInfoService.summaryAvailable"

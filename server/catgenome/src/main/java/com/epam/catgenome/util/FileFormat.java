@@ -21,19 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.export;
+package com.epam.catgenome.util;
 
-public enum ExportFormat {
-    CSV(","),
-    TSV("\t");
+import java.util.HashMap;
+import java.util.Map;
 
+public enum FileFormat {
+    CSV("csv", ","),
+    TSV("tsv", "\t");
+
+    private final String extension;
     private final String separator;
 
-    ExportFormat(String separator) {
+    private static final Map<String, FileFormat> EXTENSION_MAP = new HashMap<>();
+
+    static {
+        EXTENSION_MAP.put("csv", CSV);
+        EXTENSION_MAP.put("tsv", TSV);
+    }
+    FileFormat(String extension, String separator) {
+        this.extension = extension;
         this.separator = separator;
     }
 
     public String getSeparator() {
         return separator;
+    }
+
+    public static String getSeparatorByExtension(String extension) {
+        return EXTENSION_MAP.containsKey(extension) ?
+                EXTENSION_MAP.get(extension).getSeparator() :
+                null;
     }
 }

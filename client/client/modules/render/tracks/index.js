@@ -2,6 +2,7 @@ import {BAMTrack as BAM} from './bam';
 import {BEDTrack as BED} from './bed';
 import {BLASTTrack as BLAST} from './blast';
 import {GENETrack as GENE} from './gene';
+import {default as HEATMAP} from './heatmap';
 import {FeatureCountsTrack as FEATURE_COUNTS} from './featureCounts';
 import {MAFTrack as MAF} from './maf';
 import {REFERENCETrack as REFERENCE} from './reference';
@@ -21,5 +22,6 @@ export default {
     Ruler,
     SEG,
     VCF,
-    WIG
+    WIG,
+    HEATMAP
 };

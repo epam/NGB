@@ -1,4 +1,3 @@
-import controller from '../ngbTrackFontSize/ngbTrackFontSize.controller';
 import helper from './ngbTrackResizePreference.helper';
 
 export default function run($mdDialog, dispatcher, projectContext) {

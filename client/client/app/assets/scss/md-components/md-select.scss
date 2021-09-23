@@ -2,3 +2,7 @@
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-duration: 50ms;
 }
+
+.md-select-menu-container {
+  z-index: 1201;
+}

@@ -18,13 +18,19 @@ export default class BaseTrack {
         const {viewport, config, dataItemClicked, changeTrackVisibility, changeTrackHeight, ...configRest} = opts;
         const state = extractFeaturesForTrack(Object.assign(opts.defaultFeatures || {}, opts.state || {}), this.stateKeys);
         const getTrackConfigFn = () => {
+            const trackDefaultConfig = typeof this.constructor.getTrackDefaultConfig === 'function'
+                ? this.constructor.getTrackDefaultConfig()
+                : {};
             if (configRest.projectContext) {
                 const serverConfig = configRest.projectContext.getTrackDefaultSettings(configRest.format);
                 if (serverConfig) {
-                    return Object.assign({fitHeightFactor: 1}, BaseTrack.recoverConfig(serverConfig, this.constructor.getTrackDefaultConfig()));
+                    return Object.assign(
+                        {fitHeightFactor: 1},
+                        BaseTrack.recoverConfig(serverConfig, trackDefaultConfig)
+                    );
                 }
             }
-            return Object.assign({fitHeightFactor: 1}, this.constructor.getTrackDefaultConfig());
+            return Object.assign({fitHeightFactor: 1}, trackDefaultConfig);
         };
 
         Reflect.defineProperty(this, 'trackConfig', {
@@ -47,11 +53,11 @@ export default class BaseTrack {
             value: changeTrackHeight
         });
 
-        const mapDefaultHeightFn = () => {
-            return {
-                height: (typeof this.trackConfig.height === 'function') ? this.trackConfig.height(state, this.trackConfig) : this.trackConfig.height
-            };
-        };
+        const mapDefaultHeightFn = () => ({
+            height: (typeof this.trackConfig.height === 'function')
+                ? this.trackConfig.height(state, this.trackConfig)
+                : this.trackConfig.height
+        });
 
         const defaultConfig = {
             header: {
@@ -59,11 +65,12 @@ export default class BaseTrack {
             },
             maxHeight: 500,
             minHeight: 20,
+            height: 50
         };
 
         Reflect.defineProperty(this, 'config', {
             value: Object.freeze(
-                [config, configRest, defaultConfig, mapDefaultHeightFn()].reduceRight((acc, config) => ({...acc, ...config})))
+                [config, configRest, mapDefaultHeightFn(), defaultConfig].reduceRight((acc, config) => ({...acc, ...config})))
         });
         this.state = state;
     }

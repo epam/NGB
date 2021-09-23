@@ -33,7 +33,7 @@ import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.export.VcfExportFilterForm;
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
-import com.epam.catgenome.manager.export.ExportFormat;
+import com.epam.catgenome.util.FileFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -217,7 +217,7 @@ public class FilterController extends AbstractRESTController {
         produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
     public void exportVcf(@RequestBody final VcfExportFilterForm filterForm,
-                          @RequestParam final ExportFormat format,
+                          @RequestParam final FileFormat format,
                           @RequestParam final boolean includeHeader,
                           HttpServletResponse response) throws IOException {
         byte[] bytes = featureIndexSecurityService.exportVariations(filterForm, format, includeHeader);
