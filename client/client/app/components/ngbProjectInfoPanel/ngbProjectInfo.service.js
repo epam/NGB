@@ -72,22 +72,27 @@ export default class ngbProjectInfoService {
 
     set currentMode(value) {
         if (value === this.projectInfoModeList.CHR_SUMMARY) {
+            // switch to track view
             this._clearEnvironment();
             this._currentMode = value;
             this.setCurrentName(this.currentMode);
             return;
         }
         if (this.projectContext.currentChromosome) {
+            // switch from track view
             this.projectContext.changeState({chromosome: null});
         }
         if ((value === this.projectInfoModeList.DESCRIPTION && !this.descriptionAvailable)
             || (value === this.projectInfoModeList.SUMMARY && !this.summaryAvailable)) {
+            // prevent switching to non existing state
             return;
         }
         if (value === this.currentMode && !this._isCancel) {
+            // prevent previous state rewriting
             return;
         }
         if (this._hasChanges()) {
+            // prevent from losing changes in edit or create modes
             const alert = this.$mdDialog.alert()
                 .title('There is an unsaved changes.')
                 .textContent('Save it or cancel editing.')
@@ -189,6 +194,7 @@ export default class ngbProjectInfoService {
             }
         };
         if (projects.length === 1 && this.currentProject.id !== projects[0].id) {
+            // project list had been changed. One project has been selected
             clearURLObject();
             this.currentProject = projects[0];
             this._newNote = {
@@ -219,6 +225,7 @@ export default class ngbProjectInfoService {
                 this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
             });
         } else if (projects.length !== 1) {
+            // project list had been changed. More than one project have been selected
             this.currentProject = {};
             this._newNote = {};
             this._descriptionIsLoading = false;
@@ -229,6 +236,12 @@ export default class ngbProjectInfoService {
             }
             clearURLObject();
             this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
+        } else {
+            // project list had not been changed. Current project params have changed.
+            if (!this.projectContext.currentChromosome && this.currentMode === this.projectInfoModeList.CHR_SUMMARY) {
+                this._isCancel = true;
+                this.currentMode = this.defaultMode;
+            }
         }
     }
 
