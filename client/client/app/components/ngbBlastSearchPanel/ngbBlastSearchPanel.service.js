@@ -48,6 +48,7 @@ export default class ngbBlastSearchService {
     _isEmptyResults = true;
     _cutCurrentResult = null;
     _currentAlignmentObject = {};
+    _isRepeat = false;
 
     get totalPagesCountHistory() {
         return this._totalPagesCountHistory;
@@ -191,7 +192,7 @@ export default class ngbBlastSearchService {
                     error: e.message
                 };
             }
-        } else if (!blastpSupportedTypes.includes(featureType)){
+        } else if (!blastpSupportedTypes.includes(featureType)) {
             return {
                 error: wrongFeatureTypeMessage
             };
@@ -257,6 +258,14 @@ export default class ngbBlastSearchService {
         return this._cutCurrentResult;
     }
 
+    get isRepeat() {
+        return this._isRepeat;
+    }
+
+    set isRepeat(value) {
+        this._isRepeat = value;
+    }
+
     async getCurrentSearch() {
         let data = {};
         let error;
@@ -311,9 +320,9 @@ export default class ngbBlastSearchService {
         return data;
     }
 
-    createSearchRequest(searchRequest) {
+    createSearchRequest(searchRequest, additionalParams) {
         searchRequest.organismsArray = searchRequest.organisms ? searchRequest.organisms.map(o => o.taxid) : [];
-        return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest)).then(data => {
+        return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest, additionalParams)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
                 localStorage.removeItem('blastSearchRequest');
@@ -370,36 +379,87 @@ export default class ngbBlastSearchService {
             result.organisms = search.organisms ? search.organisms.map(oId => ({taxid: oId.taxId, scientificname: oId.scientificName})) : [];
             result.isExcluded = false;
         }
-        if (search.parameters) {
-            result.maxTargetSeqs = search.parameters.max_target_seqs;
-            result.threshold = search.parameters.evalue;
+        if (result.options) {
+            result.parameters = this._parseSearchOptions(result.options);
         }
         return result;
     }
 
-    _formatClientToServer(search) {
+    _formatClientToServer(search, additionalParams) {
         const result = {
             title: search.title || '',
             algorithm: search.algorithm,
             databaseId: search.db,
             executable: search.tool,
-            query: search.sequence,
-            parameters: {}
+            query: search.sequence
         };
         if (search.isExcluded) {
             result.excludedOrganisms = search.organismsArray || [];
         } else {
             result.organisms = search.organismsArray || [];
         }
-        if (search.maxTargetSeqs) {
-            result.parameters.max_target_seqs = search.maxTargetSeqs;
-        }
-        if (search.threshold) {
-            result.parameters.evalue = search.threshold;
-        }
+        let options = this.stringifySearchOptions(additionalParams);
         if (search.options) {
-            result.options = search.options;
+            options = `${search.options.trim()} ${options}`;
         }
+        if (options) {
+            result.options = options.trim();
+        }
+        return result;
+    }
+
+    _parseSearchOptions(options) {
+        const isKey = item => /^-.*[^\d.]+/.test(item);
+        const params = {};
+        const regex = /([^"\s]+)|"(?:\\"|[^"])+"/g;
+        const splitString = options.match(regex).map(p => p.trim());
+        for (let index = 0; index < splitString.length; index++) {
+            if (isKey(splitString[index])) {
+                if (!splitString[index + 1] || isKey(splitString[index + 1])) {
+                    params[splitString[index].substring(1)] = 'true';
+                } else {
+                    params[splitString[index].substring(1)] = splitString[index + 1].replace(/^"|"$/g, '');
+                    index++;
+                }
+            }
+        }
+        return params;
+    }
+
+    stringifySearchOptions(options) {
+        let result = '';
+        Object.keys(options || {}).forEach(key => {
+            if (options[key].value === null || options[key].value === undefined || options[key].value === '') {
+                return;
+            }
+            let value;
+            switch (true) {
+                case options[key].isNumber: {
+                    result += `-${key} ${options[key].value} `;
+                    break;
+                }
+                case options[key].isBoolean: {
+                    value = options[key].value ? 'true' : 'false';
+                    result += `-${key} ${value} `;
+                    break;
+                }
+                case options[key].isFlag: {
+                    if (options[key].value) {
+                        result += `-${key} `;
+                    }
+                    break;
+                }
+                default: {
+                    value = options[key].value || '';
+                    value = value.replace(/^'|'$/g, '"');
+                    const end = value[value.length - 1] === '"' ? value.length - 1 : value.length,
+                        start = value[0] === '"' ? 1 : 0;
+                    // escaping quotes inside string
+                    value = `"${value.substring(start, end).replace(/\\([\s\S])|(")/, '\\$1$2')}"`;
+                    result += `-${key} ${value} `;
+                }
+            }
+        });
         return result;
     }
 }

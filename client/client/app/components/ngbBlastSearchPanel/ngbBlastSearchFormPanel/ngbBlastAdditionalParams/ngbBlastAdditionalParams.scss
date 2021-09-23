@@ -1,0 +1,31 @@
+ngb-blast-additional-params {
+  .form-alert {
+    width: 100%;
+    color: #da2c2c;
+    font-size: 10px;
+    margin: 0 0 10px;
+    text-align: left;
+    display: block;
+  }
+
+  .form-input {
+    font-size: 14px;
+    margin: 5px 0 10px;
+    width: 100%;
+    .md-errors-spacer {
+      min-height: 0;
+    }
+  }
+
+  .form-checkbox {
+    margin-top: 0;
+    span {
+      line-height: 20px;
+      color: rgba(0,0,0,0.54);
+    }
+  }
+
+  .form-input-label {
+    padding-bottom: 2px;
+  }
+}

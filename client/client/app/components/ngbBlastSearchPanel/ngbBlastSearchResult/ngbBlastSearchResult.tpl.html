@@ -18,7 +18,8 @@
     </div>
     <div class="expandable-panel" layout="column" ng-if="!$ctrl.isProgressShown">
         <div class="blast-search-result-params">
-            <div class="expandable-panel-title" ng-class="{'toggled': toggle}" ng-click="toggle = !toggle" layout="column" flex="50">
+            <div class="expandable-panel-title" flex="50" layout="column"
+                 ng-class="{'toggled': toggle}" ng-click="toggle = !toggle">
                 <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
                 <span>BLAST parameters</span>
             </div>
@@ -75,32 +76,33 @@
                         </span>
             </div>
             <div class="expandable-panel" layout="column">
-                <div class="expandable-panel-title" ng-class="{'toggled': toggle2}" ng-click="toggle2 = !toggle2" layout="column">
+                <div class="expandable-panel-title" layout="column" ng-class="{'toggled': toggle2}"
+                     ng-click="toggle2 = !toggle2">
                     <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
                     <span>Additional parameters</span>
                 </div>
                 <div class="expandable-panel-content" ng-show="toggle2" layout="column">
-                    <div layout="row">
+                    <div layout="row" ng-repeat="part in $ctrl.paramsPartitions">
                         <div layout="column" flex="50">
                             <div layout="row" class="field additional">
-                                <span class="field-name">Max target sequences:</span>
-                                <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs | na}}
-                            <md-tooltip>{{$ctrl.searchResult.maxTargetSeqs}}</md-tooltip>
-                        </span>
+                                <span class="field-name">{{$ctrl.defaultParams.options[part[0].key].name}}:</span>
+                                <span class="field-value">{{part[0].value | na}}
+                                    <md-tooltip>{{part[0].value}}</md-tooltip>
+                                </span>
                             </div>
                         </div>
-                        <div layout="column" flex="50">
+                        <div flex="50" layout="column" ng-if="part[1]">
                             <div layout="row" class="field additional">
-                                <span class="field-name">Expect threshold:</span>
-                                <span class="field-value">{{$ctrl.searchResult.threshold | na}}
-                            <md-tooltip>{{$ctrl.searchResult.threshold}}</md-tooltip>
-                        </span>
+                                <span class="field-name">{{$ctrl.defaultParams.options[part[1].key].name}}:</span>
+                                <span class="field-value">{{part[1].value | na}}
+                                    <md-tooltip>{{part[1].value}}</md-tooltip>
+                                </span>
                             </div>
                         </div>
                     </div>
-                    <div layout="row" class="field additional" ng-if="$ctrl.searchResult.options">
+                    <div class="field additional" layout="row" ng-if="$ctrl.options">
                         <span class="field-name">Options:</span>
-                        <span class="area-value">{{$ctrl.searchResult.options}}</span>
+                        <span class="area-value">{{$ctrl.options}}</span>
                     </div>
                 </div>
             </div>
@@ -108,9 +110,11 @@
     </div>
 
     <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.searchResult.isFailure">
-        <ngb-blast-search-result-table change-state="$ctrl.changeState" layout="column" flex></ngb-blast-search-result-table>
+        <ngb-blast-search-result-table change-state="$ctrl.changeState" flex
+                                       layout="column"></ngb-blast-search-result-table>
     </div>
-    <div ng-if="$ctrl.searchResult.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
+    <div class="variants-load-error-container" layout="column" layout-align="center center"
+         ng-if="$ctrl.searchResult.isFailure">
         <small>Search failed.</small>
         <small>{{$ctrl.searchResult.reason}}</small>
     </div>

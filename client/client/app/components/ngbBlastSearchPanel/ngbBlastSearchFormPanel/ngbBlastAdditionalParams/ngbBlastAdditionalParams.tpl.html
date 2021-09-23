@@ -1,0 +1,18 @@
+<div ng-repeat="(key, field) in $ctrl.additionalParams">
+    <md-input-container class="form-input" ng-if="field.isString">
+        <label class="form-input-label" for="{{key}}">{{field.name}}</label>
+        <input id="{{key}}" name="{{key}}" ng-model="field.value" type="text">
+    </md-input-container>
+    <md-input-container class="form-input" ng-if="field.isNumber">
+        <label class="form-input-label" for="{{key}}">{{field.name}}</label>
+        <input id="{{key}}" max="{{field.maxValue}}" min="{{field.minValue}}" name="{{key}}"
+               ng-model="field.value" type="number">
+        <div class="form-alert" ng-messages="$ctrl.formObj[key].$error" role="alert">
+            <div ng-message="min">{{field.name}} should be equal or more than {{field.minValue}}</div>
+            <div ng-message="max">{{field.name}} should be equal or less than {{field.maxValue}}</div>
+        </div>
+    </md-input-container>
+    <md-input-container class="form-input" ng-if="field.isBoolean || field.isFlag">
+        <md-checkbox class="form-checkbox" ng-model="field.value">{{field.name}}</md-checkbox>
+    </md-input-container>
+</div>

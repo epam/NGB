@@ -119,14 +119,7 @@
                 <span>Additional parameters</span>
             </div>
             <div class="expandable-panel-content" ng-show="toggle" layout="column">
-                <md-input-container class="blast-search-input">
-                    <label for="max_seq" class="blast-search-input-label">Max target sequences</label>
-                    <input type="text" id="max_seq" name="max_seq" ng-model="$ctrl.searchRequest.maxTargetSeqs">
-                </md-input-container>
-                <md-input-container class="blast-search-input">
-                    <label for="threshold" class="blast-search-input-label">Expect threshold</label>
-                    <input type="text" id="threshold" name="threshold" ng-model="$ctrl.searchRequest.threshold">
-                </md-input-container>
+                <ngb-blast-additional-params additional-params="$ctrl.additionalParams" form-obj="blastSearchForm"></ngb-blast-additional-params>
                 <div class="blast-search-info">
                     <md-input-container class="blast-search-input">
                         <label for="options" class="blast-search-input-label">Options</label>

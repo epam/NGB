@@ -30,13 +30,14 @@ export default class ngbBlastSearchPanelController extends baseController {
         'read:show:blast': ::this.onExternalChange
     };
 
-    changeState(state) {
+    changeState(state, isRepeat) {
         if (this.blastStates.hasOwnProperty(state)) {
             this.currentBlastState = this.blastStates[state];
             this.tabSelected = state === this.blastStates.SEARCH
                 ? this.blastStates.SEARCH
                 : this.blastStates.HISTORY;
         }
+        this.ngbBlastSearchService.isRepeat = !!isRepeat;
         this.$timeout(::this.$scope.$apply);
     }
 

@@ -1,5 +1,5 @@
-import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
+import {Debounce} from '../../../shared/utils/debounce';
 
 const ROW_HEIGHT = 35;
 const RESIZE_DELAY = 300;
@@ -233,7 +233,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     onRepeat(entity, event) {
         this.ngbBlastSearchService.currentSearchId = entity.id;
-        this.changeState({state: 'SEARCH'});
+        this.changeState({state: 'SEARCH', isRepeat: true});
         event.stopImmediatePropagation();
         return false;
     }

@@ -42,7 +42,7 @@
         <ngb-blast-search-form change-state="$ctrl.changeState(state)"
                                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.SEARCH"></ngb-blast-search-form>
         <ngb-blast-history class="blast-search-flex-column"
-                           change-state="$ctrl.changeState(state)"
+                           change-state="$ctrl.changeState(state, isRepeat)"
                            ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY" flex></ngb-blast-history>
         <ngb-blast-search-result class="blast-search-flex-column"
                                  change-state="$ctrl.changeState(state)"

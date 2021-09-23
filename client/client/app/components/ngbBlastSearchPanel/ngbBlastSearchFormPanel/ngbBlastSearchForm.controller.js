@@ -1,5 +1,5 @@
-import baseController from '../../../shared/baseController';
 import ngbConstants from '../../../../constants';
+import baseController from '../../../shared/baseController';
 
 export default class ngbBlastSearchFormController extends baseController {
     static get UID() {
@@ -48,6 +48,7 @@ export default class ngbBlastSearchFormController extends baseController {
     algorithmList = [];
     errorMessage = null;
     defaultParams = {};
+    additionalParams = {};
     searchRequest = {
         title: '',
         algorithm: '',
@@ -62,7 +63,7 @@ export default class ngbBlastSearchFormController extends baseController {
 
     events = {
         'read:show:blast': ::this.onExternalChange,
-        'defaultSettings:change': ::this.setDefaultParams
+        'defaultSettings:change': ::this.setAdditionalParams
     };
 
     constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants, projectContext) {
@@ -93,6 +94,8 @@ export default class ngbBlastSearchFormController extends baseController {
     onExternalChange(data) {
         this.ngbBlastSearchService.currentSearchId = null;
         this.ngbBlastSearchService.currentTool = data.tool;
+        this.ngbBlastSearchService.isRepeat = false;
+        this.additionalParams = {};
         this.setSearchRequest();
     }
 
@@ -101,7 +104,7 @@ export default class ngbBlastSearchFormController extends baseController {
         const {request, error} = await this.ngbBlastSearchService.getCurrentSearch();
         this.searchRequest = request;
         this.setDefaultAlgorithms();
-        this.setDefaultParams();
+        this.setAdditionalParams();
         await this.getDBList();
         this.errorMessage = this.errorMessage || error;
         this.$timeout(() => this.isProgressShown = false);
@@ -128,11 +131,30 @@ export default class ngbBlastSearchFormController extends baseController {
         this.getDBList();
     }
 
-    setDefaultParams() {
+    setAdditionalParams() {
         this.defaultParams = this.projectContext.getTrackDefaultSettings('blast_settings') || {};
-        this.searchRequest.maxTargetSeqs = this.searchRequest.maxTargetSeqs || this.defaultParams.max_target_seqs;
-        this.searchRequest.threshold = this.searchRequest.threshold || this.defaultParams.evalue;
-        this.searchRequest.options = this.searchRequest.options || this.defaultParams.options;
+        const defaultParamsKeyList = Object.keys((this.defaultParams || {}).options || {});
+        const currentValues = {};
+        const options = {};
+        Object.keys(this.additionalParams).forEach(key => currentValues[key] = this.additionalParams[key].value);
+        this.additionalParams = {};
+        defaultParamsKeyList.forEach(key => {
+            this.additionalParams[key] = this.preprocessAdditionalParam(
+                this.defaultParams.options[key],
+                currentValues[key],
+                (this.searchRequest.parameters || {})[key],
+                this.ngbBlastSearchService.isRepeat);
+        });
+        if (this.searchRequest) {
+            Object.keys(this.searchRequest.parameters || {}).forEach(key => {
+                if (!defaultParamsKeyList.includes(key)) {
+                    options[key] = {
+                        value: this.searchRequest.parameters[key]
+                    };
+                }
+            });
+            this.searchRequest.options = this.ngbBlastSearchService.stringifySearchOptions(options);
+        }
     }
 
     async getDBList() {
@@ -150,7 +172,7 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     onSearch() {
-        this.ngbBlastSearchService.createSearchRequest(this.searchRequest)
+        this.ngbBlastSearchService.createSearchRequest(this.searchRequest, this.additionalParams)
             .then(data => {
                 if (data.error) {
                     this.errorMessage = data.message;
@@ -160,5 +182,32 @@ export default class ngbBlastSearchFormController extends baseController {
                     this.changeState({state: 'HISTORY'});
                 }
             });
+    }
+
+    preprocessAdditionalParam(param, current, fromSearchRequest, isRepeat) {
+        const nonNumberTypes = ['string', 'boolean', 'flag'];
+        const result = {
+            ...param,
+            isNumber: param.type && !nonNumberTypes.includes(param.type),
+            isBoolean: param.type && param.type === 'boolean',
+            isFlag: param.type && param.type === 'flag',
+            isString: !param.type || param.type === 'string',
+        };
+        const rawValue = current || (isRepeat ? fromSearchRequest : param.defaultValue);
+        switch (true) {
+            case result.isNumber: {
+                result.value = +rawValue;
+                break;
+            }
+            case result.isBoolean:
+            case result.isFlag: {
+                result.value = rawValue === 'true';
+                break;
+            }
+            default: {
+                result.value = rawValue;
+            }
+        }
+        return result;
     }
 }
