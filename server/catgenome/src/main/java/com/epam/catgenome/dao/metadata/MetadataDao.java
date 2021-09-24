@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.metadata.EntityVO;
 import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.entity.security.AclClass;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,6 +37,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -73,6 +75,9 @@ public class MetadataDao extends NamedParameterJdbcDaoSupport {
     }
 
     public List<MetadataVO> getItems(final List<EntityVO> entities) {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
         return getNamedParameterJdbcTemplate().query(
                 convertEntitiesToString(loadMetadataItemsQuery, entities),
                 MetadataParameters.getParametersWithArrays(entities),
