@@ -62,15 +62,25 @@ export default class ngbProjectSummaryController {
         const [dataset] = this.projectContext.datasets.filter(project => project.id === datasetId);
         this.datasetMetadata = dataset ? dataset.metadata : null;
         this.datasetName = dataset? dataset.name : '';
+        this.heatmap = undefined;
         for (const item of items) {
+            if (item.format === 'HEATMAP' && !this.heatmap) {
+                this.heatmap = item;
+            }
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
             const metadata = item.metadata;
             for (const file of files) {
                 if (file.type === item.format) {
-                    if (!file.names.some((nameObj) => nameObj.name === name)) {
-                        file.names.push({customName, name, metadata});
+                    if (!file.names.some((nameObj) => nameObj.name === name && nameObj.id === item.id)) {
+                        file.names.push({
+                            customName,
+                            name,
+                            metadata,
+                            id: item.id || item.name,
+                            track: item
+                        });
                     }
                     added = true;
                     break;
@@ -78,7 +88,13 @@ export default class ngbProjectSummaryController {
             }
             if (!added) {
                 files.push({
-                    names: [{customName, name, metadata}],
+                    names: [{
+                        customName,
+                        name,
+                        metadata,
+                        id: item.id || item.name,
+                        track: item
+                    }],
                     type: item.format,
                 });
             }
@@ -99,6 +115,10 @@ export default class ngbProjectSummaryController {
             });
         });
         this.files = files;
+    }
+
+    isHeatmapSelector(file) {
+        return file && file.names && file.names.length > 1 && file.type === 'HEATMAP';
     }
 
     getTrackFileName(track) {

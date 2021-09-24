@@ -117,8 +117,9 @@ export default class ngbGenomeAnnotationsController extends baseController{
             const tracks = this.projectContext.tracks;
             const tracksToRemove = tracks.filter(
               (t) =>
-                t.name.toLowerCase() === file.name.toLowerCase() &&
-                t.format.toLowerCase() === file.format.toLowerCase()
+                  t.name.toLowerCase() === file.name.toLowerCase() &&
+                  t.format.toLowerCase() === file.format.toLowerCase() &&
+                  t.projectId === ''
             );
             tracksToRemove.forEach(track => {
                 const index = tracks.indexOf(track);
@@ -127,8 +128,9 @@ export default class ngbGenomeAnnotationsController extends baseController{
             const tracksState = this.projectContext.tracksState;
             const trackStateToRemove = tracksState.filter(
               (t) =>
-                t.bioDataItemId.toLowerCase() === file.name.toLowerCase() &&
-                t.format.toLowerCase() === file.format.toLowerCase()
+                  t.bioDataItemId.toLowerCase() === file.name.toLowerCase() &&
+                  t.format.toLowerCase() === file.format.toLowerCase() &&
+                  t.projectId === ''
             );
             trackStateToRemove.forEach(trackState => {
                 tracksState.splice(tracksState.indexOf(trackState), 1);

@@ -23,6 +23,13 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     set options(options) {
+        if (this.anotherOptions(options)) {
+            this._options = {...options};
+            setTimeout(this.reloadAll.bind(this), 0);
+        }
+    }
+
+    anotherOptions(options) {
         const {
             id: currentId,
             projectId: currentProjectId
@@ -31,10 +38,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
             id,
             projectId
         } = options || {};
-        if (id !== currentId || projectId !== currentProjectId) {
-            this._options = {...options};
-            setTimeout(this.reloadAll.bind(this), 0);
-        }
+        return id !== currentId || projectId !== currentProjectId;
     }
 
     destroy() {
@@ -93,6 +97,9 @@ export default class HeatmapData extends HeatmapEventDispatcher {
 
     reloadAll() {
         this.clear();
+        this.fetchMetadataPromise = undefined;
+        this.fetchTreePromise = undefined;
+        this.fetchPromise = undefined;
         return new Promise((resolve) => {
             Promise.all([
                 this.fetchTree(),
@@ -128,7 +135,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                         );
                         this.metadataReady = true;
                         this.metadataError = undefined;
-                        this.emit(events.data.metadata, this.metadata);
+                        this.emit(events.data.metadata);
                     })
                     .catch(e => {
                         this.metadataReady = false;
@@ -220,6 +227,8 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                     })
                     .catch(e => {
                         this.dataError = e.message;
+                        // eslint-disable-next-line no-console
+                        console.warn(`Error fetching data: ${e.message}`);
                         this.dataReady = false;
                     })
                     .then(() => resolve(!this.dataError));

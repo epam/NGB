@@ -62,7 +62,7 @@ class HeatmapDataRenderer extends InteractiveZone {
          * If the data was processed
          * @type {boolean}
          */
-        this.dataProcessed = true;
+        this.dataProcessed = false;
         this.dataLoadedListener = this.rebuild.bind(this);
         this.colorSchemeChangedListener = this.colorSchemeChanged.bind(this);
         this.data.onDataLoaded(this.dataLoadedListener);
@@ -77,6 +77,7 @@ class HeatmapDataRenderer extends InteractiveZone {
     }
 
     destroy() {
+        this.destroyed = true;
         this.hoveredRenderer.destroy();
         if (this.data) {
             this.data.removeEventListeners(this.dataLoadedListener);
@@ -101,6 +102,9 @@ class HeatmapDataRenderer extends InteractiveZone {
             : Promise.resolve();
         cancelPrevious
             .then(() => {
+                if (this.destroyed) {
+                    return;
+                }
                 const previousMode = this.mode;
                 this.mode = renderer && renderer.type === PIXI_WEB_GL_RENDERER_TYPE
                     ? HeatmapDataRenderer.RenderMode.webGl

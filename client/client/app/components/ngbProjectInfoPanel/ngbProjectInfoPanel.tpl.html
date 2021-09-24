@@ -13,11 +13,11 @@
         <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
         <div class="u-column-padding u-padding_t-0" flex layout="row"
              ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
-            <div class="selected-files-summary" flex="100" ng-hide="$ctrl.containsVcfFiles">
-                <ngb-project-summary flex></ngb-project-summary>
+            <div class="selected-files-summary" flex="100" ng-if="!$ctrl.containsVcfFiles">
+                <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
             </div>
-            <div flex="50" ng-show="$ctrl.containsVcfFiles">
-                <ngb-project-summary flex></ngb-project-summary>
+            <div flex="50" ng-if="$ctrl.containsVcfFiles">
+                <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
             </div>
             <div flex="50" ng-show="$ctrl.containsVcfFiles">
                 <div class="u-height__50 u-padding_b-sm" flex layout="row">
@@ -32,6 +32,11 @@
                 </div>
             </div>
         </div>
+        <ngb-heatmap class="ngb-heatmap"
+                     ng-if="$ctrl.heatmap"
+                     project-id="$ctrl.heatmapProjectId"
+                     id="$ctrl.heatmapId">
+        </ngb-heatmap>
     </div>
     <div class="project-note-container" ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
         <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>

@@ -1,6 +1,6 @@
 import {CachedTrack} from '../../core/track';
 import HeatmapConfig from './config';
-import HeatmapView from '../../heatmap';
+import {HeatmapView} from '../../heatmap';
 import Menu from '../../core/menu';
 import heatmapMenu from './menu';
 

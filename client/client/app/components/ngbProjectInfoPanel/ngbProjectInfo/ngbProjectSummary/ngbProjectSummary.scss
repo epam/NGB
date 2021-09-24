@@ -48,3 +48,13 @@ ngb-project-summary {
   border: 1px solid #e0e0e0;
   font-weight: normal;
 }
+
+.heatmap-selector {
+  margin: 2px;
+  .md-label {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 150px;
+  }
+}

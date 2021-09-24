@@ -1530,23 +1530,32 @@ export default class projectContext {
                     if (!shouldAddAnnotationTracks) {
                         annotationFile.selected = false;
                     }
+                    const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
                     this._tracks = this._tracks.map(t => {
-                        if (t.format === annotationFile.format && t.name.toLowerCase() === annotationFile.name.toLowerCase()) {
+                        if (
+                            t.format === annotationFile.format &&
+                            t.name.toLowerCase() === annotationFile.name.toLowerCase()
+                        ) {
                             annotationFile.projectId = '';
                             annotationFile.isLocal = true;
-                            if (!shouldAddAnnotationTracks) {
+                            if (
+                                !shouldAddAnnotationTracks &&
+                                (t.projectId || '').toLowerCase() === ''
+                            ) {
                                 annotationFile.selected = true;
                             }
-                            const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
-                            if (savedState) {
-                                return Object.assign(
-                                    {instance: t.instance},
-                                    savedState,
-                                    annotationFile,
-                                    {duplicateId: t.duplicateId}
-                                );
-                            }
-                            return {...annotationFile, instance: t.instance, duplicateId: t.duplicateId};
+                            return Object.assign(
+                                {instance: t.instance},
+                                {...(savedState || {})},
+                                annotationFile,
+                                {
+                                    duplicateId: t.duplicateId,
+                                    projectId: t.projectId,
+                                    project: t.project,
+                                    projectIdNumber: t.projectIdNumber,
+                                    isLocal: t.isLocal
+                                }
+                            );
                         }
                         return t;
                     });

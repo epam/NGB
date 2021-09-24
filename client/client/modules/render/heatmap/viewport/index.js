@@ -27,6 +27,7 @@ const ZeroViewportPoint = {column: 0, row: 0};
  * @property {number} [rows = 0] - number of rows
  * @property {number} [deviceWidth = 0] - device width (pixels)
  * @property {number} [deviceHeight = 0] - device height (pixels)
+ * @property {boolean} [fit=false] - fit viewport
  */
 
 export default class HeatmapViewport extends HeatmapEventDispatcher {
@@ -198,7 +199,8 @@ export default class HeatmapViewport extends HeatmapEventDispatcher {
             columns = this.columns.size,
             rows = this.rows.size,
             deviceWidth = this.deviceWidth,
-            deviceHeight = this.deviceHeight
+            deviceHeight = this.deviceHeight,
+            fit = false
         } = options;
         const changed = columns !== this.columns.size ||
             rows !== this.rows.size ||
@@ -206,7 +208,7 @@ export default class HeatmapViewport extends HeatmapEventDispatcher {
             deviceHeight !== this.deviceHeight;
         this.columns.initialize({size: columns, deviceSize: deviceWidth});
         this.rows.initialize({size: rows, deviceSize: deviceHeight});
-        if (changed) {
+        if (changed || fit) {
             this.fit(false);
         }
     }
