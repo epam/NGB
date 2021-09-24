@@ -24,13 +24,14 @@
  *
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset.note;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.ProjectNote;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
