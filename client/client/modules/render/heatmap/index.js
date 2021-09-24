@@ -33,6 +33,15 @@ class Heatmap {
         angular.element(window).on('resize', this.onResize);
         this.heatmapView = new HeatmapView({dispatcher});
         this.refreshRenderer(true);
+        this.ensureContainerSize();
+    }
+
+    ensureContainerSize() {
+        if (this.container && this.container.clientWidth > 0) {
+            this.refreshRenderer();
+        } else {
+            this.cancelEnsureSizeFrame = requestAnimationFrame(this.ensureContainerSize.bind(this));
+        }
     }
 
     /**
@@ -94,6 +103,7 @@ class Heatmap {
     }
 
     destroy() {
+        cancelAnimationFrame(this.cancelEnsureSizeFrame);
         this.destroyPixiRenderer();
         if (this.container) {
             this.container = undefined;
