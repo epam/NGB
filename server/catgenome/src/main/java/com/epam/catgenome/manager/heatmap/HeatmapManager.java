@@ -144,6 +144,10 @@ public class HeatmapManager {
         return heatmapDao.loadHeatmap(heatmapId);
     }
 
+    public List<Heatmap> loadHeatmaps() {
+        return heatmapDao.loadHeatmaps();
+    }
+
     public List<List<Map<?, String>>> getContent(long heatmapId) throws IOException {
         Heatmap heatmap = getHeatmap(heatmapId);
         try (InputStream heatmapIS = heatmapDao.loadHeatmapContent(heatmapId);

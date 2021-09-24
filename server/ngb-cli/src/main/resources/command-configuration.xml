@@ -215,4 +215,29 @@
         <type>DELETE</type>
         <url>/restapi/project/%d/description</url>
     </remove_description>
+    <reg_heatmap>
+        <name>reg_heatmap</name>
+        <type>POST</type>
+        <url>/restapi/heatmap</url>
+    </reg_heatmap>
+    <del_heatmap>
+        <name>del_heatmap</name>
+        <type>DELETE</type>
+        <url>/restapi/heatmap/%d</url>
+    </del_heatmap>
+    <list_heatmaps>
+        <name>list_heatmaps</name>
+        <type>GET</type>
+        <url>/restapi/heatmaps</url>
+    </list_heatmaps>
+    <upd_label_annotation>
+        <name>upd_label_annotation</name>
+        <type>PUT</type>
+        <url>/restapi/heatmap/%d/annotation</url>
+    </upd_label_annotation>
+    <upd_cell_annotation>
+        <name>upd_cell_annotation</name>
+        <type>PUT</type>
+        <url>/restapi/heatmap/%d/cell/annotation</url>
+    </upd_cell_annotation>
 </config>

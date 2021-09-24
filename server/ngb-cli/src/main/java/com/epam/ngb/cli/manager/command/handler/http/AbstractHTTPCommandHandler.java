@@ -330,13 +330,12 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    protected BiologicalDataItem loadReference(String strId) {
+    protected Long loadItemId(String strId) {
         if (NumberUtils.isDigits(strId)) {
-            return loadFileByBioID(strId);
+            return Long.parseLong(strId);
         } else {
             List<BiologicalDataItem> items = loadItemsByName(strId);
-            checkLoadedItems(strId, items);
-            return items.get(0);
+            return items.get(0).getId();
         }
     }
 

@@ -69,6 +69,18 @@ public class HeatmapController extends AbstractRESTController {
         return Result.success(heatmapSecurityService.loadHeatmap(heatmapId, projectId));
     }
 
+    @GetMapping(value = "/heatmaps")
+    @ApiOperation(
+            value = "Returns all heatmaps",
+            notes = "Returns all heatmaps",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Heatmap>> loadHeatmaps() {
+        return Result.success(heatmapSecurityService.loadHeatmaps());
+    }
+
     @GetMapping(value = "/heatmap/{heatmapId}/content")
     @ApiOperation(
             value = "Returns heatmap content",

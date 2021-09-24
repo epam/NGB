@@ -66,6 +66,7 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     private String insertHeatmapQuery;
     private String deleteHeatmapQuery;
     private String loadHeatmapQuery;
+    private String loadHeatmapsQuery;
     private String updateHeatmapContentQuery;
     private String loadHeatmapContentQuery;
     private String updateCellAnnotationQuery;
@@ -110,11 +111,19 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     /**
      * Loads {@code Heatmap} from a database by id.
      * @param heatmapId {@code long} query parameters
-     * @return a {@code List<Heatmap>} from the database
+     * @return a {@code Heatmap} from the database
      */
     public Heatmap loadHeatmap(final long heatmapId) {
         List<Heatmap> heatmaps = getJdbcTemplate().query(loadHeatmapQuery, HeatmapParameters.getRowMapper(), heatmapId);
         return heatmaps.isEmpty() ? null : heatmaps.get(0);
+    }
+
+    /**
+     * Loads {@code Heatmaps} from a database.
+     * @return a {@code List<Heatmap>} from the database
+     */
+    public List<Heatmap> loadHeatmaps() {
+        return getJdbcTemplate().query(loadHeatmapsQuery, HeatmapParameters.getRowMapper());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
