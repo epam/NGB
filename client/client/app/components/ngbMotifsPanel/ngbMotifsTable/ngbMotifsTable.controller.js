@@ -199,10 +199,11 @@ export default class ngbMotifsTableController  extends baseController {
                             }
                         }
                         this.gridApi.saveState.restore(this.$scope, state);
-                        this.$timeout(() => this.$scope.$apply());
                     });
             }
+            this.$timeout(() => this.$scope.$apply());
         } else {
+            this.backToParamsTable();
             return this.$timeout(() => this.$scope.$apply());
         }
     }
