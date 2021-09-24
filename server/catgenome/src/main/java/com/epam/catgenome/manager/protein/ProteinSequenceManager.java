@@ -112,7 +112,7 @@ public class ProteinSequenceManager {
         Chromosome chromosome = trackHelper.validateTrack(geneTrack);
 
         Map<Gene, List<ProteinSequenceEntry>> proteinSequences = psReconstructionManager
-                .reconstructProteinSequence(geneTrackManager.loadGenesFromIndex(geneTrack, false),
+                .reconstructProteinSequence(geneTrackManager.loadGenes(geneTrack, false),
                         chromosome, referenceId, false, true);
 
         Track<ProteinSequenceInfo> track = new Track<>(geneTrack);
@@ -179,8 +179,7 @@ public class ProteinSequenceManager {
         TrackQuery trackQuery = psVariationQuery.getTrackQuery();
         Track<ProteinSequence> track = Query2TrackConverter.convertToTrack(trackQuery);
         Chromosome chromosome = trackHelper.validateTrack(track);
-        Track<Gene> geneTrack = geneTrackManager.loadGenesFromIndex(Query2TrackConverter.convertToTrack(trackQuery),
-                false);
+        Track<Gene> geneTrack = geneTrackManager.loadGenes(Query2TrackConverter.convertToTrack(trackQuery), false);
 
         // Check if variations changes CDS.
         Map<Gene, List<Gene>> mrnaToCdsMap = psReconstructionManager.loadCds(geneTrack, chromosome, false);
@@ -226,7 +225,7 @@ public class ProteinSequenceManager {
     @Transactional
     public ProteinSequence loadProteinSequence(final ProteinSequenceConstructRequest request) {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(request.getTrackQuery());
-        final Track<Gene> genes = geneTrackManager.loadGenesFromIndex(geneTrack, false);
+        final Track<Gene> genes = geneTrackManager.loadGenes(geneTrack, false);
 
         final Optional<Gene> geneToTranslate = Optional.ofNullable(
                 lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType())

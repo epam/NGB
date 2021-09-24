@@ -415,15 +415,24 @@ public class FeatureIndexManager {
         return res;
     }
 
-    public List<GeneIndexEntry> getFullGeneSearchResult(final GeneFilterForm filterForm,
-                                                        final GeneFile geneFile) throws IOException {
-        final Sort sort = Optional.ofNullable(
-                featureIndexDao.createGeneSorting(filterForm.getOrderBy(), Collections.singletonList(geneFile)))
-                .orElseGet(filterForm::defaultSort);
-        final Long chrId = ListUtils.emptyIfNull(filterForm.getChromosomeIds()).stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Chromosome ID must be specified"));
-        return featureIndexDao.searchGeneFeaturesFully(geneFile, chrId.toString(), filterForm, sort);
+    public IndexSearchResult<GeneIndexEntry> getFullGeneSearchResult(final GeneFilterForm filterForm,
+                                                                     final GeneFile geneFile) {
+        try {
+            filterForm.setPageSize(maxFeatureSearchResultsCount);
+            final Sort sort = Optional.ofNullable(
+                    featureIndexDao.createGeneSorting(filterForm.getOrderBy(), Collections.singletonList(geneFile)))
+                    .orElseGet(filterForm::defaultSort);
+            final Long chrId = ListUtils.emptyIfNull(filterForm.getChromosomeIds()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Chromosome ID must be specified"));
+            final IndexSearchResult<GeneIndexEntry> result = featureIndexDao
+                    .searchGeneFeaturesFully(geneFile, chrId.toString(), filterForm, sort);
+            result.setTotalPagesCount((int) Math.ceil(result.getTotalResultsCount()
+                    / filterForm.getPageSize().doubleValue()));
+            return result;
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**

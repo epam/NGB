@@ -46,6 +46,7 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.InfoItem;
+import com.epam.catgenome.entity.vcf.Pointer;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
@@ -120,7 +121,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -276,7 +276,7 @@ public class FeatureIndexDao {
                                                                final List<? extends FeatureFile> featureFiles,
                                                                final Integer maxResultsCount) throws IOException {
         if (featureId == null || featureId.length() < 2) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
 
@@ -312,13 +312,13 @@ public class FeatureIndexDao {
                 files.stream().filter(f -> fileManager.indexForFeatureFileExists(f))
                         .collect(Collectors.toList());
         if (indexedFiles.isEmpty()) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
 
             final Query query = IndexQueryUtils.intervalQuery(chromosome.getId().toString(), start, end, Arrays.asList(
@@ -390,7 +390,7 @@ public class FeatureIndexDao {
             IndexReader reader = DirectoryReader.open(index)
         ) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
 
             IndexSearcher searcher = new IndexSearcher(reader);
@@ -412,7 +412,7 @@ public class FeatureIndexDao {
             setBookmarks(foundBookmarkEntries);
         } catch (IOException e) {
             LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
-            return new IndexSearchResult(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
 
         return new IndexSearchResult(new ArrayList<>(entryMap.values()), maxResultsCount != null &&
@@ -502,7 +502,7 @@ public class FeatureIndexDao {
                                                                                 Integer maxResultsCount, Sort sort)
         throws IOException {
         if (CollectionUtils.isEmpty(files)) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
 
         Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
@@ -511,7 +511,7 @@ public class FeatureIndexDao {
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
 
             IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
@@ -1051,29 +1051,33 @@ public class FeatureIndexDao {
      * @param sort the sort for result
      * @return found genes
      */
-    public List<GeneIndexEntry> searchGeneFeaturesFully(final GeneFile featureFile, final String chrId,
-                                                        final GeneFilterForm filterForm, final Sort sort)
+    public IndexSearchResult<GeneIndexEntry> searchGeneFeaturesFully(final GeneFile featureFile, final String chrId,
+                                                                     final GeneFilterForm filterForm, final Sort sort)
             throws IOException {
         final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
-                return Collections.emptyList();
+                return IndexSearchResult.empty();
             }
 
             final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
 
-            final int numDocs = reader.numDocs();
-
-            final TopDocs docs = performIntervalSearch(chrId, filterForm, sort, reader, searcher, numDocs);
+            final TopDocs docs = performIntervalSearch(chrId, filterForm, sort, reader, searcher);
             if (Objects.isNull(docs) || ArrayUtils.isEmpty(docs.scoreDocs)) {
-                return Collections.emptyList();
+                return IndexSearchResult.empty();
             }
 
-            return Arrays.stream(docs.scoreDocs)
+            final ScoreDoc[] hits = docs.scoreDocs;
+            final int totalHits = docs.totalHits;
+            final List<GeneIndexEntry> values = Arrays.stream(hits)
                     .map(hit -> searchDocument(searcher, hit))
                     .map(document -> buildGeneIndexEntry(documentCreator, document))
                     .collect(Collectors.toList());
+
+            final ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
+            filterForm.setPointer(Pointer.fromScoreDoc(lastEntry));
+            return new IndexSearchResult<>(values, false, totalHits, lastEntry);
         } finally {
             for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
@@ -1206,11 +1210,15 @@ public class FeatureIndexDao {
     }
 
     private TopDocs performIntervalSearch(final String chrId, final GeneFilterForm filterForm,
-                                          final Sort sort, final MultiReader reader, final IndexSearcher searcher,
-                                          final int numDocs) throws IOException {
-        Query query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+                                          final Sort sort, final MultiReader reader, final IndexSearcher searcher)
+            throws IOException {
+        final Query queryWithFeatureTypeFilter = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
                 filterForm.getEndIndex(), filterForm.getFeatureTypes());
-        TopDocs docs = performSearch(searcher, query, reader, numDocs, sort);
+        final Pointer pointer = filterForm.getPointer();
+        final Integer numDocs = filterForm.getPageSize();
+        final TopDocs docs = Objects.isNull(pointer)
+                ? performSearch(searcher, queryWithFeatureTypeFilter, reader, numDocs, sort)
+                : performSearchAfter(searcher, queryWithFeatureTypeFilter, pointer.toScoreDoc(), numDocs, sort);
 
         if (Objects.isNull(docs)) {
             return null;
@@ -1218,10 +1226,20 @@ public class FeatureIndexDao {
 
         // if search by specific feature type is empty let's try to find any features
         if (docs.totalHits == 0 && CollectionUtils.isNotEmpty(filterForm.getFeatureTypes())) {
-            query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+            final Query queryWithoutFeatureTypeFilter = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
                     filterForm.getEndIndex(), null);
-            docs = performSearch(searcher, query, reader, numDocs, sort);
+            return Objects.isNull(pointer)
+                    ? performSearch(searcher, queryWithoutFeatureTypeFilter, reader, numDocs, sort)
+                    : performSearchAfter(searcher, queryWithoutFeatureTypeFilter, pointer.toScoreDoc(), numDocs, sort);
         }
         return docs;
+    }
+
+    private TopDocs performSearchAfter(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,
+                                       final Integer pageSize, final Sort sort) throws IOException {
+        final Query constantQuery = new ConstantScoreQuery(query);
+        return Objects.isNull(sort)
+                ? searcher.searchAfter(pointer, constantQuery, pageSize)
+                : searcher.searchAfter(pointer, constantQuery, pageSize, sort, false, false);
     }
 }

@@ -51,6 +51,7 @@ public class GeneLowLevel extends Block {
     private Long aminoacidLength;
     private Boolean mapped;
     private boolean canonical;
+    private String uid;
 
     public GeneLowLevel() {
         // no-op
@@ -63,6 +64,7 @@ public class GeneLowLevel extends Block {
         feature = geneFeature.getFeature();
         strand = geneFeature.getStrand();
         attributes = geneFeature.getAttributes();
+        uid = geneFeature.getUid();
     }
 
     public GeneLowLevel(final GeneHighLevel geneHighLevel) {
@@ -73,6 +75,7 @@ public class GeneLowLevel extends Block {
         strand = geneHighLevel.getStrand();
         attributes = geneHighLevel.getAttributes();
         mapped = geneHighLevel.getMapped();
+        uid = geneHighLevel.getUid();
     }
 
     public GeneLowLevel(final Gene gene) {
@@ -86,6 +89,7 @@ public class GeneLowLevel extends Block {
         aminoacidLength = gene.getAminoacidLength();
         mapped = gene.isMapped();
         canonical = gene.isCanonical();
+        uid = gene.getUid();
     }
 
     public String getFeature() {
@@ -158,5 +162,13 @@ public class GeneLowLevel extends Block {
 
     public void setCanonical(boolean canonical) {
         this.canonical = canonical;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

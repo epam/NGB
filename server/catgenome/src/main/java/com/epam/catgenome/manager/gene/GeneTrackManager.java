@@ -44,9 +44,9 @@ import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.util.Utils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -61,7 +61,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class GeneTrackManager {
     private static final String PROTEIN_CODING = "protein_coding";
@@ -73,9 +72,53 @@ public class GeneTrackManager {
     private final FeatureIndexManager featureIndexManager;
     private final EnsemblDataManager ensemblDataManager;
     private final UniprotDataManager uniprotDataManager;
+    private final boolean loadFromIndex;
+
+    public GeneTrackManager(final TrackHelper trackHelper, final GeneFileManager geneFileManager,
+                            final FileManager fileManager, final TaskExecutorService taskExecutorService,
+                            final FeatureIndexManager featureIndexManager,
+                            final EnsemblDataManager ensemblDataManager, final UniprotDataManager uniprotDataManager,
+                            @Value("${gene.track.index.load.enable:false}") final boolean loadFromIndex) {
+        this.trackHelper = trackHelper;
+        this.geneFileManager = geneFileManager;
+        this.fileManager = fileManager;
+        this.taskExecutorService = taskExecutorService;
+        this.featureIndexManager = featureIndexManager;
+        this.ensemblDataManager = ensemblDataManager;
+        this.uniprotDataManager = uniprotDataManager;
+        this.loadFromIndex = loadFromIndex;
+    }
 
     /**
-     * Loads gene track for registered file
+     * Loads gene track
+     *
+     * @param track {@code Track} a track, to load genes for
+     * @param collapsed {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
+     *                                collapsed
+     * @return {@code Track} a track, filled with {@code Gene} blocks
+     */
+    public Track<Gene> loadGenes(final Track<Gene> track, boolean collapsed)
+            throws GeneReadingException {
+        return loadFromIndex ? loadGenesFromIndex(track, collapsed) : loadGenesFromFile(track, collapsed);
+    }
+
+    /**
+     * Loads gene track for registered file from original file
+     *
+     * @param track {@code Track} a track, to load genes for
+     * @param collapse {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
+     *                                collapsed
+     * @return {@code Track} a track, filled with {@code Gene} blocks
+     */
+    public Track<Gene> loadGenesFromFile(final Track<Gene> track, boolean collapse) throws GeneReadingException {
+        final Chromosome chromosome = trackHelper.validateTrack(track);
+        final GeneFile geneFile = geneFileManager.load(track.getId());
+
+        return loadGenes(track, geneFile, chromosome, collapse);
+    }
+
+    /**
+     * Loads gene track for registered file from lucene index file
      *
      * @param track {@code Track} a track, to load genes for
      * @param collapsed {@code boolean} flag, that determines if multiple transcript blocks in a gene block should be
@@ -140,7 +183,7 @@ public class GeneTrackManager {
         }
 
         final List<Gene> notSyncGenes;
-        if (Objects.nonNull(geneFile.getId())) {
+        if (Objects.nonNull(geneFile.getId()) && loadFromIndex) {
             final AbstractGeneReader geneReader = AbstractGeneReader.createGeneReader(
                     taskExecutorService.getExecutorService(), fileManager, geneFile, featureIndexManager);
             notSyncGenes = geneReader.readGenesFromIndex(track, chromosome, collapsed,
@@ -167,7 +210,7 @@ public class GeneTrackManager {
                                                      String fileUrl, String indexUrl) throws GeneReadingException {
         final Track<Gene> geneTrack;
         if (fileUrl == null) {
-            geneTrack = loadGenesFromIndex(track, false);
+            geneTrack = loadGenes(track, false);
         } else {
             geneTrack = loadGenes(track, false, fileUrl, indexUrl);
         }

@@ -92,7 +92,7 @@ public class GeneSecurityService {
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<Gene> loadGenes(final Track<Gene> track, final boolean collapsed) throws GeneReadingException {
-        return geneTrackManager.loadGenesFromIndex(track, collapsed);
+        return geneTrackManager.loadGenes(track, collapsed);
     }
 
     @PreAuthorize(ROLE_USER)

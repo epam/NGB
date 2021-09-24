@@ -71,6 +71,7 @@ public class GffFeature implements GeneFeature {
      * Note that editing this field may be managed only through {@link GffFeature#setGroupId(String)}
      */
     private String groupId;
+    private String uid;
 
     private static final String PARENT_KEY = "Parent";
     private static final String ID_KEY = "ID";
@@ -104,6 +105,7 @@ public class GffFeature implements GeneFeature {
         this.frame = indexEntry.getFrame();
         this.attributes = MapUtils.isEmpty(indexEntry.getAttributes()) ? new HashMap<>() : indexEntry.getAttributes();
         this.groupId = getGeneId();
+        this.uid = indexEntry.getUuid().toString();
     }
 
     /**
@@ -271,6 +273,14 @@ public class GffFeature implements GeneFeature {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(final String uid) {
+        this.uid = uid;
     }
 
     @Override

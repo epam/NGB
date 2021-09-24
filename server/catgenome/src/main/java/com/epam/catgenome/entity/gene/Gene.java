@@ -75,6 +75,7 @@ public class Gene extends Block {
     private String featureId;
 
     private int featureCount = 1;
+    private String uid;
 
     public Gene() {
         // No-op
@@ -104,6 +105,7 @@ public class Gene extends Block {
         transcripts = gene.getTranscripts();
         featureId = gene.getFeatureId();
         featureName = gene.getFeatureName();
+        uid = gene.getUid();
     }
 
     /**
@@ -120,6 +122,7 @@ public class Gene extends Block {
         strand = geneFeature.getStrand();
         frame = geneFeature.getFrame();
         groupId = geneFeature.getGroupId();
+        uid = geneFeature.getUid();
 
         if (geneFeature instanceof GtfFeature) {
             parentId = groupId;
@@ -312,5 +315,13 @@ public class Gene extends Block {
 
     public void setFeatureId(String featureId) {
         this.featureId = featureId;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

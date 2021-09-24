@@ -51,6 +51,7 @@ public class GeneHighLevel  extends Block {
     private Boolean mapped;
 
     private List<GeneLowLevel> items;
+    private String uid;
 
     public GeneHighLevel() {
         // No-op
@@ -72,6 +73,7 @@ public class GeneHighLevel  extends Block {
         groupId = geneFeature.getGroupId();
 
         attributes = geneFeature.getAttributes();
+        uid = geneFeature.getUid();
     }
 
     /**
@@ -91,6 +93,7 @@ public class GeneHighLevel  extends Block {
         mapped = gene.isMapped();
 
         attributes = gene.getAttributes();
+        uid = gene.getUid();
     }
 
     public String getSeqName() {
@@ -171,5 +174,13 @@ public class GeneHighLevel  extends Block {
 
     public void setMapped(Boolean mapped) {
         this.mapped = mapped;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

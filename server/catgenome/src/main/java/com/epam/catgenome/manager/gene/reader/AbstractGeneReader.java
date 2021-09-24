@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -346,7 +345,7 @@ public abstract class AbstractGeneReader {
         }
         LOGGER.debug("Thread {} Interval: {} - {}", Thread.currentThread().getName(), start, end);
 
-        final Iterator<GeneFeature> iterator = indexIterator(chromosome, start, end, scaleType);
+        final GeneIndexIterator iterator = indexIterator(chromosome, start, end, scaleType);
         double time21 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
 
@@ -354,11 +353,11 @@ public abstract class AbstractGeneReader {
         time11 = Utils.getSystemTimeMilliseconds();
 
         if (iterator.hasNext()) {
-            GeneFeature firstFeature = iterator.next();
+            GeneFeature firstFeature = convertGeneIndexEntry(iterator.next());
             processFeature(state, firstFeature, overlappedMrnas, start, end);
         }
 
-        iterator.forEachRemaining(feature -> processFeature(state, feature, overlappedMrnas, start, end));
+        iterator.forEachRemaining(feature -> processFeature(state, convertGeneIndexEntry(feature), overlappedMrnas, start, end));
         time21 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Thread {} Walkthrough took {} ms",
                 Thread.currentThread().getName(), time21 - time11);
@@ -490,12 +489,12 @@ public abstract class AbstractGeneReader {
         }
 
         for (Map.Entry<String, Gene> e : overlappedMrnas.entrySet()) {
-            final Iterator<GeneFeature> iterator = indexIterator(chromosome, e.getValue().getStartIndex(),
+            final GeneIndexIterator iterator = indexIterator(chromosome, e.getValue().getStartIndex(),
                     e.getValue().getEndIndex(), scaleType);
             long count = 0;
             long basesCount = 0;
             while (iterator.hasNext()) {
-                GeneFeature feature = iterator.next();
+                GeneFeature feature = convertGeneIndexEntry(iterator.next());
                 if (GeneUtils.isExon(feature) && Objects.equals(GeneUtils.getTranscriptId(feature), e.getKey())) {
                     count++;
                     basesCount += feature.getEnd() - feature.getStart();
@@ -656,19 +655,10 @@ public abstract class AbstractGeneReader {
         }
     }
 
-    private Iterator<GeneFeature> indexIterator(final Chromosome chromosome, final Integer startIndex,
-                                                final Integer endIndex, final GeneFileType scaleType)
-            throws GeneReadingException {
-        try {
-            final List<GeneIndexEntry> genes = featureIndexManager.getFullGeneSearchResult(
-                    buildFilterForm(chromosome.getId(), startIndex, endIndex, scaleType), geneFile);
-            return genes.stream()
-                    .map(this::convertGeneIndexEntry)
-                    .collect(Collectors.toList())
-                    .iterator();
-        } catch (IOException e) {
-            throw new GeneReadingException(geneFile, chromosome, startIndex, endIndex, e);
-        }
+    private GeneIndexIterator indexIterator(final Chromosome chromosome, final Integer startIndex,
+                                            final Integer endIndex, final GeneFileType scaleType) {
+        final GeneFilterForm filterForm = buildFilterForm(chromosome.getId(), startIndex, endIndex, scaleType);
+        return new GeneIndexIterator(filterForm, geneFile, featureIndexManager::getFullGeneSearchResult);
     }
 
     private GeneFilterForm buildFilterForm(final Long chrId, final Integer startIndex, final Integer endIndex,
