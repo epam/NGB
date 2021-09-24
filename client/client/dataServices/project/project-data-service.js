@@ -10,6 +10,9 @@ export class ProjectDataService extends DataService {
         if (node.isProject) {
             return 'PROJECT';
         } else {
+            if (node.format === 'FEATURE_COUNTS') {
+                return 'GENE';
+            }
             return (node.format || '').toUpperCase();
         }
     }
