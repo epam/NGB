@@ -1050,7 +1050,7 @@ public class FeatureIndexDao {
      *
      * @param featureFile the {@link GeneFile} which indexes to search
      * @param chrId chromosome ID string
-     * @param filterForm chromosome ID string
+     * @param filterForm gene filter object for building search queries
      * @param sort the sort for result
      * @return found genes
      */
@@ -1082,9 +1082,7 @@ public class FeatureIndexDao {
             filterForm.setPointer(Pointer.fromScoreDoc(lastEntry));
             return new IndexSearchResult<>(values, false, totalHits, lastEntry);
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
     }
 
