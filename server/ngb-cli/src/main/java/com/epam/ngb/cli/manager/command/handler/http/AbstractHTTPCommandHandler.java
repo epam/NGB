@@ -765,6 +765,12 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
+    protected void saveProject(final Project project) {
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getProjectSaveUrl());
+        getPostResult(project, request);
+    }
+
     private List<BiologicalDataItem> loadItemsByName(String strId) {
         return loadItemsByName(strId, true);
     }

@@ -41,7 +41,7 @@ import com.epam.ngb.cli.manager.printer.Printable;
  * Also datasets may correspond to file organization in the file system and work just as directories.
  * Datasets support hierarchical organization and may include other datasets as nested projects.
  */
-public class Project extends BaseEntity implements Printable<Project> {
+public class Project extends BaseEntity implements Printable<Project>, RequestPayload {
 
     /**
      * Data, when the dataset was created
@@ -55,6 +55,7 @@ public class Project extends BaseEntity implements Printable<Project> {
      * Number of files in the dataset
      */
     private Integer itemsCount;
+    private List<ProjectNote> notes;
     /**
      * A helper {@code Map}, that stores information on number of files of each file format, present
      * in the dataset
@@ -104,6 +105,14 @@ public class Project extends BaseEntity implements Printable<Project> {
 
     public void setItemsCount(Integer itemsCount) {
         this.itemsCount = itemsCount;
+    }
+
+    public List<ProjectNote> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<ProjectNote> notes) {
+        this.notes = notes;
     }
 
     public Map<BiologicalDataItemFormat, Integer> getItemsCountPerFormat() {

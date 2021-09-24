@@ -526,6 +526,61 @@ $ ngb del_dataset new_dataset
 $ ngb dd 1
 ```
 
+### Add dataset note
+```
+ngb add_note|adn [<DATASET_NAME>|<DATASET_ID>] [<NOTE_TITLE>] [<NOTE_CONTENT>]
+```
+*Description*
+
+Adds a note to specified dataset. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
+
+*Example*
+```bash
+# Add note to dataset, named "new_dataset"
+$ ngb add_note new_dataset note_title note_content
+
+# Add note to dataset with id "1"
+$ ngb adn 1 note_title note_content
+```
+
+### List dataset notes 
+```
+ngb list_note|ldn [<DATASET_NAME>|<DATASET_ID>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Lists all notes for specified dataset from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
+
+*Example*
+```bash
+# List notes for dataset, named "new_dataset"
+$ ngb list_note new_dataset
+
+# List notes for dataset with id "1"
+$ ngb ldn 1
+```
+
+### Delete dataset note 
+```
+ngb remove_note|rdn [<DATASET_NAME>|<DATASET_ID>] [<NOTE_ID>]
+```
+*Description*
+
+Deletes a specified dataset note from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
+
+*Example*
+```bash
+# Delete note with id 2 from dataset, named "new_dataset"
+$ ngb remove_note new_dataset 2
+
+# Delete note with id 2 from dataset with id "1"
+$ ngb rdn 1 2
+```
+
 ### Generate URL for browsing selected files
 ```
 ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]

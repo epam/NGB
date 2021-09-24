@@ -58,6 +58,7 @@ public class CommandManager {
     private static final String PROJECT_URL_BY_ID_PROPERTY = "project_load_url";
     private static final String FIND_FILE_URL_PROPERTY = "find_url";
     private static final String PROJECT_TREE_URL_PROPERTY = "project_load_tree";
+    private static final String PROJECT_SAVE_URL_PROPERTY = "project_save_url";
     private static final String VERSION_URL_PROPERTY = "version_url";
     private static final String ALL_ROLES_URL_PROPERTY = "roles_url";
     private static final String ROLE_URL_PROPERTY = "role_url";
@@ -155,6 +156,7 @@ public class CommandManager {
         parameters.setRoleUrl(serverProperties.getProperty(ROLE_URL_PROPERTY));
         parameters.setFindUserUrl(serverProperties.getProperty(FIND_USER_URL_PROPERTY));
         parameters.setFindUsersUrl(serverProperties.getProperty(FIND_USERS_URL_PROPERTY));
+        parameters.setProjectSaveUrl(serverProperties.getProperty(PROJECT_SAVE_URL_PROPERTY));
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
         parameters.setProjectDescriptionUrl(serverProperties.getProperty(PROJECT_DESCRIPTION_URL_PROPERTY));
