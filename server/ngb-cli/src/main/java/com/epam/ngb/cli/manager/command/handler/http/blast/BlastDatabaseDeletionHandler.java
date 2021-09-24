@@ -24,11 +24,12 @@
  *
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.blast;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
 

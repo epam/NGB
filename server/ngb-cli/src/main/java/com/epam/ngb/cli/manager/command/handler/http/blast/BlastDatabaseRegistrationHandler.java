@@ -24,12 +24,13 @@
  *
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.blast;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.BlastDatabaseVO;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.List;
