@@ -32,14 +32,15 @@
       </md-checkbox>
       <md-menu-item ng-if="project.canEdit"
                     class="ngb-project-info-sections-add-note">
-        <div ng-click="$ctrl.ngbProjectInfoService.addNote()">+ Add note</div>
+        <div ng-click="$ctrl.ngbProjectInfoService.addNote(project)">+ Add note</div>
       </md-menu-item>
       <md-checkbox aria-label="{{note.title}}"
                    ng-false-value="undefined"
                    ng-model="$ctrl.ngbProjectInfoService.currentMode"
                    ng-repeat="(index, note) in project.notes track by note.id"
                    ng-true-value="{{note.id}}"
-                   class="project-info-menu-note">
+                   class="project-info-menu-note"
+                   ng-click=$ctrl.setCurrentProject(project)>
         <span>{{note.title}}</span>
       </md-checkbox>
     </span>

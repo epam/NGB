@@ -33,6 +33,47 @@ function processNestedProjects(projects, nesting) {
     return processNestedProjects(projects.filter(p => p.nesting !== nesting), nesting++);
 }
 
+function sortDatasets (datasets) {
+    const idsList = [];
+    const parentIdsList = [];
+    const parentsAndChildren = {};
+    const newIdsList = [];
+    const objectForCheck = {};
+
+    datasets.forEach(dataset => {
+        const {id, parentId} = dataset;
+        idsList.push(id);
+        parentIdsList.push(parentId);
+        if (parentId) {
+            parentsAndChildren[parentId] = parentsAndChildren[parentId] ?
+            [...parentsAndChildren[parentId], id] : [id];
+        }
+    });
+
+    for (let i = 0; i < idsList.length; i++) {
+        if (!objectForCheck[idsList[i]]) {
+            const parent = parentIdsList[i] ?  parentIdsList[i] : idsList[i];
+            const childrenList = parentsAndChildren[parent];
+            if (childrenList) {
+                for (let j = 0; j < childrenList.length; j++) {
+                    newIdsList.push(childrenList[j]);
+                    objectForCheck[childrenList[j]] = true;
+                }
+                newIdsList.push(parent);
+                objectForCheck[parent] = true;
+            } else {
+                newIdsList.push(idsList[i]);
+                objectForCheck[idsList[i]] = true;
+            }
+        }
+    }
+
+    datasets.sort((a, b) => {
+        return newIdsList.indexOf(b.id) < newIdsList.indexOf(a.id) ?
+            1 : -1;
+    });
+}
+
 const EXTENDED_MODE = true;
 
 const PROJECT_INFO_MODE = {
@@ -57,7 +98,7 @@ export default class ngbProjectInfoService {
             $sce, $mdDialog, dispatcher, projectContext, projectDataService
         });
         this.currentProject = {};
-        this._descriptionIsLoading = true;
+        this._descriptionIsLoading = !EXTENDED_MODE;
         this._currentMode = undefined;
         this._previousMode = undefined;
         this._currentName = undefined;
@@ -114,15 +155,13 @@ export default class ngbProjectInfoService {
             }
             this._clearEnvironment();
             this._currentMode = value || this.defaultMode;
+            if (this.extendedMode &&
+                this.currentMode === this.projectInfoModeList.SUMMARY
+            ) {
+                this.currentProject = {};
+            }
             this.setCurrentName(this.currentMode);
         }
-        // const previousNoteName = PROJECT_INFO_MODE_NAME[this.currentMode] ||
-        // this.currentNote.title;
-        // this._currentMode = value || this.defaultMode;
-        // const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
-        // this._currentName = value === this.projectInfoModeList.EDIT_NOTE
-        //     ? previousNoteName
-        //     : PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
     }
 
     get projectInfoModeList() {
@@ -134,7 +173,8 @@ export default class ngbProjectInfoService {
     }
 
     setCurrentName(value) {
-        this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+        const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
+        this._currentName = PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
     }
 
     get currentMode() {
@@ -226,11 +266,15 @@ export default class ngbProjectInfoService {
             selectedDatasets.forEach(item => {
                 if (item.parentId && !parents.has(item.parentId)) {
                     selectedDatasets.add(
-                        ...this.projectContext.datasets.filter(dataset => dataset.id === item.parentId)
+                        ...this.projectContext.datasets
+                            .filter(dataset => dataset.id === item.parentId)
                     );
                     parents.add(item.parentId);
                 }
             });
+            if (selectedDatasets.length > 1) {
+                sortDatasets(selectedDatasets);
+            }
         }
         const projects = this.extendedMode ?
             selectedDatasets :
@@ -282,7 +326,7 @@ export default class ngbProjectInfoService {
                         .then(data => {
                             if (data && data.byteLength) {
                                 project.descriptionAvailable = true;
-                                project.blobUrl = this.sce.trustAsResourceUrl(
+                                project.blobUrl = this.$sce.trustAsResourceUrl(
                                     URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                                 );
                             } else {
@@ -314,7 +358,10 @@ export default class ngbProjectInfoService {
         }
     }
 
-    addNote() {
+    addNote(project = this.currentProject) {
+        if (this.extendedMode) {
+            this.currentProject = project;
+        }
         this.currentMode = this.projectInfoModeList.ADD_NOTE;
     }
 

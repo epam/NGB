@@ -32,6 +32,12 @@ export default class ngbProjectInfoSectionsController extends baseController {
         this.ngbProjectInfoService.blobUrl = blobUrl;
     }
 
+    setCurrentProject (project) {
+        if (this.extendedMode) {
+            this.ngbProjectInfoService.currentProject = project;
+        }
+    }
+
     openMenu($mdOpenMenu, $event) {
         $event.stopPropagation();
         $mdOpenMenu($event);
