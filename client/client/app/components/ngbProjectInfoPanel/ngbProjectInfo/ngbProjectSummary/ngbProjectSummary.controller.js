@@ -5,8 +5,7 @@ export default class ngbProjectSummaryController {
 
     projectContext;
     showTrackOriginalName = true;
-    datasetName;
-    datasetMetadata = {};
+    datasets = [];
 
     /**
      * @constructor
@@ -53,15 +52,16 @@ export default class ngbProjectSummaryController {
 
         const files = [];
         const items = this.projectContext.tracks;
-        const datasetId = items.reduce((datasetID, item) => {
-            if (item.projectId && item.project) {
-                datasetID = item.project.id;
+        const datasetsId = items.reduce((datasetsID, item) => {
+            const id = item && item.project ? item.project.id: null;
+            if (id) {
+                if (!datasetsID.includes(id)) {
+                    datasetsID.push(id);
+                }
             }
-            return datasetID;
-        }, null);
-        const [dataset] = this.projectContext.datasets.filter(project => project.id === datasetId);
-        this.datasetMetadata = dataset ? dataset.metadata : null;
-        this.datasetName = dataset? dataset.name : '';
+            return datasetsID;
+        }, []);
+        this.datasets = this.projectContext.datasets.filter(project =>  datasetsId.includes(project.id));
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);

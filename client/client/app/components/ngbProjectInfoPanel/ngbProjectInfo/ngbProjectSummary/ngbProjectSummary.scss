@@ -39,7 +39,6 @@ ngb-project-summary {
 .structure-card {
   padding: 2px 4px 2px 4px;
   margin: 2px 4px;
-  cursor: pointer;
   font-size: x-small;
   display: inline-block;
   text-align: center;
@@ -47,4 +46,8 @@ ngb-project-summary {
   border-radius: 3px;
   border: 1px solid #e0e0e0;
   font-weight: normal;
+}
+.dataset-title {
+  padding: 4px 2px;
+  background:rgb(248, 247, 247);
 }

@@ -60,8 +60,9 @@ export default class ngbDataSetMetadataController extends BaseController {
     }
     get existedKeys() { 
         return this.formData.map(pair => pair[0]).reduce((r, key) => {
-            if (key) {
-                r[key] = (r[key] || 0) + 1;
+            const caseInsensitiveKey = key ? key.toLowerCase() : null;
+            if (caseInsensitiveKey) {
+                r[caseInsensitiveKey] = (r[caseInsensitiveKey] || 0) + 1;
             }
             return r;
         }, {});
