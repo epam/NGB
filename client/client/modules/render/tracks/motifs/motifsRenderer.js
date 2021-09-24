@@ -51,7 +51,7 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         if (strand === match.strand.toLowerCase()) {
             const pixelsInBp = viewport.factor;
             const {startIndex, endIndex, levelY} = match;
-            const startX = viewport.project.brushBP2pixel(startIndex) + (pixelsInBp / 2);
+            const startX = viewport.project.brushBP2pixel(startIndex) - (pixelsInBp / 2);
             const endX = viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2);
 
             if (startX > -viewport.canvasSize && endX < 2 * viewport.canvasSize) {
