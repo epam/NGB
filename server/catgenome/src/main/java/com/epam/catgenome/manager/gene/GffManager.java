@@ -173,6 +173,9 @@ public class GffManager {
     @Value("${feature.counts.max.memory:500}")
     private int featureCountsMaxMemory;
 
+    @Value("${gene.register.helper.files.enable:true}")
+    private boolean createHelperFiles;
+
     private static final String EXON_FEATURE_NAME = "exon";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
@@ -236,7 +239,7 @@ public class GffManager {
             }
         }
         GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
-                geneFile);
+                geneFile, createHelperFiles);
         geneRegisterer.reIndexFile(createTabixIndex);
         return geneFile;
     }
@@ -316,7 +319,7 @@ public class GffManager {
 
             log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
             GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
-                    geneFile);
+                    geneFile, createHelperFiles);
 
             geneRegisterer.processRegistration(request);
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());

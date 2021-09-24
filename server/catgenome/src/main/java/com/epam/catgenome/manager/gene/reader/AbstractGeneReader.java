@@ -357,7 +357,8 @@ public abstract class AbstractGeneReader {
             processFeature(state, firstFeature, overlappedMrnas, start, end);
         }
 
-        iterator.forEachRemaining(feature -> processFeature(state, convertGeneIndexEntry(feature), overlappedMrnas, start, end));
+        iterator.forEachRemaining(feature -> processFeature(state, convertGeneIndexEntry(feature),
+                overlappedMrnas, start, end));
         time21 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Thread {} Walkthrough took {} ms",
                 Thread.currentThread().getName(), time21 - time11);
