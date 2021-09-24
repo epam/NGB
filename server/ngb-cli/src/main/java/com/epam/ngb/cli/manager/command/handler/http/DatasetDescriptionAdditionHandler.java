@@ -35,8 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
@@ -59,9 +57,6 @@ public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandle
         }
         projectId = parseProjectId(arguments.get(0));
         path = Utils.getNormalizeAndAbsolutePath(arguments.get(1));
-        if (Files.notExists(Paths.get(path))) {
-            throw new IllegalArgumentException("Specified file does not exist");
-        }
     }
 
     @Override

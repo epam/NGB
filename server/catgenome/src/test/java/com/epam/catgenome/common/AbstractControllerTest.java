@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 import java.io.IOException;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -76,6 +77,7 @@ public abstract class AbstractControllerTest extends AbstractJUnitTest {
 
     @Before
     public void setup() throws Exception {
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         // checks that all required dependencies are provided.
         assertNotNull("WebApplicationContext isn't provided.", wac);
         assertNotNull("ObjectMapper isn't provided.", objectMapper);

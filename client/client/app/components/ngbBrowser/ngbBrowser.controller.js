@@ -1,5 +1,4 @@
 import  baseController from '../../shared/baseController';
-
 export default class ngbBrowserController extends baseController {
 
     static get UID() {
@@ -8,7 +7,7 @@ export default class ngbBrowserController extends baseController {
     markdown;
     homeUrl;
     errorMessages=[];
-    pageIsLoading=false;
+    rootPageIsLoading=true;
 
     constructor(dispatcher, projectContext, $scope, $timeout, $sce, ngbBrowserService) {
         super(dispatcher);
@@ -20,7 +19,7 @@ export default class ngbBrowserController extends baseController {
             $timeout,
             $sce
         });
-        $scope.$watch('$ctrl.homeUrl', ::this.getMarkdown);
+        
         this.initEvents();
     }
     get homeUrl() {
@@ -30,11 +29,13 @@ export default class ngbBrowserController extends baseController {
     events = {
         'chromosome:change': ::this.onStateChange,
         'reference:change': ::this.onStateChange,
-        'reference:pre:change': ::this.onStateChange
+        'reference:pre:change': ::this.onStateChange,
+        'defaultSettings:change': :: this.homeUrlChanged
     };
 
     $onInit() {
         this.onStateChange();
+        this.homeUrlChanged();
     }
 
     onStateChange() {
@@ -53,18 +54,17 @@ export default class ngbBrowserController extends baseController {
     homeUrlIsMd() {
         return this.homeUrl && /.md$/.test(this.homeUrl);
     }
-    async getMarkdown() {
+    async homeUrlChanged() {
+        this.rootPageIsLoading = true;
         if (this.homeUrl) {
             try {
-                this.pageIsLoading = true;
                 this.markdown = await this.ngbBrowserService.getMarkdown(this.homeUrl);
                 this.errorMessages = [];
             } catch(err) {
                 this.errorMessages.push(err.message);
-            } finally {
-                this.pageIsLoading = false;
-                this.$scope.$apply();
             }
         }
+        this.rootPageIsLoading = false;
+        this.$timeout(::this.$scope.$apply);
     }
 }

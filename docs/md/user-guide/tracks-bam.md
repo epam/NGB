@@ -10,14 +10,16 @@
 - [Working with BAM settings](#working-with-bam-settings)
     - [Alignments](#alignments-data-oriented-options)
     - [Customize](#customize-visualization-and-behavior-options)
+        - [Hotkeys for BAM](#hotkeys-for-all-bam-track-modes)
+        - [Colors tuning for BAM](#colors-tuning-for-bam-track-coloring-modes)
+        - [Default settings for tracks](#default-checkbox-for-all-track-modes)
 
 ## Viewing BAM alignments
 
 By default, BAM alignments are shown at 7Kbp scale (you can increase the scale up to 50Kbp via Settings).
 
 Because it is necessary to process large amounts of data to view alignments, a data transfer indicator (a blue circle) appears in the track's header when the client retrieves the data from a BAM file. When data is being transferred from a server, the circle is rotating.  
-
-![NGB GUI](images/tracks-bam-1.png)
+  ![NGB GUI](images/tracks-bam-1.png)
 
 Alignment visualization shows the following features:
 
@@ -28,32 +30,26 @@ Alignment visualization shows the following features:
 
 ![NGB GUI](images/tracks-bam-2.png)
 
-When you hover over an alignment, an information tooltip appears.
+When you hover over an alignment, an information tooltip appears:  
+  ![NGB GUI](images/tracks-bam-3.png)
 
-![NGB GUI](images/tracks-bam-3.png)
-
-When you click on an alignment, a menu with the following options appears:
+When you click on an alignment, a menu appears that contains, among other things, the following options:
 
 - **Go to mate** - navigate to the start of a pair alignment (available only for paired reads)
-- **Open mate region in split view** - open a second browser pane and set the position to the region where a paired read is aligned
+- **Open mate region in split view** - open a second browser pane and set the position to the region where a paired read is aligned:  
+  ![NGB GUI](images/tracks-bam-4.png)
+- **Copy read details to clipboard**
 
-![NGB GUI](images/tracks-bam-4.png)
-
-- **Copy read details to clipboard**.
-
-By default, alignments are downsampled (you can change this via **Settings**). The black line above the alignments indicates regions where reads were removed.
-
-When you hover over the black line, a tooltip appears. The tooltip shows the range at which reads were removed and the count of removed reads.
-
-![NGB GUI](images/tracks-bam-5.png)
+By default, alignments are downsampled (you can change this via **Settings**). The black line above the alignments indicates regions where reads were removed.  
+When you hover over the black line, a tooltip appears. The tooltip shows the range at which reads were removed and the count of removed reads:  
+  ![NGB GUI](images/tracks-bam-5.png)
 
 ## Working with the BAM menu
 
-BAM track's header contains menu for managing display properties of alignments.
+BAM track's header contains menu for managing display properties of alignments:  
+  ![NGB GUI](images/tracks-bam-6.png)
 
-![NGB GUI](images/tracks-bam-6.png)
-
-The following track settings are available
+The following track settings are available:
 
 ### Color mode
 
@@ -94,7 +90,7 @@ The following track settings are available
 - **Default**: alignments are arranged to optimally fill the track space
 - **By first in pair strand**: alignments are arranges into two groups:
     - Paired alignments with first read on forward strand
-    - Paired alignments with first read on reverse strand
+    - Paired alignments with first read on reverse strand  
     ![NGB GUI](images/tracks-bam-11.png)
 - **By pair orientation**: alignments are arranged into several groups (if current region does not contain alignments for one of groups - this group does not show):
     - **LL** - Both reads in pair are on forward strand **-->   -->**
@@ -124,7 +120,20 @@ The following track settings are available
 - **Show alignments**: toggles the visualization of alignments (enabled by default)
 - **Show mismatched bases**: toggles the visualization of alignments' mismatches (enabled by default)
 - **Show coverage**: toggles coverage track visualization (enabled by default)  
-  ![NGB GUI](images/tracks-bam-17.png)
+  ![NGB GUI](images/tracks-bam-17.png)  
+  If this item is enabled - additional **Coverage** menu appears:  
+  ![NGB GUI](images/tracks-bam-27.png)  
+  Via that menu, user can configure:  
+    - view mode for the coverage:  
+        - **Bar Graph** (_by default_)  
+        ![NGB GUI](images/tracks-bam-28.png)
+        - or **Heat Map**  
+        ![NGB GUI](images/tracks-bam-29.png)
+    - scale mode for the coverage - **Auto-scale** (_by default)_ or **Manual scale** and additionally **Log scale** option if needs.  
+    About possible scale modes see example in [WIG tracks](tracks-wig.md#scale-mode)
+    - color scheme for the coverage:  
+    ![NGB GUI](images/tracks-bam-30.png)  
+    For details how to configure colors see examples in [WIG tracks](tracks-wig.md#track-colors) as well
 - **Show splice junctions**: toggles splice junctions track (disabled by default)  
   ![NGB GUI](images/tracks-bam-18.png)
 - **Sashimi plot**: open the separate popup that contains:
@@ -153,7 +162,7 @@ Options for BAM settings are located at two tabs in the Settings menu:
     - **Enable filtering** - if disabled, all splice junctions will be displayed at tracks. If enabled, only splice junctions with depth (regardless the strand value) more than specified threshold will be displayed, e.g.:  
     ![NGB GUI](images/tracks-bam-24.png)  
     Configured threshold will be displayed at BAM track, splice junctions with depth less than threshold will not be shown:  
-    ![NGB GUI](images/tracks-bam-25.png)
+    ![NGB GUI](images/tracks-bam-25.png)  
     Also configured threshold will be displayed at **Sashimi plot**, splice junctions with depth less than threshold will not be shown:  
     ![NGB GUI](images/tracks-bam-26.png)
 
@@ -161,35 +170,36 @@ Options for BAM settings are located at two tabs in the Settings menu:
 
 ![NGB GUI](images/tracks-bam-20.png)
 
-**Hotkeys** for all BAM track modes.
+#### Hotkeys for all BAM track modes
 
 To set a hotkey for a specific BAM mode:
 
 - Tick the box by the mode's name in the first column
 - Press a key combination on a keyboard
 - If you set a key combination that is already used, it will be reassigned to your current choice. The previously used mode hotkey will be reset.
-- You can set the following combinations: **Shift**+{Anykey}, **Ctrl**+{Anykey}, **Alt**+{Anykey}, and any combination of **Ctrl+Alt+Shift** (**Shift+Alt+N** - is ok).
+- You can set the following combinations: **Shift**+`{Anykey}`, **Ctrl**+`{Anykey}`, **Alt**+`{Anykey}`, and any combination of **Ctrl+Alt+Shift** (**Shift+Alt+N** - is ok).
 
-> _Note that using hotkeys with Ctrl or Alt as one of the keys might lead to conflict with web-browser hotkey presets since they have a higher priority. In such cases, the NGB operation associated with the hotkey combination will be performed first, followed by the web browser action associated with the same hotkey combination (e.g. if you set Ctrl+1 for coloring, pressing this hotkey combination will perform color operation first, and then open the leftmost opened tab in Google Chrome web browser)_
+> _Note that using hotkeys with **Ctrl** or **Alt** as one of the keys might lead to conflict with web-browser hotkey presets since they have a higher priority. In such cases, the NGB operation associated with the hotkey combination will be performed first, followed by the web browser action associated with the same hotkey combination (e.g. if you set Ctrl+1 for coloring, pressing this hotkey combination will perform color operation first, and then open the leftmost opened tab in Google Chrome web browser)_
 
 To use a hot key, open a BAM track and press the hotkey combination.
 
-You can also set a Redo hotkey to repeat the last action on BAM (i.e. set the same mode). This could be useful for Sorting, because when new data arrives from a server, the previous sorting will be disrupted.
+You can also set a _Redo_ hotkey to repeat the last action on BAM (i.e. set the same mode). This could be useful for _Sorting_, because when new data arrives from a server, the previous sorting will be disrupted.
 
-**Colors** tuning for BAM track coloring modes.
+#### Colors tuning for BAM track coloring modes
 
 This option could be used to fine-tune the colors used to color alignments on BAM track.
 Only three coloring modes support this option, others will reuse these settings because of the same semantics:
 
-- By pair orientation (will be reused in **By insert size and pair orientation mode*)
+- By pair orientation (will be reused in **By insert size and pair orientation mode**)
 - By insert size
 - By read strand (will be reused in **By first in pair strand mode**)  
 
 To change a color, click a colored box next to the coloring parameter and select the desired color using a color picker popup:  
   ![NGB GUI](images/tracks-bam-21.png)
 
-**Default** checkbox for all BAM track modes.  
-Modes marked as default will be applied to BAM tracks at load time.
+#### Default checkbox for all track modes
+
+Modes marked as default will be applied to all tracks at load time.
 
 To revert all customized settings (hotkeys, colors, default modes) to default values, click the **Set to defaults button**, that is located above the table:  
   ![NGB GUI](images/tracks-bam-22.png)

@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-function dateString (date) {
+function dateString(date) {
     const parsed = moment.utc(date.split(' ').join('T'));
     if (parsed.isValid()) {
         return moment(parsed.toDate()).format('D MMMM YYYY, HH:mm');
@@ -26,35 +26,37 @@ export default class ngbFeatureInfoPanelService {
         Object.assign(this, {geneDataService});
     }
 
-    get editMode () {
+    get editMode() {
         return this._editMode;
     }
 
-    set editMode (value) {
+    set editMode(value) {
         this._editMode = value;
     }
 
-    get newAttributes () {
+    get newAttributes() {
         return this.attributes;
     }
 
-    set newAttributes (properties) {
+    set newAttributes(properties) {
         if (properties) {
-            this.attributes = properties
-                .filter(property => property[1] !== undefined)
-                .map(property => ({
-                    name: property[0],
-                    value: property[1],
-                    default: true,
-                    attribute: Boolean(property[2]),
-                    deleted: Boolean(property[3])
-                }));
+            this.attributes = this._preprocessAttributes(
+                properties
+                    .filter(property => property[1] !== undefined)
+                    .map(property => ({
+                        name: property[0],
+                        value: property[1],
+                        default: true,
+                        attribute: Boolean(property[2]),
+                        deleted: Boolean(property[3])
+                    }))
+            );
         } else {
             this.attributes = properties;
         }
     }
 
-    get saveError () {
+    get saveError() {
         return this._saveError;
     }
 
@@ -66,23 +68,23 @@ export default class ngbFeatureInfoPanelService {
         return this._historyError;
     }
 
-    set historyError (error) {
+    set historyError(error) {
         this._historyError = error;
     }
 
-    get historyData () {
+    get historyData() {
         return this._historyData;
     }
 
-    set historyData (data) {
+    set historyData(data) {
         this._historyData = data;
     }
 
-    get saveInProgress () {
+    get saveInProgress() {
         return this._saveInProgress;
     }
 
-    set saveInProgress (progress) {
+    set saveInProgress(progress) {
         this._saveInProgress = progress;
     }
 
@@ -101,19 +103,14 @@ export default class ngbFeatureInfoPanelService {
     isDuplicate(property) {
         const newAttributes = this.attributes;
         if (!property.default && property.name) {
-            const duplicates = newAttributes.filter(attribute => {
-                if (!attribute.deleted && attribute.name &&
-                    attribute.name.toLowerCase() === property.name.toLowerCase()
-                ) {
-                    return attribute;
-                }
-            });
+            const duplicates = newAttributes.filter(attribute => !attribute.deleted && attribute.name &&
+                attribute.name.toLowerCase() === property.name.toLowerCase());
             return duplicates.length > 1;
         }
         return false;
     }
 
-    disableSaveButton () {
+    disableSaveButton() {
         const attributes = this.newAttributes;
         const valueIsEmpty = value => value === undefined || value === null || value === '';
         return attributes.some(attribute => {
@@ -130,7 +127,7 @@ export default class ngbFeatureInfoPanelService {
         });
     }
 
-    saveNewAttributes () {
+    saveNewAttributes() {
         this.attributes = this.attributes
             .filter(attribute => attribute.name && attribute.value && !this.isDuplicate(attribute));
     }
@@ -155,7 +152,7 @@ export default class ngbFeatureInfoPanelService {
         return updatedFeature;
     }
 
-    sendNewGeneInfo (fileId, uuid, geneContent) {
+    sendNewGeneInfo(fileId, uuid, geneContent) {
         const request = {
             fileId,
             uuid,
@@ -174,22 +171,20 @@ export default class ngbFeatureInfoPanelService {
         });
     }
 
-    unsavedChanges (properties) {
+    unsavedChanges(properties) {
         const attributes = this.attributes.filter(attribute => attribute.name || attribute.value);
         if (properties.length !== attributes.length) {
             return true;
         }
-        return properties.some((property, index) => {
-            return (
-                property[0] !== attributes[index].name ||
-                property[1] !== attributes[index].value ||
-                property[2] !== attributes[index].attribute ||
-                Boolean(property[3]) !== attributes[index].deleted
-            );
-        });
+        return properties.some((property, index) => (
+            property[0] !== attributes[index].name ||
+            property[1] !== attributes[index].value ||
+            property[2] !== attributes[index].attribute ||
+            Boolean(property[3]) !== attributes[index].deleted
+        ));
     }
 
-    getGeneInfoHistory (fileId, uuid) {
+    getGeneInfoHistory(fileId, uuid) {
         return new Promise((resolve) => {
             this.geneDataService.getGeneInfoHistory({fileId, uuid})
                 .then(data => {
@@ -202,7 +197,7 @@ export default class ngbFeatureInfoPanelService {
                             key: `${item.username}|${dateString(item.datetime)}`
                         }));
                         const keys = [...new Set(processed.map(item => item.key))];
-                        const grouped = keys
+                        this.historyData = keys
                             .map(key => processed.filter(item => item.key === key))
                             .filter(items => items.length > 0)
                             .map(items => ({
@@ -213,7 +208,6 @@ export default class ngbFeatureInfoPanelService {
                                 key: items[0].key
                             }))
                             .sort((a, b) => b.dateParsed - a.dateParsed);
-                        this.historyData = grouped;
                     }
                     resolve(true);
                 })
@@ -223,6 +217,23 @@ export default class ngbFeatureInfoPanelService {
                     resolve(true);
                 });
         });
+    }
+
+    _preprocessAttributes(attributes = []) {
+        const STRAND_OPTIONS = [
+            {value: 'NONE', label: 'NONE'},
+            {value: 'POSITIVE', label: 'POSITIVE'},
+            {value: 'NEGATIVE', label: 'NEGATIVE'}
+        ];
+        const result = [];
+        attributes.forEach(attr => {
+            if (attr.name.toLowerCase() === 'strand') {
+                result.push({...attr, isList: true, listOptions: STRAND_OPTIONS});
+            } else {
+                result.push({...attr, isInput: true});
+            }
+        });
+        return result;
     }
 
 }

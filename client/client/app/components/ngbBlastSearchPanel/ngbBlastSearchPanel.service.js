@@ -5,6 +5,9 @@ const BLAST_STATES = {
     ALIGNMENT: 'ALIGNMENT'
 };
 
+const blastpSupportedTypes = ['GENE', 'MRNA', 'CDS'];
+const wrongFeatureTypeMessage = 'Only GENE, MRNA or CDS FeatureType are supported!';
+
 function scientificNameSorter(a, b) {
     const aName = (a.scientificname || '').toLowerCase();
     const bName = (b.scientificname || '').toLowerCase();
@@ -188,6 +191,10 @@ export default class ngbBlastSearchService {
                     error: e.message
                 };
             }
+        } else if (!blastpSupportedTypes.includes(featureType)){
+            return {
+                error: wrongFeatureTypeMessage
+            };
         }
         return {};
     }

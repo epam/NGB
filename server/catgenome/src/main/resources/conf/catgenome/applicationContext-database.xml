@@ -63,5 +63,6 @@
     <import resource="classpath:conf/catgenome/dao/homolog-group-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/homolog-group-gene-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/session-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/heatmap-dao.xml" />
 
 </beans>

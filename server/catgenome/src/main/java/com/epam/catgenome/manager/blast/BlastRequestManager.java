@@ -52,12 +52,20 @@ public class BlastRequestManager {
     @Value("${blast.server.url:}")
     private String blastServer;
 
+    @Value("${blast.server.token:}")
+    private String blastServerToken;
+
+    @Value("${blast.server.cookie:}")
+    private String blastServerCookie;
+
     @PostConstruct
     public void init() {
         if (StringUtils.isEmpty(blastServer)) {
             return;
         }
-        this.blastApi = new BlastApiBuilder(0, 0, blastServer).buildClient();
+        this.blastApi = new BlastApiBuilder(0, 0,
+                blastServer, blastServerToken, blastServerCookie)
+                .buildClient();
     }
 
     public BlastRequestInfo createTask(final BlastRequest blastRequest) throws BlastRequestException {

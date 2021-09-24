@@ -97,6 +97,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.WIG);
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.VCF);
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.GENE);
+        ANNOTATION_FORMATS.add(BiologicalDataItemFormat.HEATMAP);
     }
 
     /**
@@ -180,7 +181,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @throws IllegalArgumentException will be thrown in a case, if no reference with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference load(final Long referenceId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
@@ -198,12 +199,9 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return reference;
     }
 
-    private List<FeatureFile> getAnnotationFilesByReferenceId(Long referenceId) {
+    private List<BiologicalDataItem> getAnnotationFilesByReferenceId(Long referenceId) {
         return biologicalDataItemDao.loadBiologicalDataItemsByIds(
-                referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId))
-                .stream()
-                .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
-                .collect(Collectors.toList());
+                referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId));
     }
 
     /**
@@ -216,7 +214,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @throws IllegalArgumentException will be thrown in a case, if no reference with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference loadReferenceGenomeByBioItemId(final Long dataItemId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
@@ -241,7 +239,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return loadAllReferenceGenomes(null);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomes(String referenceName) {
         if (!StringUtils.isEmpty(referenceName)) {
             Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
@@ -277,7 +275,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return result;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomesByTaxId(final Long taxId) {
         return ListUtils.emptyIfNull(referenceGenomeDao.loadReferenceGenomesByTaxId(taxId))
                 .stream().peek(ref -> {
@@ -348,6 +346,11 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return reference;
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Long> loadReferenceIdsByAnnotationFileId(final Long annotationId) {
+        return referenceGenomeDao.loadGenomeIdsByAnnotationDataItemId(annotationId);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public Reference updateReferenceGeneFileId(long referenceId, Long geneFileId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
@@ -375,7 +378,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
         List<Long> biologicalDataIds = referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId);
         return biologicalDataItemDao.loadBiologicalDataItemsByIds(biologicalDataIds);
@@ -384,7 +387,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileBiologicalItemId,
                                                    Boolean remove) throws IOException, FeatureIndexException {
-        FeatureFile annotationFile = fetchFeatureFile(annotationFileBiologicalItemId);
+        BiologicalDataItem annotationFile = fetchAnnotationFile(annotationFileBiologicalItemId);
         List<Long> genomeAnnotationIds = referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId);
         if (remove) {
             //check that we have this biological item as annotation file for this genome
@@ -407,14 +410,17 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
                             load(referenceId).getName()
                     )
             );
-            Assert.isTrue(
-                    annotationFile.getReferenceId().equals(referenceId),
-                    getMessage(
-                            MessagesConstants.ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION,
-                            load(annotationFile.getReferenceId()).getName(),
-                            load(referenceId).getName()
-                    )
-            );
+            if (annotationFile instanceof FeatureFile) {
+                FeatureFile featureFile = (FeatureFile)annotationFile;
+                Assert.isTrue(
+                        featureFile.getReferenceId().equals(referenceId),
+                        getMessage(
+                                MessagesConstants.ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION,
+                                load(featureFile.getReferenceId()).getName(),
+                                load(referenceId).getName()
+                        )
+                );
+            }
             referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
         }
         return load(referenceId);
@@ -457,7 +463,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return species;
     }
 
-    private FeatureFile fetchFeatureFile(Long annotationFileId) {
+    private BiologicalDataItem fetchAnnotationFile(Long annotationFileId) {
         List<BiologicalDataItem> annotationFiles = biologicalDataItemDao.loadBiologicalDataItemsByIds(
                 Collections.singletonList(annotationFileId));
         Assert.notNull(annotationFiles, getMessage(MessagesConstants.ERROR_BIO_ID_NOT_FOUND, annotationFileId));
@@ -470,7 +476,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         Assert.isTrue(ANNOTATION_FORMATS.contains(annotationFile.getFormat()),
                 getMessage(MessagesConstants.ERROR_ILLEGAL_FEATURE_FILE_FORMAT, annotationFile.getPath())
         );
-        return (FeatureFile) annotationFile;
+        return annotationFile;
     }
 
     @Override

@@ -1,10 +1,18 @@
 ngb-project-info-sections {
-  .md-button.md-icon-button {
+  .md-button.project-info-button {
     border-radius: unset;
     text-transform: none;
     ng-md-icon {
       fill: #FFF;
       padding-top: 2px;
+    }
+    span {
+      display: inline-block;
+      max-width: 100px;
+      height: 23px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
   position: relative;
@@ -37,8 +45,10 @@ ngb-project-info-sections {
     min-height: 32px;
     div {
       font-size: 14px;
-      margin: 12px 0;
       padding: 0 8px;
+      cursor: pointer;
+      text-decoration: underline;
+      color: rgb(0, 0, 238);
     }
   }
 }

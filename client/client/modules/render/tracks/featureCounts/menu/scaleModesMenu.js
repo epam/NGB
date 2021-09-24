@@ -21,7 +21,10 @@ const scaleModesStateMutators = generateStateMutatorFunctions({
             const values = Object.values(track.cache.sources.values || {})
                 .map(o => o.data || [])
                 .reduce((r, c) => ([...r, ...c.map(o => o.value)]), []);
-            const min = Math.min(...values);
+            if (values.length === 0) {
+                return {};
+            }
+            const min = Math.min(...values, 0);
             const max = Math.max(...values);
             return {
                 min,

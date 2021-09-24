@@ -45,7 +45,7 @@ export default class ngbVariantsTableDownloadDlgController {
 
                     linkElement.setAttribute('href', url);
                     linkElement.setAttribute('download',
-                        `VariantsTable"-${this.projectContext.reference.id}.${this.downloadFormat.name.toLowerCase()}`);
+                        `VariantsTable-${this.projectContext.reference.id}.${this.downloadFormat.name.toLowerCase()}`);
 
                     const clickEvent = new MouseEvent('click', {
                         'view': window,

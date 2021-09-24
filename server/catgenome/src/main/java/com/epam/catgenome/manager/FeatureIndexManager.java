@@ -475,7 +475,7 @@ public class FeatureIndexManager {
     }
 
     public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId,
-                                                         final ItemsByProject fileIdsByProjectId) {
+                                                         final ItemsByProject fileIdsByProjectId) throws IOException {
         final List<? extends FeatureFile> files =
                 getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
                 .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
@@ -487,15 +487,14 @@ public class FeatureIndexManager {
 
     public Set<String> getAvailableFieldValues(final Long referenceId,
                                                final ItemsByProject fileIdsByProjectId,
-                                               final String fieldName) {
+                                               final String fieldName) throws IOException {
         final List<? extends FeatureFile> files = getGeneFilesForReference(referenceId,
                 Optional.ofNullable(fileIdsByProjectId)
                         .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
         if (CollectionUtils.isEmpty(files)) {
             return Collections.emptySet();
         }
-        return featureIndexDao.getAvailableFieldValues(
-                files, fieldName);
+        return featureIndexDao.getAvailableFieldValues(files, fieldName);
     }
 
     public List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {
@@ -667,6 +666,7 @@ public class FeatureIndexManager {
 
         final List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
+                .filter(biologicalDataItem -> biologicalDataItem instanceof FeatureFile)
                 .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
                 .collect(Collectors.toList());
         final GeneFile geneFile = reference.getGeneFile();

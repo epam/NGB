@@ -43,10 +43,13 @@ export default  {
                     });
                 }
             });
-
-
+            const urlPrefix = ngbConstants.urlPrefix;
+            const prefix = urlPrefix && urlPrefix.endsWith('/')
+                ? urlPrefix.slice(0, -1)
+                : (urlPrefix || '');
+            const logoutUrl = `${prefix}/saml/logout`;
             this.logout = () => {
-                $window.location.href = `${ngbConstants.urlPrefix}/saml/logout`;
+                $window.location.href = logoutUrl;
             };
 
 

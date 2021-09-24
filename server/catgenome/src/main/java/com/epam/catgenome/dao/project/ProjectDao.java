@@ -165,7 +165,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(loadProjectsByParentIdQuery, ProjectParameters.getRowMapper(), parentId);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
         Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
         final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
@@ -216,7 +216,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * Updates {@code Project}'s last opened date field.
      * @param projectId {@code Long} ID of a project to update
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void updateLastOpenedDate(long projectId) {
         getJdbcTemplate().update(updateLastOpenedDateQuery, projectId);
     }
@@ -264,7 +264,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectIds a List of Ids of projects to load ProjectItems
      * @return a Map of ProjectItems to project IDs
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, Set<ProjectItem>> loadProjectItemsByProjectIds(List<Long> projectIds) {
         if (projectIds.isEmpty()) {
             return Collections.emptyMap();
@@ -273,7 +273,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         return loadProjectItemsByList(projectIds);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(List<Project> projects) {
         List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
         return loadProjectItemsByProjectIds(projectIds);

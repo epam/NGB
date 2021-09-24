@@ -130,6 +130,7 @@ function processMenuEntry(menuEntry, options) {
             case menuEntry[key] instanceof Function: {
                 switch (true) {
                     case key.startsWith('is'):
+                    case key === 'disabled':
                         result[key] = wrapStateFn(menuEntry[key], result);
                         result[`${key}Indeterminate`] = wrapIndeterminateStateFn(menuEntry[key], result);
                         break;

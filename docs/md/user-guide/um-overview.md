@@ -1,13 +1,17 @@
 # User management
+
 The security policy in NGB is based on the next principal entities: **Users**, **Groups**/**Roles** and **Permissions**.
 
 ## Users
-The **Users** entity defines the full list of the NGB users (accounts). Note that only authorized users that were registered early can work in NGB. The user can be added or deleted from NGB users list only by another user that have the *ADMIN* role. Users names represent the authentical domain accounts (SAML/OAuth/OpenID), e.g. e-mails. 
+
+The **Users** entity defines the full list of the NGB users (accounts). Note that only authorized users that were registered early can work in NGB. The user can be added or deleted from NGB users list only by another user that have the *ADMIN* role. Users names represent the authentical domain accounts (SAML/OAuth/OpenID), e.g. e-mails.
 
 ## Groups
+
 The **Groups** entity defines the users grants for the access to the specific datasets. Each **Group** should present a specific group of users (e.g. project team members), for which are granted or refused permissions for viewing specific datasets. The group can be created/deleted from NGB groups list or assigned to the user only by the user with the *ADMIN* role. Each NGB user can be in one or several groups or not in any of them.
 
 ## Roles
+
 The **Roles** entity defines the users grants for managing security access to the objects. Roles are predefined by the system, none of the users can create new roles or delete existing. The role can be assigned to the user only by user with the *ADMIN* role. Each NGB user must be assigned one or several roles.
 
 Actual system roles list:
@@ -25,11 +29,14 @@ ROLE_WIG_MANAGER | Allows user to have access and control the WIG files and trac
 ROLE_SEG_MANAGER | Allows user to have access and control the SEG files and tracks
 
 ## Permissions
+
 The **Permissions** entity defines what actions with files and datasets are allowed to the user/user group(role). The permission settings are divided into the following options which can be combined:
+
 - Read
 - Write
 
 ## User management from GUI
+
 The user management panel helps to manage users, groups and system roles.
 > Note: this panel is available only for the users with the *ADMIN* role.
 

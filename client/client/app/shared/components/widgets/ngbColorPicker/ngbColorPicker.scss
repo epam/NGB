@@ -1,0 +1,36 @@
+ngb-color-picker {
+  display: inline;
+}
+
+.ngb-color-picker-placeholder {
+  width: 40px;
+  height: 15px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+.ngb-color-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1201;
+  background-color: rgba(0, 0, 0, 0.1);
+  &.hidden {
+    display: none;
+  }
+
+  .ngb-color-picker-container {
+    display: block;
+    position: relative;
+
+    &.hidden {
+      display: none;
+    }
+
+    .color-picker-input {
+      display: none;
+    }
+  }
+}

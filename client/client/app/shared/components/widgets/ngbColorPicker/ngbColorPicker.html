@@ -1,0 +1,13 @@
+<div class="ngb-color-picker-placeholder"
+     ng-style="{'background-color': $ctrl.color}"
+     ng-click="$ctrl.show($event)">
+    &nbsp
+</div>
+<div class="ngb-color-picker-overlay" ng-show="$ctrl.opened">
+    <color-picker options="$ctrl.options"
+                  ng-cloak="$ctrl.ngCloak"
+                  api="$ctrl.api"
+                  ng-model="$ctrl.color">
+    </color-picker>
+
+</div>

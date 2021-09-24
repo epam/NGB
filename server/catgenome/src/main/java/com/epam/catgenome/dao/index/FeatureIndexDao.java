@@ -326,9 +326,7 @@ public class FeatureIndexDao {
 
             return searchFileIndexes(files, query, null, reader.numDocs(), null);
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
     }
 
@@ -439,18 +437,20 @@ public class FeatureIndexDao {
         }
     }
 
-    public GeneFilterInfo getAvailableFieldsToSearch(final List<? extends FeatureFile> files) {
+    public GeneFilterInfo getAvailableFieldsToSearch(final List<? extends FeatureFile> files) throws IOException {
         final Set<String> availableFields = new HashSet<>();
         final Set<String> mainFields = Arrays.stream(FeatureIndexFields.values())
                 .map(FeatureIndexFields::getFieldName).collect(Collectors.toSet());
+        final SimpleFSDirectory[] indices = fileManager.getIndexesForFiles(files);
         try {
-            for (SimpleFSDirectory file : fileManager.getIndexesForFiles(files)) {
-                DirectoryReader reader = DirectoryReader.open(file);
-                for (LeafReaderContext subReader : reader.leaves()) {
-                    Fields fields = subReader.reader().fields();
-                    for (String field : fields) {
-                        if (!mainFields.contains(field)) {
-                            availableFields.add(field);
+            for (SimpleFSDirectory file : indices) {
+                try(DirectoryReader reader = DirectoryReader.open(file)) {
+                    for (LeafReaderContext subReader : reader.leaves()) {
+                        Fields fields = subReader.reader().fields();
+                        for (String field : fields) {
+                            if (!mainFields.contains(field)) {
+                                availableFields.add(field);
+                            }
                         }
                     }
                 }
@@ -458,30 +458,37 @@ public class FeatureIndexDao {
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to perform index search for files " +
                     files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+        } finally {
+            closeIndices(indices);
         }
         return GeneFilterInfo.builder().availableFilters(availableFields).build();
     }
 
-    public Set<String> getAvailableFieldValues(final List<? extends FeatureFile> files, final String fieldName) {
+    public Set<String> getAvailableFieldValues(final List<? extends FeatureFile> files, final String fieldName)
+            throws IOException {
         final Set<String> termValues = new HashSet<>();
         int i = 0;
+        final SimpleFSDirectory[] indices = fileManager.getIndexesForFiles(files);
         try {
-            for (SimpleFSDirectory file : fileManager.getIndexesForFiles(files)) {
-                DirectoryReader reader = DirectoryReader.open(file);
-                for (LeafReaderContext subReader : reader.leaves()) {
-                    Terms terms = subReader.reader().terms(fieldName);
-                    TermsEnum termsEnum = terms.iterator();
-                    BytesRef byteRef = termsEnum.next();
-                    while (byteRef != null && i < luceneRequestMaxValues) {
-                        termValues.add(byteRef.utf8ToString().toLowerCase(Locale.ROOT));
-                        byteRef = termsEnum.next();
-                        i++;
+            for (SimpleFSDirectory file : indices) {
+                try(DirectoryReader reader = DirectoryReader.open(file)) {
+                    for (LeafReaderContext subReader : reader.leaves()) {
+                        Terms terms = subReader.reader().terms(fieldName);
+                        TermsEnum termsEnum = terms.iterator();
+                        BytesRef byteRef = termsEnum.next();
+                        while (byteRef != null && i < luceneRequestMaxValues) {
+                            termValues.add(byteRef.utf8ToString().toLowerCase(Locale.ROOT));
+                            byteRef = termsEnum.next();
+                            i++;
+                        }
                     }
                 }
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to perform index search for files " +
                     files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+        } finally {
+            closeIndices(indices);
         }
         return termValues;
     }
@@ -530,9 +537,7 @@ public class FeatureIndexDao {
                                            maxResultsCount != null &&
                                            totalHits > maxResultsCount, totalHits);
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
     }
 
@@ -560,9 +565,7 @@ public class FeatureIndexDao {
 
             return buildGeneIndexEntry(documentCreator, document);
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
     }
 
@@ -625,6 +628,7 @@ public class FeatureIndexDao {
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
+            closeIndices(indexes);
             return 0;
         }
 
@@ -646,9 +650,7 @@ public class FeatureIndexDao {
 
             return res.childCount;
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
     }
 
@@ -693,7 +695,7 @@ public class FeatureIndexDao {
     }
 
     public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy,
-                                  final List<? extends FeatureFile> featureFiles) {
+                                  final List<? extends FeatureFile> featureFiles) throws IOException {
         if (CollectionUtils.isNotEmpty(orderBy)) {
             final ArrayList<SortField> sortFields = new ArrayList<>();
             for (GeneFilterForm.OrderBy o : orderBy) {
@@ -774,6 +776,7 @@ public class FeatureIndexDao {
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
+            closeIndices(indexes);
             throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_FEATURE_INEDX_TOO_LARGE));
         }
 
@@ -797,9 +800,7 @@ public class FeatureIndexDao {
                 res.add(new Group(lv.label, lv.value.intValue()));
             }
         } finally {
-            for (SimpleFSDirectory index : indexes) {
-                IOUtils.closeQuietly(index);
-            }
+            closeIndices(indexes);
         }
 
         return res;
@@ -941,7 +942,7 @@ public class FeatureIndexDao {
                 chromosomeIds.add(Long.parseLong(labelAndValue.label));
             }
         } finally {
-            closeIndexes(indexes);
+            closeIndices(indexes);
         }
 
         return chromosomeIds;
@@ -951,7 +952,7 @@ public class FeatureIndexDao {
         return luceneIndexMaxSizeForGrouping;
     }
 
-    private void closeIndexes(SimpleFSDirectory[] indexes) {
+    private void closeIndices(SimpleFSDirectory[] indexes) {
         for (SimpleFSDirectory index : indexes) {
             IOUtils.closeQuietly(index);
         }
@@ -997,6 +998,8 @@ public class FeatureIndexDao {
         } catch (IOException e) {
             LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
+        } finally {
+            closeIndices(indexes);
         }
 
         return geneIds;

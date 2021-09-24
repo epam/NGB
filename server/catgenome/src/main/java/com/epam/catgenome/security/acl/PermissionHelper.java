@@ -43,6 +43,7 @@ import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -304,6 +305,10 @@ public class PermissionHelper {
         Reference reference = referenceGenomeManager.load(geneFile.getReferenceId());
         GeneFile referenceGeneFile = reference.getGeneFile();
         return referenceGeneFile != null && referenceGeneFile.getId().equals(id);
+    }
+
+    public boolean isAnnotationRegisteredForReference(Long id) {
+        return CollectionUtils.isNotEmpty(referenceGenomeManager.loadReferenceIdsByAnnotationFileId(id));
     }
 
     public boolean sessionIsReadable(final NGBSession session) {

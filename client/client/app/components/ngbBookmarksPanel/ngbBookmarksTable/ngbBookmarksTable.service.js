@@ -38,12 +38,6 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
         return this._bookmarksFilter;
     }
 
-    _displayBookmarksFilter;
-
-    get displayBookmarksFilter() {
-        return !!this._displayBookmarksFilter;
-    }
-
     _pageError = null;
 
     get pageError() {
@@ -80,6 +74,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                         enableFiltering: true,
                         enableSorting: true,
                         field: 'chromosome.name',
+                        cellTooltip: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.getBookmarksColumnTitle(column),
@@ -101,6 +96,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                         enableFiltering: true,
                         enableSorting: true,
                         field: 'reference.name',
+                        cellTooltip: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.getBookmarksColumnTitle(column),
@@ -144,6 +140,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                         enableFiltering: true,
                         enableSorting: true,
                         field: column,
+                        cellTooltip: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.getBookmarksColumnTitle(column),
@@ -203,10 +200,10 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
         return item => {
             let result = true;
             if (this.bookmarksFilter.name) {
-                result &= item.name.includes(this.bookmarksFilter.name);
+                result &= item.name.toLowerCase().includes(this.bookmarksFilter.name.toLowerCase());
             }
             if (this.bookmarksFilter.description) {
-                result &= item.description && item.description.includes(this.bookmarksFilter.description);
+                result &= item.description && item.description.toLowerCase().includes(this.bookmarksFilter.description.toLowerCase());
             }
             if (this.bookmarksFilter.chromosome && this.bookmarksFilter.chromosome.length) {
                 result &= item.chromosome && this.bookmarksFilter.chromosome.includes(item.chromosome.id);
@@ -221,7 +218,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
                 result &= item.endIndex <= this.bookmarksFilter.endIndex;
             }
             if (this.bookmarksFilter.owner) {
-                result &= item.owner && item.owner.includes(this.bookmarksFilter.owner);
+                result &= item.owner && item.owner.toLowerCase().includes(this.bookmarksFilter.owner.toLowerCase());
             }
             return !!result;
         };

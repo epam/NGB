@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.util.FileFormat;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +57,7 @@ public class ExportManager {
 
     public byte[] exportGenesByReference(final GeneExportFilterForm filterForm,
                                          final long referenceId,
-                                         final ExportFormat format,
+                                         final FileFormat format,
                                          final boolean includeHeader)
             throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -81,7 +82,7 @@ public class ExportManager {
     }
 
     public byte[] exportVariations(final VcfExportFilterForm filterForm,
-                                   final ExportFormat format,
+                                   final FileFormat format,
                                    final boolean includeHeader)
             throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -102,7 +103,7 @@ public class ExportManager {
         return outputStream.toByteArray();
     }
 
-    private void writeGenePage(final ExportFormat format,
+    private void writeGenePage(final FileFormat format,
                                final List<String> exportFields,
                                final IndexSearchResult<GeneIndexEntry> indexSearchResult,
                                ByteArrayOutputStream outputStream) throws IOException {
@@ -120,7 +121,7 @@ public class ExportManager {
         }
     }
 
-    private void writeVcfPage(final ExportFormat format,
+    private void writeVcfPage(final FileFormat format,
                                final List<String> exportFields,
                                final IndexSearchResult<VcfIndexEntry> indexSearchResult,
                                ByteArrayOutputStream outputStream) throws IOException {

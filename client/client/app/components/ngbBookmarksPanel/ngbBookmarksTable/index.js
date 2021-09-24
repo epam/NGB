@@ -8,7 +8,6 @@ import uiGrid from '../../../compat/uiGrid';
 import component from './ngbBookmarksTable.component';
 import controller from './ngbBookmarksTable.controller';
 import service from './ngbBookmarksTable.service';
-import ngbBookmarksTableColumn from './ngbBookmarksTableColumn';
 import ngbBookmarksTableFilter from './ngbBookmarksTableFilter';
 import ngbBookmarksTablePaginate from './ngbBookmarksTablePaginate';
 
@@ -18,7 +17,7 @@ import bookmarkDataService from '../../../../dataServices/angular-module';
 
 export default angular
     .module('ngbBookmarksTableComponent', [
-        ngbBookmarksTableColumn, ngbBookmarksTableFilter, ngbBookmarksTablePaginate,
+        ngbBookmarksTableFilter, ngbBookmarksTablePaginate,
         bookmarkDataService, uiGrid
     ])
     .service('ngbBookmarksTableService', service.instance)

@@ -20,8 +20,8 @@ export default class Index {
         this.colors = {};
     }
 
-    registerSource (...source) {
-        source.forEach(s => this.getColorConfiguration(s));
+    registerSource (...sources) {
+        sources.forEach(s => this.getColorConfiguration(s));
     }
 
     getColorConfiguration (source, options = {}) {
@@ -48,7 +48,8 @@ export default class Index {
         if (!this.colors.hasOwnProperty(source)) {
             const all = Object.values(this.colors);
             const [best] = array
-                .map((color, index) => ({index, weight: all.filter(c => c === index).length}))
+                .slice(1)
+                .map((color, index) => ({index: index + 1, weight: all.filter(c => c === (index + 1)).length}))
                 .sort((a, b) => a.weight - b.weight);
             this.colors[source] = best.index;
         }

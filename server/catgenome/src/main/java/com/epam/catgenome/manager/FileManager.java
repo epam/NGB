@@ -1199,7 +1199,7 @@ public class FileManager {
     public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(String path, String index,
                                                                            boolean useIndex) {
         String extension = getGeneFileExtension(path);
-        Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
+        Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTENSION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
         return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex, indexCache);
@@ -1223,7 +1223,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(GENE_EXTENSION.name(), extension);
 
-        Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
+        Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTENSION));
         Assert.notNull(geneFile.getIndex(), "Gene file should have an index");
 
 

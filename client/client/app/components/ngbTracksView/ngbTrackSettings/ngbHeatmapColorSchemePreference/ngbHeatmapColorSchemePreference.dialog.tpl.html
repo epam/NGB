@@ -1,0 +1,172 @@
+ <md-dialog aria-label="heatmap color scheme configuration" class="heatmap-color-scheme-dialog">
+     <form name="heatmapSchemeForm">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 ng-hide="name">Heatmap Color Scheme</h2>
+                <span flex></span>
+                <md-button
+                        class="md-icon-button"
+                        ng-click="close()"
+                        aria-label="Close"
+                >
+                    <ng-md-icon style="fill: #fff" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="color-scheme-preferences" ng-class="scheme.type">
+                <div layout="row">
+                    <md-input-container flex>
+                        <label for="color-scheme-name">
+                            Type
+                        </label>
+                        <md-select id="color-scheme-name"
+                                   ng-model="scheme.type"
+                                   required>
+                            <md-option ng-repeat="colorScheme in constants.schemes"
+                                       ng-disabled="!scheme.colorSchemeAvailable(colorScheme)"
+                                       ng-value="colorScheme">
+                                {{constants.schemeName(colorScheme)}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div ng-if="scheme.type === constants.HeatmapColorSchemes.continuous"
+                     class="heatmap-color-pickers heatmap-config-section">
+                    <div class="heatmap-color-picker">
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.highColor"></ngb-color-picker>
+                        <span class="heatmap-color-legend">High</span>
+                    </div>
+                    <div class="heatmap-color-picker">
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.mediumColor"></ngb-color-picker>
+                        <span class="heatmap-color-legend">Medium</span>
+                    </div>
+                    <div class="heatmap-color-picker">
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsLeft"
+                                          color="scheme.lowColor"></ngb-color-picker>
+                        <span class="heatmap-color-legend">Low</span>
+                    </div>
+                </div>
+                <div class="heatmap-config-section"
+                     ng-if="scheme.type === constants.HeatmapColorSchemes.discrete">
+                    <div class="heatmap-gradient-stop-configuration"
+                         ng-repeat="configuration in scheme.colorConfigurations track by configuration.uid">
+                        <div ng-if="scheme.colorConfigurations.length === 1"
+                             class="heatmap-color-picker">
+                            <ngb-color-picker ng-cloak
+                                              options="constants.colorPickerOptionsRight"
+                                              color="configuration.color"></ngb-color-picker>
+                            <span class="heatmap-color-legend">Data color</span>
+                        </div>
+                        <div ng-if="scheme.colorConfigurations.length > 1"
+                             class="heatmap-color-picker color-configuration">
+                            <ngb-color-picker ng-cloak
+                                              options="constants.colorPickerOptionsRight"
+                                              color="configuration.color"></ngb-color-picker>
+                            <div ng-if="scheme.dataType === constants.dataTypes.number"
+                                 class="color-configuration-value">
+                                <md-input-container class="heatmap-color-value-input-container">
+                                    <label for="from-value-{{configuration.uid}}">
+                                        From
+                                    </label>
+                                    <input
+                                            id="from-value-{{configuration.uid}}"
+                                            type="number"
+                                            required
+                                            placeholder="From"
+                                            ng-model="configuration.from"
+                                    />
+                                </md-input-container>
+                                <md-input-container class="heatmap-color-value-input-container">
+                                    <label for="to-value-{{configuration.uid}}">
+                                        To
+                                    </label>
+                                    <input
+                                            id="to-value-{{configuration.uid}}"
+                                            type="number"
+                                            required
+                                            placeholder="To"
+                                            ng-model="configuration.to"
+                                    />
+                                </md-input-container>
+                            </div>
+                            <div ng-if="scheme.dataType === constants.dataTypes.string"
+                                 class="color-configuration-value">
+                                <md-input-container class="heatmap-color-value-input-container"
+                                                    ng-if="scheme.values.length === 0">
+                                    <label for="value-{{configuration.uid}}">
+                                        Value
+                                    </label>
+                                    <input
+                                            id="value-{{configuration.uid}}"
+                                            required
+                                            placeholder="Value"
+                                            ng-model="configuration.value"
+                                    />
+                                </md-input-container>
+                                <md-input-container class="heatmap-color-value-input-container"
+                                                    ng-if="scheme.values.length > 0">
+                                    <label for="selector-{{configuration.uid}}">
+                                        Value
+                                    </label>
+                                    <md-select
+                                            id="selector-{{configuration.uid}}"
+                                            ng-model="configuration.value"
+                                            placeholder="Value"
+                                            required
+                                    >
+                                        <md-option ng-repeat="value in scheme.values"
+                                                   ng-value="value">
+                                            {{value}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                            <md-button class="md-icon-button"
+                                       ng-click="scheme.removeColorConfiguration(configuration)">
+                                <ng-md-icon
+                                        icon="clear"
+                                        aria-label="remove attribute"
+                                        style="fill: #999999"
+                                        size="16">
+                                </ng-md-icon>
+                            </md-button>
+                        </div>
+                    </div>
+                    <md-button class="md-raised heatmap-add-color-button"
+                               ng-click="scheme.addColorConfiguration()"
+                               aria-label="add color"
+                    >
+                        ADD COLOR
+                    </md-button>
+                </div>
+                <div class="heatmap-config-section">
+                    <div class="heatmap-color-picker">
+                        <ngb-color-picker ng-cloak
+                                          options="constants.colorPickerOptionsRight"
+                                          color="scheme.missingColor"></ngb-color-picker>
+                        <span class="heatmap-color-legend">Missing data</span>
+                    </div>
+                </div>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button aria-label="save"
+                       ng-click="save()"
+                       class="md-primary"
+                       ng-disabled="heatmapSchemeForm.$invalid"
+            >
+                Save
+            </md-button>
+            <md-button aria-label="cancel"
+                       ng-click="close()">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+     </form>
+ </md-dialog>

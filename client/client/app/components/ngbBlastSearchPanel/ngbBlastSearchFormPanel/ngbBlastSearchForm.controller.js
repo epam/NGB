@@ -132,6 +132,7 @@ export default class ngbBlastSearchFormController extends baseController {
         this.defaultParams = this.projectContext.getTrackDefaultSettings('blast_settings') || {};
         this.searchRequest.maxTargetSeqs = this.searchRequest.maxTargetSeqs || this.defaultParams.max_target_seqs;
         this.searchRequest.threshold = this.searchRequest.threshold || this.defaultParams.evalue;
+        this.searchRequest.options = this.searchRequest.options || this.defaultParams.options;
     }
 
     async getDBList() {

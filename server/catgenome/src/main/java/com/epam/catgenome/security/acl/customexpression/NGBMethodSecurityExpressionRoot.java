@@ -158,6 +158,15 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return allowed;
     }
 
+    public boolean readOnAnnotationFileIsAllowed(Long id, String type, Long projectId) {
+        boolean allowed = hasPermissionOnFileOrParentProject(id, type, projectId, "READ");
+        if (!allowed) {
+            //when load gene track - check reference gene file, and if it is the same file - allow read
+            allowed = permissionHelper.isAnnotationRegisteredForReference(id);
+        }
+        return allowed;
+    }
+
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {
         return permissionHelper.projectCanBeMoved(projectId, newParentId);
     }
