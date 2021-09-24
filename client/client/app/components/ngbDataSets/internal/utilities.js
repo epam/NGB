@@ -53,7 +53,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
     const mapTrackFn = function (track) {
         const metadata = track.metadata
-        ? Object.entries(track.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+        ? Object.entries(track.metadata).map(([key, value]) => `\r\n${key}: ${value}`).join('')
         : '';
         track.isTrack = true;
         track.project = node;
@@ -121,7 +121,7 @@ function getTrackFileName(track) {
 function _getProjectHint(project, reference) {
     let tracksFormats = '';
     const attributes = project.metadata
-    ? Object.entries(project.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
+    ? Object.entries(project.metadata).map(([key, value]) => `\r\n${key}: ${value}`).join('')
     : '';
 
     for (let i = 0; i < __tracks_formats.length; i++) {

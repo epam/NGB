@@ -61,12 +61,32 @@ export default class ngbProjectSummaryController {
             }
             return datasetsID;
         }, []);
-        this.datasets = this.projectContext.datasets.filter(project =>  datasetsId.includes(project.id));
+        this.datasets = this.projectContext.datasets.filter(project => datasetsId.includes(project.id));
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
-            const metadata = item.metadata;
+            const annotationFiles = JSON.parse(localStorage[`${this.projectContext.reference.name.toLowerCase()}-annotations`]);
+            let metadata;
+            if (
+                item && item.name &&
+                !annotationFiles.includes(item.name.toLowerCase())
+            ) {
+                metadata = item.metadata;
+            } else if (
+                this.projectContext &&
+                this.projectContext.datasets &&
+                this.projectContext.datasets.length > 0
+            ) {
+                metadata = this.datasets.reduce((result, dataset) => {
+                    const [itemInfo] = dataset.items
+                        .filter(dsItem => dsItem.name.toLowerCase() === item.name.toLowerCase() && dsItem.id=== item.id);
+                    if (itemInfo) {
+                        result = itemInfo.metadata;
+                    }
+                    return result;
+                }, {});
+            }
             for (const file of files) {
                 if (file.type === item.format) {
                     if (!file.names.some((nameObj) => nameObj.name === name)) {
