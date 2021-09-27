@@ -56,8 +56,6 @@ ngb-info-rows {
   }
 
   .remove-btn-container {
-    height: 15px;
-    padding-bottom: 11px;
     padding-top: 4px;
   }
 
@@ -66,6 +64,9 @@ ngb-info-rows {
     min-height: 15px;
     margin: auto;
     padding: 0;
+    ng-md-icon {
+      cursor: pointer;
+    }
   }
 
   .add-button {
