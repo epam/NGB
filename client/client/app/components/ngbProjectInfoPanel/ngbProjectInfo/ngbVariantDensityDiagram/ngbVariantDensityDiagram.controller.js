@@ -76,12 +76,14 @@ export default class ngbVariantDensityDiagramController {
             };
             this._dispatcher.on('variants:group:chromosome:started', updating);
             this._dispatcher.on('variants:group:chromosome:finished', reloadPanel);
+            this._dispatcher.on('deselect:dataset:item', reloadPanel);
 
             await this.INIT();
 
             $scope.$on('$destroy', () => {
                 __dispatcher.removeListener('variants:group:chromosome:started', updating);
                 __dispatcher.removeListener('variants:group:chromosome:finished', reloadPanel);
+                __dispatcher.removeListener('deselect:dataset:item', reloadPanel);
             });
 
             angular.element(window).on('resize', () => {
@@ -103,7 +105,6 @@ export default class ngbVariantDensityDiagramController {
     }
 
     async INIT() {
-
         this.noDataToDisplay = !this.variants || this.variants.length === 0;
         if (this.projectContext.reference && this.variants) {
             await this.updateDiagram(
