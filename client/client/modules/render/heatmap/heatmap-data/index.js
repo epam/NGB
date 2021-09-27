@@ -121,9 +121,6 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                     .loadHeatmapMetadata(id, projectId)
                     .then(this.waitForTreeData.bind(this))
                     .then((metadata = {}) => {
-                        if (this._metadata) {
-                            this._metadata.destroy();
-                        }
                         this.assignMetadata(
                             HeatmapMetadata.fromResponse(
                                 metadata,

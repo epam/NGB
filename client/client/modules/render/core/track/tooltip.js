@@ -85,14 +85,16 @@ export default function tooltipFactory(track) {
         },
         setContent(content) {
 
-            const mapLineElements = function({colspan, content}, index) {
+            const mapLineElements = function({colspan = 1, content}, index) {
+                const minWidth = `${75 * colspan}px`;
+                const maxWidth = `${25 * colspan}vw`;
                 return `<td
                     colspan='${colspan}'
                     style='
                     ${index === 0 ? 'text-align:left' : 'text-align:right'};
                     color: #222222 ;
-                    min-width: 75px;
-                    max-width: 25vw;
+                    min-width: ${minWidth};
+                    max-width: ${maxWidth};
                     white-space: nowrap;
                     text-overflow: ellipsis;
                     overflow: hidden;

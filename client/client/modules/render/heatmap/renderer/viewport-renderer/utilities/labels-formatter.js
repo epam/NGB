@@ -1,4 +1,4 @@
-import config from './config';
+import config from '../config';
 
 function splitWord (word, offset = 1) {
     const threshold = config.label.wrap.lineCharsCount;

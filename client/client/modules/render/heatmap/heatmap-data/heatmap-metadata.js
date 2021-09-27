@@ -57,10 +57,46 @@ const HeatmapDataType = {
  * @property {(string|number)[]} [cellValues]
  */
 
+/**
+ * @typedef {Object} HeatmapAnnotatedIndex
+ * @property {string} name
+ * @property {string} [annotation]
+ */
+
+/**
+ * Parses column/row
+ * @param {string|string[]|{[name]: string}|{name: string, annotation: string}} metadataItem
+ * @returns {HeatmapAnnotatedIndex}
+ */
+function parseMetadataItem(metadataItem) {
+    if (!metadataItem) {
+        return {name: ''};
+    }
+    if (typeof metadataItem === 'string') {
+        return {name: metadataItem};
+    }
+    if (Array.isArray(metadataItem)) {
+        const [name, annotation] = metadataItem;
+        return {name, annotation};
+    }
+    if (
+        typeof metadataItem === 'object' &&
+        Object.prototype.hasOwnProperty.call(metadataItem, 'name')
+    ) {
+        return metadataItem;
+    }
+    if (typeof metadataItem === 'object') {
+        const [name] = Object.keys(metadataItem || {});
+        return {name, annotation: metadataItem[name]};
+    }
+    return {name: ''};
+}
+
 function createArray(length) {
     return (new Array(length))
         .fill('#')
-        .map((element, index) => `${element}${index + 1}`);
+        .map((element, index) => `${element}${index + 1}`)
+        .map(parseMetadataItem);
 }
 
 export {HeatmapDataType};
@@ -121,8 +157,8 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
         this.rowsTree = tree && tree.rows && !tree.rows.invalid ? tree.rows : undefined;
         this.ignoreColumnsTreeOrders = !this.columnsTree;
         this.ignoreRowsTreeOrders = !this.rowsTree;
-        this._rows = rows.slice();
-        this._columns = columns.slice();
+        this._rows = rows.map(parseMetadataItem);
+        this._columns = columns.map(parseMetadataItem);
         if (this._rows.length === 0 && rowsCount > 0) {
             this._rows = createArray(rowsCount);
         }
@@ -181,7 +217,7 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             this._columnsOrder = new Map();
             this._columnsOriginalOrder = new Map();
             this._sortedColumns = [];
-            this.columnsTree.getItemsOrderInfo(this._columns)
+            this.columnsTree.getItemsOrderInfo(this._columns, o => o.name)
                 .forEach(({item, originalOrder, order}) => {
                     this._columnsOrder.set(originalOrder, order);
                     this._columnsOriginalOrder.set(order, originalOrder);
@@ -198,7 +234,7 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             this._rowsOrder = new Map();
             this._rowsOriginalOrder = new Map();
             this._sortedRows = [];
-            this.rowsTree.getItemsOrderInfo(this._rows)
+            this.rowsTree.getItemsOrderInfo(this._rows, o => o.name)
                 .forEach(({item, originalOrder, order}) => {
                     this._rowsOrder.set(originalOrder, order);
                     this._rowsOriginalOrder.set(order, originalOrder);

@@ -242,15 +242,16 @@ export function orthogonalVector(vector) {
  * @param {number} distance
  * @returns {Point2D}
  */
-export function movePoint(point, vector, distance) {
+export function movePoint(point, vector, distance = 0) {
     const {
         x = 0,
         y = 0
     } = point || {};
     const normalized = normalizeVector(vector);
+    const length = getVectorLength(vector);
     return {
-        x: x + distance * normalized.x,
-        y: y + distance * normalized.y
+        x: x + (distance || length) * normalized.x,
+        y: y + (distance || length) * normalized.y
     };
 }
 
@@ -269,5 +270,114 @@ export function moveSection(section, vector, distance) {
     return {
         a: movePoint(a, vector, distance),
         b: movePoint(b, vector, distance)
+    };
+}
+
+/**
+ * Rotates vector anticlockwise by angle
+ * @param {Vector} vector
+ * @param {number} radians
+ * @returns {Vector}
+ */
+export function rotate(vector, radians) {
+    const {
+        start = {},
+        end = {},
+        x,
+        y
+    } = vector || {};
+    const {
+        x: xs = 0,
+        y: ys = 0
+    } = start;
+    const {
+        x: xe = x,
+        y: ye = y
+    } = end;
+    const vx = xe - xs;
+    const vy = ye - ys;
+    const rx = Math.cos(radians) * vx - Math.sin(radians) * vy;
+    const ry = Math.sin(radians) * vx + Math.cos(radians) * vy;
+    return {
+        start: {x: xs, y: ys},
+        end: {x: rx, y: ry},
+        x: rx - xs,
+        y: ry - ys
+    };
+}
+
+/**
+ * @typedef {Object} Rectangle
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height
+ */
+
+/**
+ * Rotates rectangle anticlockwise by angle
+ * @param {Rectangle} rect
+ * @param {number} radians
+ * @returns {{a: Point2D, b: Point2D, c: Point2D, d: Point2D}}
+ */
+export function rotateRectangle(rect, radians) {
+    if (!rect) {
+        return rect;
+    }
+    const {
+        x,
+        y,
+        width,
+        height
+    } = rect;
+    const a = {x, y};
+    const b = {x: x + width, y};
+    const c = {x: x + width, y: y + height};
+    const d = {x, y: y + height};
+    return {
+        a: rotate(a, radians),
+        b: rotate(b, radians),
+        c: rotate(c, radians),
+        d: rotate(d, radians)
+    };
+}
+
+/**
+ * Rotates rectangle anticlockwise by angle and returns it's bounds (rectangle)
+ * @param {Rectangle} rect
+ * @param {number} radians
+ * @returns {Rectangle}
+ */
+export function getRotatedRectangleBounds(rect, radians) {
+    if (!rect) {
+        return rect;
+    }
+    const {a, b, c, d} = rotateRectangle(rect, radians);
+    const x1 = Math.min(a.x, b.x, c.x, d.x);
+    const y1 = Math.min(a.y, b.y, c.y, d.y);
+    const x2 = Math.max(a.x, b.x, c.x, d.x);
+    const y2 = Math.max(a.y, b.y, c.y, d.y);
+    return {
+        x: x1,
+        y: y1,
+        width: x2 - x1,
+        height: y2 - y1
+    };
+}
+
+/**
+ *
+ * @param {Rectangle} rect
+ * @param {number} [margin=0]
+ */
+export function extendRectangleByMargin(rect, margin = 0) {
+    if (!rect || !margin || margin <= 0) {
+        return rect;
+    }
+    return {
+        x: rect.x - margin,
+        y: rect.y - margin,
+        width: rect.width + 2.0 * margin,
+        height: rect.height + 2.0 * margin
     };
 }

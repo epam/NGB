@@ -8,10 +8,11 @@ const MOCK_DATA_MAX = 50;
 const DATA_TYPE_NUMBER = true;
 const MISSING_DATA_THRESHOLD = 0.25;
 
-function generateRandomItems(length, name) {
+function generateRandomItems(length, name, annotation = false) {
     return new Array(length)
         .fill(name)
-        .map((o, i) => `${o} ${i + 1}`);
+        .map((o, i) => `${o} ${i + 1}`)
+        .map(o => annotation ? ([o, `Annotation for ${o}`]) : o);
 }
 
 function generateRandomTreeItems(length, name) {
@@ -83,15 +84,15 @@ export class HeatmapDataService extends DataService {
         // eslint-disable-next-line no-unused-vars
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const columns = generateRandomItems(MOCK_COLUMNS, 'column');
-                const rows = generateRandomItems(MOCK_ROWS, 'row');
+                const columns = generateRandomItems(MOCK_COLUMNS, 'column', true);
+                const rows = generateRandomItems(MOCK_ROWS, 'row', true);
                 resolve({
-                    columns,
-                    rows,
-                    min: MOCK_DATA_MIN,
-                    max: MOCK_DATA_MAX,
-                    values: DATA_TYPE_NUMBER ? [] : ['Item #1', 'Item #2', 'Item #3'],
-                    type: DATA_TYPE_NUMBER ? 'number' : 'string'
+                    columnLabels: columns,
+                    rowLabels: rows,
+                    minCellValue: MOCK_DATA_MIN,
+                    maxCellValue: MOCK_DATA_MAX,
+                    cellValues: DATA_TYPE_NUMBER ? [] : ['Item #1', 'Item #2', 'Item #3'],
+                    cellValueType: DATA_TYPE_NUMBER ? 'number' : 'string'
                 });
             }, 1000);
         });

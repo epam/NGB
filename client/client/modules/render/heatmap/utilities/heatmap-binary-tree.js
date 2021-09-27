@@ -146,24 +146,24 @@ export default class HeatmapBinaryTree {
         });
     }
 
-    getOrder(item) {
-        if (!this.orders.has(item)) {
+    getOrder(item, valueFn = (o => o)) {
+        if (!this.orders.has(valueFn(item))) {
             return undefined;
         }
-        return this.orders.get(item);
+        return this.orders.get(valueFn(item));
     }
 
-    getItemsOrderInfo(items = []) {
+    getItemsOrderInfo(items = [], valueFn = (o => o)) {
         return items.map((item, index) => ({
             item,
             originalOrder: index,
-            order: this.getOrder(item) || 0
+            order: this.getOrder(item, valueFn) || 0
         }))
             .sort((a, b) => a.order - b.order);
     }
 
-    orderItems(items = []) {
-        const info = this.getItemsOrderInfo(items);
+    orderItems(items = [], valueFn = (o => o)) {
+        const info = this.getItemsOrderInfo(items, valueFn);
         return info.map(orderedItem => orderedItem.item);
     }
 }

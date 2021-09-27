@@ -1,11 +1,11 @@
 import * as PIXI from 'pixi.js-legacy';
+import AxisLabel from './utilities/axis-label';
 import AxisVectors from './axis-vectors';
 import InteractiveZone from '../../interactions/interactive-zone';
 import config from './config';
-import labelsFormatter from './labels-formatter';
-import labelsInitializer from './labels-initializer';
-import {linearDimensionsConflict} from '../../../utilities';
+import events from '../../utilities/events';
 import makeInitializable from '../../utilities/make-initializable';
+import {movePoint} from './utilities/vector-utilities';
 
 class HeatmapAxisRenderer extends InteractiveZone {
     /**
@@ -28,40 +28,41 @@ class HeatmapAxisRenderer extends InteractiveZone {
         this.axis = axis;
         this.labelsManager = labelsManager;
         this.container = new PIXI.Container();
-        const {
-            x = 1,
-            y = 0,
-        } = direction;
-        const {x: ax = 0} = normal;
+        const {x = 1, y = 0} = direction;
         this.direction = {x, y};
         this.normal = normal;
         this.directionRadians = Math.atan2(this.direction.y, this.direction.x);
         this.normalRadians = Math.atan2(this.normal.y, this.normal.x);
-        this.tickAnchor = {
-            x: ax >= 0 ? 0 : 1,
-            y: 0.5
-        };
-        this.tickAlign = ax > 0 ? 'left' : 'right';
-        this._labelSprites = [];
-        this._labels = [];
         /**
-         * @type {PIXI.Sprite}
+         *
+         * @type {AxisLabel[]}
+         */
+        this.ticks = [];
+        /**
+         * Hovered tick
+         * @type {undefined|AxisLabel}
          * @private
          */
-        this._hoveredLabel = undefined;
-        this._labelVisibilityInfo = [];
-        this._hoveredValue = undefined;
+        this._hoveredTick = undefined;
         this.clearRenderSession();
         this.initialize();
     }
 
-    get hoveredValue() {
-        return this._hoveredValue;
+    /**
+     * Hovered tick
+     * @returns {undefined|AxisLabel}
+     */
+    get hoveredTick() {
+        return this._hoveredTick;
     }
 
     destroy() {
         if (this.container) {
             this.container.destroy();
+        }
+        if (this.ticks) {
+            this.ticks.forEach(tick => tick.destroy());
+            this.ticks = [];
         }
         this.labelsManager = undefined;
         super.destroy();
@@ -91,39 +92,29 @@ class HeatmapAxisRenderer extends InteractiveZone {
 
     /**
      * Initializes axis labels
-     * @param {Array<string>} [labels = []]
+     * @param {HeatmapAnnotatedIndex[]} [labels = []]
+     * @param {boolean} [showAnnotations=false]
      */
-    initialize(labels = []) {
+    initialize(labels = [], showAnnotations = true) {
         if (labels.length === 0) {
             return;
         }
-        this._labels = labels.map(label => {
-            const lines = labelsFormatter(label);
-            return {
-                label,
-                lines,
-                formatted: lines.join('\n'),
-                length: label.length,
-                formattedLength: Math.max(...lines.map(line => line.length), 0)
-            };
-        });
-        const formattedLabels = this._labels.map(o => o.formatted);
-        labelsInitializer(this.labelsManager, {...config.label.font, align: this.tickAlign}, formattedLabels)
-            .then((_labels) => {
-                this._labelSprites = _labels;
-                this._labelVisibilityInfo = formattedLabels.map((label) => ({
-                    visible: true,
-                    label
-                }));
-            })
+        const options = {
+            labelsManager: this.labelsManager,
+            axis: this.axis,
+            direction: this.direction,
+            normal: this.normal,
+            showAnnotations
+        };
+        AxisLabel.initializeTicks(options, labels)
+            .then((ticks) => this.ticks = ticks)
             .then(this.calculateAxisSize.bind(this))
             .then(() => {
                 this.container.removeChildren();
                 this.labelsContainer = new PIXI.Container();
                 this.container.addChild(this.labelsContainer);
-                this._labelSprites.forEach(label => {
-                    label.visible = false;
-                    this.labelsContainer.addChild(label);
+                this.ticks.forEach(tick => {
+                    this.labelsContainer.addChild(tick.container);
                 });
                 this.clearRenderSession();
                 requestAnimationFrame(() => {
@@ -134,17 +125,7 @@ class HeatmapAxisRenderer extends InteractiveZone {
     }
 
     calculateAxisSize () {
-        const [longest] = this._labels
-            .slice()
-            .sort((a, b) => b.formattedLength - a.formattedLength);
-        const texture = this.labelsManager.getLabel(
-            longest.formatted,
-            {...config.label.hoveredFont, align: this.tickAlign}
-        );
-        this._labelsMaxSize = texture.width +
-            config.label.margin * 2.0 +
-            config.scroller.height +
-            config.scroller.margin * 2.0;
+        this._labelsMaxSize = Math.max(0, ...this.ticks.map(tick => tick.size));
     }
 
     clearRenderSession() {
@@ -160,10 +141,64 @@ class HeatmapAxisRenderer extends InteractiveZone {
         return undefined;
     }
 
+    /**
+     *
+     * @param {Point2D} point
+     */
+    pointOverAxis(point) {
+        if (point) {
+            const start = 0;
+            const end = this.axisSize;
+            const x = point.x * this.normal.x;
+            const y = point.y * this.normal.y;
+            return (start <= x && x <= end) && (start <= y && y <= end);
+        }
+        return false;
+    }
+
     onHover(event) {
-        const value = this.getHoveredValue(event);
-        if (value !== this._hoveredValue) {
-            this._hoveredValue = value;
+        let value = this.getHoveredValue(event);
+        const {
+            value: hoveredValue
+        } = this._hoveredTick || {};
+        const pointOverAxis = this.pointOverAxis(event);
+        let tooltip = undefined;
+        if (pointOverAxis) {
+            const point = movePoint(event, {x: -this.labelsContainer.x, y: -this.labelsContainer.y});
+            for (let t = 0; t < this.ticks.length; t += 1) {
+                if (this.ticks[t].test(point)) {
+                    value = this.ticks[t].value;
+                    tooltip = this.ticks[t];
+                    break;
+                }
+            }
+        }
+        if (tooltip !== this.tooltipTick) {
+            /**
+             *
+             * @type {AxisLabel}
+             */
+            this.tooltipTick = tooltip;
+            if (!this.tooltipTick) {
+                this.emit(events.tooltip.hide);
+            } else {
+                this.emit(events.tooltip.show,
+                    {
+                        event,
+                        content: this.tooltipTick.getTooltip()
+                    }
+                );
+            }
+        }
+        if (value !== hoveredValue) {
+            const [tick] = this.ticks.filter(tick => tick.value === value);
+            if (this._hoveredTick) {
+                this._hoveredTick.hovered = false;
+            }
+            this._hoveredTick = tick;
+            if (this._hoveredTick) {
+                this._hoveredTick.hovered = true;
+            }
             this.requestRender();
         }
     }
@@ -236,118 +271,41 @@ class HeatmapAxisRenderer extends InteractiveZone {
         };
     }
 
-    rebuildLabels() {
-        for (let l = 0; l < this._labelSprites.length; l += 1) {
-            const shift = this.axis.scale.getDeviceDimension(l + 0.5);
-            const margin = config.label.margin * 2.0 +
-                config.scroller.height +
-                config.scroller.margin * 2.0;
-            const center = {
-                x: shift * this.direction.x + this.normal.x * margin,
-                y: shift * this.direction.y + this.normal.y * margin
+    /**
+     * Gets viewport bounds for axis
+     * @returns {{start: number, end: number}}
+     */
+    getViewportBounds() {
+        if (this.axis && !this.axis.invalid) {
+            return {
+                start: this.axis.getDevicePosition(this.axis.start),
+                end: this.axis.getDevicePosition(this.axis.end)
             };
-            if (!this._labelVisibilityInfo[l]) {
-                this._labelVisibilityInfo.push({visible: true});
-            }
-            if (this.labelFitsTick && Math.abs(this.direction.x) > 0) {
-                this._labelSprites[l].anchor.set(0.5, 1);
-                this._labelSprites[l].rotation = this.directionRadians;
-                this._labelVisibilityInfo[l].start = shift
-                    - this._labelSprites[l].width / 2.0;
-                this._labelVisibilityInfo[l].end = shift
-                    + this._labelSprites[l].width / 2.0;
-            } else {
-                this._labelSprites[l].anchor.set(this.tickAnchor.x, this.tickAnchor.y);
-                this._labelSprites[l].rotation = this.normalRadians +
-                    (this.normal.x < 0 ? Math.PI : 0) +
-                    this.labelExtraRotation;
-                this._labelVisibilityInfo[l].start = shift
-                    - this._labelSprites[l].height / 2.0
-                    - config.label.margin;
-                this._labelVisibilityInfo[l].end = shift
-                    + this._labelSprites[l].height / 2.0
-                    + config.label.margin;
-            }
-            this._labelSprites[l].x = Math.round(center.x);
-            this._labelSprites[l].y = Math.round(center.y);
-            this._labelVisibilityInfo[l].anchor = this._labelSprites[l].anchor;
-            this._labelVisibilityInfo[l].rotation = this._labelSprites[l].rotation;
-            this._labelVisibilityInfo[l].x = this._labelSprites[l].x;
-            this._labelVisibilityInfo[l].y = this._labelSprites[l].y;
         }
+        return {start: Infinity, end: -Infinity};
     }
 
-    rebuildLabelsVisibility() {
-        this._labelVisibilityInfo.forEach(info => {
-            info.visible = false;
-            info.hovered = false;
-        });
-        let hoveredRange;
-        let previousOccupiedPosition = 0;
-        if (this._hoveredLabel) {
-            this._hoveredLabel.parent.removeChild(this._hoveredLabel);
-            this._hoveredLabel.destroy();
-            this._hoveredLabel = undefined;
-        }
-        if (this.hoveredValue !== undefined && this._labelVisibilityInfo[this.hoveredValue]) {
-            this._labelVisibilityInfo[this.hoveredValue].visible = false;
-            this._labelVisibilityInfo[this.hoveredValue].hovered = true;
-            this._labelVisibilityInfo[this.hoveredValue].faded = false;
-            const {
-                start,
-                end,
-                label,
-                anchor,
-                rotation,
-                x,
-                y
-            } = this._labelVisibilityInfo[this.hoveredValue];
-            hoveredRange = {start, end};
-            if (label && this.labelsManager) {
-                this._hoveredLabel = this.labelsManager.getLabel(
-                    label,
-                    {...config.label.hoveredFont, align: this.tickAlign}
-                );
-                this._hoveredLabel.anchor.set(anchor.x, anchor.y);
-                this._hoveredLabel.rotation = rotation;
-                this._hoveredLabel.x = x;
-                this._hoveredLabel.y = y;
-                this.labelsContainer.addChild(this._hoveredLabel);
-            }
-        }
-        for (let l = 0; l < this._labelVisibilityInfo.length; l++) {
-            const {
-                start,
-                end,
-                hovered: labelHovered,
-            } = this._labelVisibilityInfo[l];
-            const notConflicts = previousOccupiedPosition < start;
-            if (notConflicts) {
-                previousOccupiedPosition = end;
-            }
-            if (labelHovered) {
-                continue;
-            }
-            this._labelVisibilityInfo[l].visible = notConflicts;
-            this._labelVisibilityInfo[l].faded = hoveredRange &&
-                linearDimensionsConflict(hoveredRange.start, hoveredRange.end, start, end);
-        }
+    updateTicksPositions() {
+        return this.ticks.map(tick => tick.updatePosition({
+            extraRotation: this.labelExtraRotation,
+            fitsTick: this.labelFitsTick
+        }))
+            .filter(Boolean)
+            .length > 0;
+    }
+
+    updateTicksVisibility() {
+        const viewportBounds = this.getViewportBounds();
+        const ranges = [];
+        return this.ticks.map(tick => tick.updateVisibility(ranges, viewportBounds, this.hoveredTick))
+            .filter(Boolean)
+            .length > 0;
     }
 
     translate() {
         const shift = this.axis.getDevicePosition(0);
         this.labelsContainer.x = this.direction.x * shift;
         this.labelsContainer.y = this.direction.y * shift;
-        const valueVisible = (value) => this.axis.start <= (value + 0.5) &&
-            (value - 0.5) <= this.axis.end;
-        if (this._hoveredLabel && this.hoveredValue !== undefined) {
-            this._hoveredLabel.visible = valueVisible(this.hoveredValue);
-        }
-        for (let l = 0; l < this._labelSprites.length; l += 1) {
-            const {faded, visible} = this._labelVisibilityInfo[l];
-            this._labelSprites[l].visible = visible && valueVisible(l);
-            this._labelSprites[l].alpha = faded ? config.label.fade : 1;
-        }
     }
 
     render() {
@@ -358,25 +316,30 @@ class HeatmapAxisRenderer extends InteractiveZone {
         const positionChanged = scaleChanged ||
             this.session.center !== this.axis.center ||
             this.session.deviceSize !== this.axis.deviceSize;
-        const hoverChanged = this.session.hovered !== this.hoveredValue;
+        const hoveredTickValue = this.hoveredTick ? this.hoveredTick.value : undefined;
+        const hoverChanged = this.session.hovered !== hoveredTickValue;
         const visibilityChanged = (scaleChanged || hoverChanged) && !this.axis.isAnimating;
+        let changed = false;
         if (scaleChanged) {
-            this.rebuildLabels();
-        }
-        if (visibilityChanged) {
-            this.rebuildLabelsVisibility();
+            changed = this.updateTicksPositions() || changed;
         }
         if (positionChanged || hoverChanged || visibilityChanged) {
             this.translate();
+            changed = this.updateTicksVisibility() || changed;
         }
+        changed = this.ticks
+            .map(tick => tick.render())
+            .filter(Boolean)
+            .length > 0 || changed;
         this.session.scale = this.axis.scale.tickSize;
         this.session.center = this.axis.center;
         this.session.deviceSize = this.axis.deviceSize;
-        this.session.hovered = this.hoveredValue;
+        this.session.hovered = hoveredTickValue;
         return scaleChanged ||
             positionChanged ||
             hoverChanged ||
-            visibilityChanged;
+            visibilityChanged ||
+            changed;
     }
 }
 
@@ -407,6 +370,14 @@ export class ColumnsRenderer extends HeatmapAxisRenderer {
     getDragValue(event) {
         return event.dragStartViewportColumn + event.columnsDelta;
     }
+
+    getViewportBounds() {
+        const bounds = super.getViewportBounds();
+        return {
+            start: bounds.start - this.labelsContainer.x,
+            end: bounds.end - this.labelsContainer.x
+        };
+    }
 }
 
 export class RowsRenderer extends HeatmapAxisRenderer {
@@ -435,5 +406,13 @@ export class RowsRenderer extends HeatmapAxisRenderer {
 
     getDragValue(event) {
         return event.dragStartViewportRow + event.rowsDelta;
+    }
+
+    getViewportBounds() {
+        const bounds = super.getViewportBounds();
+        return {
+            start: bounds.start - this.labelsContainer.y,
+            end: bounds.end - this.labelsContainer.y
+        };
     }
 }

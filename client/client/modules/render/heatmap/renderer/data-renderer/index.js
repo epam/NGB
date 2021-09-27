@@ -333,8 +333,8 @@ class HeatmapDataRenderer extends InteractiveZone {
         if (!event || !this.test(event) || !this.data || !this.data.dataReady || !this.viewport) {
             this.hoveredChanged = !!this.hovered;
             this.hovered = undefined;
-            this.emit(events.tooltip.hide);
             if (this.hoveredChanged) {
+                this.emit(events.tooltip.hide);
                 this.requestRender();
             }
         } else {
