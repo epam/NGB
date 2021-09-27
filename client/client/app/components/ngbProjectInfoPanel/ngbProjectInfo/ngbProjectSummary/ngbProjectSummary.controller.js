@@ -126,6 +126,9 @@ export default class ngbProjectSummaryController {
         });
         this.files = files;
     }
+    datasetContainsMetadata() {
+        return this.datasets.some(dataset => !!dataset.metadata);
+    }
 
     getTrackFileName(track) {
         if (!track.isLocal) {
