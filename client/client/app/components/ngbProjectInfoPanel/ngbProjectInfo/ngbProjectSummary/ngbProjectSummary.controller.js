@@ -74,7 +74,7 @@ export default class ngbProjectSummaryController {
             const annotationFiles = this.projectContext.reference && this.projectContext.reference.annotationFiles;
             let metadata = {};
             if (
-                !annotationFiles.some(el => el.id === item.id && el.format === item.format)
+                !annotationFiles || !annotationFiles.some(el => el.id === item.id && el.format === item.format)
             ) {
                 metadata = sortObjectByKeyValue(item.metadata);
             } else if (
