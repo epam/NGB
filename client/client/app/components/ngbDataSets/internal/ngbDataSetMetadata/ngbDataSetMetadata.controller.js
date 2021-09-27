@@ -25,6 +25,14 @@ function metadataIsEqual(o1, o2) {
     }
     return true;
 }
+export function sortObjectByKeyValue(obj) {
+    if (obj) {
+        return Object.entries(obj)
+        .sort(([key1,], [key2,]) => key1.localeCompare(key2))
+        .reduce((r, [k, v]) => ({ ...r, [k]: v }), {});
+    }
+    return obj;
+}
 export default class ngbDataSetMetadataController extends BaseController {
     node;
     formData;
@@ -46,7 +54,7 @@ export default class ngbDataSetMetadataController extends BaseController {
             node,
             service: ngbDataSetsService.projectDataService
         });
-        this.formData = Object.entries(this.node.metadata || {});
+        this.formData = Object.entries(this.node.metadata || {}).sort(([key1,], [key2,]) => key1.localeCompare(key2));
         this.initial_metadata = this.node.metadata || {};
     }
     get metadataIsEmpty() {
@@ -58,10 +66,14 @@ export default class ngbDataSetMetadataController extends BaseController {
     get metadata() {
         return Object.fromEntries(this.formData);
     }
+    get sortedMetadata() {
+        return sortObjectByKeyValue(this.metadata);
+    }
     get existedKeys() { 
         return this.formData.map(pair => pair[0]).reduce((r, key) => {
-            if (key) {
-                r[key] = (r[key] || 0) + 1;
+            const caseInsensitiveKey = key ? key.toLowerCase() : null;
+            if (caseInsensitiveKey) {
+                r[caseInsensitiveKey] = (r[caseInsensitiveKey] || 0) + 1;
             }
             return r;
         }, {});
@@ -74,7 +86,7 @@ export default class ngbDataSetMetadataController extends BaseController {
         const requestBody = {
             id: node.id,
             aclClass: this.service.getNodeAclClass(node),
-            metadata: this.metadata
+            metadata: this.sortedMetadata
         };
         this.saving = true;
         await this.service.saveMetadata(requestBody);
@@ -82,7 +94,7 @@ export default class ngbDataSetMetadataController extends BaseController {
         this.dispatcher.emitSimpleEvent('metadata:change', {
             id: node.id,
             projectId: node.isProject ? node.id : node.project.id,
-            metadata: this.metadata,
+            metadata: this.sortedMetadata,
             isFile: node.type === 'FILE',
             displayName: node.displayName
         });

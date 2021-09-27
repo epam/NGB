@@ -30,6 +30,16 @@ export function preprocessDatasetNote(note) {
     };
 }
 
+function _preprocessMetadataAttributes(metadata) {
+    if (metadata) {
+        return Object.entries(metadata)
+            .sort(([key1,], [key2,]) => key1.localeCompare(key2))
+            .map(([key, value]) => `\r\n${key}: ${value}`)
+            .join('');
+    }
+    return '';
+}
+
 function _preprocessNode(node: Node, parent: Node = null) {
     node.isProject = true;
     node.project = parent;
@@ -52,9 +62,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     }
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
     const mapTrackFn = function (track) {
-        const metadata = track.metadata
-        ? Object.entries(track.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
-        : '';
+        const metadata = _preprocessMetadataAttributes(track.metadata);
         track.isTrack = true;
         track.project = node;
         track.projectId = node.name;
@@ -120,9 +128,7 @@ function getTrackFileName(track) {
 
 function _getProjectHint(project, reference) {
     let tracksFormats = '';
-    const attributes = project.metadata
-    ? Object.entries(project.metadata).map(([key, value]) => `\r\n${key}:${value}`).join('')
-    : '';
+    const attributes = _preprocessMetadataAttributes(project.metadata);
 
     for (let i = 0; i < __tracks_formats.length; i++) {
         const count = project.items.filter(track => track.format === __tracks_formats[i]).length;

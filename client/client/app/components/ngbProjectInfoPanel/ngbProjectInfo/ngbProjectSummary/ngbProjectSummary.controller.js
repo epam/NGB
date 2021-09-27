@@ -1,3 +1,5 @@
+import {sortObjectByKeyValue} from '../../../ngbDataSets/internal/ngbDataSetMetadata/ngbDataSetMetadata.controller';
+
 export default class ngbProjectSummaryController {
     static get UID() {
         return 'ngbProjectSummaryController';
@@ -5,8 +7,7 @@ export default class ngbProjectSummaryController {
 
     projectContext;
     showTrackOriginalName = true;
-    datasetName;
-    datasetMetadata = {};
+    datasets = [];
 
     /**
      * @constructor
@@ -53,15 +54,19 @@ export default class ngbProjectSummaryController {
 
         const files = [];
         const items = this.projectContext.tracks;
-        const datasetId = items.reduce((datasetID, item) => {
-            if (item.projectId && item.project) {
-                datasetID = item.project.id;
+        const datasetsId = items.reduce((datasetsID, item) => {
+            const id = item && item.project ? item.project.id: null;
+            if (id) {
+                if (!datasetsID.includes(id)) {
+                    datasetsID.push(id);
+                }
             }
-            return datasetID;
-        }, null);
-        const [dataset] = this.projectContext.datasets.filter(project => project.id === datasetId);
-        this.datasetMetadata = dataset ? dataset.metadata : null;
-        this.datasetName = dataset? dataset.name : '';
+            return datasetsID;
+        }, []);
+        this.datasets = this.projectContext.datasets.filter(project => datasetsId.includes(project.id)).map(dataset => {
+            dataset.metadata = sortObjectByKeyValue(dataset.metadata);
+            return dataset;
+        });
         this.heatmap = undefined;
         for (const item of items) {
             if (item.format === 'HEATMAP' && !this.heatmap) {
@@ -70,7 +75,27 @@ export default class ngbProjectSummaryController {
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
-            const metadata = item.metadata;
+            const annotationFiles = this.projectContext.reference && this.projectContext.reference.annotationFiles;
+            let metadata = {};
+            if (
+                !annotationFiles || !annotationFiles.some(el => el.id === item.id && el.format === item.format)
+            ) {
+                metadata = sortObjectByKeyValue(item.metadata);
+            } else if (
+                this.projectContext &&
+                this.projectContext.datasets &&
+                this.projectContext.datasets.length > 0
+            ) {
+                const metadataObj = this.datasets.reduce((result, dataset) => {
+                    const [itemInfo] = dataset.items
+                        .filter(dsItem => dsItem.format === item.format && dsItem.id=== item.id);
+                    if (itemInfo) {
+                        result = itemInfo.metadata;
+                    }
+                    return result;
+                }, {});
+                metadata = sortObjectByKeyValue(metadataObj);
+            }
             for (const file of files) {
                 if (file.type === item.format) {
                     if (!file.names.some((nameObj) => nameObj.name === name && nameObj.id === item.id)) {
@@ -115,6 +140,9 @@ export default class ngbProjectSummaryController {
             });
         });
         this.files = files;
+    }
+    datasetContainsMetadata() {
+        return this.datasets.some(dataset => !!dataset.metadata);
     }
 
     isHeatmapSelector(file) {
