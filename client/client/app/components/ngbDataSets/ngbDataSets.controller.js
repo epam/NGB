@@ -10,10 +10,7 @@ export default class ngbDataSetsController extends baseController {
     nothingFound = null;
     noDatasets = false;
     _isLoading = true;
-    projectContext;
     showTrackOriginalName = true;
-
-    service;
 
     constructor(
         $mdDialog,
@@ -64,15 +61,33 @@ export default class ngbDataSetsController extends baseController {
         });
     }
 
+    events = {
+        'activeDataSets': ::this.onResize,
+        'datasets:filter:changed': ::this.loadingFinished,
+        'datasets:loading:finished': ::this.loadingFinished,
+        'datasets:loading:started': ::this.loadingStarted,
+        'reference:change': ::this.onProjectChanged,
+    };
+
     async $onInit() {
         await this.refreshDatasets();
+    }
+
+    async refreshDatasets() {
+        await this.projectContext.refreshDatasets();
+        this.searchPatternChanged();
+    }
+
+    async onProjectChanged() {
+        await this.service.updateSelectionFromState(this.datasets);
+        this.onResize();
     }
 
     async loadingStarted() {
         this._isLoading = true;
         this.$timeout(::this.$scope.$apply);
     }
-
+    
     async loadingFinished() {
         if (!this.projectContext.datasetsAreLoading) {
             this.datasets = await this.service.getDatasets();
@@ -97,15 +112,11 @@ export default class ngbDataSetsController extends baseController {
         return settings.max_tracks_count || 10;
     }
 
-    hiddenReference (reference) {
-        return reference &&
-            this.service.isDummyReference(reference.name);
-    }
-
-    datasetSelectionDisabled (dataset) {
-        const isDummyReference = dataset &&
-            this.hiddenReference(dataset.reference);
-        return dataset.totalFilesCount > this.maxTracksToOpen || isDummyReference;
+    get searchLength() {
+        if (!this.searchPattern) {
+            return 0;
+        }
+        return this.searchPattern.length;
     }
 
     getNodeHint (node) {
@@ -118,17 +129,29 @@ Open dataset files manually.`;
         return node.hint;
     }
 
-    events = {
-        'activeDataSets': ::this.onResize,
-        'datasets:filter:changed': ::this.loadingFinished,
-        'datasets:loading:finished': ::this.loadingFinished,
-        'datasets:loading:started': ::this.loadingStarted,
-        'reference:change': ::this.onProjectChanged,
-    };
+    getCustomName(node) {
+        if (!node.isProject) {
+            return this.trackNamingService.getCustomName(node);
+        }
+        return null;
+    }
 
-    async onProjectChanged() {
-        await this.service.updateSelectionFromState(this.datasets);
-        this.onResize();
+    getTemplateNode(node) {
+        if (node.isProject)
+            return 'ngbDataSetsParentNode.tpl.html';
+        else
+            return 'ngbDataSetsTerminalNode.tpl.html';
+    }
+
+    hiddenReference (reference) {
+        return reference &&
+            this.service.isDummyReference(reference.name);
+    }
+
+    datasetSelectionDisabled (dataset) {
+        const isDummyReference = dataset &&
+            this.hiddenReference(dataset.reference);
+        return dataset.totalFilesCount > this.maxTracksToOpen || isDummyReference;
     }
 
     async select(item, isSelected, tree) {
@@ -157,13 +180,6 @@ Open dataset files manually.`;
         }
     }
 
-    clearSearch() {
-        this.searchPattern = null;
-    }
-
-    async refreshDatasets() {
-        await this.projectContext.refreshDatasets();
-    }
 
     searchPatternChanged() {
         if (this.datasets) {
@@ -173,19 +189,6 @@ Open dataset files manually.`;
         }
     }
 
-    get searchLength() {
-        if (!this.searchPattern) {
-            return 0;
-        }
-        return this.searchPattern.length;
-    }
-
-    getCustomName(node) {
-        if (!node.isProject) {
-            return this.trackNamingService.getCustomName(node);
-        }
-        return null;
-    }
 
     nameIsChanged(node) {
         if (!node.isProject) {
@@ -224,11 +227,8 @@ Open dataset files manually.`;
     filter() {
         return this.service.filter;
     }
-
-    getTemplateNode(node) {
-        if (node.isProject)
-            return 'ngbDataSetsParentNode.tpl.html';
-        else
-            return 'ngbDataSetsTerminalNode.tpl.html';
+    
+    clearSearch() {
+        this.searchPattern = null;
     }
 }
