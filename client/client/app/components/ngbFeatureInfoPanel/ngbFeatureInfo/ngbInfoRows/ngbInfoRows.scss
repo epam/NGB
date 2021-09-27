@@ -1,6 +1,6 @@
 ngb-info-rows {
   .property {
-    padding: 7px;
+    padding: 5px 7px;
   }
 
   .property-row,
@@ -39,10 +39,6 @@ ngb-info-rows {
     border: 0;
   }
 
-  .unremovable {
-    margin-left: 15px;
-  }
-
   .editable {
     height: 15px;
     border: none;
@@ -60,9 +56,7 @@ ngb-info-rows {
   }
 
   .remove-btn-container {
-    height: 15px;
-    padding-bottom: 11px;
-    padding-top: 3px;
+    padding-top: 4px;
   }
 
   .remove-btn {
@@ -70,6 +64,9 @@ ngb-info-rows {
     min-height: 15px;
     margin: auto;
     padding: 0;
+    ng-md-icon {
+      cursor: pointer;
+    }
   }
 
   .add-button {
@@ -83,6 +80,11 @@ ngb-info-rows {
   .property-name.editable {
     margin-left: 0;
     margin-right: 5px;
+  }
+
+  .property-attribute-name {
+    word-break: break-all;
+    line-height: 1.5;
   }
 
   .property-attribute {
@@ -108,6 +110,6 @@ ngb-info-rows {
     color: #F00;
     margin-right: 5px;
     font-size: 10px;
-    padding-left: 7px;
+    padding-left: 5px;
   }
 }

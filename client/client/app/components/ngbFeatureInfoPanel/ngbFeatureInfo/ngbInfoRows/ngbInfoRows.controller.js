@@ -40,7 +40,8 @@ export default class ngbInfoRowsController {
                 name: '',
                 value: '',
                 default: false,
-                attribute: true
+                attribute: true,
+                isInput: true
             });
         }
     }
