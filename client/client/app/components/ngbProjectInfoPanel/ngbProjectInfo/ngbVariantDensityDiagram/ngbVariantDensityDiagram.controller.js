@@ -91,14 +91,27 @@ export default class ngbVariantDensityDiagramController {
         })();
     }
 
+    get variants() {
+        return this.projectContext.variantsDataByChromosomes;
+    }
+
+    get isVariantsGroupByChromosomesLoading() {
+        return this.projectContext.isVariantsGroupByChromosomesLoading;
+    }
+    get variantsGroupByChromosomesError() {
+        return this.projectContext.variantsGroupByChromosomesError;
+    }
+
     async INIT() {
-        this.noDataToDisplay = !this.projectContext.variantsDataByChromosomes ||
-            this.projectContext.variantsDataByChromosomes.length === 0;
-        if (this.projectContext.reference && this.projectContext.variantsDataByChromosomes) {
-            await this.updateDiagram(this.projectContext.variantsDataByChromosomes,
-                this.projectContext.isVariantsGroupByChromosomesLoading,
-                this.projectContext.variantsGroupByChromosomesError);
-            this.isProgressShown = this.projectContext.isVariantsGroupByChromosomesLoading;
+
+        this.noDataToDisplay = !this.variants || this.variants.length === 0;
+        if (this.projectContext.reference && this.variants) {
+            await this.updateDiagram(
+                this.variants,
+                this.isVariantsGroupByChromosomesLoading,
+                this.variantsGroupByChromosomesError
+            );
+            this.isProgressShown = this.isVariantsGroupByChromosomesLoading;
             this._scope.$apply();
         }
     }
@@ -153,7 +166,6 @@ export default class ngbVariantDensityDiagramController {
 
         return nvd3DataObject;
     }
-
 
     async updateDiagram(variants, isLoading, error) {
         if (isLoading) {
