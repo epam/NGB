@@ -71,11 +71,10 @@ export default class ngbProjectSummaryController {
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
-            const annotationFiles = JSON.parse(localStorage[`${this.projectContext.reference.name.toLowerCase()}-annotations`]);
+            const annotationFiles = this.projectContext.reference && this.projectContext.reference.annotationFiles;
             let metadata = {};
             if (
-                item && item.name &&
-                !annotationFiles.includes(item.name.toLowerCase())
+                !annotationFiles.some(el => el.id === item.id && el.format === item.format)
             ) {
                 metadata = sortObjectByKeyValue(item.metadata);
             } else if (
@@ -85,7 +84,7 @@ export default class ngbProjectSummaryController {
             ) {
                 const metadataObj = this.datasets.reduce((result, dataset) => {
                     const [itemInfo] = dataset.items
-                        .filter(dsItem => dsItem.name.toLowerCase() === item.name.toLowerCase() && dsItem.id=== item.id);
+                        .filter(dsItem => dsItem.format === item.format && dsItem.id=== item.id);
                     if (itemInfo) {
                         result = itemInfo.metadata;
                     }
