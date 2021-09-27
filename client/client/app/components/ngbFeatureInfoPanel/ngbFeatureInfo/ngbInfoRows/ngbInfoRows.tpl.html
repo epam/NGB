@@ -7,14 +7,19 @@
              layout-wrap
              class="property-row"
         >
-            <div flex="40" class="property property-name">
+            <div flex="45" class="property property-name default">
                 <span class="property-attribute"
                       ng-if="property[2]">
                     ATTR
                 </span>
-                {{property[0]}}
+                <span class="property-attribute-name">
+                    {{property[0]}}
+                </span>
             </div>
-            <div flex="60" class="property property-value">{{property[1]}}</div>
+            <div flex="30"
+                 class="property property-value">
+                {{property[1]}}
+                </div>
         </div>
     </div>
     <form ng-if="$ctrl.editmode" name="attributes" class="general-information-form">
@@ -25,45 +30,40 @@
              layout-wrap
              class="property-row"
         >
-            <div flex="40"
+            <div flex="45"
                  ng-if="!attribute.attribute"
                  layout="row"
                  layout-wrap
             >
                 <div flex
-                     class="property property-name unremovable">
+                     class="property property-name">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">
                         ATTR
                     </span>
-                    {{attribute.name}}
+                    <span class="property-attribute-name">
+                        {{attribute.name}}
+                    </span>
                 </div>
             </div>
-            <div flex="40"
+            <div flex="45"
                  ng-if="attribute.attribute"
                  layout="row"
                  layout-wrap
             >
-                <div class="remove-btn-container">
-                    <md-button
-                        class="remove-btn"
-                        ng-click="$ctrl.onClickRemoveAttribute(attribute)"
-                        aria-label="Remove"
-                        title="Remove attribute">
-                        <ng-md-icon icon="remove_circle_outline" size="15" style="fill: #679edb !important;">
-                        </ng-md-icon>
-                    </md-button>
-                </div>
-                <div class="property property-name"
-                     ng-if="attribute.default"
-                     style="flex: 1">
+                <div ng-if="attribute.default"
+                     class="property property-name">
                     <span class="property-attribute"
                           ng-if="attribute.attribute">
                         ATTR
                     </span>
-                    {{attribute.name}}
+                    <span class="property-attribute-name">
+                        {{attribute.name}}
+                    </span>
                 </div>
-                <div ng-if="!attribute.default" style="flex: 1">
+                <div ng-if="!attribute.default"
+                     style="flex: 1"
+                     class="property">
                     <input type="string"
                            required
                            class="property property-name editable"
@@ -85,7 +85,7 @@
                     </div>
                 </div>
             </div>
-            <div flex="60">
+            <div flex="30">
                 <div ng-if="!$ctrl.isEditable(attribute)"
                      class="property property-value">
                     {{attribute.value}}
@@ -110,6 +110,21 @@
                         </select>
                     </div>
                 </div>
+            </div>
+            <div flex="5"
+                 ng-if="attribute.attribute"
+                 class="remove-btn-container">
+                <md-button
+                    class="remove-btn"
+                    ng-click="$ctrl.onClickRemoveAttribute(attribute)"
+                    aria-label="Remove"
+                    title="Remove attribute">
+                    <ng-md-icon
+                        icon="clear"
+                        size="15"
+                        style="fill: #999 !important;">
+                    </ng-md-icon>
+                </md-button>
             </div>
         </div>
     </form>
