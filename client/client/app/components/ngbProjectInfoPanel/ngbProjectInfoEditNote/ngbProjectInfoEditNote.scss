@@ -1,9 +1,19 @@
 ngb-project-info-edit-note {
   .edit-note-container {
     .edit-note-input-container {
-      width: 100%;
+      margin-top: 20px;
+      margin-right: 20px;
+      width: calc(100% - 20px);
     }
-
+    .markdown-container {
+      padding:0px;
+      margin: 0px;
+      height: 70vh;
+      width: calc(100% - 20px);
+      background-color: rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 3px;
+    }
     .edit-note-buttons-container {
       justify-content: end;
     }
@@ -11,5 +21,13 @@ ngb-project-info-edit-note {
 
   .edit-note-error {
     color: rgb(213, 0, 0);
+  }
+  #note_desc {
+    display:block;
+    margin: 0px;
+    padding: 10px;
+    height: 70vh;
+    width: 100%;
+    border-bottom: none;
   }
 }

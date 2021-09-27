@@ -1,4 +1,31 @@
 .markdown {
-    max-height: 95%;
+    max-height: 90vh;
     overflow: auto;
+    ul {
+        .task-list-item {
+            margin-left: -16px;
+            input {
+                margin-left: 0px !important;
+            }
+        }
+    }
+    ul li::marker {
+        font-size: 100%;
+      }
+    blockquote {
+        background-color: rgba(0,0,0, 0.02);
+        border-left: 5px solid rgba(0,0,0, 0.1);
+        margin-left: 0px;
+        blockquote {
+            margin-left: 10px;
+        }
+        p {
+            line-height: 1.6;
+            color: #6f6f6f;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: normal;
+        }
+    }
 }
