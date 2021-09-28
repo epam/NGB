@@ -37,6 +37,9 @@ import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.sourceforge.olduvai.treejuxtaposer.TreeParser;
+import net.sourceforge.olduvai.treejuxtaposer.drawer.Tree;
+import net.sourceforge.olduvai.treejuxtaposer.drawer.TreeNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +72,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static org.forester.io.parsers.util.ParserUtils.createReader;
 
 @Service
 @RequiredArgsConstructor
@@ -104,8 +108,12 @@ public class HeatmapManager {
         byte[] content = FileUtils.readFileToByteArray(file);
         byte[] labelAnnotation = readFileContent(heatmap.getLabelAnnotationPath(), heatmap, this::checkLabelAnnotation);
         byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap, this::checkCellAnnotation);
-        byte[] rowTree = readFileContent(heatmap.getRowTreePath(), heatmap, h -> {});
-        byte[] columnTree = readFileContent(heatmap.getColumnTreePath(), heatmap, h -> {});
+        byte[] rowTree = readFileContent(heatmap.getRowTreePath(),
+                heatmap,
+                h -> checkTree(h.getRowLabels(), h.getRowTreePath()));
+        byte[] columnTree = readFileContent(heatmap.getColumnTreePath(),
+                heatmap,
+                h -> checkTree(h.getColumnLabels(), h.getColumnTreePath()));
         biologicalDataItemManager.createBiologicalDataItem(heatmap);
         heatmap.setBioDataItemId(heatmap.getId());
         return heatmapDao.saveHeatmap(heatmap,
@@ -143,6 +151,24 @@ public class HeatmapManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    public void updateRowTree(final long heatmapId, final String path) throws IOException {
+        File file = getFile(path);
+        Heatmap heatmap = getHeatmap(heatmapId);
+        heatmap.setRowTreePath(path);
+        checkTree(heatmap.getRowLabels(), path);
+        heatmapDao.updateHeatmapRowTree(heatmapId, FileUtils.readFileToByteArray(file), path);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateColumnTree(final long heatmapId, final String path) throws IOException {
+        File file = getFile(path);
+        Heatmap heatmap = getHeatmap(heatmapId);
+        heatmap.setColumnTreePath(path);
+        checkTree(heatmap.getColumnLabels(), path);
+        heatmapDao.updateHeatmapColumnTree(heatmapId, FileUtils.readFileToByteArray(file), path);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteHeatmap(final long heatmapId) {
         Heatmap heatmap = getHeatmap(heatmapId);
         heatmapDao.deleteHeatmap(heatmapId);
@@ -169,17 +195,36 @@ public class HeatmapManager {
         Heatmap heatmap = heatmapDao.loadHeatmap(heatmapId);
         if (heatmap == null) {
             return null;
-        } else {
-            try (InputStream inputStream = heatmapDao.loadLabelAnnotation(heatmapId)) {
-                return inputStream == null ? null : getDataAsMap(inputStream, heatmap.getLabelAnnotationPath());
-            }
+        }
+        try (InputStream inputStream = heatmapDao.loadLabelAnnotation(heatmapId)) {
+            return inputStream == null ? null : getDataAsMap(inputStream, heatmap.getLabelAnnotationPath());
         }
     }
 
-    public HeatmapTree getTree(long heatmapId) {
-//        heatmapDao.loadHeatmapRowTree(heatmapId);
-//        heatmapDao.loadHeatmapColumnTree(heatmapId);
-        return new HeatmapTree();
+    public HeatmapTree getTree(final long heatmapId) throws IOException {
+        Heatmap heatmap = heatmapDao.loadHeatmap(heatmapId);
+        HeatmapTree heatmapTree = new HeatmapTree();
+        if (heatmap != null) {
+            Tree tree;
+            try (InputStream rowTreeIS = heatmapDao.loadHeatmapRowTree(heatmapId)) {
+                tree = readTree(rowTreeIS, heatmap.getRowTreePath());
+                heatmapTree.setRow(tree == null ? null : tree.getRoot());
+            }
+            try (InputStream columnTreeIS = heatmapDao.loadHeatmapColumnTree(heatmapId)) {
+                tree = readTree(columnTreeIS, heatmap.getColumnTreePath());
+                heatmapTree.setColumn(tree == null ? null : tree.getRoot());
+            }
+        }
+        return heatmapTree;
+    }
+
+    private Tree readTree(final InputStream is, String path) throws IOException {
+        if (is == null) {
+            return null;
+        }
+        BufferedReader r = createReader(is);
+        TreeParser tp = new TreeParser(r);
+        return tp.tokenize(FilenameUtils.getBaseName(path));
     }
 
     private void readHeatmap(Heatmap heatmap) throws IOException {
@@ -397,5 +442,18 @@ public class HeatmapManager {
                 rowNum++;
             }
         }
+    }
+
+    @SneakyThrows
+    private void checkTree(final List<String> labels, String path) {
+        BufferedReader r = createReader(path);
+        TreeParser tp = new TreeParser(r);
+        Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
+        List<String> treeLabels = tree.nodes.stream()
+                .map(TreeNode::getName)
+                .filter(f -> !f.isEmpty())
+                .filter(t -> !labels.contains(t))
+                .collect(Collectors.toList());
+        Assert.isTrue(treeLabels.isEmpty(), getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
     }
 }

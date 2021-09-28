@@ -90,7 +90,17 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public HeatmapTree getTree(final long heatmapId, final Long projectId) {
+    public HeatmapTree getTree(final long heatmapId, final Long projectId) throws IOException {
         return heatmapManager.getTree(heatmapId);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
+    public void updateRowTree(final long heatmapId, final String path) throws IOException {
+        heatmapManager.updateRowTree(heatmapId, path);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
+    public void updateColumnTree(final long heatmapId, final String path) throws IOException {
+        heatmapManager.updateColumnTree(heatmapId, path);
     }
 }

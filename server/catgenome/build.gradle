@@ -179,6 +179,7 @@ dependencies {
 //    biojava
     compile group: "org.biojava", name:"biojava-genome", version: "4.2.0"
     compile group: "org.biojava", name:"biojava-structure", version: "4.2.0"
+    compile group: "com.github.qurben", name: "libnewicktree", version: "1.0"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")
