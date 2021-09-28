@@ -2,7 +2,7 @@
     <md-button aria-label="Info Product" class="md-icon-button" ng-click="$mdOpenMenu($event)">
         <md-icon md-svg-src="../../../../assets/icons/infoProduct.svg" aria-label="share"></md-icon>
     </md-button>
-    <md-menu-content width="4" class="ngb-tool-menu" md-whiteframe="4">
+    <md-menu-content width="4" class="ngb-tool-menu ngb-product-info" md-whiteframe="4">
         <ngb-version></ngb-version>
         <div class="page-title-header" flex layout>
             <div class="page-title-logo">
@@ -16,7 +16,8 @@
             <a href="https://github.com/epam/NGB/issues" target="_blank">https://github.com/epam/NGB/issues</a>
         </div>
         <div flex class="docs" layout="row" ng-if="$ctrl.docsUrl">
-            <a href="{{$ctrl.docsUrl}}" target="_blank">Documentation</a>
+            <span>Documentation: </span>
+            <a href="{{$ctrl.docsUrl}}" target="_blank">{{$ctrl.docsUrl}}</a>
         </div>
     </md-menu-content>
 </md-menu>
