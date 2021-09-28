@@ -1,4 +1,3 @@
-import {linearDimensionsConflict} from '../../utilities';
 import * as helpers from './helpers';
 import * as predefinedColors from './colors';
 import ColorConfiguration from './color-configuration';
@@ -7,9 +6,12 @@ import {HeatmapDataType} from '../heatmap-data';
 import HeatmapEventDispatcher from '../utilities/heatmap-event-dispatcher';
 import colorSchemes from './schemes';
 import events from '../utilities/events';
+import {linearDimensionsConflict} from '../../utilities';
 import makeInitializable from '../utilities/make-initializable';
 
 const {ColorFormats} = helpers;
+
+const SINGLE_VALUE_AVAILABLE_BEFORE = 100;
 
 const ColorCollection = [
     predefinedColors.red,
@@ -179,6 +181,14 @@ class ColorScheme extends HeatmapEventDispatcher {
         this.type = this.correctType(this.type);
     }
 
+    get singleValueModeAvailable() {
+        return this.dataType !== HeatmapDataType.number ||
+            (
+                this.values.length > 0 &&
+                this.values.length < SINGLE_VALUE_AVAILABLE_BEFORE
+            );
+    }
+
     correctType (type) {
         if (!this.colorSchemeAvailable(type)) {
             const [scheme] = Object.values(colorSchemes)
@@ -289,7 +299,10 @@ class ColorScheme extends HeatmapEventDispatcher {
         }
         let from = undefined;
         let to = undefined;
-        if (this.colorConfigurations.length > 0 && this.dataType === HeatmapDataType.number) {
+        if (
+            this.colorConfigurations.length > 0 &&
+            !this.singleValueModeAvailable
+        ) {
             const valid = this.colorConfigurations.filter(c => !Number.isNaN(Number(c.from)) &&
                 !Number.isNaN(Number(c.to))
             );
@@ -302,13 +315,17 @@ class ColorScheme extends HeatmapEventDispatcher {
                 }
             }
         }
+        if (this.colorConfigurations.length === 1) {
+            this.colorConfigurations[0].singleValue = this.singleValueModeAvailable;
+        }
         this.colorConfigurations.push(new ColorConfiguration({
             colorFormat: this.colorFormat,
             color: ColorCollection[this.colorConfigurations.length % ColorCollection.length],
             dataType: this.dataType,
             validate: this.validate.bind(this),
             from,
-            to
+            to,
+            singleValue: this.singleValueModeAvailable
         }));
         this.updateGradientStops();
     }

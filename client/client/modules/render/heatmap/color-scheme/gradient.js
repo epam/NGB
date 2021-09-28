@@ -103,6 +103,13 @@ export class Gradient {
         return undefined;
     }
 
+    get range() {
+        if (!Number.isNaN(Number(this.from)) && !Number.isNaN(Number(this.to))) {
+            return Math.abs(Number(this.to) - Number(this.from));
+        }
+        return 0;
+    }
+
     /**
      *
      * @param {Gradient[]} otherGradients
@@ -277,6 +284,7 @@ export default class GradientCollection {
          * @type {Gradient[]}
          */
         this.gradients = gradients;
+        this.gradients.sort((a, b) => a.range - b.range);
         this.checkGradientRegions();
     }
 

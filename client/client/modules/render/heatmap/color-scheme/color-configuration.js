@@ -15,6 +15,8 @@ const {ColorFormats} = helpers;
  * @property {string} [colorFormat=number]
  * @property {HeatmapDataType} [dataType=HeatmapDataType.number]
  * @property {function} validate
+ * @property {boolean} [_singleValue=false]
+ * @property {boolean} [singleValue=false]
  */
 
 export default class ColorConfiguration {
@@ -34,13 +36,15 @@ export default class ColorConfiguration {
             from = _from,
             to = _to,
             colorFormat = ColorFormats.number,
-            validate = (() => {})
+            validate = (() => {}),
+            _singleValue = from === to,
+            singleValue = _singleValue
         } = options;
         ColorConfiguration.uniqueIdentifier += 1;
         this._uid = ColorConfiguration.uniqueIdentifier;
         this._color = _color !== undefined ? _color : helpers.systemColorValue(color);
         this._from = from;
-        this._to = to;
+        this._to = singleValue ? from : to;
         this._dataType = dataType;
         /**
          * @type {undefined|string}
@@ -52,6 +56,7 @@ export default class ColorConfiguration {
          */
         this.colorFormat = colorFormat;
         this._validateAll = validate;
+        this._singleValue = singleValue;
     }
 
     get uid() {
@@ -81,6 +86,27 @@ export default class ColorConfiguration {
         if (typeof this._validateAll === 'function') {
             this._validateAll();
         }
+    }
+
+    get singleValue() {
+        return this._singleValue;
+    }
+
+    set singleValue(singleValue) {
+        if (this._singleValue !== singleValue) {
+            this._singleValue = singleValue;
+            if (this._singleValue) {
+                this.value = this.from;
+            }
+        }
+    }
+
+    get rangeValue() {
+        return !this._singleValue;
+    }
+
+    set rangeValue(rangeValue) {
+        this.singleValue = !rangeValue;
     }
 
     get from() {

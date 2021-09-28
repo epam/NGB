@@ -69,7 +69,7 @@
                                 <ngb-color-picker ng-cloak
                                                   options="constants.colorPickerOptionsRight"
                                                   color="configuration.color"></ngb-color-picker>
-                                <div ng-if="scheme.dataType === constants.dataTypes.number"
+                                <div ng-if="scheme.dataType === constants.dataTypes.number && !configuration.singleValue"
                                      class="color-configuration-value">
                                     <md-input-container class="heatmap-color-value-input-container">
                                         <label for="from-value-{{configuration.uid}}">
@@ -98,7 +98,7 @@
                                         />
                                     </md-input-container>
                                 </div>
-                                <div ng-if="scheme.dataType === constants.dataTypes.string"
+                                <div ng-if="scheme.dataType === constants.dataTypes.string || configuration.singleValue"
                                      class="color-configuration-value">
                                     <md-input-container class="heatmap-color-value-input-container"
                                                         ng-if="scheme.values.length === 0">
@@ -130,6 +130,14 @@
                                         </md-select>
                                     </md-input-container>
                                 </div>
+                                <md-checkbox
+                                        ng-if="scheme.dataType === constants.dataTypes.number && scheme.singleValueModeAvailable"
+                                        ng-model="configuration.rangeValue"
+                                        aria-label="Range"
+                                        flex
+                                        style="flex: 0 0 auto">
+                                    Range
+                                </md-checkbox>
                                 <md-button class="md-icon-button"
                                            ng-click="scheme.removeColorConfiguration(configuration)">
                                     <ng-md-icon

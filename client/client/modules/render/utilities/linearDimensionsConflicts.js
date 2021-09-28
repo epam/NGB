@@ -106,7 +106,7 @@ export default function linearDimensionsConflict(a1, a2, b1, b2, margin = 0) {
         const [aSamePoint, aOtherPoint] = [a1, a2].sort(sorter(bSet));
         const [bSamePoint, bOtherPoint] = [b1, b2].sort(sorter(aSet));
         // if vectors from one point are of the same direction, then sectors are overlap
-        return (aSamePoint - aOtherPoint) * (bSamePoint - bOtherPoint) > 0;
+        return (aSamePoint - aOtherPoint) * (bSamePoint - bOtherPoint) >= 0;
     }
     const o1size = Math.abs(o1p2 - o1p1);
     const o2size = Math.abs(o2p2 - o2p1);
