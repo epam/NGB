@@ -105,16 +105,16 @@ export class MOTIFSTrack extends CachedTrack {
                 block.endIndex = end;
                 return block;
             })
-            .sort((a, b) => a.start >= b.start);
+            .sort((a, b) => a.startIndex >= b.startIndex);
         if (matches.length && matches.length === 1) {
             matches[0].levelY = 1;
         }
         for (let i = 0; i < matches.length - 1; i++) {
             matches[i].levelY = matches[i].levelY ? matches[i].levelY : 1;
             matches[i + 1].levelY = matches[i + 1].levelY ? matches[i + 1].levelY : 1;
-            if (matches[i].start === matches[i + 1].start) {
+            if (matches[i].startIndex === matches[i + 1].startIndex) {
                 matches[i + 1].levelY = matches[i].levelY + 1;
-            }  else if (matches[i].end >= matches[i + 1].start) {
+            }  else if (matches[i].endIndex >= matches[i + 1].startIndex) {
                 matches[i + 1].levelY = matches[i].levelY + 1;
             }
         }
