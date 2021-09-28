@@ -14,6 +14,7 @@ import ngbVariantsTablePanel from './ngbVariantsTablePanel';
 import ngbOrganizeTracks from './ngbOrganizeTracks';
 import ngbGenomeAnnotations from './ngbGenomeAnnotations';
 import ngbBlatSearchPanel from './ngbBlatSearchPanel';
+import ngbHeatmapPanel from './ngbHeatmapPanel';
 import ngbBlastSearchPanel from './ngbBlastSearchPanel';
 import ngbGenesTablePanel from './ngbGenesTablePanel';
 import ngbHomologsPanel from './ngbHomologsPanel';
@@ -36,5 +37,6 @@ export default angular.module('NGB_Panels', [
     ngbBlatSearchPanel,
     ngbBlastSearchPanel,
     ngbGenesTablePanel,
-    ngbHomologsPanel
+    ngbHomologsPanel,
+    ngbHeatmapPanel
 ]).name;

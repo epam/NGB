@@ -70,6 +70,14 @@ export default {
             title: 'BLAST',
             name: 'layout>blast'
         },
+        heatmap: {
+            displayed: false,
+            icon: 'grain',
+            panel: 'ngbHeatmapPanel',
+            position: 'right',
+            title: 'HEATMAP',
+            name: 'layout>heatmap'
+        },
         homologs: {
             isHidden: true,
             displayed: false,

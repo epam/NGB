@@ -19,8 +19,9 @@ class Heatmap {
      * @param {HTMLElement} container
      * @param {dispatcher} dispatcher
      * @param {string} [className]
+     * @param {boolean} [checkContainerSize=false]
      */
-    constructor(container, dispatcher, className) {
+    constructor(container, dispatcher, className, checkContainerSize = false) {
         this.useWebGL = true;
         this.container = container;
         this.onResize = this.resize.bind(this);
@@ -34,6 +35,9 @@ class Heatmap {
         this.heatmapView = new HeatmapView({dispatcher});
         this.refreshRenderer(true);
         this.ensureContainerSize();
+        if (checkContainerSize) {
+            this.checkContainerSize();
+        }
     }
 
     ensureContainerSize() {
@@ -42,6 +46,21 @@ class Heatmap {
         } else {
             this.cancelEnsureSizeFrame = requestAnimationFrame(this.ensureContainerSize.bind(this));
         }
+    }
+
+    checkContainerSize() {
+        if (
+            this.container &&
+            this.container.clientWidth > 0 &&
+            this.container.clientHeight > 0 &&
+            (
+                this._containerWidth !== this.container.clientWidth ||
+                this._containerHeight !== this.container.clientHeight
+            )
+        ) {
+            this.refreshRenderer();
+        }
+        this.cancelCheckContainerSize = requestAnimationFrame(this.checkContainerSize.bind(this));
     }
 
     /**
@@ -68,6 +87,8 @@ class Heatmap {
             return;
         }
 
+        this._containerWidth = actualSize.width;
+        this._containerHeight = actualSize.height;
         if (!this.pixiRenderer) {
             /**
              *
@@ -104,6 +125,7 @@ class Heatmap {
 
     destroy() {
         cancelAnimationFrame(this.cancelEnsureSizeFrame);
+        cancelAnimationFrame(this.cancelCheckContainerSize);
         this.destroyPixiRenderer();
         if (this.container) {
             this.container = undefined;

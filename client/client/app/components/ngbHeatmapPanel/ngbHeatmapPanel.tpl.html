@@ -1,0 +1,30 @@
+<div ng-if="$ctrl.loading">
+    <div class="progress" layout-align="center center">
+        <span>Loading...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="!$ctrl.loading && $ctrl.heatmaps.length === 0" class="heatmap-container-error">
+    <ngb-panel-error-list message-list="['Heatmaps not found']"></ngb-panel-error-list>
+</div>
+<div class="heatmap-panel-container" ng-if="!$ctrl.loading && $ctrl.heatmaps.length > 0">
+    <md-input-container>
+        <label for="heatmap">
+            Source
+        </label>
+        <md-select id="heatmap"
+                   aria-label="heatmap"
+                   ng-model="$ctrl.heatmap">
+            <md-option ng-repeat="heatmap in $ctrl.heatmaps track by heatmap.id" ng-value="heatmap">
+                {{heatmap.name}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <ngb-heatmap class="heatmap-viewer"
+                 heatmap-class="'heatmap-container'"
+                 ng-if="$ctrl.heatmapId"
+                 id="$ctrl.heatmapId"
+                 check-resize="true"
+                 project-id="$ctrl.heatmapProjectId">
+    </ngb-heatmap>
+</div>

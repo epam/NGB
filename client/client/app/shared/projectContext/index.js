@@ -1039,6 +1039,10 @@ export default class projectContext {
     refreshReferencesPromise;
     _referencesAreLoading = false;
 
+    get referencesAreLoading() {
+        return this._referencesAreLoading;
+    }
+
     async refreshReferences(forceRefresh = false) {
         if (forceRefresh || !this._references) {
             if (this._referencesAreLoading) {

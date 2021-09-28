@@ -3,7 +3,9 @@ import controller from './ngbHeatmap.controller';
 export default {
     bindings: {
         projectId: '<',
-        id: '<'
+        id: '<',
+        heatmapClass: '<',
+        checkResize: '<'
     },
     controller: controller.UID,
     restrict: 'E',

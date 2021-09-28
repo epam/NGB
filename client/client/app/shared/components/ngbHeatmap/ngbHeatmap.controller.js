@@ -27,7 +27,12 @@ class ngbHeatmapController {
             this.heatmapId = this.id;
             this.heatmapProjectId = this.projectId;
             if (!this.heatmap) {
-                this.heatmap = new Heatmap(this.container, this.dispatcher);
+                this.heatmap = new Heatmap(
+                    this.container,
+                    this.dispatcher,
+                    undefined,
+                    this.checkResize
+                );
             }
             this.heatmap.setDataConfig(this.heatmapId, this.heatmapProjectId);
         }

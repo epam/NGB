@@ -1,0 +1,21 @@
+.heatmap-container-error {
+  margin: 2px 10px;
+}
+
+.heatmap-panel-container {
+  margin: 2px 10px;
+  height: calc(100% - 4px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  .heatmap-viewer {
+    flex: 1;
+
+    .heatmap-container {
+      height: calc(100% - 5px);
+      box-sizing: border-box;
+      border: none;
+    }
+  }
+}
