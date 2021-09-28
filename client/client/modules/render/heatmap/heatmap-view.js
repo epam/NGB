@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
-import HeatmapColorScheme from './color-scheme';
+import HeatmapColorScheme, {ColorFormats} from './color-scheme';
 import HeatmapColorSchemeRenderer from './renderer/color-scheme-renderer';
 import HeatmapData from './heatmap-data';
 import HeatmapDataRenderer from './renderer/data-renderer';
@@ -218,10 +218,21 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.removeDispatcherListeners();
             }
             const replaceColorScheme = (colorScheme) => this.colorScheme.initializeFrom(colorScheme);
+            const configureColorScheme = () => dispatcher.emit(
+                'heatmap:colorscheme:configure',
+                {
+                    config: {
+                        id,
+                        scheme: this.colorScheme.copy({colorFormat: ColorFormats.hex})
+                    },
+                }
+            );
             this.removeDispatcherListeners = () => {
                 dispatcher.removeListener(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
+                this.colorScheme.removeEventListeners(configureColorScheme);
             };
             dispatcher.on(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
+            this.colorScheme.onConfigureRequest(configureColorScheme);
         }
         const dataChanged = dataConfig && this.heatmapData.anotherOptions(dataConfig);
         const initialized = this.initialized;

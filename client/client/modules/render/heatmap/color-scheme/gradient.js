@@ -10,6 +10,29 @@ export class GradientStop {
     constructor(stop, color) {
         this.stop = stop;
         this.color = color;
+        this.include = true;
+    }
+
+    get include() {
+        return this._include;
+    }
+
+    set include(include) {
+        if (Number.isNaN(Number(this.stop)) || !Number.isFinite(Number(this.stop))) {
+            this._include = true;
+        } else {
+            this._include = include;
+        }
+    }
+
+    check(o, less = true) {
+        switch (this.include) {
+            case false:
+                return less ? o < this.stop : o > this.stop;
+            case true:
+            default:
+                return less ? o <= this.stop : o >= this.stop;
+        }
     }
 }
 
@@ -49,16 +72,47 @@ export class Gradient {
          * @type {string}
          */
         this.key = 'invalid';
+        this.description = 'Data';
         if (this.gradientStop1 && this.gradientStop2) {
             const {stop: from} = this.gradientStop1;
             const {stop: to} = this.gradientStop2;
             if (this.isSingleValue) {
                 this.key = `${from}`;
+                this.description = `${from}`;
             } else if (!this.isFinite) {
                 this.key = 'infinite';
+                this.description = 'Data';
             } else {
                 this.key = `${from}/${to}`;
+                this.description = `${from} - ${to}`;
             }
+        }
+    }
+
+    get from() {
+        if (this.gradientStop1) {
+            return this.gradientStop1.stop;
+        }
+        return undefined;
+    }
+
+    get to() {
+        if (this.gradientStop2) {
+            return this.gradientStop2.stop;
+        }
+        return undefined;
+    }
+
+    /**
+     *
+     * @param {Gradient[]} otherGradients
+     */
+    setGradientStopsRegionOpenness(otherGradients = []) {
+        const toUnique = otherGradients
+            .filter(otherGradient => otherGradient.from === this.to)
+            .length === 0;
+        if (this.gradientStop2) {
+            this.gradientStop2.include = toUnique;
         }
     }
 
@@ -104,13 +158,8 @@ export class Gradient {
             return true;
         }
         if (this.gradientStop1 && this.gradientStop2) {
-            const {
-                stop: from
-            } = this.gradientStop1;
-            const {
-                stop: to
-            } = this.gradientStop2;
-            return from <= value && value <= to;
+            return this.gradientStop1.check(value, false) &&
+                this.gradientStop2.check(value, true);
         }
         return false;
     }
@@ -154,6 +203,20 @@ export class Gradient {
         } = this.gradientStop2 || {};
         return interpolateColors(color1, color2, ratio);
     }
+
+    /**
+     * Returns any color from gradient
+     * @returns {number}
+     */
+    getAnyColor() {
+        const {
+            color: color1
+        } = this.gradientStop1 || {};
+        const {
+            color: color2
+        } = this.gradientStop2 || {};
+        return color1 || color2;
+    }
 }
 
 /**
@@ -178,10 +241,11 @@ export default class GradientCollection {
             low
         } = colors;
         const lowStop = new GradientStop((from || 0), low);
-        const mediumStop = new GradientStop((from + to) / 2.0, medium);
+        const mediumStop1 = new GradientStop((from + to) / 2.0, medium);
+        const mediumStop2 = new GradientStop((from + to) / 2.0, medium);
         const highStop = new GradientStop(to, high);
-        const lowGradient = new Gradient(lowStop, mediumStop);
-        const highGradient = new Gradient(mediumStop, highStop);
+        const lowGradient = new Gradient(lowStop, mediumStop1);
+        const highGradient = new Gradient(mediumStop2, highStop);
         return new GradientCollection(lowGradient, highGradient);
     }
 
@@ -213,6 +277,23 @@ export default class GradientCollection {
          * @type {Gradient[]}
          */
         this.gradients = gradients;
+        this.checkGradientRegions();
+    }
+
+    checkGradientRegions() {
+        for (const gradient of this.gradients) {
+            gradient.setGradientStopsRegionOpenness(
+                this.gradients.filter(g => g !== gradient)
+            );
+        }
+    }
+
+    /**
+     * Gets gradient stops length
+     * @returns {number}
+     */
+    get length() {
+        return (this.gradients || []).length;
     }
 
     /**
@@ -238,7 +319,6 @@ export default class GradientCollection {
      * @returns {Gradient}
      */
     getGradientForValue (value) {
-        // todo: TBD zero is empty value?
         if (value === undefined || !this.gradients || this.gradients.length === 0) {
             return undefined;
         }
@@ -271,5 +351,27 @@ export default class GradientCollection {
             return undefined;
         }
         return missing;
+    }
+
+    /**
+     * Gets gradient by index
+     * @param {number} index
+     * @returns {undefined|Gradient}
+     */
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.gradients[index];
+        }
+        return undefined;
+    }
+
+    /**
+     * Iterates gradients
+     * @returns {Generator<Gradient|*, void, *>}
+     */
+    *values() {
+        for (const gradient of (this.gradients || [])) {
+            yield gradient;
+        }
     }
 }

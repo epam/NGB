@@ -1,21 +1,13 @@
-import {HeatmapColorSchemes, ColorFormats} from '../../../heatmap';
+import {HeatmapColorSchemes} from '../../../heatmap';
 import {getDivider} from '../../../utilities/menu';
 
-function perform (tracks, options) {
+function perform (tracks) {
     const [track] = tracks || [];
     if (!track) {
         return;
     }
-    const dispatcher = track.config.dispatcher;
-    if (dispatcher && track.state && track.state.heatmap && track.state.heatmap.colorScheme) {
-        const {id} = track.dataConfig;
-        dispatcher.emitSimpleEvent('heatmap:colorscheme:configure', {
-            config: {
-                id,
-                scheme: track.state.heatmap.colorScheme.copy({colorFormat: ColorFormats.hex})
-            },
-            options
-        });
+    if (track.state && track.state.heatmap && track.state.heatmap.colorScheme) {
+        track.state.heatmap.colorScheme.configureRequest();
     }
 }
 

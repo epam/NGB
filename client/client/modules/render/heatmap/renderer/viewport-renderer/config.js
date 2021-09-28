@@ -15,7 +15,7 @@ export default {
         fade: 0.25,
         margin: 2,
         wrap: {
-            lineCharsCount: 20
+            lineCharsCount: 30
         }
     },
     scroller: {
@@ -36,7 +36,7 @@ export default {
         minimumSize: 10,
         hoverHeight: 10
     },
-    maxAxisSize: 100,
+    maxAxisSize: 150,
     padding: 10,
     selection: {
         fill: 0x92AEE7,

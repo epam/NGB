@@ -1,7 +1,18 @@
 export default {
     margin: 5,
     discrete: {
-        width: 0
+        width: 0,
+        margin: 10,
+        gradientStop: {
+            colorIndicator: {
+                width: 20,
+                height: 15,
+                margin: 2,
+                stroke: 0x333333
+            },
+            height: 20,
+            margin: 2
+        }
     },
     continuous: {
         width: 10,

@@ -56,86 +56,94 @@
                      ng-if="scheme.type === constants.HeatmapColorSchemes.discrete">
                     <div class="heatmap-gradient-stop-configuration"
                          ng-repeat="configuration in scheme.colorConfigurations track by configuration.uid">
-                        <div ng-if="scheme.colorConfigurations.length === 1"
-                             class="heatmap-color-picker">
-                            <ngb-color-picker ng-cloak
-                                              options="constants.colorPickerOptionsRight"
-                                              color="configuration.color"></ngb-color-picker>
-                            <span class="heatmap-color-legend">Data color</span>
+                        <div>
+                            <div ng-if="scheme.colorConfigurations.length === 1"
+                                 class="heatmap-color-picker">
+                                <ngb-color-picker ng-cloak
+                                                  options="constants.colorPickerOptionsRight"
+                                                  color="configuration.color"></ngb-color-picker>
+                                <span class="heatmap-color-legend">Data color</span>
+                            </div>
+                            <div ng-if="scheme.colorConfigurations.length > 1"
+                                 class="heatmap-color-picker color-configuration">
+                                <ngb-color-picker ng-cloak
+                                                  options="constants.colorPickerOptionsRight"
+                                                  color="configuration.color"></ngb-color-picker>
+                                <div ng-if="scheme.dataType === constants.dataTypes.number"
+                                     class="color-configuration-value">
+                                    <md-input-container class="heatmap-color-value-input-container">
+                                        <label for="from-value-{{configuration.uid}}">
+                                            From
+                                        </label>
+                                        <input
+                                                id="from-value-{{configuration.uid}}"
+                                                type="number"
+                                                required
+                                                max="{{configuration.to}}"
+                                                placeholder="From"
+                                                ng-model="configuration.from"
+                                        />
+                                    </md-input-container>
+                                    <md-input-container class="heatmap-color-value-input-container">
+                                        <label for="to-value-{{configuration.uid}}">
+                                            To
+                                        </label>
+                                        <input
+                                                id="to-value-{{configuration.uid}}"
+                                                type="number"
+                                                required
+                                                min="{{configuration.from}}"
+                                                placeholder="To"
+                                                ng-model="configuration.to"
+                                        />
+                                    </md-input-container>
+                                </div>
+                                <div ng-if="scheme.dataType === constants.dataTypes.string"
+                                     class="color-configuration-value">
+                                    <md-input-container class="heatmap-color-value-input-container"
+                                                        ng-if="scheme.values.length === 0">
+                                        <label for="value-{{configuration.uid}}">
+                                            Value
+                                        </label>
+                                        <input
+                                                id="value-{{configuration.uid}}"
+                                                required
+                                                placeholder="Value"
+                                                ng-model="configuration.value"
+                                        />
+                                    </md-input-container>
+                                    <md-input-container class="heatmap-color-value-input-container"
+                                                        ng-if="scheme.values.length > 0">
+                                        <label for="selector-{{configuration.uid}}">
+                                            Value
+                                        </label>
+                                        <md-select
+                                                id="selector-{{configuration.uid}}"
+                                                ng-model="configuration.value"
+                                                placeholder="Value"
+                                                required
+                                        >
+                                            <md-option ng-repeat="value in scheme.values"
+                                                       ng-value="value">
+                                                {{value}}
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
+                                </div>
+                                <md-button class="md-icon-button"
+                                           ng-click="scheme.removeColorConfiguration(configuration)">
+                                    <ng-md-icon
+                                            icon="clear"
+                                            aria-label="remove attribute"
+                                            style="fill: #999999"
+                                            size="16">
+                                    </ng-md-icon>
+                                </md-button>
+                            </div>
                         </div>
-                        <div ng-if="scheme.colorConfigurations.length > 1"
-                             class="heatmap-color-picker color-configuration">
-                            <ngb-color-picker ng-cloak
-                                              options="constants.colorPickerOptionsRight"
-                                              color="configuration.color"></ngb-color-picker>
-                            <div ng-if="scheme.dataType === constants.dataTypes.number"
-                                 class="color-configuration-value">
-                                <md-input-container class="heatmap-color-value-input-container">
-                                    <label for="from-value-{{configuration.uid}}">
-                                        From
-                                    </label>
-                                    <input
-                                            id="from-value-{{configuration.uid}}"
-                                            type="number"
-                                            required
-                                            placeholder="From"
-                                            ng-model="configuration.from"
-                                    />
-                                </md-input-container>
-                                <md-input-container class="heatmap-color-value-input-container">
-                                    <label for="to-value-{{configuration.uid}}">
-                                        To
-                                    </label>
-                                    <input
-                                            id="to-value-{{configuration.uid}}"
-                                            type="number"
-                                            required
-                                            placeholder="To"
-                                            ng-model="configuration.to"
-                                    />
-                                </md-input-container>
-                            </div>
-                            <div ng-if="scheme.dataType === constants.dataTypes.string"
-                                 class="color-configuration-value">
-                                <md-input-container class="heatmap-color-value-input-container"
-                                                    ng-if="scheme.values.length === 0">
-                                    <label for="value-{{configuration.uid}}">
-                                        Value
-                                    </label>
-                                    <input
-                                            id="value-{{configuration.uid}}"
-                                            required
-                                            placeholder="Value"
-                                            ng-model="configuration.value"
-                                    />
-                                </md-input-container>
-                                <md-input-container class="heatmap-color-value-input-container"
-                                                    ng-if="scheme.values.length > 0">
-                                    <label for="selector-{{configuration.uid}}">
-                                        Value
-                                    </label>
-                                    <md-select
-                                            id="selector-{{configuration.uid}}"
-                                            ng-model="configuration.value"
-                                            placeholder="Value"
-                                            required
-                                    >
-                                        <md-option ng-repeat="value in scheme.values"
-                                                   ng-value="value">
-                                            {{value}}
-                                        </md-option>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
-                            <md-button class="md-icon-button"
-                                       ng-click="scheme.removeColorConfiguration(configuration)">
-                                <ng-md-icon
-                                        icon="clear"
-                                        aria-label="remove attribute"
-                                        style="fill: #999999"
-                                        size="16">
-                                </ng-md-icon>
-                            </md-button>
+                        <div ng-if="configuration.error"
+                             class="heatmap-gradient-stop-configuration-error">
+                            {{configuration.error}}
                         </div>
                     </div>
                     <md-button class="md-raised heatmap-add-color-button"
@@ -159,7 +167,7 @@
             <md-button aria-label="save"
                        ng-click="save()"
                        class="md-primary"
-                       ng-disabled="heatmapSchemeForm.$invalid"
+                       ng-disabled="heatmapSchemeForm.$invalid || !!scheme.error"
             >
                 Save
             </md-button>

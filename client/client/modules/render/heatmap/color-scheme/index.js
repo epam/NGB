@@ -1,3 +1,4 @@
+import {linearDimensionsConflict} from '../../utilities';
 import * as helpers from './helpers';
 import * as predefinedColors from './colors';
 import ColorConfiguration from './color-configuration';
@@ -92,11 +93,17 @@ class ColorScheme extends HeatmapEventDispatcher {
             medium,
             low
         };
+        /**
+         *
+         * @type {ColorConfiguration[]}
+         */
         this.colorConfigurations = configurations
             .map(entry => new ColorConfiguration({
                 ...entry,
-                colorFormat
+                colorFormat,
+                validate: this.validate.bind(this)
             }));
+        this.validate();
         this.type = type;
         const {
             dataType,
@@ -133,6 +140,14 @@ class ColorScheme extends HeatmapEventDispatcher {
         this.addEventListener(events.changed, callback);
     }
 
+    onConfigureRequest(callback) {
+        this.addEventListener(events.colorScheme.configure, callback);
+    }
+
+    configureRequest() {
+        this.emit(events.colorScheme.configure);
+    }
+
     get type () {
         return this._type;
     }
@@ -143,7 +158,8 @@ class ColorScheme extends HeatmapEventDispatcher {
             this.colorConfigurations.push(new ColorConfiguration({
                 color: ColorCollection[0],
                 colorFormat: this.colorFormat,
-                dataType: this.dataType
+                dataType: this.dataType,
+                validate: this.validate.bind(this)
             }));
         } else if (this._type === colorSchemes.continuous) {
             this.colorConfigurations = [];
@@ -200,6 +216,7 @@ class ColorScheme extends HeatmapEventDispatcher {
     }
 
     updateGradientStops () {
+        this.validate();
         const minimum = this.minimum || 0;
         const maximum = this.maximum || 1;
         if (this.type === colorSchemes.continuous && this.dataType === HeatmapDataType.number) {
@@ -270,10 +287,28 @@ class ColorScheme extends HeatmapEventDispatcher {
         if (this.type === colorSchemes.continuous) {
             return;
         }
+        let from = undefined;
+        let to = undefined;
+        if (this.colorConfigurations.length > 0 && this.dataType === HeatmapDataType.number) {
+            const valid = this.colorConfigurations.filter(c => !Number.isNaN(Number(c.from)) &&
+                !Number.isNaN(Number(c.to))
+            );
+            if (valid.length > 0) {
+                from = Math.max(...valid.map(v => Math.max(v.from, v.to)));
+                if (Number.isNaN(Number(from))) {
+                    from = undefined;
+                } else {
+                    to = from + 1;
+                }
+            }
+        }
         this.colorConfigurations.push(new ColorConfiguration({
             colorFormat: this.colorFormat,
             color: ColorCollection[this.colorConfigurations.length % ColorCollection.length],
-            dataType: this.dataType
+            dataType: this.dataType,
+            validate: this.validate.bind(this),
+            from,
+            to
         }));
         this.updateGradientStops();
     }
@@ -288,7 +323,8 @@ class ColorScheme extends HeatmapEventDispatcher {
             this.colorConfigurations.push(new ColorConfiguration({
                 color: ColorCollection[0],
                 colorFormat: this.colorFormat,
-                dataType: this.dataType
+                dataType: this.dataType,
+                validate: this.validate.bind(this)
             }));
         }
         this.updateGradientStops();
@@ -311,6 +347,34 @@ class ColorScheme extends HeatmapEventDispatcher {
             colorFormat: this.colorFormat,
             ...options
         });
+    }
+
+    validate() {
+        this.error = this.colorConfigurations.length > 0 &&
+            this.colorConfigurations
+                .filter(configuration => configuration.validate())
+                .length === 0;
+        if (!this.error) {
+            for (const configuration of this.colorConfigurations) {
+                const other = this.colorConfigurations.filter(c => c !== configuration);
+                if (this.dataType === HeatmapDataType.number) {
+                    const conflicts = other.filter(o => linearDimensionsConflict(
+                        o.from,
+                        o.to,
+                        configuration.from,
+                        configuration.to
+                    ))
+                        .length > 0;
+                    if (conflicts) {
+                        configuration.error = 'This configuration conflicts with another one';
+                        this.error = true;
+                    }
+                } else if (other.filter(o => o.value === configuration.value).length > 0) {
+                    configuration.error = 'This configuration conflicts with another one';
+                    this.error = true;
+                }
+            }
+        }
     }
 }
 

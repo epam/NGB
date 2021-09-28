@@ -163,7 +163,7 @@ class HeatmapAxisRenderer extends InteractiveZone {
         } = this._hoveredTick || {};
         const pointOverAxis = this.pointOverAxis(event);
         let tooltip = undefined;
-        if (pointOverAxis) {
+        if (pointOverAxis && this.labelsContainer) {
             const point = movePoint(event, {x: -this.labelsContainer.x, y: -this.labelsContainer.y});
             for (let t = 0; t < this.ticks.length; t += 1) {
                 if (this.ticks[t].test(point)) {

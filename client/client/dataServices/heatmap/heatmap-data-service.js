@@ -8,6 +8,8 @@ const MOCK_DATA_MAX = 50;
 const DATA_TYPE_NUMBER = true;
 const MISSING_DATA_THRESHOLD = 0.25;
 
+const MOCK = false;
+
 function generateRandomItems(length, name, annotation = false) {
     return new Array(length)
         .fill(name)
@@ -41,8 +43,6 @@ function generateRandomTree(items = []) {
     }
     return generateRandomTree(result);
 }
-
-const MOCK = false;
 
 function getHeatmapUrl(url, query) {
     if (

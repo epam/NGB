@@ -90,6 +90,24 @@ export default function linearDimensionsConflict(a1, a2, b1, b2, margin = 0) {
     if (isOpenRange(a1, a2) || isOpenRange(b1, b2)) {
         return checkOpenedRangesOverlaps(a1, a2, b1, b2);
     }
+    if (margin === 0 && (a1 === b1 || a1 === b2 || a2 === b1 || a2 === b2)) {
+        // some points are the same;
+        // to prevent javascript floating point precision issues,
+        // we need to check if sectors [a1, a2] [b1, b2] are overlap in
+        // a different way
+        const aSet = new Set([a1, a2]);
+        const bSet = new Set([b1, b2]);
+        /**
+         * Generates array sorter function; array elements will be sorted as [...points in the set, ...points not in the set]
+         * @param {Set<number>} set
+         * @returns {function(*=, *=)}
+         */
+        const sorter = (set) => (a, b) => Number(set.has(b)) - Number(set.has(a));
+        const [aSamePoint, aOtherPoint] = [a1, a2].sort(sorter(bSet));
+        const [bSamePoint, bOtherPoint] = [b1, b2].sort(sorter(aSet));
+        // if vectors from one point are of the same direction, then sectors are overlap
+        return (aSamePoint - aOtherPoint) * (bSamePoint - bOtherPoint) > 0;
+    }
     const o1size = Math.abs(o1p2 - o1p1);
     const o2size = Math.abs(o2p2 - o2p1);
     const oSize = Math.max(o1p1, o1p2, o2p1, o2p2) - Math.min(o1p1, o1p2, o2p1, o2p2);

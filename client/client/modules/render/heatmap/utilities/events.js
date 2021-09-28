@@ -4,6 +4,10 @@ export default {
         finish: 'finish',
         tick: 'tick'
     },
+    colorScheme: {
+        configure: 'configureColorScheme',
+        validate: 'validate'
+    },
     initialized: 'initialized',
     changed: 'changed',
     updating: 'updating',
