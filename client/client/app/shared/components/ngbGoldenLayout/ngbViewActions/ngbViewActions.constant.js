@@ -99,6 +99,15 @@ const bookmarksTablePaginationAction = {
     isDefault: false
 };
 
+const bookmarksResetFilterActions = {
+    name: 'bookmarksResetFilter',
+    isDefault: true,
+    event: 'bookmarks:reset:filter',
+    icon: 'delete_sweep',
+    label: 'Reset sessions filter',
+    isVisible: context => !context.bookmarksFilterIsDefault
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
@@ -115,12 +124,13 @@ export default {
         genesTableDownloadAction: genesTableDownloadAction,
         genesTableColumn: genesTableColumnAction,
         genesResetFilter: genesResetFilterActions,
-        bookmarksTablePagination: bookmarksTablePaginationAction
+        bookmarksTablePagination: bookmarksTablePaginationAction,
+        bookmarksResetFilter: bookmarksResetFilterActions
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
-        ngbBookmarksPanel: [bookmarksTablePaginationAction]
+        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions]
     }
 };

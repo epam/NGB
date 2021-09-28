@@ -112,6 +112,7 @@ export default class projectContext {
     _containsVcfFiles = true;
 
     _genesFilterIsDefault = true;
+    _bookmarksFilterIsDefault = true;
 
     _highlightProfileConditions = [];
 
@@ -291,6 +292,14 @@ export default class projectContext {
 
     set genesFilterIsDefault(value) {
         this._genesFilterIsDefault = value;
+    }
+
+    get bookmarksFilterIsDefault() {
+        return this._bookmarksFilterIsDefault;
+    }
+
+    set bookmarksFilterIsDefault(value) {
+        this._bookmarksFilterIsDefault = value;
     }
 
     get vcfFilter() {
