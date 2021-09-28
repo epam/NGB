@@ -188,7 +188,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 params, getRowMapper());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByNamesStrict(final List<String> names) {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
