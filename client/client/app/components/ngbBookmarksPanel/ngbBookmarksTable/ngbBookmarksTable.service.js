@@ -44,6 +44,15 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
         return this._pageError;
     }
 
+    get totalPages() {
+        return super.totalPages;
+    }
+
+    set totalPages(value) {
+        super.totalPages = value;
+        this.dispatcher.emit('bookmarks:totalPage:change', this.totalPages);
+    }
+
     static instance(dispatcher, localDataService, bookmarkDataService) {
         return new ngbBookmarksTableService(dispatcher, localDataService, bookmarkDataService);
     }
@@ -234,7 +243,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             data.push(this._formatLocalToClient(value));
         });
         if (serverData.error) {
-            this._totalPages = 0;
+            this.totalPages = 0;
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
@@ -246,10 +255,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             });
         }
         const filteredData = data.filter(filterFn);
-        this._totalPages = Math.ceil(filteredData.length / this.pageSize);
-        if (this.currentPage < this._totalPages) {
-            this.currentPage = FIRST_PAGE;
-        }
+        this.totalPages = Math.ceil(filteredData.length / this.pageSize);
         this.dispatcher.emit('bookmarks:loaded');
         return filteredData || [];
     }
