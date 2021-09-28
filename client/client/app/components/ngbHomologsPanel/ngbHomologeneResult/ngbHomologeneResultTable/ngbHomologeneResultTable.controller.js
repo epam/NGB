@@ -128,7 +128,6 @@ export default class ngbHomologeneResultTableController extends baseController {
     }
 
     getDataOnPage(page) {
-        this.ngbHomologeneResultService.firstPage = page;
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }

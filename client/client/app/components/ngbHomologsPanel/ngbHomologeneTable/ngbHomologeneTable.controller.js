@@ -1,5 +1,5 @@
-import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
+import {Debounce} from '../../../shared/utils/debounce';
 
 const ROW_HEIGHT = 35;
 const RESIZE_DELAY = 300;
@@ -38,7 +38,7 @@ export default class ngbHomologeneTableController extends baseController {
         saveSelection: false
     };
     events = {
-        'homologs:homologene:page:change': this.getDataOnPage.bind(this),
+        'homologs:homologene:page:change': this.loadData.bind(this),
         'read:show:homologs': this.loadData.bind(this)
     };
 
@@ -158,11 +158,6 @@ export default class ngbHomologeneTableController extends baseController {
             }
         }
         this.ngbHomologeneTableService.homologeneColumns = result;
-    }
-
-    getDataOnPage(page) {
-        this.ngbHomologeneTableService.firstPage = page;
-        return this.loadData();
     }
 
     sortChanged(grid, sortColumns) {

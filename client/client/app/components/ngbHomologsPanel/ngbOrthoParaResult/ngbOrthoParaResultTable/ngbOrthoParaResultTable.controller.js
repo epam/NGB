@@ -130,7 +130,6 @@ export default class ngbOrthoParaResultTableController extends baseController {
     }
 
     getDataOnPage(page) {
-        this.ngbOrthoParaResultService.firstPage = page;
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }

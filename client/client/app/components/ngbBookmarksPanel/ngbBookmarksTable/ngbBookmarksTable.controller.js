@@ -1,4 +1,8 @@
 import baseController from '../../../shared/baseController';
+import {Debounce} from '../../../shared/utils/debounce';
+
+const ROW_HEIGHT = 35;
+const RESIZE_DELAY = 300;
 
 export default class ngbBookmarksTableController extends baseController {
     static get UID() {
@@ -8,6 +12,7 @@ export default class ngbBookmarksTableController extends baseController {
     isDataLoaded = false;
     isNothingFound = false;
     isInitialized = false;
+    debounce = (new Debounce()).debounce;
 
     gridOptions = {
         enableHorizontalScrollbar: 0,
@@ -49,13 +54,14 @@ export default class ngbBookmarksTableController extends baseController {
         }
     };
 
-    constructor($scope, ngbBookmarksTableService, dispatcher, projectContext,
+    constructor($scope, $timeout, ngbBookmarksTableService, dispatcher, projectContext,
         miewContext, $mdDialog, trackNamingService, appLayout) {
         super();
         Object.assign(
             this,
             {
                 $scope,
+                $timeout,
                 ngbBookmarksTableService,
                 dispatcher,
                 projectContext,
@@ -81,6 +87,10 @@ export default class ngbBookmarksTableController extends baseController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
+                this.gridApi.core.on.gridDimensionChanged(this.$scope, this.debounce(this, this.onResize.bind(this), RESIZE_DELAY));
+                this.gridApi.core.on.renderingComplete(this.$scope, gridApi => {
+                    this.debounce(this, this.onResize.bind(this), RESIZE_DELAY)(0, 0, gridApi.grid.gridHeight);
+                });
             }
         });
         this.loadData();
@@ -112,7 +122,6 @@ export default class ngbBookmarksTableController extends baseController {
     }
 
     getDataOnPage(page) {
-        this.ngbBookmarksTableService.firstPage = page;
         if (this.gridApi) {
             this.gridApi.pagination.seek(page);
         }
@@ -152,6 +161,16 @@ export default class ngbBookmarksTableController extends baseController {
             layout,
             forceVariantsFilter: true
         }, false, this.openBookmarksPanel.bind(this));
+    }
+
+    onResize(oldGridHeight, oldGridWidth, newGridHeight) {
+        const pageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+        if (pageSize) {
+            this.ngbBookmarksTableService.pageSize = pageSize;
+            this.ngbBookmarksTableService.totalPages = Math.ceil(this.gridOptions.data.length / this.ngbBookmarksTableService.pageSize);
+            this.gridOptions.paginationPageSize = pageSize;
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 
     onRemove(row, event) {

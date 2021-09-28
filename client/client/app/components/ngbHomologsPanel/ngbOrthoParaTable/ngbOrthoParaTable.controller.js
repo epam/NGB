@@ -1,5 +1,5 @@
-import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
+import {Debounce} from '../../../shared/utils/debounce';
 
 const ROW_HEIGHT = 35;
 const RESIZE_DELAY = 300;
@@ -160,8 +160,7 @@ export default class ngbOrthoParaTableController extends baseController {
         this.ngbOrthoParaTableService.orthoParaColumns = result;
     }
 
-    getDataOnPage(page) {
-        this.ngbOrthoParaTableService.firstPage = page;
+    getDataOnPage() {
         return this.loadData();
     }
 

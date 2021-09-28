@@ -29,6 +29,9 @@ export default class ClientPaginationService {
 
     set totalPages(value) {
         this._totalPages = value;
+        if (this.currentPage > this.totalPages) {
+            this.changePage(this.firstPage);
+        }
     }
 
     _currentPage;
@@ -52,7 +55,9 @@ export default class ClientPaginationService {
     }
 
     changePage(page) {
-        this.currentPage = page;
-        this.dispatcher.emit(this.eventId, page);
+        if (page !== this.currentPage) {
+            this.currentPage = page;
+            this.dispatcher.emit(this.eventId, page);
+        }
     }
 }

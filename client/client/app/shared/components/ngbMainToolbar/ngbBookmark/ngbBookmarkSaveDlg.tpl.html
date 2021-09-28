@@ -9,42 +9,45 @@
         </div>
     </md-toolbar>
 
-    <md-dialog-content class="save-bookmark-dlg-content">
-        <div class="row">
-            <md-input-container class="save-bookmark-dlg-select-container">
-                <label for="bookmark_name">Name</label>
-                <input class="input-container"
-                       id="bookmark_name"
-                       ng-model="ctrl.getterSetterName"
-                       ng-model-options="{getterSetter: true}"
-                       placeholder="Enter session name"
-                       required
-                >
-            </md-input-container>
-        </div>
-        <div class="row">
-            <md-input-container class="save-bookmark-dlg-select-container">
-                <label for="bookmark_desc">Description</label>
-                <textarea id="bookmark_desc"
-                          ng-model="ctrl.getterSetterDesc"
-                          ng-model-options="{getterSetter: true}"></textarea>
-            </md-input-container>
-        </div>
-        <div class="row" ng-show="ctrl.error">
-            <div class="save-dlb-error">{{ctrl.error}}</div>
-        </div>
-    </md-dialog-content>
-    <md-dialog-actions layout="row">
-        <md-button class="md-primary" ng-click="!ctrl.isLoading && ctrl.save($event)" ng-disabled="ctrl.isLoading">
-            <span ng-hide="ctrl.isLoading">Save</span>
-            <md-progress-circular
-                    md-diameter="16"
-                    md-mode="indeterminate"
-                    ng-show="ctrl.isLoading">
-            </md-progress-circular>
-        </md-button>
-        <md-button ng-click="ctrl.close()" style="margin-right:20px;">
-            Cancel
-        </md-button>
-    </md-dialog-actions>
+    <form name="saveBookmarkForm">
+        <md-dialog-content class="save-bookmark-dlg-content">
+            <div class="row">
+                <md-input-container class="save-bookmark-dlg-select-container">
+                    <label for="bookmark_name">Name</label>
+                    <input class="input-container"
+                           id="bookmark_name"
+                           ng-model="ctrl.getterSetterName"
+                           ng-model-options="{getterSetter: true}"
+                           placeholder="Enter session name"
+                           required
+                    >
+                </md-input-container>
+            </div>
+            <div class="row">
+                <md-input-container class="save-bookmark-dlg-select-container">
+                    <label for="bookmark_desc">Description</label>
+                    <textarea id="bookmark_desc"
+                              ng-model="ctrl.getterSetterDesc"
+                              ng-model-options="{getterSetter: true}"></textarea>
+                </md-input-container>
+            </div>
+            <div class="row" ng-show="ctrl.error">
+                <div class="save-dlb-error">{{ctrl.error}}</div>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-primary" ng-click="!ctrl.isLoading && saveBookmarkForm.$valid && ctrl.save($event)"
+                       ng-disabled="ctrl.isLoading || saveBookmarkForm.$invalid">
+                <span ng-hide="ctrl.isLoading">Save</span>
+                <md-progress-circular
+                        md-diameter="16"
+                        md-mode="indeterminate"
+                        ng-show="ctrl.isLoading">
+                </md-progress-circular>
+            </md-button>
+            <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
 </md-dialog>

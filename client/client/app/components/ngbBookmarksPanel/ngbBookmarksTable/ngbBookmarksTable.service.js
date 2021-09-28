@@ -18,14 +18,16 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
 
     _blockFilterBookmarks;
 
-    constructor(dispatcher, localDataService, bookmarkDataService) {
+    constructor(dispatcher, projectContext, localDataService, bookmarkDataService) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'bookmarks:page:change');
         Object.assign(this, {
             dispatcher,
+            projectContext,
             localDataService,
             bookmarkDataService
         });
         this.clearBookmarksFilter();
+        this.initEvents();
     }
 
     get bookmarksTableColumns() {
@@ -44,8 +46,21 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
         return this._pageError;
     }
 
-    static instance(dispatcher, localDataService, bookmarkDataService) {
-        return new ngbBookmarksTableService(dispatcher, localDataService, bookmarkDataService);
+    get totalPages() {
+        return super.totalPages;
+    }
+
+    set totalPages(value) {
+        super.totalPages = value;
+        this.dispatcher.emit('bookmarks:totalPage:change', this.totalPages);
+    }
+
+    static instance(dispatcher, projectContext, localDataService, bookmarkDataService) {
+        return new ngbBookmarksTableService(dispatcher, projectContext, localDataService, bookmarkDataService);
+    }
+
+    initEvents() {
+        this.dispatcher.on('bookmarks:reset:filter', this.resetBookmarksFilter.bind(this));
     }
 
     getBookmarksColumnTitle(column) {
@@ -178,7 +193,6 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             clearTimeout(this._blockFilterBookmarks);
             this._blockFilterBookmarks = null;
         }
-        this._hasMoreBokkmark = true;
         this._bookmarksFilter = {};
         this.dispatcher.emit('bookmarks:refresh');
         this._blockFilterBookmarks = setTimeout(() => {
@@ -195,6 +209,12 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             return;
         }
         this.dispatcher.emit('bookmarks:refresh');
+    }
+
+    resetBookmarksFilter() {
+        if (!this.projectContext.bookmarksFilterIsDefault) {
+            this.clearBookmarksFilter();
+        }
     }
 
     getRequestFilter() {
@@ -227,6 +247,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
 
     async loadBookmarks() {
         const filterFn = this.getRequestFilter();
+        this.refreshBookmarksFilterEmptyStatus();
         const data = [];
         const serverData = await this.bookmarkDataService.loadBookmarks();
         const localData = this.localDataService.getBookmarks();
@@ -234,7 +255,7 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             data.push(this._formatLocalToClient(value));
         });
         if (serverData.error) {
-            this._totalPages = 0;
+            this.totalPages = 0;
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
@@ -246,12 +267,20 @@ export default class ngbBookmarksTableService extends ClientPaginationService {
             });
         }
         const filteredData = data.filter(filterFn);
-        this._totalPages = Math.ceil(filteredData.length / this.pageSize);
-        if (this.currentPage < this._totalPages) {
-            this.currentPage = FIRST_PAGE;
-        }
+        this.totalPages = Math.ceil(filteredData.length / this.pageSize);
         this.dispatcher.emit('bookmarks:loaded');
         return filteredData || [];
+    }
+
+    refreshBookmarksFilterEmptyStatus() {
+        const defaultFilters = this.bookmarksFilter;
+        this.projectContext.bookmarksFilterIsDefault = Object.entries(defaultFilters).every(field => {
+            if (typeof field[1] === 'object') {
+                return !Object.keys(field[1]).length;
+            } else {
+                return field[1] === undefined;
+            }
+        });
     }
 
     deleteBookmark(bookmarksId, isLocal) {

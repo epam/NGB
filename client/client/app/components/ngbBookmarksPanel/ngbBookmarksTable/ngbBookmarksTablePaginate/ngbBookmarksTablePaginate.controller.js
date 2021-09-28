@@ -1,11 +1,13 @@
-import  baseController from '../../../../shared/baseController';
+import baseController from '../../../../shared/baseController';
 
 const Math = window.Math;
 
 export default class ngbBookmarksTablePaginateController extends baseController {
 
     events = {
-        'bookmarks:loaded': this.refresh.bind(this)
+        'bookmarks:loaded': this.refresh.bind(this),
+        'bookmarks:totalPage:change': this.setTotalPages.bind(this),
+        'bookmarks:page:change': this.setPage.bind(this)
     };
 
     constructor(dispatcher, ngbBookmarksTableService, $scope, $timeout) {
@@ -21,7 +23,6 @@ export default class ngbBookmarksTablePaginateController extends baseController 
         this.totalPages = this.ngbBookmarksTableService.totalPages;
         this.currentPage = this.ngbBookmarksTableService.currentPage;
         this.pages = this.getPages();
-        this.setPage = this.ngbBookmarksTableService.changePage.bind(ngbBookmarksTableService);
 
         this.initEvents();
     }
@@ -30,9 +31,19 @@ export default class ngbBookmarksTablePaginateController extends baseController 
         return 'ngbBookmarksTablePaginateController';
     }
 
+    setTotalPages(totalPages) {
+        this.totalPages = totalPages;
+        this.pages = this.getPages();
+    }
+
+    setPage(page) {
+        this.currentPage = page;
+        this.pages = this.getPages();
+        this.ngbBookmarksTableService.changePage(this.currentPage);
+    }
+
     refresh() {
         this.totalPages = this.ngbBookmarksTableService.totalPages;
-        this.pages = this.getPages();
         this.setPage(this.ngbBookmarksTableService.currentPage);
     }
 

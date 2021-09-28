@@ -90,7 +90,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         };
         const data = await this.genomeDataService.getHomologeneLoad(filter);
         if (data.error) {
-            this._totalPages = 0;
+            this.totalPages = 0;
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
@@ -98,7 +98,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
         } else {
             this._pageError = null;
         }
-        this._totalPages = Math.ceil(data.totalCount / this.pageSize);
+        this.totalPages = Math.ceil(data.totalCount / this.pageSize);
         if (data && data.items) {
             return {
                 homologene: this.getHomologeneSearch(data.items),
