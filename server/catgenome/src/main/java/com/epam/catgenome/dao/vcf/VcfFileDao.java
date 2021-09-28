@@ -116,7 +116,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
         return !files.isEmpty() ? (VcfFile) files.get(0) : null;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<VcfFile> loadVcfFiles(List<Long> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
@@ -184,7 +184,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param fileIds {@code List&lt;Long&gt;} of file IDs to load samples for
      * @return a map of {@code VcfFile} IDs to lists of their samples
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, List<VcfSample>> loadSamplesByFileIds(Collection<Long> fileIds) {
         if (fileIds == null || fileIds.isEmpty()) {
             return Collections.emptyMap();

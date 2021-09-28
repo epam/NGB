@@ -168,7 +168,7 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
      * @param fileIds {@code List&lt;Long&gt;} of file IDs to load samples for
      * @return a map of {@code SegFile} IDs to lists of their samples
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, List<SegSample>> loadSamplesByFileIds(Collection<Long> fileIds) {
         if (fileIds == null || fileIds.isEmpty()) {
             return Collections.emptyMap();
