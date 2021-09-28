@@ -134,7 +134,7 @@ public class Gff3Writer implements Closeable {
         return encodeString(s);
     }
 
-    static String encodeString(final String s) {
+    public static String encodeString(final String s) {
         try {
             //URLEncoder.encode is hardcoded to change all spaces to +, but we want spaces left unchanged so have
             // to do this + is escaped to %2B, so no loss of information

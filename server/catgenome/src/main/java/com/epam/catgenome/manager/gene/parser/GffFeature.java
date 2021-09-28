@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.gene.parser;
 
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.writer.Gff3Writer;
+import org.apache.commons.lang3.StringUtils;
 import org.thymeleaf.util.MapUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -259,7 +261,7 @@ public class GffFeature implements GeneFeature {
         for (Map.Entry<String, String> attribute : attributes.entrySet()) {
             builder.append(attribute.getKey())
                     .append('=')
-                    .append(attribute.getValue())
+                    .append(encodeAttribute(attribute.getValue()))
                     .append(';');
         }
 
@@ -332,5 +334,9 @@ public class GffFeature implements GeneFeature {
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Cannot decode GFF attribute", e);
         }
+    }
+
+    private String encodeAttribute(final String attribute) {
+        return Objects.nonNull(attribute) ? Gff3Writer.encodeString(attribute) : StringUtils.EMPTY;
     }
 }

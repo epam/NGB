@@ -712,9 +712,9 @@ public class GffManagerTest extends AbstractManagerTest {
 
             final Gene indexFeature = indexFeatures.get(fileFeature);
             if (Objects.isNull(indexFeature)) {
-                throw new AssertionError(String.format("Feature %s:%d-%d (%s) was not indexed",
-                        fileFeature.getFeature(), fileFeature.getStartIndex(), fileFeature.getEndIndex(),
-                        fileFeature.getGroupId()));
+                throw new AssertionError(String.format("Feature %s %s:%d-%d (%s) was not indexed",
+                        fileFeature.getFeature(), fileFeature.getSeqName(),
+                        fileFeature.getStartIndex(), fileFeature.getEndIndex(), fileFeature.getGroupId()));
             }
             // let's check fields that do not participate in equals and hash code
             Assert.assertEquals(indexFeature.getAminoacidLength(), fileFeature.getAminoacidLength());
@@ -815,6 +815,7 @@ public class GffManagerTest extends AbstractManagerTest {
         Track<Gene> featureListLargeScale = geneTrackManager.loadGenesFromFile(track2, false);
         time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading large scale: {} ms", time2 - time1);
+        fileFeatures = new ArrayList<>(featureListLargeScale.getBlocks());
 
         Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
                 .filter(Gene::isMapped).count());
@@ -830,6 +831,7 @@ public class GffManagerTest extends AbstractManagerTest {
                 .filter(Gene::isMapped).count());
         Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
         Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
+        assertIndexAndFileFeatures(featureListLargeScale, fileFeatures);
 
         // delete:
         gffManager.unregisterGeneFile(geneFile.getId());
