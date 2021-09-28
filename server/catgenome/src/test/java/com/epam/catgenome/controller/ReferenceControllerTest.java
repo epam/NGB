@@ -399,7 +399,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(expectedNumberOfMatches, motifSearchResult.getResult().size());
         Assert.assertEquals(testMotif, motifSearchResult.getResult().get(0).getSequence());
-        Assert.assertEquals(expectedNumberOfMatches, motifSearchResult.getPageSize().longValue());
+        Assert.assertEquals(expectedNumberOfMatches, motifSearchResult.getResult().size());
         Assert.assertNull(motifSearchResult.getPosition());
 
         actions.andDo(print());

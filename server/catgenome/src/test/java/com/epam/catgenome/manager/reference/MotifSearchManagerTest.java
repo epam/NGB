@@ -324,7 +324,6 @@ public class MotifSearchManagerTest {
 
         final MotifSearchResult search = motifSearchManager.search(testRequest);
         Assert.assertEquals(0, search.getResult().size());
-        Assert.assertEquals(0, search.getPageSize().longValue());
         Assert.assertEquals(testStart + 1, search.getPosition().longValue());
     }
 
@@ -647,5 +646,35 @@ public class MotifSearchManagerTest {
         MotifSearchResult search = motifSearchManager.search(att);
         Assert.assertNull(search.getPosition());
         Assert.assertFalse(search.getResult().isEmpty());
+    }
+
+    @Test(expected = Test.None.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldNotFailWithOutOfMemoryErrorWhenWeSearchShortestMotif() {
+        MotifSearchRequest att = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .startPosition(1)
+                .chromosomeId(testChromosome.getId())
+                .motif("[acgtn]")
+                .searchType(MotifSearchType.WHOLE_GENOME)
+                .pageSize(PAGE_SIZE)
+                .strand(null)
+                .build();
+        motifSearchManager.search(att);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldFailWhenWeSearchShortestRegexMotif() {
+        MotifSearchRequest att = MotifSearchRequest.builder()
+                .referenceId(testReference.getId())
+                .startPosition(1)
+                .chromosomeId(testChromosome.getId())
+                .motif(".")
+                .searchType(MotifSearchType.WHOLE_GENOME)
+                .pageSize(PAGE_SIZE)
+                .strand(StrandSerializable.POSITIVE)
+                .build();
+        motifSearchManager.search(att);
     }
 }
