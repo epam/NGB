@@ -1,10 +1,10 @@
 import {Converter} from 'showdown';
-import showdownHighlight from 'showdown-highlight';
-
-import 'highlight.js/styles/github.css';
+// import showdownHighlight from 'showdown-highlight';
+//
+// import 'highlight.js/styles/github.css';
 
 const converter = new Converter({
-    extensions: [showdownHighlight]
+    extensions: []
 });
 converter.setFlavor('github');
 
