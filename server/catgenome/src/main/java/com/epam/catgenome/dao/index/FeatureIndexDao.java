@@ -1086,6 +1086,23 @@ public class FeatureIndexDao {
         }
     }
 
+    public int countGenesInInterval(final GeneFile featureFile, final String chrId,
+                                    final GeneFilterForm filterForm) throws IOException {
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return 0;
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final Query query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+                    filterForm.getEndIndex(), filterForm.getFeatureTypes());
+            return searcher.count(query);
+        } finally {
+            closeIndices(indexes);
+        }
+    }
+
     private void deleteDocumentByTypeAndId(FeatureType type, Long id, IndexWriter writer) throws IOException {
         BooleanQuery.Builder deleteQueryBuilder = new BooleanQuery.Builder();
         TermQuery idQuery = new TermQuery(new Term(FeatureIndexFields.FILE_ID.getFieldName(),
@@ -1213,27 +1230,14 @@ public class FeatureIndexDao {
     private TopDocs performIntervalSearch(final String chrId, final GeneFilterForm filterForm,
                                           final Sort sort, final MultiReader reader, final IndexSearcher searcher)
             throws IOException {
-        final Query queryWithFeatureTypeFilter = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+        final Query query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
                 filterForm.getEndIndex(), filterForm.getFeatureTypes());
         final Pointer pointer = filterForm.getPointer();
         final Integer numDocs = filterForm.getPageSize();
-        final TopDocs docs = Objects.isNull(pointer)
-                ? performSearch(searcher, queryWithFeatureTypeFilter, reader, numDocs, sort)
-                : performSearchAfter(searcher, queryWithFeatureTypeFilter, pointer.toScoreDoc(), numDocs, sort);
 
-        if (Objects.isNull(docs)) {
-            return null;
-        }
-
-        // if search by specific feature type is empty let's try to find any features
-        if (docs.totalHits == 0 && CollectionUtils.isNotEmpty(filterForm.getFeatureTypes())) {
-            final Query queryWithoutFeatureTypeFilter = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
-                    filterForm.getEndIndex(), null);
-            return Objects.isNull(pointer)
-                    ? performSearch(searcher, queryWithoutFeatureTypeFilter, reader, numDocs, sort)
-                    : performSearchAfter(searcher, queryWithoutFeatureTypeFilter, pointer.toScoreDoc(), numDocs, sort);
-        }
-        return docs;
+        return Objects.isNull(pointer)
+                ? performSearch(searcher, query, reader, numDocs, sort)
+                : performSearchAfter(searcher, query, pointer.toScoreDoc(), numDocs, sort);
     }
 
     private TopDocs performSearchAfter(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,

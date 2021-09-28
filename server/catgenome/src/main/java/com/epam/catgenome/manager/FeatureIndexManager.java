@@ -147,6 +147,9 @@ public class FeatureIndexManager {
     @Value("#{catgenome['search.indexer.buffer.size'] ?: 256}")
     private int indexBufferSize;
 
+    @Value("#{catgenome['search.features.internal.max.results'] ?: 1000}")
+    private int maxFeatureInternalSearchResultsCount;
+
     /**
      * Deletes features from specified feature files from project's index
      *
@@ -418,7 +421,7 @@ public class FeatureIndexManager {
     public IndexSearchResult<GeneIndexEntry> getFullGeneSearchResult(final GeneFilterForm filterForm,
                                                                      final GeneFile geneFile) {
         try {
-            filterForm.setPageSize(maxFeatureSearchResultsCount);
+            filterForm.setPageSize(maxFeatureInternalSearchResultsCount);
             final Sort sort = Optional.ofNullable(
                     featureIndexDao.createGeneSorting(filterForm.getOrderBy(), Collections.singletonList(geneFile)))
                     .orElseGet(filterForm::defaultSort);
@@ -432,6 +435,17 @@ public class FeatureIndexManager {
             return result;
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
+        }
+    }
+
+    public int countGenesInInterval(final GeneFilterForm filterForm, final GeneFile geneFile) {
+        final Long chrId = ListUtils.emptyIfNull(filterForm.getChromosomeIds()).stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Chromosome ID must be specified"));
+        try {
+            return featureIndexDao.countGenesInInterval(geneFile, chrId.toString(), filterForm);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 

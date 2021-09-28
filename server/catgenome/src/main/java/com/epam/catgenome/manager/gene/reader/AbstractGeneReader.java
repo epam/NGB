@@ -199,7 +199,10 @@ public abstract class AbstractGeneReader {
 
         final ReaderState state = new ReaderState();
         final List<Callable<Throwable>> callables = new ArrayList<>(numOfSubIntervals);
-        final GeneFileType scaleType = determineGeneFileType(track.getScaleFactor());
+        final double determineGeneFileTypeTimeStart = Utils.getSystemTimeMilliseconds();
+        final GeneFileType scaleType = determineGeneFileTypeForIndex(track, chromosome);
+        final double determineGeneFileTypeTimeEnd = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Gene count query took {} ms", determineGeneFileTypeTimeEnd - determineGeneFileTypeTimeStart);
 
         for (int i = 0; i < numOfSubIntervals; i++) {
             final int factor = i;
@@ -654,6 +657,17 @@ public abstract class AbstractGeneReader {
         } else {
             return GeneFileType.ORIGINAL;
         }
+    }
+
+    private GeneFileType determineGeneFileTypeForIndex(final Track<Gene> track, final Chromosome chromosome) {
+        final GeneFileType scaleType = determineGeneFileType(track.getScaleFactor());
+        final GeneFilterForm filterForm = buildFilterForm(chromosome.getId(), track.getStartIndex(),
+                track.getEndIndex(), scaleType);
+        if (!GeneFileType.ORIGINAL.equals(scaleType)
+                && featureIndexManager.countGenesInInterval(filterForm, geneFile) == 0) {
+            return GeneFileType.ORIGINAL;
+        }
+        return scaleType;
     }
 
     private GeneIndexIterator indexIterator(final Chromosome chromosome, final Integer startIndex,

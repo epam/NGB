@@ -114,7 +114,7 @@ public class GeneTrackManager {
         final Chromosome chromosome = trackHelper.validateTrack(track);
         final GeneFile geneFile = geneFileManager.load(track.getId());
 
-        return loadGenes(track, geneFile, chromosome, collapse);
+        return loadGenes(track, geneFile, chromosome, collapse, false);
     }
 
     /**
@@ -130,18 +130,7 @@ public class GeneTrackManager {
         final Chromosome chromosome = trackHelper.validateTrack(track);
         final GeneFile geneFile = geneFileManager.load(track.getId());
 
-        if (geneFile.getType() == BiologicalDataItemResourceType.FILE && geneFile.getCompressed() &&
-                !setTrackBounds(track, geneFile, chromosome)) {
-            return track;
-        }
-
-        final AbstractGeneReader geneReader = AbstractGeneReader.createGeneReader(
-                taskExecutorService.getExecutorService(), fileManager, geneFile, featureIndexManager);
-        final List<Gene> notSyncGenes = geneReader.readGenesFromIndex(track, chromosome, collapsed,
-                taskExecutorService.getTaskNumberOfThreads());
-
-        track.setBlocks(notSyncGenes);
-        return track;
+        return loadGenes(track, geneFile, chromosome, collapsed, true);
     }
 
     /**
@@ -177,26 +166,7 @@ public class GeneTrackManager {
      */
     public Track<Gene> loadGenes(final Track<Gene> track, GeneFile geneFile, Chromosome chromosome, boolean collapsed)
             throws GeneReadingException {
-        if (geneFile.getType() == BiologicalDataItemResourceType.FILE && geneFile.getCompressed() &&
-                !setTrackBounds(track, geneFile, chromosome)) {
-            return track;
-        }
-
-        final List<Gene> notSyncGenes;
-        if (Objects.nonNull(geneFile.getId()) && loadFromIndex) {
-            final AbstractGeneReader geneReader = AbstractGeneReader.createGeneReader(
-                    taskExecutorService.getExecutorService(), fileManager, geneFile, featureIndexManager);
-            notSyncGenes = geneReader.readGenesFromIndex(track, chromosome, collapsed,
-                    taskExecutorService.getTaskNumberOfThreads());
-        } else {
-            final AbstractGeneReader gtfReader = AbstractGeneReader.createGeneReader(
-                    taskExecutorService.getExecutorService(), fileManager, geneFile);
-            notSyncGenes = gtfReader.readGenesFromGeneFile(track, chromosome, collapsed,
-                    taskExecutorService.getTaskNumberOfThreads());
-        }
-
-        track.setBlocks(notSyncGenes);
-        return track;
+        return loadGenes(track, geneFile, chromosome, collapsed, loadFromIndex);
     }
 
     /**
@@ -323,5 +293,30 @@ public class GeneTrackManager {
             }
         }
         return transcriptList;
+    }
+
+    private Track<Gene> loadGenes(final Track<Gene> track, final GeneFile geneFile, final Chromosome chromosome,
+                                  final boolean collapsed, final boolean fromIndex)
+            throws GeneReadingException {
+        if (geneFile.getType() == BiologicalDataItemResourceType.FILE && geneFile.getCompressed() &&
+                !setTrackBounds(track, geneFile, chromosome)) {
+            return track;
+        }
+
+        final List<Gene> notSyncGenes;
+        if (Objects.nonNull(geneFile.getId()) && fromIndex) {
+            final AbstractGeneReader geneReader = AbstractGeneReader.createGeneReader(
+                    taskExecutorService.getExecutorService(), fileManager, geneFile, featureIndexManager);
+            notSyncGenes = geneReader.readGenesFromIndex(track, chromosome, collapsed,
+                    taskExecutorService.getTaskNumberOfThreads());
+        } else {
+            final AbstractGeneReader gtfReader = AbstractGeneReader.createGeneReader(
+                    taskExecutorService.getExecutorService(), fileManager, geneFile);
+            notSyncGenes = gtfReader.readGenesFromGeneFile(track, chromosome, collapsed,
+                    taskExecutorService.getTaskNumberOfThreads());
+        }
+
+        track.setBlocks(notSyncGenes);
+        return track;
     }
 }

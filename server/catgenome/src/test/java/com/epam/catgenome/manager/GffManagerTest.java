@@ -32,9 +32,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.controller.util.UrlTestingUtils;
@@ -43,7 +46,9 @@ import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
@@ -271,47 +276,13 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
-        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
+        assertExons(geneFile, featureList);
+        final List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
 
-        List<Gene> exons = new ArrayList<>();
-        for (Gene gene : featureList.getBlocks()) {
-            if (gene.getItems() != null) {
-                for (Gene mRna : gene.getItems()) {
-                    if (mRna.getItems() != null) {
-                        exons.addAll(mRna.getItems().stream().filter(s -> "exon".equals(s.getFeature()))
-                                .collect(Collectors.toList()));
-                    }
-                }
-            }
-        }
-
-        Assert.assertFalse(exons.isEmpty());
-
-        Collections.sort(exons, (o1, o2) -> o1.getStartIndex().compareTo(o2.getStartIndex()));
-        int middle = exons.size() / 2;
-        Gene firstExon = exons.get(middle);
-        Gene secondExon = exons.get(middle + 1);
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-        Gene loadedNextExon = gffManager.getNextOrPreviousFeature(firstExon.getEndIndex(), geneFile.getId(),
-                testChromosome.getId(), true);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("next feature took {} ms", time2 - time1);
-        Assert.assertNotNull(loadedNextExon);
-        Assert.assertEquals(secondExon.getStartIndex(), loadedNextExon.getStartIndex());
-        Assert.assertEquals(secondExon.getEndIndex(), loadedNextExon.getEndIndex());
-
-        time1 = Utils.getSystemTimeMilliseconds();
-        Gene loadPrevExon = gffManager.getNextOrPreviousFeature(secondExon.getStartIndex(), geneFile.getId(),
-                testChromosome.getId(), false);
-        time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("prev feature took {} ms", time2 - time1);
-
-        Assert.assertNotNull(loadPrevExon);
-        Assert.assertEquals(firstExon.getStartIndex(), loadPrevExon.getStartIndex());
-        Assert.assertEquals(firstExon.getEndIndex(), loadPrevExon.getEndIndex());
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        assertExons(geneFile, featureList);
+        assertIndexAndFileFeatures(featureList, fileFeatures);
     }
 
     @Test
@@ -560,13 +531,19 @@ public class GffManagerTest extends AbstractManagerTest {
         final int expectedGenesLargeScaleSize = 14;
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        Assert.assertEquals(expectedGenesOriginalSize, featureList.getBlocks().size());
-        Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
+        assertUnmappedFeatureList(expectedGenesOriginalSize, featureList);
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesOriginalSize, featureList);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
 
         Track<Gene> smallScaleFactorTrack = new Track<>();
         smallScaleFactorTrack.setId(geneFile.getId());
@@ -576,16 +553,26 @@ public class GffManagerTest extends AbstractManagerTest {
         smallScaleFactorTrack.setScaleFactor(SMALL_SCALE_FACTOR);
 
         time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromFile(smallScaleFactorTrack, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes large scale loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesLargeScaleSize, featureList);
+
+        int groupedGenesCount = featureList.getBlocks().stream().mapToInt(Gene::getFeatureCount).sum();
+        logger.debug("{} features total", groupedGenesCount);
+        Assert.assertEquals(TEST_FEATURE_COUNT, groupedGenesCount);
+        fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
         featureList = geneTrackManager.loadGenesFromIndex(smallScaleFactorTrack, false);
         time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes large scale loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        Assert.assertEquals(expectedGenesLargeScaleSize, featureList.getBlocks().size());
-        Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
-        int groupedGenesCount = featureList.getBlocks().stream().collect(Collectors.summingInt(Gene::getFeatureCount));
+        assertUnmappedFeatureList(expectedGenesLargeScaleSize, featureList);
+        groupedGenesCount = featureList.getBlocks().stream().mapToInt(Gene::getFeatureCount).sum();
         logger.debug("{} features total", groupedGenesCount);
         Assert.assertEquals(TEST_FEATURE_COUNT, groupedGenesCount);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
 
         Track<Wig> histogram = new Track<>();
         histogram.setId(geneFile.getId());
@@ -658,12 +645,20 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
-        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
-
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
         Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
         Assert.assertTrue(featureList.getBlocks()
                 .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
                         .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
+        Assert.assertTrue(featureList.getBlocks()
+                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
+                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
 
         track = new Track<>();
         track.setId(geneFile.getId());
@@ -673,19 +668,77 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListCollapsed = geneTrackManager.loadGenesFromIndex(track, true);
+        Track<Gene> featureListCollapsed = geneTrackManager.loadGenesFromFile(track, true);
         double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading : {} ms", time2 - time1);
+        logger.info("genes loading from file: {} ms", time2 - time1);
         Assert.assertNotNull(featureListCollapsed);
         Assert.assertFalse(featureListCollapsed.getBlocks().isEmpty());
         Assert.assertTrue(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
                 .allMatch(g -> g.getItems().size() == 1));
         Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
                 .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
-
         Assert.assertTrue(featureListCollapsed.getBlocks()
                 .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
+        fileFeatures = new ArrayList<>(featureListCollapsed.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureListCollapsed = geneTrackManager.loadGenesFromIndex(track, true);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading from index: {} ms", time2 - time1);
+        Assert.assertNotNull(featureListCollapsed);
+        Assert.assertFalse(featureListCollapsed.getBlocks().isEmpty());
+        Assert.assertTrue(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().size() == 1));
+        Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
+        Assert.assertTrue(featureListCollapsed.getBlocks()
+                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
+
+        assertIndexAndFileFeatures(featureListCollapsed, fileFeatures);
         return true;
+    }
+
+    private void assertIndexAndFileFeatures(final Track<Gene> featureList, final List<Gene> fileFeatures) {
+        final Map<Gene, Gene> indexFeatures = ListUtils.emptyIfNull(featureList.getBlocks()).stream()
+                .collect(Collectors.toMap(Function.identity(), Function.identity()));
+        Assert.assertEquals(fileFeatures.size(), indexFeatures.size());
+        fileFeatures.forEach(fileFeature -> {
+            if (MapUtils.isNotEmpty(fileFeature.getAttributes())) {
+                final Map<String, String> lowerCaseKeys = new HashMap<>();
+                fileFeature.getAttributes()
+                        .forEach((key, value) -> lowerCaseKeys.put(StringUtils.lowerCase(key), value));
+                fileFeature.setAttributes(lowerCaseKeys);
+            }
+
+            final Gene indexFeature = indexFeatures.get(fileFeature);
+            if (Objects.isNull(indexFeature)) {
+                throw new AssertionError(String.format("Feature %s:%d-%d (%s) was not indexed",
+                        fileFeature.getFeature(), fileFeature.getStartIndex(), fileFeature.getEndIndex(),
+                        fileFeature.getGroupId()));
+            }
+            // let's check fields that do not participate in equals and hash code
+            Assert.assertEquals(indexFeature.getAminoacidLength(), fileFeature.getAminoacidLength());
+            Assert.assertEquals(indexFeature.getExonsCount(), fileFeature.getExonsCount());
+            Assert.assertEquals(indexFeature.getFeatureId(), fileFeature.getFeatureId());
+            Assert.assertEquals(indexFeature.getFeatureName(), fileFeature.getFeatureName());
+            Assert.assertEquals(indexFeature.getFeatureCount(), fileFeature.getFeatureCount());
+            Assert.assertEquals(indexFeature.getFrame(), fileFeature.getFrame());
+            Assert.assertEquals(indexFeature.getGffId(), fileFeature.getGffId());
+            Assert.assertEquals(indexFeature.getOrigin(), fileFeature.getOrigin());
+            Assert.assertEquals(indexFeature.getParentId(), fileFeature.getParentId());
+            Assert.assertEquals(indexFeature.getStrand(), fileFeature.getStrand());
+            Assert.assertEquals(indexFeature.getScore(), fileFeature.getScore());
+            Assert.assertTrue(StringUtils.equalsIgnoreCase(indexFeature.getSource(), fileFeature.getSource()));
+            Assert.assertEquals(ListUtils.emptyIfNull(indexFeature.getTranscripts()).size(),
+                    ListUtils.emptyIfNull(fileFeature.getTranscripts()).size());
+            Assert.assertEquals(ListUtils.emptyIfNull(indexFeature.getItems()).size(),
+                    ListUtils.emptyIfNull(fileFeature.getItems()).size());
+            Assert.assertNull(fileFeature.getUid());
+            Assert.assertNotNull(indexFeature.getUid());
+            Assert.assertTrue(fileFeature.getSeqName().endsWith(indexFeature.getSeqName()));
+            Assert.assertEquals(indexFeature.isCanonical(), fileFeature.isCanonical());
+            Assert.assertEquals(indexFeature.isMapped(), fileFeature.isMapped());
+        });
     }
 
     private void testOverlapping(List<Block> exons) {
@@ -739,19 +792,17 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
         double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        logger.info("{} genes", featureList.getBlocks().size());
+        assertGeneTrackAfterRegistration(time1, featureList, time2);
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
 
-        featureList.getBlocks().stream().filter(g -> g.getItems() != null)
-                .forEach(g -> Assert.assertTrue(g.getItems().stream()
-                        .filter(GeneUtils::isTranscript)
-                        .allMatch(i -> i.getExonsCount() != null && i.getAminoacidLength() != null
-                                && i.getExonsCount() == i.getItems().stream()
-                                .filter(ii -> "exon".equalsIgnoreCase(ii.getFeature())).count())));
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        assertGeneTrackAfterRegistration(time1, featureList, time2);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
 
         Track<Gene> track2 = new Track<>();
         track2.setId(geneFile.getId());
@@ -761,11 +812,21 @@ public class GffManagerTest extends AbstractManagerTest {
         track2.setScaleFactor(SMALL_SCALE_FACTOR);
 
         time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListLargeScale = geneTrackManager.loadGenesFromIndex(track2, false);
+        Track<Gene> featureListLargeScale = geneTrackManager.loadGenesFromFile(track2, false);
         time2 = Utils.getSystemTimeMilliseconds();
         logger.info("genes loading large scale: {} ms", time2 - time1);
 
-        Assert.assertEquals(9, featureList.getBlocks().stream()
+        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
+                .filter(Gene::isMapped).count());
+        Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
+        Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureListLargeScale = geneTrackManager.loadGenesFromIndex(track2, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading large scale: {} ms", time2 - time1);
+
+        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
                 .filter(Gene::isMapped).count());
         Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
         Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
@@ -804,5 +865,69 @@ public class GffManagerTest extends AbstractManagerTest {
         Resource resource = context.getResource("classpath:externaldb//data//" + filename);
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
+    }
+
+    private void assertUnmappedFeatureList(final int expectedGenesOriginalSize, final Track<Gene> featureList) {
+        Assert.assertNotNull(featureList);
+        Assert.assertFalse(featureList.getBlocks().isEmpty());
+        Assert.assertEquals(expectedGenesOriginalSize, featureList.getBlocks().size());
+        Assert.assertTrue(featureList.getBlocks().stream().noneMatch(Gene::isMapped));
+    }
+
+    private void assertGeneTrackAfterRegistration(double time1, Track<Gene> featureList, double time2) {
+        logger.info("genes loading : {} ms", time2 - time1);
+        Assert.assertNotNull(featureList);
+        Assert.assertFalse(featureList.getBlocks().isEmpty());
+        logger.info("{} genes", featureList.getBlocks().size());
+
+        featureList.getBlocks().stream().filter(g -> g.getItems() != null)
+                .forEach(g -> Assert.assertTrue(g.getItems().stream()
+                        .filter(GeneUtils::isTranscript)
+                        .allMatch(i -> i.getExonsCount() != null && i.getAminoacidLength() != null
+                                && i.getExonsCount() == i.getItems().stream()
+                                .filter(ii -> "exon".equalsIgnoreCase(ii.getFeature())).count())));
+    }
+
+    private void assertExons(GeneFile geneFile, Track<Gene> featureList) throws IOException {
+        Assert.assertNotNull(featureList);
+        Assert.assertFalse(featureList.getBlocks().isEmpty());
+
+        List<Gene> exons = new ArrayList<>();
+        for (Gene gene : featureList.getBlocks()) {
+            if (gene.getItems() != null) {
+                for (Gene mRna : gene.getItems()) {
+                    if (mRna.getItems() != null) {
+                        exons.addAll(mRna.getItems().stream().filter(s -> "exon".equals(s.getFeature()))
+                                .collect(Collectors.toList()));
+                    }
+                }
+            }
+        }
+
+        Assert.assertFalse(exons.isEmpty());
+
+        Collections.sort(exons, (o1, o2) -> o1.getStartIndex().compareTo(o2.getStartIndex()));
+        int middle = exons.size() / 2;
+        Gene firstExon = exons.get(middle);
+        Gene secondExon = exons.get(middle + 1);
+
+        double time1 = Utils.getSystemTimeMilliseconds();
+        Gene loadedNextExon = gffManager.getNextOrPreviousFeature(firstExon.getEndIndex(), geneFile.getId(),
+                testChromosome.getId(), true);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("next feature took {} ms", time2 - time1);
+        Assert.assertNotNull(loadedNextExon);
+        Assert.assertEquals(secondExon.getStartIndex(), loadedNextExon.getStartIndex());
+        Assert.assertEquals(secondExon.getEndIndex(), loadedNextExon.getEndIndex());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        Gene loadPrevExon = gffManager.getNextOrPreviousFeature(secondExon.getStartIndex(), geneFile.getId(),
+                testChromosome.getId(), false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("prev feature took {} ms", time2 - time1);
+
+        Assert.assertNotNull(loadPrevExon);
+        Assert.assertEquals(firstExon.getStartIndex(), loadPrevExon.getStartIndex());
+        Assert.assertEquals(firstExon.getEndIndex(), loadPrevExon.getEndIndex());
     }
 }
