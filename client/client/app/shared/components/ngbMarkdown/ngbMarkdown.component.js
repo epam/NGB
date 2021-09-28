@@ -1,4 +1,5 @@
 import {Converter} from 'showdown';
+// todo: showdown-highlight brakes production build process. We need to upgrade either webpack or uglifyjs
 // import showdownHighlight from 'showdown-highlight';
 //
 // import 'highlight.js/styles/github.css';

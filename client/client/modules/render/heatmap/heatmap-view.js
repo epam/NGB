@@ -234,7 +234,7 @@ class HeatmapView extends HeatmapEventDispatcher {
             dispatcher.on(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
             this.colorScheme.onConfigureRequest(configureColorScheme);
         }
-        const dataChanged = dataConfig && this.heatmapData.anotherOptions(dataConfig);
+        const dataChanged = id && this.heatmapData.anotherOptions(dataConfig);
         const initialized = this.initialized;
         this.updateDisplayOptions(displayOptions);
         this.resize(width, height);

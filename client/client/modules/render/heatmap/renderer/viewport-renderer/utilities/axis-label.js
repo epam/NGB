@@ -20,15 +20,16 @@ const DEBUG = false;
 class AxisLabel {
     /**
      *
+     * @param {function: boolean} isCancelledFn
      * @param {AxisLabelOptions} options
      * @param {HeatmapAnnotatedIndex[]} ticks
      * @returns {Promise<AxisLabel[]>}
      */
-    static initializeTicks(options = {}, ticks = []) {
+    static initializeTicks(isCancelledFn = (() => false), options = {}, ticks = []) {
         const {
             labelsManager
         } = options;
-        if (!labelsManager || ticks.length === 0) {
+        if (!labelsManager || ticks.length === 0 || isCancelledFn()) {
             return Promise.resolve([]);
         }
         const maxIterationsPerFrame = 50;
@@ -37,13 +38,16 @@ class AxisLabel {
             const _iterate = (index = 0) => {
                 const nextIterationIndex = index + maxIterationsPerFrame;
                 for (let i = index; i < nextIterationIndex && i < ticks.length; i++) {
+                    if (isCancelledFn()) {
+                        break;
+                    }
                     result.push(new AxisLabel({
                         ...options,
                         annotatedIndex: ticks[i],
                         value: i
                     }));
                 }
-                if (nextIterationIndex >= ticks.length) {
+                if (nextIterationIndex >= ticks.length || isCancelledFn()) {
                     resolve(result);
                 } else {
                     requestAnimationFrame(() => _iterate(nextIterationIndex));

@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
+import cancellablePromise from '../data-renderer/utilities/cancellable-promise';
 import AxisLabel from './utilities/axis-label';
 import AxisVectors from './axis-vectors';
 import InteractiveZone from '../../interactions/interactive-zone';
@@ -57,6 +58,9 @@ class HeatmapAxisRenderer extends InteractiveZone {
     }
 
     destroy() {
+        if (typeof this.cancelInitialization === 'function') {
+            this.cancelInitialization();
+        }
         if (this.container) {
             this.container.destroy();
         }
@@ -106,22 +110,31 @@ class HeatmapAxisRenderer extends InteractiveZone {
             normal: this.normal,
             showAnnotations
         };
-        AxisLabel.initializeTicks(options, labels)
-            .then((ticks) => this.ticks = ticks)
-            .then(this.calculateAxisSize.bind(this))
-            .then(() => {
-                this.container.removeChildren();
-                this.labelsContainer = new PIXI.Container();
-                this.container.addChild(this.labelsContainer);
-                this.ticks.forEach(tick => {
-                    this.labelsContainer.addChild(tick.container);
-                });
-                this.clearRenderSession();
-                requestAnimationFrame(() => {
-                    this.render();
-                    this.initialized = true;
-                });
-            });
+        this.cancelInitialization = cancellablePromise(
+            (isCancelledFn) => new Promise((resolve) => AxisLabel.initializeTicks(isCancelledFn, options, labels)
+                .then((ticks) => this.ticks = ticks)
+                .then(this.calculateAxisSize.bind(this))
+                .then(() => {
+                    if (!isCancelledFn()) {
+                        this.container.removeChildren();
+                        this.labelsContainer = new PIXI.Container();
+                        this.container.addChild(this.labelsContainer);
+                        this.ticks.forEach(tick => {
+                            this.labelsContainer.addChild(tick.container);
+                        });
+                        this.clearRenderSession();
+                        requestAnimationFrame(() => {
+                            this.render();
+                            this.initialized = true;
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
+                })
+            ),
+            this.cancelInitialization,
+        );
     }
 
     calculateAxisSize () {
