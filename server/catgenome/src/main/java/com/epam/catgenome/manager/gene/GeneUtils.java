@@ -163,10 +163,10 @@ public final class GeneUtils {
         return isType(GeneFeatureType.TRANSCRIPT, feature);
     }
 
-    public static FeatureType fetchType(final String feature) {
+    public static FeatureType fetchType(GeneFeature feature) {
         for (GeneFeatureType type : GeneFeatureType.values()) {
             for (String featureTypeName : type.featureTypeNames) {
-                if (featureTypeName.equalsIgnoreCase(feature)) {
+                if (featureTypeName.equalsIgnoreCase(feature.getFeature())) {
                     switch (type) {
                         case GENE:
                         case CHROMOSOME:
@@ -200,10 +200,6 @@ public final class GeneUtils {
             }
         }
         return null;
-    }
-
-    public static FeatureType fetchType(final GeneFeature feature) {
-        return fetchType(feature.getFeature());
     }
 
     /**

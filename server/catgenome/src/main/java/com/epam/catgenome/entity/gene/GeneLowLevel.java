@@ -31,6 +31,9 @@ import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Created: 3/21/2016
@@ -40,6 +43,9 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
  * A value object, representing lower lvers of gene hierarchy
  * </p>
  */
+@NoArgsConstructor
+@Getter
+@Setter
 public class GeneLowLevel extends Block {
     private String feature;
     private StrandSerializable strand;
@@ -52,10 +58,6 @@ public class GeneLowLevel extends Block {
     private Boolean mapped;
     private boolean canonical;
     private String uid;
-
-    public GeneLowLevel() {
-        // no-op
-    }
 
     public GeneLowLevel(final GeneFeature geneFeature) {
         setStartIndex(geneFeature.getStart());
@@ -90,85 +92,5 @@ public class GeneLowLevel extends Block {
         mapped = gene.isMapped();
         canonical = gene.isCanonical();
         uid = gene.getUid();
-    }
-
-    public String getFeature() {
-        return feature;
-    }
-
-    public StrandSerializable getStrand() {
-        return strand;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public List<GeneLowLevel> getItems() {
-        return items;
-    }
-
-    public void setFeature(final String feature) {
-        this.feature = feature;
-    }
-
-    public void setStrand(final StrandSerializable strand) {
-        this.strand = strand;
-    }
-
-    public void setAttributes(final Map<String, String> attributes) {
-        this.attributes = attributes;
-    }
-
-    public void setItems(final List<GeneLowLevel> items) {
-        this.items = items;
-    }
-
-    public List<ProteinSequence> getPsList() {
-        return psList;
-    }
-
-    public void setPsList(List<ProteinSequence> psList) {
-        this.psList = psList;
-    }
-
-    public Long getExonsCount() {
-        return exonsCount;
-    }
-
-    public void setExonsCount(Long exonsCount) {
-        this.exonsCount = exonsCount;
-    }
-
-    public Long getAminoacidLength() {
-        return aminoacidLength;
-    }
-
-    public void setAminoacidLength(Long aminoacidLength) {
-        this.aminoacidLength = aminoacidLength;
-    }
-
-    public Boolean getMapped() {
-        return mapped;
-    }
-
-    public void setMapped(Boolean mapped) {
-        this.mapped = mapped;
-    }
-
-    public boolean isCanonical() {
-        return canonical;
-    }
-
-    public void setCanonical(boolean canonical) {
-        this.canonical = canonical;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
     }
 }
