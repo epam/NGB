@@ -111,14 +111,14 @@
         <property name="deleteTaskQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task WHERE task_id = ?
+                    DELETE FROM catgenome.task WHERE task_id = ?
                 ]]>
             </value>
         </property>
         <property name="deleteTasksQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task
+                    DELETE FROM catgenome.task
                 ]]>
             </value>
         </property>
@@ -127,14 +127,14 @@
         <property name="deleteTaskParametersQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_parameter WHERE task_id = ?
+                    DELETE FROM catgenome.task_parameter WHERE task_id = ?
                 ]]>
             </value>
         </property>
         <property name="deleteParametersQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_parameter
+                    DELETE FROM catgenome.task_parameter
                 ]]>
             </value>
         </property>
@@ -173,14 +173,14 @@
         <property name="deleteTaskOrganismsQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_organism WHERE task_id = ?
+                    DELETE FROM catgenome.task_organism WHERE task_id = ?
                 ]]>
             </value>
         </property>
         <property name="deleteOrganismsQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_organism
+                    DELETE FROM catgenome.task_organism
                 ]]>
             </value>
         </property>
@@ -216,14 +216,14 @@
         <property name="deleteTaskExclOrganismsQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_excl_organism WHERE task_id = ?
+                    DELETE FROM catgenome.task_excl_organism WHERE task_id = ?
                 ]]>
             </value>
         </property>
         <property name="deleteExclOrganismsQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.task_excl_organism
+                    DELETE FROM catgenome.task_excl_organism
                 ]]>
             </value>
         </property>
