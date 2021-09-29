@@ -1,6 +1,6 @@
 # NGB documentation
 
-NGB documentation is provided in a **markdown** format, that could be viewed directly from github or could be built into **html** representation
+NGB documentation is provided in a **Markdown** format, that could be viewed directly from GitHub or could be built into **html** representation.
 
 ## Documentation index
 
@@ -29,6 +29,7 @@ The following sections are currently covered in a documentation
         * [WIG track](md/user-guide/tracks-wig.md)
         * [BED track](md/user-guide/tracks-bed.md)
         * [FeatureCounts track](md/user-guide/tracks-featurecounts.md)
+        * [Heatmap track](md/user-guide/tracks-heatmap.md)
         * [ENCODE-specific tracks](md/user-guide/tracks-encode.md)
     * [Variants](md/user-guide/variants.md)
     * [Genes](md/user-guide/genes.md)
@@ -46,21 +47,22 @@ The following sections are currently covered in a documentation
 
 ## Building documentation
 
-[MkDocs](http://www.mkdocs.org) and `epam-material` theme (based on [mkdocs-material](https://github.com/squidfunk/mkdocs-material)) are used to build documentation into **html** representation
+[MkDocs](http://www.mkdocs.org) are used to build documentation into **html** representation.
 
-So make sure that both dependencies are installed according to the [installation guide](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)
+So make sure that all dependencies are installed according to the [installation guide](https://www.mkdocs.org/user-guide/installation/).
 
-Once installed, obtain **markdown** sources from github
-```
+Once installed, obtain **Markdown** sources from GitHub:
+
+``` bash
 $ git clone https://github.com/epam/NGB.git
 $ cd NGB/docs
 ```
 
-Run build
-```
+Run build:
+
+``` bash
 $ mkdocs build
 ```
 
-This will create `site/` folder, containing built **html** documentation
-
-To view documentation - navigate in `ngb/docs/site/` folder and launch `index.html` with a web-browser
+This will create `site/` folder, containing built **html** documentation.  
+To view documentation - navigate in `ngb/docs/site/` folder and launch `index.html` with a web-browser.
