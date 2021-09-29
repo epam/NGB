@@ -16,12 +16,13 @@ export default class ngbVariantQualityDiagramController {
      * @param {dispatcher} dispatcher
      */
     /** @ngInject */
-    constructor($scope, dispatcher, projectContext, ngbVariantQualityDiagramConstants, vcfDataService) {
+    constructor($scope, $timeout, dispatcher, projectContext, ngbVariantQualityDiagramConstants, vcfDataService) {
         this.isProgressShown = true;
         const __dispatcher = this._dispatcher = dispatcher;
         this.projectContext = projectContext;
         this._vcfDataService = vcfDataService;
         this._scope = $scope;
+        this._timeout = $timeout;
 
         $scope.options = {
             chart: {
@@ -59,11 +60,13 @@ export default class ngbVariantQualityDiagramController {
         };
         this._dispatcher.on('variants:group:quality:started', updating);
         this._dispatcher.on('variants:group:quality:finished', reloadPanel);
+        this._dispatcher.on('refresh:project:info', reloadPanel);
         // We must remove event listener when component is destroyed.
 
         $scope.$on('$destroy', () => {
             __dispatcher.removeListener('variants:group:quality:started', updating);
             __dispatcher.removeListener('variants:group:quality:finished', reloadPanel);
+            __dispatcher.removeListener('refresh:project:info', reloadPanel);
         });
 
 
@@ -87,7 +90,7 @@ export default class ngbVariantQualityDiagramController {
                 this.projectContext.isVariantsGroupByQualityLoading,
                 this.projectContext.variantsGroupByQualityError);
             this.isProgressShown = this.projectContext.isVariantsGroupByQualityLoading;
-            this._scope.$apply();
+            this._scope.$applyAsync();
         }
     }
 

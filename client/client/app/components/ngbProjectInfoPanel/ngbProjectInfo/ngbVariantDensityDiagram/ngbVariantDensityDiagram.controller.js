@@ -16,11 +16,12 @@ export default class ngbVariantDensityDiagramController {
      * @param {dispatcher} dispatcher
      */
     /** @ngInject */
-    constructor($scope, dispatcher, projectContext) {
+    constructor($scope, $timeout, dispatcher, projectContext) {
         this.isProgressShown = true;
         const __dispatcher = this._dispatcher = dispatcher;
         this.projectContext = projectContext;
         this._scope = $scope;
+        this._timeout = $timeout;
 
         $scope.options = {
             chart: {
@@ -69,21 +70,20 @@ export default class ngbVariantDensityDiagramController {
         };
 
         (async() => {
-
             const reloadPanel = ::this.INIT;
             const updating = async() => {
                 this.isProgressShown = true;
             };
             this._dispatcher.on('variants:group:chromosome:started', updating);
             this._dispatcher.on('variants:group:chromosome:finished', reloadPanel);
-            this._dispatcher.on('deselect:dataset:item', reloadPanel);
+            this._dispatcher.on('refresh:project:info', reloadPanel);
 
             await this.INIT();
 
             $scope.$on('$destroy', () => {
                 __dispatcher.removeListener('variants:group:chromosome:started', updating);
                 __dispatcher.removeListener('variants:group:chromosome:finished', reloadPanel);
-                __dispatcher.removeListener('deselect:dataset:item', reloadPanel);
+                __dispatcher.removeListener('refresh:project:info', reloadPanel);
             });
 
             angular.element(window).on('resize', () => {
@@ -113,7 +113,7 @@ export default class ngbVariantDensityDiagramController {
                 this.variantsGroupByChromosomesError
             );
             this.isProgressShown = this.isVariantsGroupByChromosomesLoading;
-            this._scope.$apply();
+            this._scope.$applyAsync();
         }
     }
 

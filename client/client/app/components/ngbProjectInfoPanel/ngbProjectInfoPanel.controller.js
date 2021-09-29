@@ -76,6 +76,7 @@ export default class ngbProjectInfoPanelController extends BaseController {
     refreshProjectInfo() {
         if (!this.$scope.$$phase) {
             this.$scope.$apply();
+            this.dispatcher.emitSimpleEvent('refresh:project:info');
         }
     }
 

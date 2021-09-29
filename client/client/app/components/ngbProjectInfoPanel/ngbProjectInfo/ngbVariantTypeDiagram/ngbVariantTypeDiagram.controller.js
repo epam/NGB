@@ -15,11 +15,12 @@ export default class ngbVariantTypeDiagramController {
      * @param {dispatcher} dispatcher
      */
     /** @ngInject */
-    constructor($scope, dispatcher, projectContext) {
+    constructor($scope, $timeout, dispatcher, projectContext) {
         this.isProgressShown = true;
         this.projectContext = projectContext;
         const __dispatcher = this._dispatcher = dispatcher;
         this._scope = $scope;
+        this._timeout = $timeout;
 
         $scope.options = {
             chart: {
@@ -71,10 +72,12 @@ export default class ngbVariantTypeDiagramController {
         };
         this._dispatcher.on('variants:group:type:started', updating);
         this._dispatcher.on('variants:group:type:finished', reloadPanel);
+        this._dispatcher.on('refresh:project:info', reloadPanel);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
             __dispatcher.removeListener('variants:group:type:started', updating);
             __dispatcher.removeListener('variants:group:type:finished', reloadPanel);
+            __dispatcher.removeListener('refresh:project:info', reloadPanel);
         });
 
         (async() => {
@@ -156,7 +159,7 @@ export default class ngbVariantTypeDiagramController {
                 this.projectContext.isVariantsGroupByTypeLoading,
                 this.projectContext.variantsGroupByTypeError);
             this.isProgressShown = this.projectContext.isVariantsGroupByTypeLoading;
-            this._scope.$apply();
+            this._scope.$applyAsync();
         }
     }
 

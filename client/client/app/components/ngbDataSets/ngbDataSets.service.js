@@ -229,7 +229,6 @@ export default class ngbDataSetsService {
     deselectItem(item: Node) {
         item.__selected = false;
         if (item.isProject) {
-            this.dispatcher.emitSimpleEvent('deselect:dataset:item');
             item.items.forEach(t => {t.__selected = false; t.__indeterminate = false; this.deselectItem(t);});
         }
     }

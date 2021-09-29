@@ -1393,7 +1393,9 @@ export default class projectContext {
                 this._viewport = null;
             }
         }
-        this.filter({asDefault: true, callbacks});
+        if (forceVariantsFilter || referenceDidChange || vcfFilesChanged) {
+            this.filter({asDefault: true, callbacks});
+        }
         if (layout) {
             this.layout = layout;
         }
