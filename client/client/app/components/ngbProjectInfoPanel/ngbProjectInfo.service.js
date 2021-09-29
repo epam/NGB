@@ -173,8 +173,23 @@ export default class ngbProjectInfoService {
     }
 
     setCurrentName(value) {
-        const name = (this.extendedMode && Array.isArray(value)) ? value[0] : value;
-        this._currentName = PROJECT_INFO_MODE_NAME[name] || this.currentNote.title;
+        if (this.extendedMode) {
+            const currentMode = Array.isArray(value) ? value[0] : value;
+            let nameValue = PROJECT_INFO_MODE_NAME[currentMode] || this.currentNote.title;
+            if ((this.projects || []).length > 1 &&
+                currentMode !== undefined &&
+                (
+                    [this.projectInfoModeList.DESCRIPTION,
+                        this.projectInfoModeList.ADD_NOTE
+                    ].includes(currentMode) ||
+                    currentMode > 0
+                )) {
+                nameValue = `${this.currentProject.name}:${nameValue}`;
+            }
+            this._currentName = nameValue;
+        } else {
+            this._currentName = PROJECT_INFO_MODE_NAME[value] || this.currentNote.title;
+        }
     }
 
     get currentMode() {
@@ -298,7 +313,7 @@ export default class ngbProjectInfoService {
                     this.currentMode = this.projectInfoModeList.DESCRIPTION;
                     this.descriptionAvailable = true;
                     this.descriptionIsLoading = false;
-                    this.blobUrl = this.sce.trustAsResourceUrl(
+                    this.blobUrl = this.$sce.trustAsResourceUrl(
                         URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                     );
                     if (!this.projectContext.currentChromosome) {

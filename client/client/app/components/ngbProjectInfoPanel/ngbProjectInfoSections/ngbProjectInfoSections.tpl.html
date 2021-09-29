@@ -27,7 +27,7 @@
                    ng-model="$ctrl.ngbProjectInfoService.currentMode"
                    ng-true-value="{{[$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION, project.id]}}"
                    ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
-                   ng-click=$ctrl.setDescription(project.blobUrl)>
+                   ng-click=$ctrl.setDescription(project)>
         <span>Description</span>
       </md-checkbox>
       <md-menu-item ng-if="project.canEdit"

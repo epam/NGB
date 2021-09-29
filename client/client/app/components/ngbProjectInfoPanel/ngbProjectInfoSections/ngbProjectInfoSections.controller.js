@@ -27,9 +27,10 @@ export default class ngbProjectInfoSectionsController extends baseController {
         return this.ngbProjectInfoService.extendedMode;
     }
 
-    setDescription (blobUrl) {
+    setDescription (project) {
+        this.setCurrentProject(project);
         this.ngbProjectInfoService.descriptionAvailable = true;
-        this.ngbProjectInfoService.blobUrl = blobUrl;
+        this.ngbProjectInfoService.blobUrl = project.blobUrl;
     }
 
     setCurrentProject (project) {
