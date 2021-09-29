@@ -3,19 +3,30 @@ ngb-project-info-edit-note {
     .edit-note-input-container {
       margin-top: 20px;
       margin-right: 20px;
-      width: calc(100% - 20px);
+      width: 50%;
+    }
+    .edit-note-row {
+      margin: 15px 0px;
+      padding: 0px 10px;
+      display:flex;
+      flex-wrap: wrap-reverse;
+      align-items: center;
+      justify-content: space-between;
     }
     .markdown-container {
       padding:0px;
       margin: 0px;
       height: 70vh;
-      width: calc(100% - 20px);
+      width: 100%;
       background-color: rgba(0,0,0,0.02);
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: 3px;
     }
     .edit-note-buttons-container {
-      justify-content: end;
+      min-width: 270px;
+      display: inline-flex;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
     }
   }
 
