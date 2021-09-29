@@ -1,5 +1,5 @@
-import {EventVariationInfo} from '../../../shared/utils/events';
 import baseController from '../../../shared/baseController';
+import {EventVariationInfo} from '../../../shared/utils/events';
 
 const ROW_HEIGHT = 35;
 
@@ -394,7 +394,7 @@ export default class ngbVariantsTableController extends baseController {
 
     changeCurrentPage(row) {
         this.$timeout(() => {
-            if (row.newScrollTop) {
+            if (row.newScrollTop >= 0) {
                 const sizePage = this.projectContext.variationsPageSize * ROW_HEIGHT;
                 const currentPageVariations = Math.round(this.projectContext.firstPageVariations + row.newScrollTop / sizePage);
                 if (this.projectContext.currentPageVariations !== currentPageVariations) {
