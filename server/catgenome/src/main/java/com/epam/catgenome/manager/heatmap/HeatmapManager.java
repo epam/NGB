@@ -39,6 +39,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -186,6 +187,9 @@ public class HeatmapManager {
             Set<String> values = new HashSet<>();
             Set<Integer> types = new HashSet<>(3);
             while ((line = bufferedReader.readLine()) != null) {
+                if (StringUtils.isBlank(line)) {
+                    break;
+                }
                 cells = line.split(separator);
                 Assert.isTrue(cells.length == columnsNum,
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
@@ -211,26 +215,18 @@ public class HeatmapManager {
             heatmap.setCellValueType(cellValueType);
             switch (cellValueType) {
                 case INTEGER:
-                    List<Integer> intValues = values.stream()
+                    heatmap.setCellValues(values.stream()
                             .map(Integer::parseInt)
                             .sorted()
-                            .collect(Collectors.toList());
-                    Set<Integer> limitedIntValues = new LinkedHashSet<>();
-                    for (int i = 0; i < valuesMaxSize - 1; i++) {
-                        limitedIntValues.add(intValues.get(i));
-                    }
-                    heatmap.setCellValues(limitedIntValues);
+                            .limit(valuesMaxSize)
+                            .collect(Collectors.toSet()));
                     break;
                 case DOUBLE:
-                    List<Double> doubleValues = values.stream()
+                    heatmap.setCellValues(values.stream()
                             .map(Double::parseDouble)
                             .sorted()
-                            .collect(Collectors.toList());
-                    Set<Double> limitedDoubleValues = new LinkedHashSet<>();
-                    for (int i = 0; i < Math.min(doubleValues.size(), valuesMaxSize) - 1; i++) {
-                        limitedDoubleValues.add(doubleValues.get(i));
-                    }
-                    heatmap.setCellValues(limitedDoubleValues);
+                            .limit(valuesMaxSize)
+                            .collect(Collectors.toSet()));
                     break;
                 default:
                     heatmap.setCellValues(values.stream().limit(valuesMaxSize).collect(Collectors.toSet()));
