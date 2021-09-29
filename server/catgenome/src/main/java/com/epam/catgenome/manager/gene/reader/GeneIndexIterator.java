@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
@@ -40,10 +41,7 @@ public class GeneIndexIterator implements Iterator<GeneIndexEntry> {
     private final GeneFile geneFile;
     private final BiFunction<GeneFilterForm, GeneFile, IndexSearchResult<GeneIndexEntry>> fetchFunction;
 
-    private IndexSearchResult<GeneIndexEntry> currentResult;
-    private int totalResultsCount;
-    private int visitedEntities;
-    private int currentIndex;
+    private Iterator<GeneIndexEntry> iterator;
 
     public GeneIndexIterator(final GeneFilterForm filterForm,
                              final GeneFile geneFile,
@@ -53,38 +51,39 @@ public class GeneIndexIterator implements Iterator<GeneIndexEntry> {
         this.geneFile = geneFile;
         this.fetchFunction = fetchFunction;
         fetch();
-        if (Objects.nonNull(currentResult)) {
-            this.totalResultsCount = currentResult.getTotalResultsCount();
-        }
-        this.visitedEntities = 0;
-        this.currentIndex = 0;
     }
 
 
     @Override
     public boolean hasNext() {
-        return Objects.nonNull(currentResult) && (totalResultsCount > visitedEntities)
-                && CollectionUtils.isNotEmpty(currentResult.getEntries());
+        if (Objects.isNull(iterator)) {
+            return false;
+        }
+
+        final boolean hasNext = iterator.hasNext();
+        if (hasNext) {
+            return true;
+        }
+
+        fetch();
+        return !Objects.isNull(iterator) && iterator.hasNext();
     }
 
     @Override
     public GeneIndexEntry next() {
         if (!hasNext()) {
-            return null;
+            throw new NoSuchElementException();
         }
 
-        if (currentResult.getEntries().size() == currentIndex) {
-            fetch();
-            currentIndex = 0;
-        }
-
-        final GeneIndexEntry geneIndexEntry = currentResult.getEntries().get(currentIndex);
-        currentIndex++;
-        visitedEntities++;
-        return geneIndexEntry;
+        return iterator.next();
     }
 
     private void fetch() {
-        currentResult = fetchFunction.apply(filterForm, geneFile);
+        final IndexSearchResult<GeneIndexEntry> result = fetchFunction.apply(filterForm, geneFile);
+        if (Objects.isNull(result) || CollectionUtils.isEmpty(result.getEntries())) {
+            iterator = null;
+            return;
+        }
+        iterator = result.getEntries().iterator();
     }
 }
