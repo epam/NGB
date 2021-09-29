@@ -90,7 +90,8 @@
                      class="property property-value">
                     {{attribute.value}}
                 </div>
-                <div ng-if="$ctrl.isEditable(attribute)" style="flex: 1">
+                <div class="property" ng-if="$ctrl.isEditable(attribute)"
+                     style="flex: 1">
                     <div ng-if="attribute.isInput">
                         <input class="property property-value editable"
                                ng-class="{'isEmpty': attribute.name && !attribute.value}"
