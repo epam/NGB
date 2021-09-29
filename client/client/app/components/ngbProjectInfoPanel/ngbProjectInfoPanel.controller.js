@@ -74,9 +74,7 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     refreshProjectInfo() {
-        if (!this.$scope.$$phase) {
-            this.$scope.$apply();
-        }
+        this.$timeout(() => this.$scope.$apply());
     }
 
     get containsVcfFiles() {
