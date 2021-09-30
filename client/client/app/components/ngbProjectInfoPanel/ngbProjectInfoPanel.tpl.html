@@ -47,13 +47,13 @@
     </ngb-heatmap>
 </div>
 <div
-    class="project-note-container"
+    class="project-edit-note-container"
     ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE"
 >
     <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>
 </div>
 <div
-    class="project--edit-note-container"
+    class="project-edit-note-container"
     ng-if="$ctrl.currentMode >= 0"
 >
     <div ng-if="!$ctrl.isEdit">
@@ -66,7 +66,7 @@
         </md-button>
         <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>
     </div>
-    <div ng-if="$ctrl.isEdit">
+    <div ng-if="$ctrl.isEdit" style="height: 100%">
         <ngb-project-info-edit-note note="$ctrl.editingNote"></ngb-project-info-edit-note>
     </div>
 </div>

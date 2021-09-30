@@ -1,6 +1,5 @@
 <form class="edit-note-container" name="editNoteForm">
-    <div layout="column">
-        <div class="row edit-note-row">
+        <div class="edit-note-row">
             <md-input-container class="edit-note-input-container">
                 <label for="note_title">Note title</label>
                 <input class="input-container"
@@ -35,19 +34,16 @@
                 </md-button>
             </div>
         </div>
-        <div class="row">
-                <textarea
-                    class="markdown-container"
-                    rea
-                    md-no-autogrow
-                    id="note_desc"
-                    ng-model="$ctrl.note.description"
-                    placeholder="Type the description here..."
-                    autofocus
-                ></textarea>
-        </div>
+        <textarea
+            class="markdown-container"
+            rea
+            md-no-autogrow
+            id="note_desc"
+            ng-model="$ctrl.note.description"
+            placeholder="Type the description here..."
+            autofocus
+        ></textarea>
         <div class="row" ng-show="$ctrl.error">
             <div class="edit-note-error">{{$ctrl.error}}</div>
         </div>
-    </div>
 </form>
