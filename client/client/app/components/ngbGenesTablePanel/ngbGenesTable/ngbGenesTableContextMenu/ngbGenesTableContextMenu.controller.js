@@ -1,7 +1,7 @@
 import BaseController from '../../../../shared/baseController';
 import {EventGeneInfo} from '../../../../shared/utils/events';
 
-export default class NgbGenesTableContextMenuController extends BaseController{
+export default class NgbGenesTableContextMenuController extends BaseController {
 
     entity = {};
     featureName;
@@ -12,7 +12,6 @@ export default class NgbGenesTableContextMenuController extends BaseController{
     events = {
         'feature:info:select': this.close.bind(this)
     };
-
 
     constructor(
         $scope,
@@ -94,6 +93,7 @@ export default class NgbGenesTableContextMenuController extends BaseController{
             startIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}startIndex`],
             endIndex: this.entity[`${this.ngbGenesTableService.defaultPrefix}endIndex`],
             geneId: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureId`],
+            geneName: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`],
             geneTracks: [{
                 id: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureFileId`],
                 chromosomeId: this.entity.chromosomeObj ? +this.entity.chromosomeObj.id : undefined

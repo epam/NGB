@@ -1,4 +1,4 @@
-import  baseController from '../../shared/baseController';
+import baseController from '../../shared/baseController';
 import MiewContext from '../../shared/miewContext';
 import {EventGeneInfo} from '../../shared/utils/events';
 import ngbMolecularViewerService from './ngbMolecularViewer.service';
@@ -9,6 +9,7 @@ export default class ngbMolecularViewerController extends baseController {
     }
 
     PDBids = null;
+    errorNoPDB = false;
     geneTracks = [];
     appLayout;
     selectedGeneTrack = null;
@@ -97,6 +98,7 @@ export default class ngbMolecularViewerController extends baseController {
         this.hash = hash;
 
         this.descriptionDone = false;
+        this.errorNoPDB = false;
         this.PDBids = null;
         this.errorMessageList = [];
         this.selectedItem = null;
@@ -120,7 +122,7 @@ export default class ngbMolecularViewerController extends baseController {
                 this.currentColor = this.event.color;
                 this.updateMiewContext();
             } else {
-                this.errorMessageList.push(this.ngbMolecularViewerConstant.errorNoPDB);
+                this.errorNoPDB = true;
             }
 
         }
@@ -189,4 +191,21 @@ export default class ngbMolecularViewerController extends baseController {
             chain
         });
     }
+
+    homologsSearch() {
+        const layoutChange = this.appLayout.Panels.homologs;
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        const readInfo = {
+            search: this.event.geneName,
+            featureId: this.event.geneId
+        };
+        const data = {
+            ...readInfo,
+            source: 'gene'
+        };
+        this.dispatcher.emitSimpleEvent('read:show:homologs', data);
+        event.stopImmediatePropagation();
+    }
+
 }

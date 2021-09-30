@@ -1,5 +1,5 @@
-<div ng-if="$ctrl.messageList.length">
-    <md-content flex layout-padding class="md-warn  md-whiteframe-8dp" >
+<div class="ngb-panel-error-list" ng-if="$ctrl.messageList.length">
+    <md-content class="md-warn md-whiteframe-8dp" flex layout-padding >
         <md-list>
             <md-list-item ng-repeat="item in $ctrl.messageList  track by $index">
                 <div class="md-list-item-text">{{item}}</div>

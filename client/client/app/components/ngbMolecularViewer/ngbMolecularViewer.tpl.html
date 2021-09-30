@@ -113,9 +113,21 @@
             <div class="md-padding" ng-if="$ctrl.errorMessageList.length">
                 <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
             </div>
+            <div class="md-padding" ng-if="$ctrl.errorNoPDB">
+                <div class="ngb-panel-error-list">
+                    <md-content class="md-warn md-whiteframe-8dp" flex layout-padding>
+                        <md-list>
+                            <md-list-item>
+                                <div class="md-list-item-text">
+                                    No PDB files found.<br/>
+                                    Try to search <a class="in-error-link" ng-click="$ctrl.homologsSearch()">homologous genes</a> for other species.
+                                </div>
+                            </md-list-item>
+                        </md-list>
+                    </md-content>
+                </div>
+            </div>
         </md-content>
     </div>
 
 </div>
-
-

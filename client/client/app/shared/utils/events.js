@@ -70,6 +70,7 @@ export class EventGeneInfo {
     constructor(obj) {
         const {
             geneId,
+            geneName,
             transcriptId,
             startIndex,
             endIndex,
@@ -86,6 +87,7 @@ export class EventGeneInfo {
         this._trackId = trackId;
         this.geneTracks = geneTracks;
         this._geneId = geneId;
+        this._geneName = geneName || geneId;
         this._transcriptId = transcriptId;
         this._startIndex = startIndex;
         this._endIndex = endIndex;
@@ -99,6 +101,10 @@ export class EventGeneInfo {
 
     get geneId() {
         return this._geneId;
+    }
+
+    get geneName() {
+        return this._geneName;
     }
 
     get transcriptId() {
