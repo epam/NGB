@@ -176,9 +176,11 @@ dependencies {
         exclude group: "com.github.samtools", module: "htsjdk"
     }
 
-//    biojava
+    // biojava
     compile group: "org.biojava", name:"biojava-genome", version: "4.2.0"
     compile group: "org.biojava", name:"biojava-structure", version: "4.2.0"
+
+    // newick format
     compile group: "com.github.qurben", name: "libnewicktree", version: "1.0"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
