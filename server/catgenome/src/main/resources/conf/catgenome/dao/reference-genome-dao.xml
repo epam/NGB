@@ -155,7 +155,7 @@
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
                         LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
-                    WHERE LOWER(s.tax_id) = :TAX_ID
+                    WHERE s.tax_id = :TAX_ID
                 ]]>
             </value>
         </property>
