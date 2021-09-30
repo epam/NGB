@@ -29,7 +29,7 @@
                     UPDATE catgenome.blast_database SET
                         name = :DATABASE_NAME,
                         path = :DATABASE_PATH,
-                        type = :DATABASE_TYPE
+                        type = :DATABASE_TYPE,
                         source = :DATABASE_SOURCE
                     WHERE
                         database_id = :DATABASE_ID
