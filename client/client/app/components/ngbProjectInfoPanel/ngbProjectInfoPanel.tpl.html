@@ -4,53 +4,69 @@
     </div>
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div class="description-container" ng-hide="$ctrl.isProgressShown">
+<div
+    class="description-container"
+    ng-hide="$ctrl.isProgressShown"
+    ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.DESCRIPTION"
+>
     <iframe frameborder="0"
             class="description-frame"
             ng-src="{{$ctrl.ngbProjectInfoService.blobUrl}}"
-            ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.DESCRIPTION"
     ></iframe>
-    <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.SUMMARY" class="summary-container">
-        <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
-        <div class="u-column-padding u-padding_t-0" flex layout="row"
-             ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
-            <div class="selected-files-summary" flex="100" ng-if="!$ctrl.containsVcfFiles">
-                <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
-            </div>
-            <div flex="50" ng-if="$ctrl.containsVcfFiles">
-                <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
-            </div>
-            <div flex="50" ng-show="$ctrl.containsVcfFiles">
-                <div class="u-height__50 u-padding_b-sm" flex layout="row">
-                    <div flex="100">
-                        <ngb-variant-type-diagram></ngb-variant-type-diagram>
-                    </div>
-                </div>
-                <div class="u-height__50 u-padding_t-sm" flex layout="row">
-                    <div flex="100">
-                        <ngb-variant-quality-diagram></ngb-variant-quality-diagram>
-                    </div>
+</div>
+<div
+    class="summary-container"
+    ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.SUMMARY"
+>
+    <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
+    <div class="u-column-padding u-padding_t-0" flex layout="row"
+            ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
+        <div class="selected-files-summary" flex="100" ng-if="!$ctrl.containsVcfFiles">
+            <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
+        </div>
+        <div flex="50" ng-if="$ctrl.containsVcfFiles">
+            <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
+        </div>
+        <div flex="50" ng-show="$ctrl.containsVcfFiles">
+            <div class="u-height__50 u-padding_b-sm" flex layout="row">
+                <div flex="100">
+                    <ngb-variant-type-diagram></ngb-variant-type-diagram>
                 </div>
             </div>
+            <div class="u-height__50 u-padding_t-sm" flex layout="row">
+                <div flex="100">
+                    <ngb-variant-quality-diagram></ngb-variant-quality-diagram>
+                </div>
+            </div>
         </div>
-        <ngb-heatmap class="ngb-heatmap"
-                     ng-if="$ctrl.heatmap"
-                     project-id="$ctrl.heatmapProjectId"
-                     id="$ctrl.heatmapId">
-        </ngb-heatmap>
     </div>
-    <div class="project-note-container" ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE">
-        <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>
+    <ngb-heatmap class="ngb-heatmap"
+                    ng-if="$ctrl.heatmap"
+                    project-id="$ctrl.heatmapProjectId"
+                    id="$ctrl.heatmapId">
+    </ngb-heatmap>
+</div>
+<div
+    class="project-note-container"
+    ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.ADD_NOTE"
+>
+    <ngb-project-info-edit-note note="$ctrl.newNote"></ngb-project-info-edit-note>
+</div>
+<div
+    class="project--edit-note-container"
+    ng-if="$ctrl.currentMode >= 0"
+>
+    <div ng-if="!$ctrl.isEdit">
+        <md-button
+            class="md-primary project-note-edit-button"
+            ng-click="$ctrl.editNote($event)"
+            ng-if="$ctrl.canEdit"
+        >
+            Edit
+        </md-button>
+        <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>
     </div>
-    <div class="project-note-container" ng-if="$ctrl.currentMode >= 0">
-        <div ng-if="!$ctrl.isEdit">
-            <md-button class="md-primary project-note-edit-button" ng-click="$ctrl.editNote($event)" ng-if="$ctrl.canEdit">
-                Edit
-            </md-button>
-            <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>
-        </div>
-        <div ng-if="$ctrl.isEdit">
-            <ngb-project-info-edit-note note="$ctrl.editingNote"></ngb-project-info-edit-note>
-        </div>
+    <div ng-if="$ctrl.isEdit">
+        <ngb-project-info-edit-note note="$ctrl.editingNote"></ngb-project-info-edit-note>
     </div>
 </div>

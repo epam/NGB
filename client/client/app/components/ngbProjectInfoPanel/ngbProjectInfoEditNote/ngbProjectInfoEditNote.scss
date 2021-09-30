@@ -8,6 +8,7 @@ ngb-project-info-edit-note {
     .edit-note-row {
       margin: 15px 0px;
       padding: 0px 10px;
+      width: 95%;
       display:flex;
       flex-wrap: wrap-reverse;
       align-items: center;
@@ -33,12 +34,18 @@ ngb-project-info-edit-note {
   .edit-note-error {
     color: rgb(213, 0, 0);
   }
+
   #note_desc {
     display:block;
-    margin: 0px;
     padding: 10px;
     height: 70vh;
-    width: 100%;
     border-bottom: none;
+    resize: none;
+    margin-top: 20px;
+    margin-right: 20px;
+    width: 95%;
+    overflow-y: auto;
+    outline-color: rgb(51, 103,214);
+    outline-width: thin;
   }
 }
