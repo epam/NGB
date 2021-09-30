@@ -25,7 +25,10 @@
       <md-checkbox aria-label="Description"
                    ng-if="project.descriptionAvailable"
                    ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                   ng-true-value="{{[$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION, project.id]}}"
+                   ng-true-value="{{[
+                       $ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
+                       project.id
+                    ]}}"
                    ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
                    ng-click=$ctrl.setDescription(project)>
         <span>Description</span>
@@ -44,7 +47,7 @@
         <span>{{note.title}}</span>
       </md-checkbox>
     </span>
-    <span ng-if="!$ctrl.extendedMode"
+    <span ng-if="!$ctrl.extendedMode || !$ctrl.ngbProjectInfoService.projects.length"
           class="project-info-menu-content">
       <md-checkbox aria-label="Description"
                  ng-if="$ctrl.descriptionAvailable"

@@ -31,19 +31,16 @@ export default class ngbProjectInfoPanelController extends BaseController {
     }
 
     get currentMode() {
-        return this.ngbProjectInfoService.currentMode;
+        const currentMode = this.ngbProjectInfoService.currentMode
+        if (this.extendedMode && this.ngbProjectInfoService.projects.length) {
+            return Array.isArray(currentMode) ? currentMode[0] : currentMode;
+        } else {
+            return currentMode;
+        }
     }
 
     get extendedMode () {
         return this.ngbProjectInfoService.extendedMode;
-    }
-
-    get descriptionMode () {
-        if (this.extendedMode) {
-            return this.currentMode[0];
-        } else {
-            this.currentMode;
-        }
     }
 
     get currentProject () {

@@ -156,6 +156,7 @@ export default class ngbProjectInfoService {
             this._clearEnvironment();
             this._currentMode = value || this.defaultMode;
             if (this.extendedMode &&
+                this.projects.length &&
                 this.currentMode === this.projectInfoModeList.SUMMARY
             ) {
                 this.currentProject = {};
@@ -173,7 +174,7 @@ export default class ngbProjectInfoService {
     }
 
     setCurrentName(value) {
-        if (this.extendedMode) {
+        if (this.extendedMode && this.projects.length) {
             const currentMode = Array.isArray(value) ? value[0] : value;
             let nameValue = PROJECT_INFO_MODE_NAME[currentMode] || this.currentNote.title;
             if ((this.projects || []).length > 1 &&
@@ -245,7 +246,7 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.extendedMode) {
+        if (this.extendedMode && this.projects.length) {
             if (this.summaryAvailable) {
                 return this.projectInfoModeList.SUMMARY;
             } else {
@@ -308,6 +309,7 @@ export default class ngbProjectInfoService {
             };
             this.descriptionIsLoading = true;
             this.descriptionAvailable = false;
+            this.projects = [];
             this.projectContext.loadDatasetDescription(this.currentProject.id).then(data => {
                 if (data && data.byteLength) {
                     this.currentMode = this.projectInfoModeList.DESCRIPTION;
@@ -357,6 +359,7 @@ export default class ngbProjectInfoService {
                 this._newNote = {};
                 this.descriptionIsLoading = false;
                 this.descriptionAvailable = false;
+                this.projects = [];
                 if (!this.projectContext.currentChromosome) {
                     this._isCancel = true;
                     this.currentMode = this.projectInfoModeList.SUMMARY;
@@ -374,10 +377,12 @@ export default class ngbProjectInfoService {
     }
 
     addNote(project = this.currentProject) {
-        if (this.extendedMode) {
+        if (this.extendedMode && this.projects.length) {
             this.currentProject = project;
+            this.currentMode = [this.projectInfoModeList.ADD_NOTE, project.id];
+        } else {
+            this.currentMode = this.projectInfoModeList.ADD_NOTE;
         }
-        this.currentMode = this.projectInfoModeList.ADD_NOTE;
     }
 
     editNote(id) {

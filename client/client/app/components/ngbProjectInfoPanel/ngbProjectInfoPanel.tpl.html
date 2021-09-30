@@ -8,7 +8,7 @@
     <iframe frameborder="0"
             class="description-frame"
             ng-src="{{$ctrl.ngbProjectInfoService.blobUrl}}"
-            ng-if="$ctrl.descriptionMode === $ctrl.projectInfoModeList.DESCRIPTION"></iframe>
+            ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.DESCRIPTION"></iframe>
     <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.SUMMARY">
         <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
         <div class="u-column-padding u-padding_t-0" flex layout="row"
