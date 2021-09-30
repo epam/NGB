@@ -27,12 +27,13 @@
 package com.epam.catgenome.manager.project;
 
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.project.ProjectDescription;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import com.epam.catgenome.security.acl.aspect.AclTree;
 import com.epam.catgenome.security.acl.aspect.AclFilterAndTree;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,13 +45,14 @@ import java.util.List;
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectSecurityService {
 
     private static final String PROJECT_WRITE_AND_ITEM_READ = "(hasPermissionOnProject(#projectId, 'WRITE')" +
             " AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))";
 
-    @Autowired
-    private ProjectManager projectManager;
+    private final ProjectManager projectManager;
+    private final ProjectDescriptionService projectDescriptionService;
 
     @AclFilterAndTree
     @AclMaskList
@@ -113,17 +115,29 @@ public class ProjectSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
-    public Project uploadProjectDescription(final Long projectId, final MultipartFile file) throws IOException {
-        return projectManager.saveProjectDescription(projectId, file);
-    }
-
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER +  OR + "hasPermissionOnProject(#projectId, 'READ')")
-    public InputStream loadProjectDescription(final Long projectId) {
-        return projectManager.loadProjectDescription(projectId);
+    public ProjectDescription saveProjectDescription(final Long projectId, final String name, final MultipartFile file)
+            throws IOException {
+        return projectDescriptionService.save(projectId, name, file);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
-    public Project deleteProjectDescription(final Long projectId) {
-        return projectManager.deleteProjectDescription(projectId);
+    public ProjectDescription updateProjectDescription(final Long id, final String name, final MultipartFile file)
+            throws IOException {
+        return projectDescriptionService.update(id, name, file);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER +  OR + "hasPermissionOnProject(#projectId, 'READ')")
+    public List<ProjectDescription> loadProjectDescriptions(final Long projectId) {
+        return projectDescriptionService.loadDescriptions(projectId);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER + OR + "hasPermissionOnProjectByDescription(#id, 'READ')")
+    public InputStream loadProjectDescription(final Long id) {
+        return projectDescriptionService.loadContent(id);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public ProjectDescription deleteProjectDescription(final Long id) {
+        return projectDescriptionService.deleteById(id);
     }
 }

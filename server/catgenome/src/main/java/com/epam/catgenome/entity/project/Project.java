@@ -62,6 +62,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Long parentId;
     private List<ProjectNote> notes;
     private Map<String, String> metadata;
+    private List<ProjectDescription> descriptions;
 
     public Project(Long id) {
         super(id);
@@ -205,5 +206,13 @@ public class Project extends AbstractHierarchicalEntity {
 
     public void setNotes(List<ProjectNote> notes) {
         this.notes = notes;
+    }
+
+    public List<ProjectDescription> getDescriptions() {
+        return descriptions;
+    }
+
+    public void setDescriptions(List<ProjectDescription> descriptions) {
+        this.descriptions = descriptions;
     }
 }

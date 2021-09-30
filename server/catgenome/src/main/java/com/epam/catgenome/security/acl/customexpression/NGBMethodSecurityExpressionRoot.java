@@ -109,6 +109,16 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         }
     }
 
+    public boolean hasPermissionOnProjectByDescription(final Long descriptionId, String permission) {
+        // if projectId does not specified just return true
+        // case: when we ask permission for creating project in the root
+        if (descriptionId == null) {
+            return true;
+        }
+        return hasPermission(permissionHelper.findProjectIdByDescription(descriptionId),
+                Project.class.getCanonicalName(), permission);
+    }
+
     public boolean hasPermissionOnSession(Long sessionId, String permission) {
         // if sessionId does not specified just return true
         if (sessionId == null) {

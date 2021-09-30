@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.project.ProjectDescription;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.project.ProjectSecurityService;
 import org.apache.commons.io.IOUtils;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -490,19 +492,34 @@ public class ProjectController extends AbstractRESTController {
     @PostMapping("/project/{projectId}/description")
     @ResponseBody
     @ApiOperation(
-            value = "Uploads project description file",
-            notes = "Uploads project description file",
+            value = "Creates project description",
+            notes = "Creates project description",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Project> uploadProjectDescription(@PathVariable final Long projectId,
-                                                    @RequestParam("file") final MultipartFile multipart)
-            throws IOException {
-        return Result.success(projectSecurityService.uploadProjectDescription(projectId, multipart));
+    public Result<ProjectDescription> saveProjectDescription(@PathVariable final Long projectId,
+            @RequestParam(value = "name", required = false) final String name,
+            @RequestParam("file") final MultipartFile multipart) throws IOException {
+        return Result.success(projectSecurityService.saveProjectDescription(projectId, name, multipart));
     }
 
-    @GetMapping("/project/{projectId}/description")
+    @PutMapping("/project/description/{id}")
+    @ResponseBody
+    @ApiOperation(
+            value = "Updates project description",
+            notes = "Updates project description",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<ProjectDescription> updateProjectDescription(@PathVariable final Long id,
+            @RequestParam(value = "name", required = false) final String name,
+            @RequestParam("file") final MultipartFile multipart) throws IOException {
+        return Result.success(projectSecurityService.updateProjectDescription(id, name, multipart));
+    }
+
+    @GetMapping("/project/description/{id}")
     @ResponseBody
     @ApiOperation(
             value = "Downloads project description file",
@@ -511,9 +528,9 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void downloadProjectDescription(@PathVariable final Long projectId, final HttpServletResponse response)
+    public void downloadProjectDescription(@PathVariable final Long id, final HttpServletResponse response)
             throws IOException {
-        final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(projectId);
+        final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(id);
         if (Objects.isNull(projectDescriptionContent)) {
             return;
         }
@@ -521,7 +538,20 @@ public class ProjectController extends AbstractRESTController {
         response.flushBuffer();
     }
 
-    @DeleteMapping("/project/{projectId}/description")
+    @GetMapping("/project/{projectId}/description")
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns project descriptions info",
+            notes = "Returns project descriptions info",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<ProjectDescription>> getProjectDescriptions(@PathVariable final Long projectId) {
+        return Result.success(projectSecurityService.loadProjectDescriptions(projectId));
+    }
+
+    @DeleteMapping("/project/description/{id}")
     @ResponseBody
     @ApiOperation(
             value = "Deletes project description file",
@@ -530,7 +560,7 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Project> deleteProjectDescription(@PathVariable final Long projectId) {
-        return Result.success(projectSecurityService.deleteProjectDescription(projectId));
+    public Result<ProjectDescription> deleteProjectDescription(@PathVariable final Long id) {
+        return Result.success(projectSecurityService.deleteProjectDescription(id));
     }
 }

@@ -25,7 +25,6 @@
 package com.epam.catgenome.manager.project;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,8 +39,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.project.ProjectDescriptionDao;
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.project.ProjectDescription;
 import com.epam.catgenome.entity.project.ProjectNote;
 import com.epam.catgenome.entity.metadata.EntityVO;
 import com.epam.catgenome.entity.metadata.MetadataVO;
@@ -81,7 +82,6 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -120,6 +120,9 @@ public class ProjectManager implements SecuredEntityManager {
 
     @Autowired
     private MetadataManager metadataManager;
+
+    @Autowired
+    private ProjectDescriptionDao projectDescriptionDao;
 
     /**
      * Loads all top-level projects for current user from the database.
@@ -181,6 +184,12 @@ public class ProjectManager implements SecuredEntityManager {
         Map<Long, Set<ProjectNote>> noteMap = projectDao.loadAllProjectNotes(StringUtils.isEmpty(referenceName) ?
                 null : allProjects);
 
+        Map<Long, List<ProjectDescription>> descriptionsMap = StringUtils.isBlank(referenceName)
+                ? projectDescriptionDao.findAll()
+                : projectDescriptionDao.findByProjectIdIn(ListUtils.emptyIfNull(allProjects).stream()
+                .map(Project::getId)
+                .collect(Collectors.toList()));
+
         attachMetadata(allProjects, itemMap);
 
         allProjects.forEach(p -> {
@@ -189,6 +198,9 @@ public class ProjectManager implements SecuredEntityManager {
             }
             if (noteMap.containsKey(p.getId())) {
                 p.setNotes(new ArrayList<>(noteMap.get(p.getId())));
+            }
+            if (descriptionsMap.containsKey(p.getId())) {
+                p.setDescriptions(new ArrayList<>(descriptionsMap.get(p.getId())));
             }
 
             if (!hierarchyMap.containsKey(p.getParentId())) {
@@ -504,26 +516,6 @@ public class ProjectManager implements SecuredEntityManager {
         projectDao.hideProjectItem(projectId, biologicalItemId, !isHidden);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Project saveProjectDescription(final Long projectId, final MultipartFile file) throws IOException {
-        final Project project = load(projectId);
-        projectDao.saveProjectDescription(projectId, file.getBytes());
-        return project;
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public InputStream loadProjectDescription(final Long projectId) {
-        load(projectId);
-        return projectDao.loadProjectDescription(projectId);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Project deleteProjectDescription(final Long projectId) {
-        final Project project = load(projectId);
-        projectDao.saveProjectDescription(projectId, null);
-        return project;
-    }
-
     private void countProjectItem(ProjectItem projectItem, List<ProjectItem> referenceItems,
                                   Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
         BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
@@ -540,6 +532,7 @@ public class ProjectManager implements SecuredEntityManager {
 
     private void deleteProjectWithNested(Project projectToDelete) throws IOException {
         deleteNestedProjects(projectToDelete.getId());
+        projectDescriptionDao.deleteByProjectId(projectToDelete.getId());
         projectDao.deleteAllProjectNotes(projectToDelete.getId());
         projectDao.deleteProjectItems(projectToDelete.getId());
         projectDao.deleteProject(projectToDelete.getId());
