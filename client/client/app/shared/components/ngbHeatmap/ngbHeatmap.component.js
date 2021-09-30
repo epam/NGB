@@ -5,7 +5,8 @@ export default {
         projectId: '<',
         id: '<',
         heatmapClass: '<',
-        checkResize: '<'
+        checkResize: '<',
+        renderOnChange: '<'
     },
     controller: controller.UID,
     restrict: 'E',

@@ -25,8 +25,13 @@ import ngbVariantDensityDiagramConstants from './ngbVariantDensityDiagram/ngbVar
 import ngbVariantDensityDiagramController from './ngbVariantDensityDiagram/ngbVariantDensityDiagram.controller';
 import ngbVariantDensityDiagramComponent from './ngbVariantDensityDiagram/ngbVariantDensityDiagram.component';
 
+import nvd3dataCorrection from './nvd3-data-correction';
+import nvd3resizer from './nvd3-resizer';
+
 
 export default angular.module('ngbProjectInfo' , [ dataServices, 'nvd3'])
+    .service('nvd3dataCorrection', nvd3dataCorrection)
+    .service('nvd3resizer', nvd3resizer)
     .constant('ngbVariantTypeDiagramConstants', ngbVariantTypeDiagramConstants)
     .constant('ngbVariantQualityDiagramConstants', ngbVariantQualityDiagramConstants)
     .constant('ngbVariantDensityDiagramConstants', ngbVariantDensityDiagramConstants)

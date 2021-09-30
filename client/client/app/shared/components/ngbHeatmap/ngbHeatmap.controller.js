@@ -20,6 +20,11 @@ class ngbHeatmapController {
         this.onHeatmapSourceChanged();
         $scope.$watch('$ctrl.id', this.onHeatmapSourceChanged.bind(this));
         $scope.$watch('$ctrl.projectId', this.onHeatmapSourceChanged.bind(this));
+        $scope.$watch('$ctrl.renderOnChange', () => {
+            if (this.heatmap) {
+                setTimeout(this.heatmap.render.bind(this.heatmap), 0);
+            }
+        });
     }
 
     onHeatmapSourceChanged() {

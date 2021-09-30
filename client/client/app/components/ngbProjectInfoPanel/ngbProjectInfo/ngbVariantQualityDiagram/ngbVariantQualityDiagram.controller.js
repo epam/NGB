@@ -1,29 +1,24 @@
-import angular from 'angular';
 import {NumberFormatter} from '../../../../../modules/render/utilities';
+import nvd3ChartController from '../nvd3-chart-controller';
 
-export default class ngbVariantQualityDiagramController {
-
+export default class ngbVariantQualityDiagramController extends nvd3ChartController{
     static get UID() {
         return 'ngbVariantQualityDiagramController';
     }
-
     projectContext;
-
-    /**
-     * @constructor
-     * @param {$scope} scope
-     * @param {projectDataService} dataService
-     * @param {dispatcher} dispatcher
-     */
-    /** @ngInject */
-    constructor($scope, $timeout, dispatcher, projectContext, ngbVariantQualityDiagramConstants, vcfDataService) {
+    constructor(
+        $scope,
+        $timeout,
+        $element,
+        dispatcher,
+        projectContext,
+        ngbVariantQualityDiagramConstants,
+        nvd3resizer,
+        nvd3dataCorrection
+    ) {
+        super($scope, $element, nvd3resizer, nvd3dataCorrection);
         this.isProgressShown = true;
-        const __dispatcher = this._dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this._vcfDataService = vcfDataService;
-        this._scope = $scope;
-        this._timeout = $timeout;
-
         $scope.options = {
             chart: {
                 color: ['#9cabe0'],
@@ -52,55 +47,33 @@ export default class ngbVariantQualityDiagramController {
                 text: 'Variants quality'
             }
         };
-
-
-        const reloadPanel = ::this.INIT;
-        const updating = async () => {
-            this.isProgressShown = true;
-        };
-        this._dispatcher.on('variants:group:quality:started', updating);
-        this._dispatcher.on('variants:group:quality:finished', reloadPanel);
-        this._dispatcher.on('refresh:project:info', reloadPanel);
+        const reloadPanel = this.INIT.bind(this);
+        const updating = () => this.isProgressShown = true;
+        dispatcher.on('variants:group:quality:started', updating);
+        dispatcher.on('variants:group:quality:finished', reloadPanel);
+        dispatcher.on('refresh:project:info', reloadPanel);
         // We must remove event listener when component is destroyed.
-
         $scope.$on('$destroy', () => {
-            __dispatcher.removeListener('variants:group:quality:started', updating);
-            __dispatcher.removeListener('variants:group:quality:finished', reloadPanel);
-            __dispatcher.removeListener('refresh:project:info', reloadPanel);
+            dispatcher.removeListener('variants:group:quality:started', updating);
+            dispatcher.removeListener('variants:group:quality:finished', reloadPanel);
+            dispatcher.removeListener('refresh:project:info', reloadPanel);
         });
-
-
         this.constants = ngbVariantQualityDiagramConstants;
-
-
-        (async() => {
-            await this.INIT();
-            angular.element(window).on('resize', () => {
-                this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
-            });
-
-        })();
+        this.INIT();
     }
 
-    async INIT() {
+    INIT() {
         this.noDataToDisplay = !this.projectContext.variantsDataByQuality ||
             this.projectContext.variantsDataByQuality.length === 0;
         if (this.projectContext.reference && this.projectContext.variantsDataByQuality) {
-            await this.updateDiagram(this.projectContext.variantsDataByQuality,
+            this.updateDiagram(this.projectContext.variantsDataByQuality,
                 this.projectContext.isVariantsGroupByQualityLoading,
                 this.projectContext.variantsGroupByQualityError);
             this.isProgressShown = this.projectContext.isVariantsGroupByQualityLoading;
-            this._scope.$applyAsync();
         }
     }
 
-    makeNvD3ChartObjectFromData(variantQualities) {
-        const nvd3DataObject = [],
-            nvd3DataObjectItem = {
-                values: []
-            };
-
-
+    buildData(variantQualities) {
         let maxQual = undefined;
         let minQual = undefined;
         for (let i = 0; i < variantQualities.length; i++) {
@@ -109,7 +82,6 @@ export default class ngbVariantQualityDiagramController {
             minQual = minQual === undefined ? quality : Math.min(minQual, quality);
             maxQual = maxQual === undefined ? quality : Math.max(maxQual, quality);
         }
-
         maxQual = maxQual === undefined ? 0 : maxQual;
         minQual = minQual === undefined ? 0 : minQual;
         const maxBucketCount = this.constants.maximumBars;
@@ -119,12 +91,10 @@ export default class ngbVariantQualityDiagramController {
             bucketCount = maxBucketCount;
             qualStep = (maxQual - minQual) / (bucketCount - 1);
         }
-
         const sampleData = Array(bucketCount);
         for (let i = 0; i < bucketCount; ++i) {
             sampleData[i] = {label: NumberFormatter.textWithPrefix(Math.ceil((minQual + qualStep * i + qualStep / 2)) | 0), value: 0};
         }
-
         for (let i = 0; i < variantQualities.length; i++) {
             const {entriesCount, groupName} = variantQualities[i];
             const quality = +groupName;
@@ -132,25 +102,6 @@ export default class ngbVariantQualityDiagramController {
             ((bucketCount - 1) * (quality - minQual) / (maxQual - minQual)) | 0 : 0;
             sampleData[bucketIdx].value += entriesCount;
         }
-
-        nvd3DataObjectItem.values = sampleData;
-        nvd3DataObject.push(nvd3DataObjectItem);
-
-        return nvd3DataObject;
-
+        return sampleData;
     }
-
-    async updateDiagram(variantQualities, isLoading, error) {
-        if (isLoading) {
-            return;
-        }
-        if (!variantQualities || variantQualities.length === 0) {
-            this._scope.options.chart.noData = error || 'No Data Available';
-            this._scope.data = [];
-        } else {
-            this._scope.data = this.makeNvD3ChartObjectFromData(variantQualities);
-        }
-        this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
-    }
-
 }

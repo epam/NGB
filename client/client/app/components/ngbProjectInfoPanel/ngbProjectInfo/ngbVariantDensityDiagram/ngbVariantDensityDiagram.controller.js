@@ -1,26 +1,19 @@
-import angular from 'angular';
+import nvd3ChartController from '../nvd3-chart-controller';
 
 const Math = window.Math;
+const MINIMUM_BARS_TO_SHOW = 20;
 
-export default class ngbVariantDensityDiagramController {
+export default class ngbVariantDensityDiagramController extends nvd3ChartController{
 
     static get UID() {
         return 'ngbVariantDensityDiagramController';
     }
 
     projectContext;
-
-    /**
-     * @constructor
-     * @param {$scope} scope
-     * @param {dispatcher} dispatcher
-     */
-    /** @ngInject */
-    constructor($scope, $timeout, dispatcher, projectContext) {
+    constructor($scope, $timeout, $element, dispatcher, projectContext, nvd3resizer, nvd3dataCorrection) {
+        super($scope, $element, nvd3resizer, nvd3dataCorrection, MINIMUM_BARS_TO_SHOW);
         this.isProgressShown = true;
-        const __dispatcher = this._dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this._scope = $scope;
         this._timeout = $timeout;
 
         $scope.options = {
@@ -68,29 +61,17 @@ export default class ngbVariantDensityDiagramController {
                 text: 'Variants by chromosome'
             }
         };
-
-        (async() => {
-            const reloadPanel = ::this.INIT;
-            const updating = async() => {
-                this.isProgressShown = true;
-            };
-            this._dispatcher.on('variants:group:chromosome:started', updating);
-            this._dispatcher.on('variants:group:chromosome:finished', reloadPanel);
-            this._dispatcher.on('refresh:project:info', reloadPanel);
-
-            await this.INIT();
-
-            $scope.$on('$destroy', () => {
-                __dispatcher.removeListener('variants:group:chromosome:started', updating);
-                __dispatcher.removeListener('variants:group:chromosome:finished', reloadPanel);
-                __dispatcher.removeListener('refresh:project:info', reloadPanel);
-            });
-
-            angular.element(window).on('resize', () => {
-                this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
-            });
-
-        })();
+        const reloadPanel = this.INIT.bind(this);
+        const updating = () => this.isProgressShown = true;
+        dispatcher.on('variants:group:chromosome:started', updating);
+        dispatcher.on('variants:group:chromosome:finished', reloadPanel);
+        dispatcher.on('refresh:project:info', reloadPanel);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('variants:group:chromosome:started', updating);
+            dispatcher.removeListener('variants:group:chromosome:finished', reloadPanel);
+            dispatcher.removeListener('refresh:project:info', reloadPanel);
+        });
+        this.INIT();
     }
 
     get variants() {
@@ -104,80 +85,35 @@ export default class ngbVariantDensityDiagramController {
         return this.projectContext.variantsGroupByChromosomesError;
     }
 
-    async INIT() {
+    INIT() {
         this.noDataToDisplay = !this.variants || this.variants.length === 0;
         if (this.projectContext.reference && this.variants) {
-            await this.updateDiagram(
+            this.updateDiagram(
                 this.variants,
                 this.isVariantsGroupByChromosomesLoading,
                 this.variantsGroupByChromosomesError
             );
             this.isProgressShown = this.isVariantsGroupByChromosomesLoading;
-            this._scope.$applyAsync();
         }
     }
 
-    fixNvD3ChartObject(nvd3Object) {
-        const obj = nvd3Object,
-            l = nvd3Object.values.length;
-
-        if(l <= 19) {
-            const arr_w = (20 - l)%2 === 0 ? 20 - l : 21 - l;
-            for (let i = 0; i < arr_w; i++) {
-                const fakeObj = {chrName: `fake${i}`, label: `fake${i}`, value: 0, color: '#ffffff'};
-                i%2 === 0 ? obj.values.unshift(fakeObj) : obj.values.push(fakeObj);
-            }
-        }
-        return obj;
-    }
-
-    makeNvD3ChartObjectFromData(data) {
-        const nvd3DataObject = [],
-            nvd3DataObjectItem = {
-                values: []
-            };
-
+    buildData(data) {
         const maximumChromosomesCount = 30;
-
+        const values = [];
         for (let i = 0; i < Math.min(data.length, maximumChromosomesCount); i++) {
             const {entriesCount, groupName} = data[i];
-            nvd3DataObjectItem.values.push({chrName: groupName, label: groupName, value: entriesCount});
+            values.push({chrName: groupName, label: groupName, value: entriesCount});
         }
-        nvd3DataObjectItem.values.sort((a, b) => {
-            const aIsN = parseInt(a.label, 10);
-            const bIsN = parseInt(b.label, 10);
-            if (isNaN(aIsN)) {
-                if (isNaN(bIsN)) {
-                    return a.label > b.label ? 1 : -1;
-                }
-                else {
-                    return 1;
-                }
+        values.sort((a, b) => {
+            const aChromosomeNumber = parseInt(a.label, 10);
+            const bChromosomeNumber = parseInt(b.label, 10);
+            const aNumber = Number.isNaN(Number(aChromosomeNumber)) ? Infinity : Number(aChromosomeNumber);
+            const bNumber = Number.isNaN(Number(bChromosomeNumber)) ? Infinity : Number(bChromosomeNumber);
+            if (aNumber === bNumber) {
+                return a.label.localeCompare(b.label);
             }
-            else if (isNaN(bIsN)) {
-                return -1;
-            } else {
-                return aIsN - bIsN;
-            }
+            return aNumber - bNumber;
         });
-
-        const nvd3DataObjectItemFix = this.fixNvD3ChartObject(nvd3DataObjectItem);
-
-        nvd3DataObject.push(nvd3DataObjectItemFix);
-
-        return nvd3DataObject;
-    }
-
-    async updateDiagram(variants, isLoading, error) {
-        if (isLoading) {
-            return;
-        }
-        if (!variants || variants.length === 0) {
-            this._scope.options.chart.noData = error || 'No Data Available';
-            this._scope.data = [];
-        } else {
-            this._scope.data = this.makeNvD3ChartObjectFromData(variants);
-        }
-        this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
+        return values;
     }
 }

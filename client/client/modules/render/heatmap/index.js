@@ -154,6 +154,13 @@ class Heatmap {
         this.destroyPixiRenderer();
         this.refreshRenderer(true);
     };
+
+    render() {
+        if (this.heatmapView) {
+            this.refreshRenderer();
+            requestAnimationFrame(this.heatmapView.render.bind(this.heatmapView));
+        }
+    }
 }
 
 export {HeatmapView};

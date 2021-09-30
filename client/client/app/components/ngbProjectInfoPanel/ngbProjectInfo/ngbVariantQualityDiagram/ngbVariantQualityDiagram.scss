@@ -2,12 +2,13 @@ ngb-variant-quality-diagram {
   display: block;
   height: 100%;
   position: relative;
-  }
+}
 
-.ngb-variant-quality-diagram{
+.ngb-variant-quality-diagram {
   padding: 0;
   background-color: #ffffff;
   margin: 0;
+
   .ngbQualityDiagram-holder {
     .nvd3 .nv-axis {
       path {
@@ -15,15 +16,16 @@ ngb-variant-quality-diagram {
         stroke: #ccc;
         stroke-opacity: .75;
         shape-rendering: crispEdges;
-        }
       }
+    }
+
     .nvd3 .nv-axis.nv-y {
       line {
         fill: none;
         stroke: #ccc;
         stroke-opacity: .5;
         shape-rendering: crispEdges;
-        }
       }
     }
   }
+}
