@@ -89,7 +89,7 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<List<Map<?, String>>>> getContent(@PathVariable final long heatmapId,
+    public Result<List<List<List<String>>>> getContent(@PathVariable final long heatmapId,
                                                          @RequestParam(required = false) final Long projectId)
             throws IOException {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));

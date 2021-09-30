@@ -70,7 +70,7 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public List<List<Map<?, String>>> getContent(final long heatmapId, final Long projectId) throws IOException {
+    public List<List<List<String>>> getContent(final long heatmapId, final Long projectId) throws IOException {
         return heatmapManager.getContent(heatmapId);
     }
 

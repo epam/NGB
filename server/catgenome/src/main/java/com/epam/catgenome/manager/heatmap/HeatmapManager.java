@@ -185,11 +185,11 @@ public class HeatmapManager {
         return heatmapDao.loadHeatmaps();
     }
 
-    public List<List<Map<?, String>>> getContent(long heatmapId) throws IOException {
+    public List<List<List<String>>> getContent(final long heatmapId) throws IOException {
         Heatmap heatmap = getHeatmap(heatmapId);
         try (InputStream heatmapIS = heatmapDao.loadHeatmapContent(heatmapId);
                 InputStream annotationIS = heatmapDao.loadCellAnnotation(heatmapId)) {
-            return getAnnotatedContent(heatmapIS, annotationIS, heatmap.getCellValueType(), heatmap.getPath());
+            return getAnnotatedContent(heatmapIS, annotationIS, heatmap.getPath());
         }
     }
 
@@ -220,7 +220,7 @@ public class HeatmapManager {
         return heatmapTree;
     }
 
-    private HeatmapTreeNode convertTree(TreeNode node) {
+    private HeatmapTreeNode convertTree(final TreeNode node) {
         HeatmapTreeNode heatmapTreeNode = HeatmapTreeNode.builder()
                 .name(node.getName())
                 .weight(node.getWeight())
@@ -234,7 +234,7 @@ public class HeatmapManager {
         return heatmapTreeNode;
     }
 
-    private Tree readTree(final InputStream is, String path) throws IOException {
+    private Tree readTree(final InputStream is, final String path) throws IOException {
         if (is == null) {
             return null;
         }
@@ -243,7 +243,7 @@ public class HeatmapManager {
         return tp.tokenize(FilenameUtils.getBaseName(path));
     }
 
-    private void readHeatmap(Heatmap heatmap) throws IOException {
+    private void readHeatmap(final Heatmap heatmap) throws IOException {
         final String path = heatmap.getPath();
         final String separator = getSeparator(path);
 
@@ -345,44 +345,32 @@ public class HeatmapManager {
         return file;
     }
 
-    private String getSeparator(String path) {
+    private String getSeparator(final String path) {
         final String fileExtension = FilenameUtils.getExtension(path);
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         Assert.notNull(separator, getMessage(MessagesConstants.ERROR_UNSUPPORTED_HEATMAP_FILE_EXTENSION));
         return separator;
     }
 
-    private List<List<Map<?, String>>> getAnnotatedContent(final InputStream heatmapInputStream,
+    private List<List<List<String>>> getAnnotatedContent(final InputStream heatmapInputStream,
                                                            final InputStream annotationInputStream,
-                                                           final HeatmapDataType dataType,
                                                            final String path) throws IOException {
         String separator = getSeparator(path);
         List<List<String>> content = getDataAsList(heatmapInputStream, separator);
         List<List<String>> annotation = annotationInputStream != null ?
                 getDataAsList(annotationInputStream, separator) :
                 null;
-        List<List<Map<?, String>>> annotatedContent = new LinkedList<>();
+        List<List<List<String>>> annotatedContent = new LinkedList<>();
 
         for (int i = 1; i < content.size(); i++) {
             final List<String> contentRow = content.get(i);
             final List<String> annotationRow = annotation != null ? annotation.get(i) : null;
-            List<Map<?, String>> annotatedContentRow = new LinkedList<>();
+            List<List<String>> annotatedContentRow = new LinkedList<>();
             for (int j = 1; j < contentRow.size(); j++) {
-                String value = annotationRow == null ? "" :
-                        (annotationRow.get(j).equals(".") ? "" : annotationRow.get(j));
-                if (dataType == HeatmapDataType.INTEGER) {
-                    Map<Integer, String> annotatedCell = new HashMap<>();
-                    annotatedCell.put(Integer.parseInt(contentRow.get(j)), value);
-                    annotatedContentRow.add(annotatedCell);
-                } else if (dataType == HeatmapDataType.DOUBLE) {
-                    Map<Double, String> annotatedCell = new HashMap<>();
-                    annotatedCell.put(Double.parseDouble(contentRow.get(j)), value);
-                    annotatedContentRow.add(annotatedCell);
-                } else {
-                    Map<String, String> annotatedCell = new HashMap<>();
-                    annotatedCell.put(contentRow.get(j), value);
-                    annotatedContentRow.add(annotatedCell);
-                }
+                List<String> annotatedCell = annotation == null ?
+                        Collections.singletonList(contentRow.get(j)) :
+                        Arrays.asList(contentRow.get(j), annotationRow.get(j));
+                annotatedContentRow.add(annotatedCell);
             }
             annotatedContent.add(annotatedContentRow);
         }
@@ -461,7 +449,7 @@ public class HeatmapManager {
     }
 
     @SneakyThrows
-    private void checkTree(final List<String> labels, String path) {
+    private void checkTree(final List<String> labels, final String path) {
         BufferedReader r = createReader(path);
         TreeParser tp = new TreeParser(r);
         Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));

@@ -96,7 +96,7 @@ public class HeatmapManagerTest extends TestCase {
         assertEquals(createdHeatmap.getCellValueType(), HeatmapDataType.DOUBLE);
         assertEquals(createdHeatmap.getMinCellValue(), MIN_CELL_VALUE);
         assertEquals(createdHeatmap.getMaxCellValue(), MAX_CELL_VALUE);
-        List<List<Map<?, String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
+        List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
         assertNotNull(labelAnnotation);
@@ -119,12 +119,11 @@ public class HeatmapManagerTest extends TestCase {
     public void updateCellAnnotationTest() throws IOException {
         Heatmap heatmap = registerHeatmap("updateCellAnnotationTest");
         heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), contentFileName);
-        List<List<Map<?, String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
+        List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         assertEquals(content.size(), CONTENT_SIZE);
         assertEquals(content.get(0).size(), CONTENT_SIZE);
-        assertTrue(content.get(0).get(0).containsKey(0.0));
-        assertEquals(content.get(0).get(0).get(0.0), "0");
+        assertEquals(content.get(0).get(0).get(1), "0");
     }
 
     @Test
