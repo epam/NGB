@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
+import com.epam.catgenome.entity.heatmap.HeatmapTreeNode;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -109,11 +111,11 @@ public class HeatmapManager {
         byte[] labelAnnotation = readFileContent(heatmap.getLabelAnnotationPath(), heatmap, this::checkLabelAnnotation);
         byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap, this::checkCellAnnotation);
         byte[] rowTree = readFileContent(heatmap.getRowTreePath(),
-                heatmap,
-                h -> checkTree(h.getRowLabels(), h.getRowTreePath()));
+            heatmap,
+            h -> checkTree(h.getRowLabels(), h.getRowTreePath()));
         byte[] columnTree = readFileContent(heatmap.getColumnTreePath(),
-                heatmap,
-                h -> checkTree(h.getColumnLabels(), h.getColumnTreePath()));
+            heatmap,
+            h -> checkTree(h.getColumnLabels(), h.getColumnTreePath()));
         biologicalDataItemManager.createBiologicalDataItem(heatmap);
         heatmap.setBioDataItemId(heatmap.getId());
         return heatmapDao.saveHeatmap(heatmap,
@@ -208,14 +210,28 @@ public class HeatmapManager {
             Tree tree;
             try (InputStream rowTreeIS = heatmapDao.loadHeatmapRowTree(heatmapId)) {
                 tree = readTree(rowTreeIS, heatmap.getRowTreePath());
-                heatmapTree.setRow(tree == null ? null : tree.getRoot());
+                heatmapTree.setRow(tree == null ? null : convertTree(tree.getRoot()));
             }
             try (InputStream columnTreeIS = heatmapDao.loadHeatmapColumnTree(heatmapId)) {
                 tree = readTree(columnTreeIS, heatmap.getColumnTreePath());
-                heatmapTree.setColumn(tree == null ? null : tree.getRoot());
+                heatmapTree.setColumn(tree == null ? null : convertTree(tree.getRoot()));
             }
         }
         return heatmapTree;
+    }
+
+    private HeatmapTreeNode convertTree(TreeNode node) {
+        HeatmapTreeNode heatmapTreeNode = HeatmapTreeNode.builder()
+                .name(node.getName())
+                .weight(node.getWeight())
+                .build();
+        List<HeatmapTreeNode> children = new ArrayList<>();
+        for (int i = 0; i < node.numberChildren(); i++) {
+            HeatmapTreeNode newickTreeNodeChild = convertTree(node.getChild(i));
+            children.add(newickTreeNodeChild);
+        }
+        heatmapTreeNode.setChildren(children);
+        return heatmapTreeNode;
     }
 
     private Tree readTree(final InputStream is, String path) throws IOException {
