@@ -115,15 +115,9 @@ public class ProjectSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
-    public ProjectDescription saveProjectDescription(final Long projectId, final String name, final MultipartFile file)
-            throws IOException {
-        return projectDescriptionService.save(projectId, name, file);
-    }
-
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
-    public ProjectDescription updateProjectDescription(final Long id, final String name, final MultipartFile file)
-            throws IOException {
-        return projectDescriptionService.update(id, name, file);
+    public ProjectDescription upsertProjectDescription(final Long projectId, final String name,
+                                                       final MultipartFile file) throws IOException {
+        return projectDescriptionService.upsert(projectId, name, file);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER +  OR + "hasPermissionOnProject(#projectId, 'READ')")
@@ -139,5 +133,10 @@ public class ProjectSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
     public ProjectDescription deleteProjectDescription(final Long id) {
         return projectDescriptionService.deleteById(id);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public List<ProjectDescription> deleteProjectDescriptions(final Long projectId, final String name) {
+        return projectDescriptionService.deleteByProjectId(projectId, name);
     }
 }

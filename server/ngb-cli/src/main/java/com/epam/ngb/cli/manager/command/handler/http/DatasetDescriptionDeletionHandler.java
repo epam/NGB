@@ -25,14 +25,17 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.ProjectDescription;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
 
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
@@ -45,6 +48,7 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
 public class DatasetDescriptionDeletionHandler extends AbstractHTTPCommandHandler {
 
     private Long projectId;
+    private String name;
 
     @Override
     public void parseAndVerifyArguments(final List<String> arguments, final ApplicationOptions options) {
@@ -53,16 +57,24 @@ public class DatasetDescriptionDeletionHandler extends AbstractHTTPCommandHandle
                     getCommand(), 1, arguments.size()));
         }
         projectId = parseProjectId(arguments.get(0));
+        name = options.getName();
     }
 
     @Override
     public int runCommand() {
-        final String url = serverParameters.getServerUrl() + getRequestUrl();
-        final HttpRequestBase request = getRequestFromURLByType(HttpDelete.METHOD_NAME, String.format(url, projectId));
-        final String result = RequestManager.executeRequest(request);
         try {
-            checkAndPrintResult(result, false, false, Project.class);
-        } catch (ApplicationException e) {
+            final String url = String.format(serverParameters.getServerUrl() + getRequestUrl(), projectId);
+            final URIBuilder uriBuilder = new URIBuilder(url);
+
+            if (StringUtils.isNotBlank(name)) {
+                uriBuilder.addParameter("name", name);
+            }
+
+            final HttpRequestBase request = getRequestFromURLByType(HttpDelete.METHOD_NAME,
+                    uriBuilder.build().toString());
+            final String result = RequestManager.executeRequest(request);
+            checkAndPrintResultForList(result, false, false, ProjectDescription.class);
+        } catch (ApplicationException | URISyntaxException e) {
             log.info(e.getMessage());
             return 1;
         }

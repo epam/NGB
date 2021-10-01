@@ -35,8 +35,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,37 +48,26 @@ public class ProjectDescriptionService {
     private final ProjectDescriptionDao projectDescriptionDao;
 
     @Transactional
-    public ProjectDescription save(final Long projectId, final String name, final MultipartFile file)
+    public ProjectDescription upsert(final Long projectId, final String name, final MultipartFile file)
             throws IOException {
         projectManager.load(projectId);
-        final ProjectDescription description = ProjectDescription.builder()
-                .projectId(projectId)
-                .name(StringUtils.isBlank(name) ? file.getOriginalFilename() : name)
-                .build();
+        final String descriptionName = StringUtils.isBlank(name) ? file.getOriginalFilename() : name;
 
-        loadDescriptions(projectId).stream()
-                .map(ProjectDescription::getName)
-                .filter(existingName -> Objects.equals(existingName, description.getName()))
-                .findAny()
-                .ifPresent(existingName -> {
-                    throw new IllegalArgumentException(String.format(
-                            "Project description with name '%s' already exists", description.getName()));
-                });
+        final Optional<ProjectDescription> loadedDescription = loadDescriptions(projectId).stream()
+                .filter(existingDescription -> Objects.equals(existingDescription.getName(), descriptionName))
+                .findAny();
 
-        projectDescriptionDao.save(description, file.getBytes());
-        return description;
-    }
-
-    @Transactional
-    public ProjectDescription update(final Long id, final String name, final MultipartFile file)
-            throws IOException {
-        final ProjectDescription description = load(id);
-
-        if (StringUtils.isNotBlank(name)) {
-            description.setName(name);
+        if (loadedDescription.isPresent()) {
+            final ProjectDescription description = loadedDescription.get();
+            projectDescriptionDao.update(description, file.getBytes());
+            return description;
         }
 
-        projectDescriptionDao.update(description, file.getBytes());
+        final ProjectDescription description = ProjectDescription.builder()
+                .projectId(projectId)
+                .name(descriptionName)
+                .build();
+        projectDescriptionDao.save(description, file.getBytes());
         return description;
     }
 
@@ -99,5 +90,24 @@ public class ProjectDescriptionService {
         final ProjectDescription description = load(id);
         projectDescriptionDao.deleteById(id);
         return description;
+    }
+
+    @Transactional
+    public List<ProjectDescription> deleteByProjectId(final Long projectId, final String name) {
+        projectManager.load(projectId);
+        final List<ProjectDescription> descriptions = loadDescriptions(projectId);
+
+        if (StringUtils.isBlank(name)) {
+            projectDescriptionDao.deleteByProjectId(projectId);
+            return descriptions;
+        }
+
+        final ProjectDescription descriptionToDelete = descriptions.stream()
+                .filter(existingDescription -> Objects.equals(existingDescription.getName(), name))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException(String.format(
+                        "Project description with name '%s' was not found", name)));
+        projectDescriptionDao.deleteById(descriptionToDelete.getId());
+        return Collections.singletonList(descriptionToDelete);
     }
 }
