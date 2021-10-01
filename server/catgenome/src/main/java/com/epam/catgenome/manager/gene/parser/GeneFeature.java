@@ -111,4 +111,10 @@ public interface GeneFeature extends Feature {
      * @return Returns feature name
      */
     String getFeatureName();
+
+    /**
+     * Returns feature unique ID loaded from lucene index. This value used for lucene search.
+     * @return feature unique ID
+     */
+    String getUid();
 }

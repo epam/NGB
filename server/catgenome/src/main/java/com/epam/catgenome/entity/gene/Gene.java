@@ -34,6 +34,9 @@ import com.epam.catgenome.manager.gene.parser.GffFeature;
 import com.epam.catgenome.manager.gene.parser.GtfFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Source:      Gene
@@ -44,6 +47,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * A block VO, describing gene feature
  * </p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class Gene extends Block {
     public enum Origin {
         GFF, GTF
@@ -75,11 +81,7 @@ public class Gene extends Block {
     private String featureId;
 
     private int featureCount = 1;
-
-    public Gene() {
-        // No-op
-    }
-
+    private String uid;
 
     /**
      * Create Gene as a copy of other Gene
@@ -104,6 +106,7 @@ public class Gene extends Block {
         transcripts = gene.getTranscripts();
         featureId = gene.getFeatureId();
         featureName = gene.getFeatureName();
+        uid = gene.getUid();
     }
 
     /**
@@ -120,6 +123,7 @@ public class Gene extends Block {
         strand = geneFeature.getStrand();
         frame = geneFeature.getFrame();
         groupId = geneFeature.getGroupId();
+        uid = geneFeature.getUid();
 
         if (geneFeature instanceof GtfFeature) {
             parentId = groupId;
@@ -159,158 +163,5 @@ public class Gene extends Block {
         } else {
             return false;
         }
-    }
-
-
-    public String getSeqName() {
-        return seqName;
-    }
-
-    public void setSeqName(String seqName) {
-        this.seqName = seqName;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getFeature() {
-        return feature;
-    }
-
-    public void setFeature(String feature) {
-        this.feature = feature;
-    }
-
-    public Float getScore() {
-        return score;
-    }
-
-    public void setScore(Float score) {
-        this.score = score;
-    }
-
-    public StrandSerializable getStrand() {
-        return strand;
-    }
-
-    public void setStrand(StrandSerializable strand) {
-        this.strand = strand;
-    }
-
-    public Integer getFrame() {
-        return frame;
-    }
-
-    public void setFrame(Integer frame) {
-        this.frame = frame;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
-    }
-
-    public List<Gene> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Gene> items) {
-        this.items = items;
-    }
-
-    public List<Transcript> getTranscripts() {
-        return transcripts;
-    }
-
-    public void setTranscripts(List<Transcript> transcripts) {
-        this.transcripts = transcripts;
-    }
-
-    public Long getExonsCount() {
-        return exonsCount;
-    }
-
-    public void setExonsCount(Long exonsCount) {
-        this.exonsCount = exonsCount;
-    }
-
-    public Long getAminoacidLength() {
-        return aminoacidLength;
-    }
-
-    public void setAminoacidLength(Long aminoacidLength) {
-        this.aminoacidLength = aminoacidLength;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Origin getOrigin() {
-        return origin;
-    }
-
-    public String getGffId() {
-        return gffId;
-    }
-
-    public boolean isMapped() {
-        return mapped;
-    }
-
-    public void setMapped(boolean mapped) {
-        this.mapped = mapped;
-    }
-
-    public int getFeatureCount() {
-        return featureCount;
-    }
-
-    public void setFeatureCount(int featureCount) {
-        this.featureCount = featureCount;
-    }
-
-    public boolean isCanonical() {
-        return canonical;
-    }
-
-    public void setCanonical(boolean canonical) {
-        this.canonical = canonical;
-    }
-
-    public String getFeatureName() {
-        return featureName;
-    }
-
-    public void setFeatureName(String featureName) {
-        this.featureName = featureName;
-    }
-
-    public String getFeatureId() {
-        return featureId;
-    }
-
-    public void setFeatureId(String featureId) {
-        this.featureId = featureId;
     }
 }

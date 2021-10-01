@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -93,11 +94,10 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         document.add(new SortedDocValuesField(FeatureIndexFields.END_INDEX.getGroupName(),
                 new BytesRef(entry.getStartIndex().toString())));
 
-        document.add(new StringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : entry.getCustomFeatureType(),
-                Field.Store.YES));
-        document.add(new SortedStringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : entry.getCustomFeatureType()));
+        final String featureType = buildFeatureType(entry);
+        document.add(new StringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(), featureType, Field.Store.YES));
+        document.add(new SortedStringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(), featureType));
+
         document.add(
                 new StringField(FeatureIndexFields.FILE_ID.getFieldName(), featureFileId.toString(),
                         Field.Store.YES));
@@ -295,5 +295,13 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         fieldType.setDocValuesType(DocValuesType.SORTED);
         fieldType.freeze();
         return new Field(FeatureIndexFields.CHROMOSOME_ID.getFieldName(), new BytesRef(chromosomeId), fieldType);
+    }
+
+    private String buildFeatureType(final E entry) {
+        final String customFeatureType = entry.getCustomFeatureType();
+        if (StringUtils.isNotBlank(customFeatureType)) {
+            return customFeatureType;
+        }
+        return Objects.nonNull(entry.getFeatureType()) ? entry.getFeatureType().getFileValue() : StringUtils.EMPTY;
     }
 }

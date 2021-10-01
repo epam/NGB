@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -59,7 +60,6 @@ import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
-import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.ProteinSequenceUtils;
@@ -79,7 +79,7 @@ public class ProteinSequenceReconstructionManager {
     private static final int TRIPLE_LENGTH = 3;
 
     @Autowired
-    private GffManager gffManager;
+    private GeneTrackManager geneTrackManager;
 
     @Autowired
     private ReferenceManager referenceManager;
@@ -324,7 +324,7 @@ public class ProteinSequenceReconstructionManager {
 
         Map<Gene, List<List<Sequence>>> geneListMap = processStrand(cdsToAlternativeNucleotidesMap);
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Loading nucleotides for reference variation cds {} ms",
+        LOGGER.debug("[{}] Loading nucleotides for reference variation cds {} ms",
                      Thread.currentThread().getName(), time2 - time1);
         return geneListMap;
     }
@@ -349,7 +349,7 @@ public class ProteinSequenceReconstructionManager {
         Track<Gene> newTrack = new Track<>(geneTrack);
         newTrack.setStartIndex(startIndex);
         newTrack.setEndIndex(endIndex);
-        Track<Gene> loadedGenes = gffManager.loadGenes(newTrack, geneFile, chromosome, collapsedTrack);
+        Track<Gene> loadedGenes = geneTrackManager.loadGenes(newTrack, geneFile, chromosome, collapsedTrack);
 
         for (Gene gene : loadedGenes.getBlocks()) {
             if (gene.getItems() != null && !gene.getItems().isEmpty() && geneSet.contains(gene)) {

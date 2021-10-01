@@ -46,6 +46,7 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.InfoItem;
+import com.epam.catgenome.entity.vcf.Pointer;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
@@ -61,12 +62,12 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.facet.FacetsCollector;
@@ -275,7 +276,7 @@ public class FeatureIndexDao {
                                                                final List<? extends FeatureFile> featureFiles,
                                                                final Integer maxResultsCount) throws IOException {
         if (featureId == null || featureId.length() < 2) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
 
@@ -311,55 +312,19 @@ public class FeatureIndexDao {
                 files.stream().filter(f -> fileManager.indexForFeatureFileExists(f))
                         .collect(Collectors.toList());
         if (indexedFiles.isEmpty()) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
-            BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-            Query chrQuery = new TermQuery(new Term(FeatureIndexFields.CHROMOSOME_ID.getFieldName(),
-                    new BytesRef(chromosome.getId().toString())));
-            mainBuilder.add(chrQuery, BooleanClause.Occur.MUST);
 
-            BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
-            featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                    FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD);
-            featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                    FeatureType.EXON.getFileValue())), BooleanClause.Occur.SHOULD);
+            final Query query = IndexQueryUtils.intervalQuery(chromosome.getId().toString(), start, end, Arrays.asList(
+                    FeatureType.GENE.getFileValue(), FeatureType.EXON.getFileValue()));
 
-            mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
-
-            BooleanQuery.Builder rangeBuilder = new BooleanQuery.Builder();
-            //start in interval
-            Query startQuery =
-                    IntPoint.newRangeQuery(FeatureIndexFields.START_INDEX.getFieldName(), start, end);
-            rangeBuilder.add(startQuery, BooleanClause.Occur.SHOULD);
-            //end in interval
-            Query endQuery =
-                    IntPoint.newRangeQuery(FeatureIndexFields.END_INDEX.getFieldName(), start, end);
-            rangeBuilder.add(endQuery, BooleanClause.Occur.SHOULD);
-
-            //feature lasts along all the interval (start < range and end > range)
-            BooleanQuery.Builder spanQueryBuilder = new BooleanQuery.Builder();
-            Query startExtQuery =
-                    IntPoint.newRangeQuery(FeatureIndexFields.START_INDEX.getFieldName(),
-                            0, start - 1);
-            spanQueryBuilder.add(startExtQuery, BooleanClause.Occur.MUST);
-
-            Query endExtQuery =
-                    IntPoint.newRangeQuery(FeatureIndexFields.END_INDEX.getFieldName(),
-                            end + 1, Integer.MAX_VALUE);
-            spanQueryBuilder.add(endExtQuery, BooleanClause.Occur.MUST);
-            rangeBuilder.add(spanQueryBuilder.build(), BooleanClause.Occur.SHOULD);
-
-            mainBuilder.add(rangeBuilder.build(), BooleanClause.Occur.MUST);
-
-            return searchFileIndexes(files, mainBuilder.build(), null,
-                    reader.numDocs(), null);
-
+            return searchFileIndexes(files, query, null, reader.numDocs(), null);
         } finally {
             closeIndices(indexes);
         }
@@ -423,7 +388,7 @@ public class FeatureIndexDao {
             IndexReader reader = DirectoryReader.open(index)
         ) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
 
             IndexSearcher searcher = new IndexSearcher(reader);
@@ -445,7 +410,7 @@ public class FeatureIndexDao {
             setBookmarks(foundBookmarkEntries);
         } catch (IOException e) {
             LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
-            return new IndexSearchResult(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
 
         return new IndexSearchResult(new ArrayList<>(entryMap.values()), maxResultsCount != null &&
@@ -544,7 +509,7 @@ public class FeatureIndexDao {
                                                                                 Integer maxResultsCount, Sort sort)
         throws IOException {
         if (CollectionUtils.isEmpty(files)) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+            return IndexSearchResult.empty();
         }
 
         Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
@@ -553,7 +518,7 @@ public class FeatureIndexDao {
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
-                return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+                return IndexSearchResult.empty();
             }
 
             IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
@@ -1080,6 +1045,64 @@ public class FeatureIndexDao {
         }
     }
 
+    /**
+     * Returns gene features according to query with all indexed fields
+     *
+     * @param featureFile the {@link GeneFile} which indexes to search
+     * @param chrId chromosome ID string
+     * @param filterForm gene filter object for building search queries
+     * @param sort the sort for result
+     * @return found genes
+     */
+    public IndexSearchResult<GeneIndexEntry> searchGeneFeaturesFully(final GeneFile featureFile, final String chrId,
+                                                                     final GeneFilterForm filterForm, final Sort sort)
+            throws IOException {
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return IndexSearchResult.empty();
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
+
+            final TopDocs docs = performIntervalSearch(chrId, filterForm, sort, reader, searcher);
+            if (Objects.isNull(docs) || ArrayUtils.isEmpty(docs.scoreDocs)) {
+                return IndexSearchResult.empty();
+            }
+
+            final ScoreDoc[] hits = docs.scoreDocs;
+            final int totalHits = docs.totalHits;
+            final List<GeneIndexEntry> values = Arrays.stream(hits)
+                    .map(hit -> searchDocument(searcher, hit))
+                    .map(document -> buildGeneIndexEntry(documentCreator, document))
+                    .collect(Collectors.toList());
+
+            final ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
+            filterForm.setPointer(Pointer.fromScoreDoc(lastEntry));
+            return new IndexSearchResult<>(values, false, totalHits, lastEntry);
+        } finally {
+            closeIndices(indexes);
+        }
+    }
+
+    public int countGenesInInterval(final GeneFile featureFile, final String chrId,
+                                    final GeneFilterForm filterForm) throws IOException {
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return 0;
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final Query query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+                    filterForm.getEndIndex(), filterForm.getFeatureTypes());
+            return searcher.count(query);
+        } finally {
+            closeIndices(indexes);
+        }
+    }
+
     private void deleteDocumentByTypeAndId(FeatureType type, Long id, IndexWriter writer) throws IOException {
         BooleanQuery.Builder deleteQueryBuilder = new BooleanQuery.Builder();
         TermQuery idQuery = new TermQuery(new Term(FeatureIndexFields.FILE_ID.getFieldName(),
@@ -1194,5 +1217,34 @@ public class FeatureIndexDao {
                 .collect(Collectors.toMap(Function.identity(), document::get));
         entry.setAttributes(attributes);
         return entry;
+    }
+
+    private Document searchDocument(final IndexSearcher searcher, final ScoreDoc hit) {
+        try {
+            return searcher.doc(hit.doc);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private TopDocs performIntervalSearch(final String chrId, final GeneFilterForm filterForm,
+                                          final Sort sort, final MultiReader reader, final IndexSearcher searcher)
+            throws IOException {
+        final Query query = IndexQueryUtils.intervalQuery(chrId, filterForm.getStartIndex(),
+                filterForm.getEndIndex(), filterForm.getFeatureTypes());
+        final Pointer pointer = filterForm.getPointer();
+        final Integer numDocs = filterForm.getPageSize();
+
+        return Objects.isNull(pointer)
+                ? performSearch(searcher, query, reader, numDocs, sort)
+                : performSearchAfter(searcher, query, pointer.toScoreDoc(), numDocs, sort);
+    }
+
+    private TopDocs performSearchAfter(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,
+                                       final Integer pageSize, final Sort sort) throws IOException {
+        final Query constantQuery = new ConstantScoreQuery(query);
+        return Objects.isNull(sort)
+                ? searcher.searchAfter(pointer, constantQuery, pageSize)
+                : searcher.searchAfter(pointer, constantQuery, pageSize, sort, false, false);
     }
 }

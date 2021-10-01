@@ -30,6 +30,9 @@ import java.util.Map;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Created: 3/21/2016
@@ -39,6 +42,9 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
  * Value objects, used for representing the highest level of gene hierarchy
  * </p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class GeneHighLevel  extends Block {
     private String seqName;
     private String source;
@@ -51,10 +57,7 @@ public class GeneHighLevel  extends Block {
     private Boolean mapped;
 
     private List<GeneLowLevel> items;
-
-    public GeneHighLevel() {
-        // No-op
-    }
+    private String uid;
 
     /**
      * Create GeneHighLevel from {@code GeneFeature} object
@@ -72,6 +75,7 @@ public class GeneHighLevel  extends Block {
         groupId = geneFeature.getGroupId();
 
         attributes = geneFeature.getAttributes();
+        uid = geneFeature.getUid();
     }
 
     /**
@@ -91,85 +95,6 @@ public class GeneHighLevel  extends Block {
         mapped = gene.isMapped();
 
         attributes = gene.getAttributes();
-    }
-
-    public String getSeqName() {
-        return seqName;
-    }
-
-    public void setSeqName(String seqName) {
-        this.seqName = seqName;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getFeature() {
-        return feature;
-    }
-
-    public void setFeature(String feature) {
-        this.feature = feature;
-    }
-
-    public Float getScore() {
-        return score;
-    }
-
-    public void setScore(Float score) {
-        this.score = score;
-    }
-
-    public StrandSerializable getStrand() {
-        return strand;
-    }
-
-    public void setStrand(StrandSerializable strand) {
-        this.strand = strand;
-    }
-
-    public Integer getFrame() {
-        return frame;
-    }
-
-    public void setFrame(Integer frame) {
-        this.frame = frame;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
-    }
-
-    public List<GeneLowLevel> getItems() {
-        return items;
-    }
-
-    public void setItems(List<GeneLowLevel> items) {
-        this.items = items;
-    }
-
-    public Boolean getMapped() {
-        return mapped;
-    }
-
-    public void setMapped(Boolean mapped) {
-        this.mapped = mapped;
+        uid = gene.getUid();
     }
 }

@@ -24,7 +24,11 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.writer.Gff3Writer;
+import org.apache.commons.lang3.StringUtils;
+import org.thymeleaf.util.MapUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -69,6 +73,7 @@ public class GffFeature implements GeneFeature {
      * Note that editing this field may be managed only through {@link GffFeature#setGroupId(String)}
      */
     private String groupId;
+    private String uid;
 
     private static final String PARENT_KEY = "Parent";
     private static final String ID_KEY = "ID";
@@ -91,6 +96,20 @@ public class GffFeature implements GeneFeature {
         this.groupId = parseGroupId(line);
     }
 
+    public GffFeature(final GeneIndexEntry indexEntry) {
+        this.seqName = indexEntry.getChromosome().getName();
+        this.source = indexEntry.getSource();
+        this.feature = indexEntry.getFeature();
+        this.start = indexEntry.getStartIndex();
+        this.end = indexEntry.getEndIndex();
+        this.score = indexEntry.getScore();
+        this.strand = StrandSerializable.forValue(indexEntry.getStrand());
+        this.frame = indexEntry.getFrame();
+        this.attributes = MapUtils.isEmpty(indexEntry.getAttributes()) ? new HashMap<>() : indexEntry.getAttributes();
+        this.groupId = getGeneId();
+        this.uid = indexEntry.getUuid().toString();
+    }
+
     /**
      * Returns value of gene_id attribute
      * @return value of gene_id attribute
@@ -108,11 +127,7 @@ public class GffFeature implements GeneFeature {
      * @return value of id attribute
      */
     public String getId() {
-        if (attributes == null) {
-            return null;
-        }
-
-        return attributes.get(ID_KEY);
+        return GeneUtils.findAttribute(ID_KEY, attributes);
     }
 
     /**
@@ -120,11 +135,7 @@ public class GffFeature implements GeneFeature {
      * @return value of Parent Id attribute
      */
     public String getParentId() {
-        if (attributes == null) {
-            return null;
-        }
-
-        return attributes.get(PARENT_KEY);
+        return GeneUtils.findAttribute(PARENT_KEY, attributes);
     }
 
     @Override
@@ -139,7 +150,7 @@ public class GffFeature implements GeneFeature {
 
     @Override
     public String getFeatureName() {
-        return attributes.get("Name");
+        return GeneUtils.findAttribute(GeneUtils.NAME_FIELD, attributes);
     }
 
     private int parseIntOrDot(String s) {
@@ -250,7 +261,7 @@ public class GffFeature implements GeneFeature {
         for (Map.Entry<String, String> attribute : attributes.entrySet()) {
             builder.append(attribute.getKey())
                     .append('=')
-                    .append(attribute.getValue())
+                    .append(encodeAttribute(attribute.getValue()))
                     .append(';');
         }
 
@@ -264,6 +275,14 @@ public class GffFeature implements GeneFeature {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(final String uid) {
+        this.uid = uid;
     }
 
     @Override
@@ -315,5 +334,9 @@ public class GffFeature implements GeneFeature {
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Cannot decode GFF attribute", e);
         }
+    }
+
+    private String encodeAttribute(final String attribute) {
+        return Objects.nonNull(attribute) ? Gff3Writer.encodeString(attribute) : StringUtils.EMPTY;
     }
 }

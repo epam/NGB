@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.gene.reader;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +42,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.gene.parser.GffFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +90,20 @@ public abstract class AbstractGeneReader {
     private ExecutorService executorService;
     private FileManager fileManager;
     private GeneFile geneFile;
+    private FeatureIndexManager featureIndexManager;
 
     protected AbstractGeneReader(ExecutorService executorService, FileManager fileManager, GeneFile geneFile) {
         this.executorService = executorService;
         this.fileManager = fileManager;
         this.geneFile = geneFile;
+    }
+
+    protected AbstractGeneReader(final ExecutorService executorService, final FileManager fileManager,
+                                 final GeneFile geneFile, final FeatureIndexManager featureIndexManager) {
+        this.executorService = executorService;
+        this.fileManager = fileManager;
+        this.geneFile = geneFile;
+        this.featureIndexManager = featureIndexManager;
     }
 
     /**
@@ -107,6 +120,17 @@ public abstract class AbstractGeneReader {
             return new GtfReader(executorService, fileManager, geneFile);
         } else {
             return new GffReader(executorService, fileManager, geneFile);
+        }
+    }
+
+    public static AbstractGeneReader createGeneReader(final ExecutorService executorService,
+                                                      final FileManager fileManager,
+                                                      final GeneFile geneFile,
+                                                      final FeatureIndexManager featureIndexManager) {
+        if (getOrigin(geneFile) == Gene.Origin.GTF) {
+            return new GtfReader(executorService, fileManager, geneFile, featureIndexManager);
+        } else {
+            return new GffReader(executorService, fileManager, geneFile, featureIndexManager);
         }
     }
 
@@ -135,6 +159,56 @@ public abstract class AbstractGeneReader {
             final int num = numOfSubIntervals;
             callables.add(() -> readPartOfGeneFile(chromosome, track.getStartIndex(), factor, num,
                     track.getEndIndex(), state, track.getScaleFactor()));
+        }
+
+        List<Future<Throwable>> futures;
+        try {
+            futures = executorService.invokeAll(callables);
+        } catch (InterruptedException | AssertionError e) {
+            throw new GeneReadingException(geneFile, chromosome, track.getStartIndex(), track.getEndIndex(), e);
+        }
+
+        List<Throwable> errors = futures.stream().map(future -> {
+            try {
+                return future != null ? future.get() : null;
+            } catch (InterruptedException | ExecutionException e) {
+                return e;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new GeneReadingException(track, errors.get(0));
+        }
+
+        double time2 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Reading in {} threads, took {} ms", numOfSubIntervals, time2 - time1);
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        List<Gene> passedGenes = processAssembly(state, track, collapse);
+        time2 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Assembly took {} ms", time2 - time1);
+        // Replace synchronized list with simple list.
+        return new ArrayList<>(passedGenes);
+    }
+
+    public List<Gene> readGenesFromIndex(final Track<Gene> track, final Chromosome chromosome, final boolean collapse,
+                                         final int maxTaskCount) throws GeneReadingException {
+        // Try to paralleling of reading from file.
+        double time1 = Utils.getSystemTimeMilliseconds();
+        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(track, LOGGER, maxTaskCount);
+
+        final ReaderState state = new ReaderState();
+        final List<Callable<Throwable>> callables = new ArrayList<>(numOfSubIntervals);
+        final double determineGeneFileTypeTimeStart = Utils.getSystemTimeMilliseconds();
+        final GeneFileType scaleType = determineGeneFileTypeForIndex(track, chromosome);
+        final double determineGeneFileTypeTimeEnd = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Gene count query took {} ms", determineGeneFileTypeTimeEnd - determineGeneFileTypeTimeStart);
+
+        for (int i = 0; i < numOfSubIntervals; i++) {
+            final int factor = i;
+            final int num = numOfSubIntervals;
+            callables.add(() -> readPartOfGeneIndex(chromosome, track.getStartIndex(), factor, num, track.getEndIndex(),
+                    state, scaleType));
         }
 
         List<Future<Throwable>> futures;
@@ -256,6 +330,48 @@ public abstract class AbstractGeneReader {
         }
     }
 
+    private Throwable readPartOfGeneIndex(final Chromosome chromosome, final Integer startIndex, final Integer factor,
+                                          final Integer num, final Integer endIndex, final ReaderState state,
+                                          final GeneFileType scaleType) throws IOException {
+        double time0 = Utils.getSystemTimeMilliseconds();
+
+        LOGGER.debug("Thread {} starts", Thread.currentThread().getName());
+        double time11 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Thread {} Reader creation {} ms", Thread.currentThread().getName(), time11 - time0);
+
+        int start = startIndex + factor * ParallelTaskExecutionUtils.MAX_BLOCK_SIZE;
+        int end;
+        if (factor != num - 1) {
+            end = startIndex + (factor + 1) * ParallelTaskExecutionUtils.MAX_BLOCK_SIZE;
+        } else {
+            end = endIndex;
+        }
+        LOGGER.debug("Thread {} Interval: {} - {}", Thread.currentThread().getName(), start, end);
+
+        final GeneIndexIterator iterator = indexIterator(chromosome, start, end, scaleType);
+        double time21 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
+
+        Map<String, Gene> overlappedMrnas = new HashMap<>();
+        time11 = Utils.getSystemTimeMilliseconds();
+
+        if (iterator.hasNext()) {
+            GeneFeature firstFeature = convertGeneIndexEntry(iterator.next());
+            processFeature(state, firstFeature, overlappedMrnas, start, end);
+        }
+
+        iterator.forEachRemaining(feature -> processFeature(state, convertGeneIndexEntry(feature),
+                overlappedMrnas, start, end));
+        time21 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Thread {} Walkthrough took {} ms",
+                Thread.currentThread().getName(), time21 - time11);
+
+        fillExonsCountForOverlappingIndex(overlappedMrnas, chromosome, scaleType);
+
+        LOGGER.debug("Thread {} ends", Thread.currentThread().getName());
+        return null;
+    }
+
     /**
      * Processes a GeneFeature, filling data structures, required for genes hierarchy assembly
      *
@@ -342,6 +458,8 @@ public abstract class AbstractGeneReader {
                                                 ConcurrentMap<String, ConcurrentMap<String,
                                                         List<Gene>>> mRnaStuffMap, int step, Double scaleFactor);
 
+    protected abstract GeneFeature convertGeneIndexEntry(GeneIndexEntry indexEntry);
+
     private void fillExonsCountForOverlapping(final Map<String, Gene> overlappedMrnas,
                                               final AbstractFeatureReader<GeneFeature, LineIterator> featureReader,
                                               final Chromosome chromosome) throws IOException {
@@ -356,6 +474,31 @@ public abstract class AbstractGeneReader {
             long basesCount = 0;
             while (iterator.hasNext()) {
                 GeneFeature feature = iterator.next();
+                if (GeneUtils.isExon(feature) && Objects.equals(GeneUtils.getTranscriptId(feature), e.getKey())) {
+                    count++;
+                    basesCount += feature.getEnd() - feature.getStart();
+                }
+            }
+
+            e.getValue().setExonsCount(count);
+            e.getValue().setAminoacidLength(basesCount / CODON_LENGTH);
+        }
+    }
+
+    private void fillExonsCountForOverlappingIndex(final Map<String, Gene> overlappedMrnas, final Chromosome chromosome,
+                                                   final GeneFileType scaleType)
+            throws IOException {
+        if (overlappedMrnas.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<String, Gene> e : overlappedMrnas.entrySet()) {
+            final GeneIndexIterator iterator = indexIterator(chromosome, e.getValue().getStartIndex(),
+                    e.getValue().getEndIndex(), scaleType);
+            long count = 0;
+            long basesCount = 0;
+            while (iterator.hasNext()) {
+                GeneFeature feature = convertGeneIndexEntry(iterator.next());
                 if (GeneUtils.isExon(feature) && Objects.equals(GeneUtils.getTranscriptId(feature), e.getKey())) {
                     count++;
                     basesCount += feature.getEnd() - feature.getStart();
@@ -514,6 +657,44 @@ public abstract class AbstractGeneReader {
         } else {
             return GeneFileType.ORIGINAL;
         }
+    }
+
+    private GeneFileType determineGeneFileTypeForIndex(final Track<Gene> track, final Chromosome chromosome) {
+        final GeneFileType scaleType = determineGeneFileType(track.getScaleFactor());
+        final GeneFilterForm filterForm = buildFilterForm(chromosome.getId(), track.getStartIndex(),
+                track.getEndIndex(), scaleType);
+        if (!GeneFileType.ORIGINAL.equals(scaleType)
+                && featureIndexManager.countGenesInInterval(filterForm, geneFile) == 0) {
+            return GeneFileType.ORIGINAL;
+        }
+        return scaleType;
+    }
+
+    private GeneIndexIterator indexIterator(final Chromosome chromosome, final Integer startIndex,
+                                            final Integer endIndex, final GeneFileType scaleType) {
+        final GeneFilterForm filterForm = buildFilterForm(chromosome.getId(), startIndex, endIndex, scaleType);
+        return new GeneIndexIterator(filterForm, geneFile, featureIndexManager::getFullGeneSearchResult);
+    }
+
+    private GeneFilterForm buildFilterForm(final Long chrId, final Integer startIndex, final Integer endIndex,
+                                           final GeneFileType scaleType) {
+        final GeneFilterForm filterForm = new GeneFilterForm();
+        filterForm.setStartIndex(startIndex);
+        filterForm.setEndIndex(endIndex);
+        filterForm.setChromosomeIds(Collections.singletonList(chrId));
+
+        switch (scaleType) {
+            case LARGE_SCALE:
+                filterForm.setFeatureTypes(Arrays.asList(GeneUtils.GeneFeatureType.GENE.getFeatureTypeNames()));
+                break;
+            case TRANSCRIPT:
+                filterForm.setFeatureTypes(Arrays.asList(GeneUtils.GeneFeatureType.TRANSCRIPT.getFeatureTypeNames()));
+                break;
+            default:
+                break;
+        }
+
+        return filterForm;
     }
 
     /**

@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.gene.GeneUtils;
 
 import java.util.HashMap;
@@ -43,6 +44,10 @@ public class GtfFeature extends GffFeature {
 
     public GtfFeature(String line) {
         super(line);
+    }
+
+    public GtfFeature(final GeneIndexEntry indexEntry) {
+        super(indexEntry);
     }
 
     public String getTransriptId() {

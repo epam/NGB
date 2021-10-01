@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.entity.index;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.epam.catgenome.entity.vcf.Pointer;
@@ -120,5 +121,9 @@ public class IndexSearchResult<T extends FeatureIndexEntry> {
 
     public void setPointer(Pointer pointer) {
         this.pointer = pointer;
+    }
+
+    public static <T extends FeatureIndexEntry> IndexSearchResult<T> empty() {
+        return new IndexSearchResult<>(Collections.emptyList(), false, 0);
     }
 }

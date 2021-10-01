@@ -45,7 +45,7 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.protein.ProteinSequenceManager;
 import com.epam.catgenome.security.acl.aspect.AclMask;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -56,20 +56,17 @@ import java.util.Map;
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
+@RequiredArgsConstructor
 public class GeneSecurityService {
 
     private static final String READ_ON_FILE_OR_PROJECT_BY_TRACK =
             "readOnGeneFileIsAllowed(#track.id, #track.projectId)";
     private static final String READ_ON_FILE_BY_ID = "readOnGeneFileIsAllowed(#geneFileId, #projectId)";
 
-    @Autowired
-    private GffManager gffManager;
-
-    @Autowired
-    private ProteinSequenceManager proteinSequenceManager;
-
-    @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private final GffManager gffManager;
+    private final ProteinSequenceManager proteinSequenceManager;
+    private final FeatureIndexManager featureIndexManager;
+    private final GeneTrackManager geneTrackManager;
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile registerGeneFile(FeatureIndexedFileRegistrationRequest request) {
@@ -90,12 +87,12 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_USER)
     public Track<Gene> loadGenes(Track<Gene> geneTrack, boolean collapsed, String fileUrl, String indexUrl)
             throws GeneReadingException {
-        return gffManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
+        return geneTrackManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
-    public Track<Gene> loadGenes(Track<Gene> track, boolean collapsed) throws GeneReadingException {
-        return gffManager.loadGenes(track, collapsed);
+    public Track<Gene> loadGenes(final Track<Gene> track, final boolean collapsed) throws GeneReadingException {
+        return geneTrackManager.loadGenes(track, collapsed);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -107,7 +104,7 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<GeneTranscript> loadGenesTranscript(Track<Gene> track, String fileUrl, String indexUrl)
             throws GeneReadingException {
-        return gffManager.loadGenesTranscript(track, fileUrl, indexUrl);
+        return geneTrackManager.loadGenesTranscript(track, fileUrl, indexUrl);
     }
 
     @PreAuthorize(ROLE_USER)

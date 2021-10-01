@@ -74,7 +74,7 @@ public final class GeneUtils {
         // no-op
     }
 
-    private enum GeneFeatureType {
+    public enum GeneFeatureType {
         GENE(new String[] {"gene"}),
         CHROMOSOME(new String[] {"chromosome"}),
         EXON(new String[] {"exon"}),
@@ -87,7 +87,7 @@ public final class GeneUtils {
         TMRNA(new String[] {"TMRNA", "tmrna"}),
         OPERON(new String[] {"OPERON", "operon"}),
         REGULATORY(new String[] {"REGULATORY", "regulatory"}),
-        TRANSCRIPT(new String[] {"transcript", "mRNA"});
+        TRANSCRIPT(new String[] {"transcript", "mRNA", "mrna"});
 
         private String[] featureTypeNames;
 
@@ -293,6 +293,10 @@ public final class GeneUtils {
     }
 
     public static String getFeatureId(final String feature, final Map<String, String> attributes) {
+        if (attributes == null) {
+            return null;
+        }
+
         if (GENE_FEATURE_NAME.equalsIgnoreCase(feature)) {
             return attributes.get(GENE_ID_KEY);
         }
@@ -339,6 +343,17 @@ public final class GeneUtils {
             return getFeatureId(feature, attributes);
         }
         return null;
+    }
+
+    public static String findAttribute(final String key, final Map<String, String> attributes) {
+        if (attributes == null) {
+            return null;
+        }
+
+        final String possibleAttribute = attributes.get(key);
+        return StringUtils.isBlank(possibleAttribute)
+                ? attributes.get(StringUtils.lowerCase(key))
+                : possibleAttribute;
     }
 
     private static String getTranscriptName(final String feature, final Map<String, String> attributes) {

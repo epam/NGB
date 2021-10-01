@@ -49,17 +49,13 @@ import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.GeneReadingException;
-import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
-import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
@@ -77,6 +73,7 @@ import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.Sort;
 import org.slf4j.Logger;
@@ -90,7 +87,6 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -125,9 +121,6 @@ public class FeatureIndexManager {
     private ReferenceGenomeManager referenceGenomeManager;
 
     @Autowired
-    private GffManager gffManager;
-
-    @Autowired
     private VcfFileManager vcfFileManager;
 
     @Autowired
@@ -143,9 +136,6 @@ public class FeatureIndexManager {
     private GeneFileManager geneFileManager;
 
     @Autowired
-    private BedManager bedManager;
-
-    @Autowired
     private BookmarkManager bookmarkManager;
 
     @Autowired
@@ -156,6 +146,9 @@ public class FeatureIndexManager {
 
     @Value("#{catgenome['search.indexer.buffer.size'] ?: 256}")
     private int indexBufferSize;
+
+    @Value("#{catgenome['search.features.internal.max.results'] ?: 1000}")
+    private int maxFeatureInternalSearchResultsCount;
 
     /**
      * Deletes features from specified feature files from project's index
@@ -425,6 +418,37 @@ public class FeatureIndexManager {
         return res;
     }
 
+    public IndexSearchResult<GeneIndexEntry> getFullGeneSearchResult(final GeneFilterForm filterForm,
+                                                                     final GeneFile geneFile) {
+        try {
+            filterForm.setPageSize(maxFeatureInternalSearchResultsCount);
+            final Sort sort = Optional.ofNullable(
+                    featureIndexDao.createGeneSorting(filterForm.getOrderBy(), Collections.singletonList(geneFile)))
+                    .orElseGet(filterForm::defaultSort);
+            final Long chrId = ListUtils.emptyIfNull(filterForm.getChromosomeIds()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Chromosome ID must be specified"));
+            final IndexSearchResult<GeneIndexEntry> result = featureIndexDao
+                    .searchGeneFeaturesFully(geneFile, chrId.toString(), filterForm, sort);
+            result.setTotalPagesCount((int) Math.ceil(result.getTotalResultsCount()
+                    / filterForm.getPageSize().doubleValue()));
+            return result;
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public int countGenesInInterval(final GeneFilterForm filterForm, final GeneFile geneFile) {
+        final Long chrId = ListUtils.emptyIfNull(filterForm.getChromosomeIds()).stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Chromosome ID must be specified"));
+        try {
+            return featureIndexDao.countGenesInInterval(geneFile, chrId.toString(), filterForm);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /**
      * Searches genes by it's ID in project's gene files. Minimum featureId prefix length == 2
      *
@@ -530,75 +554,6 @@ public class FeatureIndexManager {
                 .collect(Collectors.toList());
 
         return vcfManager.getFiltersInfo(vcfIds);
-    }
-
-    public void buildIndexForFile(FeatureFile featureFile) throws FeatureIndexException, IOException {
-        if (!fileManager.indexForFeatureFileExists(featureFile)) {
-            switch (featureFile.getFormat()) {
-                case BED:
-                    bedManager.reindexBedFile(featureFile.getId());
-                    break;
-                case GENE:
-                    // use false here, because it's default parameter for reindexing in GeneController
-                    gffManager.reindexGeneFile(featureFile.getId(), false, false);
-                    break;
-                case VCF:
-                    vcfManager.reindexVcfFile(featureFile.getId(), false);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Wrong FeatureType: " + featureFile.getFormat().name());
-            }
-        }
-    }
-
-    /**
-     * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
-     *
-     * @param start a start index of the variation
-     * @param end an end index of the variation
-     * @param geneFiles a {@code List} of {@code GeneFile} to look for genes
-     * @param chromosome a {@code Chromosome}
-     * @return a {@code Set} of IDs of genes, affected by the variation
-     * @throws GeneReadingException
-     */
-    public Set<String> fetchGeneIds(int start, int end, List<GeneFile> geneFiles, Chromosome chromosome)
-        throws GeneReadingException {
-        Set<String> geneIds = new HashSet<>();
-
-        for (GeneFile geneFile : geneFiles) {
-            List<Gene> genes = new ArrayList<>();
-            Track<Gene> track = new Track<>();
-            track.setStartIndex(start);
-            track.setEndIndex(end);
-            track.setId(geneFile.getId());
-            track.setChromosome(chromosome);
-            track.setScaleFactor(AbstractGeneReader.LARGE_SCALE_FACTOR_LIMIT);
-
-            if (end > start) {
-                track.setStartIndex(start);
-                track.setEndIndex(start);
-                track = gffManager.loadGenes(track, geneFile, chromosome, false);
-                genes.addAll(track.getBlocks());
-
-                track.setStartIndex(end);
-                track.setEndIndex(end);
-                track = gffManager.loadGenes(track, geneFile, chromosome, false);
-                genes.addAll(track.getBlocks());
-
-            } else {
-                track.setStartIndex(start);
-                track.setEndIndex(end);
-                track = gffManager.loadGenes(track, geneFile, chromosome, false);
-                genes = track.getBlocks();
-            }
-
-            geneIds.addAll(genes.stream()
-                    .filter(GeneUtils::isGene)
-                    .map(Gene::getGroupId)
-                    .collect(Collectors.toList()));
-        }
-
-        return geneIds;
     }
 
     /**

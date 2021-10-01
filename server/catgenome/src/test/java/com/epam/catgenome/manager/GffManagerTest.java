@@ -29,23 +29,26 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBException;
 
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
@@ -169,6 +172,9 @@ public class GffManagerTest extends AbstractManagerTest {
     @Autowired
     private FileManager fileManager;
 
+    @Autowired
+    private GeneTrackManager geneTrackManager;
+
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
 
@@ -202,15 +208,13 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterGff() throws InterruptedException, FeatureIndexException, IOException,
-                                         NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {
+    public void testRegisterGff() throws IOException, HistogramReadingException {
         Assert.assertTrue(testRegister("classpath:templates/genes_sorted.gff3"));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterZippedGtf() throws InterruptedException, FeatureIndexException, IOException,
-                                         NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {
+    public void testRegisterZippedGtf() throws IOException, HistogramReadingException {
         Assert.assertTrue(testRegister("classpath:templates/genes_sorted.gtf.gz"));
     }
 
@@ -254,8 +258,7 @@ public class GffManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testGetNextFeature() throws IOException, InterruptedException, FeatureIndexException,
-                                            NoSuchAlgorithmException, GeneReadingException {
+    public void testGetNextFeature() throws IOException {
         Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -273,7 +276,621 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(testChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
+        assertExons(geneFile, featureList);
+        final List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        assertExons(geneFile, featureList);
+        assertIndexAndFileFeatures(featureList, fileFeatures);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testDeleteGeneWithIndex() throws IOException, FeatureIndexException {
+        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+        try {
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), false);
+            geneFileManager.delete(geneFile);
+        //expected exception
+        } catch (IllegalArgumentException e) {
+            //remove file correctly as expected
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), true);
+            geneFileManager.delete(geneFile);
+        }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testLoadExonsInViewPort() throws IOException {
+        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        double time1 = Utils.getSystemTimeMilliseconds();
+        List<Block> exons = gffManager.loadExonsInViewPort(geneFile.getId(), testChromosome.getId(),
+                TEST_CENTER_POSITION, TEST_VIEW_PORT_SIZE, TEST_INTRON_LENGTH);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        Assert.assertFalse(exons.isEmpty());
+        logger.info("Loading exons took {} ms", time2 - time1);
+        List<Block> exonsBelow = exons.stream()
+                .filter(e -> e.getEndIndex() < TEST_CENTER_POSITION)
+                .collect(Collectors.toList());
+        List<Block> exonsAbove = exons.stream()
+                .filter(e -> e.getStartIndex() > TEST_CENTER_POSITION)
+                .collect(Collectors.toList());
+        Assert.assertFalse(exonsBelow.isEmpty());
+        Assert.assertFalse(exonsAbove.isEmpty());
+
+        testOverlapping(exons);
+
+        final Map<String, Pair<Integer, Integer>> metaMap = fileManager.loadIndexMetadata(geneFile);
+        Pair<Integer, Integer> bounds = metaMap.get(testChromosome.getName());
+        if (bounds == null) {
+            bounds = metaMap.get(Utils.changeChromosomeName(testChromosome.getName()));
+        }
+
+        testFillRange(exonsBelow, TEST_VIEW_PORT_SIZE / 2, TEST_CENTER_POSITION, false, bounds.getLeft());
+        testFillRange(exonsAbove, TEST_VIEW_PORT_SIZE / 2, TEST_CENTER_POSITION, true, bounds.getRight());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testLoadExonsInTrack() throws IOException {
+        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        List<Block> exons = gffManager.loadExonsInViewPort(geneFile.getId(), testChromosome.getId(),
+                TEST_CENTER_POSITION, TEST_VIEW_PORT_SIZE, TEST_INTRON_LENGTH);
+
+        List<Block> exons2 = gffManager.loadExonsInTrack(geneFile.getId(), testChromosome.getId(), exons.get(0)
+                .getStartIndex(), exons.get(exons.size() - 1).getEndIndex(), TEST_INTRON_LENGTH);
+
+        Assert.assertFalse(exons2.isEmpty());
+        Assert.assertEquals(exons.size(), exons2.size());
+        for (int i = 0; i < exons2.size(); i++) {
+            Assert.assertEquals(exons.get(i).getStartIndex(), exons2.get(i).getStartIndex());
+            Assert.assertEquals(exons.get(i).getEndIndex(), exons2.get(i).getEndIndex());
+        }
+
+        testOverlapping(exons2);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testRegisterGffFail() throws IOException {
+        Resource resource = context.getResource("classpath:templates/Felis_catus.Felis_catus_6.2.81.gtf");
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        boolean failed = true;
+        try {
+            gffManager.registerGeneFile(request);
+        } catch (TribbleException.MalformedFeatureFile e) {
+            failed = false;
+        }
+
+        Assert.assertFalse("Not failed on unsorted file", failed);
+
+        /*Resource fakeIndex = context.getResource("classpath:templates/fake_gtf_index.tbi");
+        request.setIndexPath(fakeIndex.getFile().getAbsolutePath());
+
+        failed = true;
+        try {
+            gffManager.registerGeneFile(request);
+        } catch (Exception e) {
+            failed = false;
+        }
+
+        Assert.assertFalse("Not failed on unsorted file", failed);*/
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadGenesTranscript() throws IOException, ExternalDbUnavailableException {
+        MockitoAnnotations.initMocks(this);
+        String fetchRes1 = readFile("ensembl_id_ENSG00000177663.json");
+        String fetchRes2 = readFile("uniprot_id_ENST00000319363.xml");
+        String fetchRes3 = readFile("uniprot_id_ENST00000319363.xml");
+        Mockito.when(
+                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                .thenReturn(fetchRes1)
+                .thenReturn(fetchRes2)
+                .thenReturn(fetchRes3);
+
+
+        Chromosome otherChromosome = EntityHelper.createNewChromosome("22");
+        otherChromosome.setSize(TEST_CHROMOSOME_SIZE);
+        Reference otherReference = EntityHelper.createNewReference(otherChromosome,
+                referenceGenomeManager.createReferenceId());
+
+        referenceGenomeManager.create(otherReference);
+        Long otherReferenceId = otherReference.getId();
+
+        Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
+
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(otherReferenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        Track<Gene> track = new Track<>();
+        track.setId(geneFile.getId());
+        track.setStartIndex(START_INDEX_ASTRA);
+        track.setEndIndex(END_INDEX_ASTRA);
+        track.setChromosome(otherChromosome);
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+        try {
+            Track<GeneTranscript> featureList = geneTrackManager.loadGenesTranscript(track, null, null);
+            Assert.assertNotNull(featureList);
+            Assert.assertFalse(featureList.getBlocks().isEmpty());
+            Gene testGene = featureList.getBlocks().get(0);
+            Assert.assertNotNull(testGene);
+            Assert.assertFalse(testGene.getTranscripts().isEmpty());
+            Transcript testTranscript = testGene.getTranscripts().get(1);
+
+            Assert.assertEquals(PROTEIN_CODING, testTranscript.getBioType());
+
+            Assert.assertFalse(testTranscript.getDomain().isEmpty());
+            Assert.assertFalse(testTranscript.getExon().isEmpty());
+            Assert.assertFalse(testTranscript.getSecondaryStructure().isEmpty());
+            Assert.assertFalse(testTranscript.getPdb().isEmpty());
+        } catch (GeneReadingException e) {
+            logger.info("database unavailable");
+        }
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testPBD() throws IOException, ExternalDbUnavailableException {
+
+        MockitoAnnotations.initMocks(this);
+
+        String fetchRes1 = readFile("pbd_id_2k8d.xml");
+        String fetchRes2 = readFile("pbd_map_id_2k8d.xml");
+        Mockito.when(
+                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                .thenReturn(fetchRes1)
+                .thenReturn(fetchRes2);
+
+
+        final DimStructure dimStructurelist = gffManager.getPBDItemsFromBD(PBD_TEST_ID);
+        Assert.assertNotNull(dimStructurelist);
+        Assert.assertNotNull(dimStructurelist.getEntities());
+        Assert.assertFalse(dimStructurelist.getEntities().isEmpty());
+        Assert.assertNotNull(dimStructurelist.getStructureTitle());
+        Assert.assertNotNull(dimStructurelist.getClassification());
+        Assert.assertNotNull(dimStructurelist.getStructureId());
+        final DimEntity entity = dimStructurelist.getEntities().get(0);
+        Assert.assertNotNull(entity.getCompound());
+        Assert.assertNotNull(entity.getChainId());
+        Assert.assertNotNull(entity.getPdbEnd());
+        Assert.assertNotNull(entity.getPdbStart());
+        Assert.assertNotNull(entity.getUnpEnd());
+        Assert.assertNotNull(entity.getUnpStart());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testUnmappedGenes() throws IOException, HistogramReadingException {
+        Chromosome testChr1 = EntityHelper.createNewChromosome();
+        testChr1.setName("chr1");
+        testChr1.setSize(TEST_CHROMOSOME_SIZE);
+        Reference testRef = EntityHelper.createNewReference(testChr1, referenceGenomeManager.createReferenceId());
+
+        referenceGenomeManager.create(testRef);
+        Long testRefId = testRef.getId();
+
+        Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(testRefId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        Track<Gene> track = new Track<>();
+        track.setId(geneFile.getId());
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_UNMAPPED_END_INDEX);
+        track.setChromosome(testChr1);
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+
+        final int expectedGenesOriginalSize = 58;
+        final int expectedGenesLargeScaleSize = 14;
+
+        double time1 = Utils.getSystemTimeMilliseconds();
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesOriginalSize, featureList);
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesOriginalSize, featureList);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
+
+        Track<Gene> smallScaleFactorTrack = new Track<>();
+        smallScaleFactorTrack.setId(geneFile.getId());
+        smallScaleFactorTrack.setStartIndex(1);
+        smallScaleFactorTrack.setEndIndex(TEST_UNMAPPED_END_INDEX);
+        smallScaleFactorTrack.setChromosome(testChr1);
+        smallScaleFactorTrack.setScaleFactor(SMALL_SCALE_FACTOR);
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromFile(smallScaleFactorTrack, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes large scale loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesLargeScaleSize, featureList);
+
+        int groupedGenesCount = featureList.getBlocks().stream().mapToInt(Gene::getFeatureCount).sum();
+        logger.debug("{} features total", groupedGenesCount);
+        Assert.assertEquals(TEST_FEATURE_COUNT, groupedGenesCount);
+        fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromIndex(smallScaleFactorTrack, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes large scale loading : {} ms", time2 - time1);
+        assertUnmappedFeatureList(expectedGenesLargeScaleSize, featureList);
+        groupedGenesCount = featureList.getBlocks().stream().mapToInt(Gene::getFeatureCount).sum();
+        logger.debug("{} features total", groupedGenesCount);
+        Assert.assertEquals(TEST_FEATURE_COUNT, groupedGenesCount);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
+
+        Track<Wig> histogram = new Track<>();
+        histogram.setId(geneFile.getId());
+        histogram.setChromosome(testChr1);
+        histogram.setScaleFactor(1.0);
+
+        gffManager.loadHistogram(histogram);
+        Assert.assertFalse(histogram.getBlocks().isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testCollapsedGtf() throws IOException {
+        Assert.assertTrue(testCollapsed(GENES_SORTED_GTF_PATH));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testCollapsedGff() throws IOException {
+        Assert.assertTrue(testCollapsed("classpath:templates/genes_sorted.gff3"));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterGbk() throws IOException {
+        Resource resource = context.getResource(GENBANK_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+        Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
+        Assert.assertTrue(geneFile.getSource().endsWith(GenbankUtils.GENBANK_DEFAULT_EXTENSION));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterGbf() throws IOException {
+        Resource resource = context.getResource(GBF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+        Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
+        Assert.assertTrue(geneFile.getSource().endsWith(GBF_EXT));
+    }
+
+    private boolean testCollapsed(String path) throws IOException {
+        Resource resource = context.getResource(path);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        Track<Gene> track = new Track<>();
+        track.setId(geneFile.getId());
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_END_INDEX);
+        track.setChromosome(testChromosome);
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
+        Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
+        Assert.assertTrue(featureList.getBlocks()
+                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
+                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
+        Assert.assertTrue(featureList.getBlocks()
+                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
+                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
+
+        track = new Track<>();
+        track.setId(geneFile.getId());
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_END_INDEX);
+        track.setChromosome(testChromosome);
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+
+        double time1 = Utils.getSystemTimeMilliseconds();
+        Track<Gene> featureListCollapsed = geneTrackManager.loadGenesFromFile(track, true);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading from file: {} ms", time2 - time1);
+        Assert.assertNotNull(featureListCollapsed);
+        Assert.assertFalse(featureListCollapsed.getBlocks().isEmpty());
+        Assert.assertTrue(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().size() == 1));
+        Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
+        Assert.assertTrue(featureListCollapsed.getBlocks()
+                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
+        fileFeatures = new ArrayList<>(featureListCollapsed.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureListCollapsed = geneTrackManager.loadGenesFromIndex(track, true);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading from index: {} ms", time2 - time1);
+        Assert.assertNotNull(featureListCollapsed);
+        Assert.assertFalse(featureListCollapsed.getBlocks().isEmpty());
+        Assert.assertTrue(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().size() == 1));
+        Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
+                .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
+        Assert.assertTrue(featureListCollapsed.getBlocks()
+                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
+
+        assertIndexAndFileFeatures(featureListCollapsed, fileFeatures);
+        return true;
+    }
+
+    private void assertIndexAndFileFeatures(final Track<Gene> featureList, final List<Gene> fileFeatures) {
+        final Map<Gene, Gene> indexFeatures = ListUtils.emptyIfNull(featureList.getBlocks()).stream()
+                .collect(Collectors.toMap(Function.identity(), Function.identity()));
+        Assert.assertEquals(fileFeatures.size(), indexFeatures.size());
+        fileFeatures.forEach(fileFeature -> {
+            if (MapUtils.isNotEmpty(fileFeature.getAttributes())) {
+                final Map<String, String> lowerCaseKeys = new HashMap<>();
+                fileFeature.getAttributes()
+                        .forEach((key, value) -> lowerCaseKeys.put(StringUtils.lowerCase(key), value));
+                fileFeature.setAttributes(lowerCaseKeys);
+            }
+
+            final Gene indexFeature = indexFeatures.get(fileFeature);
+            if (Objects.isNull(indexFeature)) {
+                throw new AssertionError(String.format("Feature %s %s:%d-%d (%s) was not indexed",
+                        fileFeature.getFeature(), fileFeature.getSeqName(),
+                        fileFeature.getStartIndex(), fileFeature.getEndIndex(), fileFeature.getGroupId()));
+            }
+            // let's check fields that do not participate in equals and hash code
+            Assert.assertEquals(indexFeature.getAminoacidLength(), fileFeature.getAminoacidLength());
+            Assert.assertEquals(indexFeature.getExonsCount(), fileFeature.getExonsCount());
+            Assert.assertEquals(indexFeature.getFeatureId(), fileFeature.getFeatureId());
+            Assert.assertEquals(indexFeature.getFeatureName(), fileFeature.getFeatureName());
+            Assert.assertEquals(indexFeature.getFeatureCount(), fileFeature.getFeatureCount());
+            Assert.assertEquals(indexFeature.getFrame(), fileFeature.getFrame());
+            Assert.assertEquals(indexFeature.getGffId(), fileFeature.getGffId());
+            Assert.assertEquals(indexFeature.getOrigin(), fileFeature.getOrigin());
+            Assert.assertEquals(indexFeature.getParentId(), fileFeature.getParentId());
+            Assert.assertEquals(indexFeature.getStrand(), fileFeature.getStrand());
+            Assert.assertEquals(indexFeature.getScore(), fileFeature.getScore());
+            Assert.assertTrue(StringUtils.equalsIgnoreCase(indexFeature.getSource(), fileFeature.getSource()));
+            Assert.assertEquals(ListUtils.emptyIfNull(indexFeature.getTranscripts()).size(),
+                    ListUtils.emptyIfNull(fileFeature.getTranscripts()).size());
+            Assert.assertEquals(ListUtils.emptyIfNull(indexFeature.getItems()).size(),
+                    ListUtils.emptyIfNull(fileFeature.getItems()).size());
+            Assert.assertNull(fileFeature.getUid());
+            Assert.assertNotNull(indexFeature.getUid());
+            Assert.assertTrue(fileFeature.getSeqName().endsWith(indexFeature.getSeqName()));
+            Assert.assertEquals(indexFeature.isCanonical(), fileFeature.isCanonical());
+            Assert.assertEquals(indexFeature.isMapped(), fileFeature.isMapped());
+        });
+    }
+
+    private void testOverlapping(List<Block> exons) {
+        IntervalTree<Block> intervalTree = new IntervalTree<>();
+        for (Block exon : exons) {
+            Iterator<IntervalTree.Node<Block>> nodeIterator = intervalTree.overlappers(exon.getStartIndex(),
+                                                                                       exon.getEndIndex());
+            Assert.assertFalse("Should be no overlapping exons", nodeIterator.hasNext());
+            intervalTree.put(exon.getStartIndex(), exon.getEndIndex(), exon);
+        }
+    }
+
+    private void testFillRange(List<Block> exons, int viewPortSize, int centerPosition, boolean forward, int bound) {
+        int totalLength = exons.stream()
+            .collect(Collectors.summingInt(e -> gffManager.calculateExonLength(e, centerPosition, forward)));
+
+        boolean isBounded;
+        if (forward) {
+            isBounded = exons.get(exons.size() - 1).getEndIndex() >= bound;
+        } else {
+            isBounded = exons.get(0).getStartIndex() <= bound;
+        }
+
+        Assert.assertTrue(totalLength >= viewPortSize || isBounded);
+    }
+
+    private boolean testRegister(String path) throws IOException, HistogramReadingException {
+        Resource resource = context.getResource(path);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+
+        Track<Wig> histogram = new Track<>();
+        histogram.setId(geneFile.getId());
+        histogram.setChromosome(testChromosome);
+        histogram.setScaleFactor(1.0);
+
+        gffManager.loadHistogram(histogram);
+        Assert.assertFalse(histogram.getBlocks().isEmpty());
+
+        Track<Gene> track = new Track<>();
+        track.setId(geneFile.getId());
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_END_INDEX);
+        track.setChromosome(testChromosome);
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+
+        double time1 = Utils.getSystemTimeMilliseconds();
+        Track<Gene> featureList = geneTrackManager.loadGenesFromFile(track, false);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        assertGeneTrackAfterRegistration(time1, featureList, time2);
+        List<Gene> fileFeatures = new ArrayList<>(featureList.getBlocks());
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureList = geneTrackManager.loadGenesFromIndex(track, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        assertGeneTrackAfterRegistration(time1, featureList, time2);
+
+        assertIndexAndFileFeatures(featureList, fileFeatures);
+
+        Track<Gene> track2 = new Track<>();
+        track2.setId(geneFile.getId());
+        track2.setStartIndex(1);
+        track2.setEndIndex(TEST_END_INDEX);
+        track2.setChromosome(testChromosome);
+        track2.setScaleFactor(SMALL_SCALE_FACTOR);
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        Track<Gene> featureListLargeScale = geneTrackManager.loadGenesFromFile(track2, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading large scale: {} ms", time2 - time1);
+        fileFeatures = new ArrayList<>(featureListLargeScale.getBlocks());
+
+        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
+                .filter(Gene::isMapped).count());
+        Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
+        Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
+
+        time1 = Utils.getSystemTimeMilliseconds();
+        featureListLargeScale = geneTrackManager.loadGenesFromIndex(track2, false);
+        time2 = Utils.getSystemTimeMilliseconds();
+        logger.info("genes loading large scale: {} ms", time2 - time1);
+
+        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
+                .filter(Gene::isMapped).count());
+        Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
+        Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
+        assertIndexAndFileFeatures(featureListLargeScale, fileFeatures);
+
+        // delete:
+        gffManager.unregisterGeneFile(geneFile.getId());
+
+        boolean failed = false;
+        try {
+            geneFileManager.load(geneFile.getId());
+        } catch (IllegalArgumentException e) {
+            failed = true;
+        }
+        Assert.assertTrue(failed);
+        List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
+                Arrays.asList(geneFile.getBioDataItemId(), geneFile.getIndex().getId()));
+        Assert.assertTrue(dataItems.isEmpty());
+
+        File dir = new File(baseDirPath + "/42/genes/" + geneFile.getId());
+        Assert.assertFalse(dir.exists());
+
+        return true;
+    }
+
+    public void checkGenesCorrectness(List<Gene> genes) {
+        Assert.assertTrue(genes.stream().allMatch(g -> MapUtils.isNotEmpty(g.getAttributes())));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || CollectionUtils.isNotEmpty(
+            g.getItems())));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
+            i -> MapUtils.isNotEmpty(i.getAttributes()))));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
+            i -> CollectionUtils.isNotEmpty(i.getItems()))));
+    }
+
+    private String readFile(String filename) throws IOException {
+        Resource resource = context.getResource("classpath:externaldb//data//" + filename);
+        String pathStr = resource.getFile().getPath();
+        return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
+    }
+
+    private void assertUnmappedFeatureList(final int expectedGenesOriginalSize, final Track<Gene> featureList) {
+        Assert.assertNotNull(featureList);
+        Assert.assertFalse(featureList.getBlocks().isEmpty());
+        Assert.assertEquals(expectedGenesOriginalSize, featureList.getBlocks().size());
+        Assert.assertTrue(featureList.getBlocks().stream().noneMatch(Gene::isMapped));
+    }
+
+    private void assertGeneTrackAfterRegistration(double time1, Track<Gene> featureList, double time2) {
+        logger.info("genes loading : {} ms", time2 - time1);
+        Assert.assertNotNull(featureList);
+        Assert.assertFalse(featureList.getBlocks().isEmpty());
+        logger.info("{} genes", featureList.getBlocks().size());
+
+        featureList.getBlocks().stream().filter(g -> g.getItems() != null)
+                .forEach(g -> Assert.assertTrue(g.getItems().stream()
+                        .filter(GeneUtils::isTranscript)
+                        .allMatch(i -> i.getExonsCount() != null && i.getAminoacidLength() != null
+                                && i.getExonsCount() == i.getItems().stream()
+                                .filter(ii -> "exon".equalsIgnoreCase(ii.getFeature())).count())));
+    }
+
+    private void assertExons(GeneFile geneFile, Track<Gene> featureList) throws IOException {
         Assert.assertNotNull(featureList);
         Assert.assertFalse(featureList.getBlocks().isEmpty());
 
@@ -314,503 +931,5 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(loadPrevExon);
         Assert.assertEquals(firstExon.getStartIndex(), loadPrevExon.getStartIndex());
         Assert.assertEquals(firstExon.getEndIndex(), loadPrevExon.getEndIndex());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testDeleteGeneWithIndex() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, GeneReadingException {
-        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-        try {
-            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), false);
-            geneFileManager.delete(geneFile);
-        //expected exception
-        } catch (IllegalArgumentException e) {
-            //remove file correctly as expected
-            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), true);
-            geneFileManager.delete(geneFile);
-        }
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testLoadExonsInViewPort() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-            IOException {
-        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-        List<Block> exons = gffManager.loadExonsInViewPort(geneFile.getId(), testChromosome.getId(),
-                TEST_CENTER_POSITION, TEST_VIEW_PORT_SIZE, TEST_INTRON_LENGTH);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        Assert.assertFalse(exons.isEmpty());
-        logger.info("Loading exons took {} ms", time2 - time1);
-        List<Block> exonsBelow = exons.stream()
-                .filter(e -> e.getEndIndex() < TEST_CENTER_POSITION)
-                .collect(Collectors.toList());
-        List<Block> exonsAbove = exons.stream()
-                .filter(e -> e.getStartIndex() > TEST_CENTER_POSITION)
-                .collect(Collectors.toList());
-        Assert.assertFalse(exonsBelow.isEmpty());
-        Assert.assertFalse(exonsAbove.isEmpty());
-
-        testOverlapping(exons);
-
-        final Map<String, Pair<Integer, Integer>> metaMap = fileManager.loadIndexMetadata(geneFile);
-        Pair<Integer, Integer> bounds = metaMap.get(testChromosome.getName());
-        if (bounds == null) {
-            bounds = metaMap.get(Utils.changeChromosomeName(testChromosome.getName()));
-        }
-
-        testFillRange(exonsBelow, TEST_VIEW_PORT_SIZE / 2, TEST_CENTER_POSITION, false, bounds.getLeft());
-        testFillRange(exonsAbove, TEST_VIEW_PORT_SIZE / 2, TEST_CENTER_POSITION, true, bounds.getRight());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testLoadExonsInTrack() throws IOException, FeatureIndexException, InterruptedException,
-            NoSuchAlgorithmException {
-        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        List<Block> exons = gffManager.loadExonsInViewPort(geneFile.getId(), testChromosome.getId(),
-                TEST_CENTER_POSITION, TEST_VIEW_PORT_SIZE, TEST_INTRON_LENGTH);
-
-        List<Block> exons2 = gffManager.loadExonsInTrack(geneFile.getId(), testChromosome.getId(), exons.get(0)
-                .getStartIndex(), exons.get(exons.size() - 1).getEndIndex(), TEST_INTRON_LENGTH);
-
-        Assert.assertFalse(exons2.isEmpty());
-        Assert.assertEquals(exons.size(), exons2.size());
-        for (int i = 0; i < exons2.size(); i++) {
-            Assert.assertEquals(exons.get(i).getStartIndex(), exons2.get(i).getStartIndex());
-            Assert.assertEquals(exons.get(i).getEndIndex(), exons2.get(i).getEndIndex());
-        }
-
-        testOverlapping(exons2);
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterGffFail() throws IOException, FeatureIndexException, InterruptedException,
-            NoSuchAlgorithmException {
-        Resource resource = context.getResource("classpath:templates/Felis_catus.Felis_catus_6.2.81.gtf");
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        boolean failed = true;
-        try {
-            gffManager.registerGeneFile(request);
-        } catch (TribbleException.MalformedFeatureFile e) {
-            failed = false;
-        }
-
-        Assert.assertFalse("Not failed on unsorted file", failed);
-
-        /*Resource fakeIndex = context.getResource("classpath:templates/fake_gtf_index.tbi");
-        request.setIndexPath(fakeIndex.getFile().getAbsolutePath());
-
-        failed = true;
-        try {
-            gffManager.registerGeneFile(request);
-        } catch (Exception e) {
-            failed = false;
-        }
-
-        Assert.assertFalse("Not failed on unsorted file", failed);*/
-    }
-
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadGenesTranscript() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, ExternalDbUnavailableException {
-        MockitoAnnotations.initMocks(this);
-        String fetchRes1 = readFile("ensembl_id_ENSG00000177663.json");
-        String fetchRes2 = readFile("uniprot_id_ENST00000319363.xml");
-        String fetchRes3 = readFile("uniprot_id_ENST00000319363.xml");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
-                .thenReturn(fetchRes1)
-                .thenReturn(fetchRes2)
-                .thenReturn(fetchRes3);
-
-
-        Chromosome otherChromosome = EntityHelper.createNewChromosome("22");
-        otherChromosome.setSize(TEST_CHROMOSOME_SIZE);
-        Reference otherReference = EntityHelper.createNewReference(otherChromosome,
-                referenceGenomeManager.createReferenceId());
-
-        referenceGenomeManager.create(otherReference);
-        Long otherReferenceId = otherReference.getId();
-
-        Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
-
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(otherReferenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        Track<Gene> track = new Track<>();
-        track.setId(geneFile.getId());
-        track.setStartIndex(START_INDEX_ASTRA);
-        track.setEndIndex(END_INDEX_ASTRA);
-        track.setChromosome(otherChromosome);
-        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
-        try {
-            Track<GeneTranscript> featureList = gffManager.loadGenesTranscript(track, null, null);
-            Assert.assertNotNull(featureList);
-            Assert.assertFalse(featureList.getBlocks().isEmpty());
-            Gene testGene = featureList.getBlocks().get(0);
-            Assert.assertNotNull(testGene);
-            Assert.assertFalse(testGene.getTranscripts().isEmpty());
-            Transcript testTranscript = testGene.getTranscripts().get(1);
-
-            Assert.assertEquals(PROTEIN_CODING, testTranscript.getBioType());
-
-            Assert.assertFalse(testTranscript.getDomain().isEmpty());
-            Assert.assertFalse(testTranscript.getExon().isEmpty());
-            Assert.assertFalse(testTranscript.getSecondaryStructure().isEmpty());
-            Assert.assertFalse(testTranscript.getPdb().isEmpty());
-        } catch (GeneReadingException e) {
-            logger.info("database unavailable");
-        }
-    }
-
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testPBD() throws IOException, InterruptedException, ExternalDbUnavailableException, JAXBException {
-
-        MockitoAnnotations.initMocks(this);
-
-        String fetchRes1 = readFile("pbd_id_2k8d.xml");
-        String fetchRes2 = readFile("pbd_map_id_2k8d.xml");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
-                .thenReturn(fetchRes1)
-                .thenReturn(fetchRes2);
-
-
-        final DimStructure dimStructurelist = gffManager.getPBDItemsFromBD(PBD_TEST_ID);
-        Assert.assertNotNull(dimStructurelist);
-        Assert.assertNotNull(dimStructurelist.getEntities());
-        Assert.assertFalse(dimStructurelist.getEntities().isEmpty());
-        Assert.assertNotNull(dimStructurelist.getStructureTitle());
-        Assert.assertNotNull(dimStructurelist.getClassification());
-        Assert.assertNotNull(dimStructurelist.getStructureId());
-        final DimEntity entity = dimStructurelist.getEntities().get(0);
-        Assert.assertNotNull(entity.getCompound());
-        Assert.assertNotNull(entity.getChainId());
-        Assert.assertNotNull(entity.getPdbEnd());
-        Assert.assertNotNull(entity.getPdbStart());
-        Assert.assertNotNull(entity.getUnpEnd());
-        Assert.assertNotNull(entity.getUnpStart());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testUnmappedGenes() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                           IOException, GeneReadingException, HistogramReadingException {
-        Chromosome testChr1 = EntityHelper.createNewChromosome();
-        testChr1.setName("chr1");
-        testChr1.setSize(TEST_CHROMOSOME_SIZE);
-        Reference testRef = EntityHelper.createNewReference(testChr1, referenceGenomeManager.createReferenceId());
-
-        referenceGenomeManager.create(testRef);
-        Long testRefId = testReference.getId();
-
-        Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(testRefId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        Track<Gene> track = new Track<>();
-        track.setId(geneFile.getId());
-        track.setStartIndex(1);
-        track.setEndIndex(TEST_UNMAPPED_END_INDEX);
-        track.setChromosome(testChr1);
-        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
-
-        Track<Gene> smallScaleFactorTrack = new Track<>();
-        smallScaleFactorTrack.setId(geneFile.getId());
-        smallScaleFactorTrack.setStartIndex(1);
-        smallScaleFactorTrack.setEndIndex(TEST_UNMAPPED_END_INDEX);
-        smallScaleFactorTrack.setChromosome(testChr1);
-        smallScaleFactorTrack.setScaleFactor(SMALL_SCALE_FACTOR);
-
-        time1 = Utils.getSystemTimeMilliseconds();
-        featureList = gffManager.loadGenes(smallScaleFactorTrack, false);
-        time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes large scale loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        Assert.assertTrue(featureList.getBlocks().stream().allMatch(g -> !g.isMapped()));
-        int groupedGenesCount = featureList.getBlocks().stream().collect(Collectors.summingInt(Gene::getFeatureCount));
-        logger.debug("{} features total", groupedGenesCount);
-        Assert.assertEquals(TEST_FEATURE_COUNT, groupedGenesCount);
-
-        Track<Wig> histogram = new Track<>();
-        histogram.setId(geneFile.getId());
-        histogram.setChromosome(testChr1);
-        histogram.setScaleFactor(1.0);
-
-        gffManager.loadHistogram(histogram);
-        Assert.assertFalse(histogram.getBlocks().isEmpty());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testCollapsedGtf() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                          IOException, GeneReadingException {
-        Assert.assertTrue(testCollapsed(GENES_SORTED_GTF_PATH));
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testCollapsedGff() throws InterruptedException, NoSuchAlgorithmException, FeatureIndexException,
-                                          IOException, GeneReadingException {
-        Assert.assertTrue(testCollapsed("classpath:templates/genes_sorted.gff3"));
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterGbk() throws IOException {
-        Resource resource = context.getResource(GENBANK_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-        Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
-        Assert.assertTrue(geneFile.getSource().endsWith(GenbankUtils.GENBANK_DEFAULT_EXTENSION));
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testRegisterGbf() throws IOException {
-        Resource resource = context.getResource(GBF_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-        Assert.assertTrue(geneFile.getPath().endsWith(GffCodec.GFF_EXTENSION));
-        Assert.assertTrue(geneFile.getSource().endsWith(GBF_EXT));
-    }
-
-    private boolean testCollapsed(String path) throws IOException, FeatureIndexException, InterruptedException,
-                                                   NoSuchAlgorithmException, GeneReadingException {
-        Resource resource = context.getResource(path);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        Track<Gene> track = new Track<>();
-        track.setId(geneFile.getId());
-        track.setStartIndex(1);
-        track.setEndIndex(TEST_END_INDEX);
-        track.setChromosome(testChromosome);
-        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
-
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
-
-        Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
-        Assert.assertTrue(featureList.getBlocks()
-                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
-                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
-
-        track = new Track<>();
-        track.setId(geneFile.getId());
-        track.setStartIndex(1);
-        track.setEndIndex(TEST_END_INDEX);
-        track.setChromosome(testChromosome);
-        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListCollapsed = gffManager.loadGenes(track, true);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureListCollapsed);
-        Assert.assertFalse(featureListCollapsed.getBlocks().isEmpty());
-        Assert.assertTrue(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
-                .allMatch(g -> g.getItems().size() == 1));
-        Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
-                .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
-
-        Assert.assertTrue(featureListCollapsed.getBlocks()
-                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
-        return true;
-    }
-
-    private void testOverlapping(List<Block> exons) {
-        IntervalTree<Block> intervalTree = new IntervalTree<>();
-        for (Block exon : exons) {
-            Iterator<IntervalTree.Node<Block>> nodeIterator = intervalTree.overlappers(exon.getStartIndex(),
-                                                                                       exon.getEndIndex());
-            Assert.assertFalse("Should be no overlapping exons", nodeIterator.hasNext());
-            intervalTree.put(exon.getStartIndex(), exon.getEndIndex(), exon);
-        }
-    }
-
-    private void testFillRange(List<Block> exons, int viewPortSize, int centerPosition, boolean forward, int bound) {
-        int totalLength = exons.stream()
-            .collect(Collectors.summingInt(e -> gffManager.calculateExonLength(e, centerPosition, forward)));
-
-        boolean isBounded;
-        if (forward) {
-            isBounded = exons.get(exons.size() - 1).getEndIndex() >= bound;
-        } else {
-            isBounded = exons.get(0).getStartIndex() <= bound;
-        }
-
-        Assert.assertTrue(totalLength >= viewPortSize || isBounded);
-    }
-
-    private boolean testRegister(String path) throws IOException, InterruptedException, FeatureIndexException,
-                                                  NoSuchAlgorithmException, HistogramReadingException,
-                                                  GeneReadingException {
-        Resource resource = context.getResource(path);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
-
-        Track<Wig> histogram = new Track<>();
-        histogram.setId(geneFile.getId());
-        histogram.setChromosome(testChromosome);
-        histogram.setScaleFactor(1.0);
-
-        gffManager.loadHistogram(histogram);
-        Assert.assertFalse(histogram.getBlocks().isEmpty());
-
-        Track<Gene> track = new Track<>();
-        track.setId(geneFile.getId());
-        track.setStartIndex(1);
-        track.setEndIndex(TEST_END_INDEX);
-        track.setChromosome(testChromosome);
-        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureList = gffManager.loadGenes(track, false);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading : {} ms", time2 - time1);
-        Assert.assertNotNull(featureList);
-        Assert.assertFalse(featureList.getBlocks().isEmpty());
-        logger.info("{} genes", featureList.getBlocks().size());
-
-        featureList.getBlocks().stream().filter(g -> g.getItems() != null)
-                .forEach(g -> Assert.assertTrue(g.getItems().stream()
-                        .filter(GeneUtils::isTranscript)
-                        .allMatch(i -> i.getExonsCount() != null && i.getAminoacidLength() != null
-                                && i.getExonsCount() == i.getItems().stream()
-                                .filter(ii -> "exon".equalsIgnoreCase(ii.getFeature())).count())));
-
-        Track<Gene> track2 = new Track<>();
-        track2.setId(geneFile.getId());
-        track2.setStartIndex(1);
-        track2.setEndIndex(TEST_END_INDEX);
-        track2.setChromosome(testChromosome);
-        track2.setScaleFactor(SMALL_SCALE_FACTOR);
-
-        time1 = Utils.getSystemTimeMilliseconds();
-        Track<Gene> featureListLargeScale = gffManager.loadGenes(track2, false);
-        time2 = Utils.getSystemTimeMilliseconds();
-        logger.info("genes loading large scale: {} ms", time2 - time1);
-
-        Assert.assertEquals(featureListLargeScale.getBlocks().size(), featureList.getBlocks().stream()
-                .filter(Gene::isMapped).count());
-        Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
-        Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
-
-        // delete:
-        gffManager.unregisterGeneFile(geneFile.getId());
-
-        boolean failed = false;
-        try {
-            geneFileManager.load(geneFile.getId());
-        } catch (IllegalArgumentException e) {
-            failed = true;
-        }
-        Assert.assertTrue(failed);
-        List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
-                Arrays.asList(geneFile.getBioDataItemId(), geneFile.getIndex().getId()));
-        Assert.assertTrue(dataItems.isEmpty());
-
-        File dir = new File(baseDirPath + "/42/genes/" + geneFile.getId());
-        Assert.assertFalse(dir.exists());
-
-        return true;
-    }
-
-    public void checkGenesCorrectness(List<Gene> genes) {
-        Assert.assertTrue(genes.stream().allMatch(g -> MapUtils.isNotEmpty(g.getAttributes())));
-        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || CollectionUtils.isNotEmpty(
-            g.getItems())));
-        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
-            i -> MapUtils.isNotEmpty(i.getAttributes()))));
-        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
-            i -> CollectionUtils.isNotEmpty(i.getItems()))));
-    }
-
-    private String readFile(String filename) throws IOException {
-        Resource resource = context.getResource("classpath:externaldb//data//" + filename);
-        String pathStr = resource.getFile().getPath();
-        return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
 }
