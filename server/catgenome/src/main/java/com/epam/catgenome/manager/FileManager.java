@@ -2000,6 +2000,8 @@ public class FileManager {
                         accessDenied = true;
                         fileName = e.getFile();
                         otherFileName = e.getOtherFile();
+                    } catch (IOException e) {
+                        LOGGER.warn("Error while list directory " + child.getFileName() + " it won't be shown!", e);
                     }
                 }
 
