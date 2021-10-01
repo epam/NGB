@@ -1,3 +1,7 @@
+.md-open-menu-container + .md-dialog-container {
+  z-index: 1200;
+}
+
 md-dialog md-dialog-content {
   min-width: 600px;
 }
