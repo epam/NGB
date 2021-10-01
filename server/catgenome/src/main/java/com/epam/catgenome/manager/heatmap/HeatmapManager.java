@@ -117,20 +117,28 @@ public class HeatmapManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
-        File file = getFile(path);
         Heatmap heatmap = getHeatmap(heatmapId);
-        heatmap.setLabelAnnotationPath(path);
-        checkLabelAnnotation(heatmap);
-        heatmapDao.updateLabelAnnotation(heatmapId, FileUtils.readFileToByteArray(file), path);
+        File file = null;
+        if (!TextUtils.isBlank(path)) {
+            file = getFile(path);
+            heatmap.setLabelAnnotationPath(path);
+            checkLabelAnnotation(heatmap);
+        }
+        heatmapDao.updateLabelAnnotation(heatmapId, file == null ? null :
+                FileUtils.readFileToByteArray(file), path);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
-        File file = getFile(path);
         Heatmap heatmap = getHeatmap(heatmapId);
-        heatmap.setCellAnnotationPath(path);
-        checkCellAnnotation(heatmap);
-        heatmapDao.updateCellAnnotation(heatmapId, FileUtils.readFileToByteArray(file), path);
+        File file = null;
+        if (!TextUtils.isBlank(path)) {
+            file = getFile(path);
+            heatmap.setCellAnnotationPath(path);
+            checkCellAnnotation(heatmap);
+        }
+        heatmapDao.updateCellAnnotation(heatmapId, file == null ? null :
+                FileUtils.readFileToByteArray(file), path);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

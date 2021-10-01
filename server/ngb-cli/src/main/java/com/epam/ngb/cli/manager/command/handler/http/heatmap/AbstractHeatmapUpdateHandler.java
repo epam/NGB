@@ -44,24 +44,23 @@ import java.util.List;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 @Slf4j
-public abstract class AbstractHeatmapAnnotationHandler extends AbstractHTTPCommandHandler {
+public abstract class AbstractHeatmapUpdateHandler extends AbstractHTTPCommandHandler {
 
     private Long heatmapId;
     private String path;
 
     /**
       * Verifies input arguments
-      * @param arguments command line arguments for 'update_label_annotation' command
       * @param options
       */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 2) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 2, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
         heatmapId = loadItemId(arguments.get(0));
-        path = arguments.get(1);
+        path = options.getPath();
     }
 
     @Override public int runCommand() {
@@ -71,10 +70,12 @@ public abstract class AbstractHeatmapAnnotationHandler extends AbstractHTTPComma
             builder.addParameter("path", path);
             HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
             String result = RequestManager.executeRequest(request);
-            ResponseResult response = getMapper().readValue(result,
+            ResponseResult responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            log.info(response.getStatus() +
-                    (response.getMessage() == null ? "" : "\t" + response.getMessage()));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            log.info("Heatmap " + heatmapId + " was successfully updated.");
         } catch (IOException | URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

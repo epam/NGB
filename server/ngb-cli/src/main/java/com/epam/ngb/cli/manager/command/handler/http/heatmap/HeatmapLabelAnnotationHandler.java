@@ -29,5 +29,5 @@ package com.epam.ngb.cli.manager.command.handler.http.heatmap;
 import com.epam.ngb.cli.manager.command.handler.Command;
 
 @Command(type = Command.Type.REQUEST, command = {"upd_label_annotation"})
-public class HeatmapLabelAnnotationHandler extends AbstractHeatmapAnnotationHandler {
+public class HeatmapLabelAnnotationHandler extends AbstractHeatmapUpdateHandler {
 }

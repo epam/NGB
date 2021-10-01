@@ -70,10 +70,12 @@ public class HeatmapDeletionHandler extends AbstractHTTPCommandHandler {
     @Override public int runCommand() {
         try {
             String result = RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), heatmapId)));
-            ResponseResult response = getMapper().readValue(result,
+            ResponseResult responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            log.info(response.getStatus() +
-                    (response.getMessage() == null ? "" : "\t" + response.getMessage()));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            log.info("Heatmap " + heatmapId + " was successfully deleted.");
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

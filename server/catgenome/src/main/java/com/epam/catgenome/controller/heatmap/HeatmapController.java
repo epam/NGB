@@ -95,7 +95,7 @@ public class HeatmapController extends AbstractRESTController {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
     }
 
-    @GetMapping(value = "/heatmap/{heatmapId}/annotation")
+    @GetMapping(value = "/heatmap/{heatmapId}/label/annotation")
     @ApiOperation(
             value = "Returns heatmap annotation for labels",
             notes = "Returns heatmap annotation for labels",
@@ -109,7 +109,7 @@ public class HeatmapController extends AbstractRESTController {
         return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId, projectId));
     }
 
-    @PutMapping(value = "/heatmap/{heatmapId}/annotation")
+    @PutMapping(value = "/heatmap/{heatmapId}/label/annotation")
     @ApiOperation(
             value = "Updates heatmap annotation for labels",
             notes = "Updates heatmap annotation for labels",
@@ -118,7 +118,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateLabelAnnotation(@PathVariable final long heatmapId,
-                                                 @RequestParam final String path) throws IOException {
+                                                 @RequestParam(required = false) final String path) throws IOException {
         heatmapSecurityService.updateLabelAnnotation(heatmapId, path);
         return Result.success(null);
     }
@@ -132,7 +132,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateCellAnnotation(@PathVariable final long heatmapId,
-                                                @RequestParam final String path) throws IOException {
+                                                @RequestParam(required = false) final String path) throws IOException {
         heatmapSecurityService.updateCellAnnotation(heatmapId, path);
         return Result.success(null);
     }

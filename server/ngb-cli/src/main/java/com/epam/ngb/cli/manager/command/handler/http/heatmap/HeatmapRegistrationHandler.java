@@ -28,15 +28,21 @@ package com.epam.ngb.cli.manager.command.handler.http.heatmap;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.Heatmap;
 import com.epam.ngb.cli.entity.HeatmapRegistrationRequest;
+import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+@Slf4j
 @Command(type = Command.Type.REQUEST, command = {"reg_heatmap"})
 public class HeatmapRegistrationHandler extends AbstractHTTPCommandHandler {
 
@@ -49,26 +55,41 @@ public class HeatmapRegistrationHandler extends AbstractHTTPCommandHandler {
       */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() < 1 || arguments.size() > 3) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
         registrationRequest = HeatmapRegistrationRequest.builder()
-                .name(options.getName())
-                .prettyName(options.getPrettyName())
                 .path(arguments.get(0))
                 .build();
-        if (arguments.size() > 1) {
-            registrationRequest.setCellAnnotationPath(arguments.get(1));
-            if (arguments.size() > 2) {
-                registrationRequest.setLabelAnnotationPath(arguments.get(2));
-            }
+        if (options.getName() != null) {
+            registrationRequest.setName(options.getName());
+        }
+        if (options.getPrettyName() != null) {
+            registrationRequest.setPrettyName(options.getPrettyName());
+        }
+        if (options.getHeatmapCellAnnotationPath() != null) {
+            registrationRequest.setCellAnnotationPath(options.getHeatmapCellAnnotationPath());
+        }
+        if (options.getHeatmapLabelAnnotationPath() != null) {
+            registrationRequest.setLabelAnnotationPath(options.getHeatmapLabelAnnotationPath());
         }
     }
 
     @Override public int runCommand() {
         HttpPost request = (HttpPost) getRequest(getRequestUrl());
-        getResult(getPostResult(registrationRequest, request), Boolean.class);
+        String result = getPostResult(registrationRequest, request);
+        try {
+            ResponseResult<Heatmap> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            Heatmap.class));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            log.info("Heatmap was successfully registered. ID: " + responseResult.getPayload().getHeatmapId() + ".");
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
         return 0;
     }
 }

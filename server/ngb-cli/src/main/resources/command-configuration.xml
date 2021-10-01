@@ -233,7 +233,7 @@
     <upd_label_annotation>
         <name>upd_label_annotation</name>
         <type>PUT</type>
-        <url>/restapi/heatmap/%d/annotation</url>
+        <url>/restapi/heatmap/%d/label/annotation</url>
     </upd_label_annotation>
     <upd_cell_annotation>
         <name>upd_cell_annotation</name>

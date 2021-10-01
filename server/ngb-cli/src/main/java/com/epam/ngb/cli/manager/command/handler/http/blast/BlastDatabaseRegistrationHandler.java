@@ -53,7 +53,7 @@ public class BlastDatabaseRegistrationHandler extends AbstractHTTPCommandHandler
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
         if (arguments.size() != 4) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 3, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 4, arguments.size()));
         }
         String type = arguments.get(2);
         String source = arguments.get(3);
