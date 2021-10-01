@@ -144,6 +144,15 @@ export function sortDatasets(content, sortFn) {
         sortFn = sortByNameAsc;
     }
     const itemsSort = function (node1: Node, node2: Node) {
+        // If user opens files via "Open by URL" or "Open from NGB server", then this files
+        // will be added to the "Not registered files" datasets with #id = 0;
+        // we should NOT sort this dataset - it should always be the last in the list
+        if (node1.isProject && node1.id === 0) {
+            return 1;
+        }
+        if (node2.isProject && node2.id === 0) {
+            return -1;
+        }
         if ((node1.isTrack && node2.isTrack) || (node1.isProject && node2.isProject)) {
             return sortFn(node1, node2);
         } else if (node1.isProject) {
@@ -403,6 +412,15 @@ export function toPlainList(items, namingService, indent = 0) {
             }
             return item;
         }).sort((a, b) => {
+            // If user opens files via "Open by URL" or "Open from NGB server", then this files
+            // will be added to the "Not registered files" datasets with #id = 0;
+            // we should NOT sort this dataset - it should always be the last in the list
+            if (a.isProject && a.id === 0) {
+                return 1;
+            }
+            if (b.isProject && b.id === 0) {
+                return -1;
+            }
             const aName = (a.modifiedName || a.displayName || '').toLowerCase();
             const bName = (b.modifiedName || b.displayName || '').toLowerCase();
             if (aName > bName) {

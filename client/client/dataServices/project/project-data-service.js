@@ -54,6 +54,9 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectIdDescription(projectId) {
+        if (!projectId) {
+            return Promise.resolve(undefined);
+        }
         return this.downloadFile('get', `project/${+projectId}/description`, undefined, {customResponseType: 'arraybuffer'});
     }
 
