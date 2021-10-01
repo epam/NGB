@@ -12,7 +12,7 @@
         </div>
     </md-toolbar>
     <md-dialog-content>
-        <div layout="column">
+        <div layout="column" ng-if="!error">
             <ngb-feature-info-panel properties="properties"
                                     reference-id="referenceId"
                                     chromosome-id="chromosomeId"
@@ -26,6 +26,13 @@
                                     feature="feature"
                                     uuid="uuid"
                                     panel-title="panelTitle" flex></ngb-feature-info-panel>
+        </div>
+        <div
+            layout="column"
+            style="display:flex; justify-content: center; align-items: center; min-height: 350px;padding: 15px;"
+            ng-if="error"
+        >
+            <ngb-panel-error-list message-list="[error]"></ngb-panel-error-list>
         </div>
     </md-dialog-content>
 </md-dialog>

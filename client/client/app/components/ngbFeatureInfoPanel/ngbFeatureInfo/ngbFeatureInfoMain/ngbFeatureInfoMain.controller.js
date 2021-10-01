@@ -150,6 +150,8 @@ export default class ngbFeatureInfoMainController {
                 ]
             ))];
         this.feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
+        // several methods have different spelling of field name: uid/uuid
+        this.feature.uid = this.uuid;
         this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, this.feature)
             .then((success) => {
                 this.ngbFeatureInfoPanelService.saveInProgress = false;

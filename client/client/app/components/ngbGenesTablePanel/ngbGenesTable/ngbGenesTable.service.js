@@ -381,10 +381,6 @@ export default class ngbGenesTableService {
         );
     }
 
-    getGeneInfo(geneFileId, uid) {
-        return this.genomeDataService.getGeneInfo(geneFileId, uid);
-    }
-
     getGenesGridColumns() {
         const infoCell = require('./ngbGenesTable_info.tpl.html');
         const headerCells = require('./ngbGenesTable_header.tpl.html');

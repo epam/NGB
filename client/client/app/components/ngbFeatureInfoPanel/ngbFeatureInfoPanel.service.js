@@ -18,12 +18,15 @@ export default class ngbFeatureInfoPanelService {
     _saveInProgress = false;
     getHistoryInProgress = false;
 
-    static instance(geneDataService) {
-        return new ngbFeatureInfoPanelService(geneDataService);
+    static instance(geneDataService,genomeDataService) {
+        return new ngbFeatureInfoPanelService(geneDataService, genomeDataService);
     }
 
-    constructor(geneDataService) {
-        Object.assign(this, {geneDataService});
+    constructor(geneDataService, genomeDataService) {
+        Object.assign(this, {
+            geneDataService,
+            genomeDataService
+        });
     }
 
     get editMode() {
@@ -234,6 +237,10 @@ export default class ngbFeatureInfoPanelService {
             }
         });
         return result;
+    }
+
+    getGeneInfo(fileId, uid) {
+        return this.genomeDataService.getGeneInfo(fileId, uid);
     }
 
 }

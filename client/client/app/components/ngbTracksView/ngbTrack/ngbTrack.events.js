@@ -1,5 +1,6 @@
-import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
+
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 
 export default class ngbTrackEvents {
 
@@ -50,26 +51,29 @@ export default class ngbTrackEvents {
                     });
                 }
                 const menuData = [];
+                const featureAttributes = data.feature.attributes;
                 if (!data.feature.grouping) {
-                    const geneFileExists = (
-                        this.projectContext &&
-                        this.projectContext.reference &&
-                        this.projectContext.reference.geneFile
-                    );
+                    const getChrName = (id) => {
+                        const chrIndex =  this.projectContext.chromosomes.findIndex(chr => chr.id === id);
+                        return chrIndex > -1 &&
+                            this.projectContext.chromosomes[chrIndex] &&
+                            this.projectContext.chromosomes[chrIndex].name;
+                    };
                     menuData.push({
                         events: [{
                             data: {
                                 chromosomeId: trackInstance.config.chromosomeId,
+                                seqName: data.feature.seqName || getChrName(trackInstance.config.chromosomeId),
                                 endIndex: data.feature.endIndex,
                                 name: data.feature.name,
                                 properties: data.info,
                                 projectId: track.projectIdNumber || undefined,
-                                referenceId: trackInstance.config.referenceId,
+                                referenceId: track.referenceId,
                                 startIndex: data.feature.startIndex,
-                                geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                                geneId: (featureAttributes && featureAttributes.gene_id) || null,
                                 title: 'FEATURE',
-                                fileId: geneFileExists ? this.projectContext.reference.geneFile.id : undefined,
-                                feature: data.feature
+                                fileId: track.id,
+                                uuid: data.feature.uid
                             },
                             name: 'feature:info:select'
                         }],

@@ -182,14 +182,14 @@ export class GenomeDataService extends DataService {
     getGeneInfo(geneFileId, uid) {
         return new Promise((resolve, reject) => {
             this.get(`gene/${geneFileId}/doc?uid=${uid}`)
+                .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
                         resolve(data);
                     } else {
                         resolve({});
                     }
-                })
-                .catch(reject);
+                }, reject);
         });
     }
 

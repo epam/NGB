@@ -4,6 +4,7 @@ import baseController from '../../../shared/baseController';
 const ROW_HEIGHT = 35;
 const RELOAD_GENES_DELAY = 300;
 
+
 export default class ngbGenesTableController extends baseController {
     dispatcher;
     projectContext;
@@ -347,70 +348,15 @@ export default class ngbGenesTableController extends baseController {
     }
 
     showInfo(entity, event) {
-        entity.isInfoLoading = true;
         const defaultPrefix = this.ngbGenesTableService.defaultPrefix;
-        this.ngbGenesTableService.getGeneInfo(
-            entity[`${defaultPrefix}featureFileId`],
-            entity.uuid
-        ).then(
-            data => {
-                delete entity.error;
-                const sortProperties = (a, b) => a[0] > b[0] ? 1 : -1;
-                const extractProperties = (o, except = []) => Object
-                    .entries(o || {})
-                    .map(([key, value]) => {
-                        if (
-                            o.hasOwnProperty(key) &&
-                            typeof o[key] !== 'object' &&
-                            except.indexOf(key) === -1 &&
-                            o[key] !== undefined
-                        ) {
-                            return [key, value, false];
-                        }
-                        return undefined;
-                    })
-                    .filter(Boolean)
-                    .sort(sortProperties);
-                const result = {
-                    projectId: undefined,
-                    chromosomeId: entity.chromosomeObj.id,
-                    startIndex: data.startIndex,
-                    endIndex: data.endIndex,
-                    name: data.featureName,
-                    geneId: data.featureId,
-                    properties: [
-                        ['chromosome', entity.chromosomeObj.name, false],
-                        ['start', data.startIndex, false],
-                        ['end', data.endIndex, false],
-                        ...extractProperties(data, [
-                            'start',
-                            'end',
-                            'chromosome',
-                            'startIndex',
-                            'endIndex'
-                        ]),
-                        ...Object
-                            .entries(data.attributes || {})
-                            .map(([key, value]) => ([
-                                key, value, true
-                            ]))
-                            .sort(sortProperties)
-                    ],
-                    referenceId: entity.referenceId,
-                    title: entity.feature,
-                    fileId: entity[`${defaultPrefix}featureFileId`],
-                    feature: data,
-                    uuid: entity.uuid
-                };
-                this.dispatcher.emitSimpleEvent('feature:info:select', result);
-                entity.isInfoLoading = false;
-            },
-            errorObj => {
-                entity.error = errorObj ? errorObj.error : 'Network error';
-                entity.isInfoLoading = false;
-                this.$timeout(() => this.$scope.$apply());
-            }
-        );
+        this.dispatcher.emitSimpleEvent(
+            'feature:info:select', {
+                fileId: entity[`${defaultPrefix}featureFileId`],
+                uuid: entity.uuid,
+                chromosomeId: entity.chromosomeObj.id,
+                seqName: entity.chromosomeObj.name,
+                referenceId: entity.referenceId
+        });
         event.stopImmediatePropagation();
     }
 
