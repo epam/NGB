@@ -44,6 +44,7 @@ import java.net.URL;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -2000,7 +2001,7 @@ public class FileManager {
                         accessDenied = true;
                         fileName = e.getFile();
                         otherFileName = e.getOtherFile();
-                    } catch (IOException e) {
+                    } catch (IOException | DirectoryIteratorException e) {
                         LOGGER.warn("Error while list directory " + child.getFileName() + " it won't be shown!", e);
                     }
                 }
