@@ -1,5 +1,5 @@
-import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 
 export default class ngbTrackEvents {
 
@@ -177,6 +177,7 @@ export default class ngbTrackEvents {
                                     data: new EventGeneInfo({
                                         endIndex: data.feature.endIndex,
                                         geneId: data.feature.attributes.gene_id,
+                                        geneName: data.feature.attributes.gene_name,
                                         geneTracks,
                                         highlight: false,
                                         startIndex: data.feature.startIndex,

@@ -1,8 +1,12 @@
-ngb-panel-error-list {
+.ngb-panel-error-list {
   display: block;
   width: 100%;
   md-content.md-warn {
     color: darkred;
     border: 1px solid #ffc7a1;
+  }
+  a {
+    text-decoration: underline;
+    color: #2c4f9e;
   }
 }
