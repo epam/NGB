@@ -945,7 +945,11 @@ export default class projectContext {
     }
 
     loadDatasetDescription(id) {
-        return this.projectDataService.getProjectIdDescription(id);
+        return new Promise((resolve) => {
+            this.projectDataService.getProjectIdDescription(id)
+                .then(resolve)
+                .catch(() => resolve(undefined));
+        });
     }
 
     convertProjectForSave = utilities.convertProjectForSave;
