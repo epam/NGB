@@ -42,6 +42,12 @@ class ngbHeatmapController {
             this.heatmap.setDataConfig(this.heatmapId, this.heatmapProjectId);
         }
     }
+
+    onHeatmapNavigationCallback() {
+        if (typeof this.onHeatmapNavigation === 'function') {
+            this.onHeatmapNavigation();
+        }
+    }
 }
 
 export default ngbHeatmapController;

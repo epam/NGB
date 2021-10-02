@@ -5,7 +5,7 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div ng-if="!$ctrl.loading && $ctrl.heatmaps.length === 0" class="heatmap-container-error">
-    <ngb-panel-error-list message-list="['Heatmaps not found']"></ngb-panel-error-list>
+    No heatmaps selected.<br />You can select heatmap file or dataset of reference with heatmap annotations
 </div>
 <div class="heatmap-panel-container" ng-if="!$ctrl.loading && $ctrl.heatmaps.length > 0">
     <md-input-container>
@@ -25,6 +25,7 @@
                  ng-if="$ctrl.heatmapId"
                  id="$ctrl.heatmapId"
                  check-resize="true"
-                 project-id="$ctrl.heatmapProjectId">
+                 project-id="$ctrl.heatmapProjectId"
+                 on-heatmap-navigation="$ctrl.onHeatmapNavigationCallback">
     </ngb-heatmap>
 </div>

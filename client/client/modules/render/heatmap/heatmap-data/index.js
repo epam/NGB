@@ -30,15 +30,9 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     anotherOptions(options) {
-        const {
-            id: currentId,
-            projectId: currentProjectId
-        } = this._options || {};
-        const {
-            id,
-            projectId
-        } = options || {};
-        return id !== currentId || projectId !== currentProjectId;
+        const {id: currentId} = this._options || {};
+        const {id} = options || {};
+        return id !== currentId;
     }
 
     destroy() {
@@ -111,14 +105,14 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetchMetadata() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchMetadataPromise) {
             this.fetchMetadataPromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmapMetadata(id, projectId)
+                    .loadHeatmapMetadata(id)
                     .then(this.waitForTreeData.bind(this))
                     .then((metadata = {}) => {
                         this.assignMetadata(
@@ -147,7 +141,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetchTree() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
@@ -161,7 +155,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         if (!this.fetchTreePromise) {
             this.fetchTreePromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmapTree(id, projectId)
+                    .loadHeatmapTree(id)
                     .then((tree) => {
                         const {
                             columns = [],
@@ -203,14 +197,14 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetch() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchPromise) {
             this.fetchPromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmap(id, projectId)
+                    .loadHeatmap(id)
                     .then(this.waitForMetadata.bind(this))
                     .then(data => HeatmapTrie.fromPlainData(
                         data,
