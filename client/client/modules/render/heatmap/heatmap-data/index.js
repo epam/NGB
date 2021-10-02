@@ -212,7 +212,12 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                 heatMapDataService
                     .loadHeatmap(id, projectId)
                     .then(this.waitForMetadata.bind(this))
-                    .then(data => HeatmapTrie.fromPlainData(data))
+                    .then(data => HeatmapTrie.fromPlainData(
+                        data,
+                        {
+                            string: this.metadata && this.metadata.type === HeatmapDataType.string
+                        }
+                    ))
                     .then((heatmap) => {
                         this.data = heatmap;
                         if (this.data) {

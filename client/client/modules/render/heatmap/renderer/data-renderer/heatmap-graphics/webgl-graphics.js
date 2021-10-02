@@ -11,13 +11,13 @@ export default class HeatmapWebGlGraphics extends HeatmapGraphicsBase {
         this.graphicsData = new HeatmapGraphics();
     }
 
-    applyColorScheme(colorScheme) {
+    applyColorScheme(colorScheme, options) {
         if (colorScheme) {
             if (this.graphicsData) {
                 this.graphicsData.updateGeometryGradients(colorScheme.gradientCollection);
             }
         }
-        return super.applyColorScheme(colorScheme);
+        return super.applyColorScheme(colorScheme, options);
     }
 
     initializePixiObjects() {

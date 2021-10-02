@@ -51,7 +51,9 @@ class ColorSchemeRenderer extends InteractiveZone {
          * @type {ColorScheme}
          */
         this.colorScheme = colorScheme;
-        this.colorScheme.onChanged(this.initialize.bind(this));
+        this.onColorSchemeChangedCallback = this.initialize.bind(this);
+        this.colorScheme.onChanged(this.onColorSchemeChangedCallback);
+        this.colorScheme.onInitialized(this.onColorSchemeChangedCallback);
         /**
          * Labels manager
          * @type {LabelsManager}
@@ -60,18 +62,15 @@ class ColorSchemeRenderer extends InteractiveZone {
         this.labels = [];
         this.discreteLabels = new Map();
         this.initialized = false;
-        if (this.colorScheme) {
-            this.colorScheme.onChanged(() => {
-                this.clearSession();
-                this.requestRender();
-            });
-        }
         this.initialize();
     }
 
     destroy() {
         if (this.container) {
             this.container.destroy(true);
+        }
+        if (this.colorScheme) {
+            this.colorScheme.removeEventListeners(this.onColorSchemeChangedCallback);
         }
         this.labelsManager = undefined;
         this.colorScheme = undefined;
@@ -280,10 +279,13 @@ class ColorSchemeRenderer extends InteractiveZone {
                 const columnWidth = columnWidths[column];
                 const columnXOffset = columnWidths.slice(0, column).reduce((w, c) => w + c, 0);
                 const columnYOffset = drawingHeight / 2.0 - stopsPerColumn / 2.0 * gradientStopTotalHeight;
-                const labelWidth = label.width + 2.0 * config.discrete.gradientStop.margin;
                 const yCenter = columnYOffset + gradientStopTotalHeight * (row + 0.5);
                 label.y = yCenter - label.height / 2.0;
-                label.x = columnXOffset + columnWidth - colorIndicatorTotalWidth - labelWidth;
+                label.x = columnXOffset +
+                    columnWidth -
+                    colorIndicatorTotalWidth -
+                    label.width -
+                    config.discrete.gradientStop.margin;
                 label.visible = true;
                 this.discreteGraphics
                     .beginFill(gradient.getAnyColor(), 1)

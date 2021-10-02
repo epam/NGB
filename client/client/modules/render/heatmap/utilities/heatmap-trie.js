@@ -29,6 +29,7 @@ function* getSectorElements(sector, radius, column, row, columnShift, rowShift) 
  * @property {number} column
  * @property {number} row
  * @property {number|string} value
+ * @property {boolean} [string=false]
  */
 
 class HeatmapTrie extends Trie {
@@ -38,7 +39,8 @@ class HeatmapTrie extends Trie {
             row = 'y',
             value = 'value',
             columns = 0,
-            indexOrder
+            indexOrder,
+            string = false
         } = options;
         const wrapProperty = property => o => Object.prototype.hasOwnProperty.call(o, property)
         && typeof property === 'string'
@@ -64,7 +66,11 @@ class HeatmapTrie extends Trie {
                 const columnIndex = columnFn(data[d]);
                 const rowIndex = rowFn(data[d]);
                 const value = valueFn(data[d]);
-                heatmap.setHeatMapItem(columnIndex, rowIndex, value);
+                heatmap.setHeatMapItem(
+                    columnIndex,
+                    rowIndex,
+                    string && value !== undefined ? `${value}`.trim() : value,
+                );
             }
             if (finalIteration) {
                 heatmap.buildMetadata();
@@ -79,11 +85,14 @@ class HeatmapTrie extends Trie {
     /**
      *
      * @param {*[]} data
-     * @param {{indexOrder: string}} options
+     * @param {{indexOrder: string, string: false}} options
      * @returns {Promise<HeatmapTrie>}
      */
     static fromPlainData (data = [], options = {}) {
-        const {indexOrder} = options;
+        const {
+            indexOrder,
+            string = false
+        } = options;
         const heatmap = new HeatmapTrie({indexOrder});
         let rowIndex = 0;
         let columnIndex = 0;
@@ -113,7 +122,12 @@ class HeatmapTrie extends Trie {
                         value = column;
                     }
                     if (value !== undefined || annotation !== undefined) {
-                        heatmap.setHeatMapItem(columnIndex, rowIndex, value, annotation);
+                        heatmap.setHeatMapItem(
+                            columnIndex,
+                            rowIndex,
+                            string && value !== undefined ? `${value}`.trim() : value,
+                            annotation
+                        );
                     }
                 }
                 if (interrupted) {

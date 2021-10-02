@@ -13,6 +13,11 @@ export default class InteractiveZoneEvent {
          * @type {string}
          */
         this.name = eventTypes.move;
+        /**
+         *
+         * @type {MouseEvent}
+         */
+        this.nativeEvent = event;
         const point = {x: event.offsetX, y: event.offsetY};
         const {x, y} = viewport.getRelativeCanvasPoint(point);
         const {column, row} = viewport.getViewportPoint(point);

@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
-import HeatmapColorScheme, {ColorFormats} from './color-scheme';
+import HeatmapColorScheme from './color-scheme';
 import HeatmapColorSchemeRenderer from './renderer/color-scheme-renderer';
 import HeatmapData from './heatmap-data';
 import HeatmapDataRenderer from './renderer/data-renderer';
@@ -190,7 +190,18 @@ class HeatmapView extends HeatmapEventDispatcher {
                 columns: heatmap.metadata.columns,
                 rows: heatmap.metadata.rows
             });
-            this.colorScheme.assignData(heatmap.metadata);
+            const {
+                maximum,
+                minimum,
+                type: dataType,
+                values
+            } = heatmap.metadata;
+            this.colorScheme.initialize({
+                dataType,
+                maximum,
+                minimum,
+                values
+            });
             this.heatmapViewport.initialize({
                 columns: heatmap.metadata.columns.length,
                 rows: heatmap.metadata.rows.length,
@@ -212,35 +223,20 @@ class HeatmapView extends HeatmapEventDispatcher {
             dispatcher,
             padding
         } = options;
-        const {id} = dataConfig || {};
-        if (id && dispatcher) {
-            if (typeof this.removeDispatcherListeners === 'function') {
-                this.removeDispatcherListeners();
-            }
-            const replaceColorScheme = (colorScheme) => this.colorScheme.initializeFrom(colorScheme);
-            const configureColorScheme = () => dispatcher.emit(
-                'heatmap:colorscheme:configure',
-                {
-                    config: {
-                        id,
-                        scheme: this.colorScheme.copy({colorFormat: ColorFormats.hex})
-                    },
-                }
-            );
-            this.removeDispatcherListeners = () => {
-                dispatcher.removeListener(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
-                this.colorScheme.removeEventListeners(configureColorScheme);
-            };
-            dispatcher.on(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
-            this.colorScheme.onConfigureRequest(configureColorScheme);
+        if (dispatcher) {
+            this.colorScheme.attachDispatcher(dispatcher);
         }
+        const {id} = dataConfig || {};
         const dataChanged = id && this.heatmapData.anotherOptions(dataConfig);
-        const initialized = this.initialized;
+        const initialized = !dataChanged && this.initialized;
         this.updateDisplayOptions(displayOptions);
+        if (dataChanged) {
+            this.heatmapInteractions.clearUserInteracted();
+        }
         this.resize(width, height);
         this.padding = padding;
-        if (initialized !== this.initialized || dataChanged) {
-            this.metadataLoaded(this.heatmapData, dataChanged);
+        if (initialized !== this.initialized) {
+            this.metadataLoaded(this.heatmapData, true);
         }
         if (dataConfig) {
             this.heatmapData.options = dataConfig;

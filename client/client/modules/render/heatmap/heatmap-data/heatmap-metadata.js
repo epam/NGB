@@ -184,7 +184,7 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
          * Unique values
          * @type {*[]}
          */
-        this.values = values.slice();
+        this.values = values.slice().map(o => typeof o === 'string' ? o.trim() : o);
     }
 
     onColumnsRowsReordered(callback) {

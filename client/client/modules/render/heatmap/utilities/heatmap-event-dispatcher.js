@@ -22,7 +22,7 @@ export default class HeatmapEventDispatcher {
     }
 
     removeEventListeners(...listeners) {
-        this.listeners = this.listeners.filter(listener => !listeners.includes(listener));
+        this.listeners = this.listeners.filter(listener => !listeners.includes(listener.listener));
     }
 
     emit(event, payload) {
