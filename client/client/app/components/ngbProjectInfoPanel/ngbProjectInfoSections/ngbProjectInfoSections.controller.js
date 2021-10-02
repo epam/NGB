@@ -23,20 +23,26 @@ export default class ngbProjectInfoSectionsController extends baseController {
         return this.ngbProjectInfoService.descriptionAvailable;
     }
 
-    get extendedMode () {
-        return this.ngbProjectInfoService.extendedMode;
-    }
-
-    setDescription (project) {
+    setDescription (project, descriptionId) {
+        const [
+            currentMode,
+            currentDescriptionId
+        ] = Array.isArray(this.ngbProjectInfoService.currentMode) ?
+                this.ngbProjectInfoService.currentMode :
+                [this.ngbProjectInfoService.currentMode, null];
+        const currentProjectId = this.ngbProjectInfoService.currentProject.id;
+        if (currentMode === this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION &&
+            currentProjectId === project.id &&
+            currentDescriptionId === descriptionId
+        ) {
+            return;
+        }
         this.setCurrentProject(project);
-        this.ngbProjectInfoService.descriptionAvailable = true;
-        this.ngbProjectInfoService.blobUrl = project.blobUrl;
+        this.ngbProjectInfoService.setDescription(descriptionId);
     }
 
     setCurrentProject (project) {
-        if (this.extendedMode) {
-            this.ngbProjectInfoService.currentProject = project;
-        }
+        this.ngbProjectInfoService.currentProject = project;
     }
 
     openMenu($mdOpenMenu, $event) {
