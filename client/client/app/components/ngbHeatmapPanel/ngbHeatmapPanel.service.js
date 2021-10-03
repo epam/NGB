@@ -19,7 +19,7 @@ export default class ngbHeatmapPanelService {
     }
 
     get loading() {
-        return !this.initialized || !this.projectContext || this.projectContext._referencesAreLoading;
+        return !this.initialized;// || !this.projectContext || this.projectContext._referencesAreLoading;
     }
 
     refreshHeatmapsList() {
@@ -29,14 +29,16 @@ export default class ngbHeatmapPanelService {
         const tracks = this.projectContext
             ? (this.projectContext.tracks || [])
             : [];
-        const getTrackReference = track => track.format === 'REFERENCE' ? track.id : track.referenceId;
-        const tracksReferences = Array.from(new Set(tracks.map(getTrackReference).filter(Boolean)));
+        const referenceId = this.projectContext && this.projectContext.reference
+            ? this.projectContext.reference.id
+            : undefined;
         const items = references
-            .filter(reference => tracksReferences.includes(reference.id))
+            .filter(reference => reference.id === referenceId)
             .map(r => (r.annotationFiles || []))
             .reduce((r, c) => ([...r, ...c]), [])
             .concat(tracks)
-            .filter(track => track.format === 'HEATMAP');
+            .filter(track => track.format === 'HEATMAP')
+            .map(track => ({...track, referenceId}));
         const uniqueIdentifiers = Array.from(new Set(items.map(item => item.id)));
         const heatmaps = uniqueIdentifiers
             .map(id => items.filter(track => track.id === id).pop())

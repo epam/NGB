@@ -157,6 +157,10 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.addEventListener(events.tooltip.hide, callback);
     }
 
+    onDataItemClick(callback) {
+        this.addEventListener(events.click, callback);
+    }
+
     clearSession() {
         this.session = {};
     }
@@ -368,6 +372,20 @@ class HeatmapDataRenderer extends InteractiveZone {
             };
             const {value} = this.data.data.entriesWithinRadius(event, radius).next();
             hover(value);
+        }
+    }
+
+    onClick(event) {
+        super.onClick(event);
+        if (event && this.test(event) && this.data && this.data.dataReady && !this.destroyed) {
+            const item = this.data.data.getHeatMapItem(
+                Math.floor(event.column),
+                Math.floor(event.row)
+            );
+            if (item) {
+                event.stopImmediatePropagation();
+                this.emit(events.click, item);
+            }
         }
     }
 

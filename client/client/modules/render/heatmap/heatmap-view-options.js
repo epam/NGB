@@ -21,6 +21,7 @@ import events from './utilities/events';
  * @property {number} height
  * @property {number|number[]} padding
  * @property {dispatcher} dispatcher
+ * @property {projectContext} projectContext
  */
 
 class HeatmapViewOptions extends HeatmapEventDispatcher {

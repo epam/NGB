@@ -1,9 +1,10 @@
+import HeatmapEventDispatcher from '../utilities/heatmap-event-dispatcher';
+import {HeatmapNavigationType} from '../navigation';
+import events from '../utilities/events';
+
 /**
  * @enum {number}
  */
-import HeatmapEventDispatcher from '../utilities/heatmap-event-dispatcher';
-import events from '../utilities/events';
-
 const HeatmapDataType = {
     /**
      * Number
@@ -45,6 +46,9 @@ const HeatmapDataType = {
  * @property {number} maximum
  * @property {(string|number)[]} [values]
  * @property {{columns: HeatmapBinaryTree, rows: HeatmapBinaryTree}} [tree]
+ * @property {HeatmapNavigationType} [rowNavigationType]
+ * @property {HeatmapNavigationType} [columnNavigationType]
+ * @property {HeatmapNavigationType} [dataNavigationType]
  */
 
 /**
@@ -55,48 +59,64 @@ const HeatmapDataType = {
  * @property {number} [minCellValue]
  * @property {number} [maxCellValue]
  * @property {(string|number)[]} [cellValues]
+ * @property {string} [rowNavigationType]
+ * @property {string} [columnNavigationType]
+ * @property {string} [dataNavigationType]
  */
 
 /**
  * @typedef {Object} HeatmapAnnotatedIndex
  * @property {string} name
  * @property {string} [annotation]
+ * @property {HeatmapNavigationType} [navigation]
  */
 
 /**
  * Parses column/row
  * @param {string|string[]|{[name]: string}|{name: string, annotation: string}} metadataItem
+ * @param {HeatmapNavigationType} [navigationType]
  * @returns {HeatmapAnnotatedIndex}
  */
-function parseMetadataItem(metadataItem) {
+function parseMetadataItem(metadataItem, navigationType = HeatmapNavigationType.missing) {
     if (!metadataItem) {
-        return {name: ''};
+        return {name: '', navigation: navigationType};
     }
     if (typeof metadataItem === 'string') {
-        return {name: metadataItem};
+        return {name: metadataItem, navigation: navigationType};
     }
     if (Array.isArray(metadataItem)) {
-        const [name, annotation] = metadataItem;
-        return {name, annotation};
+        const [name, annotation, navigation] = metadataItem;
+        return {
+            name,
+            annotation,
+            navigation: navigation
+                ? HeatmapNavigationType.parse(navigation)
+                : navigationType
+        };
     }
     if (
         typeof metadataItem === 'object' &&
         Object.prototype.hasOwnProperty.call(metadataItem, 'name')
     ) {
-        return metadataItem;
+        return {
+            ...metadataItem,
+            navigation: metadataItem.navigation
+                ? HeatmapNavigationType.parse(metadataItem.navigation)
+                : navigationType
+        };
     }
     if (typeof metadataItem === 'object') {
         const [name] = Object.keys(metadataItem || {});
-        return {name, annotation: metadataItem[name]};
+        return {name, annotation: metadataItem[name], navigation: navigationType};
     }
-    return {name: ''};
+    return {name: '', navigation: navigationType};
 }
 
 function createArray(length) {
     return (new Array(length))
         .fill('#')
         .map((element, index) => `${element}${index + 1}`)
-        .map(parseMetadataItem);
+        .map(o => parseMetadataItem(o));
 }
 
 export {HeatmapDataType};
@@ -115,6 +135,9 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             minCellValue: min,
             maxCellValue: max,
             cellValues: values = [],
+            rowNavigationType,
+            columnNavigationType,
+            dataNavigationType,
             ...options
         } = payload;
         return new HeatmapMetadata({
@@ -125,7 +148,10 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             tree,
             type: HeatmapDataType.parse(cellValueType),
             minimum: min,
-            maximum: max
+            maximum: max,
+            rowNavigationType: HeatmapNavigationType.parse(rowNavigationType),
+            columnNavigationType: HeatmapNavigationType.parse(columnNavigationType),
+            dataNavigationType: HeatmapNavigationType.parse(dataNavigationType)
         });
     }
     /**
@@ -143,7 +169,10 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             maximum,
             minimum,
             values = [],
-            tree = {}
+            tree = {},
+            rowNavigationType,
+            columnNavigationType,
+            dataNavigationType
         } = options;
         /**
          *
@@ -157,8 +186,13 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
         this.rowsTree = tree && tree.rows && !tree.rows.invalid ? tree.rows : undefined;
         this.ignoreColumnsTreeOrders = !this.columnsTree;
         this.ignoreRowsTreeOrders = !this.rowsTree;
-        this._rows = rows.map(parseMetadataItem);
-        this._columns = columns.map(parseMetadataItem);
+        /**
+         * Data item navigation type
+         * @type {HeatmapNavigationType}
+         */
+        this.dataNavigationType = dataNavigationType;
+        this._rows = rows.map(r => parseMetadataItem(r, rowNavigationType));
+        this._columns = columns.map(c => parseMetadataItem(c, columnNavigationType));
         if (this._rows.length === 0 && rowsCount > 0) {
             this._rows = createArray(rowsCount);
         }
@@ -185,6 +219,11 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
          * @type {*[]}
          */
         this.values = values.slice().map(o => typeof o === 'string' ? o.trim() : o);
+        /**
+         * Heatmap reference identifier
+         * @type {number|undefined}
+         */
+        this.referenceId = undefined;
     }
 
     onColumnsRowsReordered(callback) {
@@ -244,8 +283,8 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
     }
 
     /**
-     * Column names
-     * @type {string[]}
+     * Columns
+     * @type {HeatmapAnnotatedIndex[]}
      */
     get columns() {
         if (this.ignoreColumnsTreeOrders || !this.columnsTree) {
@@ -256,8 +295,8 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
     }
 
     /**
-     * Row names
-     * @type {string[]}
+     * Rows
+     * @type {HeatmapAnnotatedIndex[]}
      */
     get rows() {
         if (this.ignoreRowsTreeOrders || !this.rowsTree) {
@@ -309,5 +348,29 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             return order;
         }
         return this._rowsOriginalOrder.get(order);
+    }
+
+    /**
+     * Returns column by index
+     * @param {number} index
+     * @returns {HeatmapAnnotatedIndex|undefined}
+     */
+    getColumn(index) {
+        if (index >= 0 && index < this.columns.length) {
+            return this.columns[index];
+        }
+        return undefined;
+    }
+
+    /**
+     * Returns row by index
+     * @param {number} index
+     * @returns {HeatmapAnnotatedIndex|undefined}
+     */
+    getRow(index) {
+        if (index >= 0 && index < this.rows.length) {
+            return this.rows[index];
+        }
+        return undefined;
     }
 }

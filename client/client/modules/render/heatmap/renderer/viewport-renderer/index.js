@@ -3,6 +3,7 @@ import {ColumnsRenderer, RowsRenderer} from './axis-renderer';
 import {ColumnsScrollerRenderer, RowsScrollerRenderer} from './scroller-renderer';
 import InteractiveZone from '../../interactions/interactive-zone';
 import config from './config';
+import events from '../../utilities/events';
 import makeInitializable from '../../utilities/make-initializable';
 
 class HeatmapViewportRenderer extends InteractiveZone {
@@ -24,6 +25,8 @@ class HeatmapViewportRenderer extends InteractiveZone {
         this.container = new PIXI.Container();
         this.columnAxis = new ColumnsRenderer(viewport, labelsManager);
         this.rowAxis = new RowsRenderer(viewport, labelsManager);
+        this.columnAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {column: payload}));
+        this.rowAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {row: payload}));
         this.columnScroller = new ColumnsScrollerRenderer(viewport);
         this.rowScroller = new RowsScrollerRenderer(viewport);
         this.interactions = interactions;
@@ -121,6 +124,10 @@ class HeatmapViewportRenderer extends InteractiveZone {
         ].sort((a, b) => a - b);
         this.viewport.zoomToViewport(c1, c2 + 1, r1, r2 + 1);
         super.onDragEnd(event);
+    }
+
+    onAxisClick(callback) {
+        this.addEventListener(events.click, callback);
     }
 
     /**

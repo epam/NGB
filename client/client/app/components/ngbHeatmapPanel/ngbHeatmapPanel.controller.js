@@ -39,6 +39,13 @@ export default class ngbHeatmapPanelController {
         return undefined;
     }
 
+    get heatmapReferenceId() {
+        if (this.heatmap) {
+            return this.heatmap.referenceId;
+        }
+        return undefined;
+    }
+
     onHeatmapNavigation() {
         this.service.heatmapNavigationOccurred = true;
     }

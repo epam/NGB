@@ -7,7 +7,8 @@ export default {
         heatmapClass: '<',
         checkResize: '<',
         renderOnChange: '<',
-        onHeatmapNavigation: '<'
+        onHeatmapNavigation: '<',
+        referenceId: '<'
     },
     controller: controller.UID,
     restrict: 'E',

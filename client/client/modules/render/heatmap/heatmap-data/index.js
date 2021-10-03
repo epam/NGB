@@ -55,16 +55,27 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         return this._metadata;
     }
 
+    get referenceId() {
+        return this.metadata.referenceId;
+    }
+
+    set referenceId(referenceId) {
+        this.metadata.referenceId = referenceId;
+    }
+
     /**
      *
      * @param {HeatmapMetadata} metadata
      */
     assignMetadata(metadata) {
+        let referenceId;
         if (this._metadata) {
+            referenceId = this._metadata.referenceId;
             this._metadata.destroy();
             this._metadata = undefined;
         }
         this._metadata = metadata;
+        this._metadata.referenceId = referenceId;
         this._metadata.onColumnsRowsReordered(this.dendrogramModeChanged);
     }
 
@@ -76,7 +87,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
          * Metadata (columns, rows, min, max, etc.)
          * @type {HeatmapMetadata|undefined}
          */
-        this._metadata = new HeatmapMetadata();
+        this.assignMetadata(new HeatmapMetadata());
         this._metadata.onColumnsRowsReordered(this.dendrogramModeChanged);
         this.data = [];
         this.columnsTree = new HeatmapBinaryTree([]);

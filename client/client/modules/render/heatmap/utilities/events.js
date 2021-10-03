@@ -29,5 +29,7 @@ export default {
         show: 'show',
         hide: 'hide'
     },
-    interaction: 'userInteraction'
+    interaction: 'userInteraction',
+    click: 'click',
+    navigate: 'navigate'
 };

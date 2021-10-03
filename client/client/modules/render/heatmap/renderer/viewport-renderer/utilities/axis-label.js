@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js-legacy';
 import {extendRectangleByMargin, getRotatedRectangleBounds, rotateRectangle} from './vector-utilities';
+import {HeatmapNavigationType} from '../../../navigation';
 import config from '../config';
 import labelsFormatter from './labels-formatter';
 import {linearDimensionsConflict} from '../../../../utilities';
@@ -159,6 +160,14 @@ class AxisLabel {
          */
         this.container.addChild(this.label);
         this.container.addChild(this.hoveredLabel);
+        if (
+            annotatedIndex &&
+            annotatedIndex.annotation &&
+            annotatedIndex.navigation !== HeatmapNavigationType.missing
+        ) {
+            this.container.interactive = true;
+            this.container.buttonMode = true;
+        }
         if (DEBUG) {
             this.debugGraphics = new PIXI.Graphics();
             this.container.addChild(this.debugGraphics);

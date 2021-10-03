@@ -20,6 +20,7 @@ export default class HeatmapTrack extends CachedTrack {
         super({...opts, interactionDisabled: true});
         const dispatcher = this.config.dispatcher;
         this.heatmapView = new HeatmapView({
+            projectContext: this.projectContext,
             width: this.viewport.canvasSize,
             height: this.height,
             padding: HeatmapConfig.padding,
@@ -30,6 +31,7 @@ export default class HeatmapTrack extends CachedTrack {
                 domElement: this.domElement
             }
         });
+        this.heatmapView.referenceId = this.config.referenceId;
         this.container.addChild(this.heatmapView.container);
         this.state.heatmap = this.heatmapView.options;
 
