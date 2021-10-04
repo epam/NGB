@@ -66,6 +66,7 @@
                         md-items="item in $ctrl.ngbBlastSearchService.getOrganismList($ctrl.searchText, $ctrl.searchRequest.organisms)"
                         md-item-text="item.taxid"
                         md-delay="300"
+                        md-match-case-insensitive="true"
                         placeholder="{{$ctrl.searchRequest.organisms.length ? '' : 'Organism'}}">
                     <md-item-template>
                         <span md-highlight-flags="gi" md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
