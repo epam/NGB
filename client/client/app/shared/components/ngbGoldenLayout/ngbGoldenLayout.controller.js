@@ -108,8 +108,9 @@ export default class ngbGoldenLayoutController extends baseController {
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 
             const html = this.$compile(viewActionsTemplate)(childScope);
+            const tabDropdown = stack.header.controlsContainer.find('.lm_tabdropdown');
 
-            stack.header.controlsContainer.prepend(html);
+            html.insertBefore(tabDropdown[0].nextSibling);
 
             const isBrowser = stack.contentItems.some(component => component.config.componentState.panel === this.panels.ngbBrowser);
             if (isBrowser) {
@@ -164,7 +165,7 @@ export default class ngbGoldenLayoutController extends baseController {
                 const panelItem = this.service.layout.Panels[panelName];
 
                 let [glItem] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
-                obj.config.componentState && obj.config.componentState.panel === panelItem.panel);
+                    obj.config.componentState && obj.config.componentState.panel === panelItem.panel);
 
                 if (glItem) {
                     const parent = glItem.parent;
@@ -182,7 +183,7 @@ export default class ngbGoldenLayoutController extends baseController {
     handlePanelChange(event) {
         if (event.layoutChange.displayed === true) {
             const [panel] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
-            obj.config.componentState && obj.config.componentState.panel === event.layoutChange.panel);
+                obj.config.componentState && obj.config.componentState.panel === event.layoutChange.panel);
             if (!panel) {
                 this.panelAdd(event.layoutChange);
             } else {
@@ -277,7 +278,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const newItem = this.service.createBrowserItem(data.variant);
         const [browserItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBrowser);
+                && obj.config.componentState.panel === this.panels.ngbBrowser);
 
         if (browserItem) {
             const stackItem = browserItem.parent;
@@ -288,8 +289,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
                 rowItem.addChild(newItem, index + 1);
             }
-        }
-        else {
+        } else {
             this.addGLItemByPosition(newItem);
         }
     }
@@ -300,7 +300,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const newItem = this.service.createBrowserItem(event);
         const [browserItem] = this.goldenLayout.root
             .getItemsByFilter(obj => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBrowser);
+                && obj.config.componentState.panel === this.panels.ngbBrowser);
 
         if (browserItem) {
             const stackItem = browserItem.parent;
@@ -327,13 +327,13 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
 
-        if(!savedBlatRequest) {
+        if (!savedBlatRequest) {
             return;
         }
 
         const [currentBlatSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlatRequest.id);
 
-        if(!currentBlatSearchBamTrack) {
+        if (!currentBlatSearchBamTrack) {
             this.panelRemove(this.appLayout.Panels.blat);
         }
     }
@@ -349,13 +349,13 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const savedBlastRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
 
-        if(!savedBlastRequest) {
+        if (!savedBlastRequest) {
             return;
         }
 
         const [currentBlastSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlastRequest.id);
 
-        if(!currentBlastSearchBamTrack) {
+        if (!currentBlastSearchBamTrack) {
             this.panelRemove(this.appLayout.Panels.blast);
         }
     }
@@ -368,6 +368,7 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
+
     blastSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlastSearchPanel) {
@@ -381,7 +382,7 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blatSearchRequest');
         localStorage.removeItem('blatColumns');
 
-        this.projectContext.changeState({ blatRegion: { forceReset: true } });
+        this.projectContext.changeState({blatRegion: {forceReset: true}});
     }
 
     blastSearchPanelRemoved() {
@@ -389,7 +390,7 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blastSearchResultColumns');
         localStorage.removeItem('blastHistoryColumns');
 
-        this.projectContext.changeState({ blastRegion: { forceReset: true } });
+        this.projectContext.changeState({blastRegion: {forceReset: true}});
     }
 
     panelAddBlatSearchPanel(event) {
@@ -398,7 +399,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const [blatSearchItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
+                && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
 
         const payload = {
             id: event.id,
@@ -424,6 +425,7 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
+
     panelAddBlastSearchPanel(event) {
         const layoutChange = this.appLayout.Panels.blast;
         layoutChange.displayed = true;
@@ -467,7 +469,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
             if (itemStacksArr.length) {
                 const itemStacksFilteredPositions = itemStacksArr.filter(stack => stack.config.componentState
-                && stack.config.componentState.position === newItem.componentState.position);
+                    && stack.config.componentState.position === newItem.componentState.position);
 
                 if (itemStacksFilteredPositions.length) {
                     return itemStacksFilteredPositions[0];
@@ -488,11 +490,9 @@ export default class ngbGoldenLayoutController extends baseController {
 
             if (newItem.componentState.position === 'left') {
                 index = 0;
-            }
-            else if (newItem.componentState.position === 'right') {
+            } else if (newItem.componentState.position === 'right') {
                 index = itemStacksArr.length;
-            }
-            else if (newItem.componentState.position === 'center') {
+            } else if (newItem.componentState.position === 'center') {
 
                 if (itemStacksArr.length > 0) {
                     index = itemStacksArr.filter(
@@ -523,7 +523,7 @@ export default class ngbGoldenLayoutController extends baseController {
             //todo maybe save extrawindow in var and remove it
             this.goldenLayout.root
                 .getItemsByFilter(obj => obj.config &&
-                obj.config.componentState && obj.config.componentState.panel === this.panels.ngbTracksView)
+                    obj.config.componentState && obj.config.componentState.panel === this.panels.ngbTracksView)
                 .forEach(obj => {
                     obj.remove();
                 });

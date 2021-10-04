@@ -103,6 +103,17 @@ ngb-golden-layout {
   .lm_header .lm_controls {
     padding-top: 0;
 
+    .lm_tabdropdown {
+      &:before {
+        margin-top: 10px;
+        opacity: 0.4;
+      }
+
+      &:hover:before {
+        opacity: 1;
+      }
+    }
+
     > li {
       width: $lm_controls-font;
       height: $lm_controls-font;
@@ -204,6 +215,7 @@ ngb-golden-layout {
   .lm_splitter {
     background: #4386f4;
     opacity: 1;
+    z-index: 0;
     transition: opacity 200ms ease;
   }
 
