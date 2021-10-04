@@ -583,8 +583,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         PROJECT_PRETTY_NAME,
         CREATED_DATE,
         LAST_OPENED_DATE,
-        OWNER,
-        DESCRIPTION;
+        OWNER;
 
         static MapSqlParameterSource getParameters(Project project, Long parentId) {
             MapSqlParameterSource params = new MapSqlParameterSource();
