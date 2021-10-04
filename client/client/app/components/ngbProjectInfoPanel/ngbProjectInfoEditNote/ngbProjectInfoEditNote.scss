@@ -4,38 +4,46 @@ ngb-project-info-edit-note {
     .edit-note-input-container {
       margin-top: 20px;
       margin-right: 20px;
-      width: 50%;
+      flex: 1;
     }
+
     .edit-note-row {
       margin: 15px 0px;
-      padding: 0px 10px;
-      display:flex;
+      padding: 0;
+      display: flex;
       flex-wrap: wrap-reverse;
       align-items: center;
       justify-content: space-between;
     }
+
     .markdown-container {
-      padding:0px;
+      padding: 0px;
       margin: 0px;
       height: 70vh;
       width: 100%;
-      background-color: rgba(0,0,0,0.02);
-      border: 1px solid rgba(0,0,0,0.1);
+      background-color: rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 3px;
     }
+
     .edit-note-buttons-container {
-      min-width: 270px;
+      flex: 0 0 270px;
       display: inline-flex;
       justify-content: flex-end;
       flex-wrap: nowrap;
+
+      .md-button {
+        margin: 0;
+      }
     }
   }
 
   .edit-note-error {
     color: rgb(213, 0, 0);
   }
+
   #note_desc {
-    display:block;
+    display: block;
     margin: 0px;
     padding: 10px;
     height: 70vh;
