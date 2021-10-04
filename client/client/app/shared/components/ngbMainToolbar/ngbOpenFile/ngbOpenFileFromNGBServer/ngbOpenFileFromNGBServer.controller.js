@@ -5,6 +5,20 @@ const INDEX_FILE_FORMAT = {
     'gene': ['tbi', 'idx']
 };
 
+function getDisplayDirectory(root, currentFolder, pathSeparator) {
+    if (root && currentFolder) {
+        let displayDirectory = currentFolder;
+        if (displayDirectory.toLowerCase().indexOf(root.toLowerCase()) === 0) {
+            displayDirectory = displayDirectory.slice(root.length);
+            if (pathSeparator && displayDirectory.startsWith(pathSeparator)) {
+                displayDirectory = displayDirectory.slice(pathSeparator.length);
+            }
+        }
+        return displayDirectory;
+    }
+    return null;
+}
+
 export default class ngbOpenFileFromNGBServerController {
     static get UID() {
         return 'ngbOpenFileFromNGBServerController';
@@ -198,10 +212,7 @@ export default class ngbOpenFileFromNGBServerController {
 
     discardDirectoryTyping() {
         if (this.currentDirectory && this.rootFolder) {
-            this.displayDirectory = this.currentDirectory;
-            if (this.displayDirectory.toLowerCase().indexOf(this.rootFolder.toLowerCase()) >= 0) {
-                this.displayDirectory = this.displayDirectory.substr(this.rootFolder.length + this.pathSeparator.length);
-            }
+            this.displayDirectory = getDisplayDirectory(this.rootFolder, this.currentDirectory, this.pathSeparator);
         }
         this.updateDirectoryPath();
         this._isDirectoryTyping = false;
@@ -350,10 +361,7 @@ export default class ngbOpenFileFromNGBServerController {
         files = this.preprocessFiles((files || []).map(mapFn).sort(sortFn));
         const isRoot = !this.currentDirectory || !this.currentDirectory.length || this.currentDirectory.toLowerCase() === this.rootFolder;
         if (this.currentDirectory && this.rootFolder) {
-            this.displayDirectory = this.currentDirectory;
-            if (this.displayDirectory.toLowerCase().indexOf(this.rootFolder.toLowerCase()) >= 0) {
-                this.displayDirectory = this.displayDirectory.substr(this.rootFolder.length + this.pathSeparator.length);
-            }
+            this.displayDirectory = getDisplayDirectory(this.rootFolder, this.currentDirectory, this.pathSeparator);
         } else {
             this.displayDirectory = null;
         }

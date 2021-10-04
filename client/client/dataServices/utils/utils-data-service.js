@@ -13,7 +13,7 @@ export class UtilsDataService extends DataService {
     getFiles(path) {
         return new Promise((resolve) => {
             this.get(path ? `files?path=${path}` : 'files').catch(() => {
-                resolve([]);
+                resolve({});
             }).then((data) => {
                 resolve(data || {});
             });
