@@ -67,8 +67,7 @@ export default function buildCallbacks(
         onHover();
     };
     const mouseDown = (e) => {
-        onHover();
-        mouseDownEvent = new InteractiveZoneEvent(e, viewport);
+        mouseDownEvent = new InteractiveZoneDragEvent(e, viewport);
         draggingZones = checkInteractiveZone(mouseDownEvent)
             .map(zone => {
                 if (mouseDownEvent.immediatePropagationStopped) {

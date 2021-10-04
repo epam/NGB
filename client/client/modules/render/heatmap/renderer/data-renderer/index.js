@@ -64,11 +64,11 @@ class HeatmapDataRenderer extends InteractiveZone {
          */
         this.dataProcessed = false;
         this.dataLoadedListener = this.rebuild.bind(this);
-        this.colorSchemeChangedListener = this.colorSchemeChanged.bind(this);
+        this.colorSchemeChangedListener = this.colorSchemeChanged.bind(this, false);
         this.data.onDataLoaded(this.dataLoadedListener);
         this.data.onColumnsRowsReordered(this.dataLoadedListener);
         this.colorScheme.onChanged(this.colorSchemeChangedListener);
-        this.colorScheme.onInitialized(this.colorSchemeChangedListener);
+        this.colorScheme.onInitialized(this.dataLoadedListener);
         this.initialized = false;
         this._updating = false;
         this.mode = renderer && renderer.type === PIXI_WEB_GL_RENDERER_TYPE
@@ -83,7 +83,10 @@ class HeatmapDataRenderer extends InteractiveZone {
             this.data.removeEventListeners(this.dataLoadedListener);
         }
         if (this.colorScheme) {
-            this.colorScheme.removeEventListeners(this.colorSchemeChangedListener);
+            this.colorScheme.removeEventListeners(
+                this.colorSchemeChangedListener,
+                this.dataLoadedListener
+            );
         }
         this.data = undefined;
         this.colorScheme = undefined;
@@ -154,14 +157,18 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.addEventListener(events.tooltip.hide, callback);
     }
 
+    onDataItemClick(callback) {
+        this.addEventListener(events.click, callback);
+    }
+
     clearSession() {
         this.session = {};
     }
 
-    colorSchemeChanged() {
+    colorSchemeChanged(reset = false) {
         let changed = false;
         this.blocks.forEach(block => {
-            changed = block.applyColorScheme(this.colorScheme) || changed;
+            changed = block.applyColorScheme(this.colorScheme, {reset, rebuild: !reset}) || changed;
         });
         this.session.colorSchemeApplyied = false;
         if (changed) {
@@ -171,7 +178,7 @@ class HeatmapDataRenderer extends InteractiveZone {
 
     rebuild() {
         this.dataProcessed = false;
-        this.colorSchemeChanged();
+        this.colorSchemeChanged(true);
         this.requestRender();
         this.cancelRebuildBlocks = cancellablePromise(
             this.rebuildBlocks.bind(this),
@@ -365,6 +372,20 @@ class HeatmapDataRenderer extends InteractiveZone {
             };
             const {value} = this.data.data.entriesWithinRadius(event, radius).next();
             hover(value);
+        }
+    }
+
+    onClick(event) {
+        super.onClick(event);
+        if (event && this.test(event) && this.data && this.data.dataReady && !this.destroyed) {
+            const item = this.data.data.getHeatMapItem(
+                Math.floor(event.column),
+                Math.floor(event.row)
+            );
+            if (item) {
+                event.stopImmediatePropagation();
+                this.emit(events.click, item);
+            }
         }
     }
 

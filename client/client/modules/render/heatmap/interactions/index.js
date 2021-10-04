@@ -61,6 +61,10 @@ class HeatmapInteractions extends HeatmapEventDispatcher {
         return this._userInteracted;
     }
 
+    clearUserInteracted() {
+        this._userInteracted = false;
+    }
+
     clearRenderRequestTimeout() {
         if (this.checkRenderRequestTimeout) {
             cancelAnimationFrame(this.checkRenderRequestTimeout);

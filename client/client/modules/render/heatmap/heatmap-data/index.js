@@ -30,15 +30,9 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     anotherOptions(options) {
-        const {
-            id: currentId,
-            projectId: currentProjectId
-        } = this._options || {};
-        const {
-            id,
-            projectId
-        } = options || {};
-        return id !== currentId || projectId !== currentProjectId;
+        const {id: currentId} = this._options || {};
+        const {id} = options || {};
+        return id !== currentId;
     }
 
     destroy() {
@@ -61,16 +55,27 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         return this._metadata;
     }
 
+    get referenceId() {
+        return this.metadata.referenceId;
+    }
+
+    set referenceId(referenceId) {
+        this.metadata.referenceId = referenceId;
+    }
+
     /**
      *
      * @param {HeatmapMetadata} metadata
      */
     assignMetadata(metadata) {
+        let referenceId;
         if (this._metadata) {
+            referenceId = this._metadata.referenceId;
             this._metadata.destroy();
             this._metadata = undefined;
         }
         this._metadata = metadata;
+        this._metadata.referenceId = referenceId;
         this._metadata.onColumnsRowsReordered(this.dendrogramModeChanged);
     }
 
@@ -82,7 +87,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
          * Metadata (columns, rows, min, max, etc.)
          * @type {HeatmapMetadata|undefined}
          */
-        this._metadata = new HeatmapMetadata();
+        this.assignMetadata(new HeatmapMetadata());
         this._metadata.onColumnsRowsReordered(this.dendrogramModeChanged);
         this.data = [];
         this.columnsTree = new HeatmapBinaryTree([]);
@@ -111,14 +116,14 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetchMetadata() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchMetadataPromise) {
             this.fetchMetadataPromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmapMetadata(id, projectId)
+                    .loadHeatmapMetadata(id)
                     .then(this.waitForTreeData.bind(this))
                     .then((metadata = {}) => {
                         this.assignMetadata(
@@ -147,7 +152,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetchTree() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
@@ -161,7 +166,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         if (!this.fetchTreePromise) {
             this.fetchTreePromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmapTree(id, projectId)
+                    .loadHeatmapTree(id)
                     .then((tree) => {
                         const {
                             columns = [],
@@ -203,16 +208,21 @@ export default class HeatmapData extends HeatmapEventDispatcher {
     }
 
     fetch() {
-        const {id, projectId} = this.options;
+        const {id} = this.options;
         if (!id) {
             return Promise.resolve();
         }
         if (!this.fetchPromise) {
             this.fetchPromise = new Promise((resolve) => {
                 heatMapDataService
-                    .loadHeatmap(id, projectId)
+                    .loadHeatmap(id)
                     .then(this.waitForMetadata.bind(this))
-                    .then(data => HeatmapTrie.fromPlainData(data))
+                    .then(data => HeatmapTrie.fromPlainData(
+                        data,
+                        {
+                            string: this.metadata && this.metadata.type === HeatmapDataType.string
+                        }
+                    ))
                     .then((heatmap) => {
                         this.data = heatmap;
                         if (this.data) {

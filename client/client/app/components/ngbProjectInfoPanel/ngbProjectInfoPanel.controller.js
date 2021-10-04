@@ -66,6 +66,12 @@ export default class ngbProjectInfoPanelController extends BaseController {
         return this.heatmap && this.heatmap.project ? this.heatmap.project.id : undefined;
     }
 
+    get referenceId() {
+        return this.projectContext && this.projectContext.reference
+            ? this.projectContext.reference.id
+            : undefined;
+    }
+
     editNote($event) {
         this.ngbProjectInfoService.editNote(this.currentNote.id);
         $event.stopPropagation();

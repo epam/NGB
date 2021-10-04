@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js-legacy';
-import cancellablePromise from '../data-renderer/utilities/cancellable-promise';
 import AxisLabel from './utilities/axis-label';
 import AxisVectors from './axis-vectors';
+import {EventTypes} from '../../interactions/events';
 import InteractiveZone from '../../interactions/interactive-zone';
+import cancellablePromise from '../data-renderer/utilities/cancellable-promise';
 import config from './config';
 import events from '../../utilities/events';
 import makeInitializable from '../../utilities/make-initializable';
@@ -94,6 +95,10 @@ class HeatmapAxisRenderer extends InteractiveZone {
         return 0;
     }
 
+    onAxisItemClick(callback) {
+        this.addEventListener(events.click, callback);
+    }
+
     /**
      * Initializes axis labels
      * @param {HeatmapAnnotatedIndex[]} [labels = []]
@@ -116,16 +121,17 @@ class HeatmapAxisRenderer extends InteractiveZone {
                 .then(this.calculateAxisSize.bind(this))
                 .then(() => {
                     if (!isCancelledFn()) {
+                        this._hoveredTick = undefined;
                         this.container.removeChildren();
                         this.labelsContainer = new PIXI.Container();
                         this.container.addChild(this.labelsContainer);
                         this.ticks.forEach(tick => {
                             this.labelsContainer.addChild(tick.container);
                         });
-                        this.clearRenderSession();
-                        requestAnimationFrame(() => {
+                        this.clearRenderSession();                        requestAnimationFrame(() => {
                             this.render();
                             this.initialized = true;
+                            this.requestRender();
                             resolve();
                         });
                     } else {
@@ -169,23 +175,37 @@ class HeatmapAxisRenderer extends InteractiveZone {
         return false;
     }
 
-    onHover(event) {
+    /**
+     *
+     * @param {InteractiveZone} event
+     */
+    getHoveredAxisItem(event) {
+        const fitsAxisRange = o => this.axis && this.axis.start <= o && this.axis.end >= o;
         let value = this.getHoveredValue(event);
-        const {
-            value: hoveredValue
-        } = this._hoveredTick || {};
+        if (!fitsAxisRange(value)) {
+            value = undefined;
+        }
         const pointOverAxis = this.pointOverAxis(event);
-        let tooltip = undefined;
+        let axisItem = undefined;
         if (pointOverAxis && this.labelsContainer) {
             const point = movePoint(event, {x: -this.labelsContainer.x, y: -this.labelsContainer.y});
-            for (let t = 0; t < this.ticks.length; t += 1) {
-                if (this.ticks[t].test(point)) {
-                    value = this.ticks[t].value;
-                    tooltip = this.ticks[t];
+            const visibleTicks = this.ticks.filter(tick => fitsAxisRange(tick.value));
+            for (let t = 0; t < visibleTicks.length; t += 1) {
+                if (visibleTicks[t].test(point)) {
+                    value = visibleTicks[t].value;
+                    axisItem = visibleTicks[t];
                     break;
                 }
             }
         }
+        return {value, axisItem, overAxis: pointOverAxis};
+    }
+
+    onHover(event) {
+        const {value, axisItem: tooltip} = this.getHoveredAxisItem(event);
+        const {
+            value: hoveredValue
+        } = this._hoveredTick || {};
         if (tooltip !== this.tooltipTick) {
             /**
              *
@@ -213,6 +233,14 @@ class HeatmapAxisRenderer extends InteractiveZone {
                 this._hoveredTick.hovered = true;
             }
             this.requestRender();
+        }
+    }
+
+    onClick(event) {
+        super.onClick(event);
+        const {value, overAxis} = this.getHoveredAxisItem(event);
+        if (overAxis && value !== undefined) {
+            this.emit(events.click, value);
         }
     }
 
@@ -367,7 +395,7 @@ export class ColumnsRenderer extends HeatmapAxisRenderer {
     }
 
     test(event) {
-        return event && event.fitsColumns();
+        return event && (event.name !== EventTypes.drag || event.fitsColumns());
     }
 
     getHoveredValue(event) {
@@ -403,8 +431,9 @@ export class RowsRenderer extends HeatmapAxisRenderer {
         );
     }
 
+    // eslint-disable-next-line no-unused-vars
     test(event) {
-        return event && event.fitsRows();
+        return event && (event.name !== EventTypes.drag || event.fitsRows());
     }
 
     getHoveredValue(event) {

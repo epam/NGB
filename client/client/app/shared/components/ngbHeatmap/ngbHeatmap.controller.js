@@ -4,9 +4,10 @@ class ngbHeatmapController {
     static get UID() {
         return 'ngbHeatmapController';
     }
-    constructor(dispatcher, $scope, $element) {
+    constructor(dispatcher, projectContext, $scope, $element) {
         this.dispatcher = dispatcher;
         this.$scope = $scope;
+        this.projectContext = projectContext;
         /**
          * @type {HTMLElement}
          */
@@ -35,11 +36,20 @@ class ngbHeatmapController {
                 this.heatmap = new Heatmap(
                     this.container,
                     this.dispatcher,
+                    this.projectContext,
                     undefined,
                     this.checkResize
                 );
+                this.heatmap.onNavigated(this.onHeatmapNavigationCallback.bind(this));
             }
+            this.heatmap.referenceId = this.referenceId;
             this.heatmap.setDataConfig(this.heatmapId, this.heatmapProjectId);
+        }
+    }
+
+    onHeatmapNavigationCallback() {
+        if (typeof this.onHeatmapNavigation === 'function') {
+            this.onHeatmapNavigation();
         }
     }
 }

@@ -132,17 +132,27 @@ class HeatmapGraphicsBase extends HeatmapEventDispatcher {
     /**
      * Applies color scheme
      * @param {ColorScheme} colorScheme
+     * @param {Object} [options]
+     * @param {boolean} [options.reset=false]
+     * @param {boolean} [options.rebuild=true]
      * @returns {boolean}
      */
-    applyColorScheme(colorScheme) {
+    applyColorScheme(colorScheme, options = {}) {
+        const {
+            reset = false,
+            rebuild = true
+        } = options;
         /**
          * @type {ColorScheme}
          */
         this.colorScheme = colorScheme;
         this._dirty = this.data.hasValues();
+        this._reset = reset;
         this.modifiedData = [];
         this._changed = true;
-        this.requestRebuild();
+        if (rebuild) {
+            this.requestRebuild();
+        }
         return true;
     }
 

@@ -1,13 +1,16 @@
 import * as PIXI from 'pixi.js-legacy';
-import HeatmapColorScheme, {ColorFormats} from './color-scheme';
-import HeatmapColorSchemeRenderer from './renderer/color-scheme-renderer';
+import {
+    HeatmapColorSchemeRenderer,
+    HeatmapDataRenderer,
+    HeatmapViewportRenderer
+} from './renderer';
+import HeatmapColorScheme from './color-scheme';
 import HeatmapData from './heatmap-data';
-import HeatmapDataRenderer from './renderer/data-renderer';
 import HeatmapEventDispatcher from './utilities/heatmap-event-dispatcher';
 import HeatmapInteractions from './interactions';
+import HeatmapNavigation from './navigation';
 import HeatmapViewOptions from './heatmap-view-options';
 import HeatmapViewport from './viewport';
-import HeatmapViewportRenderer from './renderer/viewport-renderer';
 import LabelsManager from '../core/labelsManager';
 import makeInitializable from './utilities/make-initializable';
 import {parseOffset} from '../utilities';
@@ -42,6 +45,11 @@ class HeatmapView extends HeatmapEventDispatcher {
          * @type {HeatmapViewOptions}
          */
         this.options = new HeatmapViewOptions(this.heatmapData, this.colorScheme);
+        /**
+         * Heatmap navigation manager
+         * @type {HeatmapNavigation}
+         */
+        this.navigation = new HeatmapNavigation(options.projectContext, this.heatmapData);
 
         this.heatmapData.onMetadataLoaded(this.metadataLoaded.bind(this));
         this.heatmapViewport.onViewportChanged(this.render.bind(this));
@@ -131,6 +139,14 @@ class HeatmapView extends HeatmapEventDispatcher {
         }
     }
 
+    get referenceId() {
+        return this.heatmapData.referenceId;
+    }
+
+    set referenceId(referenceId) {
+        this.heatmapData.referenceId = referenceId;
+    }
+
     destroyDisplayObjects() {
         if (this._labelsManager) {
             this._labelsManager.destroy();
@@ -177,6 +193,8 @@ class HeatmapView extends HeatmapEventDispatcher {
         this.colorScheme = undefined;
         this.heatmapViewport.destroy();
         this.heatmapViewport = undefined;
+        this.navigation.destroy();
+        this.navigation = undefined;
     }
 
     /**
@@ -190,7 +208,18 @@ class HeatmapView extends HeatmapEventDispatcher {
                 columns: heatmap.metadata.columns,
                 rows: heatmap.metadata.rows
             });
-            this.colorScheme.assignData(heatmap.metadata);
+            const {
+                maximum,
+                minimum,
+                type: dataType,
+                values
+            } = heatmap.metadata;
+            this.colorScheme.initialize({
+                dataType,
+                maximum,
+                minimum,
+                values
+            });
             this.heatmapViewport.initialize({
                 columns: heatmap.metadata.columns.length,
                 rows: heatmap.metadata.rows.length,
@@ -212,35 +241,20 @@ class HeatmapView extends HeatmapEventDispatcher {
             dispatcher,
             padding
         } = options;
-        const {id} = dataConfig || {};
-        if (id && dispatcher) {
-            if (typeof this.removeDispatcherListeners === 'function') {
-                this.removeDispatcherListeners();
-            }
-            const replaceColorScheme = (colorScheme) => this.colorScheme.initializeFrom(colorScheme);
-            const configureColorScheme = () => dispatcher.emit(
-                'heatmap:colorscheme:configure',
-                {
-                    config: {
-                        id,
-                        scheme: this.colorScheme.copy({colorFormat: ColorFormats.hex})
-                    },
-                }
-            );
-            this.removeDispatcherListeners = () => {
-                dispatcher.removeListener(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
-                this.colorScheme.removeEventListeners(configureColorScheme);
-            };
-            dispatcher.on(`heatmap:colorscheme:configure:done:${id}`, replaceColorScheme);
-            this.colorScheme.onConfigureRequest(configureColorScheme);
+        if (dispatcher) {
+            this.colorScheme.attachDispatcher(dispatcher);
         }
+        const {id} = dataConfig || {};
         const dataChanged = id && this.heatmapData.anotherOptions(dataConfig);
-        const initialized = this.initialized;
+        const initialized = !dataChanged && this.initialized;
         this.updateDisplayOptions(displayOptions);
+        if (dataChanged) {
+            this.heatmapInteractions.clearUserInteracted();
+        }
         this.resize(width, height);
         this.padding = padding;
-        if (initialized !== this.initialized || dataChanged) {
-            this.metadataLoaded(this.heatmapData, dataChanged);
+        if (initialized !== this.initialized) {
+            this.metadataLoaded(this.heatmapData, true);
         }
         if (dataConfig) {
             this.heatmapData.options = dataConfig;
@@ -272,6 +286,24 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.labelsManager
             );
             this.viewportRenderer.onInitialized(this.render.bind(this));
+            this.viewportRenderer.onAxisClick((viewportRenderer, clickInfo = {}) => {
+                const {
+                    column: columnIndex,
+                    row: rowIndex
+                } = clickInfo;
+                if (columnIndex !== undefined && this.heatmapData && this.heatmapData.metadata) {
+                    const column = this.heatmapData.metadata.getColumn(columnIndex);
+                    if (column && this.navigation) {
+                        this.navigation.navigate(column.navigation, column.annotation);
+                    }
+                }
+                if (rowIndex !== undefined) {
+                    const row = this.heatmapData.metadata.getRow(rowIndex);
+                    if (row && this.navigation) {
+                        this.navigation.navigate(row.navigation, row.annotation);
+                    }
+                }
+            });
         }
     }
 
@@ -300,6 +332,11 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.labelsManager,
                 this.pixiRenderer
             );
+            this.dataRenderer.onDataItemClick((dataRenderer, item) => {
+                if (item) {
+                    this.navigation.navigate(this.heatmapData.metadata.dataNavigationType, item.annotation);
+                }
+            });
             this.ensureHeatmapInteractions();
             this.heatmapInteractions.registerInteractiveZone(this.dataRenderer);
         }

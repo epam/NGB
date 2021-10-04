@@ -1,5 +1,11 @@
 import * as helpers from './helpers';
-import * as predefinedColors from './colors';
+import {
+    getAvailableColor,
+    green,
+    red,
+    white,
+    yellow
+} from './colors';
 import ColorConfiguration from './color-configuration';
 import GradientCollection from './gradient';
 import {HeatmapDataType} from '../heatmap-data';
@@ -11,13 +17,12 @@ import makeInitializable from '../utilities/make-initializable';
 
 const {ColorFormats} = helpers;
 
-const SINGLE_VALUE_AVAILABLE_BEFORE = 100;
+const SINGLE_VALUE_AVAILABLE_BEFORE = 20;
 
-const ColorCollection = [
-    predefinedColors.red,
-    predefinedColors.yellow,
-    predefinedColors.green
-];
+const uid = (() => {
+    let identifier = 0;
+    return () => ++identifier;
+})();
 
 /**
  * @typedef {Object} GradientStop
@@ -43,6 +48,7 @@ const ColorCollection = [
  * @property {number} [minimum]
  * @property {number} [maximum]
  * @property {*[]} [values=[]]
+ * @property {boolean} [reset=true]
  */
 
 class ColorScheme extends HeatmapEventDispatcher {
@@ -52,6 +58,11 @@ class ColorScheme extends HeatmapEventDispatcher {
      */
     constructor(options = {}) {
         super();
+        /**
+         * Unique identifier
+         * @type {number}
+         */
+        this.id = uid();
         makeInitializable(
             this,
             {
@@ -69,11 +80,52 @@ class ColorScheme extends HeatmapEventDispatcher {
         return true;
     }
 
+    destroy() {
+        this.detachDispatcher();
+        super.destroy();
+    }
+
+    detachDispatcher() {
+        if (typeof this.removeDispatcherListeners === 'function') {
+            this.removeDispatcherListeners();
+        }
+    }
+
+    /**
+     *
+     * @param {dispatcher} dispatcher
+     */
+    attachDispatcher(dispatcher) {
+        this.detachDispatcher();
+        const replaceColorScheme = (colorScheme) => this.initializeFrom(colorScheme);
+        const configureColorScheme = () => dispatcher.emit(
+            'heatmap:colorscheme:configure',
+            {
+                config: {
+                    id: this.id,
+                    scheme: this.copy({colorFormat: ColorFormats.hex})
+                },
+            }
+        );
+        this.removeDispatcherListeners = () => {
+            dispatcher.removeListener(`heatmap:colorscheme:configure:done:${this.id}`, replaceColorScheme);
+            this.removeEventListeners(configureColorScheme);
+        };
+        dispatcher.on(`heatmap:colorscheme:configure:done:${this.id}`, replaceColorScheme);
+        this.onConfigureRequest(configureColorScheme);
+    }
+
     /**
      * Initializes color scheme
      * @param {ColorSchemeOptions} options
      */
-    initialize(options) {
+    initialize(options = {}) {
+        const {
+            reset = true
+        } = options || {};
+        if (reset) {
+            this.initialized = false;
+        }
         const {
             type = colorSchemes.continuous,
             colors = {},
@@ -81,10 +133,10 @@ class ColorScheme extends HeatmapEventDispatcher {
             ...dataOptions
         } = options;
         const {
-            missing = predefinedColors.white,
-            high = predefinedColors.red,
-            medium = predefinedColors.yellow,
-            low = predefinedColors.green,
+            missing = white,
+            high = red,
+            medium = yellow,
+            low = green,
             configurations = []
         } = colors;
         this._dataType = HeatmapDataType.number;
@@ -115,6 +167,9 @@ class ColorScheme extends HeatmapEventDispatcher {
             ...restDataOptions,
             type: dataType
         });
+        if (!reset && this.initialized) {
+            this.emit(events.changed);
+        }
         this.initialized = true;
     }
 
@@ -134,7 +189,8 @@ class ColorScheme extends HeatmapEventDispatcher {
             dataType: colorScheme.dataType,
             minimum: colorScheme.minimum,
             maximum: colorScheme.maximum,
-            values: (colorScheme.values || []).slice()
+            values: (colorScheme.values || []).slice(),
+            reset: false
         });
     }
 
@@ -157,12 +213,29 @@ class ColorScheme extends HeatmapEventDispatcher {
     set type (type) {
         this._type = this.correctType(type);
         if (this._type === colorSchemes.discrete && this.colorConfigurations.length === 0) {
-            this.colorConfigurations.push(new ColorConfiguration({
-                color: ColorCollection[0],
-                colorFormat: this.colorFormat,
-                dataType: this.dataType,
-                validate: this.validate.bind(this)
-            }));
+            if (this.singleValueModeAvailable) {
+                const usedColors = [];
+                this.values.forEach(value => {
+                    const color = getAvailableColor(usedColors);
+                    usedColors.push(color);
+                    this.colorConfigurations.push(new ColorConfiguration({
+                        color: helpers.formatColor(color, this.colorFormat),
+                        colorFormat: this.colorFormat,
+                        dataType: this.dataType,
+                        validate: this.validate.bind(this),
+                        from: value,
+                        to: value,
+                        singleValue: true
+                    }));
+                });
+            } else {
+                this.colorConfigurations.push(new ColorConfiguration({
+                    color: getAvailableColor(),
+                    colorFormat: this.colorFormat,
+                    dataType: this.dataType,
+                    validate: this.validate.bind(this)
+                }));
+            }
         } else if (this._type === colorSchemes.continuous) {
             this.colorConfigurations = [];
         }
@@ -247,7 +320,9 @@ class ColorScheme extends HeatmapEventDispatcher {
              */
             this.gradientCollection = GradientCollection.fromColorConfigurations(this.colorConfigurations);
         }
-        this.emit(events.changed);
+        if (this.initialized) {
+            this.emit(events.changed);
+        }
     }
 
     get missingColor() {
@@ -318,9 +393,11 @@ class ColorScheme extends HeatmapEventDispatcher {
         if (this.colorConfigurations.length === 1) {
             this.colorConfigurations[0].singleValue = this.singleValueModeAvailable;
         }
+        const usedColors = this.colorConfigurations
+            .map(configuration => helpers.systemColorValue(configuration.color));
         this.colorConfigurations.push(new ColorConfiguration({
             colorFormat: this.colorFormat,
-            color: ColorCollection[this.colorConfigurations.length % ColorCollection.length],
+            color: getAvailableColor(usedColors),
             dataType: this.dataType,
             validate: this.validate.bind(this),
             from,
@@ -338,7 +415,7 @@ class ColorScheme extends HeatmapEventDispatcher {
         this.colorConfigurations.splice(index, 1);
         if (this.colorConfigurations.length === 0) {
             this.colorConfigurations.push(new ColorConfiguration({
-                color: ColorCollection[0],
+                color: getAvailableColor(),
                 colorFormat: this.colorFormat,
                 dataType: this.dataType,
                 validate: this.validate.bind(this)

@@ -11,8 +11,8 @@ export default class ngbColorPickerController {
         this.opened = false;
         this.element = $element[0];
         this.overlay = this.ensureOverlay();
+        this.createPickerCall = () => this.createPicker($scope, $compile);
         if (this.overlay) {
-            this.createPicker($scope, $compile);
             this.handleOverlayClick = (e) => {
                 if (e) {
                     e.stopPropagation();
@@ -61,6 +61,7 @@ export default class ngbColorPickerController {
         if (pickerX + PICKER_WIDTH >= width) {
             pickerX = Math.max(0, x - PICKER_WIDTH - PICKER_MARGIN);
         }
+        this.createPickerCall();
         if (this.pickerContainer) {
             this.pickerContainer.style.top = `${pickerY}px`;
             this.pickerContainer.style.left = `${pickerX}px`;
@@ -90,6 +91,7 @@ export default class ngbColorPickerController {
     }
 
     hidePickerContainer() {
+        this.createPickerCall();
         this.hideElement(this.pickerContainer);
     }
 
@@ -98,6 +100,7 @@ export default class ngbColorPickerController {
     }
 
     showPickerContainer() {
+        this.createPickerCall();
         this.showElement(this.pickerContainer);
     }
 
@@ -114,7 +117,7 @@ export default class ngbColorPickerController {
     }
 
     createPicker(scope, compile) {
-        if (this.overlay) {
+        if (this.overlay && !this.pickerContainer) {
             this.pickerContainer = document.createElement('div');
             this.pickerContainer.classList.add('ngb-color-picker-container');
             this.pickerContainer.classList.add('hidden');

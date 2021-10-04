@@ -945,7 +945,11 @@ export default class projectContext {
     }
 
     loadDatasetDescription(id) {
-        return this.projectDataService.getProjectIdDescription(id);
+        return new Promise((resolve) => {
+            this.projectDataService.getProjectIdDescription(id)
+                .then(resolve)
+                .catch(() => resolve(undefined));
+        });
     }
 
     convertProjectForSave = utilities.convertProjectForSave;
@@ -1864,7 +1868,13 @@ export default class projectContext {
 
     async _loadChromosomesForReference(referenceId) {
         if (referenceId) {
-            return await this.genomeDataService.loadAllChromosomes(referenceId);
+            try {
+                return await this.genomeDataService.loadAllChromosomes(referenceId);
+            } catch (e) {
+                const errorMessage = e ? (e.message || e) : '';
+                // eslint-disable-next-line no-console
+                console.warn(`Error fetching chromosomes for reference #${referenceId} ${errorMessage}`);
+            }
         }
         return [];
     }

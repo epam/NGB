@@ -4,6 +4,7 @@ export default class ngbHeatmapPanelController {
     }
     constructor($scope, ngbHeatmapPanelService) {
         this.service = ngbHeatmapPanelService;
+        this.onHeatmapNavigationCallback = this.onHeatmapNavigation.bind(this);
     }
 
     get loading() {
@@ -20,6 +21,8 @@ export default class ngbHeatmapPanelController {
 
     set heatmap(heatmap) {
         this.service.selectedHeatmap = heatmap;
+        this.service.heatmapNavigationOccurred = false;
+        this.service.refreshHeatmapsList();
     }
 
     get heatmapId() {
@@ -34,5 +37,16 @@ export default class ngbHeatmapPanelController {
             return this.heatmap.project ? this.heatmap.project.id : this.heatmap.projectIdNumber;
         }
         return undefined;
+    }
+
+    get heatmapReferenceId() {
+        if (this.heatmap) {
+            return this.heatmap.referenceId;
+        }
+        return undefined;
+    }
+
+    onHeatmapNavigation() {
+        this.service.heatmapNavigationOccurred = true;
     }
 }

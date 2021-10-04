@@ -18,10 +18,11 @@ class Heatmap {
      *
      * @param {HTMLElement} container
      * @param {dispatcher} dispatcher
+     * @param {projectContext} projectContext
      * @param {string} [className]
      * @param {boolean} [checkContainerSize=false]
      */
-    constructor(container, dispatcher, className, checkContainerSize = false) {
+    constructor(container, dispatcher, projectContext, className, checkContainerSize = false) {
         this.useWebGL = true;
         this.container = container;
         this.onResize = this.resize.bind(this);
@@ -32,12 +33,20 @@ class Heatmap {
             this.domElement.classList.add(className);
         }
         angular.element(window).on('resize', this.onResize);
-        this.heatmapView = new HeatmapView({dispatcher});
+        this.heatmapView = new HeatmapView({dispatcher, projectContext});
         this.refreshRenderer(true);
         this.ensureContainerSize();
         if (checkContainerSize) {
             this.checkContainerSize();
         }
+    }
+
+    get referenceId() {
+        return this.heatmapView.referenceId;
+    }
+
+    set referenceId(referenceId) {
+        this.heatmapView.referenceId = referenceId;
     }
 
     ensureContainerSize() {
@@ -154,6 +163,12 @@ class Heatmap {
         this.destroyPixiRenderer();
         this.refreshRenderer(true);
     };
+
+    onNavigated(callback) {
+        if (this.heatmapView) {
+            this.heatmapView.navigation.onNavigated(callback);
+        }
+    }
 
     render() {
         if (this.heatmapView) {

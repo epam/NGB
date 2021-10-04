@@ -1,4 +1,4 @@
-import * as colors from './colors';
+import {white} from './colors';
 import * as helpers from './helpers';
 import {HeatmapDataType} from '../heatmap-data';
 
@@ -29,7 +29,7 @@ export default class ColorConfiguration {
     constructor(options = {}) {
         const {
             _color,
-            color = colors.white,
+            color = white,
             dataType = HeatmapDataType.number,
             _from = (dataType === HeatmapDataType.number ? 0 : undefined),
             _to = (dataType === HeatmapDataType.number ? 1 : undefined),
