@@ -12,7 +12,7 @@ export default class ngbHeatmapPanelController {
     }
 
     get heatmaps() {
-        return this.service.heatmaps;
+        return this.service.heatmaps || [];
     }
 
     get heatmap() {
@@ -30,6 +30,11 @@ export default class ngbHeatmapPanelController {
             return this.heatmap.id;
         }
         return undefined;
+    }
+
+    set heatmapId(heatmapId) {
+        const [heatmap] = this.heatmaps.filter(h => h.id === heatmapId);
+        this.heatmap = heatmap;
     }
 
     get heatmapProjectId() {

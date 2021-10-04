@@ -19,7 +19,7 @@ export default class ngbHeatmapPanelService {
     }
 
     get loading() {
-        return !this.initialized;// || !this.projectContext || this.projectContext._referencesAreLoading;
+        return !this.initialized || !this.projectContext || this.projectContext._referencesAreLoading;
     }
 
     refreshHeatmapsList() {
