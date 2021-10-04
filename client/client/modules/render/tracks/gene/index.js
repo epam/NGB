@@ -174,8 +174,8 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
         return this.viewport.shortenedIntronsViewport.shortenedIntronsTrackId === this.config.id;
     }
 
-    async updateAndRefresh() {
-        await this.updateCache();
+    async updateAndRefresh(forceUpdate = false) {
+        await this.updateCache(forceUpdate);
         this._flags.dataChanged = true;
         await this.requestRenderRefresh();
     }
@@ -391,7 +391,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
         }
     }
 
-    async updateCache() {
+    async updateCache(forceUpdate = false) {
         if (this.cache.histogramData === null || this.cache.histogramData === undefined) {
             const data = await this.downloadHistogramFn(
                 this.cacheUpdateInitialParameters(this.viewport)
@@ -410,7 +410,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
             if (this.trackDataLoadingStatusChanged) {
                 this.trackDataLoadingStatusChanged(true);
             }
-            const data = await this.downloadDataFn(params, this.config.referenceId);
+            const data = await this.downloadDataFn(params, this.config.referenceId, forceUpdate);
             if (this.trackDataLoadingStatusChanged) {
                 this.trackDataLoadingStatusChanged(false);
             }

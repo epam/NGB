@@ -233,6 +233,14 @@ export default class ngbTrackController {
             }
         };
 
+        const updateTrackCacheData = (opts) => {
+            const {trackId} = opts;
+            const [track] = this.projectContext.tracks.filter(track => track.id === trackId);
+            if (track && track.instance && track.instance.updateAndRefresh) {
+                track.instance.updateAndRefresh(true);
+            }
+        };
+
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
         dispatcher.on('tracks:header:style:configure:done', trackHeaderStyleChangedHandler);
@@ -240,6 +248,7 @@ export default class ngbTrackController {
         dispatcher.on('coverage:color:configure:done', trackColorsChangedHandler);
         dispatcher.on('bed:color:configure:done', bedTrackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
+        dispatcher.on('feature:info:saved', updateTrackCacheData);
         dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
@@ -252,6 +261,7 @@ export default class ngbTrackController {
                 dispatcher.removeListener('coverage:color:configure:done', trackColorsChangedHandler);
                 dispatcher.removeListener('bed:color:configure:done', bedTrackColorsChangedHandler);
                 dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
+                dispatcher.removeListener('feature:info:saved', updateTrackCacheData);
                 dispatcher.removeListener(SelectionEvents.changed, tracksSelectionChangedHandler);
                 this.trackInstance.destructor();
             }
