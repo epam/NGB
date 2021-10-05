@@ -74,11 +74,6 @@ public class HeatmapSecurityService {
         return heatmapManager.getContent(heatmapId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public Map<String, String> getLabelAnnotation(final long heatmapId, final Long projectId) throws IOException {
-        return heatmapManager.getLabelAnnotation(heatmapId);
-    }
-
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
     public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
         heatmapManager.updateLabelAnnotation(heatmapId, path);

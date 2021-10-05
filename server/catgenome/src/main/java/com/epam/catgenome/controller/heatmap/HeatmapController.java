@@ -95,20 +95,6 @@ public class HeatmapController extends AbstractRESTController {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
     }
 
-    @GetMapping(value = "/heatmap/{heatmapId}/label/annotation")
-    @ApiOperation(
-            value = "Returns heatmap annotation for labels",
-            notes = "Returns heatmap annotation for labels",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Map<String, String>> getLabelAnnotation(@PathVariable final long heatmapId,
-                                                          @RequestParam(required = false) final Long projectId)
-            throws IOException {
-        return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId, projectId));
-    }
-
     @PutMapping(value = "/heatmap/{heatmapId}/label/annotation")
     @ApiOperation(
             value = "Updates heatmap annotation for labels",
@@ -146,7 +132,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
-                                       @RequestParam(required = false) final Long projectId) throws IOException {
+                                       @RequestParam(required = false) final Long projectId) {
         return Result.success(heatmapSecurityService.getTree(heatmapId, projectId));
     }
 
