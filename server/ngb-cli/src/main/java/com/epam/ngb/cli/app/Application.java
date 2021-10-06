@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.epam.ngb.cli.entity.heatmap.HeatmapAnnotationType;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -216,6 +217,15 @@ public class Application {
     @Option(name = "-lap", usage = "heatmap label annotation path", aliases = {"--heatmap-lap"})
     private String heatmapLabelAnnotationPath;
 
+    @Option(name = "-cell-at", usage = "heatmap cell annotation type", aliases = {"--heatmap-cell-at"})
+    private String heatmapCellAnnotationType;
+
+    @Option(name = "-row-at", usage = "heatmap row annotation type", aliases = {"--heatmap-row-at"})
+    private String heatmapRowAnnotationType;
+
+    @Option(name = "-col-at", usage = "heatmap column annotation type", aliases = {"--heatmap-col-at"})
+    private String heatmapColumnAnnotationType;
+
     @Option(name = "-path", usage = "defines path to heatmap cell/label annotation or other entity")
     private String path;
 
@@ -321,10 +331,14 @@ public class Application {
         options.setHeatmapCellAnnotationPath(heatmapCellAnnotationPath);
         options.setHeatmapLabelAnnotationPath(heatmapLabelAnnotationPath);
         options.setPath(path);
+        options.setHeatmapCellAnnotationType(HeatmapAnnotationType.from(heatmapCellAnnotationType));
+        options.setHeatmapRowAnnotationType(HeatmapAnnotationType.from(heatmapRowAnnotationType));
+        options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         return options;
     }
 
     protected void exit(int code) {
         System.exit(code);
     }
+
 }

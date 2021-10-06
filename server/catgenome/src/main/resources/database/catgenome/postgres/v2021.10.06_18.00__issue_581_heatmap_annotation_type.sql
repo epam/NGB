@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.vo.registration;
 
-import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
-public class HeatmapRegistrationRequest extends DefaultFileRegistrationRequest {
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
-}
+ALTER TABLE CATGENOME.HEATMAP ADD COLUMN CELL_ANNOTATION_TYPE TEXT DEFAULT 'NONE';
+ALTER TABLE CATGENOME.HEATMAP ADD COLUMN ROW_ANNOTATION_TYPE TEXT DEFAULT 'NONE';
+ALTER TABLE CATGENOME.HEATMAP ADD COLUMN COLUMN_ANNOTATION_TYPE TEXT DEFAULT 'NONE';

@@ -22,6 +22,9 @@
                         cell_values,
                         content,
                         cell_annotation,
+                        cell_annotation_type,
+                        row_annotation_type,
+                        column_annotation_type,
                         row_tree,
                         column_tree
                     ) VALUES (
@@ -39,6 +42,9 @@
                         :CELL_VALUES,
                         :CONTENT,
                         :CELL_ANNOTATION,
+                        :CELL_ANNOTATION_TYPE,
+                        :ROW_ANNOTATION_TYPE,
+                        :COLUMN_ANNOTATION_TYPE,
                         :ROW_TREE,
                         :COLUMN_TREE
                     )
@@ -72,7 +78,10 @@
                         h.row_tree_path,
                         h.column_tree_path,
                         h.cell_annotation_path,
+                        h.cell_annotation_type,
                         h.label_annotation_path,
+                        h.row_annotation_type,
+                        h.column_annotation_type,
                         h.max_cell_value,
                         h.min_cell_value,
                         h.row_labels,
@@ -104,7 +113,10 @@
                         h.row_tree_path,
                         h.column_tree_path,
                         h.cell_annotation_path,
+                        h.cell_annotation_type,
                         h.label_annotation_path,
+                        h.row_annotation_type,
+                        h.column_annotation_type,
                         h.max_cell_value,
                         h.min_cell_value,
                         h.row_labels,

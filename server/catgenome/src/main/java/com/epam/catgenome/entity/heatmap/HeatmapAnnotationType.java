@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.ngb.cli.entity;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.entity.heatmap;
 
-@Getter
-@Setter
-@Builder
-public class HeatmapRegistrationRequest implements RequestPayload {
-    private String path;
-    private String name;
-    private String prettyName;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private String labelAnnotationPath;
+public enum HeatmapAnnotationType {
+    NONE, REFERENCE, GENE, DATASET, COORDINATE;
 }

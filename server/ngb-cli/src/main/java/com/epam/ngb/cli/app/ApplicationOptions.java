@@ -24,11 +24,19 @@
 
 package com.epam.ngb.cli.app;
 
+import com.epam.ngb.cli.entity.heatmap.HeatmapAnnotationType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * {@code ApplicationOptions} represents a set of available supplementary options for CLI
  * tools. These options are used to set optional fields in the tools and format
  * output of the tools.
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class ApplicationOptions {
 
     /**
@@ -109,203 +117,8 @@ public class ApplicationOptions {
     private String heatmapCellAnnotationPath;
     private String heatmapLabelAnnotationPath;
     private String path;
+    private HeatmapAnnotationType heatmapCellAnnotationType;
+    private HeatmapAnnotationType heatmapRowAnnotationType;
+    private HeatmapAnnotationType heatmapColumnAnnotationType;
 
-    /**
-     * Creates object with default option's values
-     */
-    public ApplicationOptions() {
-        //no operations, all values are default
-    }
-
-    public String getFiles() {
-        return files;
-    }
-
-    public void setFiles(String files) {
-        this.files = files;
-    }
-
-    public String getUsers() {
-        return users;
-    }
-
-    public void setUsers(String users) {
-        this.users = users;
-    }
-
-    public String getGroups() {
-        return groups;
-    }
-
-    public void setGroups(String groups) {
-        this.groups = groups;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean isPrintJson() {
-        return printJson;
-    }
-
-    public void setPrintJson(boolean printJson) {
-        this.printJson = printJson;
-    }
-
-    public boolean isStrictSearch() {
-        return strictSearch;
-    }
-
-    public void setStrictSearch(boolean strictSearch) {
-        this.strictSearch = strictSearch;
-    }
-
-    public boolean isPrintTable() {
-        return printTable;
-    }
-
-    public void setPrintTable(boolean printTable) {
-        this.printTable = printTable;
-    }
-
-    public String getParent() {
-        return parent;
-    }
-
-    public void setParent(String parent) {
-        this.parent = parent;
-    }
-
-    public String getGeneFile() {
-        return geneFile;
-    }
-
-    public void setGeneFile(String geneFile) {
-        this.geneFile = geneFile;
-    }
-
-    public boolean isDoIndex() {
-        return doIndex;
-    }
-
-    public void setDoIndex(boolean doIndex) {
-        this.doIndex = doIndex;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public boolean isNoGCContent() {
-        return noGCContent;
-    }
-
-    public void setNoGCContent(boolean noGCContent) {
-        this.noGCContent = noGCContent;
-    }
-
-    public void setMaxMemory(int maxMemory) {
-        this.maxMemory = maxMemory;
-    }
-
-    public int getMaxMemory() {
-        return maxMemory;
-    }
-
-    public void setForceDeletion(boolean forceDeletion) {
-        this.forceDeletion = forceDeletion;
-    }
-
-    public boolean isForceDeletion() {
-        return forceDeletion;
-    }
-
-    public boolean isCreateTabixIndex() {
-        return createTabixIndex;
-    }
-
-    public void setCreateTabixIndex(boolean createTabixIndex) {
-        this.createTabixIndex = createTabixIndex;
-    }
-
-    public String getPrettyName() {
-        return prettyName;
-    }
-
-    public void setPrettyName(String prettyName) {
-        this.prettyName = prettyName;
-    }
-
-    public String getSpeciesVersion() {
-        return speciesVersion;
-    }
-
-    public void setSpeciesVersion(String speciesVersion) {
-        this.speciesVersion = speciesVersion;
-    }
-
-    public String getDatasets() {
-        return datasets;
-    }
-
-    public void setDatasets(String datasets) {
-        this.datasets = datasets;
-    }
-
-    public boolean isShowPermissions() {
-        return showPermissions;
-    }
-
-    public void setShowPermissions(boolean showPermissions) {
-        this.showPermissions = showPermissions;
-    }
-
-    public String getDatabaseType() {
-        return databaseType;
-    }
-
-    public void setDatabaseType(final String databaseType) {
-        this.databaseType = databaseType;
-    }
-
-    public String getDatabasePath() {
-        return databasePath;
-    }
-
-    public void setDatabasePath(final String databasePath) {
-        this.databasePath = databasePath;
-    }
-
-    public String getHeatmapCellAnnotationPath() {
-        return heatmapCellAnnotationPath;
-    }
-
-    public void setHeatmapCellAnnotationPath(final String heatmapCellAnnotationPath) {
-        this.heatmapCellAnnotationPath = heatmapCellAnnotationPath;
-    }
-
-    public String getHeatmapLabelAnnotationPath() {
-        return heatmapLabelAnnotationPath;
-    }
-
-    public void setHeatmapLabelAnnotationPath(final String heatmapLabelAnnotationPath) {
-        this.heatmapLabelAnnotationPath = heatmapLabelAnnotationPath;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(final String path) {
-        this.path = path;
-    }
 }

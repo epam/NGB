@@ -30,6 +30,7 @@ import com.epam.catgenome.dao.heatmap.HeatmapDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import com.epam.catgenome.entity.heatmap.HeatmapTreeNode;
@@ -69,6 +70,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -91,22 +93,7 @@ public class HeatmapManager {
     public Heatmap createHeatmap(final HeatmapRegistrationRequest request) throws IOException {
         String path = request.getPath();
         File file = getFile(path);
-        Heatmap heatmap = Heatmap.builder()
-                .rowTreePath(request.getRowTreePath())
-                .columnTreePath(request.getColumnTreePath())
-                .cellAnnotationPath(request.getCellAnnotationPath())
-                .labelAnnotationPath(request.getLabelAnnotationPath())
-                .build();
-        heatmap.setPath(path);
-        heatmap.setName(TextUtils.isBlank(request.getName()) ? FilenameUtils.getBaseName(path) : request.getName());
-        heatmap.setPrettyName(TextUtils.isBlank(request.getPrettyName()) ?
-                FilenameUtils.getBaseName(path) :
-                request.getPrettyName());
-        heatmap.setType(BiologicalDataItemResourceType.FILE);
-        heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
-        heatmap.setCreatedDate(new Date());
-        heatmap.setSource(path);
-        readHeatmap(heatmap);
+        Heatmap heatmap = getHeatmap(request, path);
         Map<String, String> labelAnnotation = readLabelAnnotation(heatmap.getLabelAnnotationPath());
         updateHeatmapLabels(heatmap, labelAnnotation);
         byte[] content = FileUtils.readFileToByteArray(file);
@@ -229,6 +216,30 @@ public class HeatmapManager {
         BufferedReader r = createReader(is);
         TreeParser tp = new TreeParser(r);
         return tp.tokenize(FilenameUtils.getBaseName(path));
+    }
+
+    @NotNull
+    private Heatmap getHeatmap(final HeatmapRegistrationRequest request, final String path) throws IOException {
+        Heatmap heatmap = Heatmap.builder()
+                .rowTreePath(request.getRowTreePath())
+                .columnTreePath(request.getColumnTreePath())
+                .cellAnnotationPath(request.getCellAnnotationPath())
+                .cellAnnotationType(getAnnotationType(request.getCellAnnotationType()))
+                .labelAnnotationPath(request.getLabelAnnotationPath())
+                .rowAnnotationType(getAnnotationType(request.getRowAnnotationType()))
+                .columnAnnotationType(getAnnotationType(request.getColumnAnnotationType()))
+                .build();
+        heatmap.setPath(path);
+        heatmap.setName(TextUtils.isBlank(request.getName()) ? FilenameUtils.getBaseName(path) : request.getName());
+        heatmap.setPrettyName(TextUtils.isBlank(request.getPrettyName()) ?
+                FilenameUtils.getBaseName(path) :
+                request.getPrettyName());
+        heatmap.setType(BiologicalDataItemResourceType.FILE);
+        heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
+        heatmap.setCreatedDate(new Date());
+        heatmap.setSource(path);
+        readHeatmap(heatmap);
+        return heatmap;
     }
 
     private void readHeatmap(final Heatmap heatmap) throws IOException {
@@ -436,6 +447,12 @@ public class HeatmapManager {
                 rowNum++;
             }
         }
+    }
+
+    @NotNull
+    private HeatmapAnnotationType getAnnotationType(final HeatmapAnnotationType columnAnnotationType) {
+        return Optional.ofNullable(columnAnnotationType)
+                .orElse(HeatmapAnnotationType.NONE);
     }
 
     @SneakyThrows

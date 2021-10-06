@@ -27,6 +27,7 @@ import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -228,6 +229,9 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         CELL_VALUES,
         CONTENT,
         CELL_ANNOTATION,
+        CELL_ANNOTATION_TYPE,
+        ROW_ANNOTATION_TYPE,
+        COLUMN_ANNOTATION_TYPE,
         ROW_TREE,
         COLUMN_TREE;
 
@@ -245,6 +249,9 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
             params.addValue(COLUMN_LABELS.name(), listToData(heatmap.getColumnLabels()));
             params.addValue(ROW_LABELS.name(), listToData(heatmap.getRowLabels()));
             params.addValue(CELL_VALUES.name(), setToData(heatmap.getCellValues()));
+            params.addValue(CELL_ANNOTATION_TYPE.name(), heatmap.getCellAnnotationType().name());
+            params.addValue(ROW_ANNOTATION_TYPE.name(), heatmap.getRowAnnotationType().name());
+            params.addValue(COLUMN_ANNOTATION_TYPE.name(), heatmap.getColumnAnnotationType().name());
             return params;
         }
 
@@ -297,6 +304,9 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
                     .columnLabels(dataToList(rs.getBytes(COLUMN_LABELS.name())))
                     .rowLabels(dataToList(rs.getBytes(ROW_LABELS.name())))
                     .cellValues(dataToSet(rs.getBytes(CELL_VALUES.name())))
+                    .cellAnnotationType(HeatmapAnnotationType.valueOf(rs.getString(CELL_ANNOTATION_TYPE.name())))
+                    .rowAnnotationType(HeatmapAnnotationType.valueOf(rs.getString(ROW_ANNOTATION_TYPE.name())))
+                    .columnAnnotationType(HeatmapAnnotationType.valueOf(rs.getString(COLUMN_ANNOTATION_TYPE.name())))
                     .build();
             heatmap.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             heatmap.setName(rs.getString(NAME.name()));

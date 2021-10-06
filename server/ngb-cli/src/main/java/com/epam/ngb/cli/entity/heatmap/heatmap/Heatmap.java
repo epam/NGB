@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.ngb.cli.entity;
+package com.epam.ngb.cli.entity.heatmap;
 
 import com.epam.ngb.cli.manager.printer.Printable;
 import lombok.Builder;
@@ -44,7 +44,10 @@ public class Heatmap implements Printable<Heatmap> {
     private String prettyName;
     private String path;
     private String cellAnnotationPath;
+    private HeatmapAnnotationType cellAnnotationType;
     private String labelAnnotationPath;
+    private HeatmapAnnotationType rowAnnotationType;
+    private HeatmapAnnotationType columnAnnotationType;
     private String rowTreePath;
     private String columnTreePath;
     /**

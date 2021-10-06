@@ -41,7 +41,10 @@ public class Heatmap extends BiologicalDataItem {
     private String rowTreePath;
     private String columnTreePath;
     private String cellAnnotationPath;
+    private HeatmapAnnotationType cellAnnotationType;
     private String labelAnnotationPath;
+    private HeatmapAnnotationType rowAnnotationType;
+    private HeatmapAnnotationType columnAnnotationType;
     private Set<?> cellValues;
     private HeatmapDataType cellValueType;
     private Double maxCellValue;

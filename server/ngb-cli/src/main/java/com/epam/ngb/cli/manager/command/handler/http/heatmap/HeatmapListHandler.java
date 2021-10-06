@@ -28,7 +28,7 @@ package com.epam.ngb.cli.manager.command.handler.http.heatmap;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.Heatmap;
+import com.epam.ngb.cli.entity.heatmap.Heatmap;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
