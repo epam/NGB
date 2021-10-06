@@ -22,7 +22,6 @@
                         cell_values,
                         content,
                         cell_annotation,
-                        label_annotation,
                         row_tree,
                         column_tree
                     ) VALUES (
@@ -40,7 +39,6 @@
                         :CELL_VALUES,
                         :CONTENT,
                         :CELL_ANNOTATION,
-                        :LABEL_ANNOTATION,
                         :ROW_TREE,
                         :COLUMN_TREE
                     )
@@ -156,7 +154,8 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        label_annotation = :LABEL_ANNOTATION,
+                        row_labels = :ROW_LABELS,
+                        column_labels = :COLUMN_LABELS,
                         label_annotation_path = :LABEL_ANNOTATION_PATH
                     WHERE
                         heatmap_id = :HEATMAP_ID

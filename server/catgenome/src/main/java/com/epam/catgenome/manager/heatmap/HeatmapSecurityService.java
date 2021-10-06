@@ -33,7 +33,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
@@ -72,11 +71,6 @@ public class HeatmapSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
     public List<List<List<String>>> getContent(final long heatmapId, final Long projectId) throws IOException {
         return heatmapManager.getContent(heatmapId);
-    }
-
-    @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)
-    public Map<String, String> getLabelAnnotation(final long heatmapId, final Long projectId) throws IOException {
-        return heatmapManager.getLabelAnnotation(heatmapId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)

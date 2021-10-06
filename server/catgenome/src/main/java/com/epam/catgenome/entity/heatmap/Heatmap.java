@@ -46,8 +46,8 @@ public class Heatmap extends BiologicalDataItem {
     private HeatmapDataType cellValueType;
     private Double maxCellValue;
     private Double minCellValue;
-    private List<String> columnLabels;
-    private List<String> rowLabels;
+    private List<List<String>> columnLabels;
+    private List<List<String>> rowLabels;
 
     @Override
     public AclClass getAclClass() {

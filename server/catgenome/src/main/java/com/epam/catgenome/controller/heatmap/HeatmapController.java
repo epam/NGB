@@ -47,7 +47,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Api(value = "heatmap", description = "Heatmap files Management")
@@ -93,20 +92,6 @@ public class HeatmapController extends AbstractRESTController {
                                                          @RequestParam(required = false) final Long projectId)
             throws IOException {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
-    }
-
-    @GetMapping(value = "/heatmap/{heatmapId}/label/annotation")
-    @ApiOperation(
-            value = "Returns heatmap annotation for labels",
-            notes = "Returns heatmap annotation for labels",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Map<String, String>> getLabelAnnotation(@PathVariable final long heatmapId,
-                                                          @RequestParam(required = false) final Long projectId)
-            throws IOException {
-        return Result.success(heatmapSecurityService.getLabelAnnotation(heatmapId, projectId));
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/label/annotation")

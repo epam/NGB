@@ -41,18 +41,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class HeatmapManagerTest extends TestCase {
 
-    private static final int CELL_VALUES_SIZE = 15;
+    private static final int CELL_VALUES_SIZE = 16;
     private static final int CONTENT_SIZE = 6;
     private static final double MAX_CELL_VALUE = 0.001276598;
     private static final double MIN_CELL_VALUE = 0.0;
     private static final String GENE_1_LABEL = "gene1";
     private static final String GENE_1_ANNOTATION = "test1";
+
     @Autowired
     private HeatmapManager heatmapManager;
 
@@ -89,17 +89,17 @@ public class HeatmapManagerTest extends TestCase {
         assertEquals(createdHeatmap.getPrettyName(), "heatmap");
         assertEquals(createdHeatmap.getType(), BiologicalDataItemResourceType.FILE);
         assertEquals(createdHeatmap.getRowLabels().size(), CONTENT_SIZE);
-        assertTrue(createdHeatmap.getRowLabels().contains(GENE_1_LABEL));
+        assertTrue(createdHeatmap.getRowLabels().get(0).contains(GENE_1_LABEL));
+        assertTrue(createdHeatmap.getRowLabels().get(0).contains(GENE_1_ANNOTATION));
         assertEquals(createdHeatmap.getColumnLabels().size(), CONTENT_SIZE);
-        assertTrue(createdHeatmap.getColumnLabels().contains(GENE_1_LABEL));
+        assertTrue(createdHeatmap.getColumnLabels().get(0).contains(GENE_1_LABEL));
+        assertTrue(createdHeatmap.getColumnLabels().get(0).contains(GENE_1_ANNOTATION));
         assertEquals(createdHeatmap.getCellValues().size(), CELL_VALUES_SIZE);
         assertEquals(createdHeatmap.getCellValueType(), HeatmapDataType.DOUBLE);
         assertEquals(createdHeatmap.getMinCellValue(), MIN_CELL_VALUE);
         assertEquals(createdHeatmap.getMaxCellValue(), MAX_CELL_VALUE);
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
-        Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
-        assertNotNull(labelAnnotation);
         HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
         assertNotNull(tree);
     }
@@ -108,11 +108,14 @@ public class HeatmapManagerTest extends TestCase {
     public void updateLabelAnnotationTest() throws IOException {
         Heatmap heatmap = registerHeatmap("updateLabelAnnotationTest");
         heatmapManager.updateLabelAnnotation(heatmap.getHeatmapId(), labelAnnotationFileName);
-        Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
-        assertNotNull(labelAnnotation);
-        assertEquals(labelAnnotation.size(), CONTENT_SIZE);
-        assertTrue(labelAnnotation.containsKey(GENE_1_LABEL));
-        assertEquals(labelAnnotation.get(GENE_1_LABEL), GENE_1_ANNOTATION);
+        Heatmap updatedHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
+        assertEquals(updatedHeatmap.getLabelAnnotationPath(), labelAnnotationFileName);
+        assertNotNull(updatedHeatmap.getRowLabels().get(0));
+        assertEquals(updatedHeatmap.getRowLabels().get(0).size(), 2);
+        assertEquals(updatedHeatmap.getRowLabels().get(0).get(1), GENE_1_ANNOTATION);
+        assertNotNull(updatedHeatmap.getColumnLabels().get(0));
+        assertEquals(updatedHeatmap.getColumnLabels().get(0).size(), 2);
+        assertEquals(updatedHeatmap.getColumnLabels().get(0).get(1), GENE_1_ANNOTATION);
     }
 
     @Test

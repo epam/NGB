@@ -86,14 +86,12 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     public Heatmap saveHeatmap(final Heatmap heatmap,
                                final byte[] content,
                                final byte[] cellAnnotation,
-                               final byte[] labelAnnotation,
                                final byte[] rowTree,
                                final byte[] columnTree) {
         heatmap.setHeatmapId(daoHelper.createId(heatmapSequenceName));
         final MapSqlParameterSource params = HeatmapParameters.getParameters(heatmap);
         params.addValue(HeatmapParameters.CONTENT.name(), content);
         params.addValue(HeatmapParameters.CELL_ANNOTATION.name(), cellAnnotation);
-        params.addValue(HeatmapParameters.LABEL_ANNOTATION.name(), labelAnnotation);
         params.addValue(HeatmapParameters.ROW_TREE.name(), rowTree);
         params.addValue(HeatmapParameters.COLUMN_TREE.name(), columnTree);
         getNamedParameterJdbcTemplate().update(insertHeatmapQuery, params);
@@ -146,10 +144,12 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateLabelAnnotation(final Long heatmapId, final byte[] annotation, final String path) {
+    public void updateLabelAnnotation(final Heatmap heatmap, final String path) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmapId);
-        params.addValue(HeatmapParameters.LABEL_ANNOTATION.name(), annotation);
+        params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmap.getHeatmapId());
+        params.addValue(HeatmapParameters.COLUMN_LABELS.name(),
+                HeatmapParameters.listToData(heatmap.getColumnLabels()));
+        params.addValue(HeatmapParameters.ROW_LABELS.name(), HeatmapParameters.listToData(heatmap.getRowLabels()));
         params.addValue(HeatmapParameters.LABEL_ANNOTATION_PATH.name(), path);
 
         getNamedParameterJdbcTemplate().update(updateLabelAnnotationQuery, params);
@@ -186,13 +186,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         final LobHandler lobHandler = new DefaultLobHandler();
         final List<InputStream> result = getJdbcTemplate().query(loadCellAnnotationQuery, (rs, rowNum) ->
                 lobHandler.getBlobAsBinaryStream(rs, HeatmapParameters.CELL_ANNOTATION.name()), heatmapId);
-        return result.isEmpty() ? null : result.get(0);
-    }
-
-    public InputStream loadLabelAnnotation(final Long heatmapId) {
-        final LobHandler lobHandler = new DefaultLobHandler();
-        final List<InputStream> result = getJdbcTemplate().query(loadLabelAnnotationQuery, (rs, rowNum) ->
-                lobHandler.getBlobAsBinaryStream(rs, HeatmapParameters.LABEL_ANNOTATION.name()), heatmapId);
         return result.isEmpty() ? null : result.get(0);
     }
 
@@ -235,7 +228,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         CELL_VALUES,
         CONTENT,
         CELL_ANNOTATION,
-        LABEL_ANNOTATION,
         ROW_TREE,
         COLUMN_TREE;
 
@@ -257,7 +249,7 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         }
 
         @SneakyThrows
-        private static byte[] listToData(List<String> data) {
+        private static byte[] listToData(List<List<String>> data) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(data);
@@ -266,10 +258,10 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         }
 
         @SneakyThrows
-        private static List<String> dataToList(byte[] data) {
+        private static List<List<String>> dataToList(byte[] data) {
             ByteArrayInputStream bis = new ByteArrayInputStream(data);
             ObjectInput in = new ObjectInputStream(bis);
-            return (List<String>) in.readObject();
+            return (List<List<String>>) in.readObject();
         }
 
         @SneakyThrows
