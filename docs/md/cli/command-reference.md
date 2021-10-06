@@ -670,6 +670,95 @@ Deletes a specified database from NGB server.
 $ ngb del_blast_db 2
 ```
 
+## Heatmap commands
+### Register heatmap
+```
+ngb reg_heatmap|rh [<PATH>] [options]
+//Options:
+//-n (--name)                   Heatmap name
+//-pt (--pretty)                Heatmap pretty name
+//-cap (--heatmap-cap)          Heatmap cell annotation path
+//-lap (--heatmap-lap)          Heatmap label annotation path
+```
+*Description*
+
+Registers a heatmap. One argument has to be specified:
+* Heatmap path
+
+*Example*
+```bash
+# Create new heatmap with name "Heatmap", path "heatmap.csv"
+$ ngb reg_heatmap "heatmap.csv" -n "Heatmap"
+```
+
+### List heatmaps
+```
+ngb list_heatmaps|lh
+```
+
+*Description*
+
+List all heatmaps registered on NGB server.
+
+*Example*
+```bash
+# List all heatmaps registered on NGB server
+$ ngb list_heatmaps
+```
+
+### Delete heatmap
+```
+ngb del_heatmap|dh [<ID>]
+```
+*Description*
+
+Deletes a specified heatmap from NGB server. One argument has to be specified:
+* Heatmap id
+
+*Example*
+```bash
+# Delete heatmap with id 1
+$ ngb del_heatmap 1
+```
+
+### Update heatmap cell annotation
+```
+ngb upd_cell_annotation|uca [<ID>] [options]
+//Options:
+//-path          Heatmap cell annotation path
+```
+> **Note**: annotation will be deleted if "-path" option is absent.
+
+*Description*
+
+Updates heatmap cell annotation. One argument has to be specified:
+* Heatmap id
+
+*Example*
+```bash
+# Update cell annotation for heatmap id 1, annotation path "cell_annotation.csv"
+$ ngb upd_cell_annotation 1 -path "cell_annotation.csv"
+```
+
+### Update heatmap label annotation
+```
+ngb upd_label_annotation|ula [<ID>] [options]
+//Options:
+//-path          Heatmap label annotation path
+```
+> **Note**: annotation will be deleted if "-path" option is absent.
+
+*Description*
+
+Updates heatmap label annotation. One argument has to be specified:
+* Heatmap id
+
+*Example*
+```bash
+# Update label annotation for heatmap id 1, annotation path "label_annotation.csv"
+$ ngb upd_label_annotation 1 -path "label_annotation.csv"
+```
+
 ## Utility commands
 ### Sort feature file
 ```

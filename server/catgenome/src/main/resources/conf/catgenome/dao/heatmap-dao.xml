@@ -86,6 +86,37 @@
                 ]]>
             </value>
         </property>
+        <property name="loadHeatmapsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        h.heatmap_id,
+                        h.cell_value_type,
+                        h.row_tree_path,
+                        h.column_tree_path,
+                        h.cell_annotation_path,
+                        h.label_annotation_path,
+                        h.max_cell_value,
+                        h.min_cell_value,
+                        h.row_labels,
+                        h.column_labels,
+                        h.cell_values
+                    FROM catgenome.heatmap h
+                        JOIN catgenome.biological_data_item b ON h.bio_data_item_id = b.bio_data_item_id
+                ]]>
+            </value>
+        </property>
         <property name="updateHeatmapContentQuery">
             <value>
                 <![CDATA[

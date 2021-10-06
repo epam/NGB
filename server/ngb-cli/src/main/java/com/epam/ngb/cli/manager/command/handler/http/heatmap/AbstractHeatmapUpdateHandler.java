@@ -24,44 +24,61 @@
  *
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.heatmap;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.exception.ApplicationException;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
-/**
- * Deletes Blast database with specific id
- */
-@Command(type = Command.Type.REQUEST, command = {"del_blast_db"})
 @Slf4j
-public class DeleteBlastDatabaseHandler extends AbstractHTTPCommandHandler {
+public abstract class AbstractHeatmapUpdateHandler extends AbstractHTTPCommandHandler {
 
-    private Long id;
+    private Long heatmapId;
+    private String path;
 
     /**
-     * Verifies input arguments
-     * @param arguments command line arguments for 'del_blast_db' command
-     * @param options
-     */
+      * Verifies input arguments
+      * @param options
+      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
         if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
-        this.id = Long.parseLong(arguments.get(0));
+        heatmapId = loadItemId(arguments.get(0));
+        path = options.getPath();
     }
 
     @Override public int runCommand() {
-        RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), id)));
-        log.info("Database with id: '" + id + "' deleted.");
+        String url = serverParameters.getServerUrl() + getRequestUrl();
+        try {
+            URIBuilder builder = new URIBuilder(String.format(url, heatmapId));
+            builder.addParameter("path", path);
+            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+            String result = RequestManager.executeRequest(request);
+            ResponseResult responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            log.info("Heatmap " + heatmapId + " was successfully updated.");
+        } catch (IOException | URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
         return 0;
     }
 }

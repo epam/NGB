@@ -55,6 +55,11 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
+    public List<Heatmap> loadHeatmaps() {
+        return heatmapManager.loadHeatmaps();
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
     public Heatmap createHeatmap(final HeatmapRegistrationRequest heatmap) throws IOException {
         return heatmapManager.createHeatmap(heatmap);
     }

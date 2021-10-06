@@ -106,6 +106,10 @@ public class ApplicationOptions {
 
     private String databasePath;
 
+    private String heatmapCellAnnotationPath;
+    private String heatmapLabelAnnotationPath;
+    private String path;
+
     /**
      * Creates object with default option's values
      */
@@ -279,5 +283,29 @@ public class ApplicationOptions {
 
     public void setDatabasePath(final String databasePath) {
         this.databasePath = databasePath;
+    }
+
+    public String getHeatmapCellAnnotationPath() {
+        return heatmapCellAnnotationPath;
+    }
+
+    public void setHeatmapCellAnnotationPath(final String heatmapCellAnnotationPath) {
+        this.heatmapCellAnnotationPath = heatmapCellAnnotationPath;
+    }
+
+    public String getHeatmapLabelAnnotationPath() {
+        return heatmapLabelAnnotationPath;
+    }
+
+    public void setHeatmapLabelAnnotationPath(final String heatmapLabelAnnotationPath) {
+        this.heatmapLabelAnnotationPath = heatmapLabelAnnotationPath;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(final String path) {
+        this.path = path;
     }
 }

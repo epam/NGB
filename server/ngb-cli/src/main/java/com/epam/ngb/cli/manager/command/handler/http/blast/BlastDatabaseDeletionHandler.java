@@ -24,52 +24,45 @@
  *
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.blast;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.BlastDatabaseVO;
 import com.epam.ngb.cli.manager.command.handler.Command;
-import org.apache.http.client.methods.HttpPost;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import com.epam.ngb.cli.manager.request.RequestManager;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_SOURCE;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
 
-@Command(type = Command.Type.REQUEST, command = {"reg_blast_db"})
-public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
+/**
+ * Deletes Blast database with specific id
+ */
+@Command(type = Command.Type.REQUEST, command = {"del_blast_db"})
+@Slf4j
+public class BlastDatabaseDeletionHandler extends AbstractHTTPCommandHandler {
 
-    private BlastDatabaseVO database;
+    private Long id;
 
     /**
-      * Verifies input arguments
-      * @param arguments command line arguments for 'reg_blast_db' command
-      * @param options
-      */
+     * Verifies input arguments
+     * @param arguments command line arguments for 'del_blast_db' command
+     * @param options
+     */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 4) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 3, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
-        String type = arguments.get(2);
-        String source = arguments.get(3);
-        if (!BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_DATABASE_TYPE, type));
-        }
-        if (!BlastDatabaseVO.BLAST_DATABASE_SOURCES.contains(source)) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_DATABASE_SOURCE, source));
-        }
-        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type, source);
+        this.id = Long.parseLong(arguments.get(0));
     }
 
     @Override public int runCommand() {
-        HttpPost request = (HttpPost) getRequest(getRequestUrl());
-        getResult(getPostResult(database, request), Boolean.class);
+        RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), id)));
+        log.info("Database with id: '" + id + "' deleted.");
         return 0;
     }
 }

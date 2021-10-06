@@ -77,6 +77,12 @@ public class Application {
             + "rbd\treg_blast_db\t: registers a database\t{rbd \"name\" \"path\" \"type\" \"source\"}\n"
             + "dbd\tdel_blast_db\t: deletes a database \t{dbd 2}\n"
             + "lbd\tlist_blast_db\t: lists all databases, registered on the server\t{lbd -dt \"type\" -dp \"path\"}\n\n"
+            + "HEATMAP commands:\n"
+            + "rh\treg_heatmap\t: registers a heatmap\t{rh \"path\"}\n"
+            + "dh\tdel_heatmap\t: deletes a heatmap \t{dh 1}\n"
+            + "lh\tlist_heatmaps\t: lists all heatmaps, registered on the server\t{lh}\n\n"
+            + "ula\tupd_label_annotation\t: updates heatmap label annotation\t{ula 1 -path \"path\"}\n\n"
+            + "uca\tupd_cell_annotation\t: updates heatmap call annotation\t{uca 1 -path \"path\"}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -204,6 +210,15 @@ public class Application {
     @Option(name = "-dp", usage = "database path", aliases = {"--db-path"})
     private String databasePath;
 
+    @Option(name = "-cap", usage = "heatmap cell annotation path", aliases = {"--heatmap-cap"})
+    private String heatmapCellAnnotationPath;
+
+    @Option(name = "-lap", usage = "heatmap label annotation path", aliases = {"--heatmap-lap"})
+    private String heatmapLabelAnnotationPath;
+
+    @Option(name = "-path", usage = "defines path to heatmap cell/label annotation or other entity")
+    private String path;
+
     @Argument
     private List<String> arguments;
 
@@ -303,6 +318,9 @@ public class Application {
         options.setShowPermissions(showPermissions);
         options.setDatabaseType(databaseType);
         options.setDatabasePath(databasePath);
+        options.setHeatmapCellAnnotationPath(heatmapCellAnnotationPath);
+        options.setHeatmapLabelAnnotationPath(heatmapLabelAnnotationPath);
+        options.setPath(path);
         return options;
     }
 
