@@ -27,8 +27,10 @@ import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
+import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,11 +61,15 @@ public class HeatmapManagerTest extends TestCase {
 
     private String contentFileName;
     private String labelAnnotationFileName;
+    private String treeFileName;
+
 
     @Before
     public void setUp() throws IOException, ParseException {
         this.contentFileName = context.getResource("classpath:heatmap//heatmap.tsv").getFile().getPath();
         this.labelAnnotationFileName = context.getResource("classpath:heatmap//label_annotation.tsv")
+                .getFile().getPath();
+        this.treeFileName = context.getResource("classpath:heatmap//tree.txt")
                 .getFile().getPath();
     }
 
@@ -72,7 +78,10 @@ public class HeatmapManagerTest extends TestCase {
         HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
         request.setName("createHeatmapTest");
         request.setPath(contentFileName);
+        request.setCellAnnotationPath(contentFileName);
         request.setLabelAnnotationPath(labelAnnotationFileName);
+        request.setRowTreePath(treeFileName);
+        request.setColumnTreePath(treeFileName);
         Heatmap heatmap = heatmapManager.createHeatmap(request);
         Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNotNull(createdHeatmap);
@@ -87,18 +96,17 @@ public class HeatmapManagerTest extends TestCase {
         assertEquals(createdHeatmap.getCellValueType(), HeatmapDataType.DOUBLE);
         assertEquals(createdHeatmap.getMinCellValue(), MIN_CELL_VALUE);
         assertEquals(createdHeatmap.getMaxCellValue(), MAX_CELL_VALUE);
-        List<List<Map<?, String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
+        List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
         assertNotNull(labelAnnotation);
+        HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
+        assertNotNull(tree);
     }
 
     @Test
     public void updateLabelAnnotationTest() throws IOException {
-        HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
-        request.setName("updateLabelAnnotationTest");
-        request.setPath(contentFileName);
-        Heatmap heatmap = heatmapManager.createHeatmap(request);
+        Heatmap heatmap = registerHeatmap("updateLabelAnnotationTest");
         heatmapManager.updateLabelAnnotation(heatmap.getHeatmapId(), labelAnnotationFileName);
         Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
         assertNotNull(labelAnnotation);
@@ -109,38 +117,54 @@ public class HeatmapManagerTest extends TestCase {
 
     @Test
     public void updateCellAnnotationTest() throws IOException {
-        HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
-        request.setName("updateCellAnnotationTest");
-        request.setPath(contentFileName);
-        Heatmap heatmap = heatmapManager.createHeatmap(request);
+        Heatmap heatmap = registerHeatmap("updateCellAnnotationTest");
         heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), contentFileName);
-        List<List<Map<?, String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
+        List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         assertEquals(content.size(), CONTENT_SIZE);
         assertEquals(content.get(0).size(), CONTENT_SIZE);
-        assertTrue(content.get(0).get(0).containsKey(0.0));
-        assertEquals(content.get(0).get(0).get(0.0), "0");
+        assertEquals(content.get(0).get(0).get(1), "0");
     }
 
     @Test
     public void loadHeatmapTest() throws IOException {
-        HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
-        request.setName("loadHeatmapTest");
-        request.setPath(contentFileName);
-        Heatmap heatmap = heatmapManager.createHeatmap(request);
+        Heatmap heatmap = registerHeatmap("loadHeatmapTest");
         Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNotNull(createdHeatmap);
     }
 
     @Test
     public void deleteHeatmapTest() throws IOException {
-        HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
-        request.setName("deleteHeatmapTest");
-        request.setPath(contentFileName);
-        Heatmap heatmap = heatmapManager.createHeatmap(request);
+        Heatmap heatmap = registerHeatmap("deleteHeatmapTest");
         Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         heatmapManager.deleteHeatmap(createdHeatmap.getHeatmapId());
         createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNull(createdHeatmap);
+    }
+
+    @Test
+    public void updateRowTreeTest() throws IOException {
+        Heatmap heatmap = registerHeatmap("updateRowTreeTest");
+        heatmapManager.updateRowTree(heatmap.getHeatmapId(), treeFileName);
+        HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
+        assertNotNull(tree);
+        assertNotNull(tree.getRow());
+    }
+
+    @Test
+    public void updateColumnTreeTest() throws IOException {
+        Heatmap heatmap = registerHeatmap("updateColumnTreeTest");
+        heatmapManager.updateColumnTree(heatmap.getHeatmapId(), treeFileName);
+        HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
+        assertNotNull(tree);
+        assertNotNull(tree.getColumn());
+    }
+
+    @NotNull
+    private Heatmap registerHeatmap(final String name) throws IOException {
+        HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
+        request.setName(name);
+        request.setPath(contentFileName);
+        return heatmapManager.createHeatmap(request);
     }
 }

@@ -89,7 +89,7 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<List<Map<?, String>>>> getContent(@PathVariable final long heatmapId,
+    public Result<List<List<List<String>>>> getContent(@PathVariable final long heatmapId,
                                                          @RequestParam(required = false) final Long projectId)
             throws IOException {
         return Result.success(heatmapSecurityService.getContent(heatmapId, projectId));
@@ -146,8 +146,36 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
-                                       @RequestParam(required = false) final Long projectId) {
+                                       @RequestParam(required = false) final Long projectId) throws IOException {
         return Result.success(heatmapSecurityService.getTree(heatmapId, projectId));
+    }
+
+    @PutMapping(value = "/heatmap/{heatmapId}/row/tree")
+    @ApiOperation(
+            value = "Updates phylogenetic tree for heatmap rows",
+            notes = "Updates phylogenetic tree for heatmap rows",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> updateRowTree(@PathVariable final long heatmapId,
+                                         @RequestParam final String path) throws IOException {
+        heatmapSecurityService.updateRowTree(heatmapId, path);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/heatmap/{heatmapId}/column/tree")
+    @ApiOperation(
+            value = "Updates phylogenetic tree for heatmap columns",
+            notes = "Updates phylogenetic tree for heatmap columns",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> updateColumnTree(@PathVariable final long heatmapId,
+                                            @RequestParam final String path) throws IOException {
+        heatmapSecurityService.updateColumnTree(heatmapId, path);
+        return Result.success(null);
     }
 
     @PostMapping(value = "/heatmap")

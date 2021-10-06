@@ -174,7 +174,8 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        row_tree = :ROW_TREE
+                        row_tree = :ROW_TREE,
+                        row_tree_path = :ROW_TREE_PATH
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
@@ -191,7 +192,8 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
-                        column_tree = :COLUMN_TREE
+                        column_tree = :COLUMN_TREE,
+                        column_tree_path = :COLUMN_TREE_PATH
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
