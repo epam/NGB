@@ -28,33 +28,54 @@ ngb-project-info-sections {
 }
 
 .ngb-project-info-sections-menu {
+  box-sizing: border-box;
   position: absolute;
+  width:100%;
   top: 20px;
-  padding: 4px;
+  left: 40px;
+  max-height: 75vh;
+  overflow-x: hidden;
   md-checkbox {
     margin: 8px;
     .md-label {
+      margin-left: 5px;
       display: flex;
-      flex-wrap: wrap;
-      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      .icon {
+        margin-right: 4px;
+        color: rgb(51,103,214)
+      }
+      span {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
   .ngb-project-info-sections-add-note {
     cursor: pointer;
     height: 38px;
     min-height: 32px;
-    button {
-      text-align: center;
-      text-transform: uppercase;
-    }
   }
 }
 
 .project-info-menu-content {
   display: block;
+  width: 100%;
+  button {
+    width: inherit;
+    text-align:left;
+    text-transform: uppercase;
+    color: rgb(51,103,214);
+  }
 }
 
 .project-info-menu-item {
+  width:100%;
+  display: flex;
+  align-items: center;
   height: 30px;
   line-height: 30px;
   min-height: 24px;
