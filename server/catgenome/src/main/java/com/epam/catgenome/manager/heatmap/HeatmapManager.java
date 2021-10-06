@@ -231,9 +231,7 @@ public class HeatmapManager {
                 .build();
         heatmap.setPath(path);
         heatmap.setName(TextUtils.isBlank(request.getName()) ? FilenameUtils.getBaseName(path) : request.getName());
-        heatmap.setPrettyName(TextUtils.isBlank(request.getPrettyName()) ?
-                FilenameUtils.getBaseName(path) :
-                request.getPrettyName());
+        heatmap.setPrettyName(request.getPrettyName());
         heatmap.setType(BiologicalDataItemResourceType.FILE);
         heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
         heatmap.setCreatedDate(new Date());

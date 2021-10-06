@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.heatmap.Heatmap;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.epam.catgenome.controller.vo.ProjectItemVO;
@@ -190,12 +191,14 @@ public final class ProjectConverter {
     private static Long getBioDataItemId(BiologicalDataItem item) {
         if (item instanceof FeatureFile) {
             return ((FeatureFile) item).getBioDataItemId();
+        }
+        if (item instanceof Heatmap) {
+            return ((Heatmap) item).getBioDataItemId();
+        }
+        if (item instanceof Reference) {
+            return ((Reference) item).getBioDataItemId();
         } else {
-            if (item instanceof Reference) {
-                return ((Reference) item).getBioDataItemId();
-            } else {
-                return item.getId();
-            }
+            return item.getId();
         }
     }
 }

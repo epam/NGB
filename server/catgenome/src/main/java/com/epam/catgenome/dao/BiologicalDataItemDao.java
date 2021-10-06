@@ -382,6 +382,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         private static BiologicalDataItem mapHeatMap(final ResultSet rs) throws SQLException {
             final Heatmap heatmap = Heatmap.builder().build();
             heatmap.setId(rs.getLong(HEATMAP_ID.name()));
+            heatmap.setHeatmapId(rs.getLong(HEATMAP_ID.name()));
             heatmap.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             heatmap.setCellAnnotationPath(rs.getString(HEATMAP_CELL_ANNOTATION_PATH.name()));
             heatmap.setLabelAnnotationPath(rs.getString(HEATMAP_LABEL_ANNOTATION_PATH.name()));
