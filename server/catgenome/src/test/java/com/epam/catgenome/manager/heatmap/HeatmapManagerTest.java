@@ -41,7 +41,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -101,8 +100,6 @@ public class HeatmapManagerTest extends TestCase {
         assertEquals(createdHeatmap.getMaxCellValue(), MAX_CELL_VALUE);
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
-        Map<String, String> labelAnnotation = heatmapManager.getLabelAnnotation(heatmap.getHeatmapId());
-        assertNotNull(labelAnnotation);
         HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
         assertNotNull(tree);
     }

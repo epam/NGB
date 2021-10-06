@@ -47,7 +47,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Api(value = "heatmap", description = "Heatmap files Management")
@@ -132,7 +131,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
-                                       @RequestParam(required = false) final Long projectId) {
+                                       @RequestParam(required = false) final Long projectId) throws IOException {
         return Result.success(heatmapSecurityService.getTree(heatmapId, projectId));
     }
 

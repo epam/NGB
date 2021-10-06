@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.olduvai.treejuxtaposer.TreeParser;
 import net.sourceforge.olduvai.treejuxtaposer.drawer.Tree;
 import net.sourceforge.olduvai.treejuxtaposer.drawer.TreeNode;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -112,10 +113,10 @@ public class HeatmapManager {
         byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap, this::checkCellAnnotation);
         byte[] rowTree = readFileContent(heatmap.getRowTreePath(),
             heatmap,
-            h -> checkTree(h.getRowLabels(), h.getRowTreePath()));
+            h -> checkTree(getLabelSet(h.getRowLabels()), h.getRowTreePath()));
         byte[] columnTree = readFileContent(heatmap.getColumnTreePath(),
             heatmap,
-            h -> checkTree(h.getColumnLabels(), h.getColumnTreePath()));
+            h -> checkTree(getLabelSet(h.getColumnLabels()), h.getColumnTreePath()));
         biologicalDataItemManager.createBiologicalDataItem(heatmap);
         heatmap.setBioDataItemId(heatmap.getId());
         return heatmapDao.saveHeatmap(heatmap,
@@ -154,7 +155,7 @@ public class HeatmapManager {
         File file = getFile(path);
         Heatmap heatmap = getHeatmap(heatmapId);
         heatmap.setRowTreePath(path);
-        checkTree(heatmap.getRowLabels(), path);
+        checkTree(getLabelSet(heatmap.getRowLabels()), path);
         heatmapDao.updateHeatmapRowTree(heatmapId, FileUtils.readFileToByteArray(file), path);
     }
 
@@ -163,7 +164,7 @@ public class HeatmapManager {
         File file = getFile(path);
         Heatmap heatmap = getHeatmap(heatmapId);
         heatmap.setColumnTreePath(path);
-        checkTree(heatmap.getColumnLabels(), path);
+        checkTree(getLabelSet(heatmap.getColumnLabels()), path);
         heatmapDao.updateHeatmapColumnTree(heatmapId, FileUtils.readFileToByteArray(file), path);
     }
 
@@ -187,16 +188,6 @@ public class HeatmapManager {
         try (InputStream heatmapIS = heatmapDao.loadHeatmapContent(heatmapId);
                 InputStream annotationIS = heatmapDao.loadCellAnnotation(heatmapId)) {
             return getAnnotatedContent(heatmapIS, annotationIS, heatmap.getPath());
-        }
-    }
-
-    public Map<String, String> getLabelAnnotation(final long heatmapId) throws IOException {
-        Heatmap heatmap = heatmapDao.loadHeatmap(heatmapId);
-        if (heatmap == null) {
-            return null;
-        }
-        try (InputStream inputStream = heatmapDao.loadLabelAnnotation(heatmapId)) {
-            return inputStream == null ? null : getDataAsMap(inputStream, heatmap.getLabelAnnotationPath());
         }
     }
 
@@ -448,7 +439,7 @@ public class HeatmapManager {
     }
 
     @SneakyThrows
-    private void checkTree(final List<String> labels, final String path) {
+    private void checkTree(final Set<String> labels, final String path) {
         BufferedReader r = createReader(path);
         TreeParser tp = new TreeParser(r);
         Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
@@ -458,5 +449,9 @@ public class HeatmapManager {
                 .filter(t -> !labels.contains(t))
                 .collect(Collectors.toList());
         Assert.isTrue(treeLabels.isEmpty(), getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
+    }
+
+    private Set<String> getLabelSet(final List<List<String>> labels) {
+        return ListUtils.emptyIfNull(labels).stream().map(l -> l.get(0)).collect(Collectors.toSet());
     }
 }
