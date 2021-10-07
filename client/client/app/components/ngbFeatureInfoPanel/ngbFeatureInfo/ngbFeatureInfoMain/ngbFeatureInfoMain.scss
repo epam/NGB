@@ -4,9 +4,9 @@
 }
 
 .sequence-area {
-  max-height: 100px;
-  min-height: 100px;
   border: 0px solid transparent;
+  overflow-x: hidden;
+  margin-bottom: 10px;
 }
 
 .feature-header {
