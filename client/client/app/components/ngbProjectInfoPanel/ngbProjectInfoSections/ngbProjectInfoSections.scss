@@ -37,20 +37,39 @@ ngb-project-info-sections {
   overflow-x: hidden;
   md-checkbox {
     margin: 8px;
+    height:30px;
     .md-label {
+      height:100%;
       margin-left: 5px;
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      .icon {
-        margin-right: 4px;
-        color: rgb(51,103,214)
-      }
-      span {
-        width: 100%;
+      .label {
+        width: 50%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      .structure-card {
+        padding: 1px 4px 1px 4px;
+        height: 20px;
+        width: 70px;
+        justify-self: center;
+        flex-grow: unset;
+        cursor: pointer;
+        font-size: xx-small;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f9f9f9;
+        text-align: center;
+        border-radius: 3px;
+        border: 1px solid #e0e0e0;
+        font-weight: normal;
+        box-sizing: border-box;
+      }
+      .structure-card.description {
+        background-color: white;
       }
     }
   }

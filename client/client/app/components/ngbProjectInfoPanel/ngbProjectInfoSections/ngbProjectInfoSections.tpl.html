@@ -39,10 +39,7 @@
                           ]}}"
                         ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
                         ng-click="$ctrl.setDescription(project, description.id)">
-              <ng-md-icon
-                style="fill: rgba(51, 103, 214, 0.8)"
-                icon="description"
-                title="description">
+                        <span class="structure-card description">description</span>
               </ng-md-icon>
               <span title="{{description.name}}">{{description.name}}</span>
             </md-checkbox>
@@ -57,12 +54,8 @@
                    ng-true-value="{{note.id}}"
                    class="project-info-menu-checkbox"
                    ng-click=$ctrl.setCurrentProject(project)>
-        <ng-md-icon
-          style="fill: rgba(51, 103, 214, 0.8)"
-          icon="note"
-          class="icon"
-          title="note"></ng-md-icon>
-        <span title="{{note.title}}">{{note.title}}</span>
+          <span class="structure-card">note</span>
+        <span class="label" title="{{note.title}}">{{note.title}}</span>
       </md-checkbox>
     </md-menu-item>
     </span>
