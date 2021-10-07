@@ -45,7 +45,7 @@ ngb-project-info-sections {
       justify-content: flex-start;
       align-items: center;
       .label {
-        width: 50%;
+        max-width: 90%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -53,7 +53,7 @@ ngb-project-info-sections {
       .structure-card {
         padding: 1px 4px 1px 4px;
         height: 20px;
-        width: 70px;
+        width: fit-content;
         justify-self: center;
         flex-grow: unset;
         cursor: pointer;

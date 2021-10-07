@@ -22,8 +22,8 @@
         <md-menu-item class="project-info-menu-item" ng-if="$ctrl.ngbProjectInfoService.projects.length > 1">
           {{project.name}}
         </md-menu-item>
-        <md-menu-item style="width: 100%;">
-          <md-button md-no-ink class="md-no-focus" ng-if="project.canEdit" class="md-primary" ng-click="$ctrl.ngbProjectInfoService.addNote(project)">+ Add note</md-button>
+        <md-menu-item style="width: 100%;" ng-if="project.canEdit">
+          <md-button md-no-ink class="md-no-focus"  class="md-primary" ng-click="$ctrl.ngbProjectInfoService.addNote(project)">+ Add note</md-button>
         </md-menu-item>
         <md-menu-item
           style="background-color: rgb(243, 243, 243);width: 100%;"
@@ -39,9 +39,8 @@
                           ]}}"
                         ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
                         ng-click="$ctrl.setDescription(project, description.id)">
-                        <span class="structure-card description">description</span>
-              </ng-md-icon>
               <span title="{{description.name}}">{{description.name}}</span>
+              <span class="structure-card description">description</span>
             </md-checkbox>
             </md-menu-item>
 
@@ -54,8 +53,8 @@
                    ng-true-value="{{note.id}}"
                    class="project-info-menu-checkbox"
                    ng-click=$ctrl.setCurrentProject(project)>
-          <span class="structure-card">note</span>
         <span class="label" title="{{note.title}}">{{note.title}}</span>
+        <span class="structure-card">note</span>
       </md-checkbox>
     </md-menu-item>
     </span>
