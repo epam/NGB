@@ -153,9 +153,10 @@ export default class ngbFeatureInfoMainController {
         this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, this.feature)
             .then((success) => {
                 this.ngbFeatureInfoPanelService.saveInProgress = false;
+                const data = { trackId: this.fileId };
                 if (success) {
                     this.onClickCancelBtn();
-                    this.dispatcher.emitSimpleEvent('feature:info:saved');
+                    this.dispatcher.emitSimpleEvent('feature:info:saved', data);
                 }
                 this.$scope.$apply();
             });

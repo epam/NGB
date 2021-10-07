@@ -69,18 +69,20 @@ class CachedGeneDataService extends GeneDataService {
         return {key, hash};
     }
 
-    loadGeneTrack(gene, referenceId) {
+    loadGeneTrack(gene, referenceId, update = false) {
         const args = this.loadGeneTrackCacheArgs(gene, referenceId);
         if (!args) {
             return super.loadGeneTrack(gene, referenceId);
         }
         const {key, hash} = args;
-        let cache;
-        if (this.constructor.loadGeneTrackCache.has(key)) {
-            cache = this.constructor.loadGeneTrackCache.get(key);
-        }
-        if (cache && cache.hash === hash) {
-            return cache.promise;
+        if (!update) {
+            let cache;
+            if (this.constructor.loadGeneTrackCache.has(key)) {
+                cache = this.constructor.loadGeneTrackCache.get(key);
+            }
+            if (cache && cache.hash === hash) {
+                return cache.promise;
+            }
         }
         const promise = super.loadGeneTrack(gene, referenceId);
         this.constructor.loadGeneTrackCache.set(key, {hash, promise});
