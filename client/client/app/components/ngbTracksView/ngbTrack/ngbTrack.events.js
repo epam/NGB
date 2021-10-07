@@ -1,7 +1,5 @@
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
-import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
-
-import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 
 export default class ngbTrackEvents {
 
