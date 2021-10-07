@@ -69,14 +69,14 @@ public class HeatmapManagerTest extends TestCase {
         this.contentFileName = context.getResource("classpath:heatmap//heatmap.tsv").getFile().getPath();
         this.labelAnnotationFileName = context.getResource("classpath:heatmap//label_annotation.tsv")
                 .getFile().getPath();
-        this.treeFileName = context.getResource("classpath:heatmap//tree.txt")
-                .getFile().getPath();
+        this.treeFileName = context.getResource("classpath:heatmap//tree.txt").getFile().getPath();
     }
 
     @Test
     public void createHeatmapTest() throws IOException {
         HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
         request.setName("createHeatmapTest");
+        request.setPrettyName("heatmap");
         request.setPath(contentFileName);
         request.setCellAnnotationPath(contentFileName);
         request.setLabelAnnotationPath(labelAnnotationFileName);
