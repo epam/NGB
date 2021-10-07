@@ -311,6 +311,7 @@ export default class ngbCoordinatesController extends baseController {
 
     onChromosomeChange(value) {
         this.projectContext.changeState({chromosome: value});
+        this.chromosome = value;
     }
 
     filterChromosome(query) {
@@ -437,6 +438,9 @@ export default class ngbCoordinatesController extends baseController {
         const position = (start && !end) ? start : null;
 
         this.projectContext.changeState({chromosome: {name: chr.name}, position, viewport});
+        if (!this.chromosome || chr !== this.chromosome) {
+            this.chromosome = chr;
+        }
         return true;
     }
 }
