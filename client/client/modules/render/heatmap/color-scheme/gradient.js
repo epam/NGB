@@ -148,6 +148,7 @@ export class Gradient {
         if (this.isSingleValue) {
             return this.gradientStop1 ? this.gradientStop1.stop : 0;
         }
+        return undefined;
     }
 
     /**
@@ -159,7 +160,14 @@ export class Gradient {
             return false;
         }
         if (this.isSingleValue) {
-            return this.value === value;
+            let equals = this.value === value;
+            if (
+                !equals && this.value !== undefined && this.value.toString &&
+                value !== undefined && value.toString
+            ) {
+                equals = value.toString() === this.value.toString();
+            }
+            return equals;
         }
         if (!this.isFinite) {
             return true;

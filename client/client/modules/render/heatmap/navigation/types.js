@@ -5,29 +5,30 @@ const HeatmapNavigationType = {
     /**
      * Dataset
      */
-    dataset: 'dataset',
+    dataset: 'DATASET',
     /**
      * Reference
      */
-    reference: 'reference',
+    reference: 'REFERENCE',
     /**
      * Gene
      */
-    gene: 'gene',
+    gene: 'GENE',
     /**
      * Coordinates
      */
-    coordinates: 'coordinates',
-    missing: 'missing',
+    coordinates: 'COORDINATE',
+    missing: 'NONE',
     /**
      * Parse server navigation type
-     * @param type
+     * @param {string} type
      */
     parse(type) {
-        switch (type) {
-            default:
-                return HeatmapNavigationType.missing;
+        const all = Object.values(HeatmapNavigationType);
+        if (all.includes(type)) {
+            return type;
         }
+        return HeatmapNavigationType.missing;
     }
 };
 

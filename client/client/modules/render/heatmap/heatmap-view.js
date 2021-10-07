@@ -294,13 +294,13 @@ class HeatmapView extends HeatmapEventDispatcher {
                 if (columnIndex !== undefined && this.heatmapData && this.heatmapData.metadata) {
                     const column = this.heatmapData.metadata.getColumn(columnIndex);
                     if (column && this.navigation) {
-                        this.navigation.navigate(column.navigation, column.annotation);
+                        this.navigation.navigate(column.navigation, column.annotation || column.name);
                     }
                 }
                 if (rowIndex !== undefined) {
                     const row = this.heatmapData.metadata.getRow(rowIndex);
                     if (row && this.navigation) {
-                        this.navigation.navigate(row.navigation, row.annotation);
+                        this.navigation.navigate(row.navigation, row.annotation || row.name);
                     }
                 }
             });

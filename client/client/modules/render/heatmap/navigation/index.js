@@ -287,7 +287,7 @@ export default class HeatmapNavigation extends HeatmapEventDispatcher {
         } else {
             reference = findReferenceByName(ref, this.projectContext);
         }
-        if (reference) {
+        if (reference && chr && coords) {
             const [startIndex, endIndex] = coords.split('-').map(o => Number(o.trim()));
             const referenceChanged = !this.projectContext.reference ||
                 this.projectContext.reference.id !== reference.id;

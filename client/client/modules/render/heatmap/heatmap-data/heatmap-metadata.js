@@ -135,9 +135,9 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
             minCellValue: min,
             maxCellValue: max,
             cellValues: values = [],
-            rowNavigationType,
-            columnNavigationType,
-            dataNavigationType,
+            rowAnnotationType: rowNavigationType,
+            columnAnnotationType: columnNavigationType,
+            cellAnnotationType: dataNavigationType,
             ...options
         } = payload;
         return new HeatmapMetadata({

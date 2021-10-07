@@ -162,7 +162,6 @@ class AxisLabel {
         this.container.addChild(this.hoveredLabel);
         if (
             annotatedIndex &&
-            annotatedIndex.annotation &&
             annotatedIndex.navigation !== HeatmapNavigationType.missing
         ) {
             this.container.interactive = true;
