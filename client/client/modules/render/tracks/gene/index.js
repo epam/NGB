@@ -103,8 +103,16 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
 
         const _hotKeyListener = ::this.hotKeyListener;
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
-        this.hotKeyListenerDestructor = function() {
-            self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
+        const featureInfoSavedCallback = (opts = {}) => {
+            const {trackId} = opts;
+            if (this.config.id === trackId && /^(gene|feature_counts)$/i.test(this.config.format)) {
+                setTimeout(this.updateAndRefresh.bind(this, true), 0);
+            }
+        };
+        this.dispatcher.on('feature:info:saved', featureInfoSavedCallback);
+        this.removeDispatcherListeners = () => {
+            this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
+            this.dispatcher.removeListener('feature:info:saved', featureInfoSavedCallback);
         };
         this.fetchAvailableFeatureTypes();
     }
@@ -155,7 +163,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
     }
 
     clearData() {
-        this.hotKeyListenerDestructor();
+        this.removeDispatcherListeners();
         super.clearData();
     }
 

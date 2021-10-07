@@ -18,7 +18,7 @@ function extractProperties(o, except = []){
     .sort(sortProperties);
 }
 
-export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
+export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService, genomeDataService) {
     const displayFeatureInfoCallback = async (data) => {
         let result;
         let formattedResult;
@@ -30,7 +30,7 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService) {
             referenceId
          } = data;
         if (uuid && fileId) {
-            result = await ngbFeatureInfoPanelService.getGeneInfo(fileId, uuid);
+            result = await genomeDataService.getGeneInfo(fileId, uuid);
             formattedResult = (result && !result.error) ? {
                 projectId: undefined,
                 chromosomeId,
