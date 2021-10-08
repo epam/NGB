@@ -3,7 +3,7 @@ import drawingConfiguration from './drawingConfiguration';
 
 PIXI.settings.ROUND_PIXELS = true;
 PIXI.settings.RESOLUTION = drawingConfiguration.resolution;
-PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+PIXI.settings.SCALE_MODE = drawingConfiguration.scaleMode;
 
 export default function getRenderer(size, opts = null, forceWebGL = false) {
     const {width, height} = size;

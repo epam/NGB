@@ -57,7 +57,7 @@ export default class LabelsManager {
             }
             this.label.text = text;
             const texture = this.renderer.generateTexture(this.label, {
-                scale: drawingConfiguration.scale,
+                scaleMode: drawingConfiguration.scaleMode,
                 resolution: drawingConfiguration.resolution
             });
             this.texturesCache.set(key, texture);

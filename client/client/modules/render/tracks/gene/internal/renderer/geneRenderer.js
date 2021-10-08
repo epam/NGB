@@ -134,7 +134,7 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
-                        scale: drawingConfiguration.scale,
+                        scaleMode: drawingConfiguration.scaleMode,
                         resolution: drawingConfiguration.resolution
                     });
                     if (this._graphicsSprite) {
@@ -162,7 +162,7 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = this.pixiRenderer.generateTexture(temporaryContainer, {
-                        scale: drawingConfiguration.scale,
+                        scaleMode: drawingConfiguration.scaleMode,
                         resolution: drawingConfiguration.resolution
                     });
                     if (this._hoveredGraphicsSprite) {
