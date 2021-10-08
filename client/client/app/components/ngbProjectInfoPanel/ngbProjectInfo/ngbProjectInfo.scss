@@ -11,9 +11,11 @@
   Common diagram styles
 */
 .chart-holder {
+  box-sizing: border-box;
   border : 1px solid rgba(0, 0, 0, 0.12);
-  width: 100%; height: 100%;
+  height: 100%;
   position: relative;
+  margin-left: -1px;
     md-progress-circular {
       z-index:9999;
       display: inline-block;
@@ -29,6 +31,7 @@
     height: 100%;
     svg {
       height: 100%;
+      width: calc(100% - 4px);
     }
     g {
       text {

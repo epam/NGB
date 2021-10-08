@@ -12,8 +12,7 @@
     ></iframe>
     <div ng-if="$ctrl.currentMode === $ctrl.projectInfoModeList.SUMMARY" class="summary-container">
         <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
-        <div class="u-column-padding u-padding_t-0" flex layout="row"
-             ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
+        <div class="u-column-padding diagrams-container" flex layout="row">
             <div class="selected-files-summary" flex="100" ng-if="!$ctrl.containsVcfFiles">
                 <ngb-project-summary heatmap="$ctrl.heatmap" flex></ngb-project-summary>
             </div>
@@ -51,7 +50,7 @@
             </md-button>
             <ngb-markdown markdown="$ctrl.currentNote.description"></ngb-markdown>
         </div>
-        <div ng-if="$ctrl.isEdit">
+        <div ng-if="$ctrl.isEdit" class="note-container">
             <ngb-project-info-edit-note note="$ctrl.editingNote"></ngb-project-info-edit-note>
         </div>
     </div>
