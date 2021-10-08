@@ -72,7 +72,7 @@ export default class ngbTrackEvents {
                                 geneId: (featureAttributes && featureAttributes.gene_id) || null,
                                 title: 'FEATURE',
                                 fileId: track.id,
-                                uuid: data.feature.uid
+                                uuid: isGeneTrack ? data.feature.uid : undefined
                             },
                             name: 'feature:info:select'
                         }],
