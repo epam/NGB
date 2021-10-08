@@ -85,19 +85,19 @@ public class HeatmapManagerTest extends TestCase {
         Heatmap heatmap = heatmapManager.createHeatmap(request);
         Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNotNull(createdHeatmap);
-        assertEquals(createdHeatmap.getName(), "createHeatmapTest");
-        assertEquals(createdHeatmap.getPrettyName(), "heatmap");
-        assertEquals(createdHeatmap.getType(), BiologicalDataItemResourceType.FILE);
-        assertEquals(createdHeatmap.getRowLabels().size(), CONTENT_SIZE);
+        assertEquals("createHeatmapTest", createdHeatmap.getName());
+        assertEquals("heatmap", createdHeatmap.getPrettyName());
+        assertEquals(BiologicalDataItemResourceType.FILE, createdHeatmap.getType());
+        assertEquals(CONTENT_SIZE, createdHeatmap.getRowLabels().size());
         assertTrue(createdHeatmap.getRowLabels().get(0).contains(GENE_1_LABEL));
         assertTrue(createdHeatmap.getRowLabels().get(0).contains(GENE_1_ANNOTATION));
-        assertEquals(createdHeatmap.getColumnLabels().size(), CONTENT_SIZE);
+        assertEquals(CONTENT_SIZE, createdHeatmap.getColumnLabels().size());
         assertTrue(createdHeatmap.getColumnLabels().get(0).contains(GENE_1_LABEL));
         assertTrue(createdHeatmap.getColumnLabels().get(0).contains(GENE_1_ANNOTATION));
-        assertEquals(createdHeatmap.getCellValues().size(), CELL_VALUES_SIZE);
-        assertEquals(createdHeatmap.getCellValueType(), HeatmapDataType.DOUBLE);
-        assertEquals(createdHeatmap.getMinCellValue(), MIN_CELL_VALUE);
-        assertEquals(createdHeatmap.getMaxCellValue(), MAX_CELL_VALUE);
+        assertEquals(CELL_VALUES_SIZE, createdHeatmap.getCellValues().size());
+        assertEquals(HeatmapDataType.DOUBLE, createdHeatmap.getCellValueType());
+        assertEquals(MIN_CELL_VALUE, createdHeatmap.getMinCellValue());
+        assertEquals(MAX_CELL_VALUE, createdHeatmap.getMaxCellValue());
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
@@ -109,13 +109,13 @@ public class HeatmapManagerTest extends TestCase {
         Heatmap heatmap = registerHeatmap("updateLabelAnnotationTest");
         heatmapManager.updateLabelAnnotation(heatmap.getHeatmapId(), labelAnnotationFileName);
         Heatmap updatedHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
-        assertEquals(updatedHeatmap.getLabelAnnotationPath(), labelAnnotationFileName);
+        assertEquals(labelAnnotationFileName, updatedHeatmap.getLabelAnnotationPath());
         assertNotNull(updatedHeatmap.getRowLabels().get(0));
-        assertEquals(updatedHeatmap.getRowLabels().get(0).size(), 2);
-        assertEquals(updatedHeatmap.getRowLabels().get(0).get(1), GENE_1_ANNOTATION);
+        assertEquals(2, updatedHeatmap.getRowLabels().get(0).size());
+        assertEquals(GENE_1_ANNOTATION, updatedHeatmap.getRowLabels().get(0).get(1));
         assertNotNull(updatedHeatmap.getColumnLabels().get(0));
-        assertEquals(updatedHeatmap.getColumnLabels().get(0).size(), 2);
-        assertEquals(updatedHeatmap.getColumnLabels().get(0).get(1), GENE_1_ANNOTATION);
+        assertEquals(2, updatedHeatmap.getColumnLabels().get(0).size());
+        assertEquals(GENE_1_ANNOTATION, updatedHeatmap.getColumnLabels().get(0).get(1));
     }
 
     @Test
@@ -124,9 +124,9 @@ public class HeatmapManagerTest extends TestCase {
         heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), contentFileName);
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
-        assertEquals(content.size(), CONTENT_SIZE);
-        assertEquals(content.get(0).size(), CONTENT_SIZE);
-        assertEquals(content.get(0).get(0).get(1), "0");
+        assertEquals(CONTENT_SIZE, content.size());
+        assertEquals(CONTENT_SIZE, content.get(0).size());
+        assertEquals("0", content.get(0).get(0).get(1));
     }
 
     @Test
