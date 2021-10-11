@@ -52,6 +52,46 @@ const uid = (() => {
  */
 
 class ColorScheme extends HeatmapEventDispatcher {
+    static SERIALIZATION_SEPARATOR = ',';
+    static parse(serialized) {
+        if (!serialized || typeof serialized !== 'string') {
+            return new ColorScheme();
+        }
+        const [
+            dataTypeSerialized,
+            ...rest
+        ] = serialized.split(ColorScheme.SERIALIZATION_SEPARATOR);
+        const missingColorSerialized = rest.pop();
+        const dataType = HeatmapDataType.parse(dataTypeSerialized);
+        const parseColor = color => helpers.systemColorValue(color);
+        const missingColor = parseColor(missingColorSerialized);
+        const colorRegExp = /^#[0-9a-fA-F]{6}$/;
+        let highColor, lowColor, mediumColor;
+        const configurations = [];
+        const type = rest.length === 3 && rest.map(o => colorRegExp.test(o)).filter(Boolean).length === 3
+            ? colorSchemes.continuous
+            : colorSchemes.discrete;
+        if (type === colorSchemes.continuous) {
+            highColor = parseColor(rest[0]);
+            mediumColor = parseColor(rest[1]);
+            lowColor = parseColor(rest[2]);
+        } else {
+            configurations.push(
+                ...rest.map(configurationSerialized => ColorConfiguration.parse(configurationSerialized, dataType))
+            );
+        }
+        return new ColorScheme({
+            type,
+            dataType,
+            colors: {
+                high: highColor,
+                medium: mediumColor,
+                low: lowColor,
+                missing: missingColor,
+                configurations
+            }
+        });
+    }
     /**
      *
      * @param {ColorSchemeOptions} options
@@ -83,6 +123,30 @@ class ColorScheme extends HeatmapEventDispatcher {
     destroy() {
         this.detachDispatcher();
         super.destroy();
+    }
+
+    serialize() {
+        const dataType = HeatmapDataType.serialize(this.dataType, true);
+        const format = color => helpers.formatColor(color, ColorFormats.hex);
+        const parts = [dataType];
+        if (this.type === colorSchemes.continuous) {
+            parts.push(
+                format(this.highColor),
+                format(this.mediumColor),
+                format(this.lowColor)
+            );
+        }
+        if (this.colorConfigurations.length === 1) {
+            parts.push(
+                format(this.colorConfigurations[0].color)
+            );
+        } else if (this.colorConfigurations.length > 1) {
+            parts.push(
+                ...this.colorConfigurations.map(configuration => configuration.serialize(format))
+            );
+        }
+        parts.push(format(this.missingColor));
+        return parts.join(ColorScheme.SERIALIZATION_SEPARATOR);
     }
 
     detachDispatcher() {
@@ -126,10 +190,13 @@ class ColorScheme extends HeatmapEventDispatcher {
         if (reset) {
             this.initialized = false;
         }
+        const defaultOptionValue = (currentValue, defaultValue) => reset
+            ? defaultValue
+            : (currentValue || defaultValue);
         const {
-            type = colorSchemes.continuous,
-            colors = {},
-            colorFormat = ColorFormats.number,
+            type = defaultOptionValue(this.type, colorSchemes.continuous),
+            colors = defaultOptionValue(this.colors, {}),
+            colorFormat = defaultOptionValue(this.colorFormat, ColorFormats.number),
             ...dataOptions
         } = options;
         const {
@@ -137,7 +204,7 @@ class ColorScheme extends HeatmapEventDispatcher {
             high = red,
             medium = yellow,
             low = green,
-            configurations = []
+            configurations = defaultOptionValue(this.colorConfigurations, [])
         } = colors;
         this._dataType = HeatmapDataType.number;
         this.colorFormat = colorFormat;
@@ -160,7 +227,7 @@ class ColorScheme extends HeatmapEventDispatcher {
         this.validate();
         this.type = type;
         const {
-            dataType,
+            dataType = defaultOptionValue(this.dataType),
             ...restDataOptions
         } = dataOptions;
         this.assignData({
@@ -176,8 +243,9 @@ class ColorScheme extends HeatmapEventDispatcher {
     /**
      * Initializes color scheme from another one
      * @param {ColorScheme} colorScheme
+     * @param {boolean} [reset=false]
      */
-    initializeFrom(colorScheme) {
+    initializeFrom(colorScheme, reset = false) {
         this.initialize({
             type: colorScheme.type,
             colorFormat: colorScheme.colorFormat,

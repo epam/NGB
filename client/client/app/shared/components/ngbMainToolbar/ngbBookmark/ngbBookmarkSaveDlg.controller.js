@@ -5,13 +5,14 @@ export default class ngbBookmarkSaveDlgController {
     bookmarkDescription;
     error;
 
-    constructor(dispatcher, $mdDialog, projectContext, miewContext, $scope, trackNamingService, bookmarkDataService) {
+    constructor(dispatcher, $mdDialog, projectContext, miewContext, heatmapContext, $scope, trackNamingService, bookmarkDataService) {
         Object.assign(this, {
             dispatcher,
             $scope,
             $mdDialog,
             projectContext,
             miewContext,
+            heatmapContext,
             trackNamingService,
             bookmarkDataService
         });
@@ -56,7 +57,8 @@ export default class ngbBookmarkSaveDlgController {
             layout,
             vcfColumns,
             customNames,
-            this.miewContext.routeInfo
+            this.miewContext.routeInfo,
+            this.heatmapContext.routeInfo
         );
         const params = {
             owner: '',
@@ -98,7 +100,8 @@ function Bookmark(
     layout,
     vcfColumns,
     customNames,
-    miew
+    miew,
+    heatmap
 ) {
     this.name = name;
     this.description = description;
@@ -133,4 +136,5 @@ function Bookmark(
     this.layout = layout;
     this.vcfColumns = vcfColumns;
     this.miew = miew;
+    this.heatmap = heatmap;
 }

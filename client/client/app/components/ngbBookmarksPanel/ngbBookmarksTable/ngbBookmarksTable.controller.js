@@ -55,7 +55,7 @@ export default class ngbBookmarksTableController extends baseController {
     };
 
     constructor($scope, $timeout, ngbBookmarksTableService, dispatcher, projectContext,
-        miewContext, $mdDialog, trackNamingService, appLayout) {
+        miewContext, heatmapContext, $mdDialog, trackNamingService, appLayout) {
         super();
         Object.assign(
             this,
@@ -66,6 +66,7 @@ export default class ngbBookmarksTableController extends baseController {
                 dispatcher,
                 projectContext,
                 $mdDialog,
+                heatmapContext,
                 trackNamingService,
                 miewContext,
                 appLayout
@@ -154,6 +155,7 @@ export default class ngbBookmarksTableController extends baseController {
             this.trackNamingService.setCustomNames(customNames);
         }
         this.miewContext.routeInfo = entity.miew;
+        this.heatmapContext.routeInfo = entity.heatmap;
         this.projectContext.changeState({
             chromosome: chromosomeName ? {name: chromosomeName} : undefined,
             viewport: position,

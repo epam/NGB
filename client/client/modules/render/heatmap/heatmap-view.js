@@ -4,8 +4,6 @@ import {
     HeatmapDataRenderer,
     HeatmapViewportRenderer
 } from './renderer';
-import HeatmapColorScheme from './color-scheme';
-import HeatmapData from './heatmap-data';
 import HeatmapEventDispatcher from './utilities/heatmap-event-dispatcher';
 import HeatmapInteractions from './interactions';
 import HeatmapNavigation from './navigation';
@@ -17,6 +15,18 @@ import {parseOffset} from '../utilities';
 
 const ZERO_PADDING = parseOffset(0);
 
+/**
+ * @typedef {Object} HeatmapOptions
+ * @property {HeatmapDataOptions} dataConfig
+ * @property {DisplayOptions} displayOptions
+ * @property {number} width
+ * @property {number} height
+ * @property {number|number[]} padding
+ * @property {dispatcher} dispatcher
+ * @property {projectContext} projectContext
+ * @property {string} state
+ */
+
 class HeatmapView extends HeatmapEventDispatcher {
     /**
      *
@@ -26,35 +36,24 @@ class HeatmapView extends HeatmapEventDispatcher {
         super();
         makeInitializable(this);
         /**
-         * Holds heatmap data & metadata
-         * @type {HeatmapData}
+         * Heatmap view options (color scheme, dendrogram) and data
+         * @type {HeatmapViewOptions}
          */
-        this.heatmapData = new HeatmapData();
+        this.options = HeatmapViewOptions.parse(options.state, options.dataConfig);
         /**
          * Holds heatmap viewport info
          * @type {HeatmapViewport}
          */
         this.heatmapViewport = new HeatmapViewport();
         /**
-         * Heatmap color scheme configuration
-         * @type {ColorScheme}
-         */
-        this.colorScheme = new HeatmapColorScheme();
-        /**
-         * Heatmap view options (color scheme, dendrogram)
-         * @type {HeatmapViewOptions}
-         */
-        this.options = new HeatmapViewOptions(this.heatmapData, this.colorScheme);
-        /**
          * Heatmap navigation manager
          * @type {HeatmapNavigation}
          */
-        this.navigation = new HeatmapNavigation(options.projectContext, this.heatmapData);
-
-        this.heatmapData.onMetadataLoaded(this.metadataLoaded.bind(this));
+        this.navigation = new HeatmapNavigation(options.projectContext, this.options.data);
+        this.options.data.onMetadataLoaded(this.metadataLoaded.bind(this));
+        this.options.colorScheme.onInitialized(this.render.bind(this));
+        this.options.colorScheme.onChanged(this.render.bind(this));
         this.heatmapViewport.onViewportChanged(this.render.bind(this));
-        this.colorScheme.onInitialized(this.render.bind(this));
-        this.colorScheme.onChanged(this.render.bind(this));
         const renderLoop = () => {
             if (this.needsRender) {
                 this.needsRender = false;
@@ -140,11 +139,11 @@ class HeatmapView extends HeatmapEventDispatcher {
     }
 
     get referenceId() {
-        return this.heatmapData.referenceId;
+        return this.options.data.referenceId;
     }
 
     set referenceId(referenceId) {
-        this.heatmapData.referenceId = referenceId;
+        this.options.data.referenceId = referenceId;
     }
 
     destroyDisplayObjects() {
@@ -187,10 +186,9 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.container = undefined;
         }
         this.destroyDisplayObjects();
-        this.heatmapData.destroy();
-        this.heatmapData = undefined;
-        this.colorScheme.destroy();
-        this.colorScheme = undefined;
+        if (this.options) {
+            this.options.destroy();
+        }
         this.heatmapViewport.destroy();
         this.heatmapViewport = undefined;
         this.navigation.destroy();
@@ -204,22 +202,7 @@ class HeatmapView extends HeatmapEventDispatcher {
      */
     metadataLoaded(heatmap, fitViewport = false) {
         if (heatmap && heatmap.metadataReady) {
-            this.viewportRenderer.initialize({
-                columns: heatmap.metadata.columns,
-                rows: heatmap.metadata.rows
-            });
-            const {
-                maximum,
-                minimum,
-                type: dataType,
-                values
-            } = heatmap.metadata;
-            this.colorScheme.initialize({
-                dataType,
-                maximum,
-                minimum,
-                values
-            });
+            this.viewportRenderer.initialize(heatmap.metadata);
             this.heatmapViewport.initialize({
                 columns: heatmap.metadata.columns.length,
                 rows: heatmap.metadata.rows.length,
@@ -242,10 +225,10 @@ class HeatmapView extends HeatmapEventDispatcher {
             padding
         } = options;
         if (dispatcher) {
-            this.colorScheme.attachDispatcher(dispatcher);
+            this.options.colorScheme.attachDispatcher(dispatcher);
         }
         const {id} = dataConfig || {};
-        const dataChanged = id && this.heatmapData.anotherOptions(dataConfig);
+        const dataChanged = id && this.options.data.anotherOptions(dataConfig);
         const initialized = !dataChanged && this.initialized;
         this.updateDisplayOptions(displayOptions);
         if (dataChanged) {
@@ -254,10 +237,10 @@ class HeatmapView extends HeatmapEventDispatcher {
         this.resize(width, height);
         this.padding = padding;
         if (initialized !== this.initialized) {
-            this.metadataLoaded(this.heatmapData, true);
+            this.metadataLoaded(this.options.data, true);
         }
         if (dataConfig) {
-            this.heatmapData.options = dataConfig;
+            this.options.data.options = dataConfig;
         }
         this.render();
     }
@@ -291,14 +274,14 @@ class HeatmapView extends HeatmapEventDispatcher {
                     column: columnIndex,
                     row: rowIndex
                 } = clickInfo;
-                if (columnIndex !== undefined && this.heatmapData && this.heatmapData.metadata) {
-                    const column = this.heatmapData.metadata.getColumn(columnIndex);
+                if (columnIndex !== undefined && this.options.data && this.options.data.metadata) {
+                    const column = this.options.data.metadata.getColumn(columnIndex);
                     if (column && this.navigation) {
                         this.navigation.navigate(column.navigation, column.annotation || column.name);
                     }
                 }
                 if (rowIndex !== undefined) {
-                    const row = this.heatmapData.metadata.getRow(rowIndex);
+                    const row = this.options.data.metadata.getRow(rowIndex);
                     if (row && this.navigation) {
                         this.navigation.navigate(row.navigation, row.annotation || row.name);
                     }
@@ -313,7 +296,10 @@ class HeatmapView extends HeatmapEventDispatcher {
              * Colors scheme indicator renderer
              * @type {ColorSchemeRenderer}
              */
-            this.colorSchemeRenderer = new HeatmapColorSchemeRenderer(this.colorScheme, this.labelsManager);
+            this.colorSchemeRenderer = new HeatmapColorSchemeRenderer(
+                this.options.colorScheme,
+                this.labelsManager
+            );
             this.ensureHeatmapInteractions();
             this.heatmapInteractions.registerInteractiveZone(this.colorSchemeRenderer);
         }
@@ -327,14 +313,14 @@ class HeatmapView extends HeatmapEventDispatcher {
              */
             this.dataRenderer = new HeatmapDataRenderer(
                 this.heatmapViewport,
-                this.colorScheme,
-                this.heatmapData,
+                this.options.colorScheme,
+                this.options.data,
                 this.labelsManager,
                 this.pixiRenderer
             );
             this.dataRenderer.onDataItemClick((dataRenderer, item) => {
                 if (item) {
-                    this.navigation.navigate(this.heatmapData.metadata.dataNavigationType, item.annotation);
+                    this.navigation.navigate(this.options.data.metadata.dataNavigationType, item.annotation);
                 }
             });
             this.ensureHeatmapInteractions();
@@ -381,10 +367,7 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.ensureViewportRenderer();
             this.ensureColorSchemeRenderer();
             this.ensureDataRenderer();
-            this.viewportRenderer.initialize({
-                columns: this.heatmapData.metadata.columns,
-                rows: this.heatmapData.metadata.rows
-            });
+            this.viewportRenderer.initialize(this.options.data.metadata);
             this.colorSchemeRenderer.initialize();
             this.dataRenderer.initialize(this.pixiRenderer);
             this.container.addChild(this.dataRenderer.container);

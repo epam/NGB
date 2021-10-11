@@ -197,6 +197,10 @@ export class Track extends BaseTrack {
         document.addEventListener('visibilitychange', this.visibilitychangeCallback);
     }
 
+    getTrackStatePayload() {
+        return this.state;
+    }
+
     reportTrackState(silent = false) {
         if (!this.projectContext || this.silentInteractions || this.config.format.toLowerCase() === 'ruler') {
             return;
@@ -210,7 +214,7 @@ export class Track extends BaseTrack {
             isLocal: this.config.isLocal,
             projectId: this.config.projectId,
             projectIdNumber: this.config.project ? this.config.project.id : undefined,
-            state: this.state,
+            state: this.getTrackStatePayload()
         };
         this.projectContext.applyTrackState(track, silent);
     }
