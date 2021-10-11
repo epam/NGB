@@ -33,8 +33,8 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.util.db.Filter;
@@ -78,7 +78,7 @@ public class HomologManager {
     private int batchSize;
 
     @Autowired
-    private BlastTaxonomyManager taxonomyManager;
+    private TaxonomyManager taxonomyManager;
     @Autowired
     private HomologGroupDao homologGroupDao;
     @Autowired
@@ -243,11 +243,11 @@ public class HomologManager {
     private void setSpeciesNames(final List<HomologGroup> homologGroups, final List<Gene> genes) {
         final List<Long> taxIds = homologGroups.stream().map(HomologGroup::getTaxId).collect(Collectors.toList());
         taxIds.addAll(genes.stream().map(Gene::getTaxId).collect(Collectors.toList()));
-        final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+        final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
                 : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
         setGeneSpeciesNames(genes, organisms);
         for (HomologGroup group: homologGroups) {
-            BlastTaxonomy organism = organisms
+            Taxonomy organism = organisms
                     .stream()
                     .filter(o -> o.getTaxId().equals(group.getTaxId()))
                     .findFirst()

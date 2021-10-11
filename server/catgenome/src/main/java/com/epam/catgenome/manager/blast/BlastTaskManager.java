@@ -30,18 +30,21 @@ import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
-import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.entity.blast.BlastTaskStatus;
+import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseResponse;
 import com.epam.catgenome.manager.blast.dto.Entry;
 import com.epam.catgenome.manager.blast.dto.Result;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import com.epam.catgenome.util.db.SortInfo;
@@ -84,7 +87,7 @@ public class BlastTaskManager {
     private final AuthManager authManager;
     private final BlastDatabaseManager databaseManager;
 
-    private final BlastTaxonomyManager blastTaxonomyManager;
+    private final TaxonomyManager taxonomyManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask loadTask(final long taskId) {
@@ -190,6 +193,22 @@ public class BlastTaskManager {
         }
     }
 
+    public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
+        return blastRequestManager.getResult(taskId);
+    }
+
+    public Collection<BlastSequence> getGroupedResult(final long taskId) throws BlastRequestException {
+        return groupResult(blastRequestManager.getResult(taskId));
+    }
+
+    public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
+        return blastRequestManager.getRawResult(taskId);
+    }
+
+    public CreateDatabaseResponse createDatabase(final CreateDatabaseRequest request) throws BlastRequestException {
+        return blastRequestManager.createDatabase(request);
+    }
+
     private BlastTaskStatus getStatus(final Result<BlastRequestInfo> result) {
         if ("ERROR".equals(result.getStatus())) {
             String message = result.getMessage();
@@ -206,18 +225,6 @@ public class BlastTaskManager {
         }
     }
 
-    public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
-        return blastRequestManager.getResult(taskId);
-    }
-
-    public Collection<BlastSequence> getGroupedResult(final long taskId) throws BlastRequestException {
-        return groupResult(blastRequestManager.getResult(taskId));
-    }
-
-    public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
-        return blastRequestManager.getRawResult(taskId);
-    }
-
     private void validateOrganisms(final TaskVO taskVO) {
         final List<Long> organisms = ListUtils.emptyIfNull(taskVO.getOrganisms());
         final List<Long> excludedOrganisms = ListUtils.emptyIfNull(taskVO.getExcludedOrganisms());
@@ -229,14 +236,14 @@ public class BlastTaskManager {
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS_MAPPING));
     }
 
-    private List<BlastTaxonomy> loadTaskOrganisms(final long taskId) {
+    private List<Taxonomy> loadTaskOrganisms(final long taskId) {
         return mapTaxonomyIds(
                 blastTaskDao.loadOrganisms(taskId)
                         .stream().map(BlastTaskOrganism::getOrganism)
                         .collect(Collectors.toList()));
     }
 
-    private List<BlastTaxonomy> loadTaskExclOrganisms(final long taskId) {
+    private List<Taxonomy> loadTaskExclOrganisms(final long taskId) {
         return mapTaxonomyIds(
                 blastTaskDao.loadExclOrganisms(taskId)
                         .stream().map(BlastTaskOrganism::getOrganism)
@@ -249,9 +256,9 @@ public class BlastTaskManager {
     }
 
     @NotNull
-    private List<BlastTaxonomy> mapTaxonomyIds(final List<Long> organisms) {
+    private List<Taxonomy> mapTaxonomyIds(final List<Long> organisms) {
         return ListUtils.emptyIfNull(organisms).stream()
-                .map(blastTaxonomyManager::searchOrganismById)
+                .map(taxonomyManager::searchOrganismById)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

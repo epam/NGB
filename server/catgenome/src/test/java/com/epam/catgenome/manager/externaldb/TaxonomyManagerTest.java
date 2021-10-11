@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast;
+package com.epam.catgenome.manager.externaldb;
 
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -41,13 +42,13 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BlastTaxonomyManagerTest extends TestCase {
+public class TaxonomyManagerTest extends TestCase {
 
     public static final int ORGANISMS_COUNT = 2;
     public static final int TOTAL_ORGANISMS_COUNT = 14;
 
     @Autowired
-    private BlastTaxonomyManager blastTaxonomyManager;
+    private TaxonomyManager taxonomyManager;
 
     @Autowired
     private ApplicationContext context;
@@ -57,40 +58,40 @@ public class BlastTaxonomyManagerTest extends TestCase {
     @Before
     public void setUp() throws IOException, ParseException {
         this.fileName = context.getResource("classpath:taxonomy//names.dmp").getFile().getPath();
-        blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName);
+        taxonomyManager.writeLuceneTaxonomyIndex(fileName);
     }
 
     @Test
     public void searchOrganismsTest() throws IOException, ParseException {
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
+        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium");
         assertNotNull(organisms);
         assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 
     @Test
     public void searchOrganismsAfterReIndexingTest() throws IOException, ParseException {
-        blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName);
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium");
+        taxonomyManager.writeLuceneTaxonomyIndex(fileName);
+        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium");
         assertNotNull(organisms);
         assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 
     @Test
     public void searchOrganismsByIdTest() {
-        BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(6L);
+        Taxonomy organism = taxonomyManager.searchOrganismById(6L);
         assertNotNull(organism);
     }
 
     @Test
     public void searchOrganismsByIdsTest() {
-        List<BlastTaxonomy> organisms = blastTaxonomyManager.searchOrganismsByIds(new HashSet<>(Arrays.asList(6L, 7L)));
+        List<Taxonomy> organisms = taxonomyManager.searchOrganismsByIds(new HashSet<>(Arrays.asList(6L, 7L)));
         assertNotNull(organisms);
         assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 
     @Test
     public void readTaxonomyTest() {
-        List<BlastTaxonomy> organisms =  blastTaxonomyManager.readTaxonomy(fileName);
+        List<Taxonomy> organisms =  taxonomyManager.readTaxonomy(fileName);
         assertNotNull(organisms);
         assertEquals(TOTAL_ORGANISMS_COUNT, organisms.size());
     }

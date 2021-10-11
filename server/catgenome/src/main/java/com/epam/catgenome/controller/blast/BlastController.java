@@ -30,9 +30,11 @@ import java.util.Collection;
 import java.util.List;
 
 import com.epam.catgenome.controller.vo.TaskVO;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseResponse;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
@@ -168,6 +170,19 @@ public class BlastController extends AbstractRESTController {
     public Result<BlastTask> createTask(@RequestBody final TaskVO taskVO)
             throws FeatureIndexException, BlastRequestException {
         return Result.success(blastTaskSecurityService.create(taskVO));
+    }
+
+    @PostMapping(value = "/createdb")
+    @ApiOperation(
+            value = "Schedules a task for BLAST database creation",
+            notes = "Schedules a task for BLAST database creation",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<CreateDatabaseResponse> createDatabase(@RequestBody final CreateDatabaseRequest request)
+            throws BlastRequestException {
+        return Result.success(blastTaskSecurityService.createDatabase(request));
     }
 
     @PutMapping(value = "/task/{taskId}/cancel")

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,36 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.blast;
+package com.epam.catgenome.manager.blast.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-public enum BlastDatabaseType {
-    @JsonProperty("prot")
-    PROTEIN(1),
-    @JsonProperty("nucl")
-    NUCLEOTIDE(2);
-
-    private Long typeId;
-
-    BlastDatabaseType(final long typeId) {
-        this.typeId = typeId;
-    }
-
-    public Long getTypeId() {
-        return typeId;
-    }
-
-    /**
-     * @param typeId
-     * @return a {@code BlastDatabaseType} instance corresponding to the input ID
-     */
-    public static BlastDatabaseType getTypeById(final Long typeId) {
-        for (BlastDatabaseType type : BlastDatabaseType.values()) {
-            if (type.getTypeId().equals(typeId)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Invalid Blast database type ID");
-    }
+@Getter
+@Setter
+public class CreateDatabaseResponse {
+    private Integer status;
+    private Integer taskId;
+    private String dbName;
+    private String reason;
 }

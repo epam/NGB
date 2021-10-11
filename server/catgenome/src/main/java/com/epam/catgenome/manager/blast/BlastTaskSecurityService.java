@@ -26,9 +26,11 @@
 package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseResponse;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
@@ -104,4 +106,8 @@ public class BlastTaskSecurityService {
         blastTaskManager.deleteTasks();
     }
 
+    @PreAuthorize(ROLE_USER)
+    public CreateDatabaseResponse createDatabase(final CreateDatabaseRequest request) throws BlastRequestException {
+        return blastTaskManager.createDatabase(request);
+    }
 }

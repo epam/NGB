@@ -21,9 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast;
+package com.epam.catgenome.manager.externaldb.taxonomy;
 
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -69,7 +68,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @Slf4j
-public class BlastTaxonomyManager {
+public class TaxonomyManager {
 
     private static final String COMMON_NAME = "common name";
     private static final String SCIENTIFIC_NAME = "scientific name";
@@ -84,8 +83,8 @@ public class BlastTaxonomyManager {
     @Value("${taxonomy.top.hits:10}")
     private int taxonomyTopHits;
 
-    public List<BlastTaxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
-        final List<BlastTaxonomy> organisms = new ArrayList<>();
+    public List<Taxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
+        final List<Taxonomy> organisms = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
             IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -93,7 +92,7 @@ public class BlastTaxonomyManager {
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 organisms.add(
-                    BlastTaxonomy.builder()
+                    Taxonomy.builder()
                         .taxId(getTaxId(doc))
                         .scientificName(getScientificName(doc))
                         .commonName(getCommonName(doc))
@@ -106,7 +105,7 @@ public class BlastTaxonomyManager {
     }
 
     @SneakyThrows
-    public BlastTaxonomy searchOrganismById(final long taxId) {
+    public Taxonomy searchOrganismById(final long taxId) {
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(taxId));
@@ -117,7 +116,7 @@ public class BlastTaxonomyManager {
             ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
             Document doc = scoreDoc != null ? searcher.doc(scoreDoc.doc) : null;
             return doc == null ? null
-                    :  BlastTaxonomy.builder().taxId(getTaxId(doc))
+                    :  Taxonomy.builder().taxId(getTaxId(doc))
                             .scientificName(getScientificName(doc))
                             .commonName(getCommonName(doc))
                             .synonyms(getSynonyms(doc))
@@ -126,8 +125,8 @@ public class BlastTaxonomyManager {
     }
 
     @SneakyThrows
-    public List<BlastTaxonomy> searchOrganismsByIds(final Set<Long> taxIds) {
-        final List<BlastTaxonomy> organisms = new ArrayList<>();
+    public List<Taxonomy> searchOrganismsByIds(final Set<Long> taxIds) {
+        final List<Taxonomy> organisms = new ArrayList<>();
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final QueryParser queryParser = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer);
         queryParser.setDefaultOperator(QueryParser.Operator.OR);
@@ -140,7 +139,7 @@ public class BlastTaxonomyManager {
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 organisms.add(
-                        BlastTaxonomy.builder()
+                        Taxonomy.builder()
                                 .taxId(getTaxId(doc))
                                 .scientificName(getScientificName(doc))
                                 .commonName(getCommonName(doc))
@@ -158,13 +157,13 @@ public class BlastTaxonomyManager {
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (BlastTaxonomy taxonomyEntry: readTaxonomy(taxonomyFilePath)) {
+            for (Taxonomy taxonomyEntry: readTaxonomy(taxonomyFilePath)) {
                 addDoc(writer, taxonomyEntry);
             }
         }
     }
 
-    List<BlastTaxonomy> readTaxonomy(final String path) {
+    public List<Taxonomy> readTaxonomy(final String path) {
         return readTaxonomyLines(path).stream().collect(Collectors.groupingBy(TaxonomyRecord::getTaxId))
                 .entrySet().stream()
                 .map(entry -> processTaxonomyId(entry.getKey(), entry.getValue()))
@@ -235,25 +234,25 @@ public class BlastTaxonomyManager {
         }
     }
 
-    private boolean taxonomyIdIsComplete(final BlastTaxonomy blastTaxonomy) {
-        return (blastTaxonomy.getCommonName() != null || blastTaxonomy.getScientificName() != null);
+    private boolean taxonomyIdIsComplete(final Taxonomy taxonomy) {
+        return (taxonomy.getCommonName() != null || taxonomy.getScientificName() != null);
     }
 
-    private BlastTaxonomy processTaxonomyId(final Long taxId, final List<TaxonomyRecord> records) {
+    private Taxonomy processTaxonomyId(final Long taxId, final List<TaxonomyRecord> records) {
         final List<String> synonyms = new ArrayList<>();
-        final BlastTaxonomy.BlastTaxonomyBuilder blastTaxonomy = BlastTaxonomy.builder()
+        final Taxonomy.TaxonomyBuilder taxonomyBuilder = Taxonomy.builder()
                 .taxId(taxId).synonyms(synonyms);
         for (final TaxonomyRecord record : records) {
             final String name = record.line.split(TAXONOMY_TOKEN_DELIMITER_PATTERN)[1].trim();
             if (record.line.contains(COMMON_NAME)) {
-                blastTaxonomy.commonName(name);
+                taxonomyBuilder.commonName(name);
             } else if (record.line.contains(SCIENTIFIC_NAME)) {
-                blastTaxonomy.scientificName(name);
+                taxonomyBuilder.scientificName(name);
             } else if (!excludeLine(record.line)) {
                 synonyms.add(name);
             }
         }
-        return blastTaxonomy.build();
+        return taxonomyBuilder.build();
     }
 
     private List<TaxonomyRecord> readTaxonomyLines(final String path) {
@@ -268,7 +267,7 @@ public class BlastTaxonomyManager {
         }
     }
 
-    private static void addDoc(final IndexWriter writer, final BlastTaxonomy taxonomy) throws IOException {
+    private static void addDoc(final IndexWriter writer, final Taxonomy taxonomy) throws IOException {
         final Document doc = new Document();
         doc.add(new StringField(TaxonomyIndexFields.TAX_ID.getFieldName(),
                 String.valueOf(taxonomy.getTaxId()), Field.Store.YES));

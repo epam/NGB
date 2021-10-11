@@ -31,8 +31,8 @@ import com.epam.catgenome.entity.externaldb.homologene.Alias;
 import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.manager.blast.BlastTaxonomyManager;
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -96,7 +96,7 @@ public class HomologeneManager {
     private String indexDirectory;
 
     @Autowired
-    private BlastTaxonomyManager taxonomyManager;
+    private TaxonomyManager taxonomyManager;
     @Autowired
     private HomologGeneDomainDao domainDao;
     @Autowired
@@ -130,7 +130,7 @@ public class HomologeneManager {
                 List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
                 taxIds.addAll(geneTaxIds);
             }
-            final List<BlastTaxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+            final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
                     : taxonomyManager.searchOrganismsByIds(taxIds);
 
             for (int i = from; i < to; i++) {
@@ -344,9 +344,9 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
-    public static void setGeneSpeciesNames(final List<Gene> genes, List<BlastTaxonomy> organisms) {
+    public static void setGeneSpeciesNames(final List<Gene> genes, List<Taxonomy> organisms) {
         for (Gene gene: genes) {
-            BlastTaxonomy organism = organisms
+            Taxonomy organism = organisms
                     .stream()
                     .filter(o -> o.getTaxId().equals(gene.getTaxId()))
                     .findFirst()

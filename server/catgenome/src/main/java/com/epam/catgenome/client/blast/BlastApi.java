@@ -27,6 +27,8 @@ package com.epam.catgenome.client.blast;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseResponse;
 import com.epam.catgenome.manager.blast.dto.Result;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -53,4 +55,8 @@ public interface BlastApi {
 
     @PUT("restapi/task/{id}/cancel")
     Call<Result<BlastRequestInfo>> cancelTask(@Path(value = "id", encoded = true) long id);
+
+    @Headers("Content-type: application/json")
+    @POST("restapi/createdb")
+    Call<Result<CreateDatabaseResponse>> createDatabase(@Body CreateDatabaseRequest databaseVO);
 }

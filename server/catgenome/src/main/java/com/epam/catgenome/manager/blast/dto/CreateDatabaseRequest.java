@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,22 @@
  */
 package com.epam.catgenome.manager.blast.dto;
 
-import lombok.Builder;
-import lombok.Value;
+import com.epam.catgenome.entity.blast.BlastDatabaseType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
-
-@Value
-@Builder
-public class BlastTaxonomy {
-    Long taxId;
-    String commonName;
-    String scientificName;
-    List<String> synonyms;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateDatabaseRequest {
+    private String dbName;
+    private String title;
+    private String pathToFile;
+    private Boolean parseSeqIds;
+    private Integer blastDbVersion;
+    private Integer taxId;
+    private BlastDatabaseType dbType;
 }

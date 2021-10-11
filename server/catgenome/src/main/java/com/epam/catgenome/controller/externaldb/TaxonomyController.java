@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.blast;
+package com.epam.catgenome.controller.externaldb;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.manager.blast.BlastTaxonomySecurityService;
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomySecurityService;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -44,11 +44,11 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "blast-taxonomy", description = "BLAST Taxonomy Data Management")
+@Api(value = "taxonomy", description = "Taxonomy Data Management")
 @RequiredArgsConstructor
-public class BlastTaxonomyController extends AbstractRESTController {
+public class TaxonomyController extends AbstractRESTController {
 
-    private final BlastTaxonomySecurityService blastTaxonomySecurityService;
+    private final TaxonomySecurityService taxonomySecurityService;
 
     @GetMapping(value = "/taxonomies/{term}")
     @ApiOperation(
@@ -58,9 +58,9 @@ public class BlastTaxonomyController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<BlastTaxonomy>> loadTaxonomies(@PathVariable final String term)
+    public Result<List<Taxonomy>> loadTaxonomies(@PathVariable final String term)
             throws IOException, ParseException {
-        return Result.success(blastTaxonomySecurityService.searchOrganisms(term));
+        return Result.success(taxonomySecurityService.searchOrganisms(term));
     }
 
     @GetMapping(value = "/taxonomy/{taxId}")
@@ -71,8 +71,8 @@ public class BlastTaxonomyController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastTaxonomy> loadTaxonomy(@PathVariable final long taxId) throws IOException, ParseException {
-        return Result.success(blastTaxonomySecurityService.searchOrganismById(taxId));
+    public Result<Taxonomy> loadTaxonomy(@PathVariable final long taxId) throws IOException, ParseException {
+        return Result.success(taxonomySecurityService.searchOrganismById(taxId));
     }
 
     @PutMapping(value = "/taxonomy/upload")
@@ -85,7 +85,7 @@ public class BlastTaxonomyController extends AbstractRESTController {
             })
     public Result<Boolean> uploadTaxonomyDatabase(@RequestParam final String taxonomyFilePath)
             throws IOException, ParseException {
-        blastTaxonomySecurityService.writeLuceneTaxonomyIndex(taxonomyFilePath);
+        taxonomySecurityService.writeLuceneTaxonomyIndex(taxonomyFilePath);
         return Result.success(null);
     }
 }
