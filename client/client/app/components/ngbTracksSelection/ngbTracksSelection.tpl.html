@@ -1,23 +1,14 @@
-<div class="tracks-selection-container"
-     ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
->
-    <div class="overlay"
-         ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
-         ng-click="$ctrl.closeMenu($event)"
-    >
-    </div>
-    <button class="tracks-selection-button"
-            ng-click="$ctrl.menuIsOpen ? $ctrl.closeMenu($event) : $ctrl.openMenu($event)"
-            aria-label="Tracks selection"
-            style="width: auto; padding-left: 7px"
+<md-menu class="tracks-selection-container" md-offset="35 10" md-position-mode="target-right target">
+    <md-button aria-label="Project info"
+               class="md-icon-button tracks-selection-button"
+               ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
     >
         <ng-md-icon icon="playlist_add_check"
-                    size="20"
-        ></ng-md-icon>
-    </button>
-    <div class="tracks-selection-content md-whiteframe-z2"
-         ng-class="{'content-visible': $ctrl.menuIsOpen}"
-    >
+                    ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
+        <span class="browser-hamburger-menu-icon-text">Tracks Selection</span>
+    </md-button>
+    <md-menu-content class="tracks-selection-content" md-whiteframe="4" ng-class="{'submenu-layout-correction': !$ctrl.projectContext.isBrowserNarrow}"
+                     width="4">
         <md-checkbox aria-label="select all"
                      ng-model="$ctrl.allSelected"
         >
@@ -46,13 +37,13 @@
             </span>
             <span class="original-name"
                   ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
-                  ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
+                  ng-if="!$ctrl.getCustomName(o.track) || $ctrl.showTrackOriginalName"
             >
                 {{o.track.name}}
-                <md-tooltip md-direction="top">
-                  {{o.track.name}}
-                </md-tooltip>
+<!--                <md-tooltip md-direction="top">-->
+<!--                  {{o.track.name}}-->
+<!--                </md-tooltip>-->
             </span>
         </md-checkbox>
-    </div>
-</div>
+    </md-menu-content>
+</md-menu>

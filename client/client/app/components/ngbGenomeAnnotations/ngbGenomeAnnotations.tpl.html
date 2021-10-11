@@ -1,7 +1,6 @@
-<md-menu>
+<md-menu md-offset="35 10" md-position-mode="target-right target">
     <md-button aria-label="Genome"
-               class="md-icon-button genome-button"
-               style="width: auto; padding-left: 7px"
+               class="md-icon-button long-header-icon-button genome-button"
                ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
     >
         {{$ctrl.getCustomName($ctrl.reference) || $ctrl.reference.name}}
@@ -11,10 +10,11 @@
             {{$ctrl.reference.name}}
         </span>
         <ng-md-icon ng-if="$ctrl.referenceContainsAnnotations"
-                    icon="keyboard_arrow_down"
+                    class="arrow-down-icon" icon="keyboard_arrow_down"
                     size="20"></ng-md-icon>
     </md-button>
-    <md-menu-content width="4" class="genome-annotations-menu" md-whiteframe="4">
+    <md-menu-content class="genome-annotations-menu" md-whiteframe="4" ng-class="{'submenu-layout-correction': !$ctrl.projectContext.isBrowserNarrow}"
+                     width="4">
         <md-checkbox ng-repeat="annotationFile in $ctrl.reference.annotationFiles | orderBy: 'name'"
                      ng-if="annotationFile.isGeneFile"
                      ng-model="annotationFile.selected"

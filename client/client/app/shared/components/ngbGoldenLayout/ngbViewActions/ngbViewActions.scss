@@ -5,3 +5,69 @@
 .li-blast-pagination {
   width: auto;
 }
+
+.browser-hamburger-menu-icon-text {
+  display: none;
+}
+
+.browser-hamburger-menu {
+  padding: 0;
+
+  & > md-menu > .md-button.md-icon-button ng-md-icon {
+    fill: #FFF;
+  }
+}
+
+md-menu-content.md-menu-bar-menu {
+  padding: 8px 0;
+
+  md-menu-item.responsive-menu-item {
+    .md-button.md-icon-button {
+      &:hover {
+        background-color: rgba(158, 158, 158, 0.2);
+      }
+
+      margin: 0;
+      padding: 0;
+      border-radius: 0;
+      width: 100%;
+
+      &:after {
+        top: 4px;
+        right: 0;
+      }
+
+      .browser-hamburger-menu-icon-text {
+        display: inline-block;
+        text-transform: none;
+        font-weight: normal;
+        text-align: left;
+      }
+
+      ng-md-icon {
+        fill: rgba(0, 0, 0, 0.87);
+        padding-right: 5px;
+      }
+
+      .arrow-down-icon {
+        display: none;
+      }
+    }
+  }
+}
+
+md-menu-content.submenu-layout-correction {
+  position: absolute;
+
+  &.ngb-project-info-sections-menu {
+    left: -100px;
+  }
+
+  &.genome-annotations-menu {
+    left: -100px;
+  }
+
+  &.tracks-selection-content {
+    left: -35px;
+  }
+}

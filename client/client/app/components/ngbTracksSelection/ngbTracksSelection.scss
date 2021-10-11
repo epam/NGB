@@ -1,142 +1,101 @@
-ngb-tracks-selection {
-  .tracks-selection-container {
-    display: flex;
-    height: 100%;
-    position: relative;
-    transition: all 300ms ease;
+.tracks-selection-container {
+  display: flex;
+  height: 100%;
+  position: relative;
+  transition: all 300ms ease;
 
-    &.overlay-visible {
-      z-index: 99;
-    }
-
-    .overlay {
-      display: none;
-
-      &.overlay-visible {
-        display: block;
-        position: fixed;
-        width: 100vw;
-        height: 100vh;
-        cursor: default;
-        top: 0;
-        left: 0;
-      }
-    }
-
-    .tracks-selection-button {
-      padding: 0;
-      margin: 0 3px;
-      fill: #fff;
-    }
-  }
-
-  .tracks-selection-content {
-    position: absolute;
-    top: 25px;
-    padding: 8px 10px;
-    background-color: #ffffff;
-    min-width: 300px;
-    max-width: 400px;
-    white-space: nowrap;
-    overflow-x: hidden;
-    opacity: 0;
-    visibility: hidden;
-    height: 0;
-
-    &.content-visible {
-      visibility: visible;
-      height: auto;
-      max-height: 70vh;
-      animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-      animation-fill-mode: forwards;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-  
-      md-checkbox {
-        animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        animation-fill-mode: forwards;
-        animation-delay: 0.2s;
-        transition: background-color 0.15s ease;
-        box-sizing: content-box;
-
-        &:hover {
-          background-color: #f4f4f4;
-        }
-      }
-    }
-
-    md-checkbox {
-      margin: 2px 3px 1px 3px;
-      padding-top: 4px;
-      padding-bottom: 4px;
-      opacity: 0;
-
-      .md-icon {
-        box-sizing: border-box !important;
-      }
-
-      .md-label {
-        margin-left: 22px;
-        font-weight: normal;
-        font-size: 12px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: nowrap;
-      }
-
-      .track-badge {
-        border-radius: 3px;
-        box-sizing: border-box;
-        border: 1px solid #777777;
-        font-size: xx-small;
-        background-color: #ffffff;
-        text-align: center;
-        align-self: center;
-        margin-right: 5px;
-        padding: 1px 2px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        &.selected {
-          background-color: #d8efdd;
-          border: 1px solid darken(#d8efdd, 30%);
-        }
-      }
-
-      .custom-name {
-        width: 100%;
-        max-width: min-content;
-        margin-right: 5px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-
-      .original-name {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-
-        &.file-hint {
-          min-width: 50px;
-          color: #595959;
-          background-color: #f0f0f0;
-          padding: 1px 5px;
-          border-radius: 5px;
-        }
-      }
-    }
+  .tracks-selection-button {
+    width: auto;
+    padding: 0 0 0 7px;
+    margin: 0 3px;
+    fill: #fff;
   }
 }
 
-@keyframes menuFadeIn {
-  0% {
-    opacity: 0;
+.tracks-selection-content {
+  position: absolute;
+  top: 20px;
+  padding: 8px 10px;
+  background-color: #ffffff;
+  min-width: 300px;
+  max-width: 400px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  visibility: visible;
+  height: auto;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+
+  md-checkbox {
+    box-sizing: content-box;
+
+    &:hover {
+      background-color: #f4f4f4;
+    }
   }
-  100% {
-    opacity: 1;
+
+  md-checkbox {
+    margin: 2px 3px 1px 3px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+
+    .md-icon {
+      box-sizing: border-box !important;
+    }
+
+    .md-label {
+      margin-left: 22px;
+      font-weight: normal;
+      font-size: 12px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .track-badge {
+      border-radius: 3px;
+      box-sizing: border-box;
+      border: 1px solid #777777;
+      font-size: xx-small;
+      background-color: #ffffff;
+      text-align: center;
+      align-self: center;
+      margin-right: 5px;
+      padding: 1px 2px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &.selected {
+        background-color: #d8efdd;
+        border: 1px solid darken(#d8efdd, 30%);
+      }
+    }
+
+    .custom-name {
+      width: 100%;
+      max-width: min-content;
+      margin-right: 5px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .original-name {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &.file-hint {
+        min-width: 50px;
+        color: #595959;
+        background-color: #f0f0f0;
+        padding: 1px 5px;
+        border-radius: 5px;
+      }
+    }
   }
 }

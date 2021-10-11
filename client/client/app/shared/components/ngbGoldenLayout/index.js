@@ -1,21 +1,20 @@
 // Import Style
-import './ngbGoldenLayout.scss';
-import './ngbViewActions/ngbViewActions.scss'
-
 import angular from 'angular';
+import ngbCoordinates from './ngbCoordinates';
 
 // Import internal modules
 import component from './ngbGoldenLayout.component';
 import constant from './ngbGoldenLayout.constant';
 import controller from './ngbGoldenLayout.controller';
 import directive from './ngbGoldenLayout.directive';
-import goldenLayout from './ngbGoldenLayoutObj.service';
+import './ngbGoldenLayout.scss';
 import service from './ngbGoldenLayout.service';
+import goldenLayout from './ngbGoldenLayoutObj.service';
+import ngbViewActions from './ngbViewActions';
 
 // Import dependencies
 import ngbViewActionsConstant from './ngbViewActions/ngbViewActions.constant';
-import ngbCoordinates from './ngbCoordinates';
-import ngbViewActions from './ngbViewActions';
+import './ngbViewActions/ngbViewActions.scss';
 
 export default angular.module('ngbGoldenLayout', [ngbCoordinates, ...ngbViewActions])
     .controller(controller.UID, controller)

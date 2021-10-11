@@ -2,7 +2,7 @@
     <md-menu style="visibility: hidden;width:0;height:0">
         <md-button
             id="hiddenMenuButton"
-            ng-click="$mdOpenMenu()"
+            ng-click="$mdOpenMenu($event)"
             aria-label="Open Info Menu"
         >
         </md-button>
@@ -12,7 +12,7 @@
                           class="ngb-track-event-menu-item">
                 <md-menu ng-if="entry.submenu">
                     <md-button aria-label="entry.title"
-                               ng-click="$mdOpenMenu()"
+                               ng-click="$mdOpenMenu($event)"
                                ng-disabled="entry.disabled"
                                class="ngb-track-event-button">
                         {{entry.title}}

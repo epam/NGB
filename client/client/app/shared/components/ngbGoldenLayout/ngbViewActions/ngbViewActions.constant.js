@@ -22,6 +22,7 @@ const variantsLoadingIndicatorAction = {
 };
 const closeAllTracksAction = {
     name: 'closeAllTracks',
+    liClass: 'responsive-menu-item',
     isDefault: false
 };
 const fitAllTracksAction = {
@@ -30,6 +31,7 @@ const fitAllTracksAction = {
     event: 'tracks:fit:height',
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
+    liClass: 'responsive-menu-item',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
 };
 const variantsResetFilterActions = {
@@ -46,6 +48,7 @@ const organizeTracksAction = {
     event: 'tracks:organize',
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
+    liClass: 'responsive-menu-item',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
 };
 
@@ -55,6 +58,7 @@ const genomeAnnotationsAction = {
     liStyle: {
         width: 'auto'
     },
+    liClass: 'responsive-menu-item',
     isVisible: context => context.tracks && context.tracks.length
 };
 
@@ -64,14 +68,16 @@ const projectInfoSectionsAction = {
     liStyle: {
         width: 'auto'
     },
+    liClass: 'responsive-menu-item',
     isVisible: context => context.tracks && context.tracks.length,
 };
 
 const tracksSelectionAction = {
+    name: 'tracksSelection',
     liStyle: {
         width: 'auto'
     },
-    name: 'tracksSelection',
+    liClass: 'responsive-menu-item',
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome,
 };
 
