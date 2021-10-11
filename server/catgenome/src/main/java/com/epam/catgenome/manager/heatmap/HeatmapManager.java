@@ -104,7 +104,8 @@ public class HeatmapManager {
         final Map<String, String> labelAnnotation = readLabelAnnotation(heatmap.getLabelAnnotationPath());
         updateHeatmapLabels(heatmap, labelAnnotation);
         final byte[] content = FileUtils.readFileToByteArray(file);
-        final byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap, this::checkCellAnnotation);
+        final byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap,
+                this::checkCellAnnotation);
         final byte[] rowTree = readFileContent(heatmap.getRowTreePath(),
             heatmap,
             h -> checkTree(getLabelSet(h.getRowLabels()), h.getRowTreePath()));
@@ -226,9 +227,10 @@ public class HeatmapManager {
         if (is == null) {
             return null;
         }
-        BufferedReader r = createReader(is);
-        TreeParser tp = new TreeParser(r);
-        return tp.tokenize(FilenameUtils.getBaseName(path));
+        try (BufferedReader r = createReader(is)) {
+            TreeParser tp = new TreeParser(r);
+            return tp.tokenize(FilenameUtils.getBaseName(path));
+        }
     }
 
     @NotNull
@@ -481,14 +483,15 @@ public class HeatmapManager {
 
     @SneakyThrows
     private void checkTree(final Set<String> labels, final String path) {
-        BufferedReader r = createReader(path);
-        TreeParser tp = new TreeParser(r);
-        Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
-        List<String> treeLabels = tree.nodes.stream()
-                .map(TreeNode::getName)
-                .filter(f -> !f.isEmpty() && !labels.contains(f))
-                .collect(Collectors.toList());
-        Assert.isTrue(treeLabels.isEmpty(), getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
+        try (BufferedReader r = createReader(path)) {
+            TreeParser tp = new TreeParser(r);
+            Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
+            List<String> treeLabels = tree.nodes.stream()
+                    .map(TreeNode::getName)
+                    .filter(f -> !f.isEmpty() && !labels.contains(f))
+                    .collect(Collectors.toList());
+            Assert.isTrue(treeLabels.isEmpty(), getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
+        }
     }
 
     private Set<String> getLabelSet(final List<List<String>> labels) {
