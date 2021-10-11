@@ -29,20 +29,16 @@
             </span>
             <span ng-if="$ctrl.getCustomName(o.track)"
                   class="custom-name"
+                  title="{{$ctrl.getCustomName(o.track)}}"
             >
                 {{$ctrl.getCustomName(o.track)}}
-                <md-tooltip md-direction="top">
-                  {{$ctrl.getCustomName(o.track)}}
-                </md-tooltip>
             </span>
             <span class="original-name"
                   ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
                   ng-if="!$ctrl.getCustomName(o.track) || $ctrl.showTrackOriginalName"
+                  title="{{o.track.name}}"
             >
                 {{o.track.name}}
-<!--                <md-tooltip md-direction="top">-->
-<!--                  {{o.track.name}}-->
-<!--                </md-tooltip>-->
             </span>
         </md-checkbox>
     </md-menu-content>
