@@ -12,7 +12,7 @@ export default class HeatmapTrack extends CachedTrack {
     static Menu = Menu(heatmapMenu);
 
     get stateKeys() {
-        return ['header'];
+        return ['header', 'options'];
     }
 
     constructor(opts) {
@@ -29,12 +29,26 @@ export default class HeatmapTrack extends CachedTrack {
             displayOptions: {
                 pixiRenderer: this._pixiRenderer,
                 domElement: this.domElement
-            }
+            },
+            state: this.state.options
         });
         this.heatmapView.referenceId = this.config.referenceId;
         this.container.addChild(this.heatmapView.container);
+        /**
+         *
+         * @type {HeatmapViewOptions}
+         */
         this.state.heatmap = this.heatmapView.options;
+        this.heatmapView.options.onChange(this.reportTrackState.bind(this, false));
+    }
 
+    getTrackStatePayload() {
+        if (this.state.heatmap) {
+            return {
+                options: this.state.heatmap.serialize()
+            };
+        }
+        return {};
     }
 
     destructor() {

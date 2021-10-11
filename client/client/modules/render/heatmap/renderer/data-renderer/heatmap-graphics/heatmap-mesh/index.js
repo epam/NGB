@@ -63,9 +63,6 @@ export default class HeatmapMesh {
             return;
         }
         const gradient = gradients.getGradientForValue(item.value);
-        if (!gradient) {
-            console.log(item.value, gradient, gradients);
-        }
         if (gradient && processGradientKeys.includes(gradient.key)) {
             if (!this.collections.has(gradient.key)) {
                 const collection = new HeatmapGeometryCollection(gradient);

@@ -1,6 +1,6 @@
-import {white} from './colors';
 import * as helpers from './helpers';
 import {HeatmapDataType} from '../heatmap-data';
+import {white} from './colors';
 
 const {ColorFormats} = helpers;
 
@@ -21,6 +21,39 @@ const {ColorFormats} = helpers;
 
 export default class ColorConfiguration {
     static uniqueIdentifier = 0;
+    static SERIALIZATION_SEPARATOR = ':';
+    /**
+     *
+     * @param {string} serialized
+     * @param {HeatmapDataType} [dataType]
+     * @returns {ColorConfiguration}
+     */
+    static parse(serialized, dataType) {
+        if (!serialized || typeof serialized !== 'string') {
+            return new ColorConfiguration();
+        }
+        const parts = serialized.split(ColorConfiguration.SERIALIZATION_SEPARATOR);
+        if (parts.length === 1) {
+            return new ColorConfiguration({
+                dataType,
+                color: helpers.systemColorValue(parts[0])
+            });
+        }
+        if (parts.length === 2) {
+            return new ColorConfiguration({
+                dataType,
+                from: parts[0],
+                singleValue: true,
+                color: helpers.systemColorValue(parts[1])
+            });
+        }
+        return new ColorConfiguration({
+            dataType,
+            from: parts[0],
+            to: parts[1],
+            color: helpers.systemColorValue(parts[2])
+        });
+    }
 
     /**
      *
@@ -57,6 +90,22 @@ export default class ColorConfiguration {
         this.colorFormat = colorFormat;
         this._validateAll = validate;
         this._singleValue = singleValue;
+    }
+
+    serialize(colorFormatFn = helpers.formatColor) {
+        if (this.singleValue && this.value !== undefined) {
+            return [
+                this.value,
+                colorFormatFn(this.color)
+            ].join(ColorConfiguration.SERIALIZATION_SEPARATOR);
+        } else if (this.from !== undefined && this.to !== undefined) {
+            return [
+                this.from,
+                this.to,
+                colorFormatFn(this.color)
+            ].join(ColorConfiguration.SERIALIZATION_SEPARATOR);
+        }
+        return '';
     }
 
     get uid() {

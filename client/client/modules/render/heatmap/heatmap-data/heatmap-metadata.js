@@ -1,39 +1,7 @@
+import HeatmapDataType from './heatmap-data-type';
 import HeatmapEventDispatcher from '../utilities/heatmap-event-dispatcher';
 import {HeatmapNavigationType} from '../navigation';
 import events from '../utilities/events';
-
-/**
- * @enum {number}
- */
-const HeatmapDataType = {
-    /**
-     * Number
-     */
-    number: 0,
-    /**
-     * String
-     */
-    string: 1,
-    /**
-     * Hybrid
-     */
-    hybrid: 2,
-    /**
-     *
-     * @param {string} type
-     * @returns {HeatmapDataType}
-     */
-    parse(type) {
-        switch ((type || '').toLowerCase()) {
-            case 'string': return HeatmapDataType.string;
-            case 'double':
-            case 'integer':
-            case 'number':
-            default:
-                return HeatmapDataType.number;
-        }
-    }
-};
 
 /**
  * @typedef {Object} HeatmapMetadataOptions
@@ -118,8 +86,6 @@ function createArray(length) {
         .map((element, index) => `${element}${index + 1}`)
         .map(o => parseMetadataItem(o));
 }
-
-export {HeatmapDataType};
 
 export default class HeatmapMetadata extends HeatmapEventDispatcher {
     /**

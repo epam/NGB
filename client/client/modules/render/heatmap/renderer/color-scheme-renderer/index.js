@@ -242,61 +242,63 @@ class ColorSchemeRenderer extends InteractiveZone {
         const gradients = this.colorScheme.gradientCollection;
         const heightChanged = this.session.discreteHeight !== height;
         if (this.session.discreteHeight !== height) {
-            const drawingHeight = height - 2.0 * config.discrete.margin;
+            const drawingHeight = Math.max(0, height - 2.0 * config.discrete.margin);
             const gradientStopTotalHeight = config.discrete.gradientStop.height +
                 2.0 * config.discrete.gradientStop.margin;
             const gradientStopsTotalHeight = gradientStopTotalHeight * gradients.length;
             const gradientStopsPerColumn = Math.floor(drawingHeight / gradientStopTotalHeight);
             const columns = Math.ceil(gradientStopsTotalHeight / drawingHeight);
-            const colorIndicatorTotalWidth = config.discrete.gradientStop.colorIndicator.width +
-                2.0 * config.discrete.gradientStop.colorIndicator.margin;
-            const columnWidths = (new Array(columns))
-                .fill(colorIndicatorTotalWidth);
-            for (let g = 0; g < gradients.length; g += 1) {
-                const gradient = gradients.get(g);
-                if (gradient && !this.discreteLabels.has(gradient.key)) {
-                    continue;
+            if (columns <= gradients.length) {
+                const colorIndicatorTotalWidth = config.discrete.gradientStop.colorIndicator.width +
+                    2.0 * config.discrete.gradientStop.colorIndicator.margin;
+                const columnWidths = (new Array(columns))
+                    .fill(colorIndicatorTotalWidth);
+                for (let g = 0; g < gradients.length; g += 1) {
+                    const gradient = gradients.get(g);
+                    if (gradient && !this.discreteLabels.has(gradient.key)) {
+                        continue;
+                    }
+                    const label = this.discreteLabels.get(gradient.key);
+                    const column = Math.floor(g / gradientStopsPerColumn);
+                    const labelWidth = label.width + 2.0 * config.discrete.gradientStop.margin;
+                    columnWidths[column] = Math.max(labelWidth + colorIndicatorTotalWidth, columnWidths[column]);
                 }
-                const label = this.discreteLabels.get(gradient.key);
-                const column = Math.floor(g / gradientStopsPerColumn);
-                const labelWidth = label.width + 2.0 * config.discrete.gradientStop.margin;
-                columnWidths[column] = Math.max(labelWidth + colorIndicatorTotalWidth, columnWidths[column]);
-            }
-            this._discreteTotalWidth = columnWidths.reduce((w, c) => w + c, 0);
-            this.discreteGraphics.clear();
-            for (let g = 0; g < gradients.length; g += 1) {
-                const gradient = gradients.get(g);
-                if (gradient && !this.discreteLabels.has(gradient.key)) {
-                    continue;
+                this._discreteTotalWidth = columnWidths.reduce((w, c) => w + c, 0);
+                this.discreteGraphics.clear();
+                for (let g = 0; g < gradients.length; g += 1) {
+                    const gradient = gradients.get(g);
+                    if (gradient && !this.discreteLabels.has(gradient.key)) {
+                        continue;
+                    }
+                    const label = this.discreteLabels.get(gradient.key);
+                    const row = g % gradientStopsPerColumn;
+                    const column = Math.floor(g / gradientStopsPerColumn);
+                    const stopsPerColumn = Math.min(
+                        gradientStopsPerColumn,
+                        gradients.length - column * gradientStopsPerColumn
+                    );
+                    const columnWidth = columnWidths[column];
+                    const columnXOffset = columnWidths.slice(0, column).reduce((w, c) => w + c, 0);
+                    const columnYOffset = drawingHeight / 2.0 - stopsPerColumn / 2.0 * gradientStopTotalHeight;
+                    const yCenter = columnYOffset + gradientStopTotalHeight * (row + 0.5);
+                    label.y = yCenter - label.height / 2.0;
+                    label.x = columnXOffset +
+                        columnWidth -
+                        colorIndicatorTotalWidth -
+                        label.width -
+                        config.discrete.gradientStop.margin;
+                    label.visible = true;
+                    this.discreteGraphics
+                        .beginFill(gradient.getAnyColor(), 1)
+                        .lineStyle(1, config.discrete.gradientStop.colorIndicator.stroke, 1)
+                        .drawRect(
+                            columnXOffset + columnWidth - colorIndicatorTotalWidth,
+                            yCenter - config.discrete.gradientStop.colorIndicator.height / 2.0,
+                            colorIndicatorTotalWidth,
+                            config.discrete.gradientStop.colorIndicator.height
+                        )
+                        .endFill();
                 }
-                const label = this.discreteLabels.get(gradient.key);
-                const row = g % gradientStopsPerColumn;
-                const column = Math.floor(g / gradientStopsPerColumn);
-                const stopsPerColumn = Math.min(
-                    gradientStopsPerColumn,
-                    gradients.length - column * gradientStopsPerColumn
-                );
-                const columnWidth = columnWidths[column];
-                const columnXOffset = columnWidths.slice(0, column).reduce((w, c) => w + c, 0);
-                const columnYOffset = drawingHeight / 2.0 - stopsPerColumn / 2.0 * gradientStopTotalHeight;
-                const yCenter = columnYOffset + gradientStopTotalHeight * (row + 0.5);
-                label.y = yCenter - label.height / 2.0;
-                label.x = columnXOffset +
-                    columnWidth -
-                    colorIndicatorTotalWidth -
-                    label.width -
-                    config.discrete.gradientStop.margin;
-                label.visible = true;
-                this.discreteGraphics
-                    .beginFill(gradient.getAnyColor(), 1)
-                    .lineStyle(1, config.discrete.gradientStop.colorIndicator.stroke, 1)
-                    .drawRect(
-                        columnXOffset + columnWidth - colorIndicatorTotalWidth,
-                        yCenter - config.discrete.gradientStop.colorIndicator.height / 2.0,
-                        colorIndicatorTotalWidth,
-                        config.discrete.gradientStop.colorIndicator.height
-                    )
-                    .endFill();
             }
         }
         this.session.discreteHeight = height;

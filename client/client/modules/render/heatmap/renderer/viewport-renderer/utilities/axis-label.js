@@ -144,7 +144,7 @@ class AxisLabel {
          */
         this.normalRadians = Math.atan2(this.normal.y, this.normal.x);
         const {x: ax = 0} = this.normal;
-        const align = ax > 0 ? 'left' : 'right';
+        const align = ax >= 0 ? 'left' : 'right';
         /**
          * Label graphics
          * @type {PIXI.Text|PIXI.Sprite}

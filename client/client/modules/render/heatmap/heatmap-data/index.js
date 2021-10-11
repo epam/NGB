@@ -1,7 +1,8 @@
-import HeatmapMetadata, {HeatmapDataType} from './heatmap-metadata';
 import HeatmapBinaryTree from '../utilities/heatmap-binary-tree';
 import {HeatmapDataService} from '../../../../dataServices';
+import HeatmapDataType from './heatmap-data-type';
 import HeatmapEventDispatcher from '../utilities/heatmap-event-dispatcher';
+import HeatmapMetadata from './heatmap-metadata';
 import HeatmapTrie from '../utilities/heatmap-trie';
 import events from '../utilities/events';
 
