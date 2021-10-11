@@ -9,6 +9,9 @@ ngb-project-info-panel {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    .diagrams-container {
+      width: 100%;
+    }
   }
   .project-note-container {
     width: 100%;
