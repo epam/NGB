@@ -27,6 +27,8 @@ class HeatmapViewportRenderer extends InteractiveZone {
         this.rowAxis = new RowsRenderer(viewport, labelsManager);
         this.columnAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {column: payload}));
         this.rowAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {row: payload}));
+        this.columnAxis.onLayout(() => this.emit(events.layout));
+        this.rowAxis.onLayout(() => this.emit(events.layout));
         this.columnScroller = new ColumnsScrollerRenderer(viewport);
         this.rowScroller = new RowsScrollerRenderer(viewport);
         this.interactions = interactions;
@@ -37,23 +39,20 @@ class HeatmapViewportRenderer extends InteractiveZone {
         this.interactions.registerInteractiveZone(this.rowScroller);
 
         this.selection = new PIXI.Graphics();
+        this.container.addChild(this.columnAxis.container);
+        this.container.addChild(this.rowAxis.container);
+        this.container.addChild(this.columnScroller.container);
+        this.container.addChild(this.rowScroller.container);
+        this.container.addChild(this.selection);
+
         this.selectionInfo = undefined;
 
         this.initialized = false;
         const onInitialized = () => {
-            const initialized = this.columnAxis.initialized &&
+            this.initialized = this.columnAxis.initialized &&
                 this.rowAxis.initialized &&
                 this.columnScroller.initialized &&
                 this.rowScroller.initialized;
-            if (initialized) {
-                this.container.removeChildren();
-                this.container.addChild(this.columnAxis.container);
-                this.container.addChild(this.rowAxis.container);
-                this.container.addChild(this.columnScroller.container);
-                this.container.addChild(this.rowScroller.container);
-                this.container.addChild(this.selection);
-            }
-            this.initialized = initialized;
         };
         this.columnAxis.onInitialized(onInitialized);
         this.rowAxis.onInitialized(onInitialized);
@@ -128,6 +127,10 @@ class HeatmapViewportRenderer extends InteractiveZone {
 
     onAxisClick(callback) {
         this.addEventListener(events.click, callback);
+    }
+
+    onLayout(callback) {
+        this.addEventListener(events.layout, callback);
     }
 
     /**

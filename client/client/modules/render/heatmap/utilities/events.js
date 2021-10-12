@@ -4,11 +4,13 @@ export default {
         finish: 'finish',
         tick: 'tick'
     },
+    clear: 'clear',
     colorScheme: {
         configure: 'configureColorScheme',
         validate: 'validate'
     },
     initialized: 'initialized',
+    layout: 'layout',
     changed: 'changed',
     updating: 'updating',
     destroyed: 'destroyed',

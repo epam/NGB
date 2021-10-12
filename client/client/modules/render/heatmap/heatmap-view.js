@@ -51,9 +51,9 @@ class HeatmapView extends HeatmapEventDispatcher {
          */
         this.navigation = new HeatmapNavigation(options.projectContext, this.options.data);
         this.options.data.onMetadataLoaded(this.metadataLoaded.bind(this));
-        this.options.colorScheme.onInitialized(this.render.bind(this));
-        this.options.colorScheme.onChanged(this.render.bind(this));
-        this.heatmapViewport.onViewportChanged(this.render.bind(this));
+        this.options.colorScheme.onInitialized(this.render.bind(this, false));
+        this.options.colorScheme.onChanged(this.render.bind(this, false));
+        this.heatmapViewport.onViewportChanged(this.render.bind(this, false));
         const renderLoop = () => {
             if (this.needsRender) {
                 this.needsRender = false;
@@ -252,7 +252,7 @@ class HeatmapView extends HeatmapEventDispatcher {
              * @type {HeatmapInteractions}
              */
             this.heatmapInteractions = new HeatmapInteractions(this.domElement, this.heatmapViewport);
-            this.heatmapInteractions.onRender(this.render.bind(this));
+            this.heatmapInteractions.onRender(this.render.bind(this, false));
         }
     }
 
@@ -268,7 +268,12 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.heatmapInteractions,
                 this.labelsManager
             );
-            this.viewportRenderer.onInitialized(this.render.bind(this));
+            this.viewportRenderer.onInitialized(this.render.bind(this, false));
+            this.viewportRenderer.onLayout(() => {
+                if (!this.heatmapInteractions.userInteracted) {
+                    this.render(true);
+                }
+            });
             this.viewportRenderer.onAxisClick((viewportRenderer, clickInfo = {}) => {
                 const {
                     column: columnIndex,
@@ -399,7 +404,7 @@ class HeatmapView extends HeatmapEventDispatcher {
         }
     }
 
-    layout() {
+    layout(fit = false) {
         if (!this.viewportRenderer) {
             return false;
         }
@@ -420,8 +425,8 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.heatmapViewport.deviceHeight = layoutInfo.size.row;
             this.heatmapViewport.deviceAvailableWidth = layoutInfo.available.column;
             this.heatmapViewport.deviceAvailableHeight = layoutInfo.available.row;
-            if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
-                this.heatmapViewport.fit(false);
+            if (fit) {
+                this.heatmapViewport.best(false);
             }
             const currentPositions = [
                 this.viewportRenderer.container.x,
@@ -456,21 +461,21 @@ class HeatmapView extends HeatmapEventDispatcher {
         return currentX !== this.colorSchemeRenderer.container.x || changed;
     }
 
-    renderHeatmap() {
+    renderHeatmap(fit = false) {
         let somethingChanged = false;
         const render = renderResult => {
             somethingChanged = renderResult || somethingChanged;
         };
         render(this.renderColorScheme());
-        render(this.layout());
+        render(this.layout(fit));
         render(this.dataRenderer.render());
         render(this.viewportRenderer.render());
         return somethingChanged;
     }
 
-    render() {
+    render(fit = false) {
         if (this.pixiRenderer) {
-            if (this.renderHeatmap()) {
+            if (this.renderHeatmap(fit)) {
                 this.pixiRenderer.render(this.container);
             }
         }

@@ -64,7 +64,9 @@ class HeatmapDataRenderer extends InteractiveZone {
          */
         this.dataProcessed = false;
         this.dataLoadedListener = this.rebuild.bind(this);
+        this.dataClearedListener = this.clear.bind(this);
         this.colorSchemeChangedListener = this.colorSchemeChanged.bind(this, false);
+        this.data.onClear(this.dataClearedListener);
         this.data.onDataLoaded(this.dataLoadedListener);
         this.data.onColumnsRowsReordered(this.dataLoadedListener);
         this.colorScheme.onChanged(this.colorSchemeChangedListener);
@@ -80,7 +82,10 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.destroyed = true;
         this.hoveredRenderer.destroy();
         if (this.data) {
-            this.data.removeEventListeners(this.dataLoadedListener);
+            this.data.removeEventListeners(
+                this.dataLoadedListener,
+                this.dataClearedListener
+            );
         }
         if (this.colorScheme) {
             this.colorScheme.removeEventListeners(
@@ -99,12 +104,51 @@ class HeatmapDataRenderer extends InteractiveZone {
         return this._updating || (this.blocks || []).filter(block => block.updating).length > 0;
     }
 
+    prepareGraphics() {
+        this.clearSession();
+        this.container.removeChildren();
+        this.updatingLabel = this.labelsManager
+            ? this.labelsManager.getLabel(config.updating.label.text, config.updating.label.font)
+            : undefined;
+        this.loadingLabel = this.labelsManager
+            ? this.labelsManager.getLabel(config.loading.label.text, config.loading.label.font)
+            : undefined;
+        this.background = new PIXI.Graphics();
+        this.container.addChild(this.background);
+        this.blocksContainer = new PIXI.Container();
+        this.container.addChild(this.blocksContainer);
+        this.container.addChild(this.hoveredRenderer.graphics);
+        if (this.updatingLabel) {
+            this.container.addChild(this.updatingLabel);
+            this.updatingLabel.visible = false;
+        }
+        if (this.loadingLabel) {
+            this.container.addChild(this.loadingLabel);
+            this.loadingLabel.visible = false;
+        }
+    }
+
+    clear() {
+        this.currentPromise = cancellablePromise(
+            () => new Promise((resolve) => {
+                if (this.destroyed) {
+                    return;
+                }
+                this.blocks.forEach(block => block.destroy());
+                this.blocks = [];
+                this.initialized = false;
+                this.prepareGraphics();
+                this.initialized = true;
+                this.requestRender();
+                resolve();
+            }),
+            this.currentPromise
+        );
+    }
+
     initialize(renderer) {
-        const cancelPrevious = typeof this.cancelRebuildBlocks === 'function'
-            ? this.cancelRebuildBlocks()
-            : Promise.resolve();
-        cancelPrevious
-            .then(() => {
+        this.currentPromise = cancellablePromise(
+            () => new Promise((resolve) => {
                 if (this.destroyed) {
                     return;
                 }
@@ -118,20 +162,7 @@ class HeatmapDataRenderer extends InteractiveZone {
                     this.blocks.forEach(block => block.destroy());
                     this.blocks = [];
                 }
-                this.clearSession();
-                this.container.removeChildren();
-                this.updatingLabel = this.labelsManager
-                    ? this.labelsManager.getLabel(config.updating.label.text, config.updating.label.font)
-                    : undefined;
-                this.background = new PIXI.Graphics();
-                this.container.addChild(this.background);
-                this.blocksContainer = new PIXI.Container();
-                this.container.addChild(this.blocksContainer);
-                this.container.addChild(this.hoveredRenderer.graphics);
-                if (this.updatingLabel) {
-                    this.container.addChild(this.updatingLabel);
-                    this.updatingLabel.visible = false;
-                }
+                this.prepareGraphics();
                 Promise
                     .all(this.blocks.map(block => block.initialize()))
                     .then(() => {
@@ -141,8 +172,11 @@ class HeatmapDataRenderer extends InteractiveZone {
                         if (modeChanged || !this.dataProcessed) {
                             this.rebuild();
                         }
+                        resolve();
                     });
-            });
+            }),
+            this.currentPromise
+        );
     }
 
     onUpdating(callback) {
@@ -180,9 +214,9 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.dataProcessed = false;
         this.colorSchemeChanged(true);
         this.requestRender();
-        this.cancelRebuildBlocks = cancellablePromise(
+        this.currentPromise = cancellablePromise(
             this.rebuildBlocks.bind(this),
-            this.cancelRebuildBlocks
+            this.currentPromise
         );
         this.requestRender();
     }
@@ -424,18 +458,18 @@ class HeatmapDataRenderer extends InteractiveZone {
         }
     }
 
-    renderUpdatingLabel() {
+    renderLabel(label, visible) {
         const {
             viewportChanged,
             colorSchemeChanged,
             updateStatusChanged
         } = this.getSessionFlags();
-        if (this.updatingLabel && (viewportChanged || colorSchemeChanged || updateStatusChanged)) {
+        if (label && (viewportChanged || colorSchemeChanged || updateStatusChanged)) {
             const anchor = 0.5;
-            this.updatingLabel.anchor.set(anchor);
-            this.updatingLabel.x = this.viewport.deviceWidth / 2.0;
-            this.updatingLabel.y = this.viewport.deviceHeight / 2.0;
-            this.updatingLabel.visible = this.updating;
+            label.anchor.set(anchor);
+            label.x = this.viewport.deviceWidth / 2.0;
+            label.y = this.viewport.deviceHeight / 2.0;
+            label.visible = visible;
         }
     }
 
@@ -464,7 +498,8 @@ class HeatmapDataRenderer extends InteractiveZone {
             !this.data.dataReady ||
             !this.colorScheme.initialized
         ) {
-            return false;
+            this.renderLabel(this.loadingLabel, true);
+            return true;
         }
         const colorFormat = this.colorScheme.colorFormat;
         this.colorScheme.colorFormat = ColorFormats.number;
@@ -472,7 +507,8 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.renderMask();
         this.renderBackground();
         const blocksChanged = this.renderBlocks();
-        this.renderUpdatingLabel();
+        this.renderLabel(this.updatingLabel, this.updating);
+        this.renderLabel(this.loadingLabel, false);
         const hoveredChanged = this.renderHovered();
         this.updateSessionFlags();
         this.colorScheme.colorFormat = colorFormat;

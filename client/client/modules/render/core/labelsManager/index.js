@@ -83,6 +83,11 @@ export default class LabelsManager {
             styleKey
         };
     }
+
+    getCacheSize() {
+        return this.texturesCache.size;
+    }
+
     startSession () {
         this.textureKeysToRemove = new Set(this.removableTextureKeys);
     }

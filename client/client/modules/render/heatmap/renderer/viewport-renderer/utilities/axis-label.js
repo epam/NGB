@@ -7,6 +7,22 @@ import {linearDimensionsConflict} from '../../../../utilities';
 
 const DEBUG = false;
 
+const Align = {
+    left: 'left',
+    right: 'right'
+};
+
+const LabelStyles = {
+    [Align.left]: {
+        label: {align: 'left', ...config.label.font},
+        hovered: {align: 'left', ...config.label.hoveredFont}
+    },
+    [Align.right]: {
+        label: {align: 'right', ...config.label.font},
+        hovered: {align: 'right', ...config.label.hoveredFont}
+    }
+};
+
 /**
  * @typedef {Object} AxisLabelOptions
  * @property {HeatmapAnnotatedIndex} annotatedIndex
@@ -24,29 +40,50 @@ class AxisLabel {
      * @param {function: boolean} isCancelledFn
      * @param {AxisLabelOptions} options
      * @param {HeatmapAnnotatedIndex[]} ticks
+     * @param {function|undefined} [callback]
      * @returns {Promise<AxisLabel[]>}
      */
-    static initializeTicks(isCancelledFn = (() => false), options = {}, ticks = []) {
+    static initializeTicks(
+        isCancelledFn = (() => false),
+        options = {},
+        ticks = [],
+        callback = () => {}
+    ) {
         const {
             labelsManager
         } = options;
         if (!labelsManager || ticks.length === 0 || isCancelledFn()) {
             return Promise.resolve([]);
         }
-        const maxIterationsPerFrame = 50;
+        const maxIterationsPerFrame = 200;
+        const minIterationsPerFrame = 20;
         return new Promise((resolve) => {
             const result = [];
             const _iterate = (index = 0) => {
-                const nextIterationIndex = index + maxIterationsPerFrame;
+                const iterationResult = [];
+                const cacheSize = labelsManager.getCacheSize();
+                const safeCacheSize = Number.isNaN(Number(cacheSize)) ? 0 : Number(cacheSize);
+                const iterationsPerFrame = Math.ceil(
+                    Math.max(
+                        minIterationsPerFrame,
+                        maxIterationsPerFrame - safeCacheSize / 15
+                    )
+                );
+                const nextIterationIndex = index + iterationsPerFrame;
                 for (let i = index; i < nextIterationIndex && i < ticks.length; i++) {
                     if (isCancelledFn()) {
                         break;
                     }
-                    result.push(new AxisLabel({
+                    const axisLabel = new AxisLabel({
                         ...options,
                         annotatedIndex: ticks[i],
                         value: i
-                    }));
+                    });
+                    result.push(axisLabel);
+                    iterationResult.push(axisLabel);
+                }
+                if (callback) {
+                    callback(iterationResult);
                 }
                 if (nextIterationIndex >= ticks.length || isCancelledFn()) {
                     resolve(result);
@@ -144,17 +181,18 @@ class AxisLabel {
          */
         this.normalRadians = Math.atan2(this.normal.y, this.normal.x);
         const {x: ax = 0} = this.normal;
-        const align = ax >= 0 ? 'left' : 'right';
+        const align = ax >= 0 ? Align.left : Align.right;
+        const labelStyles = LabelStyles[align] || LabelStyles[Align.left];
         /**
          * Label graphics
          * @type {PIXI.Text|PIXI.Sprite}
          */
-        this.label = labelsManager.getLabel(this.formattedText, {align, ...config.label.font});
+        this.label = labelsManager.getLabel(this.formattedText, labelStyles.label);
         /**
          * Hovered label graphics
          * @type {PIXI.Text|PIXI.Sprite}
          */
-        this.hoveredLabel = labelsManager.getLabel(this.formattedText, {align, ...config.label.hoveredFont});
+        this.hoveredLabel = labelsManager.getLabel(this.formattedText, labelStyles.hovered);
         /**
          * Label graphics size (width) respecting margin
          */

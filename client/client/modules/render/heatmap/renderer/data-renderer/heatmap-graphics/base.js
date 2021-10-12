@@ -405,7 +405,7 @@ class HeatmapGraphicsBase extends HeatmapEventDispatcher {
             this.batchData = undefined;
         }
         this._dirty = true;
-        this._reset = reset;
+        this._reset = this._reset || reset;
         this.requestRebuild();
     }
 

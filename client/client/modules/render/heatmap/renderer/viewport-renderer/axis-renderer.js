@@ -99,6 +99,10 @@ class HeatmapAxisRenderer extends InteractiveZone {
         this.addEventListener(events.click, callback);
     }
 
+    onLayout(callback) {
+        this.addEventListener(events.layout, callback);
+    }
+
     /**
      * Initializes axis labels
      * @param {HeatmapAnnotatedIndex[]} [labels = []]
@@ -115,30 +119,43 @@ class HeatmapAxisRenderer extends InteractiveZone {
             normal: this.normal,
             showAnnotations
         };
+        const updateFn = (isCancelledFn) => {
+            this.container.removeChildren();
+            this.labelsContainer =new PIXI.Container();
+            this.container.addChild(this.labelsContainer);
+            this._hoveredTick = undefined;
+            this.ticks.forEach(tick => tick.destroy());
+            this.ticks = [];
+            const partialUpdate = ticks => {
+                if (!isCancelledFn()) {
+                    ticks.forEach(tick => {
+                        tick.visible = false;
+                        tick.hovered = false;
+                        tick.render();
+                        this.ticks.push(tick);
+                        this.labelsContainer.addChild(tick.container);
+                    });
+                    this.calculateAxisSize();
+                    this.updateTicksPositions();
+                    this.updateTicksVisibility();
+                    requestAnimationFrame(() => {
+                        this.clearRenderSession();
+                        this.initialized = true;
+                        this.render();
+                        this.requestRender();
+                        this.emit(events.layout);
+                    });
+                }
+            };
+            return new Promise((resolve) => {
+                AxisLabel.initializeTicks(isCancelledFn, options, labels, partialUpdate)
+                    .then(this.calculateAxisSize.bind(this))
+                    .then(() => resolve())
+                    .then(() => this.emit(events.layout));
+            });
+        };
         this.cancelInitialization = cancellablePromise(
-            (isCancelledFn) => new Promise((resolve) => AxisLabel.initializeTicks(isCancelledFn, options, labels)
-                .then((ticks) => this.ticks = ticks)
-                .then(this.calculateAxisSize.bind(this))
-                .then(() => {
-                    if (!isCancelledFn()) {
-                        this._hoveredTick = undefined;
-                        this.container.removeChildren();
-                        this.labelsContainer = new PIXI.Container();
-                        this.container.addChild(this.labelsContainer);
-                        this.ticks.forEach(tick => {
-                            this.labelsContainer.addChild(tick.container);
-                        });
-                        this.clearRenderSession();                        requestAnimationFrame(() => {
-                            this.render();
-                            this.initialized = true;
-                            this.requestRender();
-                            resolve();
-                        });
-                    } else {
-                        resolve();
-                    }
-                })
-            ),
+            updateFn,
             this.cancelInitialization,
         );
     }

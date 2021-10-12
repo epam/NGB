@@ -175,7 +175,7 @@ class Heatmap {
     render() {
         if (this.heatmapView) {
             this.refreshRenderer();
-            requestAnimationFrame(this.heatmapView.render.bind(this.heatmapView));
+            requestAnimationFrame(this.heatmapView.render.bind(this.heatmapView, false));
         }
     }
 }

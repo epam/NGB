@@ -99,6 +99,7 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         this.dataError = undefined;
         this.treeError = undefined;
         this.metadataError = undefined;
+        this.emit(events.clear);
     }
 
     reloadAll() {
@@ -243,6 +244,10 @@ export default class HeatmapData extends HeatmapEventDispatcher {
             });
         }
         return this.fetchPromise;
+    }
+
+    onClear(callback) {
+        this.addEventListener(events.clear, callback);
     }
 
     onMetadataLoaded(callback) {
