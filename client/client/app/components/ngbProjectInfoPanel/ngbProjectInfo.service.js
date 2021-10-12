@@ -281,17 +281,13 @@ export default class ngbProjectInfoService {
             this.projectContext.loadDatasetDescription(this.currentProject.id) //add description.id for case with descriptionS
                 .then(data => {
                     if (data && data.byteLength) {
-                        this.currentMode = [
-                            this.projectInfoModeList.DESCRIPTION,
-                            descriptionId
-                        ];
                         this.descriptionAvailable = true;
                         this.descriptionIsLoading = false;
                         this.blobUrl = this.$sce.trustAsResourceUrl(
                             URL.createObjectURL(new Blob([data], {type: 'text/html'}))
                         );
                         if (!this.projectContext.currentChromosome) {
-                            this._isCancel = true;
+                            this._isCancel = false;
                             this.currentMode = [
                                 this.projectInfoModeList.DESCRIPTION,
                                 descriptionId
@@ -300,7 +296,6 @@ export default class ngbProjectInfoService {
                     } else {
                         this.descriptionAvailable = false;
                         this.descriptionIsLoading = false;
-                        this.currentMode = this.projectInfoModeList.SUMMARY;
                         if (!this.projectContext.currentChromosome) {
                             this._isCancel = true;
                             this.currentMode = this.projectInfoModeList.SUMMARY;
@@ -309,7 +304,9 @@ export default class ngbProjectInfoService {
                     this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
                 });
         } else {
-            this.currentMode = this.projectInfoModeList.SUMMARY;
+            if (!this.projectContext.currentChromosome) {
+                this.currentMode = this.projectInfoModeList.SUMMARY;
+            }
         }
     }
 
@@ -373,7 +370,10 @@ export default class ngbProjectInfoService {
                 });
                 this.currentProject = {};
                 this._newNote = {};
-                this.currentMode = this.projectInfoModeList.SUMMARY;
+                if (!this.projectContext.currentChromosome) {
+                    this._isCancel = true;
+                    this.currentMode = this.projectInfoModeList.SUMMARY;
+                }
             }
         } else {
             this.projects = [];
@@ -503,11 +503,16 @@ export default class ngbProjectInfoService {
     _hasChanges() {
         let hasChanges = false;
         if (!this._isCancel) {
+            const currentMode = Array.isArray(this.currentMode) ?
+                this.currentMode[0] : this.currentMode;
             if (this.isEdit) {
                 const currentNote = this.currentNote;
-                hasChanges = Object.keys(this._editingNote).some(key => this._editingNote[key] !== currentNote[key]);
-            } else if (this.currentMode === this.projectInfoModeList.ADD_NOTE) {
-                hasChanges = Object.keys(this._newNote).filter(f => f !== 'projectId').some(f => !!this.newNote[f]);
+                hasChanges = Object.keys(this._editingNote)
+                    .some(key => this._editingNote[key] !== currentNote[key]);
+            } else if (currentMode === this.projectInfoModeList.ADD_NOTE) {
+                hasChanges = Object.keys(this._newNote)
+                    .filter(f => f !== 'projectId')
+                    .some(f => !!this.newNote[f]);
             }
         }
         return hasChanges;
