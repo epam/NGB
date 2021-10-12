@@ -1,4 +1,5 @@
-<li ng-repeat="action in viewActions[viewName] track by $index" ng-style="action.liStyle" ng-if="action.isVisible === undefined || action.isVisible(projectContext)">
+<li ng-if="(!projectContext.isBrowserNarrow || viewName !== panels.ngbBrowser) && (action.isVisible === undefined || action.isVisible(projectContext))" ng-repeat="action in viewActions[viewName] track by $index"
+    ng-style="action.liStyle">
     <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction"></ngb-variants-table-download>
     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
     <ngb-variants-table-paginate ng-if="action === actions.variantsTablePagination"></ngb-variants-table-paginate>
@@ -11,4 +12,32 @@
     <ngb-genome-annotations ng-if="action === actions.genomeAnnotations && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-genome-annotations>
     <ngb-view-action ng-if="action.isDefault && (action.isVisible === undefined || action.isVisible(projectContext))" event="action.event" label="action.label" icon="action.icon"></ngb-view-action>
     <ngb-tracks-selection ng-if="action === actions.tracksSelection && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-tracks-selection>
+</li>
+<li ng-if="projectContext.isBrowserNarrow && viewName === panels.ngbBrowser">
+    <md-menu-bar class="browser-hamburger-menu">
+        <md-menu md-offset="0 0" md-position-mode="target target">
+            <md-button aria-label="Open demo menu" class="md-icon-button browser-hamburger-menu-button" ng-click="$mdOpenMenu($event)">
+                <ng-md-icon icon="menu"></ng-md-icon>
+            </md-button>
+            <md-menu-content md-whiteframe="3" width="3">
+                <md-menu-item nest-level="1" ng-class="action.liClass" ng-if="action.isVisible === undefined || action.isVisible(projectContext)" ng-repeat="action in viewActions[viewName] track by $index" ng-style="action.liStyle">
+                    <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction"></ngb-variants-table-download>
+                    <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
+                    <ngb-variants-table-paginate ng-if="action === actions.variantsTablePagination"></ngb-variants-table-paginate>
+                    <ngb-genes-table-download ng-if="action === actions.genesTableDownloadAction"></ngb-genes-table-download>
+                    <ngb-genes-table-column ng-if="action === actions.genesTableColumn"></ngb-genes-table-column>
+                    <ngb-variants-loading-indicator ng-if="action === actions.variantsLoadingIndicator"></ngb-variants-loading-indicator>
+                    <ngb-bookmarks-table-paginate ng-if="action === actions.bookmarksTablePagination"></ngb-bookmarks-table-paginate>
+                    <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected()"></ngb-close-all-tracks>
+                    <ngb-project-info-sections ng-if="action === actions.projectInfoSections && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"
+                                               sub-menu="true"></ngb-project-info-sections>
+                    <ngb-genome-annotations ng-if="action === actions.genomeAnnotations && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"
+                                            sub-menu="true"></ngb-genome-annotations>
+                    <ngb-view-action event="action.event" icon="action.icon" label="action.label" ng-if="action.isDefault && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-view-action>
+                    <ngb-tracks-selection ng-if="action === actions.tracksSelection && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"
+                                          sub-menu="true"></ngb-tracks-selection>
+                </md-menu-item>
+            </md-menu-content>
+        </md-menu>
+    </md-menu-bar>
 </li>

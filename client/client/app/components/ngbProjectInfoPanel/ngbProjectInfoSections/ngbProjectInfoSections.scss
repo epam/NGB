@@ -1,21 +1,31 @@
 ngb-project-info-sections {
-  .md-button.project-info-button {
-    border-radius: unset;
-    text-transform: none;
-    ng-md-icon {
-      fill: #FFF;
-      padding-top: 2px;
-    }
-    span {
-      display: inline-block;
-      max-width: 100px;
-      height: 23px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  position: relative;
+  md-menu {
+    display: flex;
+    height: 100%;
+    position: relative;
+    transition: all 300ms ease;
+    .md-button.project-info-button {
+      border-radius: unset;
+      text-transform: none;
+      width: auto;
+      padding-left: 7px;
+
+      ng-md-icon {
+        fill: #FFF;
+        padding-top: 2px;
+      }
+
+      span {
+        display: inline-block;
+        max-width: 100px;
+        height: 23px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   }
-  position: relative;
 }
 
 .ngb-project-info-sections-divider {
@@ -31,6 +41,7 @@ ngb-project-info-sections {
   position: absolute;
   top: 20px;
   padding: 0px 4px;
+  max-width: 33vw;
   md-menu-item {
     height: 38px;
     min-height: 32px;

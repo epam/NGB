@@ -34,6 +34,13 @@ export default class ngbGenomeAnnotationsController extends baseController{
         });
     }
 
+    get menuPositionMode() {
+        if (this.subMenu) {
+            return 'cascade target';
+        }
+        return 'target-left target';
+    }
+
     openMenu($mdOpenMenu, $event) {
         if (this.referenceContainsAnnotations) {
             $mdOpenMenu($event);

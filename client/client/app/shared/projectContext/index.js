@@ -145,6 +145,7 @@ export default class projectContext {
 
     _lastLocalTracks = [];
     _localDataset = null;
+    _isBrowserNarrow = false;
 
     get firstPageVariations() {
         return this._firstPageVariations;
@@ -300,6 +301,14 @@ export default class projectContext {
 
     set bookmarksFilterIsDefault(value) {
         this._bookmarksFilterIsDefault = value;
+    }
+
+    get isBrowserNarrow() {
+        return this._isBrowserNarrow;
+    }
+
+    set isBrowserNarrow(value) {
+        this._isBrowserNarrow = value;
     }
 
     get vcfFilter() {
