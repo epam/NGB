@@ -25,13 +25,15 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.client.blast.BlastApi;
 import com.epam.catgenome.client.blast.BlastApiBuilder;
-import com.epam.catgenome.exception.BlastResponseException;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
+import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
+import com.epam.catgenome.exception.BlastResponseException;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.exception.BlastRequestException;
+import com.epam.catgenome.manager.blast.dto.CreateDatabaseResponse;
 import com.epam.catgenome.manager.blast.dto.Result;
 import com.epam.catgenome.util.QueryUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +116,18 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getRawResult(taskId));
+        } catch (BlastResponseException e) {
+            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
+                    .ERROR_BLAST_REQUEST), e);
+        }
+    }
+
+    public CreateDatabaseResponse createDatabase(final CreateDatabaseRequest request) throws BlastRequestException {
+        validateBlastEnabled();
+        try {
+            Result<CreateDatabaseResponse> result = QueryUtils.execute(blastApi.createDatabase(request));
+            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            return result.getPayload();
         } catch (BlastResponseException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
