@@ -240,4 +240,14 @@
         <type>PUT</type>
         <url>/restapi/heatmap/%d/cell/annotation</url>
     </upd_cell_annotation>
+    <upd_row_tree>
+        <name>upd_row_tree</name>
+        <type>PUT</type>
+        <url>/restapi/heatmap/%d/row/tree</url>
+    </upd_row_tree>
+    <upd_column_tree>
+        <name>upd_column_tree</name>
+        <type>PUT</type>
+        <url>/restapi/heatmap/%d/column/tree</url>
+    </upd_column_tree>
 </config>

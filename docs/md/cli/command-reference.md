@@ -759,6 +759,44 @@ Updates heatmap label annotation. One argument has to be specified:
 $ ngb upd_label_annotation 1 -path "label_annotation.csv"
 ```
 
+### Update heatmap row tree
+```
+ngb upd_row_tree|urt [<ID>] [options]
+//Options:
+//-path          Heatmap row tree path
+```
+> **Note**: row tree will be deleted if "-path" option is absent.
+
+*Description*
+
+Updates heatmap row tree. One argument has to be specified:
+* Heatmap id
+
+*Example*
+```bash
+# Update row tree for heatmap id 1, row tree path "row_tree.csv"
+$ ngb upd_row_tree 1 -path "row_tree.csv"
+```
+
+### Update heatmap column tree
+```
+ngb upd_column_tree|urt [<ID>] [options]
+//Options:
+//-path          Heatmap column tree path
+```
+> **Note**: column tree will be deleted if "-path" option is absent.
+
+*Description*
+
+Updates heatmap column tree. One argument has to be specified:
+* Heatmap id
+
+*Example*
+```bash
+# Update column tree for heatmap id 1, column tree path "column_tree.csv"
+$ ngb upd_column_tree 1 -path "column_tree.csv"
+```
+
 ## Utility commands
 ### Sort feature file
 ```
