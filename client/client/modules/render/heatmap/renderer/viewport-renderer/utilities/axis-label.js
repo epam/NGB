@@ -371,26 +371,28 @@ class AxisLabel {
 
     /**
      *
-     * @param {{start: number, end: number}[]} occupiedRanges
+     * @param {{end: number}} lastVisibleTickInfo
      * @param {{start: number, end: number}} viewportRange
      * @param {AxisLabel} [hovered]
      * @returns {boolean} true if graphics changed
      */
-    updateVisibility(occupiedRanges = [], viewportRange, hovered) {
+    updateVisibility(lastVisibleTickInfo = {}, viewportRange, hovered) {
         if (!this.axis || this.axis.invalid || !this.built) {
             return false;
         }
         const range = this.axisBounds;
-        this.visible = occupiedRanges
-            .filter(occupiedRange => linearDimensionsConflict(
+        const {
+            end
+        } = lastVisibleTickInfo;
+        this.visible = end === undefined ||
+            !linearDimensionsConflict(
                 range.start,
                 range.end,
-                occupiedRange.start,
-                occupiedRange.end
-            ))
-            .length === 0;
+                -Infinity,
+                end
+            );
         if (this.visible) {
-            occupiedRanges.push({...range, tick: this.text});
+            lastVisibleTickInfo.end = range.end;
         }
         if (hovered === this) {
             this.faded = false;

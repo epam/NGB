@@ -337,8 +337,8 @@ class HeatmapAxisRenderer extends InteractiveZone {
 
     updateTicksVisibility() {
         const viewportBounds = this.getViewportBounds();
-        const ranges = [];
-        return this.ticks.map(tick => tick.updateVisibility(ranges, viewportBounds, this.hoveredTick))
+        const range = {};
+        return this.ticks.map(tick => tick.updateVisibility(range, viewportBounds, this.hoveredTick))
             .filter(Boolean)
             .length > 0;
     }
