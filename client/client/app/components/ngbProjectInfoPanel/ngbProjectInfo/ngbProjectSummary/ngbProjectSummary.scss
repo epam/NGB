@@ -9,8 +9,11 @@ ngb-project-summary {
   }
 
   .frame {
-    margin-right: 4px;
+    margin-right: 0px;
     margin-bottom: 8px;
+    &:last-of-type {
+      margin-bottom: 0px;
+    }
   }
 
   table td {
@@ -20,6 +23,15 @@ ngb-project-summary {
 
   .project-summary-layout {
     height:100%;
+    flex: 1 1 auto;
+    .project-summary-layout-inner {
+      height: inherit;
+      display:flex;
+      flex-direction: column;
+      div {
+        flex: 1 1 auto;
+      }
+    }
   }
 
   md-list-item {

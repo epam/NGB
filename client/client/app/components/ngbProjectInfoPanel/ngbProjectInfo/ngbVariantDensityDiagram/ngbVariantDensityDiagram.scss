@@ -1,12 +1,16 @@
 ngb-variant-density-diagram {
   display:block;
   height: 33%;
+  min-height: 33%;
+  max-height: 40%;
+  width: 100%;
   position: relative;
+  flex: 1 1 auto;
 }
 
 .ngb-variant-density-diagram {
   .chart-holder {
-    margin-left: 0
+   margin-left: 0px;
   }
 }
 
