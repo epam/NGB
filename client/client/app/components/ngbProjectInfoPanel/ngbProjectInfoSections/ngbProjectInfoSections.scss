@@ -42,17 +42,22 @@ ngb-project-info-sections {
   top: 20px;
   padding: 0px 4px;
   max-width: 33vw;
-  md-menu-item {
-    height: 38px;
-    min-height: 32px;
-    md-checkbox {
+  md-checkbox {
+    display: flex;
+    align-items: center;
+    margin: 8px 0 0 8px;
+    width: 100%;
+    .md-label {
+      margin-left: 10px;
       display: flex;
-      align-items: center;
-      margin: 8px 0px 0px 8px;
-      .md-label {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
+      flex-wrap: wrap;
+      flex-direction: row;
+      flex: 1;
+      overflow: auto;
+      span {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
