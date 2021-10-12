@@ -19,7 +19,7 @@
             <md-button aria-label="Open demo menu" class="md-icon-button browser-hamburger-menu-button" ng-click="$mdOpenMenu($event)">
                 <ng-md-icon icon="menu"></ng-md-icon>
             </md-button>
-            <md-menu-content class="ngb-project-info-sections-menu" md-whiteframe="3" width="3">
+            <md-menu-content md-whiteframe="3" width="3">
                 <md-menu-item nest-level="1" ng-class="action.liClass" ng-if="action.isVisible === undefined || action.isVisible(projectContext)" ng-repeat="action in viewActions[viewName] track by $index" ng-style="action.liStyle">
                     <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction"></ngb-variants-table-download>
                     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
