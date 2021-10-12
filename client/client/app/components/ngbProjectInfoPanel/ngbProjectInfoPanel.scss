@@ -44,6 +44,9 @@ ngb-project-info-panel {
     display: flex;
     min-height: 80vh;
   }
+  .chart {
+    max-height: 40vh;
+  }
 }
 
 .selected-files-summary {
