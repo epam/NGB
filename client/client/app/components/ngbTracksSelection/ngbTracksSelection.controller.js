@@ -59,6 +59,13 @@ export default class ngbTracksSelectionController extends baseController {
         reloadTracks();
     }
 
+    get menuPositionMode() {
+        if (this.subMenu) {
+            return 'cascade target';
+        }
+        return 'target-left target';
+    }
+
     openMenu($mdOpenMenu, $event) {
         $event.stopPropagation();
         $mdOpenMenu($event);

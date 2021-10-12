@@ -11,6 +11,13 @@ export default class ngbProjectInfoSectionsController extends baseController {
         this.projectContext = projectContext;
     }
 
+    get menuPositionMode() {
+        if (this.subMenu) {
+            return 'cascade target';
+        }
+        return 'target-left target';
+    }
+
     onButtonClick($mdOpenMenu, $event) {
         if (this.projectContext.currentChromosome) {
             this.ngbProjectInfoService.currentMode = this.ngbProjectInfoService.projectInfoModeList.SUMMARY;

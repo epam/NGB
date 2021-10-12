@@ -1,4 +1,4 @@
-<md-menu md-offset="35 10" md-position-mode="target-right target">
+<md-menu md-position-mode="{{$ctrl.menuPositionMode}}">
     <md-button aria-label="Genome"
                class="md-icon-button long-header-icon-button genome-button"
                ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
@@ -13,7 +13,7 @@
                     class="arrow-down-icon" icon="keyboard_arrow_down"
                     size="20"></ng-md-icon>
     </md-button>
-    <md-menu-content class="genome-annotations-menu" md-whiteframe="4" ng-class="{'submenu-layout-correction': !$ctrl.projectContext.isBrowserNarrow}"
+    <md-menu-content class="genome-annotations-menu" md-whiteframe="4"
                      width="4">
         <md-checkbox ng-repeat="annotationFile in $ctrl.reference.annotationFiles | orderBy: 'name'"
                      ng-if="annotationFile.isGeneFile"
@@ -21,7 +21,7 @@
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
             <span class="file-info">
                 {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
-            </span>         
+            </span>
             <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
                   ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
             >

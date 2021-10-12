@@ -41,8 +41,11 @@ ngb-project-info-sections {
   position: absolute;
   top: 20px;
   padding: 4px;
+  max-width: 33vw;
   md-checkbox {
     margin: 8px;
+    display: flex;
+    align-items: center;
     .md-label {
       display: flex;
       flex-wrap: wrap;

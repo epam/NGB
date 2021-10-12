@@ -55,19 +55,3 @@ md-menu-content.md-menu-bar-menu {
     }
   }
 }
-
-md-menu-content.submenu-layout-correction {
-  position: absolute;
-
-  &.ngb-project-info-sections-menu {
-    left: -100px;
-  }
-
-  &.genome-annotations-menu {
-    left: -100px;
-  }
-
-  &.tracks-selection-content {
-    left: -35px;
-  }
-}

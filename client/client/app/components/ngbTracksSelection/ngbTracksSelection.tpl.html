@@ -1,4 +1,4 @@
-<md-menu class="tracks-selection-container" md-offset="35 10" md-position-mode="target-right target">
+<md-menu class="tracks-selection-container" md-position-mode="{{$ctrl.menuPositionMode}}">
     <md-button aria-label="Project info"
                class="md-icon-button tracks-selection-button"
                ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
@@ -7,7 +7,8 @@
                     ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
         <span class="browser-hamburger-menu-icon-text">Tracks Selection</span>
     </md-button>
-    <md-menu-content class="tracks-selection-content" md-whiteframe="4" ng-class="{'submenu-layout-correction': !$ctrl.projectContext.isBrowserNarrow}"
+    <md-menu-content class="tracks-selection-content"
+                     md-whiteframe="4"
                      width="4">
         <md-checkbox aria-label="select all"
                      ng-model="$ctrl.allSelected"
