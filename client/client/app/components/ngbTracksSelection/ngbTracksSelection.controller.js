@@ -1,6 +1,6 @@
-import angular from 'angular';
-import baseController from '../../shared/baseController';
 import {SelectionEvents} from '../../shared/selectionContext';
+import baseController from '../../shared/baseController';
+import angular from 'angular';
 
 export default class ngbTracksSelectionController extends baseController {
     static get UID() {
@@ -17,8 +17,6 @@ export default class ngbTracksSelectionController extends baseController {
     constructor(
         $scope,
         $element,
-        $timeout,
-        $document,
         dispatcher,
         projectContext,
         selectionContext,
@@ -31,8 +29,6 @@ export default class ngbTracksSelectionController extends baseController {
         this.trackNamingService = trackNamingService;
         this.localDataService = localDataService;
         this.scope = $scope;
-        this.$timeout = $timeout;
-        this.$document = $document;
         this.domElement = $element[0];
         this.dispatcher = dispatcher;
         this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
@@ -59,33 +55,34 @@ export default class ngbTracksSelectionController extends baseController {
         reloadTracks();
     }
 
-    get menuPositionMode() {
-        if (this.subMenu) {
-            return 'cascade target';
+    openMenu($event) {
+        if($event) {
+            $event.stopPropagation();
         }
-        return 'target-left target';
+        this.menuIsOpen = true;
+        this.realignMenuPosition();
     }
 
-    openMenu($mdOpenMenu, $event) {
-        $event.stopPropagation();
-        $mdOpenMenu($event);
-        this.$timeout(() => this.realignMenuPosition(), 0);
+    closeMenu($event) {
+        if($event) {
+            $event.stopPropagation();
+        }
+        return this.menuIsOpen = false;
     }
 
     realignMenuPosition() {
-        const [menuContent] = angular.element(this.$document)
+        const [menuContent] = angular.element(this.domElement)
           .find('.tracks-selection-content');
         if (menuContent && menuContent instanceof HTMLElement) {
             const menuRect = menuContent.getBoundingClientRect();
             const parentRect = this.domElement.getBoundingClientRect();
             const availableSpace = window.innerWidth - parentRect.left;
             const margin = 20;
-            const left = menuContent.offsetLeft;
             if (availableSpace < menuRect.width) {
                 const cuttedAmount = menuRect.width - availableSpace;
-                menuContent.style.left = `-${left + cuttedAmount + margin}px`;
+                menuContent.style.left = `-${cuttedAmount + margin}px`;
             } else {
-                menuContent.style.left = `${left}px`;
+                menuContent.style.left = '0px';
             }
         }
     }

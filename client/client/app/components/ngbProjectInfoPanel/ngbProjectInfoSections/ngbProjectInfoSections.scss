@@ -1,31 +1,21 @@
 ngb-project-info-sections {
-  position: relative;
-  md-menu {
-    display: flex;
-    height: 100%;
-    position: relative;
-    transition: all 300ms ease;
-    .md-button.project-info-button {
-      border-radius: unset;
-      text-transform: none;
-      width: auto;
-      padding-left: 7px;
-
-      ng-md-icon {
-        fill: #FFF;
-        padding-top: 2px;
-      }
-
-      span {
-        display: inline-block;
-        max-width: 100px;
-        height: 23px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+  .md-button.project-info-button {
+    border-radius: unset;
+    text-transform: none;
+    ng-md-icon {
+      fill: #FFF;
+      padding-top: 2px;
+    }
+    span {
+      display: inline-block;
+      max-width: 100px;
+      height: 23px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
+  position: relative;
 }
 
 .ngb-project-info-sections-divider {
@@ -40,25 +30,13 @@ ngb-project-info-sections {
 .ngb-project-info-sections-menu {
   position: absolute;
   top: 20px;
-  padding: 0px 4px;
-  max-width: 33vw;
+  padding: 4px;
   md-checkbox {
-    display: flex;
-    align-items: center;
-    margin: 8px 0 0 8px;
-    width: 100%;
+    margin: 8px;
     .md-label {
-      margin-left: 10px;
       display: flex;
       flex-wrap: wrap;
       flex-direction: row;
-      flex: 1;
-      overflow: auto;
-      span {
-        width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
     }
   }
   .ngb-project-info-sections-add-note {

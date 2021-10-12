@@ -2,8 +2,7 @@ import controller from './ngbTracksSelection.controller';
 
 export default {
     bindings: {
-        browserId: '=',
-        subMenu: '='
+        browserId: '='
     },
     controller: controller.UID,
     template: require('./ngbTracksSelection.tpl.html')

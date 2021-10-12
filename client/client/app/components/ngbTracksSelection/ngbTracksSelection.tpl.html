@@ -1,15 +1,23 @@
-<md-menu class="tracks-selection-container" md-position-mode="{{$ctrl.menuPositionMode}}">
-    <md-button aria-label="Project info"
-               class="md-icon-button tracks-selection-button"
-               ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
+<div class="tracks-selection-container"
+     ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
+>
+    <div class="overlay"
+         ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
+         ng-click="$ctrl.closeMenu($event)"
+    >
+    </div>
+    <button class="tracks-selection-button"
+            ng-click="$ctrl.menuIsOpen ? $ctrl.closeMenu($event) : $ctrl.openMenu($event)"
+            aria-label="Tracks selection"
+            style="width: auto; padding-left: 7px"
     >
         <ng-md-icon icon="playlist_add_check"
-                    ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
-        <span class="browser-hamburger-menu-icon-text">Tracks Selection</span>
-    </md-button>
-    <md-menu-content class="tracks-selection-content"
-                     md-whiteframe="4"
-                     width="4">
+                    size="20"
+        ></ng-md-icon>
+    </button>
+    <div class="tracks-selection-content md-whiteframe-z2"
+         ng-class="{'content-visible': $ctrl.menuIsOpen}"
+    >
         <md-checkbox aria-label="select all"
                      ng-model="$ctrl.allSelected"
         >
@@ -30,17 +38,21 @@
             </span>
             <span ng-if="$ctrl.getCustomName(o.track)"
                   class="custom-name"
-                  title="{{$ctrl.getCustomName(o.track)}}"
             >
                 {{$ctrl.getCustomName(o.track)}}
+                <md-tooltip md-direction="top">
+                  {{$ctrl.getCustomName(o.track)}}
+                </md-tooltip>
             </span>
             <span class="original-name"
                   ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
-                  ng-if="!$ctrl.getCustomName(o.track) || $ctrl.showTrackOriginalName"
-                  title="{{o.track.name}}"
+                  ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
             >
                 {{o.track.name}}
+                <md-tooltip md-direction="top">
+                  {{o.track.name}}
+                </md-tooltip>
             </span>
         </md-checkbox>
-    </md-menu-content>
-</md-menu>
+    </div>
+</div>

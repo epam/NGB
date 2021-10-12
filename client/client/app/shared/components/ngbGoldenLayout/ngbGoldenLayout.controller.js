@@ -3,7 +3,6 @@ import baseController from '../../../shared/baseController';
 
 import {PairReadInfo} from '../../utils/events';
 
-const MIN_BROWSER_WIDTH = 640;
 
 export default class ngbGoldenLayoutController extends baseController {
     static get UID() {
@@ -103,23 +102,12 @@ export default class ngbGoldenLayoutController extends baseController {
             Object.assign(childScope, this.ngbViewActions);
             childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
             childScope.projectContext = this.projectContext;
-            childScope.panels = this.panels;
 
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 
             const html = this.$compile(viewActionsTemplate)(childScope);
 
             stack.header.controlsContainer.prepend(html);
-
-            const isBrowser = stack.contentItems.some(component => component.config.componentState.panel === this.panels.ngbBrowser);
-            if (isBrowser) {
-                const resizeObserver = new ResizeObserver(entries => {
-                    for (const entry of entries) {
-                        this.projectContext.isBrowserNarrow = entry.target.clientWidth < MIN_BROWSER_WIDTH;
-                    }
-                });
-                resizeObserver.observe(stack.element[0]);
-            }
 
             stack.on('activeContentItemChanged', (contentItem) => {
                 childScope.viewName = contentItem.config.componentState.panel;

@@ -4,7 +4,7 @@ export default {
     template: require('./ngbGenomeAnnotations.tpl.html'),
     controller: controller.UID,
     bindings: {
-        subMenu: '='
+
     }
 };
 

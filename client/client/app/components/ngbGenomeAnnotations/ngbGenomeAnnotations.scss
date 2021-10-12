@@ -1,28 +1,9 @@
 ngb-genome-annotations {
-  md-menu {
-    display: flex;
-    height: 100%;
-    position: relative;
-    transition: all 300ms ease;
-
-    .md-button.md-icon-button {
-      border-radius: unset;
-      width: auto;
-      padding-left: 7px;
-
-      ng-md-icon {
-        fill: #FFF;
-        padding-top: 2px;
-      }
-
-      span {
-        display: inline-block;
-        max-width: 100px;
-        height: 23px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+  .md-button.md-icon-button {
+    border-radius: unset;
+    ng-md-icon {
+      fill: #FFF;
+      padding-top: 2px;
     }
   }
 }

@@ -73,6 +73,7 @@ ngb-golden-layout {
   .lm_header .lm_tab.lm_active {
     background: #fff;
     padding-bottom: 5px;
+    border-bottom: none;
     box-shadow: 2px -2px 2px -2px rgba(0, 0, 0, 0.2);
     border: 1px solid #e7e7e7;
     border-bottom: none;
@@ -101,29 +102,22 @@ ngb-golden-layout {
   }
 
   .lm_header .lm_controls {
-    padding-top: 0;
-
+    padding-top: 0px;
     > li {
       width: $lm_controls-font;
       height: $lm_controls-font;
-
       .md-button.md-icon-button {
-        &:not(.long-header-icon-button) {
-          min-width: 24px;
-          width: 24px;
-        }
-
+        min-width: 24px;
         min-height: 24px;
+        width: 24px;
         height: 24px;
         padding: 0;
 
       }
-
       &[title="minimise"] {
         .ngb-maximize {
           display: none;
         }
-
         .ngb-minimise {
           display: block;
         }
@@ -133,7 +127,6 @@ ngb-golden-layout {
         .ngb-maximize {
           display: block;
         }
-
         .ngb-minimise {
           display: none;
         }
