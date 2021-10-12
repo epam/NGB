@@ -1,5 +1,13 @@
+import {
+    browserPopoutToConfig,
+    getQueryStringParam,
+    headerButton,
+    propagateToChildren,
+    setTitle,
+    stripTags,
+    toConfig
+} from './internal/goldenLayout';
 import GoldenLayout from '../../../compat/goldenLayout';
-import {browserPopoutToConfig, getQueryStringParam, headerButton, propagateToChildren, setTitle, stripTags, toConfig} from './internal/goldenLayout';
 
 export default class GoldenLayoutClass {
 
@@ -26,11 +34,7 @@ export default class GoldenLayoutClass {
             popout: () => {
                 const childScope = $rootScope.$new();
                 return $compile(require('./internal/popout.tpl.html'))(childScope);
-            },
-            'additional tabs': () => {
-                const childScope = $rootScope.$new();
-                return $compile(require('./internal/additionalTabs.tpl.html'))(childScope);
-            },
+            }
         };
 
         GoldenLayout.__lm.controls.BrowserPopout.prototype.toConfig = browserPopoutToConfig;
@@ -50,3 +54,4 @@ export default class GoldenLayoutClass {
     }
 
 }
+

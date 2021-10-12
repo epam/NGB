@@ -2,10 +2,8 @@ ngb-variants-loading-indicator {
   align-self: center;
   height: 22px;
   .indicator {
+    margin-right: 10px;
     margin-top: 4px;
-    .indicator-shown {
-      margin-right: 10px;
-    }
     md-progress-circular {
       svg path { stroke: white; }
     }
