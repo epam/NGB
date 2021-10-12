@@ -30,13 +30,19 @@ ngb-project-info-sections {
 .ngb-project-info-sections-menu {
   position: absolute;
   top: 20px;
-  padding: 4px;
-  md-checkbox {
-    margin: 8px;
-    .md-label {
+  padding: 0px 4px;
+  md-menu-item {
+    height: 38px;
+    min-height: 32px;
+    md-checkbox {
       display: flex;
-      flex-wrap: wrap;
-      flex-direction: row;
+      align-items: center;
+      margin: 8px 0px 0px 8px;
+      .md-label {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+      }
     }
   }
   .ngb-project-info-sections-add-note {
