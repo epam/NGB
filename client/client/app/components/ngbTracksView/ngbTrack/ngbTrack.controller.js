@@ -390,7 +390,6 @@ export default class ngbTrackController {
                     `${data.duplicateId || ''}` === `${this.track.duplicateId || ''}`
                 );
             if (trackSettings) {
-                console.log(trackSettings);
                 state = trackSettings.state;
                 height = trackSettings.height;
             }

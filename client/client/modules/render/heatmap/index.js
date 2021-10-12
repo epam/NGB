@@ -6,11 +6,13 @@ import {HeatmapDataType} from './heatmap-data';
 import HeatmapView from './heatmap-view';
 import angular from 'angular';
 import {getRenderer} from '../core';
+import {writeHeatmapState} from './heatmap-view-options/manager';
 
 export {
     HeatmapColorSchemes,
     ColorFormats,
     HeatmapDataType,
+    writeHeatmapState as storeHeatmapState
 };
 
 class Heatmap {

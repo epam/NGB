@@ -80,15 +80,6 @@ class ColorScheme extends HeatmapEventDispatcher {
                 ...rest.map(configurationSerialized => ColorConfiguration.parse(configurationSerialized, dataType))
             );
         }
-        console.log(
-            'ColorScheme.parse',
-            dataType,
-            missingColorSerialized,
-            missingColor,
-            rest,
-            type,
-            configurations
-        );
         return new ColorScheme({
             type,
             dataType,

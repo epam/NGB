@@ -8,7 +8,9 @@ export default {
         checkResize: '<',
         renderOnChange: '<',
         onHeatmapNavigation: '<',
-        referenceId: '<'
+        onHeatmapOptionsChange: '<',
+        referenceId: '<',
+        listenUpdateEvents: '<'
     },
     controller: controller.UID,
     restrict: 'E',

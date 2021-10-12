@@ -9,12 +9,14 @@ export default class ngbAppController extends baseController {
     dispatcher;
     projectContext;
     miewContext;
+    heatmapContext;
     isAuthenticationInProgress;
 
     /* @ngInject */
     constructor(dispatcher,
                 projectContext,
                 miewContext,
+                heatmapContext,
                 eventHotkey,
                 $stateParams,
                 $rootScope,
@@ -37,6 +39,7 @@ export default class ngbAppController extends baseController {
             genomeDataService,
             projectContext,
             miewContext,
+            heatmapContext,
             projectDataService,
             utilsDataService,
             apiService
@@ -190,7 +193,8 @@ export default class ngbAppController extends baseController {
             tracks,
             filterByGenome,
             collapsedTrackHeaders,
-            miew
+            miew,
+            heatmap
         } = params;
         const position = start
             ? {end, start}
@@ -202,6 +206,7 @@ export default class ngbAppController extends baseController {
             this.projectContext.rewriteLayout = this.dictionaryState.on.toLowerCase() === rewrite.toLowerCase();
         }
         this.miewContext.routeInfo = miew;
+        this.heatmapContext.routeInfo = heatmap;
         const tracksState = tracks
             ? this.projectContext
                 .convertTracksStateFromJson(tracks)
@@ -267,6 +272,7 @@ export default class ngbAppController extends baseController {
             state.tracks = tracks;
         }
         state.miew = this.miewContext.routeInfo;
+        state.heatmap = this.heatmapContext.routeInfo;
         this.$state.go(this.$state.current.name, state, options);
     }
 

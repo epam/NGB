@@ -32,7 +32,6 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
         if (!serialized && dataConfig && dataConfig.id) {
             payload = readHeatmapState(dataConfig.id);
         }
-        console.log('parse', serialized, payload);
         if (!payload) {
             payload = '';
         }
@@ -99,6 +98,10 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
         return this.dendrogramAvailable && this._dendrogram;
     }
 
+    get dataConfig() {
+        return this._cacheOptions;
+    }
+
     set dendrogram(dendrogram) {
         if (dendrogram !== this.dendrogram) {
             this._dendrogram = dendrogram;
@@ -115,6 +118,28 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
         this._cacheOptions = cache;
     }
 
+    reloadFromStorage() {
+        if (this.colorScheme) {
+            const serialized = readHeatmapState(this._cacheOptions.id);
+            const storedOptions = HeatmapViewOptions.parse(serialized);
+            if (storedOptions) {
+                storedOptions.colorScheme.initialize({
+                    dataType: this.colorScheme.dataType,
+                    maximum: this.colorScheme.maximum,
+                    minimum: this.colorScheme.minimum,
+                    values: this.colorScheme.values,
+                    reset: false
+                });
+                this._colorScheme.initializeFrom(storedOptions.colorScheme, true);
+                storedOptions.destroy();
+            }
+            this._dendrogramAvailable = this.data &&
+                this.data.metadata &&
+                this.data.metadata.dendrogramAvailable;
+            this.emit(events.changed);
+        }
+    }
+
     metadataLoaded() {
         const {
             maximum,
@@ -123,7 +148,7 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
             values
         } = this._data.metadata;
         let reset = false;
-        if (this._cacheOptions && this._data.anotherOptions(this._cacheOptions)) {
+        if (this._data.anotherOptions(this._cacheOptions)) {
             reset = true;
         }
         this._cacheOptions = {...this._data.options};
