@@ -24,50 +24,36 @@
 
 package com.epam.catgenome.util.azure;
 
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobRange;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import com.azure.storage.common.StorageSharedKeyCredential;
 import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.microsoft.azure.storage.blob.BlobRange;
-import com.microsoft.azure.storage.blob.BlobSASPermission;
-import com.microsoft.azure.storage.blob.BlockBlobURL;
-import com.microsoft.azure.storage.blob.PipelineOptions;
-import com.microsoft.azure.storage.blob.SASProtocol;
-import com.microsoft.azure.storage.blob.SASQueryParameters;
-import com.microsoft.azure.storage.blob.ServiceSASSignatureValues;
-import com.microsoft.azure.storage.blob.ServiceURL;
-import com.microsoft.azure.storage.blob.SharedKeyCredentials;
-import com.microsoft.azure.storage.blob.StorageException;
-import com.microsoft.azure.storage.blob.StorageURL;
-import com.microsoft.azure.storage.blob.models.BlobGetPropertiesHeaders;
-import com.microsoft.rest.v2.util.FlowableUtil;
-import io.reactivex.Flowable;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 
-import static com.epam.catgenome.util.QueryUtils.buildContentDispositionHeader;
-
 public class AzureBlobClient {
 
     private static final String BLOB_URL_FORMAT = "https://%s.blob.core.windows.net";
-    private static final String BLOB_CONTENT_TYPE = "blob";
     private static final String AZ_SCHEME = "az://";
     private static final String AZ_BLOB_DELIMITER = "/";
-    private static final int NOT_FOUND_ERROR_CODE = 404;
     private static final Long URL_EXPIRATION = 24 * 60 * 60 * 1000L;
 
-    private ServiceURL blobService;
-    private SharedKeyCredentials credentials;
+    private BlobServiceClient blobService;
+    private StorageSharedKeyCredential credentials;
 
     private static AzureBlobClient instance;
 
@@ -77,14 +63,11 @@ public class AzureBlobClient {
 
     public AzureBlobClient(final String storageAccount,
                            final String storageKey) {
-        try {
-            this.credentials = new SharedKeyCredentials(storageAccount, storageKey);
-            this.blobService = new ServiceURL(
-                    url(String.format(BLOB_URL_FORMAT, storageAccount)),
-                    StorageURL.createPipeline(credentials, new PipelineOptions()));
-        } catch (InvalidKeyException e) {
-            throw new IllegalArgumentException("Invalid credentials for Azure storage account: " + storageAccount);
-        }
+        this.credentials = new StorageSharedKeyCredential(storageAccount, storageKey);
+        this.blobService = new BlobServiceClientBuilder()
+                .endpoint(String.format(BLOB_URL_FORMAT, storageAccount))
+                .credential(credentials)
+                .buildClient();
     }
 
     @PostConstruct
@@ -93,37 +76,23 @@ public class AzureBlobClient {
     }
 
     public InputStream loadFromTo(final String uri, final long offset, final long end) {
-        final BlockBlobURL blockBlobURL = getBlobURL(uri);
-        final BlobRange range = new BlobRange().withOffset(offset).withCount(end - offset + 1);
-        final Flowable<ByteBuffer> body = blockBlobURL.download(range, null, false, null)
-                .blockingGet()
-                .body(null);
-        return FlowableUtil.collectBytesInArray(body)
-                .map(ByteArrayInputStream::new)
-                .blockingGet();
+        final BlobClient client = getBlobURL(uri);
+        final BlobRange blobRange = new BlobRange(offset, end - offset + 1);
+        return client.openInputStream(blobRange, null);
     }
 
     public boolean blobExists(String uri) {
-        try {
-            return getFileSize(uri) != 0;
-        } catch (StorageException e) {
-            if (e.statusCode() == NOT_FOUND_ERROR_CODE) {
-                return false;
-            }
-            throw e;
-        }
+        return getBlobURL(uri).exists();
     }
 
     public long getFileSize(String uri){
-        final BlockBlobURL blockBlobURL = getBlobURL(uri);
-        final BlobGetPropertiesHeaders headers = blockBlobURL.getProperties().blockingGet().headers();
-        return headers.contentLength();
+        return getBlobURL(uri).getProperties().getBlobSize();
     }
 
-    private BlockBlobURL getBlobURL(final String uri) {
+    private BlobClient getBlobURL(final String uri) {
         final AzureBlobItem azureBlob = validateUri(uri);
-        return blobService.createContainerURL(azureBlob.container)
-                .createBlockBlobURL(azureBlob.blobPath);
+        BlobContainerClient blobContainerClient = blobService.getBlobContainerClient(azureBlob.container);
+        return blobContainerClient.getBlobClient(azureBlob.blobPath);
     }
 
     private AzureBlobItem validateUri(final String uri) {
@@ -146,11 +115,6 @@ public class AzureBlobClient {
             throw new IllegalArgumentException("Azure blob math must point to a file. Actual path: " + blobPath);
         }
         return new AzureBlobItem(container, blobPath);
-    }
-
-    @SneakyThrows
-    private URL url(final String blobUrl) {
-        return new URL(blobUrl);
     }
 
     public InputStream loadFrom(String obj, long offset) {
@@ -198,29 +162,14 @@ public class AzureBlobClient {
 
     private String buildBlobDownloadUrl(final String blobPath) {
         final AzureBlobItem azureBlobItem = parseUri(blobPath);
-        final String sasToken = generateSASToken(azureBlobItem.getContainer(), azureBlobItem.getBlobPath());
-        return String.format(BLOB_URL_FORMAT + "/%s/%s%s", credentials.getAccountName(),
+        final BlobSasPermission permissions = new BlobSasPermission()
+                .setReadPermission(true)
+                .setAddPermission(false)
+                .setWritePermission(false);
+        final BlobServiceSasSignatureValues blobServiceSasSignatureValues =
+                new BlobServiceSasSignatureValues(OffsetDateTime.now().plus(Duration.ofDays(1)), permissions);
+        final String sasToken = getBlobURL(blobPath).generateSas(blobServiceSasSignatureValues);
+        return String.format(BLOB_URL_FORMAT + "/%s/%s?%s", credentials.getAccountName(),
                 azureBlobItem.getContainer(), azureBlobItem.getBlobPath(), sasToken);
-    }
-
-    private String generateSASToken(final String containerName,
-                                    final String blobName) {
-        final ServiceSASSignatureValues values = new ServiceSASSignatureValues()
-                .withProtocol(SASProtocol.HTTPS_ONLY)
-                .withExpiryTime(OffsetDateTime.now().plus(Duration.ofDays(1)))
-                .withContainerName(containerName)
-                .withBlobName(blobName)
-                .withContentType(BLOB_CONTENT_TYPE)
-                .withContentDisposition(buildContentDispositionHeader(blobName))
-                .withPermissions(buildPermissions().toString());
-        final SASQueryParameters params = values.generateSASQueryParameters(credentials);
-        return params.encode();
-    }
-
-    private BlobSASPermission buildPermissions() {
-        return new BlobSASPermission()
-                .withRead(true)
-                .withAdd(false)
-                .withWrite(false);
     }
 }
