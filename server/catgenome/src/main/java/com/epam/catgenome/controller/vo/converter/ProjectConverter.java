@@ -75,6 +75,7 @@ public final class ProjectConverter {
         vo.setNotes(project.getNotes());
         vo.setMetadata(project.getMetadata());
         vo.setMask(project.getMask());
+        vo.setDescriptions(project.getDescriptions());
 
         if (project.getNestedProjects() != null) {
             vo.setNestedProjects(convertTo(project.getNestedProjects()));

@@ -27,14 +27,17 @@ package com.epam.ngb.cli.manager.command.handler.http;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.ProjectDescription;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
@@ -48,6 +51,7 @@ public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandle
 
     private Long projectId;
     private String path;
+    private String name;
 
     @Override
     public void parseAndVerifyArguments(final List<String> arguments, final ApplicationOptions options) {
@@ -57,22 +61,28 @@ public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandle
         }
         projectId = parseProjectId(arguments.get(0));
         path = Utils.getNormalizeAndAbsolutePath(arguments.get(1));
+        name = options.getName();
     }
 
     @Override
     public int runCommand() {
-        final String url = serverParameters.getServerUrl() + getRequestUrl();
         try {
-            final HttpPost request = buildMultipartRequest(String.format(url, projectId), path);
+            final String url = String.format(serverParameters.getServerUrl() + getRequestUrl(), projectId);
+            final URIBuilder uri = new URIBuilder(url);
+
+            if (StringUtils.isNotBlank(name)) {
+                uri.addParameter("name", name);
+            }
+
+            final HttpPost request = buildMultipartRequest(uri.build().toString(), path);
             final String result = RequestManager.executeRequest(request);
-            checkAndPrintResult(result, false, false, Project.class);
+            checkAndPrintResult(result, false, false, ProjectDescription.class);
 
             log.info("Description successfully added to dataset '{}'", projectId);
             return 0;
-        } catch (IOException | ApplicationException e) {
+        } catch (IOException | ApplicationException | URISyntaxException e) {
             log.info(e.getMessage());
             return 1;
         }
     }
-
 }

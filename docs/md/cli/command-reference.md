@@ -526,6 +526,44 @@ $ ngb del_dataset new_dataset
 $ ngb dd 1
 ```
 
+### Add dataset description
+```
+ngb add_description [<DATASET_NAME>|<DATASET_ID>] <DESCRIPTION_FILE_PATH>  [options]
+
+//Options:
+//-n (--name)           Use specified value for description name. If not specified - fasta file name will be used. Should be unique and mustn't be a number (it will be recognized as ID).
+```
+*Description*
+
+Attaches a html file to a dataset. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
+
+*Example*
+```bash
+# Add html description to a dataset, named "new_dataset"
+$ ngb add_description new_dataset /opt/data/report.html --name report
+```
+
+### Remove dataset description
+```
+ngb remove_description [<DATASET_NAME>|<DATASET_ID>]  [options]
+
+//Options:
+//-n (--name)           Delete only dataset description specified by name
+```
+*Description*
+
+Removes description from a dataset. If ``--name`` option is provided, only selected description is deleted, otherwise all existing descriptions are removed.
+
+*Example*
+```bash
+# Remove all descption files from a dataset, named "new_dataset"
+$ ngb remove_description new_dataset
+
+# Remove description with name "report" from a dataset, named "new_dataset"
+$ ngb remove_description new_dataset --name report
+```
+
+
 ### Generate URL for browsing selected files
 ```
 ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]

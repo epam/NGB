@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.project.ProjectDescriptionDao" id="projectDescriptionDao" autowire="byName">
+        <property name="projectDescriptionSequenceName" value="catgenome.s_project_description" />
+        <property name="saveProjectDescriptionQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.project_description (
+                        id,
+                        project_id,
+                        name,
+                        content)
+                    VALUES (
+                        :ID,
+                        :PROJECT_ID,
+                        :NAME,
+                        :CONTENT)
+                ]]>
+            </value>
+        </property>
+        <property name="updateProjectDescriptionQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.project_description SET
+                        name = :NAME,
+                        content = :CONTENT
+                    WHERE
+                        id = :ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteProjectDescriptionByProjectIdQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.project_description
+                    WHERE
+                        project_id = :PROJECT_ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteProjectDescriptionByIdQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.project_description
+                    WHERE
+                        id = :ID
+                ]]>
+            </value>
+        </property>
+        <property name="findProjectDescriptionContentByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        content
+                    FROM
+                        catgenome.project_description
+                    WHERE
+                        id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="findProjectDescriptionsByProjectIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        name,
+                        project_id
+                    FROM
+                        catgenome.project_description
+                    WHERE
+                        project_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="findProjectDescriptionByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        name,
+                        project_id
+                    FROM
+                        catgenome.project_description
+                    WHERE
+                        id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="findProjectDescriptionsByProjectIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        name,
+                        project_id
+                    FROM
+                        catgenome.project_description
+                    WHERE
+                        project_id IN @in@
+                    ORDER BY
+                        project_id
+                ]]>
+            </value>
+        </property>
+        <property name="findProjectDescriptionsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        name,
+                        project_id
+                    FROM
+                        catgenome.project_description
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

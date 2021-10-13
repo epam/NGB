@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.dao.project;
 
-import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -49,8 +48,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -114,8 +111,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
     private String loadAllProjectItemsQuery;
-    private String saveProjectDescriptionQuery;
-    private String loadProjectDescriptionQuery;
 
     private String addProjectNoteQuery;
     private String deleteProjectNotesQuery;
@@ -581,22 +576,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(updateProjectOwnerQuery, params);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void saveProjectDescription(final Long projectId, final byte[] description) {
-        final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(ProjectParameters.PROJECT_ID.name(), projectId);
-        params.addValue(ProjectParameters.DESCRIPTION.name(), description);
-
-        getNamedParameterJdbcTemplate().update(saveProjectDescriptionQuery, params);
-    }
-
-    public InputStream loadProjectDescription(final Long projectId) {
-        final LobHandler lobHandler = new DefaultLobHandler();
-        final List<InputStream> result = getJdbcTemplate().query(loadProjectDescriptionQuery, (rs, rowNum) ->
-                lobHandler.getBlobAsBinaryStream(rs, ProjectParameters.DESCRIPTION.name()), projectId);
-        return result.isEmpty() ? null : result.get(0);
-    }
-
     enum ProjectParameters {
         PROJECT_ID,
         PROJECT_NAME,
@@ -604,8 +583,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         PROJECT_PRETTY_NAME,
         CREATED_DATE,
         LAST_OPENED_DATE,
-        OWNER,
-        DESCRIPTION;
+        OWNER;
 
         static MapSqlParameterSource getParameters(Project project, Long parentId) {
             MapSqlParameterSource params = new MapSqlParameterSource();

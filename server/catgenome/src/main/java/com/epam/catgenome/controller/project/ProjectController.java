@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.project.ProjectDescription;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.project.ProjectSecurityService;
 import org.apache.commons.io.IOUtils;
@@ -490,19 +491,19 @@ public class ProjectController extends AbstractRESTController {
     @PostMapping("/project/{projectId}/description")
     @ResponseBody
     @ApiOperation(
-            value = "Uploads project description file",
-            notes = "Uploads project description file",
+            value = "Creates or updates project description",
+            notes = "Creates or updates project description",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Project> uploadProjectDescription(@PathVariable final Long projectId,
-                                                    @RequestParam("file") final MultipartFile multipart)
-            throws IOException {
-        return Result.success(projectSecurityService.uploadProjectDescription(projectId, multipart));
+    public Result<ProjectDescription> upsertProjectDescription(@PathVariable final Long projectId,
+            @RequestParam(value = "name", required = false) final String name,
+            @RequestParam("file") final MultipartFile multipart) throws IOException {
+        return Result.success(projectSecurityService.upsertProjectDescription(projectId, name, multipart));
     }
 
-    @GetMapping("/project/{projectId}/description")
+    @GetMapping("/project/description/{id}")
     @ResponseBody
     @ApiOperation(
             value = "Downloads project description file",
@@ -511,9 +512,9 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void downloadProjectDescription(@PathVariable final Long projectId, final HttpServletResponse response)
+    public void downloadProjectDescription(@PathVariable final Long id, final HttpServletResponse response)
             throws IOException {
-        final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(projectId);
+        final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(id);
         if (Objects.isNull(projectDescriptionContent)) {
             return;
         }
@@ -521,16 +522,43 @@ public class ProjectController extends AbstractRESTController {
         response.flushBuffer();
     }
 
-    @DeleteMapping("/project/{projectId}/description")
+    @GetMapping("/project/{projectId}/description")
     @ResponseBody
     @ApiOperation(
-            value = "Deletes project description file",
-            notes = "Deletes project description file",
+            value = "Returns project descriptions info",
+            notes = "Returns project descriptions info",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Project> deleteProjectDescription(@PathVariable final Long projectId) {
-        return Result.success(projectSecurityService.deleteProjectDescription(projectId));
+    public Result<List<ProjectDescription>> getProjectDescriptions(@PathVariable final Long projectId) {
+        return Result.success(projectSecurityService.loadProjectDescriptions(projectId));
+    }
+
+    @DeleteMapping("/project/description/{id}")
+    @ResponseBody
+    @ApiOperation(
+            value = "Deletes project description specified by ID",
+            notes = "Deletes project description specified by ID",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<ProjectDescription> deleteProjectDescription(@PathVariable final Long id) {
+        return Result.success(projectSecurityService.deleteProjectDescription(id));
+    }
+
+    @DeleteMapping("/project/{projectId}/description")
+    @ResponseBody
+    @ApiOperation(
+            value = "Deletes project description by project ID",
+            notes = "If 'name' parameter was not specified all attached to project descriptions will be removed",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<ProjectDescription>> deleteProjectDescriptionByProject(@PathVariable final Long projectId,
+            @RequestParam(value = "name", required = false) final String name) {
+        return Result.success(projectSecurityService.deleteProjectDescriptions(projectId, name));
     }
 }

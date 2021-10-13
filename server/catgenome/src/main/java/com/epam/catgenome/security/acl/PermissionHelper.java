@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.session.NGBSessionValue;
 import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.gene.GeneFileManager;
+import com.epam.catgenome.manager.project.ProjectDescriptionService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.user.UserManager;
@@ -108,6 +109,9 @@ public class PermissionHelper {
 
     @Autowired
     private ProjectManager projectManager;
+
+    @Autowired
+    private ProjectDescriptionService projectDescriptionService;
 
     public boolean isAllowed(String permissionName, AbstractSecuredEntity entity) {
         return isAllowed(permissionName, entity.getId(), entity.getClass().getCanonicalName());
@@ -333,5 +337,9 @@ public class PermissionHelper {
             LOGGER.warn("Can't parse session_value and check availability of the session id: " + session.getId(), e);
         }
         return false;
+    }
+
+    public Long findProjectIdByDescription(final Long descriptionId) {
+        return projectDescriptionService.load(descriptionId).getProjectId();
     }
 }

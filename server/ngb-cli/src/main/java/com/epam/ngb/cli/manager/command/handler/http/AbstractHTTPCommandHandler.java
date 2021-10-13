@@ -503,6 +503,24 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
+    protected <T> void checkAndPrintResultForList(final String result, final boolean printJson,
+                                                  final boolean printTable, final Class<T> respClass) {
+        try {
+            ResponseResult<T> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
+                    .constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            getMapper().getTypeFactory().constructParametrizedType(List.class, List.class, respClass)));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            if (printJson || printTable) {
+                AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable, "%s");
+                printer.printSimple(responseResult.getPayload().toString());
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
     protected List<NgbUser> loadListOfUsers(List<String> userNames) {
         IDList names = new IDList(userNames);
         HttpPost request = (HttpPost) getRequestFromURLByType("POST",
