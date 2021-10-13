@@ -171,8 +171,8 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                     .loadHeatmapTree(id)
                     .then((tree) => {
                         const {
-                            columns = [],
-                            rows = []
+                            column: columns = {},
+                            row: rows = {}
                         } = tree || {};
                         this.columnsTree = new HeatmapBinaryTree(columns);
                         this.rowsTree = new HeatmapBinaryTree(rows);

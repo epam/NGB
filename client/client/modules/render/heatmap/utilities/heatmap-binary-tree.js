@@ -41,7 +41,7 @@ function parseDataItemAsObject(data) {
         return {
             ...data,
             name: data[OBJECT_DATA_ITEM_NAME_FIELD],
-            value: data.value
+            value: data.weight || 0
         };
     }
     return undefined;
@@ -51,12 +51,27 @@ function dataIsDataItem(data) {
     return dataItemIsArray(data) || dataItemIsString(data) || dataItemIsObject(data);
 }
 
-function dataIsTree(data) {
+function dataIsTreeArray(data) {
     return data && Array.isArray(data) && data.length === 2 && !dataItemIsArray(data);
 }
 
+function dataIsTreeObject(data) {
+    return data && data.children && Array.isArray(data.children) && data.children.length > 0;
+}
+
+function dataIsTree(data) {
+    return dataIsTreeObject(data) || dataIsTreeArray(data);
+}
+
 function parseDataAsTree(data) {
-    if (dataIsTree(data)) {
+    if (dataIsTreeObject(data)) {
+        const [left, right] = data.children || [];
+        return {
+            left,
+            right
+        };
+    }
+    if (dataIsTreeArray(data)) {
         const [left, right] = data;
         return {
             left,
@@ -87,6 +102,14 @@ export default class HeatmapBinaryTree {
     constructor(data) {
         if (data && Array.isArray(data) && data.length === 1) {
             return new HeatmapBinaryTree(data[0]);
+        }
+        if (
+            data &&
+            data.children &&
+            Array.isArray(data.children) &&
+            data.children.length === 1
+        ) {
+            return new HeatmapBinaryTree(data.children[0]);
         }
         /**
          *

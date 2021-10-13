@@ -5,8 +5,8 @@ import events from '../utilities/events';
 
 const VIEWPORT_CHANGED = Symbol('viewport changed');
 const DEFAULT_ZOOM_RATIO = 2;
-const MINIMUM_AXIS_SIZE = 50;
-const BEST_FIT_THRESHOLD = 0.75;
+const MINIMUM_AXIS_SIZE = 75;
+const BEST_FIT_THRESHOLD = 0.5;
 
 /**
  * @typedef {Object} ViewportPoint
@@ -246,16 +246,45 @@ export default class HeatmapViewport extends HeatmapEventDispatcher {
         return this.zoom({ratio, anchor: {column: 0, row: 0}}, animated);
     }
 
+    /**
+     * Returns array of objects {axis, available, tickToFit} of axis, it's available space in pixels and
+     * tick size to make axis fully visible; array is sorted (inc.) by tickToFit value
+     * @returns {{available: number, axis: HeatmapAxis, tickToFit: number}[]}
+     */
+    getFitCoverConfiguration() {
+        if (this.invalid) {
+            return [];
+        }
+        return [
+            {axis: this.columns, available: this.deviceAvailableWidth},
+            {axis: this.rows, available: this.deviceAvailableHeight}
+        ]
+            .map(o => ({...o, available: o.available || o.axis.deviceSize}))
+            .map(o => ({...o, tickToFit: o.available / o.axis.size}))
+            .filter(o => !Number.isNaN(Number(o.tickToFit)) && Number.isFinite(Number(o.tickToFit)))
+            .sort((a, b) => a.available - b.available);
+    }
+
     fit(animated = true) {
         if (this.invalid) {
             return false;
         }
-        const [axis] = [
-            {axis: this.columns, available: this.deviceAvailableWidth},
-            {axis: this.rows, available: this.deviceAvailableHeight}
-        ]
-            .sort((a, b) => a.axis.totalDeviceSize - b.axis.totalDeviceSize);
-        return this.fitAxis(axis.axis, animated, axis.available);
+        const [axis] = this.getFitCoverConfiguration();
+        if (axis) {
+            return this.fitAxis(axis.axis, animated, axis.available);
+        }
+        return false;
+    }
+
+    cover(animated = true) {
+        if (this.invalid) {
+            return false;
+        }
+        const axis = this.getFitCoverConfiguration().pop();
+        if (axis) {
+            return this.fitAxis(axis.axis, animated, axis.available);
+        }
+        return false;
     }
 
     checkMinimumTickSize() {
@@ -276,18 +305,6 @@ export default class HeatmapViewport extends HeatmapEventDispatcher {
         );
     }
 
-    cover(animated = true) {
-        if (this.invalid) {
-            return false;
-        }
-        const [axis] = [
-            {axis: this.columns, available: this.deviceAvailableWidth},
-            {axis: this.rows, available: this.deviceAvailableHeight}
-        ]
-            .sort((a, b) => b.axis.totalDeviceSize - a.axis.totalDeviceSize);
-        return this.fitAxis(axis.axis, animated, axis.available);
-    }
-
     best(animated = true) {
         if (this.invalid) {
             return false;
@@ -295,7 +312,7 @@ export default class HeatmapViewport extends HeatmapEventDispatcher {
         const max = Math.max(this.columns.size, this.rows.size);
         const min = Math.min(this.columns.size, this.rows.size);
         const ratio = min / max;
-        if (ratio > BEST_FIT_THRESHOLD) {
+        if (ratio < BEST_FIT_THRESHOLD) {
             return this.cover(animated);
         }
         return this.fit(animated);

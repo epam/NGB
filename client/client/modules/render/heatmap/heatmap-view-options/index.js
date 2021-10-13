@@ -70,7 +70,6 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
             }
             this.emit(events.changed);
         };
-        this._colorScheme.onInitialized(this.changedCallback);
         this._colorScheme.onChanged(this.changedCallback);
         this._data.onMetadataLoaded(this.handleMetadataLoaded);
     }

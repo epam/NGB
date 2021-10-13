@@ -12,6 +12,20 @@ const Align = {
     right: 'right'
 };
 
+/**
+ * If `default` and `hovered` fonts are the same (i.e. have the same font size,
+ * family and weight), we can skip creation of the `hoveredLabel` on the initialization and
+ * create it if we need to hover label ("lazy initialize"). That will boost our initialization
+ * stage
+ * @type {boolean}
+ */
+const LAZY_INITIALIZE_HOVERED_LABEL =
+    config.label.font &&
+    config.label.hoveredFont &&
+    config.label.font.fontFamily === config.label.hoveredFont.fontFamily &&
+    config.label.font.fontSize === config.label.hoveredFont.fontSize &&
+    config.label.font.fontWeight === config.label.hoveredFont.fontWeight;
+
 const LabelStyles = {
     [Align.left]: {
         label: {align: 'left', ...config.label.font},
@@ -55,7 +69,7 @@ class AxisLabel {
         if (!labelsManager || ticks.length === 0 || isCancelledFn()) {
             return Promise.resolve([]);
         }
-        const maxIterationsPerFrame = 200;
+        const maxIterationsPerFrame = 200 * (Number(LAZY_INITIALIZE_HOVERED_LABEL) + 1);
         const minIterationsPerFrame = 20;
         return new Promise((resolve) => {
             const result = [];
@@ -108,6 +122,11 @@ class AxisLabel {
             showAnnotations,
             value = 0
         } = options;
+        /**
+         *
+         * @type {LabelsManager}
+         */
+        this.labelsManager = labelsManager;
         /**
          *
          * @type {PIXI.Container}
@@ -182,22 +201,23 @@ class AxisLabel {
         this.normalRadians = Math.atan2(this.normal.y, this.normal.x);
         const {x: ax = 0} = this.normal;
         const align = ax >= 0 ? Align.left : Align.right;
-        const labelStyles = LabelStyles[align] || LabelStyles[Align.left];
+        /**
+         * Label font styles
+         * @type {{label, hovered}}
+         */
+        this.labelStyles = LabelStyles[align] || LabelStyles[Align.left];
         /**
          * Label graphics
          * @type {PIXI.Text|PIXI.Sprite}
          */
-        this.label = labelsManager.getLabel(this.formattedText, labelStyles.label);
-        /**
-         * Hovered label graphics
-         * @type {PIXI.Text|PIXI.Sprite}
-         */
-        this.hoveredLabel = labelsManager.getLabel(this.formattedText, labelStyles.hovered);
+        this.label = labelsManager.getLabel(this.formattedText, this.labelStyles.label);
+        if (!LAZY_INITIALIZE_HOVERED_LABEL) {
+            this.updateHoveredLabel(true);
+        }
         /**
          * Label graphics size (width) respecting margin
          */
         this.container.addChild(this.label);
-        this.container.addChild(this.hoveredLabel);
         if (
             annotatedIndex &&
             annotatedIndex.navigation !== HeatmapNavigationType.missing
@@ -209,16 +229,47 @@ class AxisLabel {
             this.debugGraphics = new PIXI.Graphics();
             this.container.addChild(this.debugGraphics);
         }
-        this.size = this.hoveredLabel.width +
-            config.label.margin * 2.0 +
-            config.scroller.height +
-            config.scroller.margin * 2.0;
         this.value = value;
         this.anchor = {x: ax >= 0 ? 0 : 1, y: 0.5};
         this.start = 0;
         this.end = 0;
         this.built = false;
         this.changed = true;
+    }
+
+    get size () {
+        const label = this.hoveredLabel || this.label;
+        if (label && label.texture && label.texture.baseTexture) {
+            return label.width +
+                config.label.margin * 2.0 +
+                config.scroller.height +
+                config.scroller.margin * 2.0;
+        }
+        return 0;
+    }
+
+    initializeHoveredLabel () {
+        if (!this.hoveredLabel && this.labelsManager && this.labelStyles) {
+            /**
+             * Hovered label graphics
+             * @type {PIXI.Text|PIXI.Sprite|undefined}
+             */
+            this.hoveredLabel = this.labelsManager.getLabel(this.formattedText, this.labelStyles.hovered);
+            this.container.addChild(this.hoveredLabel);
+        }
+    }
+
+    updateHoveredLabel (create = false) {
+        if (!this.hoveredLabel && create) {
+            this.initializeHoveredLabel();
+        }
+        if (this.hoveredLabel && this.label) {
+            this.hoveredLabel.x = this.label.x;
+            this.hoveredLabel.y = this.label.y;
+            this.hoveredLabel.anchor.set(this.label.anchor.x, this.label.anchor.y);
+            this.hoveredLabel.rotation = this.label.rotation;
+            this.hoveredLabel.visible = false;
+        }
     }
 
     destroy() {
@@ -235,6 +286,7 @@ class AxisLabel {
         if (this.hoveredLabel) {
             this.hoveredLabel = undefined;
         }
+        this.labelsManager = undefined;
         this.axis = undefined;
     }
 
@@ -245,6 +297,9 @@ class AxisLabel {
     set hovered(hovered) {
         if (this._hovered !== hovered) {
             this._hovered = hovered;
+            if (this._hovered) {
+                this.updateHoveredLabel(true);
+            }
             this.changed = true;
         }
     }
@@ -350,28 +405,22 @@ class AxisLabel {
             anchor: label.anchor
         });
         const previous = getConfig(this.label);
-        const previousHovered = getConfig(this.hoveredLabel);
         let labelMainAngle = this.normalRadians + (this.normal.x < 0 ? Math.PI : 0);
         if (fitsTick && Math.abs(this.direction.x) > 0) {
             labelMainAngle = this.directionRadians;
             this.label.anchor.set(0.5, 1);
             this.label.rotation = labelMainAngle;
-            this.hoveredLabel.anchor.set(0.5, 1);
-            this.hoveredLabel.rotation = labelMainAngle;
             this.start = shift - this.label.width / 2.0;
             this.end = shift + this.label.width / 2.0;
         } else {
             this.label.anchor.set(this.anchor.x, this.anchor.y);
             this.label.rotation = labelMainAngle + extraRotation;
-            this.hoveredLabel.anchor.set(this.anchor.x, this.anchor.y);
-            this.hoveredLabel.rotation = labelMainAngle + extraRotation;
             this.start = shift - this.label.height / 2.0 - config.label.margin;
             this.end = shift + this.label.height / 2.0 + config.label.margin;
         }
         this.label.x = Math.round(center.x);
         this.label.y = Math.round(center.y);
-        this.hoveredLabel.x = Math.round(center.x);
-        this.hoveredLabel.y = Math.round(center.y);
+        this.updateHoveredLabel(this.hovered);
         const changed = (prev, cur) => prev.x !== cur.x ||
             prev.y !== cur.y ||
             prev.rotation !== cur.rotation ||
@@ -394,13 +443,14 @@ class AxisLabel {
             extendRectangleByMargin(this.label.getLocalBounds(), config.label.margin),
             this.label.rotation
         );
-        this.realHoveredBounds = getRealBounds(
-            extendRectangleByMargin(this.hoveredLabel.getLocalBounds(), config.label.margin),
-            this.hoveredLabel.rotation
-        );
+        const hoveredLabel = this.hoveredLabel || this.label;
         this.axisBounds = this.getLabelBounds(this.label, labelMainAngle);
-        this.axisHoveredBounds = this.getLabelBounds(this.hoveredLabel, labelMainAngle);
-        if (changed(previous, this.label) || changed(previousHovered, this.hoveredLabel)) {
+        this.realHoveredBounds = getRealBounds(
+            extendRectangleByMargin(hoveredLabel.getLocalBounds(), config.label.margin),
+            hoveredLabel.rotation
+        );
+        this.axisHoveredBounds = this.getLabelBounds(hoveredLabel, labelMainAngle);
+        if (changed(previous, this.label)) {
             this.changed = true;
         }
         this.built = true;
@@ -456,13 +506,15 @@ class AxisLabel {
     render() {
         const changed = this.changed;
         this.label.visible = this.visible && !this.hovered;
-        this.hoveredLabel.visible = this.visible && this.hovered;
+        if (this.hoveredLabel) {
+            this.hoveredLabel.visible = this.visible && this.hovered;
+        }
         if (this.faded) {
             this.label.alpha = config.label.fade;
         } else {
             this.label.alpha = 1.0;
         }
-        if (DEBUG && this.debugGraphics) {
+        if (DEBUG && this.debugGraphics && this.axisHoveredBounds && this.axisBounds) {
             this.debugGraphics.clear();
             const bounds = this.hovered ? this.axisHoveredBounds : this.axisBounds;
             const realBounds = this.hovered ? this.realHoveredBounds : this.realBounds;

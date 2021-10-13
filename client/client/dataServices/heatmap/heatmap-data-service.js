@@ -99,6 +99,19 @@ export class HeatmapDataService extends DataService {
     }
 
     loadHeatmapTree(id, projectId) {
+        if (!MOCK) {
+            return new Promise((resolve, reject) => {
+                this.get(getHeatmapUrl(`heatmap/${id}/tree`, {projectId}))
+                    .then((data)=> {
+                        if (data) {
+                            resolve(data);
+                        } else {
+                            throw new Error('Heatmap Data Service: error loading heatmap metadata');
+                        }
+                    })
+                    .catch(reject);
+            });
+        }
         // eslint-disable-next-line no-console
         console.log(`load heatmap tree mock for #${id} file (project #${projectId})`);
         // eslint-disable-next-line no-unused-vars

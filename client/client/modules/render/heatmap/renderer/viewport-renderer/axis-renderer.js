@@ -12,12 +12,14 @@ import {movePoint} from './utilities/vector-utilities';
 class HeatmapAxisRenderer extends InteractiveZone {
     /**
      *
+     * @param {HeatmapViewOptions} options
      * @param {HeatmapAxis} axis
      * @param {LabelsManager} labelsManager
      * @param {{[x]: number, [y]: number}} [direction]
      * @param {{[x]: number, [y]: number}} [normal]
      */
     constructor(
+        options,
         axis,
         labelsManager,
         direction = {},
@@ -135,7 +137,9 @@ class HeatmapAxisRenderer extends InteractiveZone {
                         this.ticks.push(tick);
                         this.labelsContainer.addChild(tick.container);
                     });
+                    const currentLabelMaxSize = this._labelsMaxSize;
                     this.calculateAxisSize();
+                    const reportLayoutChange = currentLabelMaxSize !== this._labelsMaxSize;
                     this.updateTicksPositions();
                     this.updateTicksVisibility();
                     requestAnimationFrame(() => {
@@ -143,7 +147,9 @@ class HeatmapAxisRenderer extends InteractiveZone {
                         this.initialized = true;
                         this.render();
                         this.requestRender();
-                        this.emit(events.layout);
+                        if (reportLayoutChange) {
+                            this.emit(events.layout);
+                        }
                     });
                 }
             };
@@ -402,8 +408,9 @@ class HeatmapAxisRenderer extends InteractiveZone {
 }
 
 export class ColumnsRenderer extends HeatmapAxisRenderer {
-    constructor(viewport, labelsManager) {
+    constructor(options, viewport, labelsManager) {
         super(
+            options,
             viewport.columns,
             labelsManager,
             AxisVectors.columns.direction,
@@ -439,8 +446,9 @@ export class ColumnsRenderer extends HeatmapAxisRenderer {
 }
 
 export class RowsRenderer extends HeatmapAxisRenderer {
-    constructor(viewport, labelsManager) {
+    constructor(options, viewport, labelsManager) {
         super(
+            options,
             viewport.rows,
             labelsManager,
             AxisVectors.rows.direction,

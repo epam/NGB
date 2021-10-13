@@ -9,11 +9,12 @@ import makeInitializable from '../../utilities/make-initializable';
 class HeatmapViewportRenderer extends InteractiveZone {
     /**
      *
+     * @param {HeatmapViewOptions} options
      * @param {HeatmapViewport} viewport
      * @param {HeatmapInteractions} interactions
      * @param {LabelsManager} labelsManager
      */
-    constructor(viewport, interactions, labelsManager) {
+    constructor(options, viewport, interactions, labelsManager) {
         super({priority: InteractiveZone.Priorities.viewport});
         makeInitializable(this);
         /**
@@ -23,8 +24,8 @@ class HeatmapViewportRenderer extends InteractiveZone {
         this.viewport = viewport;
         this.labelsManager = labelsManager;
         this.container = new PIXI.Container();
-        this.columnAxis = new ColumnsRenderer(viewport, labelsManager);
-        this.rowAxis = new RowsRenderer(viewport, labelsManager);
+        this.columnAxis = new ColumnsRenderer(options, viewport, labelsManager);
+        this.rowAxis = new RowsRenderer(options, viewport, labelsManager);
         this.columnAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {column: payload}));
         this.rowAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {row: payload}));
         this.columnAxis.onLayout(() => this.emit(events.layout));

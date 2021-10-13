@@ -1,19 +1,19 @@
 export default {
     label: {
         font: {
-            fill: 0x333333,
+            fill: 0x777777,
             fontFamily: 'arial',
             fontSize: '8pt',
             fontWeight: 'normal'
         },
         hoveredFont: {
-            fill: 0xaa3333,
+            fill: 0x0000ee,
             fontFamily: 'arial',
-            fontSize: '9pt',
-            fontWeight: 'bold'
+            fontSize: '8pt',
+            fontWeight: 'normal'
         },
         fade: 0.25,
-        margin: 2,
+        margin: 0,
         wrap: {
             lineCharsCount: 30
         }

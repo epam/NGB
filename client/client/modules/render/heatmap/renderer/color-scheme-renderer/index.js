@@ -154,6 +154,10 @@ class ColorSchemeRenderer extends InteractiveZone {
         }
     }
 
+    onLayout(callback) {
+        this.addEventListener(events.layout, callback);
+    }
+
     clearSession() {
         this.session = {};
     }
@@ -325,10 +329,14 @@ class ColorSchemeRenderer extends InteractiveZone {
             this.continuousContainer.visible = isContinuous;
             this.discreteContainer.visible = !isContinuous;
             let somethingChanged = this.session.type !== this.colorScheme.type;
+            const currentWidth = this.width;
             if (isContinuous) {
                 somethingChanged = this.renderContinuous(height) || somethingChanged;
             } else {
                 somethingChanged = this.renderDiscrete(height) || somethingChanged;
+            }
+            if (somethingChanged && currentWidth !== this.width) {
+                setTimeout(() => this.emit(events.layout), 0);
             }
             this.session.height = height;
             this.session.type = this.colorScheme.type;

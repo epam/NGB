@@ -264,6 +264,7 @@ class HeatmapView extends HeatmapEventDispatcher {
              * @type {HeatmapViewportRenderer}
              */
             this.viewportRenderer = new HeatmapViewportRenderer(
+                this.options,
                 this.heatmapViewport,
                 this.heatmapInteractions,
                 this.labelsManager
@@ -305,6 +306,11 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.options.colorScheme,
                 this.labelsManager
             );
+            this.colorSchemeRenderer.onLayout(() => {
+                if (!this.heatmapInteractions.userInteracted) {
+                    this.render(true);
+                }
+            });
             this.ensureHeatmapInteractions();
             this.heatmapInteractions.registerInteractiveZone(this.colorSchemeRenderer);
         }
@@ -334,7 +340,7 @@ class HeatmapView extends HeatmapEventDispatcher {
     }
 
     /**
-     * Updates display options (size)
+     * Updates display options (renderer & DOM element)
      * @param {DisplayOptions} options
      * @param {boolean} [force=false]
      */
@@ -345,8 +351,10 @@ class HeatmapView extends HeatmapEventDispatcher {
         } = options;
         const pixiRenderer = newPixiRenderer || this.pixiRenderer;
         const domElement = newDOMElement || this.domElement;
-        if (pixiRenderer && domElement) {
-            const invalidateAll = pixiRenderer !== this.pixiRenderer || domElement !== this.domElement || force;
+        const changed = pixiRenderer !== this.pixiRenderer ||
+            domElement !== this.domElement || force ||
+            !this.container;
+        if (changed && pixiRenderer && domElement) {
             if (!this.container) {
                 /**
                  * Root container
@@ -354,9 +362,8 @@ class HeatmapView extends HeatmapEventDispatcher {
                  */
                 this.container = new PIXI.Container();
             }
-            if (invalidateAll) {
-                this.destroyDisplayObjects();
-            }
+            this.destroyDisplayObjects();
+
             /**
              * DOM Container
              * @type {HTMLElement}
