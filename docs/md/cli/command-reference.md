@@ -717,6 +717,8 @@ ngb reg_heatmap|rh [<PATH>] [options]
 //-pt (--pretty)                Heatmap pretty name
 //-cap (--heatmap-cap)          Heatmap cell annotation path
 //-lap (--heatmap-lap)          Heatmap label annotation path
+//-skip-row (--skip-row)        Number of last heatmap rows to skip
+//-skip-col (--skip-col)          Number of last heatmap columns to skip
 ```
 *Description*
 

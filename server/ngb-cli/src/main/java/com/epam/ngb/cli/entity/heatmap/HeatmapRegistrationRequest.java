@@ -42,4 +42,6 @@ public class HeatmapRegistrationRequest implements RequestPayload {
     private String labelAnnotationPath;
     private HeatmapAnnotationType rowAnnotationType;
     private HeatmapAnnotationType columnAnnotationType;
+    private int skipRows;
+    private int skipColumns;
 }

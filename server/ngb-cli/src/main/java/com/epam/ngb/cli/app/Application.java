@@ -220,6 +220,12 @@ public class Application {
     @Option(name = "-lap", usage = "heatmap label annotation path", aliases = {"--heatmap-lap"})
     private String heatmapLabelAnnotationPath;
 
+    @Option(name = "-skip-row", usage = "number of last heatmap rows to skip", aliases = {"--skip-row"})
+    private int heatmapSkipRows;
+
+    @Option(name = "-skip-col", usage = "number of last heatmap columns to skip", aliases = {"--skip-col"})
+    private int heatmapSkipColumns;
+
     @Option(name = "-cell-at", usage = "heatmap cell annotation type", aliases = {"--heatmap-cell-at"})
     private String heatmapCellAnnotationType;
 
@@ -333,6 +339,8 @@ public class Application {
         options.setDatabasePath(databasePath);
         options.setHeatmapCellAnnotationPath(heatmapCellAnnotationPath);
         options.setHeatmapLabelAnnotationPath(heatmapLabelAnnotationPath);
+        options.setHeatmapSkipRows(heatmapSkipRows);
+        options.setHeatmapSkipColumns(heatmapSkipColumns);
         options.setPath(path);
         options.setHeatmapCellAnnotationType(HeatmapAnnotationType.from(heatmapCellAnnotationType));
         options.setHeatmapRowAnnotationType(HeatmapAnnotationType.from(heatmapRowAnnotationType));

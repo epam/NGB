@@ -62,21 +62,15 @@ public class HeatmapRegistrationHandler extends AbstractHTTPCommandHandler {
         registrationRequest = HeatmapRegistrationRequest.builder()
                 .path(arguments.get(0))
                 .build();
-        if (options.getName() != null) {
-            registrationRequest.setName(options.getName());
-        }
-        if (options.getPrettyName() != null) {
-            registrationRequest.setPrettyName(options.getPrettyName());
-        }
-        if (options.getHeatmapCellAnnotationPath() != null) {
-            registrationRequest.setCellAnnotationPath(options.getHeatmapCellAnnotationPath());
-        }
-        if (options.getHeatmapLabelAnnotationPath() != null) {
-            registrationRequest.setLabelAnnotationPath(options.getHeatmapLabelAnnotationPath());
-        }
+        registrationRequest.setName(options.getName());
+        registrationRequest.setPrettyName(options.getPrettyName());
+        registrationRequest.setCellAnnotationPath(options.getHeatmapCellAnnotationPath());
+        registrationRequest.setLabelAnnotationPath(options.getHeatmapLabelAnnotationPath());
         registrationRequest.setCellAnnotationType(options.getHeatmapCellAnnotationType());
         registrationRequest.setRowAnnotationType(options.getHeatmapRowAnnotationType());
         registrationRequest.setColumnAnnotationType(options.getHeatmapColumnAnnotationType());
+        registrationRequest.setSkipRows(options.getHeatmapSkipRows());
+        registrationRequest.setSkipColumns(options.getHeatmapSkipColumns());
     }
 
     @Override public int runCommand() {
