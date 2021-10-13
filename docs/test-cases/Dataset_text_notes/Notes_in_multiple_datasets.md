@@ -9,7 +9,7 @@
 - Dataset = **SV_Sample1** and **SV_Sample2**
 - [Markdown text](Note_data/Markdown_example.md)
 
-| Steps | Actions| Expected results|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+| Steps | Actions| Expected results|                                            
 | :-----: | ---- | ---- |
 |   1   | Login to NGB||
 |   2   | Go to **DATASETS** panel||

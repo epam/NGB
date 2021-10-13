@@ -8,7 +8,7 @@
 
 - Dataset = **SV_Sample1** 
 
-| Steps | Actions| Expected results|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+| Steps | Actions| Expected results|                                            
 | :-----: | ---- | ---- |
 |   1   | Login to NGB||
 |   2   | Go to **DATASETS** panel||
