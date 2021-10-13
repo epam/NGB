@@ -417,7 +417,7 @@ export default class ngbGenesTableService {
                 }
                 case `${this.defaultPrefix}featureType`: {
                     columnSettings = {
-                        cellTemplate: `<div class="md-label variation-type"
+                        cellTemplate: `<div ng-if="row.entity.feature" class="md-label variation-type"
                                     ng-style="grid.appScope.$ctrl.getStyle(COL_FIELD)"
                                     ng-class="COL_FIELD CUSTOM_FILTERS" >{{row.entity.feature}}</div>`,
                         enableHiding: false,
