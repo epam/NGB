@@ -106,8 +106,8 @@ public class Application {
             + " if option isn't provided, the dataset will be moved to the top level of the datasets hierarchy"
             + "\t{md my_dataset -p parent}\n"
             + "ld\tlist_dataset\t: lists all datasets, registered on the server\t{ld}\n"
-            + "add_description\t: uploads dataset description file\t{add_description my_dataset description_file}\n"
-            + "remove_description\t: removes dataset description\t{remove_description my_dataset " +
+            + " \tadd_description\t: uploads dataset description file\t{add_description my_dataset description_file}\n"
+            + " \tremove_description\t: removes dataset description\t{remove_description my_dataset " +
                 "--name description_file}\n\n"
             + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "

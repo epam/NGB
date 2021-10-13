@@ -716,17 +716,29 @@ ngb reg_heatmap|rh [<PATH>] [options]
 //-n (--name)                   Heatmap name
 //-pt (--pretty)                Heatmap pretty name
 //-cap (--heatmap-cap)          Heatmap cell annotation path
+//-cell-at (--heatmap-cell-at)  Heatmap cell annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 //-lap (--heatmap-lap)          Heatmap label annotation path
+//-row-at (--heatmap-row-at)    Heatmap row annotation type [REFERENCE|GENE|DATASET|COORDINATE]
+//-col-at (--heatmap-col-at)    Heatmap column annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 ```
 *Description*
 
 Registers a heatmap. One argument has to be specified:
 * Heatmap path
 
+Heatmap suport navigation from annotation labels to specific locations. 
+Type of annotation maybe specified during heatmap registration for cell, row and column labels. If annotation type is
+not specified navigation isn't enabled for a heatmap. Four annotation types are supported:
+- REFERENCE - labels match reference name
+- GENE - labels match gene name: `KRAS` (navigate to gene in current reference) or `GRCh38:ROS1` (navigate to gene in `GRCh38` reference)
+- DATASET - labels match dataset name
+- COORDINATE - labels contain genomic coordinates, e.g. `chr1:234-1566` or `GRCh38:chr1:234-1566`
+
 *Example*
 ```bash
 # Create new heatmap with name "Heatmap", path "heatmap.csv"
-$ ngb reg_heatmap "heatmap.csv" -n "Heatmap"
+$ ngb reg_heatmap "heatmap.csv" -n "Heatmap" -lap  "/opt/heatmap-labels.tsv" -row-at GENE
+
 ```
 
 ### List heatmaps
