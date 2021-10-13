@@ -54,6 +54,10 @@ export class ProjectDataService extends DataService {
         return this.downloadFile('get', `project/${+projectId}/description`, undefined, {customResponseType: 'arraybuffer'});
     }
 
+    downloadProjectDescription (id) {
+        return this.downloadFile('get', `project/description/${+id}`, undefined, {customResponseType: 'arraybuffer'});
+    }
+
     /**
      *
      * @param {number} referenceId

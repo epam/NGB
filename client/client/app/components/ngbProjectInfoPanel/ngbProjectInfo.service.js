@@ -252,16 +252,17 @@ export default class ngbProjectInfoService {
     }
 
     get defaultMode() {
-        if (this.projects.length > 1) {
+        if (
+            this.projects.length === 1 &&
+            this.descriptionAvailable &&
+            this.descriptionList.length
+        ) {
+            return [
+                this.projectInfoModeList.DESCRIPTION,
+                this.descriptionList[0].id
+            ];
+        } else {
             if (this.summaryAvailable) {
-                return this.projectInfoModeList.SUMMARY;
-            } else {
-                return this.currentMode;
-            }
-        } else if (this.projects.length === 1) {
-            if (this.descriptionAvailable) {
-                return this.projectInfoModeList.DESCRIPTION;
-            } else if (this.summaryAvailable) {
                 return this.projectInfoModeList.SUMMARY;
             } else {
                 return this.currentMode;
@@ -278,7 +279,7 @@ export default class ngbProjectInfoService {
             descriptionId = descriptionId ? descriptionId : this.descriptionList[0].id;
             this.descriptionIsLoading = true;
             this.descriptionAvailable = false;
-            this.projectContext.loadDatasetDescription(this.currentProject.id) //add description.id for case with descriptionS
+            this.projectContext.downloadProjectDescription(descriptionId)
                 .then(data => {
                     if (data && data.byteLength) {
                         this.descriptionAvailable = true;
@@ -304,6 +305,7 @@ export default class ngbProjectInfoService {
                     this.dispatcher.emitSimpleEvent('project:description:url', this.blobUrl);
                 });
         } else {
+            this.descriptionAvailable = false;
             if (!this.projectContext.currentChromosome) {
                 this.currentMode = this.projectInfoModeList.SUMMARY;
             }
@@ -329,21 +331,6 @@ export default class ngbProjectInfoService {
         if (selectedDatasets.length > 1) {
             sortDatasets(selectedDatasets);
         }
-        // delete it after we get data from server
-        selectedDatasets.forEach(project => {
-            this.projectContext.loadDatasetDescription(project.id)
-                .then(data => {
-                    if (data && data.byteLength) {
-                        project.descriptions = [{
-                            id: project.id+1,
-                            name: 'des_1'
-                        }, {
-                            id: project.id+2,
-                            name: 'des_2'
-                        }];
-                    }
-                });
-        });
         const clearURLObject = () => {
             if (this.blobUrl) {
                 URL.revokeObjectURL(this.blobUrl);
@@ -352,10 +339,7 @@ export default class ngbProjectInfoService {
         };
         if (selectedDatasets.length > 0) {
             clearURLObject();
-            if (
-                selectedDatasets.length === 1 &&
-                this.currentProject.id !== selectedDatasets[0].id
-            ) {
+            if (selectedDatasets.length === 1) {
                 this.projects = selectedDatasets;
                 this.currentProject = selectedDatasets[0];
                 this._newNote = {

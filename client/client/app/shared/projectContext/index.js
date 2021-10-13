@@ -938,6 +938,10 @@ export default class projectContext {
         return this.projectDataService.getProjectIdDescription(id);
     }
 
+    downloadProjectDescription (id) {
+        return this.projectDataService.downloadProjectDescription(id);
+    }
+
     convertProjectForSave = utilities.convertProjectForSave;
 
     refreshDatasetNotes(notes, projectId) {

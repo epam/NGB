@@ -23,6 +23,10 @@ export default class ngbProjectInfoSectionsController extends baseController {
         return this.ngbProjectInfoService.descriptionAvailable;
     }
 
+    get projects () {
+        return this.ngbProjectInfoService.projects;
+    }
+
     setDescription (project, descriptionId) {
         const [
             currentMode,
@@ -48,5 +52,15 @@ export default class ngbProjectInfoSectionsController extends baseController {
     openMenu($mdOpenMenu, $event) {
         $event.stopPropagation();
         $mdOpenMenu($event);
+    }
+
+    summaryFalseValue () {
+        if (this.projects.length === 1 && this.descriptionList.length) {
+            return [
+                this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
+                this.descriptionList[0].id
+            ];
+        }
+        return this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
     }
 }
