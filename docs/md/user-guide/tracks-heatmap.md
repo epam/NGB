@@ -1,15 +1,17 @@
 # Heatmap track
 
 - [General visualization](#general-visualization)
+    - [Heatmap panel](#heatmap-panel)
+    - [Manage view](#manage-view)
     - [Color scheme](#color-scheme)
         - [Continuous](#continuous)
         - [Discrete](#discrete)
     - [Displaying additional details](#displaying-additional-details)
         - [Cell annotations](#cell-annotations)
         - [Row/column annotations](#rowcolumn-annotations)
-        - [Phylogenetic tree](#phylogenetic-tree)
 - [Displaying at the Summary page](#displaying-at-the-summary-page)
 - [Heatmap as a reference annotation](#heatmap-as-a-reference-annotation)
+- [Navigation from annotations](#navigation-from-annotations)
 
 **Heatmap** is a data visualization technique that shows magnitude of a phenomenon as color in two dimensions.  
 Under the hood, it is one of the way to display a plain matrix.  
@@ -47,6 +49,34 @@ Displaying features:
 - each row in the heatmap is subscribed at the margin according to the corresponding row "header" of the origin heatmap file
 - near the heatmap, the color legend is placed
 
+### Heatmap panel
+
+As was shown above - the heatmap file is shown by default as separate track in the **Browser**.  
+But there are some another ways to view heatmaps.  
+One of the most convenient way - displaying in the **Heatmap** panel.
+
+**Heatmap** panel can be opened from the **Views** item of the main menu.  
+In this panel, heatmaps of the current selected dataset are shown:
+
+- heatmaps registered as separate files in the current dataset and selected in the **Datasets** panel
+- all heatmaps registered as the current reference [annotations](#heatmap-as-a-reference-annotation)
+
+![NGB GUI](images/heatmap-10.png)
+
+Heatmap to display is being selected from the dropdown list in the top of the panel (only one heatmap can be shown at once):  
+  ![NGB GUI](images/heatmap-11.png)  
+The selected heatmap will be shown:  
+  ![NGB GUI](images/heatmap-12.png)
+
+### Manage view
+
+You can manage the view of the heatmap by the following combination:
+
+- **double-click** any cell -> single zoom-in
+- **hover mouse pointer** over any cell + hold **Shift** + **scroll mouse wheel** -> zoom-in/zoom-out
+- hold **Shift** + select any cells area by **left mouse button**, then release -> zoom-in to selected area
+- **hold mouse click** at any cell + **move mouse** -> moving the whole heatmap
+
 ### Color scheme
 
 There are two types of heatmap colorizing is supported:
@@ -58,9 +88,11 @@ Each scheme can be selected by the "_Color scheme_" control in the heatmap track
   ![NGB GUI](images/heatmap-03.png)
 
 Also, the color scheme can be configured manually via the special pop-up.  
-It can be opened by the _Configure_ item in the "_Color scheme_" control or by the click the heatmap legend.
+It can be opened by the _Configure_ item in the "_Color scheme_" control or by the click the heatmap legend, e.g.:  
+  ![NGB GUI](images/heatmap-13.png)
 
-![NGB GUI](images/heatmap-04.png)
+The pop-up to configure the color scheme for a heatmap:  
+  ![NGB GUI](images/heatmap-04.png)
 
 Here, the following controls:
 
@@ -114,7 +146,7 @@ If the scheme above was saved, our heatmap will be redrawn:
 
 ### Displaying additional details
 
-Any heatmap can have additional details - phylogenetic tree(s), row/column annotations, cell annotations.  
+Any heatmap can have additional details - row/column annotations, cell annotations.  
 These details are defined by additional files that can be registered simultaneously with heatmap or added after.
 
 #### Cell annotations
@@ -138,8 +170,8 @@ Sample3                       Annotation_S3_G2
 
 **_Note_**: registered cell annotation files are not displayed in the datasets tree
 
-If the current heatmap has a linked cell annotations file - the corresponding annotation labels appear in tooltips when hovering any cell of the heatmap:  
-  ![NGB GUI](images/heatmap-10.png)
+If the current heatmap has a linked cell annotations file - the corresponding annotation labels appear in tooltips when hovering any cell of the heatmap, e.g.:  
+  ![NGB GUI](images/heatmap-14.png)
 
 #### Row/column annotations
 
@@ -162,46 +194,84 @@ Sample3    Gorilla_female
 
 **_Note_**: registered row/column annotation files are not displayed in the datasets tree
 
-If the current heatmap has a linked row/column annotations file - the corresponding annotation labels will appear on the corresponding axis of the heatmap:  
-  ![NGB GUI](images/heatmap-11.png)
-
-User can show/hide these annotations by the "_Display_" control in the heatmap track header:  
-  ![NGB GUI](images/heatmap-12.png)
-
-#### Phylogenetic tree
-
-NGB supports the displaying of phylogenetic tree(s) (dendrograms) for heatmaps.  
-This diagrammatic representation is frequently used to:
-
-- show the clustering of genes or samples
-- display the evolutionary relationships among various biological taxa
-
-Dendrograms are placed in the margins of heatmaps (it could be margin of one dimension only or both dimensions at once).
-
-Phylogenetic tree file (dendrogram file) is a plain `txt` file that contains tree-date in [Newick](http://wiki.christophchamp.com/index.php?title=Newick_phylogenetic_tree_format) format, e.g.:
-
-`((Human:0.1,Gorilla:0.1):0.4,(Mouse:0.2,Rat:0.2):0.3);`
-
-If the current heatmap has a linked phylogenetic tree file(s) - the phylogenetic tree(s) will be shown for the heatmap:  
-  ![NGB GUI](images/heatmap-13.png)
-
-**_Note_**: when the phylogenetic tree(s) is displayed for the heatmap, rows and/or columns of the heatmap can be reordered according to the tree info (from the original tree-file)
-
-User can show/hide the phylogenetic tree(s) by the "_Display_" control in the heatmap track header:  
-  ![NGB GUI](images/heatmap-14.png)
+If the current heatmap has a linked row/column annotations file - the corresponding annotation labels will appear on the corresponding axis of the heatmap (near the axis headers), e.g. annotations for columns:  
+  ![NGB GUI](images/heatmap-15.png)
 
 ## Displaying at the Summary page
 
 If for the dataset containing a heatmap file the "_Summary_" view is selected and the heatmap file is selected in the **Datasets** panel as well - the heatmap will be shown at the "_Summary_" view as a separate sub-panel:  
-  ![NGB GUI](images/heatmap-15.png)
+  ![NGB GUI](images/heatmap-17.png)
 
-In this case, color scheme will be _continuous_ by default. User can configure it by click the heatmap legend.
+In this case, color scheme for a heatmap will be _continuous_ by default. User can configure it by click the heatmap legend.
+
+If there are several selected heatmaps in a dataset - at the "_Summary_" view the corresponding selector will be shown. Only one heatmap can be displayed at the "_Summary_" view at once:  
+  ![NGB GUI](images/heatmap-18.png)
 
 ## Heatmap as a reference annotation
 
 **Heatmap** can be registered in NGB as an annotation for a reference.  
 If the reference has the heatmap annotation file - such heatmap will not be displayed as a separate file in the **Datasets** panel, but user will have the ability to open it via the "_Annotations_" selector in the **Browser** header, e.g.:  
-  ![NGB GUI](images/heatmap-16.png)
+  ![NGB GUI](images/heatmap-19.png)
 
 If no position at a reference is specified and the "_Summary_" view is selected - the heatmap will be shown in the way as described [above](#displaying-at-the-summary-page).  
-If any position at a reference is specified - the heatmap will be shown as the separate track - as described [above](#general-visualization).
+If any position at a reference is specified - the heatmap will be shown as the separate track - as described [above](#general-visualization).  
+Also, the heatmap registered as the reference annotation is always included to the heatmaps dropdown list at the [**Heatmap panel**](#heatmap-panel) if any dataset with this reference is selected.
+
+## Navigation from annotations
+
+All heatmaps' labels (row/column headers and annotations, cell annotations) support "link" format for their content - that users can have the ability for the fast navigation through other NGB objects from a heatmap.  
+Whether the set of the corresponding heatmap labels are links should be defined during the heatmap file or heatmap annotation file CLI registration - via the additional options.
+
+These options define:
+
+- which entity(es) of the heatmat shall be perceived as links
+- for each specified entity - the type of the NGB objects to which the link should provide
+
+There are 3 entity types for a heatmap that can be perceived as links:
+
+- _column headers and annotations_ - in this case, in first order, the column annotation will be used as link, if it is absent - the column header will be used as link
+- _row headers and annotations_ - in this case, in first order, the row annotation will be used as link, if it is absent - the row header will be used as link.
+- _cell annotations_
+
+The following link types are supported (for each specified entity only single link type can be set at once):
+
+- **COORDINATE** - heatmap label is perceived as coordinates at the reference. When user clicks such label - the corresponding part of reference will be opened
+- **GENE** - heatmap label is perceived as gene name. When user clicks such label - the search over genes will be performed by the label name and then, the result at the GENES track will be opened
+- **REFERENCE** - heatmap label is perceived as reference name. When user clicks such label - the search over loaded references will be performed by the label name and then, the first found dataset with the such reference will be selected and opened
+- **DATASET** - heatmap label is perceived as dataset name. When user clicks such label - the search over datasets will be performed by the label name and then, the found dataset will be selected and opened
+
+> **_Notes_**: the following format of the label text are expected:
+>
+> for the **COORDINATE** link type:
+>
+> - `<reference_name>:<chromosome_name>:<start_position>-<end_position>` - to navigate to the specified reference and the chromosome and the range on it
+> - `<reference_name>:<chromosome_name>:<position>` - to navigate to the specified reference and the chromosome and the position on it
+> - `<chromosome_name>:<start_position>-<end_position>` - to navigate to the specified chromosome and the range on it of the current opened reference
+> - `<chromosome_name>:<position>` - to navigate to the specified chromosome and the position on it of the current opened reference
+>
+> for the **GENE** link type:
+>
+> - `<reference_name>:<gene_name>` - to navigate to the specified reference and the gene on it
+> - `<gene_name>` - to navigate to the specified gene on the current opened reference
+>
+> for the **REFERENCE** link type:
+>
+> - `<reference_name>` - to navigate to the specified reference
+>
+> for the **DATASET** link type:
+>
+> - `<dataset_name>` - to navigate to the specified dataset
+
+_Example 1_ - row headers are perceived as links to **GENE**:
+
+- click the desired row header, e.g.:  
+  ![NGB GUI](images/heatmap-20.png)
+- the corresponding gene will be opened in the **Browser**:  
+  ![NGB GUI](images/heatmap-21.png)
+
+_Example 2_ - cell annotations are perceived as links to **COORDINATE**:
+
+- click the desired cell, e.g.:  
+  ![NGB GUI](images/heatmap-22.png)
+- the corresponding coordinates range will be opened in the **Browser**:  
+  ![NGB GUI](images/heatmap-23.png)
