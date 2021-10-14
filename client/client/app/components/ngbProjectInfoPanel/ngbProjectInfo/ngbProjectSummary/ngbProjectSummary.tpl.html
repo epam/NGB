@@ -17,39 +17,37 @@
         </div>
         <div class="frame u-column-padding" flex ng-repeat="file in ctrl.files">
             <h5 class="format-header">{{file.type}}</h5>
-            <md-list class="md-dense md-list__text heatmap-list" flex>
-                <md-list-item class="md-list-item__sm md-list-item__nospace"
-                              ng-repeat="nameObject in file.names track by nameObject.id">
-                    <md-checkbox class="heatmap-selector"
-                                 ng-change="ctrl.setHeatmap(nameObject.track)"
-                                 ng-false-value="undefined"
-                                 ng-if="ctrl.isHeatmapSelector(file)"
-                                 ng-model="ctrl.currentHeatmapId"
-                                 ng-true-value="{{nameObject.track.id}}">
-                        <span>{{nameObject.customName || nameObject.name}}</span>
-                    </md-checkbox>
+            <div class="summary-item"
+                          ng-repeat="nameObject in file.names track by nameObject.id">
+                <md-checkbox class="heatmap-selector"
+                             ng-change="ctrl.setHeatmap(nameObject.track)"
+                             ng-false-value="undefined"
+                             ng-if="ctrl.isHeatmapSelector(file)"
+                             ng-model="ctrl.currentHeatmapId"
+                             ng-true-value="{{nameObject.track.id}}">
+                    <span>{{nameObject.customName || nameObject.name}}</span>
+                </md-checkbox>
 
-                    <div class="md-list-item__sm md-list-item__nospace"
-                         ng-if="nameObject.customName && !ctrl.isHeatmapSelector(file)"
-                    >
-                        {{nameObject.customName}}
-                    </div>
-                    <div class="md-list-item__sm md-list-item__nospace"
-                         ng-class="{'file-hint': nameObject.customName}"
-                         ng-hide="(nameObject.customName && !ctrl.showTrackOriginalName) || (!nameObject.customName && ctrl.isHeatmapSelector(file))"
-                    >
-                        {{nameObject.name}}
-                    </div>
-                    <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
+                <div class="md-list-item__sm md-list-item__nospace"
+                     ng-if="nameObject.customName && !ctrl.isHeatmapSelector(file)"
+                >
+                    {{nameObject.customName}}
+                </div>
+                <div class="md-list-item__sm md-list-item__nospace"
+                     ng-class="{'file-hint': nameObject.customName}"
+                     ng-hide="(nameObject.customName && !ctrl.showTrackOriginalName) || (!nameObject.customName && ctrl.isHeatmapSelector(file))"
+                >
+                    {{nameObject.name}}
+                </div>
+                <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
                         <span class="structure-card"
                               ng-repeat="(key, value) in nameObject.metadata"
                               title="{{key}}:{{value}}"
                         >
                             {{key}}: {{value}}
                         </span>
-                    </div>
-                </md-list-item>
-            </md-list>
+                </div>
+            </div>
         </div>
     </div>
 </div>

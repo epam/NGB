@@ -59,15 +59,24 @@ ngb-project-summary {
   border: 1px solid #e0e0e0;
   font-weight: normal;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dataset-title {
   padding: 4px 2px;
   background:rgb(248, 247, 247);
 }
 
-md-list.heatmap-list md-list-item .md-list-item-inner {
+.summary-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   min-height: 24px;
-  height: 24px;
+  line-height: 12px;
+  height: unset;
+  padding: 2px 0;
+  font-size: 12px;
   md-checkbox.heatmap-selector {
     margin: 0;
     width: auto;

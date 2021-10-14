@@ -145,7 +145,7 @@ export default class ngbProjectSummaryController {
     }
 
     isHeatmapSelector(file) {
-        return file && file.names && file.names.length > 1 && file.type === 'HEATMAP';
+        return file && file.type === 'HEATMAP';
     }
 
     setHeatmap(heatmap) {
