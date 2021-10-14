@@ -1,3 +1,8 @@
+$menu-item-height: 34px;
+$menu-item-header-height: 40px;
+$menu-item-checkbox-height: 40px;
+$menu-item-button-height: 34px;
+
 ngb-project-info-sections {
   .md-button.project-info-button {
     border-radius: unset;
@@ -18,93 +23,94 @@ ngb-project-info-sections {
   position: relative;
 }
 
-.ngb-project-info-sections-divider {
-  position: absolute;
-  right: 0;
-  top: -2px;
-  bottom: -5px;
-  width: 1px;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.ngb-project-info-sections-menu {
+md-menu-content.ngb-project-info-sections-menu {
   box-sizing: border-box;
   position: absolute;
   width:100%;
-  top: 20px;
-  left: 40px;
   max-height: 75vh;
   overflow-x: hidden;
-  md-checkbox {
-    margin: 8px;
-    height:30px;
+
+  md-menu-item {
+    height: $menu-item-height;
+    min-height: $menu-item-height;
+  }
+
+  md-menu-item.header {
+    height: $menu-item-header-height;
+    min-height: $menu-item-header-height;
+  }
+
+  md-menu-item.checkbox {
+    height: $menu-item-checkbox-height;
+    min-height: $menu-item-checkbox-height;
+  }
+
+  md-menu-item.add-note {
+    height: $menu-item-button-height;
+    min-height: $menu-item-button-height;
+  }
+
+  md-menu-item.divider {
+    height: 1px;
+    min-height: 1px;
+  }
+
+  md-menu-item.project-divider {
+    height: 3px;
+    min-height: 3px;
+  }
+
+  md-menu-item.divider + md-menu-item.divider,
+  md-menu-item.header + md-menu-item.divider {
+    display: none;
+  }
+
+  md-menu-item.project-divider md-divider {
+    width: 100%;
+    height: 3px;
+    background-color: rgba(51,103,214,0.4);
+    border-color: transparent;
+  }
+
+  .project-header {
+    width:100%;
+    display: flex;
+    align-items: center;
+    height: $menu-item-header-height;
+    line-height: $menu-item-header-height;
+    min-height: $menu-item-header-height;
+    margin: 0;
+    padding: 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgb(41, 41, 41);
+    background-color: rgba(51,103,214,0.05);
+  }
+
+  md-checkbox.project-info-menu-checkbox {
+    display: flex;
+    margin: 4px 8px;
+    align-items: center;
+    flex-direction: row;
+    padding: 0 0 0 16px;
+
     .md-label {
-      height:100%;
+      flex: 1;
+      overflow: hidden;
       margin-left: 5px;
       display: flex;
-      justify-content: flex-start;
-      align-items: center;
+
       .label {
-        max-width: 90%;
+        flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .structure-card {
-        padding: 1px 4px 1px 4px;
-        height: 20px;
-        width: fit-content;
-        justify-self: center;
-        flex-grow: unset;
-        cursor: pointer;
-        font-size: xx-small;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #f9f9f9;
-        text-align: center;
-        border-radius: 3px;
-        border: 1px solid #e0e0e0;
-        font-weight: normal;
-        box-sizing: border-box;
-      }
-      .structure-card.description {
-        background-color: white;
-      }
     }
   }
-  .ngb-project-info-sections-add-note {
-    cursor: pointer;
-    height: 38px;
-    min-height: 32px;
+  .md-button.ngb-project-info-sections-add-note {
+    height: $menu-item-button-height;
+    min-height: $menu-item-button-height;
+    line-height: $menu-item-button-height;
   }
-}
-
-.project-info-menu-content {
-  display: block;
-  width: 100%;
-  button {
-    width: inherit;
-    text-align:left;
-    text-transform: uppercase;
-    color: rgb(51,103,214);
-  }
-}
-
-.project-info-menu-item {
-  width:100%;
-  display: flex;
-  align-items: center;
-  height: 30px;
-  line-height: 30px;
-  min-height: 24px;
-  padding: 5px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgb(41, 41, 41);
-  background-color: rgba(51,103,214,0.05);
-}
-
-.project-info-menu-checkbox {
-  display: block;
 }

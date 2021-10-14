@@ -1,69 +1,56 @@
-<md-menu>
+<md-menu md-position-mode="target-left cascade">
   <md-button aria-label="Project info"
              class="md-icon-button project-info-button"
-             style="width: auto; padding-left: 7px"
+             style="width: auto; padding-left: 7px; display: flex; align-items: center;"
              ng-click="$ctrl.onButtonClick($mdOpenMenu, $event)"
   >
     <span>{{$ctrl.ngbProjectInfoService.currentName}}</span>
     <ng-md-icon icon="keyboard_arrow_down"
                 ng-click="$ctrl.openMenu($mdOpenMenu, $event)" size="20"></ng-md-icon>
   </md-button>
-  <md-menu-content width="6" class="ngb-project-info-sections-menu" md-whiteframe="4">
-    <md-checkbox aria-label="Summary" ng-if="$ctrl.ngbProjectInfoService.summaryAvailable"
-                 ng-false-value="{{$ctrl.summaryFalseValue}}"
-                 ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                 ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}">
-      <span style="margin-left: 20px;">Summary</span>
-    </md-checkbox>
-    <span ng-if="$ctrl.projects.length"
-          class="project-info-menu-content"
-          ng-repeat="project in $ctrl.projects track by project.id">
-      <md-divider ng-if="$ctrl.projects.length > 1" style="width: 100%;height: 3px;background-color: rgba(51,103,214,0.4); border-color: transparent;"></md-divider>
-        <md-menu-item class="project-info-menu-item" ng-if="$ctrl.projects.length > 1">
-          {{project.name}}
-        </md-menu-item>
-        <md-menu-item style="width: 100%;" ng-if="project.canEdit || $ctrl.ngbProjectInfoService.canEdit">
-          <md-button md-no-ink
-                     class="md-no-focus"
-                     class="md-primary"
-                     ng-click="$ctrl.ngbProjectInfoService.addNote(project)">
-            + Add note
-          </md-button>
-        </md-menu-item>
-        <md-menu-item ng-if="project.descriptions"
-                      style="background-color: rgb(243, 243, 243);width: 100%;"
-                      ng-repeat="description in project.descriptions track by description.id">
-            <md-checkbox aria-label="{{description.name}}"
-                         ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                         class="project-info-menu-checkbox"
-                         ng-true-value="{{[
-                            $ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
-                            description.id
-                         ]}}"
-                         ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
-                         ng-click="$ctrl.setDescription(project, description.id)">
-              <span title="{{description.name}}">{{description.name}}</span>
-              <span class="structure-card description">description</span>
-            </md-checkbox>
-            </md-menu-item>
-
-            <md-menu-item
-              style="width: 100%;"
-              ng-repeat="(index, note) in project.notes track by note.id">
-            <md-checkbox aria-label="{{note.title}}"
-                   ng-false-value="undefined"
-                   ng-model="$ctrl.ngbProjectInfoService.currentMode"
-                   ng-true-value="{{note.id}}"
+  <md-menu-content width="5"
+                   class="ngb-project-info-sections-menu"
+                   md-whiteframe="4">
+    <md-menu-item>
+      <md-checkbox aria-label="Summary"
                    class="project-info-menu-checkbox"
-                   ng-click=$ctrl.setCurrentProject(project)>
-        <span class="label" title="{{note.title}}">{{note.title}}</span>
-        <span class="structure-card">note</span>
+                   ng-false-value="{{$ctrl.summaryFalseValue}}"
+                   ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                   ng-true-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}">
+        <span>Summary</span>
       </md-checkbox>
     </md-menu-item>
-    </span>
+    <md-menu-item ng-repeat="item in $ctrl.plainItems track by item.id"
+                  ng-if="(!item.isHeader && !item.isProjectDivider) || $ctrl.multipleProjects"
+                  ng-class="{'divider': (item.isDivider || item.isProjectDivider), 'project-divider': item.isProjectDivider, 'header': item.isHeader, 'add-note': item.isAddNote, 'checkbox': item.isNote || item.isDescription}">
+      <md-divider ng-if="item.isDivider || item.isProjectDivider"></md-divider>
+      <span ng-if="item.isHeader && $ctrl.multipleProjects" class="project-header">
+        {{item.project.name}}
+      </span>
+      <md-checkbox ng-if="item.isDescription"
+                   aria-label="{{item.description.name}}"
+                   ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                   class="project-info-menu-checkbox"
+                   ng-true-value="{{[$ctrl.ngbProjectInfoService.projectInfoModeList.DESCRIPTION, item.description.id]}}"
+                   ng-false-value="{{$ctrl.ngbProjectInfoService.projectInfoModeList.SUMMARY}}"
+                   ng-click="$ctrl.setDescription(item.project, item.description.id)">
+        <span title="{{item.description.name}}">{{item.description.name}}</span>
+      </md-checkbox>
+      <md-checkbox ng-if="item.isNote"
+                   aria-label="{{item.note.title}}"
+                   ng-false-value="undefined"
+                   ng-model="$ctrl.ngbProjectInfoService.currentMode"
+                   ng-true-value="{{item.note.id}}"
+                   class="project-info-menu-checkbox"
+                   ng-click=$ctrl.setCurrentProject(item.project)>
+        <span class="label" title="{{item.note.title}}">{{item.note.title}}</span>
+      </md-checkbox>
+      <md-button md-no-ink
+                 ng-if="item.isAddNote"
+                 class="ngb-project-info-sections-add-note md-no-focus md-primary"
+                 ng-click="$ctrl.ngbProjectInfoService.addNote(item.project)">
+        + Add note
+      </md-button>
+    </md-menu-item>
   </md-menu-content>
 </md-menu>
-<div class="ngb-project-info-sections-divider"
-     ng-if="$ctrl.ngbProjectInfoService.summaryAvailable && $ctrl.descriptionAvailable">
-  &nbsp
-</div>

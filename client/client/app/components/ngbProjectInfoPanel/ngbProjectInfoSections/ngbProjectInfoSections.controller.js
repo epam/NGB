@@ -27,6 +27,14 @@ export default class ngbProjectInfoSectionsController extends baseController {
         return this.ngbProjectInfoService.projects;
     }
 
+    get multipleProjects() {
+        return this.projects.length > 1;
+    }
+
+    get plainItems() {
+        return this.ngbProjectInfoService.plainItems;
+    }
+
     setDescription (project, descriptionId) {
         const [
             currentMode,
