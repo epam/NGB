@@ -91,6 +91,7 @@ function parseDataItem(data) {
  * @typedef {Object} HeatmapTreeItem
  * @property {string} name
  * @property {string} [annotation]
+ * @property {number} [weight]
  * @property {*[]} [info]
  */
 
@@ -151,7 +152,7 @@ export default class HeatmapBinaryTree {
 
     getPlainData() {
         if (this.isLeaf) {
-            return [this.data];
+            return [this];
         }
         if (this.right && this.left) {
             return [...this.left.getPlainData(), ...this.right.getPlainData()];
@@ -159,14 +160,56 @@ export default class HeatmapBinaryTree {
         return [];
     }
 
+    prepare() {
+        this.buildOrders();
+        this.setDepth();
+    }
+
+    setDepth() {
+        const leftDepth = this.left ? (this.left.setDepth() + 1) : 0;
+        const rightDepth = this.right ? (this.right.setDepth() + 1) : 0;
+        this.depth = Math.max(leftDepth, rightDepth);
+        return this.depth;
+    }
+
+    buildIndexRanges() {
+        if (!this.isLeaf && this.left && this.right) {
+            this.left.buildIndexRanges();
+            this.right.buildIndexRanges();
+            const {
+                indexRange: lIndexRange = {}
+            } = this.left;
+            const {
+                indexRange: rIndexRange = {}
+            } = this.right;
+            const indexArray = [
+                lIndexRange.start || 0,
+                lIndexRange.end || 0,
+                rIndexRange.start || 0,
+                rIndexRange.end || 0
+            ];
+            this.indexRange = {
+                start: Math.min(...indexArray),
+                end: Math.max(...indexArray),
+                center: ((lIndexRange.center || 0) + (rIndexRange.center || 0)) / 2.0
+            };
+        }
+    }
+
     buildOrders() {
         this.plain = this.getPlainData();
         this.orders.clear();
         this.reverseOrders.clear();
         this.plain.forEach((item, index) => {
-            this.orders.set(item.name, index);
-            this.reverseOrders.set(index, item.name);
+            item.indexRange = {
+                start: index,
+                end: index,
+                center: index
+            };
+            this.orders.set(item.data.name, index);
+            this.reverseOrders.set(index, item.data.name);
         });
+        this.buildIndexRanges();
     }
 
     getOrder(item, valueFn = (o => o)) {

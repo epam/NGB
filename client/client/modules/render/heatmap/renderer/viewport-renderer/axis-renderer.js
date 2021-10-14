@@ -1,18 +1,20 @@
 import * as PIXI from 'pixi.js-legacy';
 import AxisLabel from './utilities/axis-label';
-import AxisVectors from './axis-vectors';
+import AxisVectors from '../../utilities/axis-vectors';
 import {EventTypes} from '../../interactions/events';
+import HeatmapScaleScroller from './scroller-renderer';
 import InteractiveZone from '../../interactions/interactive-zone';
 import cancellablePromise from '../data-renderer/utilities/cancellable-promise';
 import config from './config';
 import events from '../../utilities/events';
 import makeInitializable from '../../utilities/make-initializable';
-import {movePoint} from './utilities/vector-utilities';
+import {movePoint} from '../../utilities/vector-utilities';
 
 class HeatmapAxisRenderer extends InteractiveZone {
     /**
      *
      * @param {HeatmapViewOptions} options
+     * @param {HeatmapInteractions} interactions
      * @param {HeatmapAxis} axis
      * @param {LabelsManager} labelsManager
      * @param {{[x]: number, [y]: number}} [direction]
@@ -20,6 +22,7 @@ class HeatmapAxisRenderer extends InteractiveZone {
      */
     constructor(
         options,
+        interactions,
         axis,
         labelsManager,
         direction = {},
@@ -29,9 +32,35 @@ class HeatmapAxisRenderer extends InteractiveZone {
             priority: InteractiveZone.Priorities.scale
         });
         makeInitializable(this);
+        /**
+         *
+         * @type {HeatmapViewOptions}
+         */
+        this.options = options;
+        /**
+         * Scroller
+         * @type {HeatmapScaleScroller}
+         */
+        this.scroller = new HeatmapScaleScroller(axis, direction, normal);
+        /**
+         *
+         * @type {HeatmapInteractions}
+         */
+        this.interactions = interactions;
+        if (this.interactions) {
+            this.interactions.registerInteractiveZone(this);
+            this.interactions.registerInteractiveZone(this.scroller);
+        }
+        this.onDendrogramModeChangedCallback = this.onDendrogramModeChanged.bind(this);
+        if (this.options) {
+            this.options.onDendrogramModeChanged(this.onDendrogramModeChangedCallback);
+        }
         this.axis = axis;
         this.labelsManager = labelsManager;
         this.container = new PIXI.Container();
+        this.labelsContainer =new PIXI.Container();
+        this.container.addChild(this.labelsContainer);
+        this.container.addChild(this.scroller.container);
         const {x = 1, y = 0} = direction;
         this.direction = {x, y};
         this.normal = normal;
@@ -64,35 +93,66 @@ class HeatmapAxisRenderer extends InteractiveZone {
         if (typeof this.cancelInitialization === 'function') {
             this.cancelInitialization();
         }
-        if (this.container) {
-            this.container.destroy();
-        }
         if (this.ticks) {
             this.ticks.forEach(tick => tick.destroy());
             this.ticks = [];
         }
+        if (this.options) {
+            this.options.removeEventListeners(this.onDendrogramModeChangedCallback);
+        }
+        if (this.interactions) {
+            this.interactions.unregisterInteractiveZone(this);
+            this.interactions.unregisterInteractiveZone(this.scroller);
+        }
+        if (this.scroller) {
+            this.scroller.destroy();
+        }
+        if (this.container) {
+            this.container.destroy();
+        }
+        this.scroller = undefined;
+        this.interactions = undefined;
+        this.options = undefined;
         this.labelsManager = undefined;
         super.destroy();
     }
 
     get axisSize() {
-        if (Number.isNaN(Number(this._labelsMaxSize))) {
+        if (
+            Number.isNaN(Number(this._labelsMaxWidth)) ||
+            !Number.isFinite(Number(this._labelsMaxWidth)) ||
+            Number(this._labelsMaxWidth) <= 0
+        ) {
             return config.maxAxisSize;
         }
         return Math.min(
-            config.maxAxisSize,
-            Number(this._labelsMaxSize)
+            this.options && this.options.dendrogram ? Infinity : config.maxAxisSize,
+            Number(this._labelsMaxWidth) + this.scroller.size
         );
     }
 
+    get actualAxisSize() {
+        if (this.labelFitsTick && this.direction.y === 0) {
+            return this._labelsMaxHeight + this.scroller.size;
+        }
+        return this.axisSize;
+    }
+
     get labelFitsTick () {
-        return !Number.isNaN(Number(this._labelsMaxSize)) &&
-            this._labelsMaxSize <= this.axis.scale.tickSize;
+        return !Number.isNaN(Number(this._labelsMaxWidth)) &&
+            this._labelsMaxWidth <= this.axis.scale.tickSize;
     }
 
     get labelExtraRotation () {
-        if (!Number.isNaN(Number(this._labelsMaxSize)) && this._labelsMaxSize > config.maxAxisSize) {
-            return Math.min(Math.PI / 4.0, Math.acos(config.maxAxisSize / this._labelsMaxSize));
+        if (
+            !(this.options && this.options.dendrogram) &&
+            !Number.isNaN(Number(this._labelsMaxWidth)) &&
+            this._labelsMaxWidth + this.scroller.size > config.maxAxisSize
+        ) {
+            return Math.min(
+                Math.PI / 4.0,
+                Math.acos(config.maxAxisSize / (this._labelsMaxWidth + this.scroller.size))
+            );
         }
         return 0;
     }
@@ -103,6 +163,10 @@ class HeatmapAxisRenderer extends InteractiveZone {
 
     onLayout(callback) {
         this.addEventListener(events.layout, callback);
+    }
+
+    onDendrogramModeChanged() {
+        this.emit(events.layout);
     }
 
     /**
@@ -122,9 +186,8 @@ class HeatmapAxisRenderer extends InteractiveZone {
             showAnnotations
         };
         const updateFn = (isCancelledFn) => {
-            this.container.removeChildren();
-            this.labelsContainer =new PIXI.Container();
-            this.container.addChild(this.labelsContainer);
+            this.scroller.initialize();
+            this.labelsContainer.removeChildren();
             this._hoveredTick = undefined;
             this.ticks.forEach(tick => tick.destroy());
             this.ticks = [];
@@ -137,9 +200,11 @@ class HeatmapAxisRenderer extends InteractiveZone {
                         this.ticks.push(tick);
                         this.labelsContainer.addChild(tick.container);
                     });
-                    const currentLabelMaxSize = this._labelsMaxSize;
+                    const currentLabelMaxWidth = this._labelsMaxWidth;
+                    const currentLabelMaxHeight = this._labelsMaxHeight;
                     this.calculateAxisSize();
-                    const reportLayoutChange = currentLabelMaxSize !== this._labelsMaxSize;
+                    const reportLayoutChange = currentLabelMaxWidth !== this._labelsMaxWidth ||
+                        currentLabelMaxHeight !== this._labelsMaxHeight;
                     this.updateTicksPositions();
                     this.updateTicksVisibility();
                     requestAnimationFrame(() => {
@@ -167,7 +232,14 @@ class HeatmapAxisRenderer extends InteractiveZone {
     }
 
     calculateAxisSize () {
-        this._labelsMaxSize = Math.max(0, ...this.ticks.map(tick => tick.size));
+        this._labelsMaxWidth = Math.max(
+            0,
+            ...this.ticks.map(tick => tick.width)
+        );
+        this._labelsMaxHeight = Math.max(
+            0,
+            ...this.ticks.map(tick => tick.height)
+        );
     }
 
     clearRenderSession() {
@@ -368,14 +440,16 @@ class HeatmapAxisRenderer extends InteractiveZone {
 
     translate() {
         const shift = this.axis.getDevicePosition(0);
-        this.labelsContainer.x = this.direction.x * shift;
-        this.labelsContainer.y = this.direction.y * shift;
+        const offset = this.scroller.size;
+        this.labelsContainer.x = this.direction.x * shift + this.normal.x * offset;
+        this.labelsContainer.y = this.direction.y * shift + this.normal.y * offset;
     }
 
     render() {
         if (!this.initialized) {
             return false;
         }
+        const dendrogramChanged = !!this.options && this.session.dendrogram !== this.options.dendrogram;
         const scaleChanged = this.session.scale !== this.axis.scale.tickSize;
         const positionChanged = scaleChanged ||
             this.session.center !== this.axis.center ||
@@ -384,10 +458,10 @@ class HeatmapAxisRenderer extends InteractiveZone {
         const hoverChanged = this.session.hovered !== hoveredTickValue;
         const visibilityChanged = (scaleChanged || hoverChanged) && !this.axis.isAnimating;
         let changed = false;
-        if (scaleChanged) {
+        if (scaleChanged || dendrogramChanged) {
             changed = this.updateTicksPositions() || changed;
         }
-        if (positionChanged || hoverChanged || visibilityChanged) {
+        if (positionChanged || dendrogramChanged || hoverChanged || visibilityChanged) {
             this.translate();
             changed = this.updateTicksVisibility() || changed;
         }
@@ -399,18 +473,30 @@ class HeatmapAxisRenderer extends InteractiveZone {
         this.session.center = this.axis.center;
         this.session.deviceSize = this.axis.deviceSize;
         this.session.hovered = hoveredTickValue;
+        this.session.dendrogram = !!this.options && this.options.dendrogram;
+        const scrollerChanged = this.scroller ? this.scroller.render() : false;
         return scaleChanged ||
             positionChanged ||
             hoverChanged ||
             visibilityChanged ||
+            dendrogramChanged ||
+            scrollerChanged ||
             changed;
     }
 }
 
 export class ColumnsRenderer extends HeatmapAxisRenderer {
-    constructor(options, viewport, labelsManager) {
+    /**
+     *
+     * @param {HeatmapViewOptions} options
+     * @param {HeatmapInteractions} interactions
+     * @param {HeatmapViewport} viewport
+     * @param {LabelsManager} labelsManager
+     */
+    constructor(options, interactions, viewport, labelsManager) {
         super(
             options,
+            interactions,
             viewport.columns,
             labelsManager,
             AxisVectors.columns.direction,
@@ -446,9 +532,17 @@ export class ColumnsRenderer extends HeatmapAxisRenderer {
 }
 
 export class RowsRenderer extends HeatmapAxisRenderer {
-    constructor(options, viewport, labelsManager) {
+    /**
+     *
+     * @param {HeatmapViewOptions} options
+     * @param {HeatmapInteractions} interactions
+     * @param {HeatmapViewport} viewport
+     * @param {LabelsManager} labelsManager
+     */
+    constructor(options, interactions, viewport, labelsManager) {
         super(
             options,
+            interactions,
             viewport.rows,
             labelsManager,
             AxisVectors.rows.direction,

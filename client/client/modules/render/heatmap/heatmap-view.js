@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js-legacy';
 import {
     HeatmapColorSchemeRenderer,
     HeatmapDataRenderer,
+    HeatmapDendrogramRenderer,
+    HeatmapOptionsRenderer,
     HeatmapViewportRenderer
 } from './renderer';
 import HeatmapEventDispatcher from './utilities/heatmap-event-dispatcher';
@@ -25,6 +27,7 @@ const ZERO_PADDING = parseOffset(0);
  * @property {dispatcher} dispatcher
  * @property {projectContext} projectContext
  * @property {string} state
+ * @property {boolean} [showOptionsButtons=true]
  */
 
 class HeatmapView extends HeatmapEventDispatcher {
@@ -167,6 +170,14 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.dataRenderer.destroy();
             this.dataRenderer = undefined;
         }
+        if (this.dendrogramRenderer) {
+            this.dendrogramRenderer.destroy();
+            this.dendrogramRenderer = undefined;
+        }
+        if (this.optionsRenderer) {
+            this.optionsRenderer.destroy();
+            this.optionsRenderer = undefined;
+        }
     }
 
     destroy() {
@@ -222,7 +233,8 @@ class HeatmapView extends HeatmapEventDispatcher {
             width,
             height,
             dispatcher,
-            padding
+            padding,
+            showOptionsButtons = true
         } = options;
         if (dispatcher) {
             this.options.colorScheme.attachDispatcher(dispatcher);
@@ -241,6 +253,9 @@ class HeatmapView extends HeatmapEventDispatcher {
         }
         if (dataConfig) {
             this.options.data.options = dataConfig;
+        }
+        if (this.optionsRenderer) {
+            this.optionsRenderer.visible = showOptionsButtons;
         }
         this.render();
     }
@@ -296,6 +311,21 @@ class HeatmapView extends HeatmapEventDispatcher {
         }
     }
 
+    ensureOptionsRenderer() {
+        if (!this.optionsRenderer) {
+            this.ensureHeatmapInteractions();
+            /**
+             * Renders heatmap options (buttons)
+             * @type {HeatmapOptionsRenderer}
+             */
+            this.optionsRenderer = new HeatmapOptionsRenderer(
+                this.labelsManager,
+                this.heatmapInteractions,
+                this.options
+            );
+        }
+    }
+
     ensureColorSchemeRenderer() {
         if (!this.colorSchemeRenderer) {
             /**
@@ -339,6 +369,28 @@ class HeatmapView extends HeatmapEventDispatcher {
         }
     }
 
+    ensureDendrogramRenderer() {
+        if (!this.dendrogramRenderer) {
+            this.ensureHeatmapInteractions();
+            /**
+             * Renders heatmap dendrogram
+             * @type {HeatmapDendrogramRenderer}
+             */
+            this.dendrogramRenderer = new HeatmapDendrogramRenderer(
+                this.heatmapInteractions,
+                this.options,
+                this.heatmapViewport
+            );
+            this.dendrogramRenderer.initialize();
+            this.dendrogramRenderer.onInitialized(this.render.bind(this, false));
+            this.dendrogramRenderer.onLayout(() => {
+                if (!this.heatmapInteractions.userInteracted) {
+                    this.render(true);
+                }
+            });
+        }
+    }
+
     /**
      * Updates display options (renderer & DOM element)
      * @param {DisplayOptions} options
@@ -379,12 +431,16 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.ensureViewportRenderer();
             this.ensureColorSchemeRenderer();
             this.ensureDataRenderer();
+            this.ensureDendrogramRenderer();
+            this.ensureOptionsRenderer();
             this.viewportRenderer.initialize(this.options.data.metadata);
             this.colorSchemeRenderer.initialize();
             this.dataRenderer.initialize(this.pixiRenderer);
             this.container.addChild(this.dataRenderer.container);
             this.container.addChild(this.viewportRenderer.container);
+            this.container.addChild(this.dendrogramRenderer.container);
             this.container.addChild(this.colorSchemeRenderer.container);
+            this.container.addChild(this.optionsRenderer.container);
         }
         this.initialized = !!pixiRenderer && !!domElement;
         this.render();
@@ -408,10 +464,14 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.heatmapViewport.deviceWidth = width;
             this.heatmapViewport.offsetY = 0;
             this.heatmapViewport.deviceHeight = height;
+            if (this.dendrogramRenderer) {
+                this.dendrogramRenderer.updateWindowSize(width, height);
+            }
         }
     }
 
     layout(fit = false) {
+        this.optionsRenderer.setPosition(this.padding.left, this.padding.top);
         if (!this.viewportRenderer) {
             return false;
         }
@@ -421,8 +481,10 @@ class HeatmapView extends HeatmapEventDispatcher {
                 height: this.height
             },
             {
-                ...this.padding,
-                right: this.colorSchemeRenderer.width + this.padding.right
+                left: this.dendrogramRenderer.rows.size + this.padding.left,
+                top: this.dendrogramRenderer.columns.size + this.padding.top,
+                right: this.colorSchemeRenderer.width + this.padding.right,
+                bottom: this.padding.bottom
             }
         );
         if (layoutInfo) {
@@ -435,21 +497,34 @@ class HeatmapView extends HeatmapEventDispatcher {
             if (fit) {
                 this.heatmapViewport.best(false);
             }
+            /**
+             * Returns array of [x, y]
+             * @param {{container: PIXI.Container}} o
+             */
+            const getPositions = (o) => ([
+                o.container.x,
+                o.container.y
+            ]);
+            /**
+             * Updates position
+             * @param {{container: PIXI.Container}} o
+             */
+            const updatePositions = (o) => {
+                o.container.x = layoutInfo.offset.column;
+                o.container.y = layoutInfo.offset.row;
+            };
             const currentPositions = [
-                this.viewportRenderer.container.x,
-                this.viewportRenderer.container.y,
-                this.dataRenderer.container.x,
-                this.dataRenderer.container.y
+                ...getPositions(this.viewportRenderer),
+                ...getPositions(this.dataRenderer),
+                ...getPositions(this.dendrogramRenderer)
             ];
-            this.viewportRenderer.container.x = layoutInfo.offset.column;
-            this.viewportRenderer.container.y = layoutInfo.offset.row;
-            this.dataRenderer.container.x = layoutInfo.offset.column;
-            this.dataRenderer.container.y = layoutInfo.offset.row;
+            updatePositions(this.viewportRenderer);
+            updatePositions(this.dataRenderer);
+            updatePositions(this.dendrogramRenderer);
             const newPositions = [
-                this.viewportRenderer.container.x,
-                this.viewportRenderer.container.y,
-                this.dataRenderer.container.x,
-                this.dataRenderer.container.y
+                ...getPositions(this.viewportRenderer),
+                ...getPositions(this.dataRenderer),
+                ...getPositions(this.dendrogramRenderer)
             ];
             return currentPositions
                 .filter((p, index) => newPositions[index] !== p)
@@ -468,6 +543,28 @@ class HeatmapView extends HeatmapEventDispatcher {
         return currentX !== this.colorSchemeRenderer.container.x || changed;
     }
 
+    renderDendrogram() {
+        if (!this.dendrogramRenderer) {
+            return false;
+        }
+        if (this.viewportRenderer) {
+            /**
+             *
+             * @param {HeatmapAxisRenderer} axisRenderer
+             * @returns {{offset: number, extraSpace: number}}
+             */
+            const getPositionInfo = (axisRenderer) => ({
+                offset: axisRenderer.actualAxisSize,
+                extraSpace: Math.max(0, axisRenderer.axisSize - axisRenderer.actualAxisSize)
+            });
+            const columnsInfo = getPositionInfo(this.viewportRenderer.columnAxis);
+            const rowsInfo = getPositionInfo(this.viewportRenderer.rowAxis);
+            this.dendrogramRenderer.columns.updatePosition(columnsInfo.offset, columnsInfo.extraSpace);
+            this.dendrogramRenderer.rows.updatePosition(rowsInfo.offset, rowsInfo.extraSpace);
+        }
+        return this.dendrogramRenderer.render();
+    }
+
     renderHeatmap(fit = false) {
         let somethingChanged = false;
         const render = renderResult => {
@@ -477,6 +574,8 @@ class HeatmapView extends HeatmapEventDispatcher {
         render(this.layout(fit));
         render(this.dataRenderer.render());
         render(this.viewportRenderer.render());
+        render(this.renderDendrogram());
+        render(this.optionsRenderer.render());
         return somethingChanged;
     }
 

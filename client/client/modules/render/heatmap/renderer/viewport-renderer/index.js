@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
 import {ColumnsRenderer, RowsRenderer} from './axis-renderer';
-import {ColumnsScrollerRenderer, RowsScrollerRenderer} from './scroller-renderer';
 import InteractiveZone from '../../interactions/interactive-zone';
 import config from './config';
 import events from '../../utilities/events';
@@ -24,58 +23,55 @@ class HeatmapViewportRenderer extends InteractiveZone {
         this.viewport = viewport;
         this.labelsManager = labelsManager;
         this.container = new PIXI.Container();
-        this.columnAxis = new ColumnsRenderer(options, viewport, labelsManager);
-        this.rowAxis = new RowsRenderer(options, viewport, labelsManager);
+        /**
+         *
+         * @type {HeatmapViewOptions}
+         */
+        this.options = options;
+        this.annotationsDisplayChangedCallback = () => {
+            if (this.options && this.options.data && this.options.data.metadata) {
+                this.initialize(this.options.data.metadata);
+            }
+        };
+        if (this.options) {
+            this.options.onAnnotationsModeChanged(this.annotationsDisplayChangedCallback);
+        }
+        this.columnAxis = new ColumnsRenderer(options, interactions, viewport, labelsManager);
+        this.rowAxis = new RowsRenderer(options, interactions, viewport, labelsManager);
         this.columnAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {column: payload}));
         this.rowAxis.onAxisItemClick((axis, payload) => this.emit(events.click, {row: payload}));
         this.columnAxis.onLayout(() => this.emit(events.layout));
         this.rowAxis.onLayout(() => this.emit(events.layout));
-        this.columnScroller = new ColumnsScrollerRenderer(viewport);
-        this.rowScroller = new RowsScrollerRenderer(viewport);
         this.interactions = interactions;
         this.interactions.registerInteractiveZone(this);
-        this.interactions.registerInteractiveZone(this.columnAxis);
-        this.interactions.registerInteractiveZone(this.rowAxis);
-        this.interactions.registerInteractiveZone(this.columnScroller);
-        this.interactions.registerInteractiveZone(this.rowScroller);
 
         this.selection = new PIXI.Graphics();
         this.container.addChild(this.columnAxis.container);
         this.container.addChild(this.rowAxis.container);
-        this.container.addChild(this.columnScroller.container);
-        this.container.addChild(this.rowScroller.container);
         this.container.addChild(this.selection);
 
         this.selectionInfo = undefined;
 
         this.initialized = false;
         const onInitialized = () => {
-            this.initialized = this.columnAxis.initialized &&
-                this.rowAxis.initialized &&
-                this.columnScroller.initialized &&
-                this.rowScroller.initialized;
+            this.initialized = this.columnAxis.initialized && this.rowAxis.initialized;
         };
         this.columnAxis.onInitialized(onInitialized);
         this.rowAxis.onInitialized(onInitialized);
-        this.columnScroller.onInitialized(onInitialized);
-        this.rowScroller.onInitialized(onInitialized);
-        this.initialize();
     }
 
     destroy() {
         this.interactions.unregisterInteractiveZone(this);
-        this.interactions.unregisterInteractiveZone(this.columnAxis);
-        this.interactions.unregisterInteractiveZone(this.rowAxis);
-        this.interactions.unregisterInteractiveZone(this.columnScroller);
-        this.interactions.unregisterInteractiveZone(this.rowScroller);
         if (this.container) {
             this.container.destroy();
         }
         this.columnAxis.destroy();
         this.rowAxis.destroy();
-        this.columnScroller.destroy();
-        this.rowScroller.destroy();
         this.labelsManager = undefined;
+        if (this.options) {
+            this.options.removeEventListeners(this.annotationsDisplayChangedCallback);
+        }
+        this.options = undefined;
         super.destroy();
     }
 
@@ -145,8 +141,9 @@ class HeatmapViewportRenderer extends InteractiveZone {
             columns = [],
             rows = []
         } = metadata;
-        this.columnAxis.initialize(columns);
-        this.rowAxis.initialize(rows);
+        const showAnnotations = !this.options || this.options.annotations;
+        this.columnAxis.initialize(columns, showAnnotations);
+        this.rowAxis.initialize(rows, showAnnotations);
     }
 
     /**
@@ -268,8 +265,6 @@ class HeatmapViewportRenderer extends InteractiveZone {
     render() {
         let somethingChanged = this.columnAxis.render();
         somethingChanged = this.rowAxis.render() || somethingChanged;
-        somethingChanged = this.columnScroller.render() || somethingChanged;
-        somethingChanged = this.rowScroller.render() || somethingChanged;
         somethingChanged = this.renderSelection() || somethingChanged;
         return somethingChanged;
     }

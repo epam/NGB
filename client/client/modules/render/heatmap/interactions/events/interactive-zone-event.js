@@ -32,6 +32,16 @@ export default class InteractiveZoneEvent {
          */
         this.y = y;
         /**
+         * Mouse x position (relative to document)
+         * @type {number}
+         */
+        this.clientX = event.clientX;
+        /**
+         * Mouse y position (relative to document)
+         * @type {number}
+         */
+        this.clientY = event.clientY;
+        /**
          * Mouse x position (relative to canvas)
          * @type {number}
          */
