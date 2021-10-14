@@ -55,7 +55,7 @@ export default class ngbProjectSummaryController {
         const files = [];
         const items = this.projectContext.tracks;
         const datasetsId = items.reduce((datasetsID, item) => {
-            const id = item && item.project ? item.project.id: null;
+            const id = item && item.project ? item.project.id : null;
             if (id) {
                 if (!datasetsID.includes(id)) {
                     datasetsID.push(id);
@@ -68,10 +68,8 @@ export default class ngbProjectSummaryController {
             return dataset;
         });
         this.heatmap = undefined;
+        this.currentHeapmapId = undefined;
         for (const item of items) {
-            if (item.format === 'HEATMAP' && !this.heatmap) {
-                this.heatmap = item;
-            }
             let added = false;
             const name = this.getTrackFileName(item);
             const customName = this.getCustomName(item) || '';
@@ -88,7 +86,7 @@ export default class ngbProjectSummaryController {
             ) {
                 const metadataObj = this.datasets.reduce((result, dataset) => {
                     const [itemInfo] = dataset.items
-                        .filter(dsItem => dsItem.format === item.format && dsItem.id=== item.id);
+                        .filter(dsItem => dsItem.format === item.format && dsItem.id === item.id);
                     if (itemInfo) {
                         result = itemInfo.metadata;
                     }
@@ -141,12 +139,23 @@ export default class ngbProjectSummaryController {
         });
         this.files = files;
     }
+
     datasetContainsMetadata() {
         return this.datasets.some(dataset => !!dataset.metadata);
     }
 
     isHeatmapSelector(file) {
         return file && file.names && file.names.length > 1 && file.type === 'HEATMAP';
+    }
+
+    setHeatmap(heatmap) {
+        if (this.currentHeapmapId === heatmap.id) {
+            this.heatmap = undefined;
+            this.currentHeapmapId = undefined;
+        } else {
+            this.heatmap = heatmap;
+            this.currentHeapmapId = heatmap.id;
+        }
     }
 
     getTrackFileName(track) {

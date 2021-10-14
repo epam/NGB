@@ -6,7 +6,7 @@
                 <h5 class="dataset-title">{{dataset.name}}</h5>
                 <md-list flex class="md-dense md-list__text">
                     <md-list-item class="md-list-item__sm md-list-item__nospace"
-                                ng-repeat="(key, value) in dataset.metadata"
+                                  ng-repeat="(key, value) in dataset.metadata"
                     >
                         <span class="structure-card" title="{{key}}:{{value}}">
                             {{key}}: {{value}}
@@ -17,40 +17,39 @@
         </div>
         <div class="frame u-column-padding" flex ng-repeat="file in ctrl.files">
             <h5 class="format-header">{{file.type}}</h5>
-            <md-radio-group ng-model="ctrl.heatmap">
-                <md-list flex class="md-dense md-list__text">
-                    <md-list-item class="md-list-item__sm md-list-item__nospace"
-                                  ng-repeat="nameObject in file.names track by nameObject.id"
+            <md-list class="md-dense md-list__text heatmap-list" flex>
+                <md-list-item class="md-list-item__sm md-list-item__nospace"
+                              ng-repeat="nameObject in file.names track by nameObject.id">
+                    <md-checkbox class="heatmap-selector"
+                                 ng-change="ctrl.setHeatmap(nameObject.track)"
+                                 ng-false-value="undefined"
+                                 ng-if="ctrl.isHeatmapSelector(file)"
+                                 ng-model="ctrl.currentHeatmapId"
+                                 ng-true-value="{{nameObject.track.id}}">
+                        <span>{{nameObject.customName || nameObject.name}}</span>
+                    </md-checkbox>
+
+                    <div class="md-list-item__sm md-list-item__nospace"
+                         ng-if="nameObject.customName && !ctrl.isHeatmapSelector(file)"
                     >
-                        <md-radio-button class="heatmap-selector"
-                                         ng-value="nameObject.track"
-                                         ng-if="ctrl.isHeatmapSelector(file)">
-                            {{nameObject.customName || nameObject.name}}
-                        </md-radio-button>
-                        <div class="md-list-item__sm md-list-item__nospace"
-                             ng-if="nameObject.customName && !ctrl.isHeatmapSelector(file)"
-                        >
-                            {{nameObject.customName}}
-                        </div>
-                        <div class="md-list-item__sm md-list-item__nospace"
-                             ng-class="{'file-hint': nameObject.customName}"
-                             ng-hide="(nameObject.customName && !ctrl.showTrackOriginalName) || (!nameObject.customName && ctrl.isHeatmapSelector(file))"
-                        >
-                            {{nameObject.name}}
-                        </div>
-                        <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
-                        <span
-                                ng-repeat="(key, value) in nameObject.metadata"
-                                class="structure-card"
-                                title="{{key}}:{{value}}"
+                        {{nameObject.customName}}
+                    </div>
+                    <div class="md-list-item__sm md-list-item__nospace"
+                         ng-class="{'file-hint': nameObject.customName}"
+                         ng-hide="(nameObject.customName && !ctrl.showTrackOriginalName) || (!nameObject.customName && ctrl.isHeatmapSelector(file))"
+                    >
+                        {{nameObject.name}}
+                    </div>
+                    <div style="width: 50%; display:flex; flex-wrap: wrap; margin-left: 20px;">
+                        <span class="structure-card"
+                              ng-repeat="(key, value) in nameObject.metadata"
+                              title="{{key}}:{{value}}"
                         >
                             {{key}}: {{value}}
                         </span>
-                        </div>
-                    </md-list-item>
-                </md-list>
-            </md-radio-group>
+                    </div>
+                </md-list-item>
+            </md-list>
         </div>
     </div>
 </div>
-

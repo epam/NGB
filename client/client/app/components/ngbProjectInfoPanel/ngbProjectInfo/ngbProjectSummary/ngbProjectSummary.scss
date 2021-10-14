@@ -65,12 +65,19 @@ ngb-project-summary {
   background:rgb(248, 247, 247);
 }
 
-.heatmap-selector {
-  margin: 2px;
-  .md-label {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 150px;
+md-list.heatmap-list md-list-item .md-list-item-inner {
+  min-height: 24px;
+  height: 24px;
+  md-checkbox.heatmap-selector {
+    margin: 0;
+    width: auto;
+    .md-label {
+      line-height: 24px;
+      display: inline;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 150px;
+    }
   }
 }
