@@ -284,6 +284,9 @@ export default class ngbBlastSearchService {
         if (!data.organisms) {
             data.organisms = [];
         }
+        if (!data.db) {
+            data.db = [];
+        }
         return {request: data, error};
     }
 
@@ -308,9 +311,6 @@ export default class ngbBlastSearchService {
                 id: data.id,
                 tool: data.tool,
                 db: data.db,
-                dbName: data.dbName,
-                dbSource: data.dbSource,
-                dbType: data.dbType,
                 title: data.title
             };
         } else {
@@ -322,6 +322,7 @@ export default class ngbBlastSearchService {
 
     createSearchRequest(searchRequest, additionalParams) {
         searchRequest.organismsArray = searchRequest.organisms ? searchRequest.organisms.map(o => o.taxid) : [];
+        searchRequest.dbArray = searchRequest.db ? searchRequest.db.map(o => o.id) : [];
         return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest, additionalParams)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
@@ -361,10 +362,7 @@ export default class ngbBlastSearchService {
             id: search.id,
             title: search.title,
             algorithm: search.algorithm,
-            db: search.database ? search.database.id : undefined,
-            dbName: search.database ? search.database.name : '',
-            dbSource: search.database ? search.database.source : undefined,
-            dbType: search.database ? search.database.type : undefined,
+            db: search.database || [],
             tool: search.executable,
             sequence: search.query,
             state: search.status,
@@ -389,7 +387,7 @@ export default class ngbBlastSearchService {
         const result = {
             title: search.title || '',
             algorithm: search.algorithm,
-            databaseId: search.db,
+            databaseId: search.dbArray,
             executable: search.tool,
             query: search.sequence
         };

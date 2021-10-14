@@ -70,6 +70,7 @@ export default class ngbBlastSearchPanelController extends baseController {
                 const url = window.URL.createObjectURL(blob);
 
                 linkElement.setAttribute('href', url);
+                // FIXME: dbName adjust
                 linkElement.setAttribute('download',
                     `BLAST-${result.tool}-${result.dbName}-${result.title || result.id}.csv`);
 

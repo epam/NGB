@@ -24,10 +24,13 @@
             <div class="blast-sequence-area">
                 <textarea id="sequence" name="sequence" ng-model="$ctrl.searchRequest.sequence"
                           custom-max-length="$ctrl.defaultParams.query_max_length" required="" rows="2"></textarea>
-                <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+                <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear"
+                            ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
             </div>
             <div class="blast-form-alert" ng-messages="blastSearchForm.sequence.$error" role="alert">
-                <div ng-message="customMaxLength">Sequence length should be less than or equal to {{$ctrl.defaultParams.query_max_length}}</div>
+                <div ng-message="customMaxLength">Sequence length should be less than or equal to
+                    {{$ctrl.defaultParams.query_max_length}}
+                </div>
                 <div ng-message="required">Enter sequence</div>
             </div>
         </md-input-container>
@@ -38,20 +41,40 @@
         <md-input-container class="blast-search-set">
             <span>Search set</span>
         </md-input-container>
-        <md-input-container class="blast-search-input">
-            <label for="db">Database</label>
-            <md-select
-                    id="db"
-                    name="db"
-                    ng-model="$ctrl.searchRequest.db"
-                    required
-            >
-                <md-option ng-repeat="db in $ctrl.dbList track by db.id"
-                           ng-value="db.id">
-                    {{db.name}}
-                </md-option>
-            </md-select>
-        </md-input-container>
+        <div class="blast-organisms-livesearch">
+            <md-chips class="blast-organisms-chips"
+                      flex
+                      md-autocomplete-snap="width"
+                      md-require-match="true"
+                      ng-model="$ctrl.searchRequest.db">
+                <md-autocomplete
+                        md-clear-button="true"
+                        md-delay="0"
+                        md-item-text="item.id"
+                        md-items="item in $ctrl.getFilteredDBList($ctrl.searchRequest.db)"
+                        md-match-case-insensitive="true"
+                        md-menu-class="blast-organisms-livesearch-item"
+                        md-min-length="0"
+                        md-no-cache="true"
+                        md-search-text="$ctrl.searchTextDB"
+                        md-selected-item="$ctrl.selectedItemDB"
+                        placeholder="{{$ctrl.searchRequest.db.length ? '' : 'Database *'}}">
+                    <md-item-template>
+                        <span md-highlight-flags="gi" md-highlight-text="$ctrl.searchTextDB">{{item.name}}</span>
+                    </md-item-template>
+                </md-autocomplete>
+                <md-chip-template>
+                <span>
+                  <strong>{{$chip.name}}</strong>
+                </span>
+                </md-chip-template>
+                <ng-md-icon class="remove-organism-button"
+                            icon="close"
+                            md-chip-remove=""
+                            size="18"
+                ></ng-md-icon>
+            </md-chips>
+        </div>
         <div class="blast-organisms-livesearch">
             <md-chips ng-model="$ctrl.searchRequest.organisms"
                       class="blast-organisms-chips"
@@ -115,12 +138,14 @@
             </div>
         </div>
         <div class="expandable-panel" layout="column">
-            <div class="expandable-panel-title" ng-class="{'toggled': toggle}" ng-click="toggle = !toggle" layout="column">
+            <div class="expandable-panel-title" layout="column" ng-class="{'toggled': toggle}"
+                 ng-click="toggle = !toggle">
                 <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
                 <span>Additional parameters</span>
             </div>
             <div class="expandable-panel-content" ng-show="toggle" layout="column">
-                <ngb-blast-additional-params additional-params="$ctrl.additionalParams" form-obj="blastSearchForm"></ngb-blast-additional-params>
+                <ngb-blast-additional-params additional-params="$ctrl.additionalParams"
+                                             form-obj="blastSearchForm"></ngb-blast-additional-params>
                 <div class="blast-search-info">
                     <md-input-container class="blast-search-input">
                         <label for="options" class="blast-search-input-label">Options</label>
@@ -140,7 +165,7 @@
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"
                        type="submit"
-                       ng-disabled="blastSearchForm.$invalid"
+                       ng-disabled="blastSearchForm.$invalid || !$ctrl.searchRequest.db.length"
                        aria-label="submit">
                 Search
             </md-button>

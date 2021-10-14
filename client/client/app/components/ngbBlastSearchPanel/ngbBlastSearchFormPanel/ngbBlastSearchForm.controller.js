@@ -53,8 +53,7 @@ export default class ngbBlastSearchFormController extends baseController {
         title: '',
         algorithm: '',
         organisms: [],
-        db: 0,
-        dbName: '',
+        db: [],
         tool: '',
         sequence: '',
         threshold: null,
@@ -62,8 +61,8 @@ export default class ngbBlastSearchFormController extends baseController {
     };
 
     events = {
-        'read:show:blast': ::this.onExternalChange,
-        'defaultSettings:change': ::this.setAdditionalParams
+        'read:show:blast': this.onExternalChange.bind(this),
+        'defaultSettings:change': this.setAdditionalParams.bind(this)
     };
 
     constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants, projectContext) {
@@ -164,11 +163,14 @@ export default class ngbBlastSearchFormController extends baseController {
         } else {
             this.errorMessage = null;
             this.dbList = data;
-            if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
-                this.searchRequest.db = null;
-            }
+            this.searchRequest.db = this.searchRequest.db.filter(dbId => this.dbList.some(db => db.id === dbId));
         }
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    getFilteredDBList(selectedDBs = []) {
+        const selectedIds = selectedDBs.map(value => value.id);
+        return this.dbList.filter(value => !selectedIds.includes(value.id));
     }
 
     onSearch() {
@@ -176,7 +178,7 @@ export default class ngbBlastSearchFormController extends baseController {
             .then(data => {
                 if (data.error) {
                     this.errorMessage = data.message;
-                    this.$timeout(::this.$scope.$apply);
+                    this.$timeout(() => this.$scope.$apply());
                 } else {
                     this.errorMessage = null;
                     this.changeState({state: 'HISTORY'});

@@ -33,6 +33,7 @@ export default class ngbBlastSearchResult extends baseController {
         this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
         this.searchResult.organisms = (this.searchResult.organisms || [])
             .map(o => `${o.scientificname} (taxid: ${o.taxid})`);
+        this.searchResult.dbNames = (this.searchResult.db || []).map(db => db.name);
         this.setDefaultParams();
         this.isProgressShown = false;
     }

@@ -16,6 +16,7 @@ export class ProjectDataService extends DataService {
             return (node.format || '').toUpperCase();
         }
     }
+
     getProjects(referenceName) {
         return new Promise((resolve) => {
             const url = referenceName ? `project/tree?referenceName=${referenceName}` : 'project/tree';
@@ -353,17 +354,18 @@ export class ProjectDataService extends DataService {
     saveMetadata(metadata) {
         return new Promise((resolve, reject) => {
             this.post('metadata', metadata)
-            .catch((response) => resolve({...response, error: true}))
-            .then((data) => {
-                if (data) {
-                    resolve(data);
-                } else {
-                    data = {};
-                    resolve(data);
-                }
-            }, reject);
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
         });
     }
+
     getMetadata(id, entityClass) {
         return new Promise((resolve, reject) => {
             this.get(`metadata?id=${id}&entityClass=${entityClass}`)
