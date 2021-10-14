@@ -20,3 +20,9 @@
     }
   }
 }
+
+.heatmaps-divider:last-child,
+.heatmaps-divider:first-child,
+.heatmaps-divider + .heatmaps-divider {
+  display: none;
+}

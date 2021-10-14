@@ -1,3 +1,21 @@
+function heatmapNameSorter(a, b) {
+    const aName = (a.prettyName || a.name || '').toLowerCase();
+    const bName = (b.prettyName || b.name || '').toLowerCase();
+    if (!aName) {
+        return 1;
+    }
+    if (!bName) {
+        return -1;
+    }
+    if (aName < bName) {
+        return -1;
+    }
+    if (aName > bName) {
+        return 1;
+    }
+    return 0;
+}
+
 export default class ngbHeatmapPanelController {
     static get UID() {
         return 'ngbHeatmapPanelController';
@@ -21,6 +39,18 @@ export default class ngbHeatmapPanelController {
 
     get heatmaps() {
         return this.heatmapContext.heatmaps || [];
+    }
+
+    get previousHeatmap() {
+        return this.heatmaps.filter(heatmap => !heatmap.isTrack && !heatmap.isAnnotation).pop();
+    }
+
+    get heatmapsFromTrack() {
+        return this.heatmaps.filter(heatmap => heatmap.isTrack).sort(heatmapNameSorter);
+    }
+
+    get heatmapsFromAnnotations() {
+        return this.heatmaps.filter(heatmap => heatmap.isAnnotation).sort(heatmapNameSorter);
     }
 
     get heatmap() {
