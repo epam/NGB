@@ -89,6 +89,9 @@ import com.epam.catgenome.manager.vcf.VcfManager;
 public class ProjectManagerTest extends AbstractManagerTest {
     public static final String TEST_PARENT = "testParent";
     public static final String TEST_CHILD = "testChild1";
+    public static final String TEST_CHILD_2_NAME = "testChild2";
+    public static final String TEMPLATES_GENES_SORTED_GTF_PATH = "classpath:templates/genes_sorted.gtf";
+    public static final String REQUEST_NAME = "genes";
     @Autowired
     private ProjectManager projectManager;
 
@@ -261,7 +264,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(TEST_CHILD_2_NAME);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2, parent.getId());
@@ -361,7 +364,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertEquals(child1.getId(), parent.getNestedProjects().get(0).getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(TEST_CHILD_2_NAME);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2);
@@ -389,11 +392,11 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         addVcfFileToProject(parent.getId(), "testVcf", TEST_VCF_FILE_PATH);
 
-        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        Resource resource = context.getResource(TEMPLATES_GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
-        request.setName("genes");
+        request.setName(REQUEST_NAME);
         request.setPath(resource.getFile().getAbsolutePath());
 
         GeneFile geneFile = gffManager.registerGeneFile(request);
@@ -433,16 +436,16 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project2 = projectManager.create(project2);
         Long project2Id = project2.getId();
         addVcfFileToProject(project2Id, "testVcf", TEST_VCF_FILE_PATH);
-        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        Resource resource = context.getResource(TEMPLATES_GENES_SORTED_GTF_PATH);
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
-        request.setName("genes");
+        request.setName(REQUEST_NAME);
         request.setPath(resource.getFile().getAbsolutePath());
         GeneFile geneFile = gffManager.registerGeneFile(request);
         projectManager.addProjectItem(project2Id, geneFile.getBioDataItemId());
 
         Project project3 = new Project();
-        project3.setName("testChild2");
+        project3.setName(TEST_CHILD_2_NAME);
         project3.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         project3 = projectManager.create(project3);
@@ -495,7 +498,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(TEST_CHILD_2_NAME);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2, parent.getId());
@@ -533,11 +536,11 @@ public class ProjectManagerTest extends AbstractManagerTest {
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
 
         // Add genes
-        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        Resource resource = context.getResource(TEMPLATES_GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
         geneRequest.setReferenceId(referenceId);
-        geneRequest.setName("genes");
+        geneRequest.setName(REQUEST_NAME);
         geneRequest.setPath(resource.getFile().getAbsolutePath());
 
         GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
@@ -633,11 +636,11 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRED)
     public void testLoadReferenceGenes() throws IOException {
-        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        Resource resource = context.getResource(TEMPLATES_GENES_SORTED_GTF_PATH);
 
         FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
         geneRequest.setReferenceId(referenceId);
-        geneRequest.setName("genes");
+        geneRequest.setName(REQUEST_NAME);
         geneRequest.setPath(resource.getFile().getAbsolutePath());
 
         GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
