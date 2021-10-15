@@ -311,6 +311,7 @@ export default class ngbBlastSearchService {
                 dbName: data.dbName,
                 dbSource: data.dbSource,
                 dbType: data.dbType,
+                dbReferenceId: data.dbReferenceId,
                 title: data.title
             };
         } else {
@@ -365,6 +366,7 @@ export default class ngbBlastSearchService {
             dbName: search.database ? search.database.name : '',
             dbSource: search.database ? search.database.source : undefined,
             dbType: search.database ? search.database.type : undefined,
+            dbReferenceId: search.database ? search.database.referenceId : undefined,
             tool: search.executable,
             sequence: search.query,
             state: search.status,
