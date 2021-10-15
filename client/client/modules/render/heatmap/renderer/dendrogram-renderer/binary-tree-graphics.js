@@ -242,7 +242,6 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
             right
         } = options;
         const levelSize = this.session.levelSize || 0;
-        this.graphics.lineStyle(config.thickness, config.stroke, 1);
         let radius = 0;
         let levelRadius = 0;
         let axisRadius = 0;
@@ -263,6 +262,8 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
             x: this.getXCoordinate(right.position, level),
             y: this.getYCoordinate(right.position, level)
         };
+        this.graphics
+            .lineStyle(config.thickness, config.stroke, 1);
         if (left.visible) {
             this.graphics.moveTo(
                 this.getXCoordinate(left.position, left.level),

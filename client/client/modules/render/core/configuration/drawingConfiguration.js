@@ -4,7 +4,7 @@ export default {
     antialias: false,
     resolution: getScreenResolution(),
     scale: getScreenResolution(),
-    scaleMode: SCALE_MODES.LINEAR
+    scaleMode: SCALE_MODES.NEAREST
 };
 
 function getScreenResolution() {

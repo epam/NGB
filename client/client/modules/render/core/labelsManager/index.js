@@ -1,4 +1,4 @@
-import {Sprite, Text, TextStyle} from 'pixi.js-legacy';
+import {Sprite, Text, TextStyle, SCALE_MODES} from 'pixi.js-legacy';
 import {drawingConfiguration} from '../configuration';
 
 export default class LabelsManager {
@@ -57,7 +57,7 @@ export default class LabelsManager {
             }
             this.label.text = text;
             const texture = this.renderer.generateTexture(this.label, {
-                scaleMode: drawingConfiguration.scaleMode,
+                scaleMode: SCALE_MODES.LINEAR,
                 resolution: drawingConfiguration.resolution
             });
             this.texturesCache.set(key, texture);
