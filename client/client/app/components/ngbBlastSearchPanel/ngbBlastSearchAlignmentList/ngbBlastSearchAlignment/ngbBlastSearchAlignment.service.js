@@ -65,9 +65,14 @@ export default class ngbBlastSearchAlignmentService {
                 referenceId: referenceId,
             };
         } else {
-            const [reference] = (this.projectContext.references || [])
-                .filter(reference => reference.species && +(reference.species.taxId) === +sequenceTaxId);
-            const referenceId = reference ? reference.id : undefined;
+            let referenceId;
+            if (search.dbReferenceId) {
+                referenceId = search.dbReferenceId;
+            } else {
+                const [reference] = (this.projectContext.references || [])
+                    .filter(reference => reference.species && +(reference.species.taxId) === +sequenceTaxId);
+                referenceId = reference ? reference.id : undefined;
+            }
             if (
                 !sequenceStart ||
                 !sequenceEnd ||
