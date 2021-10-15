@@ -1,6 +1,7 @@
 const variantsTableDownloadAction = {
     name: 'variantsTableDownload',
-    isDefault: false
+    isDefault: false,
+    isVisible: context => context.containsVcfFiles
 };
 const variantsTableColumnAction = {
     name: 'variantsTableColumn',
@@ -77,7 +78,8 @@ const tracksSelectionAction = {
 
 const genesTableDownloadAction = {
     name: 'genesTableDownload',
-    isDefault: false
+    isDefault: false,
+    isVisible: context => !!context.reference
 };
 const genesTableColumnAction = {
     name: 'genesTableColumn',
