@@ -11,12 +11,14 @@
                         database_id,
                         name,
                         path,
+                        reference_id,
                         type,
                         source
                     ) VALUES (
                         :DATABASE_ID,
                         :DATABASE_NAME,
                         :DATABASE_PATH,
+                        :DATABASE_REFERENCE_ID,
                         :DATABASE_TYPE,
                         :DATABASE_SOURCE
                     )
@@ -29,7 +31,8 @@
                     UPDATE catgenome.blast_database SET
                         name = :DATABASE_NAME,
                         path = :DATABASE_PATH,
-                        type = :DATABASE_TYPE
+                        reference_id = :DATABASE_REFERENCE_ID,
+                        type = :DATABASE_TYPE,
                         source = :DATABASE_SOURCE
                     WHERE
                         database_id = :DATABASE_ID
@@ -50,6 +53,7 @@
                         database_id,
                         name as database_name,
                         path as database_path,
+                        reference_id as database_reference_id,
                         type as database_type,
                         source as database_source
                     FROM catgenome.blast_database WHERE database_id = ?
@@ -63,6 +67,7 @@
                         database_id,
                         name as database_name,
                         path as database_path,
+                        reference_id as database_reference_id,
                         type as database_type,
                         source as database_source
                     FROM catgenome.blast_database
