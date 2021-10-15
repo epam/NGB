@@ -134,15 +134,18 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
             database.setId(rs.getLong(DATABASE_ID.name()));
             database.setName(rs.getString(DATABASE_NAME.name()));
             database.setPath(rs.getString(DATABASE_PATH.name()));
-            final Long typeVal = rs.getLong(DATABASE_TYPE.name());
+            final long typeVal = rs.getLong(DATABASE_TYPE.name());
             if (!rs.wasNull()) {
                 database.setType(BlastDatabaseType.getTypeById(typeVal));
             }
-            final Long sourceVal = rs.getLong(DATABASE_SOURCE.name());
+            final long sourceVal = rs.getLong(DATABASE_SOURCE.name());
             if (!rs.wasNull()) {
                 database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
             }
-            database.setReferenceId(rs.getLong(DATABASE_REFERENCE_ID.name()));
+            final long referenceId = rs.getLong(DATABASE_REFERENCE_ID.name());
+            if (!rs.wasNull()) {
+                database.setReferenceId(referenceId);
+            }
             return database;
         }
     }
