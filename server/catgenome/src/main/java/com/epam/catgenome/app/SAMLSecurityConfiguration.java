@@ -119,7 +119,6 @@ import com.epam.catgenome.util.Utils;
 @Order(2)
 @ConditionalOnProperty(value = "saml.security.enable", havingValue = "true")
 public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
-    private static final int MAX_AUTHENTICATION_AGE = 93600;
     private static final int RESPONSE_SKEW = 1200;
     private static final int LOGOUT_RESPONSE_SKEW = 120;
 
@@ -158,6 +157,9 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
+
+    @Value("${saml.authn.max.authentication.age:93600}")
+    private Long maxAuthentificationAge;
 
     /**
      * Optional Load balancer configuration
@@ -295,7 +297,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public WebSSOProfileConsumer webSSOprofileConsumer() {
         WebSSOProfileConsumerImpl profileConsumer = new WebSSOProfileConsumerImpl();
-        profileConsumer.setMaxAuthenticationAge(MAX_AUTHENTICATION_AGE);
+        profileConsumer.setMaxAuthenticationAge(maxAuthentificationAge);
         profileConsumer.setResponseSkew(RESPONSE_SKEW);
         return profileConsumer;
     }
