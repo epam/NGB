@@ -118,7 +118,6 @@ import com.epam.catgenome.util.Utils;
 @Order(2)
 @ConditionalOnProperty(value = "saml.security.enable", havingValue = "true")
 public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
-    private static final int MAX_AUTHENTICATION_AGE = 93600;
     private static final int RESPONSE_SKEW = 1200;
     private static final int LOGOUT_RESPONSE_SKEW = 120;
 
@@ -151,6 +150,9 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${saml.validate.url.without.scheme:false}")
     private boolean samlValidateUrlWithoutScheme;
+
+    @Value("${saml.authn.max.authentication.age:93600}")
+    private Long maxAuthentificationAge;
 
     @Autowired
     private SAMLUserDetailsService samlUserDetailsService;
@@ -259,7 +261,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public WebSSOProfileConsumer webSSOprofileConsumer() {
         WebSSOProfileConsumerImpl profileConsumer = new WebSSOProfileConsumerImpl();
-        profileConsumer.setMaxAuthenticationAge(MAX_AUTHENTICATION_AGE);
+        profileConsumer.setMaxAuthenticationAge(maxAuthentificationAge);
         profileConsumer.setResponseSkew(RESPONSE_SKEW);
         return profileConsumer;
     }
