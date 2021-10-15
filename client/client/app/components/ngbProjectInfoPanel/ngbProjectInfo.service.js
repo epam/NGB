@@ -2,21 +2,26 @@ function findSelectedDatasets(candidates) {
     const result = [];
     for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i];
-        if (candidate.isProject && candidate.nestedProjects && candidate.nestedProjects.length > 0) {
+        if (!candidate.isProject) {
+            continue;
+        }
+        let added = false;
+        const hasSelectedTracks = (candidate.lazyItems || candidate.items || [])
+            .filter(track => !track.isProject && track.__selected)
+            .length > 0;
+        if (hasSelectedTracks || candidate.__selected || candidate.__indeterminate) {
+            result.push(candidate);
+            added = true;
+        }
+        if (candidate.nestedProjects && candidate.nestedProjects.length > 0) {
             const nestedSelectedDatasets = findSelectedDatasets(candidate.nestedProjects);
             if (nestedSelectedDatasets.length > 0) {
                 result.push(...nestedSelectedDatasets);
-                const hasSelectedTracks = (candidate.lazyItems || candidate.items || [])
-                    .filter(track => !track.isProject && track.__selected)
-                    .length > 0;
-                if (hasSelectedTracks) {
+                if (!added) {
+                    added = true;
                     result.push(candidate);
                 }
-            } else if (candidate.__selected || candidate.__indeterminate) {
-                result.push(candidate);
             }
-        } else if (candidate.isProject && (candidate.__selected || candidate.__indeterminate)) {
-            result.push(candidate);
         }
     }
     return result;
@@ -307,21 +312,7 @@ export default class ngbProjectInfoService {
     }
 
     projectChanged() {
-        const selectedDatasets = [
-            ...(
-                new Set(findSelectedDatasets(this.projectContext.datasets || []))
-            )
-        ];
-        const parents = new Set(selectedDatasets.map(dataset => dataset.id));
-        selectedDatasets.forEach(item => {
-            if (item.parentId && !parents.has(item.parentId)) {
-                selectedDatasets.add(
-                    ...this.projectContext.datasets
-                        .filter(dataset => dataset.id === item.parentId)
-                );
-                parents.add(item.parentId);
-            }
-        });
+        const selectedDatasets = [...(new Set(findSelectedDatasets(this.projectContext.datasets || [])))];
         if (selectedDatasets.length > 1) {
             sortDatasets(selectedDatasets);
         }
