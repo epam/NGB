@@ -33,11 +33,19 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class BlastDatabaseVO implements RequestPayload{
+public class BlastDatabaseVO implements RequestPayload {
     public static final List<String> BLAST_DATABASE_TYPES = Arrays.asList("PROTEIN", "NUCLEOTIDE");
     public static final List<String> BLAST_DATABASE_SOURCES = Arrays.asList("CUSTOM", "NCBI");
     private String name;
     private String path;
     private String type;
     private String source;
+    private Long referenceId;
+
+    public BlastDatabaseVO(final String name, final String path, final String type, final String source) {
+        this.name = name;
+        this.path = path;
+        this.type = type;
+        this.source = source;
+    }
 }
