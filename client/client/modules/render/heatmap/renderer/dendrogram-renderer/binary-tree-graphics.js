@@ -204,17 +204,17 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
     }
 
     getXCoordinate = (axisCoordinate, levelCoordinate) => this.axis && this.axis.scale && this.session
-        ? Math.round(
+        ? Math.ceil(
             this.axis.scale.getDeviceDimension(axisCoordinate) * this.direction.x +
             levelCoordinate * this.normal.x * (this.session.levelSize || 0)
-        )
+        ) - config.thickness / 2.0
         : 0;
 
     getYCoordinate = (axisCoordinate, levelCoordinate) => this.axis && this.axis.scale && this.session
-        ? Math.round(
+        ? Math.ceil(
             this.axis.scale.getDeviceDimension(axisCoordinate) * this.direction.y +
             levelCoordinate * this.normal.y * (this.session.levelSize || 0)
-        )
+        ) - config.thickness / 2.0
         : 0;
 
     renderLeafPoint(position, level = 0) {
@@ -280,6 +280,10 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
                     this.getXCoordinate(left.position + axisRadius, level),
                     this.getYCoordinate(left.position + axisRadius, level)
                 );
+                this.graphics.moveTo(
+                    this.getXCoordinate(left.position + axisRadius, level),
+                    this.getYCoordinate(left.position + axisRadius, level)
+                );
             } else {
                 this.graphics.lineTo(
                     leftAnchor.x,
@@ -308,6 +312,10 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
                 this.graphics.quadraticCurveTo(
                     rightAnchor.x,
                     rightAnchor.y,
+                    this.getXCoordinate(right.position, level - levelRadius),
+                    this.getYCoordinate(right.position, level - levelRadius)
+                );
+                this.graphics.moveTo(
                     this.getXCoordinate(right.position, level - levelRadius),
                     this.getYCoordinate(right.position, level - levelRadius)
                 );
