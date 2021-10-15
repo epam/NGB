@@ -4,7 +4,7 @@ export default {
     minWidth: 65,
     borderRadius: 2,
     active: {
-        alpha: 0.9,
+        alpha: 0.8,
         background: 0x3367d6,
         stroke: 0x3367d6,
         font: {
@@ -15,7 +15,7 @@ export default {
             align: 'center'
         },
     },
-    hovered: {
+    activeHovered: {
         alpha: 1,
         background: 0x3367d6,
         stroke: 0x3367d6,
@@ -27,12 +27,24 @@ export default {
             align: 'center'
         },
     },
-    disabled: {
-        alpha: 0.7,
+    inactive: {
+        alpha: 1,
         background: 0xfafafa,
         stroke: 0xaaaaaa,
         font: {
             fill: 0xaaaaaa,
+            fontFamily: 'arial',
+            fontSize: '6pt',
+            fontWeight: 'bold',
+            align: 'center'
+        },
+    },
+    inactiveHovered: {
+        alpha: 1,
+        background: 0xeeeeee,
+        stroke: 0x999999,
+        font: {
+            fill: 0x666666,
             fontFamily: 'arial',
             fontSize: '6pt',
             fontWeight: 'bold',

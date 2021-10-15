@@ -63,19 +63,27 @@ class CheckboxButton extends InteractiveZone {
     initialize() {
         this.container.removeChildren();
         if (this.labelsManager) {
-            this.disabledLabel = this.labelsManager.getLabel(this.text, config.disabled.font);
-            this.hoveredLabel = this.labelsManager.getLabel(this.text, config.hovered.font);
+            this.inactiveLabel = this.labelsManager.getLabel(this.text, config.inactive.font);
+            this.inactiveHoveredLabel = this.labelsManager.getLabel(this.text, config.inactiveHovered.font);
             this.activeLabel = this.labelsManager.getLabel(this.text, config.active.font);
-            if (this.disabledLabel && this.activeLabel && this.hoveredLabel) {
+            this.activeHoveredLabel = this.labelsManager.getLabel(this.text, config.activeHovered.font);
+            if (
+                this.inactiveLabel &&
+                this.inactiveHoveredLabel &&
+                this.activeLabel &&
+                this.activeHoveredLabel
+            ) {
                 this.labelWidth = Math.max(
-                    this.disabledLabel.width,
-                    this.hoveredLabel.width,
+                    this.inactiveLabel.width,
+                    this.inactiveHoveredLabel.width,
+                    this.activeHoveredLabel.width,
                     this.activeLabel.width,
                     config.minWidth
                 ) + 2.0 * config.padding;
                 this.labelHeight = Math.max(
-                    this.disabledLabel.height,
-                    this.hoveredLabel.height,
+                    this.inactiveLabel.height,
+                    this.inactiveHoveredLabel.height,
+                    this.activeHoveredLabel.height,
                     this.activeLabel.height,
                     0
                 ) + 2.0 * config.padding;
@@ -90,22 +98,26 @@ class CheckboxButton extends InteractiveZone {
                  */
                 this.height = this.labelHeight + 2.0 * config.margin;
                 const center = 0.5;
-                this.disabledLabel.anchor.set(center, center);
-                this.hoveredLabel.anchor.set(center, center);
+                this.inactiveLabel.anchor.set(center, center);
+                this.inactiveHoveredLabel.anchor.set(center, center);
+                this.activeHoveredLabel.anchor.set(center, center);
                 this.activeLabel.anchor.set(center, center);
                 const x = Math.floor(this.width / 2.0);
                 const y = Math.floor(this.height / 2.0);
-                this.disabledLabel.x = x;
-                this.disabledLabel.y = y;
-                this.hoveredLabel.x = x;
-                this.hoveredLabel.y = y;
+                this.inactiveLabel.x = x;
+                this.inactiveLabel.y = y;
+                this.inactiveHoveredLabel.x = x;
+                this.inactiveHoveredLabel.y = y;
+                this.activeHoveredLabel.x = x;
+                this.activeHoveredLabel.y = y;
                 this.activeLabel.x = x;
                 this.activeLabel.y = y;
                 this.graphics = new PIXI.Graphics();
                 this.container.addChild(this.graphics);
-                this.container.addChild(this.disabledLabel);
+                this.container.addChild(this.inactiveLabel);
+                this.container.addChild(this.inactiveHoveredLabel);
                 this.container.addChild(this.activeLabel);
-                this.container.addChild(this.hoveredLabel);
+                this.container.addChild(this.activeHoveredLabel);
                 this.initialized = true;
                 this.draw();
                 this.updateBounds();
@@ -207,11 +219,14 @@ class CheckboxButton extends InteractiveZone {
 
     draw() {
         const visible = this.visible && this.valid;
-        if (this.hoveredLabel) {
-            this.hoveredLabel.visible = this.hovered && visible;
+        if (this.inactiveLabel) {
+            this.inactiveLabel.visible = !this.hovered && !this.enabled && visible;
         }
-        if (this.disabledLabel) {
-            this.disabledLabel.visible = !this.hovered && !this.enabled && visible;
+        if (this.inactiveHoveredLabel) {
+            this.inactiveHoveredLabel.visible = this.hovered && !this.enabled && visible;
+        }
+        if (this.activeHoveredLabel) {
+            this.activeHoveredLabel.visible = this.hovered && this.enabled && visible;
         }
         if (this.activeLabel) {
             this.activeLabel.visible = !this.hovered && this.enabled && visible;
@@ -219,9 +234,11 @@ class CheckboxButton extends InteractiveZone {
         if (this.graphics) {
             this.graphics.clear();
             if (visible) {
-                let buttonConfig = config.disabled;
-                if (this.hovered) {
-                    buttonConfig = config.hovered;
+                let buttonConfig = config.inactive;
+                if (this.hovered && this.enabled) {
+                    buttonConfig = config.activeHovered;
+                } else if (this.hovered && !this.enabled) {
+                    buttonConfig = config.inactiveHovered;
                 } else if (this.enabled) {
                     buttonConfig = config.active;
                 }
