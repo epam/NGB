@@ -384,11 +384,13 @@ class AxisDendrogramRenderer extends InteractiveZone {
         const tree = this.getDendrogramTree();
         if (this.treeGraphics && tree) {
             const availableSpace = this.size + this.extraSpace;
-            const levelSize = Math.max(
-                config.minimumLevelSize,
-                Math.min(
-                    config.maximumLevelSize,
-                    availableSpace / (tree.depth + 1)
+            const levelSize = Math.ceil(
+                Math.max(
+                    config.minimumLevelSize,
+                    Math.min(
+                        config.maximumLevelSize,
+                        availableSpace / (tree.depth + 1)
+                    )
                 )
             );
             return this.treeGraphics.render({levelSize});
@@ -412,10 +414,14 @@ class AxisDendrogramRenderer extends InteractiveZone {
         const normal = this.getAxisNormal();
         this.correctLocalDelta();
         if (positionChanged || scaleChanged || offsetChanged) {
-            this.dendrogramContainer.x = direction.x * axis.getDevicePosition(0) +
-                normal.x * (this.offset + config.margin - this.localOffset);
-            this.dendrogramContainer.y = direction.y * axis.getDevicePosition(0) +
-                normal.y * (this.offset + config.margin - this.localOffset);
+            this.dendrogramContainer.x = Math.floor(
+                direction.x * axis.getDevicePosition(0) +
+                normal.x * (this.offset + config.margin - this.localOffset)
+            );
+            this.dendrogramContainer.y = Math.floor(
+                direction.y * axis.getDevicePosition(0) +
+                normal.y * (this.offset + config.margin - this.localOffset)
+            );
         }
         this.updateSessionFlags();
         return positionChanged || scaleChanged || somethingChanged;

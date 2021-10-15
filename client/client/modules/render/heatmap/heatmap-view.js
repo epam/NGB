@@ -510,8 +510,8 @@ class HeatmapView extends HeatmapEventDispatcher {
              * @param {{container: PIXI.Container}} o
              */
             const updatePositions = (o) => {
-                o.container.x = layoutInfo.offset.column;
-                o.container.y = layoutInfo.offset.row;
+                o.container.x = Math.floor(layoutInfo.offset.column);
+                o.container.y = Math.floor(layoutInfo.offset.row);
             };
             const currentPositions = [
                 ...getPositions(this.viewportRenderer),

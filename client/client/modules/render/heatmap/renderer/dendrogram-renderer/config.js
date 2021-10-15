@@ -6,9 +6,9 @@ export default {
     nodeCollapsedThresholdPx: 4,
     stroke: 0x666666,
     thickness: 1,
-    edgeRadius: 4,
+    edgeRadius: false,
     leafPoint: {
-        radius: 1.5
+        radius: 2
     },
     margin: 5
 };
