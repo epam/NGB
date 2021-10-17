@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -79,7 +80,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      */
     @Override
     public String formatItem(String formatString) {
-        return String.format(formatString, name, version);
+        return String.format(formatString, name, version, getTaxIdValue(taxId));
     }
 
     @Override
@@ -92,7 +93,13 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
         for (SpeciesEntity species : table) {
             calculateFieldWidth(formatMap, FieldFormat.NAME, species.getName());
             calculateFieldWidth(formatMap, FieldFormat.VERSION, species.getVersion());
+            calculateFieldWidth(formatMap, FieldFormat.TAX_ID,
+                    getTaxIdValue(species.getTaxId()));
         }
+    }
+
+    private String getTaxIdValue(final Long taxId) {
+        return Optional.ofNullable(taxId).map(String::valueOf).orElse("-");
     }
 
     private void calculateFieldWidth(Map<FieldFormat, Integer> formatMap, FieldFormat field, String value) {
@@ -109,6 +116,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      */
     private enum FieldFormat {
         NAME,
-        VERSION
+        VERSION,
+        TAX_ID
     }
 }
