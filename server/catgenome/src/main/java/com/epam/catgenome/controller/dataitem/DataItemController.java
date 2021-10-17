@@ -135,10 +135,13 @@ public class DataItemController extends AbstractRESTController {
             value = "Downloads a file specified by biological item id",
             notes = "Downloads a file specified by biological item id",
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public void downloadFileByBiologicalItemId(@PathVariable(value = "id") final Long id,
-                                               final HttpServletResponse response) throws IOException {
+    public void downloadFileByBiologicalItemId(
+            @PathVariable(value = "id") final Long id,
+            @RequestParam(value = "source", defaultValue = "true") final Boolean source,
+            final HttpServletResponse response) throws IOException {
         final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
-        final BiologicalDataItemFile biologicalDataItemFile = dataItemSecurityService.loadItemFile(biologicalDataItem);
+        final BiologicalDataItemFile biologicalDataItemFile =
+                dataItemSecurityService.loadItemFile(biologicalDataItem, source);
         writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
     }
 
