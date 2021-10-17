@@ -34,7 +34,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class BlastDatabaseVO implements RequestPayload {
-    public static final List<String> BLAST_DATABASE_TYPES = Arrays.asList("PROTEIN", "NUCLEOTIDE");
+    public static final List<String> BLAST_DATABASE_TYPES = Arrays.asList("prot", "nucl");
     public static final List<String> BLAST_DATABASE_SOURCES = Arrays.asList("CUSTOM", "NCBI");
     private String name;
     private String path;
