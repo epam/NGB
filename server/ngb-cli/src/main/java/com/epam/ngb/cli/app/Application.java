@@ -235,6 +235,9 @@ public class Application {
     @Option(name = "-r", usage = "specifies reference",  aliases = {"--reference"})
     private String reference;
 
+    @Option(name = "--taxid", usage = "specifies taxonomy id")
+    private Long taxId;
+
     @Argument
     private List<String> arguments;
 
@@ -341,6 +344,7 @@ public class Application {
         options.setHeatmapRowAnnotationType(HeatmapAnnotationType.from(heatmapRowAnnotationType));
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
+        options.setTaxId(taxId);
         return options;
     }
 

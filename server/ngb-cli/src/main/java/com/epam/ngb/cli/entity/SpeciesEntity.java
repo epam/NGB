@@ -25,6 +25,9 @@
 package com.epam.ngb.cli.entity;
 
 import com.epam.ngb.cli.manager.printer.Printable;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -35,6 +38,8 @@ import java.util.stream.Collectors;
  * {@code {@link SpeciesEntity}} is an entity,  representing a species on NGB server.
  * Species support only unique versions.
  */
+@Getter
+@Setter
 public class SpeciesEntity implements Printable<SpeciesEntity> {
 
     /**
@@ -46,22 +51,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      * Species version.
      */
     String version;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
+    private Long taxId;
 
     /**
      * Calculates a formatting string for a {@code List} of {@code SpeciesEntity} objects
