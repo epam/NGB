@@ -1,5 +1,8 @@
-import * as PIXI from 'pixi.js-legacy';
 import {drawingConfiguration} from '../../../../modules/render/core';
+
+const margin = 5;
+const minTextHeight = 15;
+const maxTextHeight = 30;
 
 export default class ngbTracksViewBookmarkCamera {
     getTitle;
@@ -51,7 +54,6 @@ export default class ngbTracksViewBookmarkCamera {
             const ctx = canvas.getContext('2d');
 
             let y = 0;
-            const margin = 5;
             data.forEach(x => {
                 if (x.name) {
                     ctx.fillStyle = '#000000';
@@ -60,7 +62,10 @@ export default class ngbTracksViewBookmarkCamera {
                     const additional = x.customName && this.showOriginalName() ? ` (${x.name})` : '';
                     const text = `${x.format} ${name}${additional}`;
                     const {fontBoundingBoxAscent = 0, fontBoundingBoxDescent = 0} = ctx.measureText(text);
-                    y += Math.max(15, fontBoundingBoxAscent + fontBoundingBoxDescent) + margin;
+                    y += Math.min(
+                        maxTextHeight,
+                        Math.max(minTextHeight, fontBoundingBoxAscent + fontBoundingBoxDescent)
+                    )+ margin;
                     ctx.fillText(text, 0, y);
                     y += margin;
                 }
@@ -103,8 +108,8 @@ export default class ngbTracksViewBookmarkCamera {
 
     _getCanvasHeight(data) {
         return data.reduce((sum, x) => {
-            const textHeight = (x.name) ? 15 : 0;
-            return sum + x.height + textHeight;
+            const textHeight = (x.name) ? maxTextHeight : 0;
+            return sum + x.height + textHeight + 2 * margin;
         }, 0);
     }
 }
