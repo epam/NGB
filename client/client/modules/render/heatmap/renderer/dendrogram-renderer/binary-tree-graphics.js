@@ -207,14 +207,14 @@ class BinaryTreeGraphics extends HeatmapEventDispatcher {
         ? Math.ceil(
             this.axis.scale.getDeviceDimension(axisCoordinate) * this.direction.x +
             levelCoordinate * this.normal.x * (this.session.levelSize || 0)
-        ) - config.thickness / 2.0
+        )
         : 0;
 
     getYCoordinate = (axisCoordinate, levelCoordinate) => this.axis && this.axis.scale && this.session
         ? Math.ceil(
             this.axis.scale.getDeviceDimension(axisCoordinate) * this.direction.y +
             levelCoordinate * this.normal.y * (this.session.levelSize || 0)
-        ) - config.thickness / 2.0
+        )
         : 0;
 
     renderLeafPoint(position, level = 0) {

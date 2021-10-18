@@ -1,7 +1,7 @@
 export default {
     label: {
         font: {
-            fill: 0x777777,
+            fill: 0x333333,
             fontFamily: 'arial',
             fontSize: '8pt',
             fontWeight: 'normal'
