@@ -89,7 +89,8 @@ const PROJECT_INFO_MODE_NAME = {
     '-4': 'Summary'
 };
 
-const EDIT_PERMISSION = 2;
+const READ_PERMISSION = 1;
+const EDIT_PERMISSION = 1 << 1;
 const checkPermission = (mask, permission) => (mask & permission) === permission;
 
 export default class ngbProjectInfoService {
@@ -239,7 +240,7 @@ export default class ngbProjectInfoService {
     }
 
     get canEdit() {
-        return checkPermission(this.currentProject.mask, EDIT_PERMISSION);
+        return checkPermission(this.currentProject.mask, READ_PERMISSION);
     }
 
     get isEdit() {
@@ -327,7 +328,7 @@ export default class ngbProjectInfoService {
             clearURLObject();
             this.projects = selectedDatasets.slice();
             this.projects.forEach(project => {
-                project.canEdit = checkPermission(project.mask, EDIT_PERMISSION);
+                project.canEdit = checkPermission(project.mask, READ_PERMISSION);
             });
             const currentProjectChanged = (this.currentProject && this.currentProject.id ||
                 selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0);
