@@ -182,18 +182,18 @@ export default class ngbProjectInfoService {
 
     setCurrentName(value) {
         const [valueMode, valueId] = Array.isArray(value) ? value : [value, null];
+        let nameValue = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+        if (valueMode === this.projectInfoModeList.DESCRIPTION) {
+            nameValue = this.currentDescription.name;
+        }
         if (this.projects.length > 1) {
-            let nameValue = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
             if (valueMode !== undefined && (valueMode > 0 || valueId)) {
-                if (valueMode === this.projectInfoModeList.DESCRIPTION) {
-                    nameValue = this.currentDescription.name;
-                }
                 this._currentName = `${this.currentProject.name}:${nameValue}`;
             } else {
                 this._currentName = nameValue;
             }
         } else {
-            this._currentName = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+            this._currentName = nameValue;
         }
     }
 
@@ -329,8 +329,8 @@ export default class ngbProjectInfoService {
             this.projects.forEach(project => {
                 project.canEdit = checkPermission(project.mask, EDIT_PERMISSION);
             });
-            const currentProjectChanged = this.currentProject && this.currentProject.id &&
-                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0;
+            const currentProjectChanged = (this.currentProject && this.currentProject.id ||
+                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0);
             if (currentProjectChanged) {
                 if (selectedDatasets.length === 1) {
                     this.currentProject = selectedDatasets[0];
