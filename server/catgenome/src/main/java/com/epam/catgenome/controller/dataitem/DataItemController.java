@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -70,6 +71,9 @@ public class DataItemController extends AbstractRESTController {
 
     @Autowired
     private DataItemSecurityService dataItemSecurityService;
+
+    @Autowired
+    private DataItemManager dataItemManager;
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/search", method = RequestMethod.GET)
@@ -139,7 +143,7 @@ public class DataItemController extends AbstractRESTController {
             @PathVariable(value = "id") final Long id,
             @RequestParam(value = "source", defaultValue = "true") final Boolean source,
             final HttpServletResponse response) throws IOException {
-        final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
+        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
         final BiologicalDataItemFile biologicalDataItemFile =
                 dataItemSecurityService.loadItemFile(biologicalDataItem, source);
         writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
@@ -155,7 +159,7 @@ public class DataItemController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id) {
-        final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
+        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
         return Result.success(dataItemSecurityService.generateDownloadUrl(id, biologicalDataItem));
     }
 }
