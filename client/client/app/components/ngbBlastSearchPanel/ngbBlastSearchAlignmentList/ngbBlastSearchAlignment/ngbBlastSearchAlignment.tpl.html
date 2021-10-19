@@ -14,7 +14,7 @@
             <md-select aria-label="referenceList"
                        class="blast-search-alignment-reference-list"
                        md-container-class="blast-search-alignment-reference-container"
-                       ng-if="$ctrl.navigationState.referenceList.length"
+                       ng-if="$ctrl.navigationState.referenceList.length > 1"
                        ng-model="$ctrl.navigationState.referenceId">
                 <md-option class="blast-search-alignment-reference-option"
                            ng-repeat="reference in $ctrl.navigationState.referenceList"
