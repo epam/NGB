@@ -130,15 +130,15 @@ export default class HeatmapBinaryTree {
         this.orders = new Map();
         this.reverseOrders = new Map();
         this.plain = [];
-        if (dataIsDataItem(data)) {
-            this.data = parseDataItem(data);
-        } else if (dataIsTree(data)) {
+        if (dataIsTree(data)) {
             const {
                 left: leftSubTree,
                 right: rightSubTree
             } = parseDataAsTree(data) || {};
             this.left = new HeatmapBinaryTree(leftSubTree);
             this.right = new HeatmapBinaryTree(rightSubTree);
+        } else if (dataIsDataItem(data)) {
+            this.data = parseDataItem(data);
         }
     }
 
