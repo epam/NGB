@@ -68,7 +68,11 @@ export default class ngbBlastSearchAlignmentService {
         } else {
             let referenceId;
             let referenceList = [];
-            if (search.dbReferenceId) {
+            if (search.referenceName) {
+                referenceList = (this.projectContext.references || [])
+                    .filter(reference => reference.name === search.referenceName);
+                referenceId = referenceList.length ? referenceList[0].id : undefined;
+            } else if (search.dbReferenceId) {
                 referenceId = search.dbReferenceId;
             } else {
                 referenceList = (this.projectContext.references || [])
@@ -223,8 +227,10 @@ export default class ngbBlastSearchAlignmentService {
         }
 
         const [reference] = (this.projectContext.references || [])
-            .filter(reference => reference.species &&
-                Number(reference.species.taxId) === Number(taxId));
+            .filter(reference => searchResult.referenceName
+                ? reference.name === searchResult.referenceName
+                : reference.species && Number(reference.species.taxId) === Number(taxId)
+            );
         if (!reference) {
             return null;
         }
