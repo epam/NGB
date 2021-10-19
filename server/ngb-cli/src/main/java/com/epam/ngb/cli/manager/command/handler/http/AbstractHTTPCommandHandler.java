@@ -38,18 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.epam.ngb.cli.app.Utils;
-import com.epam.ngb.cli.entity.AclClass;
-import com.epam.ngb.cli.entity.AclSecuredEntry;
-import com.epam.ngb.cli.entity.BiologicalDataItem;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.entity.IDList;
-import com.epam.ngb.cli.entity.NgbUser;
-import com.epam.ngb.cli.entity.Project;
-import com.epam.ngb.cli.entity.RequestPayload;
-import com.epam.ngb.cli.entity.ResponseResult;
-import com.epam.ngb.cli.entity.Role;
-import com.epam.ngb.cli.entity.SpeciesEntity;
-import com.epam.ngb.cli.entity.UserContext;
+import com.epam.ngb.cli.entity.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -833,6 +822,20 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             }
         }
         return Pair.of(fileAbsolutePath, index);
+    }
+
+    protected void registerBlastDatabase(final BlastDatabaseVO databaseVO) {
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getRegisterBlastDatabaseUrl());
+        String result = getPostResult(databaseVO, request);
+        isResultOk(result);
+    }
+
+    protected void createBlastDatabase(final BlastDatabaseVO databaseVO) {
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getCreateBlastDatabaseUrl());
+        String result = getPostResult(databaseVO, request);
+        isResultOk(result);
     }
 
     /**

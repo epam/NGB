@@ -96,6 +96,8 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private boolean noGCContent = false;
 
+    private boolean createBlastDatabase;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceRegistrationHandler.class);
 
     /**
@@ -132,6 +134,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         noGCContent = options.isNoGCContent();
         prettyName = options.getPrettyName();
         speciesVersion = options.getSpeciesVersion();
+        createBlastDatabase = options.isCreateBlastDatabase();
     }
 
     /**
@@ -161,6 +164,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
             registration.setSpecies(speciesEntity);
         }
         String result = getPostResult(registration, (HttpPost)request);
+
         checkAndPrintRegistrationResult(result, printJson, printTable);
         return 0;
     }

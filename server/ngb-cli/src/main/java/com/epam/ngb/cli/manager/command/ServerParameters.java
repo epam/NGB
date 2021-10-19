@@ -50,4 +50,6 @@ public class ServerParameters {
     private String jwtAuthenticationToken;
     private String formatsUrl;
     private String projectDescriptionUrl;
+    private String registerBlastDatabaseUrl;
+    private String createBlastDatabaseUrl;
 }
