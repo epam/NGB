@@ -1,4 +1,4 @@
-<li ng-if="(!projectContext.isBrowserNarrow || viewName !== panels.ngbBrowser) && (action.isVisible === undefined || action.isVisible(projectContext))" ng-repeat="action in viewActions[viewName] track by $index"
+<li ng-if="(!projectContext.reference || !projectContext.isBrowserNarrow || viewName !== panels.ngbBrowser) && (action.isVisible === undefined || action.isVisible(projectContext))" ng-repeat="action in viewActions[viewName] track by $index"
     ng-style="action.liStyle">
     <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction"></ngb-variants-table-download>
     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
@@ -13,7 +13,7 @@
     <ngb-view-action ng-if="action.isDefault && (action.isVisible === undefined || action.isVisible(projectContext))" event="action.event" label="action.label" icon="action.icon"></ngb-view-action>
     <ngb-tracks-selection ng-if="action === actions.tracksSelection && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-tracks-selection>
 </li>
-<li ng-if="projectContext.isBrowserNarrow && viewName === panels.ngbBrowser">
+<li ng-if="projectContext.reference && projectContext.isBrowserNarrow && viewName === panels.ngbBrowser">
     <md-menu-bar class="browser-hamburger-menu">
         <md-menu md-offset="0 0" md-position-mode="target target">
             <md-button aria-label="Open demo menu" class="md-icon-button browser-hamburger-menu-button" ng-click="$mdOpenMenu($event)">
