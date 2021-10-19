@@ -30,7 +30,8 @@ export default class HeatmapTrack extends CachedTrack {
                 pixiRenderer: this._pixiRenderer,
                 domElement: this.domElement
             },
-            state: this.state.options
+            state: this.state.options,
+            showOptionsButtons: false
         });
         this.heatmapView.referenceId = this.config.referenceId;
         this.container.addChild(this.heatmapView.container);

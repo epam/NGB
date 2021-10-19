@@ -25,16 +25,22 @@
 package com.epam.ngb.cli.entity;
 
 import com.epam.ngb.cli.manager.printer.Printable;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * {@code {@link SpeciesEntity}} is an entity,  representing a species on NGB server.
  * Species support only unique versions.
  */
+@Getter
+@Setter
 public class SpeciesEntity implements Printable<SpeciesEntity> {
 
     /**
@@ -46,22 +52,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      * Species version.
      */
     String version;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
+    private Long taxId;
 
     /**
      * Calculates a formatting string for a {@code List} of {@code SpeciesEntity} objects
@@ -89,7 +80,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      */
     @Override
     public String formatItem(String formatString) {
-        return String.format(formatString, name, version);
+        return String.format(formatString, name, version, getTaxIdValue(taxId));
     }
 
     @Override
@@ -102,7 +93,13 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
         for (SpeciesEntity species : table) {
             calculateFieldWidth(formatMap, FieldFormat.NAME, species.getName());
             calculateFieldWidth(formatMap, FieldFormat.VERSION, species.getVersion());
+            calculateFieldWidth(formatMap, FieldFormat.TAX_ID,
+                    getTaxIdValue(species.getTaxId()));
         }
+    }
+
+    private String getTaxIdValue(final Long taxId) {
+        return Optional.ofNullable(taxId).map(String::valueOf).orElse("-");
     }
 
     private void calculateFieldWidth(Map<FieldFormat, Integer> formatMap, FieldFormat field, String value) {
@@ -119,6 +116,7 @@ public class SpeciesEntity implements Printable<SpeciesEntity> {
      */
     private enum FieldFormat {
         NAME,
-        VERSION
+        VERSION,
+        TAX_ID
     }
 }

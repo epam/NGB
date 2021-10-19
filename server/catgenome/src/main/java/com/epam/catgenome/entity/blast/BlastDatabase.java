@@ -36,6 +36,7 @@ public class BlastDatabase {
     private Long id;
     private String name;
     private String path;
+    private Long referenceId;
     private BlastDatabaseType type;
     private BlastDatabaseSource source;
 }

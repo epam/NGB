@@ -76,6 +76,7 @@ public class SpeciesRegistrationHandler extends AbstractHTTPCommandHandler {
         entity = new SpeciesEntity();
         entity.setName(speciesName);
         entity.setVersion(speciesVersion);
+        entity.setTaxId(options.getTaxId());
 
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();

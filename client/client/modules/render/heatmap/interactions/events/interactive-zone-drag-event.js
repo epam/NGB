@@ -71,8 +71,8 @@ export default class InteractiveZoneDragEvent extends InteractiveZoneEvent {
             this.dragStartY = mouseDownEvent.y;
             this.dragStartColumn = mouseDownEvent.column;
             this.dragStartRow = mouseDownEvent.row;
-            this.xDelta = mouseDownEvent.x - this.x;
-            this.yDelta = mouseDownEvent.y - this.y;
+            this.xDelta = mouseDownEvent.clientX - this.clientX;
+            this.yDelta = mouseDownEvent.clientY - this.clientY;
             this.dragStartViewportColumn = mouseDownEvent.viewportColumn;
             this.dragStartViewportRow = mouseDownEvent.viewportRow;
             this.columnsDelta = viewport.scale.getScaleDimension(this.xDelta);

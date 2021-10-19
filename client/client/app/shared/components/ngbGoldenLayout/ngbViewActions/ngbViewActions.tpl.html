@@ -1,8 +1,8 @@
 <li ng-repeat="action in viewActions[viewName] track by $index" ng-style="action.liStyle" ng-if="action.isVisible === undefined || action.isVisible(projectContext)">
-    <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction"></ngb-variants-table-download>
+    <ngb-variants-table-download ng-if="action === actions.variantsTableDownloadAction && action.isVisible(projectContext)"></ngb-variants-table-download>
     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
     <ngb-variants-table-paginate ng-if="action === actions.variantsTablePagination"></ngb-variants-table-paginate>
-    <ngb-genes-table-download ng-if="action === actions.genesTableDownloadAction"></ngb-genes-table-download>
+    <ngb-genes-table-download ng-if="action === actions.genesTableDownloadAction && action.isVisible(projectContext)"></ngb-genes-table-download>
     <ngb-genes-table-column ng-if="action === actions.genesTableColumn"></ngb-genes-table-column>
     <ngb-variants-loading-indicator ng-if="action === actions.variantsLoadingIndicator"></ngb-variants-loading-indicator>
     <ngb-bookmarks-table-paginate ng-if="action === actions.bookmarksTablePagination"></ngb-bookmarks-table-paginate>

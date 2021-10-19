@@ -188,8 +188,9 @@ public class DataItemManager {
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
-    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
-        final String dataItemPath = biologicalDataItem.getSource();
+    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
+                                               final Boolean source) throws IOException {
+        final String dataItemPath = source ? biologicalDataItem.getSource() : biologicalDataItem.getPath();
         if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
             return loadLocalFileItem(biologicalDataItem, dataItemPath);
         }

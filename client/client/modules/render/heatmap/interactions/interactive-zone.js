@@ -13,7 +13,9 @@ class InteractiveZone extends HeatmapEventDispatcher {
         scale: 1,
         scaleScroller: 2,
         viewport: 2,
-        data: 3
+        data: 3,
+        button: 4,
+        dendrogram: 1
     };
     /**
      *

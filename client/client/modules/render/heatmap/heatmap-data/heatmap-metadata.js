@@ -197,7 +197,29 @@ export default class HeatmapMetadata extends HeatmapEventDispatcher {
     }
 
     get dendrogramAvailable() {
-        return !!this.columnsTree && !!this.rowsTree;
+        return !!this.columnsTree || !!this.rowsTree;
+    }
+
+    get columnAnnotationsAvailable() {
+        for (const column of this.columns) {
+            if (column.annotation) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    get rowAnnotationsAvailable() {
+        for (const row of this.rows) {
+            if (row.annotation) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    get annotationsAvailable() {
+        return this.columnAnnotationsAvailable || this.rowAnnotationsAvailable;
     }
 
     get columnsRowsReordered() {

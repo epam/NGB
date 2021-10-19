@@ -1,5 +1,9 @@
 import * as PIXI from 'pixi.js-legacy';
-import {extendRectangleByMargin, getRotatedRectangleBounds, rotateRectangle} from './vector-utilities';
+import {
+    extendRectangleByMargin,
+    getRotatedRectangleBounds,
+    rotateRectangle
+} from '../../../utilities/vector-utilities';
 import {HeatmapNavigationType} from '../../../navigation';
 import config from '../config';
 import labelsFormatter from './labels-formatter';
@@ -237,13 +241,19 @@ class AxisLabel {
         this.changed = true;
     }
 
-    get size () {
+    get width () {
         const label = this.hoveredLabel || this.label;
         if (label && label.texture && label.texture.baseTexture) {
-            return label.width +
-                config.label.margin * 2.0 +
-                config.scroller.height +
-                config.scroller.margin * 2.0;
+            return label.width + config.label.margin * 2.0
+        }
+        return 0;
+    }
+
+    get height () {
+        const label = this.hoveredLabel || this.label;
+        if (label && label.texture && label.texture.baseTexture) {
+            return label.height +
+                config.label.margin * 2.0;
         }
         return 0;
     }
@@ -391,9 +401,7 @@ class AxisLabel {
             fitsTick = false
         } = options;
         const shift = this.axis.scale.getDeviceDimension(this.value + 0.5);
-        const margin = config.label.margin * 2.0 +
-            config.scroller.height +
-            config.scroller.margin * 2.0;
+        const margin = config.label.margin * 2.0;
         const center = {
             x: shift * this.direction.x + this.normal.x * margin,
             y: shift * this.direction.y + this.normal.y * margin
@@ -406,7 +414,7 @@ class AxisLabel {
         });
         const previous = getConfig(this.label);
         let labelMainAngle = this.normalRadians + (this.normal.x < 0 ? Math.PI : 0);
-        if (fitsTick && Math.abs(this.direction.x) > 0) {
+        if (fitsTick && this.direction.y === 0) {
             labelMainAngle = this.directionRadians;
             this.label.anchor.set(0.5, 1);
             this.label.rotation = labelMainAngle;
