@@ -2,6 +2,7 @@ export default class ngbBlastSearchAlignmentService {
     static instance(blastContext, projectContext, genomeDataService, dispatcher) {
         return new ngbBlastSearchAlignmentService(blastContext, projectContext, genomeDataService, dispatcher);
     }
+
     constructor(blastContext, projectContext, genomeDataService, dispatcher) {
         this.blastContext = blastContext;
         this.projectContext = projectContext;
@@ -10,11 +11,11 @@ export default class ngbBlastSearchAlignmentService {
         this.chromosomesCache = new Map();
     }
 
-    setAlignments (searchResult, search, featureCoords) {
+    setAlignments(searchResult, search, featureCoords) {
         this.blastContext.setAlignments((searchResult || {}).alignments || [], search, featureCoords);
     }
 
-    async fetchChromosomes (referenceId) {
+    async fetchChromosomes(referenceId) {
         if (!this.chromosomesCache.has(+referenceId)) {
             const promise = new Promise((resolve) => {
                 this.genomeDataService.loadAllChromosomes(referenceId)
@@ -36,7 +37,7 @@ export default class ngbBlastSearchAlignmentService {
         return await this.chromosomesCache.get(+referenceId);
     }
 
-    async getNavigationInfo (alignment, search, featureCoords) {
+    async getNavigationInfo(alignment, search, featureCoords) {
         if (!alignment || !search) {
             return null;
         }
@@ -66,12 +67,17 @@ export default class ngbBlastSearchAlignmentService {
             };
         } else {
             let referenceId;
-            if (search.dbReferenceId) {
+            let referenceList = [];
+            if (search.referenceName) {
+                referenceList = (this.projectContext.references || [])
+                    .filter(reference => reference.name === search.referenceName);
+                referenceId = referenceList.length ? referenceList[0].id : undefined;
+            } else if (search.dbReferenceId) {
                 referenceId = search.dbReferenceId;
             } else {
-                const [reference] = (this.projectContext.references || [])
+                referenceList = (this.projectContext.references || [])
                     .filter(reference => reference.species && +(reference.species.taxId) === +sequenceTaxId);
-                referenceId = reference ? reference.id : undefined;
+                referenceId = referenceList.length ? referenceList[0].id : undefined;
             }
             if (
                 !sequenceStart ||
@@ -82,9 +88,7 @@ export default class ngbBlastSearchAlignmentService {
             ) {
                 return null;
             }
-            const chromosomes = await this.fetchChromosomes(referenceId);
-            const [chromosome] = chromosomes.filter(chr => chr.name.toLowerCase() === `${sequenceId}`.toLowerCase());
-            if (!chromosome) {
+            if (!await this.getChromosomeBySequenceId(referenceId, sequenceId)) {
                 return null;
             }
             return {
@@ -92,17 +96,18 @@ export default class ngbBlastSearchAlignmentService {
                 end: sequenceEnd,
                 chromosome: sequenceId,
                 referenceId,
+                referenceList
             };
         }
     }
 
-    async navigationAvailable (alignment, search, featureCoords) {
-        const info = await this.getNavigationInfo(alignment, search, featureCoords);
-        return !!info;
+    async getChromosomeBySequenceId(referenceId, sequenceId) {
+        const chromosomes = await this.fetchChromosomes(referenceId);
+        const [chromosome] = chromosomes.filter(chr => chr.name.toLowerCase() === `${sequenceId}`.toLowerCase());
+        return chromosome;
     }
 
-    async navigateToTracks (alignment, searchResult, search, featureCoords) {
-        const navigationInfo = await this.getNavigationInfo(alignment, search, featureCoords);
+    async navigateToTracks(alignment, searchResult, search, featureCoords, navigationInfo) {
         if (navigationInfo) {
             const {
                 start,
@@ -222,8 +227,10 @@ export default class ngbBlastSearchAlignmentService {
         }
 
         const [reference] = (this.projectContext.references || [])
-            .filter(reference => reference.species &&
-                Number(reference.species.taxId) === Number(taxId));
+            .filter(reference => searchResult.referenceName
+                ? reference.name === searchResult.referenceName
+                : reference.species && Number(reference.species.taxId) === Number(taxId)
+            );
         if (!reference) {
             return null;
         }
@@ -232,10 +239,7 @@ export default class ngbBlastSearchAlignmentService {
         if (!referenceId) {
             return null;
         }
-
-        const chromosomes = await this.fetchChromosomes(referenceId);
-        const [chromosome] = chromosomes.filter(chr => chr === `${sequenceId}`.toLowerCase());
-        if (!chromosome) {
+        if (!await this.getChromosomeBySequenceId(referenceId, sequenceId)) {
             return null;
         }
 
@@ -247,12 +251,12 @@ export default class ngbBlastSearchAlignmentService {
         };
     }
 
-    async navigationToChromosomeAvailable (searchResult) {
+    async navigationToChromosomeAvailable(searchResult) {
         const info = await this.getNavigationToChromosomeInfo(searchResult);
         return Boolean(info);
     }
 
-    async navigateToChromosome (searchResult, search) {
+    async navigateToChromosome(searchResult, search) {
         const navigationInfo = await this.getNavigationToChromosomeInfo(searchResult);
         if (navigationInfo) {
             const {

@@ -7,8 +7,19 @@
         <div flex="10"></div>
         <div layout="row">
             <a class="blast-search-result-link blast-search-alignment-link"
-               ng-class="{'disabled': !$ctrl.navigationAvailable}"
-               ng-click="$ctrl.navigateToTracks()">View at track</a>
+               ng-class="{'disabled': !$ctrl.navigationState}"
+               ng-click="$ctrl.navigateToTracks()">
+                View at track<span ng-if="$ctrl.navigationState.referenceList.length">:</span>
+            </a>
+            <md-select aria-label="referenceList"
+                       class="blast-search-alignment-reference-list"
+                       md-container-class="blast-search-alignment-reference-container"
+                       ng-if="$ctrl.navigationState.referenceList.length"
+                       ng-model="$ctrl.navigationState.referenceId">
+                <md-option class="blast-search-alignment-reference-option"
+                           ng-repeat="reference in $ctrl.navigationState.referenceList"
+                           ng-value="reference.id">{{ reference.name }}</md-option>
+            </md-select>
         </div>
         <div flex></div>
     </div>
