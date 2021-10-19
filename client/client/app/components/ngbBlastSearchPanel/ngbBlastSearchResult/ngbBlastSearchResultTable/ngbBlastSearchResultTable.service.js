@@ -94,7 +94,14 @@ export default class ngbBlastSearchResultTableService {
         // sequenceAccessionVersion can be in <reference:chromosome> or in <chromosome> format
         const splitSequenceId = result.sequenceAccessionVersion.split(':');
         return {
-            alignments: result.alignments,
+            alignments: result.alignments.map(alignment => {
+                const splitAlignmentSequenceId = alignment.sequenceAccessionVersion.split(':');
+                return {
+                    ...alignment,
+                    sequenceAccessionVersion: splitAlignmentSequenceId[1] || result.sequenceAccessionVersion,
+                    referenceName: splitAlignmentSequenceId[1] ? splitAlignmentSequenceId[0] : undefined,
+                };
+            }),
             sequenceId: result.sequenceId,
             sequenceAccessionVersion: splitSequenceId[1] || result.sequenceAccessionVersion,
             referenceName: splitSequenceId[1] ? splitSequenceId[0] : undefined,
