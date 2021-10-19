@@ -24,16 +24,7 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_DATAITEM_FORMATS_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FAILED_TO_LOAD_USER;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FILE_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_INDEX_REQUIRED;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PERMISSIONS_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PROJECT_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_REFERENCE_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_PATH_FORMAT;
-import static com.epam.ngb.cli.constants.MessageConstants.SEVERAL_RESULTS_FOR_QUERY;
-import static com.epam.ngb.cli.constants.MessageConstants.getMessage;
+import static com.epam.ngb.cli.constants.MessageConstants.*;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.FILE;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
 
