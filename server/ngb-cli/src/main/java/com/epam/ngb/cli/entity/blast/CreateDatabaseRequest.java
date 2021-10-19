@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.ngb.cli.entity.heatmap;
+package com.epam.ngb.cli.entity.blast;
 
 import com.epam.ngb.cli.entity.RequestPayload;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Builder
-public class HeatmapRegistrationRequest implements RequestPayload {
-    private String path;
-    private String name;
-    private String prettyName;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
+public class CreateDatabaseRequest implements RequestPayload {
+    private String dbName;
+    private String title;
+    private String pathToFile;
+    private Boolean parseSeqIds;
+    private Integer blastDbVersion;
+    private Integer taxId;
+    private String dbType;
 }

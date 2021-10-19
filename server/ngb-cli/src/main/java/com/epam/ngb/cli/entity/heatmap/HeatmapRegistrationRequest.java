@@ -21,22 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.epam.ngb.cli.entity.heatmap;
 
-import org.apache.commons.lang3.StringUtils;
+import com.epam.ngb.cli.entity.RequestPayload;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-public enum HeatmapAnnotationType {
-    NONE, REFERENCE, GENE, DATASET, COORDINATE;
-
-    public static HeatmapAnnotationType from(final String value) {
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        try {
-            return HeatmapAnnotationType.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid annotation type: " + value);
-        }
-    }
+@Getter
+@Setter
+@Builder
+public class HeatmapRegistrationRequest implements RequestPayload {
+    private String path;
+    private String name;
+    private String prettyName;
+    private String rowTreePath;
+    private String columnTreePath;
+    private String cellAnnotationPath;
+    private HeatmapAnnotationType cellAnnotationType;
+    private String labelAnnotationPath;
+    private HeatmapAnnotationType rowAnnotationType;
+    private HeatmapAnnotationType columnAnnotationType;
 }

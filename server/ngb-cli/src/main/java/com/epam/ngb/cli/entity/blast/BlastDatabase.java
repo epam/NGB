@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.ngb.cli.entity.heatmap;
+
+package com.epam.ngb.cli.entity.blast;
 
 import com.epam.ngb.cli.manager.printer.Printable;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,33 +34,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Getter
+/**
+ * {@code {@link BlastDatabase }} is an entity,  representing a Blast database on NGB server.
+ */
 @Setter
-@Builder
-public class Heatmap implements Printable<Heatmap> {
-    private Long heatmapId;
-    private Long bioDataItemId;
+@Getter
+public class BlastDatabase implements Printable<BlastDatabase> {
+    private Long id;
     private String name;
-    private String prettyName;
     private String path;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
-    private String rowTreePath;
-    private String columnTreePath;
+    private String type;
+    private String source;
+
     /**
-     * Calculates a formatting string for a {@code List} of {@code Heatmap} objects
-     * for table output. Method calculates the width of columns for {@code Heatmap}'s fields
+     * Calculates a formatting string for a {@code List} of {@code BlastDatabase} objects
+     * for table output. Method calculates the width of columns for {@code BlastDatabase}'s fields
      * from the length of all items' fields in the list. Printed columns are defined by
      * {@code FieldFormat}, width of each column will be equal to the width of the field with
      * the longest string value.
-     * @param table {@code List} of {@code Heatmap} for formatting
+     * @param table {@code List} of {@code BlastDatabase} for formatting
      * @return format String to be applied to the {@param table} printing
      */
     @Override
-    public String getFormatString(List<Heatmap> table) {
+    public String getFormatString(List<BlastDatabase> table) {
         Map<FieldFormat, Integer> formatMap = new EnumMap<>(FieldFormat.class);
         for (FieldFormat field : FieldFormat.values()) {
             formatMap.put(field, field.name().length());
@@ -70,22 +66,13 @@ public class Heatmap implements Printable<Heatmap> {
     }
 
     /**
-     * Creates a String representation of {@code Heatmap} according to the {@param formatString}
-     * @param formatString to apply to {@code Heatmap} formatting
-     * @return a String representation of {@code Heatmap}
+     * Creates a String representation of {@code BlastDatabase} according to the {@param formatString}
+     * @param formatString to apply to {@code BlastDatabase} formatting
+     * @return a String representation of {@code BlastDatabase}
      */
     @Override
     public String formatItem(String formatString) {
-        return String.format(formatString,
-                heatmapId,
-                bioDataItemId,
-                name,
-                prettyName,
-                path,
-                cellAnnotationPath,
-                labelAnnotationPath,
-                rowTreePath,
-                columnTreePath);
+        return String.format(formatString, id, name, path, type, source);
     }
 
     @Override
@@ -94,17 +81,13 @@ public class Heatmap implements Printable<Heatmap> {
         return String.format(formatString, (Object[]) names);
     }
 
-    private void getItemFormat(List<Heatmap> table, Map<FieldFormat, Integer> formatMap) {
-        for (Heatmap dbs : table) {
-            calculateFieldWidth(formatMap, FieldFormat.HEATMAP_ID, String.valueOf(dbs.getHeatmapId()));
-            calculateFieldWidth(formatMap, FieldFormat.BIO_DATA_ITEM_ID, String.valueOf(dbs.getBioDataItemId()));
+    private void getItemFormat(List<BlastDatabase> table, Map<FieldFormat, Integer> formatMap) {
+        for (BlastDatabase dbs : table) {
+            calculateFieldWidth(formatMap, FieldFormat.ID, String.valueOf(dbs.getId()));
             calculateFieldWidth(formatMap, FieldFormat.NAME, dbs.getName());
-            calculateFieldWidth(formatMap, FieldFormat.PRETTY_NAME, dbs.getPrettyName());
             calculateFieldWidth(formatMap, FieldFormat.PATH, dbs.getPath());
-            calculateFieldWidth(formatMap, FieldFormat.CELL_ANNOTATION_PATH, dbs.getCellAnnotationPath());
-            calculateFieldWidth(formatMap, FieldFormat.LABEL_ANNOTATION_PATH, dbs.getLabelAnnotationPath());
-            calculateFieldWidth(formatMap, FieldFormat.ROW_TREE_PATH, dbs.getRowTreePath());
-            calculateFieldWidth(formatMap, FieldFormat.COLUMN_TREE_PATH, dbs.getColumnTreePath());
+            calculateFieldWidth(formatMap, FieldFormat.TYPE, dbs.getType());
+            calculateFieldWidth(formatMap, FieldFormat.SOURCE, dbs.getSource());
         }
     }
 
@@ -118,17 +101,13 @@ public class Heatmap implements Printable<Heatmap> {
     }
 
     /**
-     * Represent the fields of the {@code Heatmap}, that will be included in the table for printing
+     * Represent the fields of the {@code BlastDatabase}, that will be included in the table for printing
      */
     private enum FieldFormat {
-        HEATMAP_ID,
-        BIO_DATA_ITEM_ID,
+        ID,
         NAME,
-        PRETTY_NAME,
         PATH,
-        CELL_ANNOTATION_PATH,
-        LABEL_ANNOTATION_PATH,
-        ROW_TREE_PATH,
-        COLUMN_TREE_PATH;
+        TYPE,
+        SOURCE
     }
 }

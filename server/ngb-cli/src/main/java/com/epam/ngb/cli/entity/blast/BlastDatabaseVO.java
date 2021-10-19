@@ -23,18 +23,21 @@
  *  * SOFTWARE.
  *
  */
-package com.epam.ngb.cli.entity;
+package com.epam.ngb.cli.entity.blast;
 
-import lombok.AllArgsConstructor;
+import com.epam.ngb.cli.entity.RequestPayload;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-public class BlastDatabaseVO implements RequestPayload{
-    public static final List<String> BLAST_DATABASE_TYPES = Arrays.asList("PROTEIN", "NUCLEOTIDE");
+@Builder
+public class BlastDatabaseVO implements RequestPayload {
+    public static final String NUCLEOTIDE = "nucl";
+    public static final String PROTEIN = "prot";
+    public static final List<String> BLAST_DATABASE_TYPES = Arrays.asList(PROTEIN, NUCLEOTIDE);
     public static final List<String> BLAST_DATABASE_SOURCES = Arrays.asList("CUSTOM", "NCBI");
     private String name;
     private String path;
