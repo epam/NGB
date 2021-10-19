@@ -75,6 +75,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.Sort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -563,8 +564,15 @@ public class FeatureIndexManager {
      * @throws IOException if error occurred while writing to file system
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
-            final List<? extends FeatureIndexEntry> entries,
-            VcfFilterInfo vcfFilterInfo)
+                                        final List<? extends FeatureIndexEntry> entries,
+                                        VcfFilterInfo vcfFilterInfo, IndexWriter writer)
+            throws IOException {
+        featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo, writer);
+    }
+
+    public void writeLuceneIndexForFile(final FeatureFile featureFile,
+                                        final List<? extends FeatureIndexEntry> entries,
+                                        VcfFilterInfo vcfFilterInfo)
             throws IOException {
         featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo);
     }

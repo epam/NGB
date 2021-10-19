@@ -257,6 +257,21 @@ public class FeatureIndexDao {
         }
     }
 
+    public void writeLuceneIndexForFile(final FeatureFile featureFile,
+                                        final List<? extends FeatureIndexEntry> entries,
+                                        VcfFilterInfo vcfFilterInfo,
+                                        final IndexWriter writer) throws IOException {
+        AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
+                entries.isEmpty() ? new FeatureIndexEntry() : entries.get(0));
+
+        FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
+
+        for (FeatureIndexEntry entry : entries) {
+            Document document = creator.buildDocument(entry, featureFile.getId());
+            writer.addDocument(facetsConfig.build(document));
+        }
+    }
+
     public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
             FeatureFile featureFile,
             Integer maxResultsCount)
