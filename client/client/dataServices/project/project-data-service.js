@@ -302,7 +302,7 @@ export class ProjectDataService extends DataService {
         const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
         const {dbType} = search;
         const id = sequenceAccessionVersion || sequenceId;
-        const db = search && dbType && /^protein$/i.test(dbType)
+        const db = search && dbType && /^(protein|prot)$/i.test(dbType)
             ? 'PROTEIN'
             : 'NUCLEOTIDE';
         return id && db && taxId ? `blast/coordinate?sequenceId=${id}&type=${db}&taxId=${taxId}` : undefined;

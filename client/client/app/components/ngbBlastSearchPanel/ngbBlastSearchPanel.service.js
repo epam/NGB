@@ -341,7 +341,7 @@ export default class ngbBlastSearchService {
         const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
         const {dbType} = search;
         const id = sequenceAccessionVersion || sequenceId;
-        const db = search && dbType && /^protein$/i.test(dbType)
+        const db = search && dbType && /^(protein|prot)$/i.test(dbType)
             ? 'PROTEIN'
             : 'NUCLEOTIDE';
         return new Promise((resolve) => {

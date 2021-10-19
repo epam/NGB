@@ -35,7 +35,7 @@ export default class ngbBlastSearchAlignment {
 
     async updateNavigationState() {
         const navigationState = await this.ngbBlastSearchAlignmentService.getNavigationInfo(this.alignment, this.search, this.featureCoords);
-        if (this.navigationState && navigationState.referenceList.some(ref => ref.id === this.navigationState.referenceId)) {
+        if (this.navigationState && (navigationState.referenceList || []).some(ref => ref.id === this.navigationState.referenceId)) {
             this.navigationState = {
                 ...navigationState,
                 referenceId: this.navigationState.referenceId
