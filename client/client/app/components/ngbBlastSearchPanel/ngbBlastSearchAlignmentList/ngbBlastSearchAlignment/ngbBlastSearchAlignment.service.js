@@ -45,7 +45,8 @@ export default class ngbBlastSearchAlignmentService {
             sequenceStart,
             sequenceEnd,
             sequenceAccessionVersion: sequenceId,
-            sequenceTaxId
+            sequenceTaxId,
+            referenceName
         } = alignment;
         if (featureCoords) {
             const {
@@ -68,9 +69,9 @@ export default class ngbBlastSearchAlignmentService {
         } else {
             let referenceId;
             let referenceList = [];
-            if (search.referenceName) {
+            if (referenceName) {
                 referenceList = (this.projectContext.references || [])
-                    .filter(reference => reference.name === search.referenceName);
+                    .filter(reference => reference.name === referenceName);
                 referenceId = referenceList.length ? referenceList[0].id : undefined;
             } else if (search.dbReferenceId) {
                 referenceId = search.dbReferenceId;

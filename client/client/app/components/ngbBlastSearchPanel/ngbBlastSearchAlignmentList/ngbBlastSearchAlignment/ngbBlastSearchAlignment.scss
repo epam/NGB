@@ -81,13 +81,19 @@
   }
 }
 
-.blast-search-alignment-reference-container md-select-menu md-content {
+.blast-search-alignment-reference-container {
   min-height: 20px;
-  padding: 4px 0;
+  md-select-menu {
+    min-height: 20px;
+    md-content {
+      min-height: 20px;
+      padding: 4px 0;
 
-  md-option {
-    height: 20px;
-    line-height: 20px;
-    padding: 0 4px;
+      md-option {
+        height: 20px;
+        line-height: 20px;
+        padding: 0 4px;
+      }
+    }
   }
 }
