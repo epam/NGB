@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,20 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
+import static com.epam.ngb.cli.entity.blast.BlastDatabaseVO.NUCLEOTIDE;
 
 import com.epam.ngb.cli.entity.BiologicalDataItemResourceType;
+import com.epam.ngb.cli.entity.blast.BlastDatabaseVO;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
+import com.epam.ngb.cli.entity.blast.CreateDatabaseRequest;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +101,10 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private boolean noGCContent = false;
 
+    private boolean createBlastDatabase;
+
+    private Long taxId;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceRegistrationHandler.class);
 
     /**
@@ -106,7 +115,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.isEmpty() || arguments.size() != 1) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
@@ -132,6 +141,8 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         noGCContent = options.isNoGCContent();
         prettyName = options.getPrettyName();
         speciesVersion = options.getSpeciesVersion();
+        createBlastDatabase = options.isCreateBlastDatabase();
+        taxId = options.getTaxId();
     }
 
     /**
@@ -161,7 +172,29 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
             registration.setSpecies(speciesEntity);
         }
         String result = getPostResult(registration, (HttpPost)request);
+
         checkAndPrintRegistrationResult(result, printJson, printTable);
+        if (createBlastDatabase) {
+            String databaseName = TextUtils.isBlank(referenceName) ?
+                    FilenameUtils.getBaseName(referencePath) :
+                    referenceName;
+            CreateDatabaseRequest createDatabaseRequest = CreateDatabaseRequest.builder()
+                    .dbName(databaseName)
+                    .title(databaseName)
+                    .pathToFile(referencePath)
+                    .parseSeqIds(true)
+                    .dbType(NUCLEOTIDE)
+                    .taxId(taxId)
+                    .build();
+            createBlastDatabase(createDatabaseRequest);
+            BlastDatabaseVO databaseVO = BlastDatabaseVO.builder()
+                    .name(databaseName)
+                    .path(referencePath)
+                    .type(NUCLEOTIDE)
+                    .source("CUSTOM")
+                    .build();
+            registerBlastDatabase(databaseVO);
+        }
         return 0;
     }
 }

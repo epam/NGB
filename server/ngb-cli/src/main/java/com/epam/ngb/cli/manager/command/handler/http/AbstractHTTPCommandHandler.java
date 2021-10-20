@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
 package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.*;
-import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.*;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.FILE;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,6 +51,8 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
+import com.epam.ngb.cli.entity.blast.BlastDatabaseVO;
+import com.epam.ngb.cli.entity.blast.CreateDatabaseRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -833,6 +836,20 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             }
         }
         return Pair.of(fileAbsolutePath, index);
+    }
+
+    protected void createBlastDatabase(final CreateDatabaseRequest createDatabaseRequest) {
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getCreateBlastDatabaseUrl());
+        String result = getPostResult(createDatabaseRequest, request);
+        isResultOk(result);
+    }
+
+    protected void registerBlastDatabase(final BlastDatabaseVO databaseVO) {
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getRegisterBlastDatabaseUrl());
+        String result = getPostResult(databaseVO, request);
+        isResultOk(result);
     }
 
     /**

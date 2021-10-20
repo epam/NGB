@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,6 +70,8 @@ public class CommandManager {
     private static final String PROJECT_DESCRIPTION_URL_PROPERTY = "project_description_url";
     private static final String SERVER_URL_ENV_VAR = "NGB_API";
     private static final String TOKEN_ENV_VAR = "NGB_TOKEN";
+    public static final String REGISTER_BLAST_DATABASE_URL_PROPERTY = "register_blast_database_url";
+    public static final String CREATE_BLAST_DATABASE_URL_PROPERTY = "create_blast_database_url";
 
     /**
      * Creates {@code CommandManager} for an input {@param command}, loads it's configuration and
@@ -158,6 +160,8 @@ public class CommandManager {
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
         parameters.setProjectDescriptionUrl(serverProperties.getProperty(PROJECT_DESCRIPTION_URL_PROPERTY));
+        parameters.setCreateBlastDatabaseUrl(serverProperties.getProperty(CREATE_BLAST_DATABASE_URL_PROPERTY));
+        parameters.setRegisterBlastDatabaseUrl(serverProperties.getProperty(REGISTER_BLAST_DATABASE_URL_PROPERTY));
         return parameters;
     }
 

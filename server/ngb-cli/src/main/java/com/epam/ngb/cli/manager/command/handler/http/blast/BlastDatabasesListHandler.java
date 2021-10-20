@@ -28,8 +28,8 @@ package com.epam.ngb.cli.manager.command.handler.http.blast;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.BlastDatabase;
-import com.epam.ngb.cli.entity.BlastDatabaseVO;
+import com.epam.ngb.cli.entity.blast.BlastDatabase;
+import com.epam.ngb.cli.entity.blast.BlastDatabaseVO;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;

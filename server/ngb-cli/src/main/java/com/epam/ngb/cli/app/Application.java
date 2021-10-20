@@ -232,6 +232,9 @@ public class Application {
     @Option(name = "-path", usage = "defines path to heatmap cell/label annotation or other entity")
     private String path;
 
+    @Option(name = "--create-blast-db", usage = "create BLAST database")
+    private boolean createBlastDatabase;
+
     @Option(name = "-r", usage = "specifies reference",  aliases = {"--reference"})
     private String reference;
 
@@ -337,6 +340,7 @@ public class Application {
         options.setShowPermissions(showPermissions);
         options.setDatabaseType(databaseType);
         options.setDatabasePath(databasePath);
+        options.setCreateBlastDatabase(createBlastDatabase);
         options.setHeatmapCellAnnotationPath(heatmapCellAnnotationPath);
         options.setHeatmapLabelAnnotationPath(heatmapLabelAnnotationPath);
         options.setPath(path);
