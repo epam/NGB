@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,11 @@ public class CommandManager {
     private static final String REGISTRATION_URL_PROPERTY = "register_url";
     private static final String PROJECT_URL_PROPERTY = "project_url";
     private static final String PROJECT_URL_BY_ID_PROPERTY = "project_load_url";
+    private static final String REMOVE_GENE_URL_PROPERTY = "remove_gene_url";
+    private static final String DELETE_GENE_URL_PROPERTY = "delete_gene_url";
+    private static final String LOAD_REFERENCE_URL_PROPERTY = "load_reference_url";
+    private static final String UPDATE_ANNOTATION_URL_PROPERTY = "update_annotation_url";
+    private static final String DELETE_ITEM_URL_PROPERTY = "delete_item_url";
     private static final String FIND_FILE_URL_PROPERTY = "find_url";
     private static final String PROJECT_TREE_URL_PROPERTY = "project_load_tree";
     private static final String VERSION_URL_PROPERTY = "version_url";
@@ -147,6 +152,11 @@ public class CommandManager {
         parameters.setRegistrationUrl(serverProperties.getProperty(REGISTRATION_URL_PROPERTY));
         parameters.setProjectLoadUrl(serverProperties.getProperty(PROJECT_URL_PROPERTY));
         parameters.setProjectLoadByIdUrl(serverProperties.getProperty(PROJECT_URL_BY_ID_PROPERTY));
+        parameters.setRemoveGeneUrl(serverProperties.getProperty(REMOVE_GENE_URL_PROPERTY));
+        parameters.setDeleteGeneUrl(serverProperties.getProperty(DELETE_GENE_URL_PROPERTY));
+        parameters.setLoadReferenceUrl(serverProperties.getProperty(LOAD_REFERENCE_URL_PROPERTY));
+        parameters.setUpdateAnnotationUrl(serverProperties.getProperty(UPDATE_ANNOTATION_URL_PROPERTY));
+        parameters.setDeleteItemUrl(serverProperties.getProperty(DELETE_ITEM_URL_PROPERTY));
         parameters.setFileFindUrl(serverProperties.getProperty(FIND_FILE_URL_PROPERTY));
         parameters.setVersionUrl(serverProperties.getProperty(VERSION_URL_PROPERTY));
         parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,14 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command;
+package com.epam.ngb.cli.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * {@code ServerParameters} represents an NGB server configuration, required for
- * HTTP commands execution
- */
-@Data
-public class ServerParameters {
-
-    private String serverUrl;
-    private String searchUrl;
-    private String registrationUrl;
-    private String projectLoadUrl;
-    private String projectTreeUrl;
-    private String versionUrl;
-    private String projectLoadByIdUrl;
-    private String removeGeneUrl;
-    private String deleteGeneUrl;
-    private String loadReferenceUrl;
-    private String updateAnnotationUrl;
-    private String deleteItemUrl;
-    private String fileFindUrl;
-    private String allRolesUrl;
-    private String roleUrl;
-    private String findUsersUrl;
-    private String findUserUrl;
-    private String serverVersion;
-    private String existingIndexSearchUrl;
-    private String jwtAuthenticationToken;
-    private String formatsUrl;
-    private String projectDescriptionUrl;
+@Getter
+@Setter
+public class FeatureFile extends BiologicalDataItem {
+    private Long referenceId;
+    private Long bioDataItemId;
 }
