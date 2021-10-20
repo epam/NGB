@@ -42,8 +42,7 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_HEATMAP_M
 public class HeatmapSecurityService {
 
     private static final String READ_HEATMAP_BY_PROJECT_ID =
-            "readOnAnnotationFileIsAllowed(#heatmapId, 'com.epam.catgenome.entity.heatmap.Heatmap', " +
-                    "#projectId)";
+            "readOnAHeatmapIsAllowed(#heatmapId, #projectId)";
 
     @Autowired
     private HeatmapManager heatmapManager;

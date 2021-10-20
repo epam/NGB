@@ -25,6 +25,7 @@
 package com.epam.catgenome.security.acl.customexpression;
 
 import com.epam.catgenome.entity.gene.Gene;
+import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
@@ -168,11 +169,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return allowed;
     }
 
-    public boolean readOnAnnotationFileIsAllowed(Long id, String type, Long projectId) {
-        boolean allowed = hasPermissionOnFileOrParentProject(id, type, projectId, "READ");
+    public boolean readOnAHeatmapIsAllowed(Long id, Long projectId) {
+        boolean allowed = hasPermissionOnFileOrParentProject(id, Heatmap.class.getTypeName(), projectId, "READ");
         if (!allowed) {
-            //when load gene track - check reference gene file, and if it is the same file - allow read
-            allowed = permissionHelper.isAnnotationRegisteredForReference(id);
+            allowed = permissionHelper.isHeatmapRegisteredForReference(id);
         }
         return allowed;
     }
