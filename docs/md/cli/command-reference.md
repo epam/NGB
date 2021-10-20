@@ -718,8 +718,11 @@ ngb reg_heatmap|rh [<PATH>] [options]
 //-cap (--heatmap-cap)          Heatmap cell annotation path
 //-cell-at (--heatmap-cell-at)  Heatmap cell annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 //-lap (--heatmap-lap)          Heatmap label annotation path
+//-skip-row (--skip-row)        Number of last heatmap rows to skip
+//-skip-col (--skip-col)        Number of last heatmap columns to skip
 //-row-at (--heatmap-row-at)    Heatmap row annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 //-col-at (--heatmap-col-at)    Heatmap column annotation type [REFERENCE|GENE|DATASET|COORDINATE]
+
 ```
 *Description*
 

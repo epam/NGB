@@ -46,9 +46,9 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class HeatmapManagerTest extends TestCase {
 
-    private static final int CELL_VALUES_SIZE = 16;
-    private static final int CONTENT_SIZE = 6;
-    private static final double MAX_CELL_VALUE = 0.001276598;
+    private static final int CELL_VALUES_SIZE = 11;
+    private static final int CONTENT_SIZE = 5;
+    private static final double MAX_CELL_VALUE = 0.001273579;
     private static final double MIN_CELL_VALUE = 0.0;
     private static final String GENE_1_LABEL = "gene1";
     private static final String GENE_1_ANNOTATION = "test1";
@@ -61,6 +61,7 @@ public class HeatmapManagerTest extends TestCase {
 
     private String contentFileName;
     private String labelAnnotationFileName;
+    private String cellAnnotationFileName;
     private String treeFileName;
 
 
@@ -68,6 +69,8 @@ public class HeatmapManagerTest extends TestCase {
     public void setUp() throws IOException, ParseException {
         this.contentFileName = context.getResource("classpath:heatmap//heatmap.tsv").getFile().getPath();
         this.labelAnnotationFileName = context.getResource("classpath:heatmap//label_annotation.tsv")
+                .getFile().getPath();
+        this.cellAnnotationFileName = context.getResource("classpath:heatmap//cell_annotation.tsv")
                 .getFile().getPath();
         this.treeFileName = context.getResource("classpath:heatmap//tree.txt").getFile().getPath();
     }
@@ -78,10 +81,12 @@ public class HeatmapManagerTest extends TestCase {
         request.setName("createHeatmapTest");
         request.setPrettyName("heatmap");
         request.setPath(contentFileName);
-        request.setCellAnnotationPath(contentFileName);
+        request.setCellAnnotationPath(cellAnnotationFileName);
         request.setLabelAnnotationPath(labelAnnotationFileName);
         request.setRowTreePath(treeFileName);
         request.setColumnTreePath(treeFileName);
+        request.setSkipColumns(1);
+        request.setSkipRows(1);
         Heatmap heatmap = heatmapManager.createHeatmap(request);
         Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNotNull(createdHeatmap);
@@ -121,12 +126,12 @@ public class HeatmapManagerTest extends TestCase {
     @Test
     public void updateCellAnnotationTest() throws IOException {
         Heatmap heatmap = registerHeatmap("updateCellAnnotationTest");
-        heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), contentFileName);
+        heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), cellAnnotationFileName);
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         assertEquals(CONTENT_SIZE, content.size());
         assertEquals(CONTENT_SIZE, content.get(0).size());
-        assertEquals("0", content.get(0).get(0).get(1));
+        assertEquals("a", content.get(0).get(0).get(1));
     }
 
     @Test
@@ -168,6 +173,8 @@ public class HeatmapManagerTest extends TestCase {
         HeatmapRegistrationRequest request = new HeatmapRegistrationRequest();
         request.setName(name);
         request.setPath(contentFileName);
+        request.setSkipRows(1);
+        request.setSkipColumns(1);
         return heatmapManager.createHeatmap(request);
     }
 }

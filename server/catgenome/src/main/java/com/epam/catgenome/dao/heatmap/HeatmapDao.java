@@ -54,6 +54,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
+import static com.epam.catgenome.manager.heatmap.HeatmapManager.listToData;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -148,9 +150,8 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     public void updateLabelAnnotation(final Heatmap heatmap, final String path) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmap.getHeatmapId());
-        params.addValue(HeatmapParameters.COLUMN_LABELS.name(),
-                HeatmapParameters.listToData(heatmap.getColumnLabels()));
-        params.addValue(HeatmapParameters.ROW_LABELS.name(), HeatmapParameters.listToData(heatmap.getRowLabels()));
+        params.addValue(HeatmapParameters.COLUMN_LABELS.name(), listToData(heatmap.getColumnLabels()));
+        params.addValue(HeatmapParameters.ROW_LABELS.name(), listToData(heatmap.getRowLabels()));
         params.addValue(HeatmapParameters.LABEL_ANNOTATION_PATH.name(), path);
 
         getNamedParameterJdbcTemplate().update(updateLabelAnnotationQuery, params);
@@ -253,15 +254,6 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
             params.addValue(ROW_ANNOTATION_TYPE.name(), heatmap.getRowAnnotationType().name());
             params.addValue(COLUMN_ANNOTATION_TYPE.name(), heatmap.getColumnAnnotationType().name());
             return params;
-        }
-
-        @SneakyThrows
-        private static byte[] listToData(List<List<String>> data) {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(data);
-            oos.flush();
-            return bos.toByteArray();
         }
 
         @SneakyThrows

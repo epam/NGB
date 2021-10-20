@@ -30,6 +30,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class HeatmapRegistrationRequest extends DefaultFileRegistrationRequest {
+    private int skipRows;
+    private int skipColumns;
     private String rowTreePath;
     private String columnTreePath;
     private String cellAnnotationPath;

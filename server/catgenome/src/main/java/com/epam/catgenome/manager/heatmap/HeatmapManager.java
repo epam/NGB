@@ -55,11 +55,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,13 +102,13 @@ public class HeatmapManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Heatmap createHeatmap(final HeatmapRegistrationRequest request) throws IOException {
         final String path = request.getPath();
-        final File file = getFile(path);
+        getFile(path);
         final Heatmap heatmap = getHeatmap(request, path);
+        final List<List<String>> contentAsList = new LinkedList<>();
+        readHeatmap(heatmap, contentAsList, request.getSkipRows(), request.getSkipColumns());
         final Map<String, String> labelAnnotation = readLabelAnnotation(heatmap.getLabelAnnotationPath());
         updateHeatmapLabels(heatmap, labelAnnotation);
-        final byte[] content = FileUtils.readFileToByteArray(file);
-        final byte[] cellAnnotation = readFileContent(heatmap.getCellAnnotationPath(), heatmap,
-                this::checkCellAnnotation);
+        final byte[] cellAnnotation = !TextUtils.isBlank(path) ? null : getCellAnnotation(heatmap);
         final byte[] rowTree = readFileContent(heatmap.getRowTreePath(),
             heatmap,
             h -> checkTree(getLabelSet(h.getRowLabels()), h.getRowTreePath()));
@@ -115,7 +118,7 @@ public class HeatmapManager {
         biologicalDataItemManager.createBiologicalDataItem(heatmap);
         heatmap.setBioDataItemId(heatmap.getId());
         return heatmapDao.saveHeatmap(heatmap,
-                content,
+                listToData(contentAsList),
                 cellAnnotation,
                 rowTree,
                 columnTree);
@@ -136,13 +139,14 @@ public class HeatmapManager {
     public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
         final Heatmap heatmap = getHeatmap(heatmapId);
         File file = null;
+        byte[] annotation = null;
         if (!TextUtils.isBlank(path)) {
             file = getFile(path);
             heatmap.setCellAnnotationPath(path);
-            checkCellAnnotation(heatmap);
+            annotation = getCellAnnotation(heatmap);
         }
         heatmapDao.updateCellAnnotation(heatmapId, file == null ? null :
-                FileUtils.readFileToByteArray(file), path);
+                annotation, path);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -185,10 +189,10 @@ public class HeatmapManager {
     }
 
     public List<List<List<String>>> getContent(final long heatmapId) throws IOException {
-        final Heatmap heatmap = getHeatmap(heatmapId);
+        getHeatmap(heatmapId);
         try (InputStream heatmapIS = heatmapDao.loadHeatmapContent(heatmapId);
                 InputStream annotationIS = heatmapDao.loadCellAnnotation(heatmapId)) {
-            return getAnnotatedContent(heatmapIS, annotationIS, heatmap.getPath(), heatmap.getCellAnnotationPath());
+            return getAnnotatedContent(heatmapIS, annotationIS);
         }
     }
 
@@ -207,6 +211,21 @@ public class HeatmapManager {
             }
         }
         return heatmapTree;
+    }
+
+    @SneakyThrows
+    public static byte[] listToData(List<List<String>> data) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(data);
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    @SneakyThrows
+    private static List<List<String>> dataToList(final InputStream bis) {
+        ObjectInput in = new ObjectInputStream(bis);
+        return (List<List<String>>) in.readObject();
     }
 
     private HeatmapTreeNode convertTree(final TreeNode node) {
@@ -234,7 +253,7 @@ public class HeatmapManager {
     }
 
     @NotNull
-    private Heatmap getHeatmap(final HeatmapRegistrationRequest request, final String path) throws IOException {
+    private Heatmap getHeatmap(final HeatmapRegistrationRequest request, final String path) {
         final Heatmap heatmap = Heatmap.builder()
                 .rowTreePath(request.getRowTreePath())
                 .columnTreePath(request.getColumnTreePath())
@@ -251,36 +270,39 @@ public class HeatmapManager {
         heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
         heatmap.setCreatedDate(new Date());
         heatmap.setSource(path);
-        readHeatmap(heatmap);
         return heatmap;
     }
 
-    private void readHeatmap(final Heatmap heatmap) throws IOException {
+    private void readHeatmap(final Heatmap heatmap,
+                             final List<List<String>> content,
+                             final int skipRows,
+                             final int skipColumns) throws IOException {
         final String path = heatmap.getPath();
         final String separator = getSeparator(path);
+
+        long linesToRead = getLinesToRead(skipRows, path);
 
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             String line = bufferedReader.readLine();
             String[] cells = line.split(separator);
             List<List<String>> columnLabels = new LinkedList<>();
-            for (int i = 1; i < cells.length; i++) {
+            for (int i = 1; i < cells.length - skipColumns; i++) {
                 columnLabels.add(Collections.singletonList(cells[i].trim()));
             }
             heatmap.setColumnLabels(columnLabels);
-            int columnsNum = cells.length;
             List<List<String>> rowLabels = new LinkedList<>();
             Set<String> values = new HashSet<>();
             Set<Integer> types = new HashSet<>(3);
+            int lineNum = 1;
             while ((line = bufferedReader.readLine()) != null) {
-                if (StringUtils.isBlank(line)) {
+                if (StringUtils.isBlank(line) || (skipRows > 0 && lineNum >= linesToRead)) {
                     break;
                 }
                 cells = line.split(separator);
-                Assert.isTrue(cells.length == columnsNum,
-                        getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
                 rowLabels.add(Collections.singletonList(cells[0].trim()));
+                List<String> row = new LinkedList<>();
 
-                for (int i = 1; i < cells.length; i++) {
+                for (int i = 1; i < cells.length - skipColumns; i++) {
                     String value = getCellValue(cells[i]);
                     if (value != null) {
                         try {
@@ -296,7 +318,10 @@ public class HeatmapManager {
                         }
                         values.add(value);
                     }
+                    row.add(value);
                 }
+                content.add(row);
+                lineNum++;
             }
             heatmap.setRowLabels(rowLabels);
             HeatmapDataType cellValueType = HeatmapDataType.getById(Collections.max(types));
@@ -331,6 +356,23 @@ public class HeatmapManager {
                         .collect(Collectors.toList())));
             }
         }
+    }
+
+    private long getLinesToRead(final int skipRows, final String path) throws IOException {
+        long linesToRead = 0;
+        if (skipRows > 0) {
+            try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (StringUtils.isBlank(line)) {
+                        break;
+                    }
+                    linesToRead++;
+                }
+                linesToRead = linesToRead - skipRows;
+            }
+        }
+        return linesToRead;
     }
 
     @NotNull
@@ -403,20 +445,16 @@ public class HeatmapManager {
     }
 
     private List<List<List<String>>> getAnnotatedContent(final InputStream heatmapInputStream,
-                                                           final InputStream annotationInputStream,
-                                                           final String contentPath,
-                                                           final String annotationPath) throws IOException {
-        final List<List<String>> content = getDataAsList(heatmapInputStream, getSeparator(contentPath));
-        final List<List<String>> annotation = annotationInputStream != null ?
-                getDataAsList(annotationInputStream, getSeparator(annotationPath)) :
-                null;
+                                                         final InputStream annotationInputStream) {
+        final List<List<String>> content = dataToList(heatmapInputStream);
+        final List<List<String>> annotation = annotationInputStream != null ? dataToList(annotationInputStream) : null;
         final List<List<List<String>>> annotatedContent = new LinkedList<>();
 
-        for (int i = 1; i < content.size(); i++) {
+        for (int i = 0; i < content.size(); i++) {
             final List<String> contentRow = content.get(i);
             final List<String> annotationRow = annotation != null ? annotation.get(i) : null;
             final List<List<String>> annotatedContentRow = new LinkedList<>();
-            for (int j = 1; j < contentRow.size(); j++) {
+            for (int j = 0; j < contentRow.size(); j++) {
                 final List<String> annotatedCell = annotation == null ?
                         Collections.singletonList(contentRow.get(j)) :
                         Arrays.asList(contentRow.get(j), annotationRow.get(j));
@@ -431,25 +469,11 @@ public class HeatmapManager {
         return (TextUtils.isBlank(value) || EMPTY_CELL_VALUES.contains(value.trim())) ? null : value.trim();
     }
 
-    private List<List<String>> getDataAsList(final InputStream inputStream, final String separator) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            final List<List<String>> content = new LinkedList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (StringUtils.isBlank(line)) {
-                    break;
-                }
-                String[] cells = line.split(separator);
-                content.add(Arrays.stream(cells).map(this::getCellValue).collect(Collectors.toList()));
-            }
-            return content;
-        }
-    }
-
     @SneakyThrows
-    private void checkCellAnnotation(final Heatmap heatmap) {
+    private byte[] getCellAnnotation(final Heatmap heatmap) {
         final String path = heatmap.getCellAnnotationPath();
         final String separator = getSeparator(path);
+        List<List<String>> annotation = new LinkedList<>();
         final List<List<String>> rowLabels = heatmap.getRowLabels();
         final List<List<String>> columnLabels = heatmap.getColumnLabels();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
@@ -459,6 +483,7 @@ public class HeatmapManager {
                 Assert.isTrue(columnLabels.get(i - 1).get(0).equals(cells[i].trim()),
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
             }
+            List<String> row = new LinkedList<>();
             int rowNum = 0;
             int columnsCount = columnLabels.size() + 1;
             while ((line = bufferedReader.readLine()) != null) {
@@ -470,9 +495,14 @@ public class HeatmapManager {
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
                 Assert.isTrue(rowLabels.get(rowNum).get(0).equals(cells[0].trim()),
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
+                for (int i = 1; i < cells.length; i++) {
+                    row.add(getCellValue(cells[i]));
+                }
                 rowNum++;
+                annotation.add(row);
             }
         }
+        return listToData(annotation);
     }
 
     @NotNull
