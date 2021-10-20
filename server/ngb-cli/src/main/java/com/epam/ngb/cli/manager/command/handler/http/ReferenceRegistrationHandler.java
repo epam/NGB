@@ -183,7 +183,6 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
                     .title(databaseName)
                     .pathToFile(referencePath)
                     .parseSeqIds(true)
-                    .blastDbVersion(1)
                     .dbType(NUCLEOTIDE)
                     .taxId(taxId)
                     .build();
