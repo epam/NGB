@@ -103,6 +103,8 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
 
     private boolean createBlastDatabase;
 
+    private Long taxId;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceRegistrationHandler.class);
 
     /**
@@ -140,6 +142,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         prettyName = options.getPrettyName();
         speciesVersion = options.getSpeciesVersion();
         createBlastDatabase = options.isCreateBlastDatabase();
+        taxId = options.getTaxId();
     }
 
     /**
@@ -182,6 +185,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
                     .parseSeqIds(true)
                     .blastDbVersion(1)
                     .dbType(NUCLEOTIDE)
+                    .taxId(taxId)
                     .build();
             createBlastDatabase(createDatabaseRequest);
             BlastDatabaseVO databaseVO = BlastDatabaseVO.builder()

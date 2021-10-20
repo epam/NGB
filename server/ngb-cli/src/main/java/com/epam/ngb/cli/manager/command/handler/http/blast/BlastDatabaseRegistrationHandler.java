@@ -31,6 +31,7 @@ import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.blast.BlastDatabaseVO;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.List;
@@ -65,7 +66,12 @@ public class BlastDatabaseRegistrationHandler extends AbstractHTTPCommandHandler
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_DATABASE_SOURCE, source));
         }
-        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type, source);
+        database = BlastDatabaseVO.builder()
+                .name(arguments.get(0))
+                .path(arguments.get(1))
+                .type(type)
+                .source(source)
+                .build();
         if (StringUtils.isNotBlank(options.getReference())) {
             database.setReferenceId(loadReferenceId(options.getReference()));
         }

@@ -86,7 +86,8 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 //-ngc (--nogccontent)      Disables calculation of GC-content for large scale reference view
 //-pt (--pretty)            Add pretty name to the reference genome
 //-s (--species)            Add species version to registering reference. Note: species should be already registered on NGB server.
-//-create-blast-db          Create BLAST database
+//--taxid [value]           Taxonomy id
+//--create-blast-db         Create BLAST database
 ```
 *Description*
 

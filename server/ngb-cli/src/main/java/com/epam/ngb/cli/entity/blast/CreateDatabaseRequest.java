@@ -35,6 +35,6 @@ public class CreateDatabaseRequest implements RequestPayload {
     private String pathToFile;
     private Boolean parseSeqIds;
     private Integer blastDbVersion;
-    private Integer taxId;
+    private Long taxId;
     private String dbType;
 }
