@@ -7,6 +7,7 @@
     - [Sessions](#sessions-panel)
     - [Molecular viewer](#molecular-viewer-panel)
     - [BLAST search](#blast-panel)
+    - [Heatmap panel](#heatmap-panel)
 - [Taking screenshots](#taking-screenshots)
 
 The NGB user interface is implemented as the main menu on the left side and a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.  
@@ -135,12 +136,8 @@ The **Sessions** panel has the following columns:
 **To sort the sessions** according to a specific property - click the header of the corresponding column, e.g.:  
   ![NGB GUI](images/overview-8.png)
 
-**To filter displayed sessions** - use one or more parameters to filter sessions in the **Sessions** panel. The approach is fully the same as described for the [Variants panel](variants.md#filters-for-variants-panel):  
-  ![NGB GUI](images/overview-41.png)  
+**To filter displayed sessions** - use one or more parameters to filter sessions in the **Sessions** panel. The approach is similar to described for the [Variants panel](variants.md#filters-for-variants-panel):  
   ![NGB GUI](images/overview-42.png)
-
-**To restore the original table view** - click the corresponding item in the panel options menu (_hamburger_ icon). This will restore default columns order, cancel all configured sortings and filters:  
-  ![NGB GUI](images/overview-43.png)
 
 **To navigate to a location** bookmarked in the certain session - click the corresponding row of the table:  
   ![NGB GUI](images/overview-33.png)  
@@ -222,6 +219,21 @@ This form is being opened in the same tab (**History**), e.g.:
   ![NGB GUI](images/blast-21.png)
 
 For more details, options and capabilities see [here](blast-search.md).
+
+### Heatmap panel
+
+**Heatmap** is a data visualization technique that shows magnitude of a phenomenon as color in two dimensions.  
+NGB supports heatmaps displaying.
+
+In NGB, heatmaps can be shown in the **Heatmap** panel, as separate track or even at the _Summary_ dataset view in the **Browser** panel.
+
+![NGB GUI](images/overview-49.png)
+
+Besides their main function to visualize data, heatmaps can also be used to navigate over NGB objects, e.g.:  
+![NGB GUI](images/overview-50.png)  
+![NGB GUI](images/overview-51.png)
+
+For more details see [here](tracks-heatmap.md).
 
 ## Taking screenshots
 
