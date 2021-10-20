@@ -1,6 +1,6 @@
 import {DataService} from '../data-service';
 
-const MOCK_COLUMNS = 100;
+const MOCK_COLUMNS = 1000;
 const MOCK_ROWS = 100;
 const MOCK_DATA_MIN = -50;
 const MOCK_DATA_MAX = 50;
@@ -22,8 +22,8 @@ function generateRandomTreeItems(length, name) {
 }
 
 function generateRandomTree(items = []) {
-    if (items.length < 2) {
-        return items;
+    if (items.length <= 2) {
+        return {children: items};
     }
     const elements = items.slice();
     const popRandomElement = () => {
@@ -32,11 +32,11 @@ function generateRandomTree(items = []) {
         return e;
     };
     const result = [];
-    result.push([popRandomElement(), popRandomElement()]);
+    result.push({children: [popRandomElement(), popRandomElement()]});
     while (elements.length >= 2) {
         const left = popRandomElement();
         const right = popRandomElement();
-        result.push([left, right]);
+        result.push({children: [left, right]});
     }
     if (elements.length === 1) {
         return generateRandomTree([generateRandomTree(result), elements.pop()]);
@@ -122,8 +122,8 @@ export class HeatmapDataService extends DataService {
                 const columnsTree = generateRandomTree(columns);
                 const rowsTree = generateRandomTree(rows);
                 resolve({
-                    columns: columnsTree,
-                    rows: rowsTree
+                    column: columnsTree,
+                    row: rowsTree
                 });
             }, 1000);
         });

@@ -65,12 +65,10 @@ public class BlastDatabaseRegistrationHandler extends AbstractHTTPCommandHandler
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_DATABASE_SOURCE, source));
         }
-        database = BlastDatabaseVO.builder()
-                .name(arguments.get(0))
-                .path(arguments.get(1))
-                .type(type)
-                .source(source)
-                .build();
+        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type, source);
+        if (StringUtils.isNotBlank(options.getReference())) {
+            database.setReferenceId(loadReferenceId(options.getReference()));
+        }
     }
 
     @Override public int runCommand() {

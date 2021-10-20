@@ -21,7 +21,7 @@ export default class ngbBlastSearchAlignmentList {
     get ncbiUrl () {
         if (this.searchResult) {
             const id = this.searchResult.sequenceAccessionVersion || this.searchResult.sequenceId;
-            const dbType = this.search && /^protein$/i.test(this.search.dbType)
+            const dbType = this.search && /^(protein|prot)$/i.test(this.search.dbType)
                 ? 'protein'
                 : 'nucleotide';
             return `https://www.ncbi.nlm.nih.gov/${dbType}/${id}`;

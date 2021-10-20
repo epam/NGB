@@ -8,7 +8,7 @@ import events from '../utilities/events';
 
 const heatMapDataService = new HeatmapDataService();
 
-const IGNORE_TREE = true;
+const IGNORE_TREE = false;
 
 export {HeatmapDataType};
 export default class HeatmapData extends HeatmapEventDispatcher {
@@ -91,8 +91,8 @@ export default class HeatmapData extends HeatmapEventDispatcher {
         this.assignMetadata(new HeatmapMetadata());
         this._metadata.onColumnsRowsReordered(this.dendrogramModeChanged);
         this.data = [];
-        this.columnsTree = new HeatmapBinaryTree([]);
-        this.rowsTree = new HeatmapBinaryTree([]);
+        this.columnsTree = new HeatmapBinaryTree({});
+        this.rowsTree = new HeatmapBinaryTree({});
         this.dataReady = false;
         this.treeReady = false;
         this.metadataReady = false;
@@ -159,8 +159,8 @@ export default class HeatmapData extends HeatmapEventDispatcher {
             return Promise.resolve();
         }
         if (IGNORE_TREE) {
-            this.rowsTree = new HeatmapBinaryTree([]);
-            this.columnsTree = new HeatmapBinaryTree([]);
+            this.rowsTree = new HeatmapBinaryTree({});
+            this.columnsTree = new HeatmapBinaryTree({});
             this.treeReady = true;
             this.treeError = undefined;
             return Promise.resolve();
@@ -176,14 +176,15 @@ export default class HeatmapData extends HeatmapEventDispatcher {
                         } = tree || {};
                         this.columnsTree = new HeatmapBinaryTree(columns);
                         this.rowsTree = new HeatmapBinaryTree(rows);
-                        this.columnsTree.buildOrders();
-                        this.rowsTree.buildOrders();
+                        this.columnsTree.prepare();
+                        this.rowsTree.prepare();
                         this.treeReady = true;
                         this.treeError = undefined;
+                        this.emit(events.data.tree);
                     })
                     .catch((e) => {
-                        this.rowsTree = new HeatmapBinaryTree([]);
-                        this.columnsTree = new HeatmapBinaryTree([]);
+                        this.rowsTree = new HeatmapBinaryTree({});
+                        this.columnsTree = new HeatmapBinaryTree({});
                         this.treeReady = false;
                         this.treeError = e.message;
                         // eslint-disable-next-line no-console

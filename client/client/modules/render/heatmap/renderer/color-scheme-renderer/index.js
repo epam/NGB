@@ -285,12 +285,14 @@ class ColorSchemeRenderer extends InteractiveZone {
                     const columnXOffset = columnWidths.slice(0, column).reduce((w, c) => w + c, 0);
                     const columnYOffset = drawingHeight / 2.0 - stopsPerColumn / 2.0 * gradientStopTotalHeight;
                     const yCenter = columnYOffset + gradientStopTotalHeight * (row + 0.5);
-                    label.y = yCenter - label.height / 2.0;
-                    label.x = columnXOffset +
+                    label.y = Math.round(yCenter - label.height / 2.0);
+                    label.x = Math.round(
+                        columnXOffset +
                         columnWidth -
                         colorIndicatorTotalWidth -
                         label.width -
-                        config.discrete.gradientStop.margin;
+                        config.discrete.gradientStop.margin
+                    );
                     label.visible = true;
                     this.discreteGraphics
                         .beginFill(gradient.getAnyColor(), 1)

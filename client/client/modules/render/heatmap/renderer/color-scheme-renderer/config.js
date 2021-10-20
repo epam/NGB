@@ -25,7 +25,7 @@ export default {
             fill: 0x333333,
             fontFamily: 'arial',
             fontSize: '8pt',
-            fontWeight: 'bold',
+            fontWeight: 'normal',
             align: 'center'
         },
         margin: 2,

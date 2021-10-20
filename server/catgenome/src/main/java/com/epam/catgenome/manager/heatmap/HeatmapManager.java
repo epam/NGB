@@ -486,9 +486,8 @@ public class HeatmapManager {
         try (BufferedReader r = createReader(path)) {
             TreeParser tp = new TreeParser(r);
             Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
-            List<String> treeLabels = tree.nodes.stream()
-                    .map(TreeNode::getName)
-                    .filter(f -> !f.isEmpty() && !labels.contains(f))
+            List<TreeNode> treeLabels = tree.nodes.stream()
+                    .filter(n -> !n.getName().isEmpty() && 0 == n.numberChildren() && !labels.contains(n.getName()))
                     .collect(Collectors.toList());
             Assert.isTrue(treeLabels.isEmpty(), getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
         }

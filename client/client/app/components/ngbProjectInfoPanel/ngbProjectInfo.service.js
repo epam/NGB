@@ -2,21 +2,26 @@ function findSelectedDatasets(candidates) {
     const result = [];
     for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i];
-        if (candidate.isProject && candidate.nestedProjects && candidate.nestedProjects.length > 0) {
+        if (!candidate.isProject) {
+            continue;
+        }
+        let added = false;
+        const hasSelectedTracks = (candidate.lazyItems || candidate.items || [])
+            .filter(track => !track.isProject && track.__selected)
+            .length > 0;
+        if (hasSelectedTracks || candidate.__selected || candidate.__indeterminate) {
+            result.push(candidate);
+            added = true;
+        }
+        if (candidate.nestedProjects && candidate.nestedProjects.length > 0) {
             const nestedSelectedDatasets = findSelectedDatasets(candidate.nestedProjects);
             if (nestedSelectedDatasets.length > 0) {
                 result.push(...nestedSelectedDatasets);
-                const hasSelectedTracks = (candidate.lazyItems || candidate.items || [])
-                    .filter(track => !track.isProject && track.__selected)
-                    .length > 0;
-                if (hasSelectedTracks) {
+                if (!added) {
+                    added = true;
                     result.push(candidate);
                 }
-            } else if (candidate.__selected || candidate.__indeterminate) {
-                result.push(candidate);
             }
-        } else if (candidate.isProject && (candidate.__selected || candidate.__indeterminate)) {
-            result.push(candidate);
         }
     }
     return result;
@@ -84,7 +89,8 @@ const PROJECT_INFO_MODE_NAME = {
     '-4': 'Summary'
 };
 
-const EDIT_PERMISSION = 2;
+const READ_PERMISSION = 1;
+const EDIT_PERMISSION = 1 << 1;
 const checkPermission = (mask, permission) => (mask & permission) === permission;
 
 export default class ngbProjectInfoService {
@@ -177,18 +183,18 @@ export default class ngbProjectInfoService {
 
     setCurrentName(value) {
         const [valueMode, valueId] = Array.isArray(value) ? value : [value, null];
+        let nameValue = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+        if (valueMode === this.projectInfoModeList.DESCRIPTION) {
+            nameValue = this.currentDescription.name;
+        }
         if (this.projects.length > 1) {
-            let nameValue = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
             if (valueMode !== undefined && (valueMode > 0 || valueId)) {
-                if (valueMode === this.projectInfoModeList.DESCRIPTION) {
-                    nameValue = this.currentDescription.name;
-                }
                 this._currentName = `${this.currentProject.name}:${nameValue}`;
             } else {
                 this._currentName = nameValue;
             }
         } else {
-            this._currentName = PROJECT_INFO_MODE_NAME[valueMode] || this.currentNote.title;
+            this._currentName = nameValue;
         }
     }
 
@@ -234,7 +240,7 @@ export default class ngbProjectInfoService {
     }
 
     get canEdit() {
-        return checkPermission(this.currentProject.mask, EDIT_PERMISSION);
+        return checkPermission(this.currentProject.mask, READ_PERMISSION);
     }
 
     get isEdit() {
@@ -307,21 +313,7 @@ export default class ngbProjectInfoService {
     }
 
     projectChanged() {
-        const selectedDatasets = [
-            ...(
-                new Set(findSelectedDatasets(this.projectContext.datasets || []))
-            )
-        ];
-        const parents = new Set(selectedDatasets.map(dataset => dataset.id));
-        selectedDatasets.forEach(item => {
-            if (item.parentId && !parents.has(item.parentId)) {
-                selectedDatasets.add(
-                    ...this.projectContext.datasets
-                        .filter(dataset => dataset.id === item.parentId)
-                );
-                parents.add(item.parentId);
-            }
-        });
+        const selectedDatasets = [...(new Set(findSelectedDatasets(this.projectContext.datasets || [])))];
         if (selectedDatasets.length > 1) {
             sortDatasets(selectedDatasets);
         }
@@ -336,10 +328,10 @@ export default class ngbProjectInfoService {
             clearURLObject();
             this.projects = selectedDatasets.slice();
             this.projects.forEach(project => {
-                project.canEdit = checkPermission(project.mask, EDIT_PERMISSION);
+                project.canEdit = checkPermission(project.mask, READ_PERMISSION);
             });
-            const currentProjectChanged = this.currentProject && this.currentProject.id &&
-                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0;
+            const currentProjectChanged = (this.currentProject && this.currentProject.id ||
+                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0);
             if (currentProjectChanged) {
                 if (selectedDatasets.length === 1) {
                     this.currentProject = selectedDatasets[0];

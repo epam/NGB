@@ -54,7 +54,7 @@ export class BLASTTrack extends CachedTrackWithVerticalScroll {
                 return start < endIndex && end > startIndex;
             };
             const {dbType, tool} = this.blastContext.search || {};
-            this.cache.isProtein = /^protein$/i.test(dbType) || !/^blastn$/i.test(tool);
+            this.cache.isProtein = /^(protein|prot)$/i.test(dbType) || !/^blastn$/i.test(tool);
             this.cache.data = (this.blastContext.alignments || [])
                 .filter(filterAlignment);
             return true;

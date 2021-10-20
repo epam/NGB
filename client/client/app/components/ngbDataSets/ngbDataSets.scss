@@ -8,6 +8,7 @@ $folder-line: #cccccc;
   vertical-align: middle;
   fill: $folder-fill;
   cursor: pointer;
+
   &.opened {
     -webkit-transform: rotate(90deg);
     -moz-transform: rotate(90deg);
@@ -15,6 +16,7 @@ $folder-line: #cccccc;
     -ms-transform: rotate(90deg);
     transform: rotate(90deg);
   }
+
   &.empty {
     visibility: hidden;
   }
@@ -74,6 +76,7 @@ $folder-line: #cccccc;
 
   &:hover {
     background-color: #f9f9f9;
+
     .dataset-genome {
       color: #444444;
     }
@@ -87,9 +90,11 @@ $folder-line: #cccccc;
   display: flex;
   height: 1rem;
   align-items: center;
+
   &.selected {
     font-weight: bold;
   }
+
   &.empty {
     margin-left: 0;
   }
@@ -102,9 +107,11 @@ $folder-line: #cccccc;
   display: inline-block;
   min-width: 100px;
   align-items: center;
+
   &.selected {
     font-weight: bold;
   }
+
   .file-hint {
     font-weight: normal;
     font-size: 12px;
@@ -114,8 +121,13 @@ $folder-line: #cccccc;
     border-radius: 5px;
     margin-left: 5px;
   }
-  .dataset-track-title-search {
 
+  .dataset-track-title-search {
+    font-size: 0;
+
+    & * {
+      font-size: 12px;
+    }
   }
 }
 
@@ -127,8 +139,9 @@ $folder-line: #cccccc;
 
 .dataset-selectable {
   cursor: pointer;
+
   &:focus {
-    outline:0;
+    outline: 0;
   }
 }
 
@@ -151,6 +164,7 @@ $folder-line: #cccccc;
 
   &.empty {
     width: 40px;
+
     &.invisible {
       display: none;
     }
@@ -161,6 +175,7 @@ $folder-line: #cccccc;
   &.track {
     margin-left: 1px;
   }
+
   &.empty {
     visibility: hidden;
   }
@@ -178,6 +193,7 @@ $folder-line: #cccccc;
   font-weight: normal;
   text-transform: uppercase;
 }
+
 .structure-card-search-result {
   padding: 1px 4px 1px 4px;
   margin: 1px 2px;
@@ -198,17 +214,19 @@ $folder-line: #cccccc;
   overflow: hidden;
   display: flex;
   flex-wrap: wrap;
-  align-items:center;
+  align-items: center;
   width: auto;
-  height:1rem;
+  height: 1rem;
 }
 
 .datasets-warning {
   padding-top: 20px;
   text-align: center;
+
   span {
     font-size: small;
     color: #999999;
+
     strong {
       color: #666666;
     }
@@ -222,14 +240,15 @@ $folder-line: #cccccc;
   height: 30px;
 }
 
-.vertical-container{
-  .md-virtual-repeat-offsetter{
+.vertical-container {
+  .md-virtual-repeat-offsetter {
     height: 100%;
   }
-  height:  100%;
+
+  height: 100%;
 }
 
-ul.treeview{
+ul.treeview {
   padding-left: 15px;
   list-style-type: none;
 }

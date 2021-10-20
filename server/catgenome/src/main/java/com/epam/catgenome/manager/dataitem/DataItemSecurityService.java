@@ -79,8 +79,9 @@ public class DataItemSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
-        return dataItemManager.loadItemFile(biologicalDataItem);
+    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
+                                               final Boolean source) throws IOException {
+        return dataItemManager.loadItemFile(biologicalDataItem, source);
     }
 
     @PreAuthorize(ROLE_USER)

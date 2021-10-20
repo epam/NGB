@@ -6,8 +6,6 @@ const MIN_SEQ_PART_LENGTH = 10;
 const SEQUENCE_RIGHT_MARGIN = 20;
 
 export default class ngbBlastSearchAlignment {
-    navigationAvailable = false;
-
     static get UID() {
         return 'ngbBlastSearchAlignment';
     }
@@ -15,6 +13,7 @@ export default class ngbBlastSearchAlignment {
     maxSeqLength = MIN_SEQ_PART_LENGTH;
     partedAlignment = [];
     windowElm = {};
+    navigationState = null;
 
     constructor($scope, $element, $window, $timeout, ngbBlastSearchAlignmentService, projectContext, dispatcher) {
         Object.assign(this, {
@@ -24,7 +23,6 @@ export default class ngbBlastSearchAlignment {
             dispatcher,
             ngbBlastSearchAlignmentService
         });
-        this.navigationAvailable = false;
         this.initialize();
         this.windowElm = angular.element($window);
         const updateNavigationStateFn = this.updateNavigationState.bind(this);
@@ -35,18 +33,33 @@ export default class ngbBlastSearchAlignment {
         });
     }
 
-    async updateNavigationState () {
-        this.navigationAvailable = await this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search, this.featureCoords);
+    async updateNavigationState() {
+        const navigationState = await this.ngbBlastSearchAlignmentService.getNavigationInfo(this.alignment, this.search, this.featureCoords);
+        if (this.navigationState && (navigationState.referenceList || []).some(ref => ref.id === this.navigationState.referenceId)) {
+            this.navigationState = {
+                ...navigationState,
+                referenceId: this.navigationState.referenceId
+            };
+        } else {
+            this.navigationState = navigationState;
+        }
     }
 
-    navigateToTracks () {
-        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.searchResult, this.search, this.featureCoords);
+    navigateToTracks() {
+        this.ngbBlastSearchAlignmentService.navigateToTracks(
+            this.alignment,
+            this.searchResult,
+            this.search,
+            this.featureCoords,
+            this.navigationState
+        );
     }
 
     $onInit() {
         this.windowElm.on('resize', ::this.onResize);
     }
-    $onChanges(changedObj){
+
+    $onChanges(changedObj) {
         const feature = changedObj.featureCoords;
         if (feature) {
             this.featureCoords = feature.currentValue;
