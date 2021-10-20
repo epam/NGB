@@ -5,8 +5,8 @@ import {
     movePoint,
     moveSection,
     pointFitsSection
-} from './utilities/vector-utilities';
-import AxisVectors from './axis-vectors';
+} from '../../utilities/vector-utilities';
+import AxisVectors from '../../utilities/axis-vectors';
 import InteractiveZone from '../../interactions/interactive-zone';
 import config from './config';
 import makeInitializable from '../../utilities/make-initializable';
@@ -54,6 +54,10 @@ class HeatmapScaleScroller extends InteractiveZone {
 
     get scrollerHovered() {
         return this._scrollerHovered || this.scrollerDragging;
+    }
+
+    get size() {
+        return config.scroller.height + config.scroller.margin * 2.0;
     }
 
     destroy() {
@@ -142,7 +146,14 @@ class HeatmapScaleScroller extends InteractiveZone {
      */
     // eslint-disable-next-line no-unused-vars
     getDragValue(event) {
-        return this.axis.center;
+        if (this.direction.x !== 0) {
+            return event
+                ? (event.dragStartViewportColumn - this.direction.x * this.getGlobalScaleDimension(event.xDelta))
+                : this.axis.center;
+        }
+        return event
+            ? (event.dragStartViewportRow - this.direction.y * this.getGlobalScaleDimension(event.yDelta))
+            : this.axis.center;
     }
 
     onDrag(event) {
@@ -305,34 +316,4 @@ class HeatmapScaleScroller extends InteractiveZone {
     }
 }
 
-export class ColumnsScrollerRenderer extends HeatmapScaleScroller {
-    constructor(viewport) {
-        super(
-            viewport.columns,
-            AxisVectors.columns.direction,
-            AxisVectors.columns.normal
-        );
-    }
-
-    getDragValue(event) {
-        return event
-            ? (event.dragStartViewportColumn - this.getGlobalScaleDimension(event.xDelta))
-            : this.axis.center;
-    }
-}
-
-export class RowsScrollerRenderer extends HeatmapScaleScroller {
-    constructor(viewport) {
-        super(
-            viewport.rows,
-            AxisVectors.rows.direction,
-            AxisVectors.rows.normal
-        );
-    }
-
-    getDragValue(event) {
-        return event
-            ? (event.dragStartViewportRow - this.getGlobalScaleDimension(event.yDelta))
-            : this.axis.center;
-    }
-}
+export default HeatmapScaleScroller;

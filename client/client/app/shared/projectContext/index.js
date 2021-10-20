@@ -944,12 +944,39 @@ export default class projectContext {
         return this.refreshDatasetsPromise;
     }
 
+    async findAnyDatasetOfReference(referenceId) {
+        if (this._datasetsAreLoading && this.refreshDatasetsPromise) {
+            await this.refreshDatasetsPromise;
+        }
+        const findDataset = (datasets = []) => {
+            for (const dataset of datasets) {
+                if (dataset.reference && Number(dataset.reference.id) === Number(referenceId)) {
+                    return dataset;
+                }
+            }
+            for (const dataset of datasets) {
+                if (dataset.nestedProjects) {
+                    const nested = findDataset(dataset.nestedProjects);
+                    if (nested) {
+                        return nested;
+                    }
+                }
+            }
+            return undefined;
+        };
+        return findDataset(this._datasets);
+    }
+
     loadDatasetDescription(id) {
         return new Promise((resolve) => {
             this.projectDataService.getProjectIdDescription(id)
                 .then(resolve)
                 .catch(() => resolve(undefined));
         });
+    }
+
+    downloadProjectDescription (id) {
+        return this.projectDataService.downloadProjectDescription(id);
     }
 
     convertProjectForSave = utilities.convertProjectForSave;

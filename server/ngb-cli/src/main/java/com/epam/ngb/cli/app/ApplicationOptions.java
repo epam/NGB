@@ -122,5 +122,7 @@ public class ApplicationOptions {
     private HeatmapAnnotationType heatmapCellAnnotationType;
     private HeatmapAnnotationType heatmapRowAnnotationType;
     private HeatmapAnnotationType heatmapColumnAnnotationType;
+    private String reference;
+    private Long taxId;
 
 }

@@ -109,7 +109,8 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
         DATABASE_NAME,
         DATABASE_PATH,
         DATABASE_TYPE,
-        DATABASE_SOURCE;
+        DATABASE_SOURCE,
+        DATABASE_REFERENCE_ID;
 
         static MapSqlParameterSource getParameters(final BlastDatabase database) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -119,6 +120,7 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
             params.addValue(DATABASE_PATH.name(), database.getPath());
             params.addValue(DATABASE_TYPE.name(), database.getType().getTypeId());
             params.addValue(DATABASE_SOURCE.name(), database.getSource().getSourceId());
+            params.addValue(DATABASE_REFERENCE_ID.name(), database.getReferenceId());
 
             return params;
         }
@@ -139,6 +141,10 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
             final long sourceVal = rs.getLong(DATABASE_SOURCE.name());
             if (!rs.wasNull()) {
                 database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
+            }
+            final long referenceId = rs.getLong(DATABASE_REFERENCE_ID.name());
+            if (!rs.wasNull()) {
+                database.setReferenceId(referenceId);
             }
             return database;
         }

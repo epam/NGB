@@ -34,6 +34,7 @@ nav:
             - WIG track: user-guide/tracks-wig.md
             - BED track: user-guide/tracks-bed.md
             - FeatureCounts track: user-guide/tracks-featurecounts.md
+            - Heatmap track: user-guide/tracks-heatmap.md
             - ENCODE-specific tracks: user-guide/tracks-encode.md
         - Variants: user-guide/variants.md
         - Genes: user-guide/genes.md
@@ -48,9 +49,3 @@ nav:
     - Developer guide:
         - Embedding NGB with URL: user-guide/embedding-url.md
         - Embedding NGB with JS: user-guide/embedding-js.md
-theme: material
-theme_dir: material-epam-theme
-docs_dir: md
-use_directory_urls: false
-extra:
-  logo: assets/images/logo.png

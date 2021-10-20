@@ -42,13 +42,16 @@ export default class HeatmapContext {
         const referenceId = this.projectContext && this.projectContext.reference
             ? this.projectContext.reference.id
             : undefined;
-        const items = references
+        const heatmapsFromTracks = tracks
+            .filter(track => track.format === 'HEATMAP')
+            .map(track => ({...track, referenceId, isTrack: true}));
+        const heatmapsFromAnnotations = references
             .filter(reference => reference.id === referenceId)
             .map(r => (r.annotationFiles || []))
             .reduce((r, c) => ([...r, ...c]), [])
-            .concat(tracks)
             .filter(track => track.format === 'HEATMAP')
-            .map(track => ({...track, referenceId}));
+            .map(track => ({...track, referenceId, isAnnotation: true}));
+        const items = heatmapsFromTracks.concat(heatmapsFromAnnotations);
         const uniqueIdentifiers = Array.from(new Set(items.map(item => item.id)));
         const heatmaps = uniqueIdentifiers
             .map(id => items.filter(track => track.id === id).pop())

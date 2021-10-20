@@ -26,7 +26,8 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
      * @returns {HeatmapViewOptions}
      */
     static parse(serialized, dataConfig) {
-        let colorScheme,
+        let annotations = true,
+            colorScheme,
             dendrogram = true;
         let payload = serialized;
         if (!serialized && dataConfig && dataConfig.id) {
@@ -38,15 +39,17 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
         try {
             const [
                 colorSchemeSerialized,
-                dendrogramEnabled
+                dendrogramEnabled = 'true',
+                showAnnotations = 'true'
             ] = payload.split(HeatmapViewOptions.SERIALIZATION_SEPARATOR);
             dendrogram = /^true$/i.test(dendrogramEnabled);
+            annotations = /^true$/i.test(showAnnotations);
             if (colorSchemeSerialized) {
                 colorScheme = ColorScheme.parse(colorSchemeSerialized);
             }
             // eslint-disable-next-line no-empty
         } catch (_) {}
-        const heatmapOptions = new HeatmapViewOptions(colorScheme, dendrogram);
+        const heatmapOptions = new HeatmapViewOptions(colorScheme, {annotations, dendrogram});
         if (dataConfig) {
             heatmapOptions.setDataConfigurationCache(dataConfig);
         }
@@ -55,29 +58,39 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
     /**
      *
      * @param {ColorScheme} colorScheme
-     * @param {boolean} [dendrogram=true]
+     * @param {Object} [options]
+     * @param {boolean} [options.annotations=true]
+     * @param {boolean} [options.dendrogram=true]
      */
-    constructor(colorScheme, dendrogram = true) {
+    constructor(colorScheme, options = {}) {
         super();
+        const {
+            annotations = true,
+            dendrogram = true
+        } = options;
         this._data = new HeatmapData();
         this._colorScheme = colorScheme || (new ColorScheme());
         this._dendrogramAvailable = false;
+        this._annotationsAvailable = false;
         this._dendrogram = dendrogram;
+        this._annotations = annotations;
         this.handleMetadataLoaded = this.metadataLoaded.bind(this);
-        this.changedCallback = () => {
-            if (this._cacheOptions && this._cacheOptions.id) {
-                writeHeatmapState(this._cacheOptions.id, this.serialize());
-            }
-            this.emit(events.changed);
-        };
-        this._colorScheme.onChanged(this.changedCallback);
+        this._colorScheme.onChanged(this.changedCallback.bind(this));
         this._data.onMetadataLoaded(this.handleMetadataLoaded);
     }
+
+    changedCallback = () => {
+        if (this._cacheOptions && this._cacheOptions.id) {
+            writeHeatmapState(this._cacheOptions.id, this.serialize());
+        }
+        this.emit(events.changed);
+    };
 
     serialize() {
         return [
             this.colorScheme.serialize(),
-            this.dendrogram
+            this._dendrogram,
+            this._annotations
         ].join(HeatmapViewOptions.SERIALIZATION_SEPARATOR);
     }
 
@@ -93,19 +106,35 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
         return this._data;
     }
 
-    get dendrogram() {
-        return this.dendrogramAvailable && this._dendrogram;
-    }
-
     get dataConfig() {
         return this._cacheOptions;
+    }
+
+    get dendrogram() {
+        return this.dendrogramAvailable && this._dendrogram;
     }
 
     set dendrogram(dendrogram) {
         if (dendrogram !== this.dendrogram) {
             this._dendrogram = dendrogram;
             this.emit(events.data.dendrogram);
-            this.emit(events.changed);
+            this.changedCallback();
+        }
+    }
+
+    get annotationsAvailable() {
+        return this._annotationsAvailable;
+    }
+
+    get annotations() {
+        return this.annotationsAvailable && this._annotations;
+    }
+
+    set annotations(annotations) {
+        if (annotations !== this.annotations) {
+            this._annotations = annotations;
+            this.changedCallback();
+            this.emit(events.data.annotations);
         }
     }
 
@@ -115,6 +144,15 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
 
     setDataConfigurationCache(cache) {
         this._cacheOptions = cache;
+    }
+
+    updateOptionsAvailability() {
+        this._dendrogramAvailable = this.data &&
+            this.data.metadata &&
+            this.data.metadata.dendrogramAvailable;
+        this._annotationsAvailable = this.data &&
+            this.data.metadata &&
+            this.data.metadata.annotationsAvailable;
     }
 
     reloadFromStorage() {
@@ -132,9 +170,17 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
                 this._colorScheme.initializeFrom(storedOptions.colorScheme, true);
                 storedOptions.destroy();
             }
-            this._dendrogramAvailable = this.data &&
-                this.data.metadata &&
-                this.data.metadata.dendrogramAvailable;
+            const currentDendrogram = this._dendrogram;
+            const currentAnnotations = this._annotations;
+            this._dendrogram = storedOptions ? storedOptions._dendrogram : this._dendrogram;
+            this._annotations = storedOptions ? storedOptions._annotations : this._annotations;
+            this.updateOptionsAvailability();
+            if (currentDendrogram !== this._dendrogram) {
+                this.emit(events.data.dendrogram);
+            }
+            if (currentAnnotations !== this._annotations) {
+                this.emit(events.data.annotations);
+            }
             this.emit(events.changed);
         }
     }
@@ -175,15 +221,31 @@ class HeatmapViewOptions extends HeatmapEventDispatcher {
                 reset
             });
         }
+        const currentDendrogram = this._dendrogram;
+        const currentAnnotations = this._annotations;
+        this._dendrogram = storedOptions ? storedOptions._dendrogram : this._dendrogram;
+        this._annotations = storedOptions ? storedOptions._annotations : this._annotations;
         storedOptions = undefined;
-        this._dendrogramAvailable = this.data &&
-            this.data.metadata &&
-            this.data.metadata.dendrogramAvailable;
+        this.updateOptionsAvailability();
+        if (currentDendrogram !== this._dendrogram) {
+            this.emit(events.data.dendrogram);
+        }
+        if (currentAnnotations !== this._annotations) {
+            this.emit(events.data.annotations);
+        }
         this.emit(events.changed);
+    }
+
+    onAnnotationsModeChanged(callback) {
+        this.addEventListener(events.data.annotations, callback);
     }
 
     onColumnsRowsReordered(callback) {
         this.addEventListener(events.data.sorting, callback);
+    }
+
+    onDendrogramModeChanged(callback) {
+        this.addEventListener(events.data.dendrogram, callback);
     }
 
     destroy() {

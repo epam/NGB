@@ -73,6 +73,7 @@
                         d.database_id,
                         d.name as database_name,
                         d.path as database_path,
+                        d.reference_id as database_reference_id,
                         d.type as database_type,
                         d.source as database_source
                     FROM catgenome.task t
@@ -100,6 +101,7 @@
                         d.database_id,
                         d.name as database_name,
                         d.path as database_path,
+                        d.reference_id as database_reference_id,
                         d.type as database_type,
                         d.source as database_source
                     FROM catgenome.task t

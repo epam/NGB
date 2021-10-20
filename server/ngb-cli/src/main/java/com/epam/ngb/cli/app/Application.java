@@ -106,8 +106,8 @@ public class Application {
             + " if option isn't provided, the dataset will be moved to the top level of the datasets hierarchy"
             + "\t{md my_dataset -p parent}\n"
             + "ld\tlist_dataset\t: lists all datasets, registered on the server\t{ld}\n"
-            + "add_description\t: uploads dataset description file\t{add_description my_dataset description_file}\n"
-            + "remove_description\t: removes dataset description\t{remove_description my_dataset " +
+            + " \tadd_description\t: uploads dataset description file\t{add_description my_dataset description_file}\n"
+            + " \tremove_description\t: removes dataset description\t{remove_description my_dataset " +
                 "--name description_file}\n\n"
             + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "
@@ -238,6 +238,12 @@ public class Application {
     @Option(name = "-path", usage = "defines path to heatmap cell/label annotation or other entity")
     private String path;
 
+    @Option(name = "-r", usage = "specifies reference",  aliases = {"--reference"})
+    private String reference;
+
+    @Option(name = "--taxid", usage = "specifies taxonomy id")
+    private Long taxId;
+
     @Argument
     private List<String> arguments;
 
@@ -345,6 +351,8 @@ public class Application {
         options.setHeatmapCellAnnotationType(HeatmapAnnotationType.from(heatmapCellAnnotationType));
         options.setHeatmapRowAnnotationType(HeatmapAnnotationType.from(heatmapRowAnnotationType));
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
+        options.setReference(reference);
+        options.setTaxId(taxId);
         return options;
     }
 

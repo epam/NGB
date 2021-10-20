@@ -1,9 +1,11 @@
 .blast-search-alignment-row {
   margin: 10px 0;
   border-bottom: 1px solid dimgray;
+
   .blast-search-alignment-query-container {
     margin-top: 5px;
     display: flex;
+
     div > span {
       line-height: 20px;
       height: 20px;
@@ -44,21 +46,54 @@
     font-size: 14px;
     margin-left: 5px;
   }
+
   .blast-search-alignment-params {
     justify-content: flex-start;
     flex-flow: wrap;
     margin-left: -5px;
     margin-right: -5px;
+
     .layout-row {
       margin: 0 5px
     }
   }
 }
+
 .blast-search-alignment-link {
   text-decoration: underline;
   font-size: 14px;
   line-height: 20px;
+
   &.disabled {
     display: none;
+  }
+}
+
+.blast-search-alignment-reference-list {
+  margin: 3px 0 3px 10px;
+  font-size: 14px;
+  height: 14px;
+
+  .md-select-value {
+    min-height: 14px;
+    height: 14px;
+    padding: 0 2px;
+  }
+}
+
+.blast-search-alignment-reference-container {
+  min-height: 20px;
+  md-select-menu {
+    min-height: 20px;
+    md-content {
+      min-height: 20px;
+      padding: 4px 0;
+
+      md-option {
+        height: 20px;
+        line-height: 20px;
+        padding: 0 4px;
+      }
+    }
   }
 }

@@ -311,6 +311,7 @@ export default class ngbBlastSearchService {
                 dbName: data.dbName,
                 dbSource: data.dbSource,
                 dbType: data.dbType,
+                dbReferenceId: data.dbReferenceId,
                 title: data.title
             };
         } else {
@@ -340,7 +341,7 @@ export default class ngbBlastSearchService {
         const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
         const {dbType} = search;
         const id = sequenceAccessionVersion || sequenceId;
-        const db = search && dbType && /^protein$/i.test(dbType)
+        const db = search && dbType && /^(protein|prot)$/i.test(dbType)
             ? 'PROTEIN'
             : 'NUCLEOTIDE';
         return new Promise((resolve) => {
@@ -365,6 +366,7 @@ export default class ngbBlastSearchService {
             dbName: search.database ? search.database.name : '',
             dbSource: search.database ? search.database.source : undefined,
             dbType: search.database ? search.database.type : undefined,
+            dbReferenceId: search.database ? search.database.referenceId : undefined,
             tool: search.executable,
             sequence: search.query,
             state: search.status,

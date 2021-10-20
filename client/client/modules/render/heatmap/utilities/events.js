@@ -15,6 +15,8 @@ export default {
     updating: 'updating',
     destroyed: 'destroyed',
     data: {
+        annotations: 'annotations',
+        dendrogram: 'dendrogram',
         loaded: 'dataLoaded',
         metadata: 'metadataLoaded',
         tree: 'treeLoaded',
@@ -33,5 +35,6 @@ export default {
     },
     interaction: 'userInteraction',
     click: 'click',
-    navigate: 'navigate'
+    navigate: 'navigate',
+    visibility: 'visibility'
 };

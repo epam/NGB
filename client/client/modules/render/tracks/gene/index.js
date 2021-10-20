@@ -117,24 +117,19 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
         this.fetchAvailableFeatureTypes();
     }
 
-    fetchAvailableFeatureTypes () {
+    async fetchAvailableFeatureTypes () {
         if (!this.featuresFilteringEnabled) {
             return;
         }
         const {
             id,
+            name,
             project,
             referenceId
         } = this.config;
         let projectId = project ? project.id : undefined;
         if (!projectId) {
-            const [someDataset] = (this.projectContext.datasets || [])
-                .filter(dataset =>
-                    (dataset.reference && dataset.reference.id === referenceId) ||
-                    (dataset.items || dataset._lazyItems || [])
-                        .filter(item => item.referenceId === referenceId)
-                        .length > 0
-                );
+            const someDataset = await this.projectContext.findAnyDatasetOfReference(referenceId);
             if (someDataset) {
                 projectId = someDataset.id;
             }
@@ -154,7 +149,7 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
         } else if (!projectId) {
             // warn user if we were unable to determine track's project
             // eslint-disable-next-line
-            console.warn(`Unknown project for gene track:`, this.name);
+            console.warn('Unknown project for gene track:', name);
         }
     }
 
