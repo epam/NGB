@@ -1,5 +1,5 @@
-import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 
 export default class ngbTrackEvents {
 
@@ -45,7 +45,7 @@ export default class ngbTrackEvents {
                         chromosomeId: trackInstance.config.chromosomeId,
                         id: track.id,
                         name: track.name,
-                        projectId: track.projectIdNumber || undefined,
+                        projectId: track.project ? track.project.id : undefined,
                         referenceId: track.referenceId
                     });
                 }
@@ -66,7 +66,7 @@ export default class ngbTrackEvents {
                                 endIndex: data.feature.endIndex,
                                 name: data.feature.name,
                                 properties: data.info,
-                                projectId: track.projectIdNumber || undefined,
+                                projectId: track.project ? track.project.id : undefined,
                                 referenceId: track.referenceId,
                                 startIndex: data.feature.startIndex,
                                 geneId: (featureAttributes && featureAttributes.gene_id) || null,
@@ -333,7 +333,7 @@ export default class ngbTrackEvents {
                         title: 'ALIGNMENT',
                         infoForRead: {
                             id: track.id,
-                            projectId: track.projectIdNumber || undefined,
+                            projectId: track.project ? track.project.id : undefined,
                             chromosomeId: data.chromosome.id,
                             startIndex: data.read.startIndex,
                             endIndex: data.read.endIndex,
@@ -357,7 +357,7 @@ export default class ngbTrackEvents {
             fn: async function (menuItem) {
                 const payload = {
                     id: track.id,
-                    projectId: track.projectIdNumber || undefined,
+                    projectId: track.project ? track.project.id : undefined,
                     chromosomeId: data.chromosome.id,
                     startIndex: data.read.startIndex,
                     endIndex: data.read.endIndex,
@@ -383,7 +383,7 @@ export default class ngbTrackEvents {
             fn: async function (menuItem) {
                 const payload = {
                     id: track.id,
-                    projectId: track.projectIdNumber || undefined,
+                    projectId: track.project ? track.project.id : undefined,
                     chromosomeId: data.chromosome.id,
                     startIndex: data.read.startIndex,
                     endIndex: data.read.endIndex,
