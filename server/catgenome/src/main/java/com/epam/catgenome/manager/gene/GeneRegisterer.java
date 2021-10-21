@@ -114,11 +114,10 @@ public class GeneRegisterer {
     private boolean transcriptWritten = false;
     private Map<String, GeneFeature> geneMap = new HashMap<>();
     private Map<String, GeneFeature> transcriptMap = new HashMap<>();
-    private List<SAMSequenceRecord> recs = new ArrayList<>();
     private SAMSequenceDictionary dictionary = new SAMSequenceDictionary();
     private TabixIndexCreator indexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
-    private TabixIndexCreator largeScaleIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
-    private TabixIndexCreator transcriptIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
+    private TabixIndexCreator largeScaleIndexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
+    private TabixIndexCreator transcriptIndexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
     private Map<String, Chromosome> chromosomeMap;
 
     // stuff for IndexMetadata
@@ -218,6 +217,7 @@ public class GeneRegisterer {
         int featuresCount = 0;
 
         List<FeatureIndexEntry> allEntries = new ArrayList<>();
+        setDictionarySequences();
         // main loop - here we process gene file, add it's features to an index and create helper files: large scale
         // and transcript
         try (StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -255,6 +255,13 @@ public class GeneRegisterer {
         return firstFeature;
     }
 
+    private void setDictionarySequences() {
+        final List<SAMSequenceRecord> samSequenceRecords = chromosomeMap.entrySet().stream()
+                .map(chr -> new SAMSequenceRecord(chr.getKey(), chr.getValue().getSize()))
+                .collect(Collectors.toList());
+        dictionary.setSequences(samSequenceRecords);
+    }
+
     private void processLastFeature(GeneFeature feature, int featuresCount, GeneFile geneFile,
                                     List<FeatureIndexEntry> allEntries, boolean doFeatureIndex) throws IOException {
         // Put the last one in metaMap
@@ -286,11 +293,6 @@ public class GeneRegisterer {
         if (feature != null) {
             Utils.checkSorted(feature, lastFeature, this.geneFile);
             if (doIndex) {
-                recs.removeIf(r -> r.getSequenceName().equals(feature.getSeqName()));
-                SAMSequenceRecord rec = new SAMSequenceRecord(feature.getSeqName(),
-                        chromosomeMap.get(feature.getSeqName()).getSize());
-                recs.add(rec);
-                dictionary.setSequences(recs);
                 indexCreator.addFeature(feature, filePointer);
             }
 
