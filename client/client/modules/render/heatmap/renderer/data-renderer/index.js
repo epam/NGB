@@ -1,13 +1,13 @@
-import * as PIXI  from 'pixi.js-legacy';
+import * as PIXI from 'pixi.js-legacy';
 import {ColorFormats} from '../../color-scheme';
+import InteractiveZone from '../../interactions/interactive-zone';
+import events from '../../utilities/events';
+import makeInitializable from '../../utilities/make-initializable';
+import config from './config';
 import HeatmapGraphicsBase from './heatmap-graphics';
 import HoveredRenderer from './hovered-renderer';
-import InteractiveZone from '../../interactions/interactive-zone';
 import cancellablePromise from './utilities/cancellable-promise';
-import config from './config';
-import events from '../../utilities/events';
 import getDataItemTooltipContent from './utilities/get-data-item-tooltip-content';
-import makeInitializable from '../../utilities/make-initializable';
 
 const MASK_COLOR = 0xFF0000;
 const ITERATIONS_PER_FRAME = 10000;
@@ -113,6 +113,9 @@ class HeatmapDataRenderer extends InteractiveZone {
         this.loadingLabel = this.labelsManager
             ? this.labelsManager.getLabel(config.loading.label.text, config.loading.label.font)
             : undefined;
+        this.errorLabel = this.labelsManager
+            ? this.labelsManager.getLabel(config.error.label.text, config.error.label.font)
+            : undefined;
         this.background = new PIXI.Graphics();
         this.container.addChild(this.background);
         this.blocksContainer = new PIXI.Container();
@@ -124,6 +127,10 @@ class HeatmapDataRenderer extends InteractiveZone {
         }
         if (this.loadingLabel) {
             this.container.addChild(this.loadingLabel);
+            this.loadingLabel.visible = false;
+        }
+        if (this.errorLabel) {
+            this.container.addChild(this.errorLabel);
             this.loadingLabel.visible = false;
         }
     }
@@ -498,7 +505,13 @@ class HeatmapDataRenderer extends InteractiveZone {
             !this.data.dataReady ||
             !this.colorScheme.initialized
         ) {
-            this.renderLabel(this.loadingLabel, true);
+            if (this.data.dataError) {
+                this.renderLabel(this.loadingLabel, false);
+                this.renderLabel(this.errorLabel, true);
+            } else {
+                this.renderLabel(this.errorLabel, false);
+                this.renderLabel(this.loadingLabel, true);
+            }
             return true;
         }
         const colorFormat = this.colorScheme.colorFormat;
@@ -509,6 +522,7 @@ class HeatmapDataRenderer extends InteractiveZone {
         const blocksChanged = this.renderBlocks();
         this.renderLabel(this.updatingLabel, this.updating);
         this.renderLabel(this.loadingLabel, false);
+        this.renderLabel(this.errorLabel, false);
         const hoveredChanged = this.renderHovered();
         this.updateSessionFlags();
         this.colorScheme.colorFormat = colorFormat;
