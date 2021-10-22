@@ -337,8 +337,7 @@ class HeatmapView extends HeatmapEventDispatcher {
                 this.labelsManager
             );
             this.colorSchemeRenderer.onLayout(() => {
-                if (!this.heatmapInteractions.userInteracted) {
-                // if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
+                if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
                     this.render(true);
                 }
             });
