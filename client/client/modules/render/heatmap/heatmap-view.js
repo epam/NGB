@@ -1,4 +1,9 @@
 import * as PIXI from 'pixi.js-legacy';
+import LabelsManager from '../core/labelsManager';
+import {parseOffset} from '../utilities';
+import HeatmapViewOptions from './heatmap-view-options';
+import HeatmapInteractions from './interactions';
+import HeatmapNavigation from './navigation';
 import {
     HeatmapColorSchemeRenderer,
     HeatmapDataRenderer,
@@ -7,13 +12,8 @@ import {
     HeatmapViewportRenderer
 } from './renderer';
 import HeatmapEventDispatcher from './utilities/heatmap-event-dispatcher';
-import HeatmapInteractions from './interactions';
-import HeatmapNavigation from './navigation';
-import HeatmapViewOptions from './heatmap-view-options';
-import HeatmapViewport from './viewport';
-import LabelsManager from '../core/labelsManager';
 import makeInitializable from './utilities/make-initializable';
-import {parseOffset} from '../utilities';
+import HeatmapViewport from './viewport';
 
 const ZERO_PADDING = parseOffset(0);
 
@@ -286,7 +286,7 @@ class HeatmapView extends HeatmapEventDispatcher {
             );
             this.viewportRenderer.onInitialized(this.render.bind(this, false));
             this.viewportRenderer.onLayout(() => {
-                if (!this.heatmapInteractions.userInteracted) {
+                if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
                     this.render(true);
                 }
             });
@@ -338,6 +338,7 @@ class HeatmapView extends HeatmapEventDispatcher {
             );
             this.colorSchemeRenderer.onLayout(() => {
                 if (!this.heatmapInteractions.userInteracted) {
+                // if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
                     this.render(true);
                 }
             });
@@ -384,7 +385,7 @@ class HeatmapView extends HeatmapEventDispatcher {
             this.dendrogramRenderer.initialize();
             this.dendrogramRenderer.onInitialized(this.render.bind(this, false));
             this.dendrogramRenderer.onLayout(() => {
-                if (!this.heatmapInteractions.userInteracted) {
+                if (this.heatmapInteractions && !this.heatmapInteractions.userInteracted) {
                     this.render(true);
                 }
             });
