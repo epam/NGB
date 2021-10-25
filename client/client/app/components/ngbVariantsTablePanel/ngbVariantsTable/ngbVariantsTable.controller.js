@@ -16,6 +16,7 @@ export default class ngbVariantsTableController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     variantsLoadError = null;
+    isMaximised;
 
     gridOptions = {
         enableFiltering: false,
@@ -74,7 +75,9 @@ export default class ngbVariantsTableController extends baseController {
         'reference:change': ::this.initialize,
         'settings:change': ::this.globalSettingsChangedHandler,
         'variants:loading:finished': ::this.variantsLoadingFinished,
-        'variants:loading:started': ::this.initialize
+        'variants:loading:started': ::this.initialize,
+        'layout:active:panel:change': this.panelChanged.bind(this),
+        'layout:stateChanged:uiGridPanel:changed': this.layoutChanged.bind(this)
     };
 
     $onInit() {
@@ -417,6 +420,37 @@ export default class ngbVariantsTableController extends baseController {
                     self.projectContext.firstPageVariations > 1,
                     (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
                     || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+            });
+        }
+    }
+
+    panelChanged(panel) {
+        if (panel === 'ngbVariantsTablePanel') {
+            this.scrollForceReset();
+        }
+    }
+
+    layoutChanged(args) {
+        if (args && args.affectedPanels.includes('ngbVariantsTablePanel')) {
+            if (args.isMaximised !== this.isMaximised) {
+                this.isMaximised = args.isMaximised;
+                this.scrollForceReset();
+            }
+        }
+    }
+
+    scrollForceReset() {
+        if (this.gridApi) {
+            this.gridApi.core.scrollTo(
+                this.gridOptions.data[1],
+                this.gridOptions.columnDefs[0]
+            );
+            this.$scope.$apply();
+            this.$timeout(() => {
+                this.gridApi.core.scrollTo(
+                    this.gridOptions.data[0],
+                    this.gridOptions.columnDefs[0]
+                );
             });
         }
     }

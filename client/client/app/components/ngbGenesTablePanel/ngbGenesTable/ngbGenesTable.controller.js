@@ -1,9 +1,9 @@
-import {Debounce} from '../../../shared/utils/debounce';
 import baseController from '../../../shared/baseController';
+import {Debounce} from '../../../shared/utils/debounce';
 
 const ROW_HEIGHT = 35;
 const RELOAD_GENES_DELAY = 300;
-
+const SCROLL_DEBOUNCE = 200;
 
 export default class ngbGenesTableController extends baseController {
     dispatcher;
@@ -46,10 +46,14 @@ export default class ngbGenesTableController extends baseController {
         saveGroupingExpandedStates: false,
         saveTreeView: false,
         saveSelection: false,
-        useExternalSorting: true
+        useExternalSorting: true,
+        scrollDebounce: SCROLL_DEBOUNCE
     };
     viewDataLength;
     maxViewDataLength;
+
+    // TODO: move it to goldenLayout somehow
+    isMaximised;
     events = {
         'genes:refresh': this.loadGenesWithProgress.bind(this),
         'display:genes:filter': this.refreshScope.bind(this),
@@ -63,7 +67,8 @@ export default class ngbGenesTableController extends baseController {
         'gene:files:changed': this.loadGenesWithProgress.bind(this),
         'genes:restore': this.restoreState.bind(this),
         'feature:info:saved': this.reloadGenes.bind(this),
-        'layout:active:panel:change': this.panelChanged.bind(this)
+        'layout:active:panel:change': this.panelChanged.bind(this),
+        'layout:stateChanged:uiGridPanel:changed': this.layoutChanged.bind(this)
     };
 
     constructor(
@@ -123,6 +128,9 @@ export default class ngbGenesTableController extends baseController {
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
                 this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, this.getDataDown.bind(this));
                 this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.getDataUp.bind(this));
+                // this.gridApi.core.on.scrollEnd(this.$scope, () => {
+                //     this.gridApi.infiniteScroll.saveScrollPercentage();
+                // });
             }
         });
         this.debounce(this, this.reloadGenes.bind(this), RELOAD_GENES_DELAY)();
@@ -233,9 +241,9 @@ export default class ngbGenesTableController extends baseController {
                             this.gridOptions.data = this.gridOptions.data.slice(-this.maxViewDataLength);
                             this.ngbGenesTableService.firstPage += 1;
                             this.$timeout(() => {
-                                this.gridApi.infiniteScroll.dataRemovedTop(
-                                    this.ngbGenesTableService.firstPage > 0,
-                                    this.ngbGenesTableService.hasMoreData
+                                this.gridApi.core.scrollTo(
+                                    this.gridOptions.data[this.gridOptions.data.length - this.ngbGenesTableService.lastPageLength - 1],
+                                    this.gridOptions.columnDefs[0]
                                 );
                             });
                         }
@@ -356,9 +364,25 @@ export default class ngbGenesTableController extends baseController {
                 chromosomeId: entity.chromosomeObj.id,
                 seqName: entity.chromosomeObj.name,
                 referenceId: entity.referenceId
-        });
+            });
         event.stopImmediatePropagation();
     }
+
+    resizeGrid() {
+        if (this.gridApi) {
+            this.gridApi.infiniteScroll.setScrollDirections(false, false);
+            this.gridApi.infiniteScroll.saveScrollPercentage();
+            this.gridApi.core.handleWindowResize();
+
+            this.$timeout(() => {
+                this.gridApi.infiniteScroll.dataLoaded(
+                    this.ngbGenesTableService.firstPage > 0,
+                    this.ngbGenesTableService.hasMoreData
+                );
+            });
+        }
+    }
+
 
     restoreState() {
         this.ngbGenesTableService.genesTableColumns = [];
@@ -372,11 +396,54 @@ export default class ngbGenesTableController extends baseController {
     }
 
     panelChanged(panel) {
-        if (this.gridApi && panel === 'ngbGenesTablePanel') {
-            this.gridApi.infiniteScroll.dataLoaded(
-                this.ngbGenesTableService.firstPage > 0,
-                this.ngbGenesTableService.hasMoreData
-            );
+        if (panel === 'ngbGenesTablePanel') {
+            this.scrollForceReset();
+        }
+    }
+
+    layoutChanged(args) {
+        if (args && args.affectedPanels.includes('ngbGenesTablePanel')) {
+            if (args.isMaximised !== this.isMaximised) {
+                this.isMaximised = args.isMaximised;
+                this.scrollForceReset();
+            }
+        }
+    }
+
+    scrollForceReset() {
+        if (this.gridApi) {
+            // this.gridApi.grid.queueGridRefresh().then(() => {
+            //
+            //     this.$timeout(() => {
+            //         this.gridApi.core.scrollTo(
+            //             this.gridOptions.data[1],
+            //             this.gridOptions.columnDefs[0]
+            //         );
+            //         this.$timeout(() => {
+            //             this.gridApi.core.scrollTo(
+            //                 this.gridOptions.data[0],
+            //                 this.gridOptions.columnDefs[0]
+            //             );
+            //         });
+            //     }, 500)
+            // });
+            this.$timeout(() => {
+                this.gridApi.core.scrollTo(
+                    this.gridOptions.data[1],
+                    this.gridOptions.columnDefs[0]
+                );
+            }, SCROLL_DEBOUNCE * 2);
+            // this.gridApi.core.scrollTo(
+            //     this.gridOptions.data[1],
+            //     this.gridOptions.columnDefs[0]
+            // );
+            // this.$scope.$apply();
+            // this.$timeout(() => {
+            //     this.gridApi.core.scrollTo(
+            //         this.gridOptions.data[1],
+            //         this.gridOptions.columnDefs[0]
+            //     );
+            // }, 500);
         }
     }
 }
