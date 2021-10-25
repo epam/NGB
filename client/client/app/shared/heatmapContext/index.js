@@ -56,9 +56,27 @@ export default class HeatmapContext {
         const heatmaps = uniqueIdentifiers
             .map(id => items.filter(track => track.id === id).pop())
             .filter(Boolean);
+
+        const findHeatmap = id => {
+            const datasets = this.projectContext
+                ? (this.projectContext.datasets || [])
+                : [];
+            let heatmap = undefined;
+            for (const dataset of datasets) {
+                [heatmap] = dataset.tracks
+                    .filter(track => track.format === 'HEATMAP' && track.id === id)
+                    .map(track => ({...track, referenceId, isTrack: true}));
+                if (heatmap) {
+                    return heatmap;
+                }
+            }
+            return {id};
+        };
+
         if (this.selectedHeatmap) {
             const exists = heatmaps.filter(track => track.id === this.selectedHeatmap.id);
             if (exists.length === 0 && this.heatmapNavigationOccurred) {
+                this.selectedHeatmap = findHeatmap(this.selectedHeatmap.id);
                 heatmaps.push(this.selectedHeatmap);
             } else if (exists.length === 0) {
                 this.selectedHeatmap = undefined;

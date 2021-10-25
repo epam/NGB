@@ -42,7 +42,12 @@ export default class ngbHeatmapPanelController {
     }
 
     get previousHeatmap() {
-        return this.heatmaps.filter(heatmap => !heatmap.isTrack && !heatmap.isAnnotation).pop();
+        return this.heatmaps
+            .filter(heatmap =>
+                !heatmap.isTrack
+                && !heatmap.isAnnotation
+                && heatmap.id !== this.heatmapId)
+            .pop();
     }
 
     get heatmapsFromTrack() {
