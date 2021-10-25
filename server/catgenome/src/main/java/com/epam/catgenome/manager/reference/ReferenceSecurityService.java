@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -151,6 +152,12 @@ public class ReferenceSecurityService {
     @PostFilter(READ_ON_FILTER_OBJECT)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
         return referenceGenomeManager.getReferenceAnnotationFiles(referenceId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    @PostFilter(READ_ON_FILTER_OBJECT)
+    public List<BaseEntity> loadAllFiles(Long referenceId) {
+        return referenceGenomeManager.loadAllFiles(referenceId);
     }
 
     @PreAuthorize(ROLE_USER)

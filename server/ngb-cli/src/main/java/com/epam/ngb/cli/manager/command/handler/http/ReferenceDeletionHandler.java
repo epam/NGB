@@ -33,9 +33,12 @@ import java.util.stream.Collectors;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.BaseEntity;
 import com.epam.ngb.cli.entity.FeatureFile;
 import com.epam.ngb.cli.entity.Reference;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * {@code {@link ReferenceRegistrationHandler}} represents a tool handling "delete_reference" command and
@@ -43,11 +46,10 @@ import com.epam.ngb.cli.manager.command.handler.Command;
  * ID or name of the reference.
  */
 @Command(type = Command.Type.REQUEST, command = {"delete_reference"})
+@Slf4j
 public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
 
     private Long referenceId;
-    private Long geneFileId;
-    private List<Long> annotationFileIds;
     private boolean force;
 
     /**
@@ -64,15 +66,6 @@ public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
         }
         referenceId = loadReferenceId(arguments.get(0));
         force = options.isForceDeletion();
-        if (force) {
-            Reference reference = loadReferenceById(referenceId);
-            geneFileId = reference.getGeneFile() == null ? null : reference.getGeneFile().getId();
-            annotationFileIds = reference.getAnnotationFiles() == null ?
-                    Collections.emptyList() :
-                    reference.getAnnotationFiles().stream()
-                            .map(FeatureFile::getBioDataItemId)
-                            .collect(Collectors.toList());
-        }
     }
 
     /**
@@ -81,16 +74,31 @@ public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
      */
     @Override public int runCommand() {
         if (force) {
-            removeGenes(referenceId);
-            if (geneFileId != null) {
-                deleteGeneFile(geneFileId);
+            final List<BaseEntity> files = loadAllFiles(referenceId);
+            if (CollectionUtils.isEmpty(files)) {
+                final Reference reference = loadReferenceById(referenceId);
+                final Long geneFileId = reference.getGeneFile() == null ? null : reference.getGeneFile().getId();
+                final List<Long> annotationFileIds = reference.getAnnotationFiles() == null ?
+                        Collections.emptyList() :
+                        reference.getAnnotationFiles().stream()
+                                .map(FeatureFile::getBioDataItemId)
+                                .collect(Collectors.toList());
+                removeGenes(referenceId);
+                if (geneFileId != null) {
+                    deleteGeneFile(geneFileId);
+                }
+                for (Long annotationId: annotationFileIds) {
+                    removeAnnotation(referenceId, annotationId);
+                    deleteItem(annotationId);
+                }
+                runDeletion(referenceId);
+            } else {
+                log.error(String.format("Can't delete reference with ID %d: used in files: %s", referenceId,
+                        files.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
             }
-            for (Long annotationId: annotationFileIds) {
-                removeAnnotation(referenceId, annotationId);
-                deleteItem(annotationId);
-            }
+        } else {
+            runDeletion(referenceId);
         }
-        runDeletion(referenceId);
         return 0;
     }
 }

@@ -43,6 +43,7 @@ public class ServerParameters {
     private String removeGeneUrl;
     private String deleteGeneUrl;
     private String loadReferenceUrl;
+    private String loadAllFilesUrl;
     private String updateAnnotationUrl;
     private String deleteItemUrl;
     private String fileFindUrl;

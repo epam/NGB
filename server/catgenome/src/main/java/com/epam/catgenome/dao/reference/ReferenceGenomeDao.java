@@ -312,7 +312,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BaseEntity> loadAllFileByReferenceId(final Long referenceId) {
+    public List<BaseEntity> loadAllFilesByReferenceId(final Long referenceId) {
         return getNamedParameterJdbcTemplate().query(loadBiologicalItemsQuery, new MapSqlParameterSource(
             GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId), GenomeParameters.getBioDataMapper());
     }

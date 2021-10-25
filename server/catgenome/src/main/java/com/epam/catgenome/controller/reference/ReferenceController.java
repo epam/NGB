@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.controller.vo.SpeciesVO;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
@@ -124,6 +125,19 @@ public class ReferenceController extends AbstractRESTController {
             })
     public final Result<Reference> loadReference(@PathVariable final Long referenceId) throws IOException {
         return Result.success(referenceSecurityService.load(referenceId));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/reference/{referenceId}/load/files", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Returns files associated with the given reference ID.",
+            notes = "Returns files associated with the given reference ID.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public final Result<List<BaseEntity>> loadAllFiles(@PathVariable final Long referenceId) throws IOException {
+        return Result.success(referenceSecurityService.loadAllFiles(referenceId));
     }
 
     @ResponseBody

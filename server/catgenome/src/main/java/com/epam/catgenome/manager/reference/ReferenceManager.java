@@ -424,7 +424,6 @@ public class ReferenceManager {
         }
     }
 
-
     protected Track<Sequence> getNucleotidesTrackFromNib(Track<Sequence> track)
             throws IOException, Ga4ghResourceUnavailableException {
         Assert.notNull(track.getType(), getMessage(MessagesConstants.ERROR_NULL_PARAM));

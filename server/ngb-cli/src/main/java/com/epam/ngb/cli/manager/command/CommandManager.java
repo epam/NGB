@@ -59,6 +59,7 @@ public class CommandManager {
     private static final String REMOVE_GENE_URL_PROPERTY = "remove_gene_url";
     private static final String DELETE_GENE_URL_PROPERTY = "delete_gene_url";
     private static final String LOAD_REFERENCE_URL_PROPERTY = "load_reference_url";
+    private static final String LOAD_ALL_FILES_URL_PROPERTY = "load_all_files_url";
     private static final String UPDATE_ANNOTATION_URL_PROPERTY = "update_annotation_url";
     private static final String DELETE_ITEM_URL_PROPERTY = "delete_item_url";
     private static final String FIND_FILE_URL_PROPERTY = "find_url";
@@ -155,6 +156,7 @@ public class CommandManager {
         parameters.setRemoveGeneUrl(serverProperties.getProperty(REMOVE_GENE_URL_PROPERTY));
         parameters.setDeleteGeneUrl(serverProperties.getProperty(DELETE_GENE_URL_PROPERTY));
         parameters.setLoadReferenceUrl(serverProperties.getProperty(LOAD_REFERENCE_URL_PROPERTY));
+        parameters.setLoadAllFilesUrl(serverProperties.getProperty(LOAD_ALL_FILES_URL_PROPERTY));
         parameters.setUpdateAnnotationUrl(serverProperties.getProperty(UPDATE_ANNOTATION_URL_PROPERTY));
         parameters.setDeleteItemUrl(serverProperties.getProperty(DELETE_ITEM_URL_PROPERTY));
         parameters.setFileFindUrl(serverProperties.getProperty(FIND_FILE_URL_PROPERTY));

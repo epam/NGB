@@ -155,13 +155,22 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         Assert.notNull(reference.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
         if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
+            Assert.isNull(reference.getGeneFile(), getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
+                    reference.getName(),
+                    reference.getId(),
+                    reference.getGeneFile() == null ? null : reference.getGeneFile().getName()));
+            Assert.isTrue(CollectionUtils.isEmpty(reference.getAnnotationFiles()),
+                    getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
+                            reference.getName(), reference.getId(), reference.getAnnotationFiles().stream()
+                            .map(FeatureFile::getName)
+                            .collect(Collectors.joining(", "))));
             List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(
                     reference.getBioDataItemId());
             Assert.isTrue(projectsWhereFileInUse.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                     reference.getName(), reference.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
                             .collect(Collectors.joining(", "))));
-            List<BaseEntity> fileList = loadAllFile(reference.getId());
-            Assert.isTrue(fileList.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
+            List<BaseEntity> fileList = loadAllFiles(reference.getId());
+            Assert.isTrue(CollectionUtils.isEmpty(fileList), getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
                     reference.getName(), reference.getId(), fileList.stream().map(BaseEntity::getName)
                             .collect(Collectors.joining(", "))));
         }
@@ -328,8 +337,8 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @return {@code List}
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BaseEntity> loadAllFile(final Long referenceId) {
-        return referenceGenomeDao.loadAllFileByReferenceId(referenceId);
+    public List<BaseEntity> loadAllFiles(final Long referenceId) {
+        return referenceGenomeDao.loadAllFilesByReferenceId(referenceId);
     }
 
     /**

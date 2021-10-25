@@ -24,16 +24,7 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_DATAITEM_FORMATS_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FAILED_TO_LOAD_USER;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FILE_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_INDEX_REQUIRED;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PERMISSIONS_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_PROJECT_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ERROR_REFERENCE_NOT_FOUND;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_PATH_FORMAT;
-import static com.epam.ngb.cli.constants.MessageConstants.SEVERAL_RESULTS_FOR_QUERY;
-import static com.epam.ngb.cli.constants.MessageConstants.getMessage;
+import static com.epam.ngb.cli.constants.MessageConstants.*;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.FILE;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
 
@@ -50,6 +41,7 @@ import java.util.Map;
 import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
+import com.epam.ngb.cli.entity.BaseEntity;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.IDList;
@@ -62,6 +54,7 @@ import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -76,8 +69,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.JsonMapper;
@@ -95,6 +86,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * all HTTP commands for retrieving supplementary data from the server, request authorization
  * and printing requests results.
  */
+@Slf4j
 public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHandler {
 
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
@@ -136,8 +128,6 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      * Parameters of a NGB server connection along with some URLs common to all HTTP command handlers
      */
     protected ServerParameters serverParameters;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHTTPCommandHandler.class);
 
     private Map<String, BiologicalDataItemFormat> additionalFormats;
 
@@ -290,7 +280,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                 throw new ApplicationException(getMessage(ERROR_FILE_NOT_FOUND, strId));
             }
             if (items.size() > 1) {
-                LOGGER.error(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
+                log.error(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
             }
             return items.get(0).getBioDataItemId();
         }
@@ -314,7 +304,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                 throw new ApplicationException(getMessage(ERROR_FILE_NOT_FOUND, strId));
             }
             if (items.size() > 1) {
-                LOGGER.error(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
+                log.error(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
             }
             return items.get(0);
         }
@@ -454,7 +444,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+            log.info(response.getStatus() + "\t" + response.getMessage());
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -706,7 +696,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         return responseResult.getPayload();
     }
 
-    protected Reference loadReferenceById(Long referenceId) {
+    protected Reference loadReferenceById(final Long referenceId) {
         try {
             HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
                     + String.format(serverParameters.getLoadReferenceUrl(), referenceId));
@@ -723,13 +713,33 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    protected void removeGenes(Long referenceId) {
+    protected List<BaseEntity> loadAllFiles(final Long referenceId) {
+        try {
+            HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                    + String.format(serverParameters.getLoadAllFilesUrl(), referenceId));
+            String result = RequestManager.executeRequest(request);
+            ResponseResult<List<BaseEntity>> responseResult = getMapper()
+                    .readValue(result, getMapper().getTypeFactory()
+                            .constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                    getMapper().getTypeFactory()
+                                            .constructParametrizedType(List.class, List.class,
+                                                    BaseEntity.class)));
+            if (responseResult == null) {
+                throw new ApplicationException(getMessage(ERROR_FILE_NOT_FOUND, referenceId));
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected void removeGenes(final Long referenceId) {
         HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, serverParameters.getServerUrl()
                 + String.format(serverParameters.getRemoveGeneUrl(), referenceId));
         RequestManager.executeRequest(request);
     }
 
-    protected void removeAnnotation(Long referenceId, Long annotationFileId) {
+    protected void removeAnnotation(final Long referenceId, final Long annotationFileId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl()
                     + String.format(serverParameters.getUpdateAnnotationUrl(), referenceId))
@@ -740,13 +750,13 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             String result = RequestManager.executeRequest(request);
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+            log.info(response.getStatus() + "\t" + response.getMessage());
         } catch (IOException | URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
     }
 
-    protected void deleteGeneFile(Long geneId) {
+    protected void deleteGeneFile(final Long geneId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getDeleteGeneUrl())
                     .addParameter("geneFileId", String.valueOf(geneId))
@@ -755,13 +765,13 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             String result = RequestManager.executeRequest(request);
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+            log.info(response.getStatus() + "\t" + response.getMessage());
         } catch (IOException | URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
     }
 
-    protected void deleteItem(Long bioDataItemId) {
+    protected void deleteItem(final Long bioDataItemId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getDeleteItemUrl())
                     .addParameter("id", String.valueOf(bioDataItemId))
@@ -770,7 +780,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             String result = RequestManager.executeRequest(request);
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
-            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+            log.info(response.getStatus() + "\t" + response.getMessage());
         } catch (IOException | URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -797,7 +807,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    private BiologicalDataItem loadFileByBioID(String id) {
+    private BiologicalDataItem loadFileByBioID(final String id) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getFileFindUrl())
                     .addParameter("id", id)
@@ -816,7 +826,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    protected Project loadProjectByName(String strId) {
+    protected Project loadProjectByName(final String strId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getProjectLoadUrl())
                     .addParameter("projectName", strId)
@@ -836,16 +846,16 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    private List<BiologicalDataItem> loadItemsByName(String strId) {
+    private List<BiologicalDataItem> loadItemsByName(final String strId) {
         return loadItemsByName(strId, true);
     }
 
-    private void checkLoadedItems(String strId, List<BiologicalDataItem> items) {
+    private void checkLoadedItems(final String strId, final List<BiologicalDataItem> items) {
         if (items == null || items.isEmpty()) {
             throw new ApplicationException(getMessage(ERROR_REFERENCE_NOT_FOUND, strId));
         }
         if (items.size() > 1) {
-            LOGGER.info(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
+            log.info(getMessage(SEVERAL_RESULTS_FOR_QUERY, strId));
         }
         if (items.get(0).getFormat() != BiologicalDataItemFormat.REFERENCE) {
             throw new ApplicationException(getMessage(ERROR_REFERENCE_NOT_FOUND, strId));
@@ -902,7 +912,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    private Pair<String, String> setIndexPathFromServer(String path, Pair<String, String> fileWithIndex) {
+    private Pair<String, String> setIndexPathFromServer(final String path, final Pair<String, String> fileWithIndex) {
         Pair<String, String> fileWithIndexFromServer = fileWithIndex;
         try {
             URI existingIndexGetterUri = new URIBuilder(serverParameters.getServerUrl()
@@ -923,7 +933,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         return fileWithIndexFromServer;
     }
 
-    private Pair<String, String> splitFilePath(String path) {
+    private Pair<String, String> splitFilePath(final String path) {
         String[] paths = path.split(INDEX_DELIMITER);
         if (paths.length > 2) {
             throw new IllegalArgumentException(getMessage(ILLEGAL_PATH_FORMAT, path));
