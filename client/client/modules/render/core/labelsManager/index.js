@@ -85,7 +85,7 @@ export default class LabelsManager {
     }
 
     getCacheSize() {
-        return this.texturesCache.size;
+        return this.texturesCache ? this.texturesCache.size : 0;
     }
 
     startSession () {
