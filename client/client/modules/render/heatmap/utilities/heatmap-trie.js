@@ -9,6 +9,14 @@ const IndexOrder = {
 
 const maxItemsPerIteration = 5000;
 
+function isUndefinedOrNull (o) {
+    return o === undefined || o === null;
+}
+
+function correctUndefinedOrNull (o) {
+    return isUndefinedOrNull(o) ? undefined : o;
+}
+
 function* getSectorElements(sector, radius, column, row, columnShift, rowShift) {
     const dC = sector % 2 === 0 ? 1 : 0;
     const dR = sector % 2 === 0 ? 0 : 1;
@@ -69,7 +77,9 @@ class HeatmapTrie extends Trie {
                 heatmap.setHeatMapItem(
                     columnIndex,
                     rowIndex,
-                    string && value !== undefined ? `${value}`.trim() : value,
+                    string && !isUndefinedOrNull(value)
+                        ? `${value}`.trim()
+                        : correctUndefinedOrNull(value),
                 );
             }
             if (finalIteration) {
@@ -121,12 +131,14 @@ class HeatmapTrie extends Trie {
                     } else {
                         value = column;
                     }
-                    if (value !== undefined || annotation !== undefined) {
+                    if (!isUndefinedOrNull(value) || !isUndefinedOrNull(annotation)) {
                         heatmap.setHeatMapItem(
                             columnIndex,
                             rowIndex,
-                            string && value !== undefined ? `${value}`.trim() : value,
-                            annotation
+                            string && !isUndefinedOrNull(value)
+                                ? `${value}`.trim()
+                                : correctUndefinedOrNull(value),
+                            correctUndefinedOrNull(annotation)
                         );
                     }
                 }
