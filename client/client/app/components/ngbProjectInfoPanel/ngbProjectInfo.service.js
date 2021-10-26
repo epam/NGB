@@ -330,8 +330,8 @@ export default class ngbProjectInfoService {
             this.projects.forEach(project => {
                 project.canEdit = checkPermission(project.mask, READ_PERMISSION);
             });
-            const currentProjectChanged = (this.currentProject && this.currentProject.id ||
-                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0);
+            const currentProjectChanged = this.currentProject && this.currentProject.id &&
+                selectedDatasets.filter(dataset => dataset.id === this.currentProject.id).length === 0;
             if (currentProjectChanged) {
                 if (selectedDatasets.length === 1) {
                     this.currentProject = selectedDatasets[0];
