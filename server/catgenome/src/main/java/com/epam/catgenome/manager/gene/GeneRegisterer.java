@@ -39,10 +39,16 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,9 +114,10 @@ public class GeneRegisterer {
     private boolean transcriptWritten = false;
     private Map<String, GeneFeature> geneMap = new HashMap<>();
     private Map<String, GeneFeature> transcriptMap = new HashMap<>();
-    private TabixIndexCreator indexCreator = new TabixIndexCreator(null, TabixFormat.GFF);
-    private TabixIndexCreator largeScaleIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
-    private TabixIndexCreator transcriptIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
+    private SAMSequenceDictionary dictionary = new SAMSequenceDictionary();
+    private TabixIndexCreator indexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
+    private TabixIndexCreator largeScaleIndexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
+    private TabixIndexCreator transcriptIndexCreator = new TabixIndexCreator(dictionary, TabixFormat.GFF);
     private Map<String, Chromosome> chromosomeMap;
 
     // stuff for IndexMetadata
@@ -210,22 +217,29 @@ public class GeneRegisterer {
         int featuresCount = 0;
 
         List<FeatureIndexEntry> allEntries = new ArrayList<>();
+        setDictionarySequences();
         // main loop - here we process gene file, add it's features to an index and create helper files: large scale
         // and transcript
-        while (iterator.hasNext()) {
-            // read the next line if available
-            final long filePointer = iterator.getPosition();
-            //add the feature to the index
-            feature = (GeneFeature) iterator.next();
+        try (StandardAnalyzer analyzer = new StandardAnalyzer();
+             Directory index = fileManager.createIndexForFile(geneFile);
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+                        IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
 
-            if (firstFeature == null) {
-                firstFeature = feature;
-                lastFeature = feature;
-                initializeHistogram(firstFeature);
+            while (iterator.hasNext()) {
+                // read the next line if available
+                final long filePointer = iterator.getPosition();
+                //add the feature to the index
+                feature = (GeneFeature) iterator.next();
+
+                if (firstFeature == null) {
+                    firstFeature = feature;
+                    lastFeature = feature;
+                    initializeHistogram(firstFeature);
+                }
+
+                featuresCount = processFeature(feature, featuresCount, createTabixIndex, allEntries, createFeatureIndex,
+                        filePointer, writer);
             }
-
-            featuresCount = processFeature(feature, featuresCount, createTabixIndex, allEntries, createFeatureIndex,
-                                           filePointer);
         }
 
         processLastFeature(feature, featuresCount, geneFile, allEntries, createFeatureIndex);
@@ -239,6 +253,13 @@ public class GeneRegisterer {
         }
 
         return firstFeature;
+    }
+
+    private void setDictionarySequences() {
+        final List<SAMSequenceRecord> samSequenceRecords = chromosomeMap.entrySet().stream()
+                .map(chr -> new SAMSequenceRecord(chr.getKey(), chr.getValue().getSize()))
+                .collect(Collectors.toList());
+        dictionary.setSequences(samSequenceRecords);
     }
 
     private void processLastFeature(GeneFeature feature, int featuresCount, GeneFile geneFile,
@@ -264,7 +285,9 @@ public class GeneRegisterer {
     }
 
     private int processFeature(GeneFeature feature, int featuresCount, boolean doIndex,
-                               final List<FeatureIndexEntry> allEntries, boolean doFeatureIndex, final long filePointer)
+                               final List<FeatureIndexEntry> allEntries, boolean doFeatureIndex,
+                               final long filePointer,
+                               final IndexWriter writer)
         throws IOException {
         int currFeatureCount = featuresCount;
         if (feature != null) {
@@ -280,7 +303,7 @@ public class GeneRegisterer {
                 addToMetamapAndHistogram(metaMap, chromosomeMap, feature, featuresCount, this.geneFile);
                 currFeatureCount = 0;
 
-                writeEntriesForChromosome(allEntries, doFeatureIndex);
+                writeEntriesForChromosome(allEntries, doFeatureIndex, writer);
             }
 
             if (currentChromosome != null && feature.getEnd() > intervalEnd) {
@@ -302,11 +325,13 @@ public class GeneRegisterer {
         return currFeatureCount;
     }
 
-    private void writeEntriesForChromosome(List<FeatureIndexEntry> allEntries, boolean doFeatureIndex)
+    private void writeEntriesForChromosome(List<FeatureIndexEntry> allEntries,
+                                           boolean doFeatureIndex,
+                                           final IndexWriter writer)
         throws IOException {
         if (currentKey != null && Utils.chromosomeMapContains(chromosomeMap, currentKey) && doFeatureIndex) {
 
-            featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries, null);
+            featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries, null, writer);
             LOGGER.info(MessageHelper.getMessage(
                 MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
             allEntries.clear();
