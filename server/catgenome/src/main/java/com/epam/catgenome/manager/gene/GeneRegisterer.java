@@ -230,6 +230,7 @@ public class GeneRegisterer {
                 final long filePointer = iterator.getPosition();
                 //add the feature to the index
                 feature = (GeneFeature) iterator.next();
+                adjustSequenceDictionary(feature);
 
                 if (firstFeature == null) {
                     firstFeature = feature;
@@ -253,6 +254,24 @@ public class GeneRegisterer {
         }
 
         return firstFeature;
+    }
+
+    // Allows to handle cases when gene files doesn't match reference contigs,
+    // e.g. contains some additional sequences or features out of reference
+    // coordinates
+    private void adjustSequenceDictionary(final GeneFeature feature) {
+        final String contig = feature.getContig();
+        final SAMSequenceRecord sequence = dictionary.getSequence(contig);
+        if (sequence == null) {
+            dictionary.addSequence(new SAMSequenceRecord(contig));
+        } else {
+            // if feature is out of reference range
+            // set reference length to 0 (unknown size)
+            if (sequence.getSequenceLength() != 0 &&
+                    sequence.getSequenceLength() < feature.getEnd()) {
+                sequence.setSequenceLength(0);
+            }
+        }
     }
 
     private void setDictionarySequences() {
