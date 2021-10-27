@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.epam.ngb.cli.app.Utils.getNormalizeAndAbsolutePath;
 import static org.junit.Assert.assertEquals;
 
 public class DatasetRegistrationHandlerTest extends AbstractCliTest {
@@ -95,20 +94,20 @@ public class DatasetRegistrationHandlerTest extends AbstractCliTest {
         //dataset with registered file
         BiologicalDataItem vcf = TestDataProvider.getBioItem(VCF_ID, VCF_BIO_ID,
                 BiologicalDataItemFormat.VCF, PATH_TO_VCF, VCF_NAME);
-        server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, getNormalizeAndAbsolutePath(PATH_TO_VCF),
-                BiologicalDataItemFormat.VCF);
+        server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, PATH_TO_VCF, BiologicalDataItemFormat.VCF);
         server.addDatasetRegistration(DATASET_WITH_VCF_NAME,
                 Arrays.asList(reference, vcf), DATASET_WITH_VCF_ID);
 
         //dataset with file registration
         BiologicalDataItem bam = TestDataProvider.getBioItem(BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM, PATH_TO_BAM, BAM_NAME);
-        server.addFileRegistration(REF_ID, getNormalizeAndAbsolutePath(PATH_TO_BAM),
-                getNormalizeAndAbsolutePath(PATH_TO_BAI), null, BAM_ID, BAM_BIO_ID,
+        server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, null, BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM);
         server.addDatasetRegistration(DATASET_WITH_BAM_NAME,
                 Arrays.asList(reference, vcf, bam), DATASET_WITH_BAM_ID);
         serverParameters = getDefaultServerOptions(server.getPort());
+
+        server.addGetFormatsRequest();
 
         // Data set with prettyName
         server.addDatasetRegistrationWithPrettyName(
@@ -182,7 +181,6 @@ public class DatasetRegistrationHandlerTest extends AbstractCliTest {
                 DATASET_WITH_PARENT_NAME), applicationOptions);
         assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
-
 
     @Test
     public void testDatasetRegistrationWithParentID() {

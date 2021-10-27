@@ -27,11 +27,14 @@ package com.epam.ngb.cli;
 import com.epam.ngb.cli.entity.*;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ngb.cli.Utils.pathToEscapingView;
+import static com.epam.ngb.cli.app.Utils.getNormalizeAndAbsolutePath;
 import static net.jadler.Jadler.*;
 
 public class TestHttpServer extends AbstractCliTest{
@@ -91,16 +94,17 @@ public class TestHttpServer extends AbstractCliTest{
      */
     public void addFileRegistration(Long refId, String path, String index, String name, Long fileId,
             Long fileBioId, BiologicalDataItemFormat format) {
+        String andAbsolutePath = getNormalizeAndAbsolutePath(path);
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(String.format(REGISTRATION_URL,
                         format.name().toLowerCase()))
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path,
-                        name, index, null))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, andAbsolutePath,
+                        name, getNormalizeAndAbsolutePath(index), null))
                 .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
-                        path, name == null ? FilenameUtils.getName(path) : name))
+                        andAbsolutePath, name == null ? FilenameUtils.getName(andAbsolutePath) : name))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -127,15 +131,16 @@ public class TestHttpServer extends AbstractCliTest{
     public void addFeatureIndexedFileRegistration(Long refId, String path, String indexPath, String name, Long fileId,
                                                   Long fileBioId, BiologicalDataItemFormat format, boolean doIndex,
                                                   String prettyName) {
+        String absolutePath = getNormalizeAndAbsolutePath(path);
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(String.format(REGISTRATION_URL,
                         format.name().toLowerCase()))
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJsonWithPrettyName(refId, path, indexPath, name,
-                        doIndex, prettyName))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJsonWithPrettyName(refId, absolutePath, indexPath,
+                        name, doIndex, prettyName))
                 .respond()
-                .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
-                        path, name == null ? FilenameUtils.getName(path) : name))
+                .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format, absolutePath, name == null ?
+                        FilenameUtils.getName(absolutePath) : name, false, prettyName))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -145,7 +150,8 @@ public class TestHttpServer extends AbstractCliTest{
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(String.format(REGISTRATION_URL, format.name().toLowerCase()))
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path, name, index, doIndex))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId,
+                        getNormalizeAndAbsolutePath(path), name, getNormalizeAndAbsolutePath(index), doIndex))
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
                         path, name == null ? FilenameUtils.getName(path) : name))
@@ -321,15 +327,16 @@ public class TestHttpServer extends AbstractCliTest{
 
     public void addReferenceRegistration(Long refId, Long refBioId, String path,
             String name) {
+        String absolutePath = getNormalizeAndAbsolutePath(path);
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(REF_REGISTRATION_URL)
                 .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
-                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJson(null, path,
+                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJson(null, absolutePath,
                         name, null, null))
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId, BiologicalDataItemFormat.REFERENCE,
-                        path, name == null ? FilenameUtils.getName(path) : name))
+                        absolutePath, name == null ? FilenameUtils.getName(absolutePath) : name))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -527,13 +534,24 @@ public class TestHttpServer extends AbstractCliTest{
                 .withStatus(HTTP_STATUS_OK);
     }
 
-    public void addIndexSearchRequest(String pathToFile, String indexPath) {
+    public void addGetFormatsRequest() {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(FORMAT_URL)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(Collections.singletonMap(null, null)))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addIndexSearchRequest(String pathToFile, String indexPath) throws UnsupportedEncodingException {
         onRequest()
                 .havingMethodEqualTo(HTTP_GET)
                 .havingPathEqualTo(GET_PATH_TO_EXISTING_INDEX_URI)
-                .havingParameterEqualTo(FILE_PATH_PARAMETER, pathToFile)
+                .havingParameterEqualTo(FILE_PATH_PARAMETER,
+                        pathToEscapingView(getNormalizeAndAbsolutePath(pathToFile)))
                 .respond()
-                .withBody(TestDataProvider.getPayloadJson(indexPath))
+                .withBody(TestDataProvider.getPayloadJson(indexPath == null ? null :
+                        getNormalizeAndAbsolutePath(indexPath)))
                 .withStatus(HTTP_STATUS_OK);
     }
 

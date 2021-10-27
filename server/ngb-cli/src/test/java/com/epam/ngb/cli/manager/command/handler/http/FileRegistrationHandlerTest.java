@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,13 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
-import static com.epam.ngb.cli.Utils.pathToEscapingView;
 import static org.junit.Assert.assertEquals;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import com.epam.ngb.cli.TestHttpServer;
-import com.epam.ngb.cli.app.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -64,20 +63,19 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
 
     private static final String COMMAND = "register_file";
     public static final String PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI = "/path/to/vcf/with/index.vcf.gz.tbi";
-    public static final String PATH_TO_BAMFILE_BAM_BAI = "/path/to/bamfile.bam.bai";
+    public static final String PATH_TO_BAM_FILE_BAM_BAI = "/path/to/bamfile.bam.bai";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
     @BeforeClass
-    public static void setUp() {
+    public static void setUp() throws UnsupportedEncodingException {
         server.start();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
-
 
         //register vcf, no name, no index
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
                 VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF), null);
+        server.addIndexSearchRequest(PATH_TO_VCF, null);
 
         //register vcf, no name, no index, prettyName
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_ID,
@@ -85,7 +83,7 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
 
         // add another without feature index
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
-                                                 VCF_BIO_ID, BiologicalDataItemFormat.VCF, false);
+                VCF_BIO_ID, BiologicalDataItemFormat.VCF, false);
 
         //register BAM with name
         server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, BAM_NAME, BAM_ID, BAM_BIO_ID,
@@ -94,25 +92,24 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         //register BAM without name
         server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, null, BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM), null);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM + "bz"), null);
-
+        server.addIndexSearchRequest(PATH_TO_BAM, null);
+        server.addIndexSearchRequest(PATH_TO_BAM + "bz", null);
 
         //register vcf, no name
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF_WITH_INDEX, null,
                 PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI, VCF_ID, VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF_WITH_INDEX), PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI);
+        server.addIndexSearchRequest(PATH_TO_VCF_WITH_INDEX, PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI);
 
         //register BAM without name
-        server.addFileRegistration(REF_ID, PATH_TO_BAM_WITH_INDEX, PATH_TO_BAMFILE_BAM_BAI, null,
+        server.addFileRegistration(REF_ID, PATH_TO_BAM_WITH_INDEX, PATH_TO_BAM_FILE_BAM_BAI, null,
                 BAM_ID, BAM_BIO_ID, BiologicalDataItemFormat.BAM);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM_WITH_INDEX), PATH_TO_BAMFILE_BAM_BAI);
+        server.addIndexSearchRequest(PATH_TO_BAM_WITH_INDEX, PATH_TO_BAM_FILE_BAM_BAI);
 
         //register BAM with the absolute path for testing transforming of the relative path
-        server.addFileRegistration(REF_ID, Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_BAM),
-                Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_BAI), null, BAM_ID, BAM_BIO_ID,
+        server.addFileRegistration(REF_ID, RELATIVE_PATH_TO_BAM, RELATIVE_PATH_TO_BAI, null, BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM);
 
+        server.addGetFormatsRequest();
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 

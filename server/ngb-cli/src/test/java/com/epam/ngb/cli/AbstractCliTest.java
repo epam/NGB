@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -75,6 +75,7 @@ public abstract class AbstractCliTest {
     public static final String SPEC_REMOVING_URL = "/catgenome/restapi/secure/reference/%d/species";
     public static final String GET_PERMISSIONS_URL = "/catgenome/restapi/grant";
     public static final String GET_CURRENT_USER = "/catgenome/restapi/user/current";
+    public static final String FORMAT_URL = "/catgenome/restapi/dataitem/formats";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "external/server.properties";
@@ -89,6 +90,7 @@ public abstract class AbstractCliTest {
     public static final String SERVER_VERSION_PROPERTY = "version";
     public static final String PROJECT_TREE_PROPERTY = "project_load_tree";
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
+    public static final String FORMAT_URL_PROPERTY = "formats_url";
 
     public static final String SERVER_URL = "http://localhost:%d/catgenome";
 
@@ -112,6 +114,7 @@ public abstract class AbstractCliTest {
         parameters.setProjectTreeUrl(serverProperties.getProperty(PROJECT_TREE_PROPERTY));
         parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
+        parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
         return parameters;
     }
 
