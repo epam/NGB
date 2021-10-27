@@ -34,7 +34,7 @@
         <property name="deleteProjectDescriptionByProjectIdQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.project_description
+                    DELETE FROM catgenome.project_description
                     WHERE
                         project_id = :PROJECT_ID
                 ]]>
@@ -43,7 +43,7 @@
         <property name="deleteProjectDescriptionByIdQuery">
             <value>
                 <![CDATA[
-                    DELETE catgenome.project_description
+                    DELETE FROM catgenome.project_description
                     WHERE
                         id = :ID
                 ]]>
