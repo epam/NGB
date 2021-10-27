@@ -83,3 +83,7 @@ There are two version of NGB in this repository:
 * **ngb:latest-demo** - a "demo" version - contains demo data set, which does not require any data registration, you need only to run an image
 
 Details on usage of these images are available in [DockerHub Readme](https://hub.docker.com/r/lifescience/ngb/)
+
+## postgres_test destination
+
+This package contains docker-compose file which is used to run server tests, in case of using postgreSQL database
