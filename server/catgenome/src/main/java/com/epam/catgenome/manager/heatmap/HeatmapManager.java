@@ -483,13 +483,13 @@ public class HeatmapManager {
                 Assert.isTrue(columnLabels.get(i - 1).get(0).equals(cells[i].trim()),
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
             }
-            List<String> row = new LinkedList<>();
             int rowNum = 0;
             int columnsCount = columnLabels.size() + 1;
             while ((line = bufferedReader.readLine()) != null) {
                 if (StringUtils.isBlank(line)) {
                     break;
                 }
+                List<String> row = new LinkedList<>();
                 cells = line.split(separator);
                 Assert.isTrue(cells.length == columnsCount,
                         getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
