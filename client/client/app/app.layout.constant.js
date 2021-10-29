@@ -78,6 +78,15 @@ export default {
             title: 'HEATMAP',
             name: 'layout>heatmap'
         },
+        strainLineage: {
+            displayed: false,
+            isHidden: true,
+            icon: 'device_hub',
+            panel: 'ngbStrainLineage',
+            position: 'left',
+            title: 'STRAIN',
+            name: 'layout>strainLineage'
+        },
         homologs: {
             isHidden: true,
             displayed: false,
