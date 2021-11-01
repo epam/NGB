@@ -3,6 +3,7 @@ import CytoscapeContext from '../../shared/cytoscapeContext';
 
 export default class ngbStrainLineageController extends baseController {
     cytoscapeContext: CytoscapeContext = undefined;
+
     events = {
         'layout:active:panel:change': this.activePanelChanged.bind(this),
     };
@@ -33,73 +34,90 @@ export default class ngbStrainLineageController extends baseController {
                 {
                     data: {
                         id: 'n_1',
-                        label: 'A3823.5'
+                        title: 'A3823.5',
+                        desc: '(8/19/1965)'
                     }
                 },
                 {
                     data: {
                         id: 'n_2',
-                        label: 'AA-104'
+                        link: 'AA-104',
+                        desc: '(2/22/1966)',
+                        tooltip: 'Tooltip text'
                     }
                 },
                 {
                     data: {
                         id: 'n_3',
-                        label: 'AD-299'
+                        link: 'AD-299',
+                        desc: '(6/7/1966)'
                     }
                 },
                 {
                     data: {
                         id: 'n_4',
-                        label: 'AG-212'
+                        link: 'AG-212',
+                        desc: '(12/13/1966)'
                     }
                 },
                 {
                     data: {
                         id: 'n_5',
-                        label: 'AM-229'
+                        link: 'AM-229',
+                        desc: '(6/14/1967)'
                     }
                 },
                 {
                     data: {
                         id: 'n_6',
-                        label: 'AQ-71'
+                        link: 'AQ-71',
+                        desc: '(12/13/1969)'
                     }
                 },
                 {
                     data: {
                         id: 'n_7',
-                        label: 'OAP-149'
+                        title: '730.0',
+                        link: 'OAP-149',
+                        desc: '(11/13/1969)'
                     }
                 },
                 {
                     data: {
                         id: 'n_8',
-                        label: 'PDQ-100'
+                        title: '730.1',
+                        link: 'PDQ-100',
+                        desc: '(12/12/1970)'
                     }
                 },
                 {
                     data: {
                         id: 'n_9',
-                        label: 'OCF-337'
+                        title: '730.2',
+                        link: 'OCF-337',
+                        desc: '(6/13/1972)'
                     }
                 },
                 {
                     data: {
                         id: 'n_10',
-                        label: 'HS-148'
+                        link: 'HS-148'
                     }
                 },
                 {
                     data: {
                         id: 'n_11',
-                        label: 'OBC-131'
+                        title: '730.3',
+                        link: 'OBC-131',
+                        desc: '(4/5/1974)'
                     }
                 },
                 {
                     data: {
                         id: 'n_12',
-                        label: 'OKZ-198'
+                        title: '730.4',
+                        link: 'OKZ-198',
+                        desc: '(9/4/1974)'
                     }
                 },
             ],

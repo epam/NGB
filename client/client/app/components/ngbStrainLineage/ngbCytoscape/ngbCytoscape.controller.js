@@ -4,8 +4,9 @@ import dagre from 'cytoscape-dagre';
 import dom_node from 'cytoscape-dom-node';
 
 export default class ngbCytoscapeController {
-    constructor($element, $scope, $window, $timeout, dispatcher, cytoscapeSettings, cytoscapeContext) {
+    constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings, cytoscapeContext) {
         this.$scope = $scope;
+        this.$compile = $compile;
         this.cytoscapeContainer = $element.find('.cytoscape-container')[0];
         this.settings = cytoscapeSettings;
         this.cytoscapeContext = cytoscapeContext;
@@ -15,7 +16,8 @@ export default class ngbCytoscapeController {
         Cytoscape.use(dagre);
         Cytoscape.use(dom_node);
 
-        const resizeHandler = () => {};
+        const resizeHandler = () => {
+        };
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.cytoscapePanelActiveChanged.bind(this);
         this.dispatcher.on('cytoscape:panel:active', cytoscapeActiveEventHandler);
@@ -31,12 +33,13 @@ export default class ngbCytoscapeController {
         return 'ngbCytoscapeController';
     }
 
-    wrapNodes(nodes, nodeStyle) {
+    wrapNodes(nodes, nodeTag, nodeStyle) {
         const wrappedNodes = [];
+
         function wrapNode(nodeData, rp) {
             const id = nodeData.id;
-            const div = document.createElement('div');
-            div.innerHTML = `node ${nodeData.label}`;
+            const div = document.createElement(nodeTag);
+            div.setAttribute('data-node-data-json', JSON.stringify(nodeData));
             div.classList = ['strain-lineage-cytoscape-node'];
             div.style.width = `${nodeStyle.width}px`;
             div.style.height = `${nodeStyle.height}px`;
@@ -67,7 +70,7 @@ export default class ngbCytoscapeController {
                 this.viewer = Cytoscape({
                     container: this.cytoscapeContainer,
                     elements: {
-                        nodes: this.wrapNodes(this.elements.nodes, this.settings.style.node),
+                        nodes: this.wrapNodes(this.elements.nodes, this.tag, this.settings.style.node),
                         edges: this.elements.edges
                     },
                     style: [
@@ -78,12 +81,21 @@ export default class ngbCytoscapeController {
                         {
                             selector: 'edge',
                             style: this.settings.style.edge
+                        },
+                        {
+                            selector: 'edge[label]',
+                            style: this.settings.style.edgeLabel
                         }
                     ],
                     ...this.settings.options
                 });
                 this.viewer.domNode();
-                this.viewer.layout(this.settings.defaultLayout).run();
+                const layout = this.viewer.layout(this.settings.defaultLayout);
+                layout.on('layoutready', () => {
+                    this.$compile(this.cytoscapeContainer)(this.$scope);
+                });
+                layout.run();
+
             });
         }
     }

@@ -1,11 +1,11 @@
 <div class="u-height__full" layout="row" layout-align="center start">
     <div class="u-height__full" flex layout="column">
         <md-content flex layout="column">
-            <div class="md-padding structure-container" layout="column">
-                <div class="ngb-cytoscape-container">
-                    <ngb-cytoscape elements="$ctrl.strainElements"
-                    ></ngb-cytoscape>
-                </div>
+            <div class="md-padding ngb-cytoscape-container" layout="column">
+                <ngb-cytoscape
+                        elements="$ctrl.strainElements"
+                        tag="ngb-strain-lineage-node"
+                ></ngb-cytoscape>
             </div>
         </md-content>
     </div>

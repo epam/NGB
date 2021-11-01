@@ -13,22 +13,29 @@ export default {
             'background-opacity': 0,
             'opacity': 0,
             'color': '#000',
-            'border-width': 1,
-            'border-color': '#ccc'
+            'border-width': 1
         },
         edge: {
             'curve-style': 'taxi',
             'taxi-turn': 20,
             'taxi-turn-min-distance': 5,
             'width': 3,
-            'target-arrow-color': '#ccc',
-            'target-arrow-shape': 'triangle'
+            'line-color': 'grey',
+            'target-arrow-color': 'grey',
+            'target-arrow-shape': 'triangle',
+        },
+        edgeLabel: {
+            'text-rotation': 'none',
+            'content': 'data(label)',
+            'font-size': '12px',
+            'font-weight': 'bold',
+            'text-background-color': '#fff',
+            'text-background-opacity': 1
         }
     },
     defaultLayout: {
         name: 'dagre',
         rankDir: 'TB'
     },
-    options: {
-    }
+    options: {}
 };
