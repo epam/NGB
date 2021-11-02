@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.heatmap;
 import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import junit.framework.TestCase;
@@ -112,7 +113,8 @@ public class HeatmapManagerTest extends TestCase {
     @Test
     public void updateLabelAnnotationTest() throws IOException {
         Heatmap heatmap = registerHeatmap("updateLabelAnnotationTest");
-        heatmapManager.updateLabelAnnotation(heatmap.getHeatmapId(), labelAnnotationFileName);
+        heatmapManager.updateLabelAnnotation(heatmap.getHeatmapId(), labelAnnotationFileName,
+                HeatmapAnnotationType.GENE, HeatmapAnnotationType.REFERENCE);
         Heatmap updatedHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertEquals(labelAnnotationFileName, updatedHeatmap.getLabelAnnotationPath());
         assertNotNull(updatedHeatmap.getRowLabels().get(0));
@@ -121,12 +123,15 @@ public class HeatmapManagerTest extends TestCase {
         assertNotNull(updatedHeatmap.getColumnLabels().get(0));
         assertEquals(2, updatedHeatmap.getColumnLabels().get(0).size());
         assertEquals(GENE_1_ANNOTATION, updatedHeatmap.getColumnLabels().get(0).get(1));
+        assertEquals(HeatmapAnnotationType.GENE, updatedHeatmap.getRowAnnotationType());
+        assertEquals(HeatmapAnnotationType.REFERENCE, updatedHeatmap.getColumnAnnotationType());
     }
 
     @Test
     public void updateCellAnnotationTest() throws IOException {
         Heatmap heatmap = registerHeatmap("updateCellAnnotationTest");
-        heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), cellAnnotationFileName);
+        heatmapManager.updateCellAnnotation(heatmap.getHeatmapId(), cellAnnotationFileName,
+                HeatmapAnnotationType.REFERENCE);
         List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
         assertNotNull(content);
         assertEquals(CONTENT_SIZE, content.size());

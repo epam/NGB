@@ -26,8 +26,30 @@
 
 package com.epam.ngb.cli.manager.command.handler.http.heatmap;
 
+import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.heatmap.HeatmapAnnotationType;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import org.apache.http.client.utils.URIBuilder;
 
 @Command(type = Command.Type.REQUEST, command = {"upd_label_annotation"})
 public class HeatmapLabelAnnotationHandler extends AbstractHeatmapUpdateHandler {
+
+    private HeatmapAnnotationType rowAnnotationType;
+    private HeatmapAnnotationType columnAnnotationType;
+
+    @Override
+    protected void parseAnnotationType(final ApplicationOptions options) {
+        rowAnnotationType = options.getHeatmapRowAnnotationType();
+        columnAnnotationType = options.getHeatmapColumnAnnotationType();
+    }
+
+    @Override
+    protected void addAnnotationType(final URIBuilder builder) {
+        if (rowAnnotationType != null) {
+            builder.addParameter("rowAnnotationType", rowAnnotationType.name());
+        }
+        if (columnAnnotationType != null) {
+            builder.addParameter("columnAnnotationType", columnAnnotationType.name());
+        }
+    }
 }

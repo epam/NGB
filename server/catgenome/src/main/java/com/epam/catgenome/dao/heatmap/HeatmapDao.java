@@ -137,22 +137,31 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateCellAnnotation(final Long heatmapId, final byte[] annotation, final String path) {
+    public void updateCellAnnotation(final Long heatmapId,
+                                     final byte[] annotation,
+                                     final String path,
+                                     final HeatmapAnnotationType cellAnnotationType) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmapId);
         params.addValue(HeatmapParameters.CELL_ANNOTATION.name(), annotation);
         params.addValue(HeatmapParameters.CELL_ANNOTATION_PATH.name(), path);
+        params.addValue(HeatmapParameters.CELL_ANNOTATION_TYPE.name(), cellAnnotationType.name());
 
         getNamedParameterJdbcTemplate().update(updateCellAnnotationQuery, params);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateLabelAnnotation(final Heatmap heatmap, final String path) {
+    public void updateLabelAnnotation(final Heatmap heatmap,
+                                      final String path,
+                                      final HeatmapAnnotationType rowAnnotationType,
+                                      final HeatmapAnnotationType columnAnnotationType) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmap.getHeatmapId());
         params.addValue(HeatmapParameters.COLUMN_LABELS.name(), listToData(heatmap.getColumnLabels()));
         params.addValue(HeatmapParameters.ROW_LABELS.name(), listToData(heatmap.getRowLabels()));
         params.addValue(HeatmapParameters.LABEL_ANNOTATION_PATH.name(), path);
+        params.addValue(HeatmapParameters.ROW_ANNOTATION_TYPE.name(), rowAnnotationType.name());
+        params.addValue(HeatmapParameters.COLUMN_ANNOTATION_TYPE.name(), columnAnnotationType.name());
 
         getNamedParameterJdbcTemplate().update(updateLabelAnnotationQuery, params);
     }

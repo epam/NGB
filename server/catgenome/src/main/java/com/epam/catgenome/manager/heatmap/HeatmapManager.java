@@ -125,18 +125,25 @@ public class HeatmapManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
+    public void updateLabelAnnotation(final long heatmapId,
+                                      final String path,
+                                      final HeatmapAnnotationType rowAnnotationType,
+                                      final HeatmapAnnotationType columnAnnotationType) throws IOException {
         final Heatmap heatmap = getHeatmap(heatmapId);
         if (!TextUtils.isBlank(path)) {
             getFile(path);
             final Map<String, String> labelAnnotation = readLabelAnnotation(path);
             updateHeatmapLabels(heatmap, labelAnnotation);
         }
-        heatmapDao.updateLabelAnnotation(heatmap, path);
+        heatmapDao.updateLabelAnnotation(heatmap, path,
+                getAnnotationType(rowAnnotationType, heatmap.getRowAnnotationType()),
+                getAnnotationType(columnAnnotationType, heatmap.getColumnAnnotationType()));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
+    public void updateCellAnnotation(final long heatmapId,
+                                     final String path,
+                                     final HeatmapAnnotationType cellAnnotationType) throws IOException {
         final Heatmap heatmap = getHeatmap(heatmapId);
         File file = null;
         byte[] annotation = null;
@@ -146,7 +153,7 @@ public class HeatmapManager {
             annotation = getCellAnnotation(heatmap);
         }
         heatmapDao.updateCellAnnotation(heatmapId, file == null ? null :
-                annotation, path);
+                annotation, path, getAnnotationType(cellAnnotationType, heatmap.getCellAnnotationType()));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -506,9 +513,14 @@ public class HeatmapManager {
     }
 
     @NotNull
-    private HeatmapAnnotationType getAnnotationType(final HeatmapAnnotationType columnAnnotationType) {
-        return Optional.ofNullable(columnAnnotationType)
-                .orElse(HeatmapAnnotationType.NONE);
+    private HeatmapAnnotationType getAnnotationType(final HeatmapAnnotationType annotationType) {
+        return getAnnotationType(annotationType, HeatmapAnnotationType.NONE);
+    }
+
+    private HeatmapAnnotationType getAnnotationType(final HeatmapAnnotationType annotationType,
+                                                    final HeatmapAnnotationType defaultType) {
+        return Optional.ofNullable(annotationType)
+                .orElse(defaultType);
     }
 
     @SneakyThrows

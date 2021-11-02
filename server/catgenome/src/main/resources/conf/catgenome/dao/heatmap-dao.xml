@@ -149,7 +149,8 @@
                 <![CDATA[
                     UPDATE catgenome.heatmap SET
                         cell_annotation = :CELL_ANNOTATION,
-                        cell_annotation_path = :CELL_ANNOTATION_PATH
+                        cell_annotation_path = :CELL_ANNOTATION_PATH,
+                        cell_annotation_type = :CELL_ANNOTATION_TYPE
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>
@@ -168,7 +169,9 @@
                     UPDATE catgenome.heatmap SET
                         row_labels = :ROW_LABELS,
                         column_labels = :COLUMN_LABELS,
-                        label_annotation_path = :LABEL_ANNOTATION_PATH
+                        label_annotation_path = :LABEL_ANNOTATION_PATH,
+                        row_annotation_type = :ROW_ANNOTATION_TYPE,
+                        column_annotation_type = :COLUMN_ANNOTATION_TYPE
                     WHERE
                         heatmap_id = :HEATMAP_ID
                 ]]>

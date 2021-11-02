@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.heatmap;
 
 import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,13 +74,18 @@ public class HeatmapSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
-    public void updateLabelAnnotation(final long heatmapId, final String path) throws IOException {
-        heatmapManager.updateLabelAnnotation(heatmapId, path);
+    public void updateLabelAnnotation(final long heatmapId,
+                                      final String path,
+                                      final HeatmapAnnotationType rowAnnotationType,
+                                      final HeatmapAnnotationType columnAnnotationType) throws IOException {
+        heatmapManager.updateLabelAnnotation(heatmapId, path, rowAnnotationType, columnAnnotationType);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_HEATMAP_MANAGER)
-    public void updateCellAnnotation(final long heatmapId, final String path) throws IOException {
-        heatmapManager.updateCellAnnotation(heatmapId, path);
+    public void updateCellAnnotation(final long heatmapId,
+                                     final String path,
+                                     final HeatmapAnnotationType type) throws IOException {
+        heatmapManager.updateCellAnnotation(heatmapId, path, type);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_HEATMAP_BY_PROJECT_ID)

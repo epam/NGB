@@ -28,6 +28,7 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import com.epam.catgenome.manager.heatmap.HeatmapSecurityService;
 import com.wordnik.swagger.annotations.Api;
@@ -102,9 +103,12 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> updateLabelAnnotation(@PathVariable final long heatmapId,
-                                                 @RequestParam(required = false) final String path) throws IOException {
-        heatmapSecurityService.updateLabelAnnotation(heatmapId, path);
+    public Result<Boolean> updateLabelAnnotation(
+            @PathVariable final long heatmapId,
+            @RequestParam(required = false) final String path,
+            @RequestParam(required = false) final HeatmapAnnotationType rowAnnotationType,
+            @RequestParam(required = false) final HeatmapAnnotationType columnAnnotationType) throws IOException {
+        heatmapSecurityService.updateLabelAnnotation(heatmapId, path, rowAnnotationType, columnAnnotationType);
         return Result.success(null);
     }
 
@@ -116,9 +120,11 @@ public class HeatmapController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> updateCellAnnotation(@PathVariable final long heatmapId,
-                                                @RequestParam(required = false) final String path) throws IOException {
-        heatmapSecurityService.updateCellAnnotation(heatmapId, path);
+    public Result<Boolean> updateCellAnnotation(
+            @PathVariable final long heatmapId,
+            @RequestParam(required = false) final String path,
+            @RequestParam(required = false) final HeatmapAnnotationType cellAnnotationType) throws IOException {
+        heatmapSecurityService.updateCellAnnotation(heatmapId, path, cellAnnotationType);
         return Result.success(null);
     }
 

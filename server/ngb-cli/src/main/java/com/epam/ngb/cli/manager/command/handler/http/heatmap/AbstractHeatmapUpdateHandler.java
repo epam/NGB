@@ -61,13 +61,16 @@ public abstract class AbstractHeatmapUpdateHandler extends AbstractHTTPCommandHa
         }
         heatmapId = loadItemId(arguments.get(0));
         path = options.getPath();
+        parseAnnotationType(options);
     }
 
-    @Override public int runCommand() {
+    @Override 
+    public int runCommand() {
         String url = serverParameters.getServerUrl() + getRequestUrl();
         try {
             URIBuilder builder = new URIBuilder(String.format(url, heatmapId));
             builder.addParameter("path", path);
+            addAnnotationType(builder);
             HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
             String result = RequestManager.executeRequest(request);
             ResponseResult responseResult = getMapper().readValue(result,
@@ -80,5 +83,12 @@ public abstract class AbstractHeatmapUpdateHandler extends AbstractHTTPCommandHa
             throw new ApplicationException(e.getMessage(), e);
         }
         return 0;
+    }
+
+    protected void parseAnnotationType(ApplicationOptions options) {
+        //no op
+    }
+    protected void addAnnotationType(URIBuilder builder) {
+        //no op
     }
 }
