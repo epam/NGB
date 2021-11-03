@@ -53,7 +53,7 @@ export default class ngbBlastSearchFormController extends baseController {
         title: '',
         algorithm: '',
         organisms: [],
-        db: 0,
+        db: {},
         dbName: '',
         tool: '',
         sequence: '',
@@ -164,11 +164,15 @@ export default class ngbBlastSearchFormController extends baseController {
         } else {
             this.errorMessage = null;
             this.dbList = data;
-            if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
+            if (this.dbList.filter(db => db.id === this.searchRequest.db.id).length === 0) {
                 this.searchRequest.db = null;
             }
         }
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    filterDBList(term, dbList) {
+        return dbList.filter(item => item.name.includes(term));
     }
 
     onSearch() {
@@ -176,7 +180,7 @@ export default class ngbBlastSearchFormController extends baseController {
             .then(data => {
                 if (data.error) {
                     this.errorMessage = data.message;
-                    this.$timeout(::this.$scope.$apply);
+                    this.$timeout(() => this.$scope.$apply());
                 } else {
                     this.errorMessage = null;
                     this.changeState({state: 'HISTORY'});

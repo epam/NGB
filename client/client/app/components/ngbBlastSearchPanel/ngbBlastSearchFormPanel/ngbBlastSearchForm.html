@@ -38,20 +38,26 @@
         <md-input-container class="blast-search-set">
             <span>Search set</span>
         </md-input-container>
-        <md-input-container class="blast-search-input">
-            <label for="db">Database</label>
-            <md-select
-                    id="db"
-                    name="db"
-                    ng-model="$ctrl.searchRequest.db"
-                    required
-            >
-                <md-option ng-repeat="db in $ctrl.dbList track by db.id"
-                           ng-value="db.id">
-                    {{db.name}}
-                </md-option>
-            </md-select>
-        </md-input-container>
+        <div class="blast-search-db-livesearch">
+            <md-autocomplete
+                    md-delay="100"
+                    md-floating-label="Database"
+                    md-item-text="item.name"
+                    md-items="item in $ctrl.filterDBList($ctrl.dbSearchText, $ctrl.dbList)"
+                    md-match-case-insensitive="true"
+                    md-menu-class="blast-organisms-livesearch-item"
+                    md-no-cache="true"
+                    md-search-text="$ctrl.dbSearchText"
+                    md-selected-item="$ctrl.searchRequest.db"
+                    placeholder="">
+                <md-item-template>
+                    <span md-highlight-flags="gi" md-highlight-text="$ctrl.dbSearchText">{{item.name}}</span>
+                </md-item-template>
+                <md-not-found>
+                    No databases found.
+                </md-not-found>
+            </md-autocomplete>
+        </div>
         <div class="blast-organisms-livesearch">
             <md-chips ng-model="$ctrl.searchRequest.organisms"
                       class="blast-organisms-chips"

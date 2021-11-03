@@ -30,6 +30,29 @@ $ngb-color-blue: #4285F4;
   min-height: 0;
 }
 
+.blast-search-db-livesearch {
+  display: flex;
+  flex-direction: row;
+  flex-flow: wrap;
+  width: 100%;
+
+  md-autocomplete {
+    width: 100%;
+
+    md-autocomplete-wrap {
+      box-shadow: none;
+
+      md-input-container {
+        height: 32px;
+
+        input {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
 .blast-sequence-area {
   position: relative;
 
