@@ -286,6 +286,7 @@ public final class MessagesConstants {
 
     //    LINEAGE TREE
     public static final String ERROR_LINEAGE_TREE_NOT_FOUND = "error.lineage.tree.not.found";
+    public static final String ERROR_LINEAGE_INCORRECT_COLUMN_NUM = "error.lineage.incorrect.column.num";
     public static final String ERROR_LINEAGE_NODE_NAME_REQUIRED = "error.lineage.node.name.required";
     public static final String ERROR_LINEAGE_NODE_NOT_FOUND = "error.lineage.node.not.found";
     public static final String ERROR_LINEAGE_NOT_UNIQUE_NODE_NAME = "error.lineage.not.unique.node.name";

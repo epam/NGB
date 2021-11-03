@@ -71,6 +71,8 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 @Slf4j
 public class LineageTreeManager {
 
+    private static final int NODES_FILE_COLUMNS = 5;
+    private static final int EDGES_FILE_COLUMNS = 4;
     private final LineageTreeDao lineageTreeDao;
     private final LineageTreeNodeDao lineageTreeNodeDao;
     private final LineageTreeEdgeDao lineageTreeEdgeDao;
@@ -171,6 +173,8 @@ public class LineageTreeManager {
                     break;
                 }
                 cells = line.split(separator);
+                Assert.isTrue(cells.length == NODES_FILE_COLUMNS,
+                        getMessage(MessagesConstants.ERROR_LINEAGE_INCORRECT_COLUMN_NUM, NODES_FILE_COLUMNS));
                 nodeName = getCellValue(cells[0]);
                 Assert.notNull(nodeName, getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NAME_REQUIRED));
                 Assert.isTrue(!nodeNames.contains(nodeName),
@@ -204,6 +208,8 @@ public class LineageTreeManager {
                     break;
                 }
                 cells = line.split(separator);
+                Assert.isTrue(cells.length == EDGES_FILE_COLUMNS,
+                        getMessage(MessagesConstants.ERROR_LINEAGE_INCORRECT_COLUMN_NUM, EDGES_FILE_COLUMNS));
                 String nodeFromName = getCellValue(cells[0]);
                 Assert.notNull(nodeFromName, getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NAME_REQUIRED));
                 Assert.isTrue(nodes.contains(nodeFromName),
