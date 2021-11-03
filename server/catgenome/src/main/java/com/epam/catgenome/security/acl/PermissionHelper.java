@@ -29,6 +29,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
@@ -39,6 +40,7 @@ import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.heatmap.HeatmapManager;
+import com.epam.catgenome.manager.lineage.LineageTreeManager;
 import com.epam.catgenome.manager.project.ProjectDescriptionService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -114,6 +116,9 @@ public class PermissionHelper {
 
     @Autowired
     private HeatmapManager heatmapManager;
+
+    @Autowired
+    private LineageTreeManager lineageTreeManager;
 
     @Autowired
     private ProjectDescriptionService projectDescriptionService;
@@ -320,6 +325,12 @@ public class PermissionHelper {
         final Heatmap heatmap = heatmapManager.loadHeatmap(id);
         return CollectionUtils.isNotEmpty(
                 referenceGenomeManager.loadReferenceIdsByAnnotationFileId(heatmap.getBioDataItemId()));
+    }
+
+    public boolean isLineageTreeRegisteredForReference(Long id) {
+        final LineageTree lineageTree = lineageTreeManager.loadLineageTree(id);
+        return CollectionUtils.isNotEmpty(
+                referenceGenomeManager.loadReferenceIdsByAnnotationFileId(lineageTree.getBioDataItemId()));
     }
 
     public boolean sessionIsReadable(final NGBSession session) {

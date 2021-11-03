@@ -65,5 +65,8 @@
     <import resource="classpath:conf/catgenome/dao/homolog-group-gene-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/session-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/heatmap-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/lineage-tree-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/lineage-tree-node-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/lineage-tree-edge-dao.xml" />
 
 </beans>

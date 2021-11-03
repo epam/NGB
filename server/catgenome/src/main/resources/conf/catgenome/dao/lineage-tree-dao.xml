@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.lineage.LineageTreeDao" id="lineageTreeDao" autowire="byName">
+        <property name="lineageTreeSequenceName" value="catgenome.s_lineage_tree"/>
+        <property name="insertLineageTreeQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.lineage_tree (
+                        lineage_tree_id,
+                        bio_data_item_id,
+                        nodes_path,
+                        edges_path,
+                        description
+                    ) VALUES (
+                        :LINEAGE_TREE_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :NODES_PATH,
+                        :EDGES_PATH,
+                        :DESCRIPTION
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteLineageTreeQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.lineage_tree WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadLineageTreeQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        t.lineage_tree_id,
+                        t.nodes_path,
+                        t.edges_path,
+                        t.description
+                    FROM catgenome.lineage_tree t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                        WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadAllLineageTreesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        t.lineage_tree_id,
+                        t.nodes_path,
+                        t.edges_path,
+                        t.description
+                    FROM catgenome.lineage_tree t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

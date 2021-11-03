@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.manager.heatmap;
 
-import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.HeatmapRegistrationRequest;
 import com.epam.catgenome.dao.heatmap.HeatmapDao;
@@ -79,6 +78,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
+import static com.epam.catgenome.util.NgbFileUtils.getCellValue;
+import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static org.forester.io.parsers.util.ParserUtils.createReader;
 
 @Service
@@ -91,13 +93,6 @@ public class HeatmapManager {
 
     private final HeatmapDao heatmapDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
-
-    private static final Set<String> EMPTY_CELL_VALUES = new HashSet<>();
-
-    static {
-        EMPTY_CELL_VALUES.add(".");
-        EMPTY_CELL_VALUES.add("-");
-    }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Heatmap createHeatmap(final HeatmapRegistrationRequest request) throws IOException {
@@ -264,7 +259,7 @@ public class HeatmapManager {
                 .columnAnnotationType(getAnnotationType(request.getColumnAnnotationType()))
                 .build();
         heatmap.setPath(path);
-        heatmap.setName(TextUtils.isBlank(request.getName()) ? FilenameUtils.getBaseName(path) : request.getName());
+        heatmap.setName(getBioDataItemName(request.getName(), path));
         heatmap.setPrettyName(request.getPrettyName());
         heatmap.setType(BiologicalDataItemResourceType.FILE);
         heatmap.setFormat(BiologicalDataItemFormat.HEATMAP);
@@ -429,14 +424,6 @@ public class HeatmapManager {
         return annotation;
     }
 
-    @NotNull
-    private File getFile(final String path) {
-        Assert.isTrue(!TextUtils.isBlank(path), getMessage(MessagesConstants.PATH_IS_REQUIRED));
-        final File file = new File(path);
-        Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        return file;
-    }
-
     private String getSeparator(final String path) {
         final String fileExtension = FilenameUtils.getExtension(path);
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
@@ -463,10 +450,6 @@ public class HeatmapManager {
             annotatedContent.add(annotatedContentRow);
         }
         return annotatedContent;
-    }
-
-    private String getCellValue(final String value) {
-        return (TextUtils.isBlank(value) || EMPTY_CELL_VALUES.contains(value.trim())) ? null : value.trim();
     }
 
     @SneakyThrows

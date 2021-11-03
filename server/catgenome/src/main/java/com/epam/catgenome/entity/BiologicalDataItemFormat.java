@@ -128,7 +128,9 @@ public enum BiologicalDataItemFormat {
 
     FEATURE_COUNTS(19),
 
-    HEATMAP(20);
+    HEATMAP(20),
+
+    LINEAGE_TREE(21);
 
     private long id;
     private boolean index = false;
@@ -155,6 +157,7 @@ public enum BiologicalDataItemFormat {
         idMap.put(BED_GRAPH_INDEX.id, BED_GRAPH_INDEX);
         idMap.put(FEATURE_COUNTS.id, FEATURE_COUNTS);
         idMap.put(HEATMAP.id, HEATMAP);
+        idMap.put(LINEAGE_TREE.id, LINEAGE_TREE);
     }
 
     BiologicalDataItemFormat(long id) {

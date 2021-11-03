@@ -284,6 +284,12 @@ public final class MessagesConstants {
     public static final String ERROR_INCORRECT_FILE_FORMAT = "error.incorrect.file.format";
     public static final String ERROR_UNSUPPORTED_HEATMAP_FILE_EXTENSION = "error.unsupported.heatmap.file.extension";
 
+    //    LINEAGE TREE
+    public static final String ERROR_LINEAGE_TREE_NOT_FOUND = "error.lineage.tree.not.found";
+    public static final String ERROR_LINEAGE_NODE_NAME_REQUIRED = "error.lineage.node.name.required";
+    public static final String ERROR_LINEAGE_NODE_NOT_FOUND = "error.lineage.node.not.found";
+    public static final String ERROR_LINEAGE_NOT_UNIQUE_NODE_NAME = "error.lineage.not.unique.node.name";
+
     private MessagesConstants() {
         // No-op
     }

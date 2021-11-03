@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.lineage.LineageTreeEdgeDao" id="lineageTreeEdgeDao" autowire="byName">
+        <property name="lineageTreeEdgeSequenceName" value="catgenome.s_lineage_tree_edge"/>
+        <property name="insertLineageTreeEdgeQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.lineage_tree_edge (
+                        lineage_tree_edge_id,
+                        lineage_tree_id,
+                        node_from,
+                        node_to,
+                        attributes,
+                        type_of_interaction
+                    ) VALUES (
+                        :LINEAGE_TREE_EDGE_ID,
+                        :LINEAGE_TREE_ID,
+                        :NODE_FROM,
+                        :NODE_TO,
+                        :ATTRIBUTES,
+                        :TYPE_OF_INTERACTION
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteLineageTreeEdgesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.lineage_tree_edge WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadLineageTreeEdgesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        lineage_tree_edge_id,
+                        lineage_tree_id,
+                        node_from,
+                        node_to,
+                        attributes,
+                        type_of_interaction
+                    FROM catgenome.lineage_tree_edge WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

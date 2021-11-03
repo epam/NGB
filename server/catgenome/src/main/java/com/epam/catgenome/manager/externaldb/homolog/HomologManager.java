@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.manager.externaldb.homolog;
 
-import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.dao.homolog.HomologDatabaseDao;
 import com.epam.catgenome.dao.homolog.HomologGroupDao;
 import com.epam.catgenome.dao.homolog.HomologGroupGeneDao;
@@ -37,6 +36,7 @@ import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
+import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.QueryParameters;
@@ -52,7 +52,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -62,8 +61,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGeneSpeciesNames;
+import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -71,8 +70,6 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Slf4j
 @RequiredArgsConstructor
 public class HomologManager {
-
-    private static final String FIELDS_LINE_DELIMITER = "\t";
 
     @Value("${homolog.groups.batch.size:500}")
     private int batchSize;
@@ -137,8 +134,7 @@ public class HomologManager {
     public void importHomologData(final String databaseName, final String databasePath)
             throws IOException {
         Assert.isTrue(!TextUtils.isBlank(databaseName), "Database name is required");
-        File file = new File(databasePath);
-        Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        getFile(databasePath);
         deleteData(databaseName);
         HomologDatabase database = HomologDatabase.builder()
                 .name(databaseName.trim().toUpperCase())
@@ -187,7 +183,7 @@ public class HomologManager {
             List<HomologGroupGene> genes = new ArrayList<>();
             List<HomologGroup> groups = new ArrayList<>();
             while ((line = bufferedReader.readLine()) != null) {
-                String[] cells = line.split(FIELDS_LINE_DELIMITER);
+                String[] cells = line.split(FileFormat.TSV.getSeparator());
                 Assert.isTrue(cells.length == 5, "Incorrect file format");
                 lineTaxId = Long.parseLong(cells[0].trim());
                 lineGeneId = Long.parseLong(cells[1].trim());

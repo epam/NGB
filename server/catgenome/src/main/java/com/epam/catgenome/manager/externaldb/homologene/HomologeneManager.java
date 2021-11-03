@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.manager.externaldb.homologene;
 
-import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.dao.homolog.HomologGeneAliasDao;
 import com.epam.catgenome.dao.homolog.HomologGeneDescDao;
 import com.epam.catgenome.dao.homolog.HomologGeneDomainDao;
@@ -65,10 +64,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +77,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -155,8 +152,7 @@ public class HomologeneManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
-        File file = new File(databasePath);
-        Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        getFile(databasePath);
         List<Gene> genes = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(

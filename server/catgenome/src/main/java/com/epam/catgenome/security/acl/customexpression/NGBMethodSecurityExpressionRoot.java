@@ -26,6 +26,7 @@ package com.epam.catgenome.security.acl.customexpression;
 
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
@@ -173,6 +174,15 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         boolean allowed = hasPermissionOnFileOrParentProject(id, Heatmap.class.getTypeName(), projectId, "READ");
         if (!allowed) {
             allowed = permissionHelper.isHeatmapRegisteredForReference(id);
+        }
+        return allowed;
+    }
+
+    public boolean readOnALineageTreeIsAllowed(Long id, Long projectId) {
+        boolean allowed = hasPermissionOnFileOrParentProject(id, LineageTree.class.getTypeName(),
+                projectId, "READ");
+        if (!allowed) {
+            allowed = permissionHelper.isLineageTreeRegisteredForReference(id);
         }
         return allowed;
     }

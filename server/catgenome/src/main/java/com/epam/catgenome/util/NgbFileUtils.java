@@ -1,13 +1,23 @@
 package com.epam.catgenome.util;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import com.epam.catgenome.component.MessageCode;
+import com.epam.catgenome.constant.MessagesConstants;
 import org.apache.commons.io.FilenameUtils;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import org.apache.http.util.TextUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.util.Assert;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Source:      FileUtils
@@ -102,6 +112,13 @@ public final class NgbFileUtils {
         FORMAT_MAP.put(".idx", BiologicalDataItemFormat.INDEX);
     }
 
+    private static final Set<String> EMPTY_CELL_VALUES = new HashSet<>();
+
+    static {
+        EMPTY_CELL_VALUES.add(".");
+        EMPTY_CELL_VALUES.add("-");
+    }
+
     private NgbFileUtils() {
         // no-op
     }
@@ -150,5 +167,20 @@ public final class NgbFileUtils {
 
     public static boolean isRemotePath(String path) {
         return path.startsWith("http:") || path.startsWith("https:") || path.startsWith("ftsp:");
+    }
+
+    public static String getCellValue(final String value) {
+        return (TextUtils.isBlank(value) || EMPTY_CELL_VALUES.contains(value.trim())) ? null : value.trim();
+    }
+    @NotNull
+    public static File getFile(final String path) {
+        Assert.isTrue(!TextUtils.isBlank(path), getMessage(MessagesConstants.PATH_IS_REQUIRED));
+        final File file = new File(path);
+        Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        return file;
+    }
+
+    public static String getBioDataItemName(final String name, final String filePath) {
+        return TextUtils.isBlank(name) ? FilenameUtils.getBaseName(filePath) : name;
     }
 }
