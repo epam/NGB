@@ -81,17 +81,6 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
         return edges;
     }
 
-    private void setNodeIds(final List<LineageTreeEdge> edges, final Map<String, LineageTreeNode> nodes) {
-        for (LineageTreeEdge edge: edges) {
-            final Long fromId = nodes.containsKey(edge.getNodeFromName()) ?
-                    nodes.get(edge.getNodeFromName()).getLineageTreeNodeId() : null;
-            edge.setNodeFromId(fromId);
-            final Long toId = nodes.containsKey(edge.getNodeToName()) ?
-                    nodes.get(edge.getNodeToName()).getLineageTreeNodeId() : null;
-            edge.setNodeToId(toId);
-        }
-    }
-
     /**
      * Deletes LineageTreeEdges from the database
      */
@@ -116,6 +105,17 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
     public List<LineageTreeEdge> loadLineageTreeEdgesById(final long lineageTreeNodeId) {
         return getJdbcTemplate().query(String.format(loadLineageTreeEdgesByIdQuery, lineageTreeNodeId),
                 LineageTreeEdgeParameters.getRowMapper());
+    }
+
+    private void setNodeIds(final List<LineageTreeEdge> edges, final Map<String, LineageTreeNode> nodes) {
+        for (LineageTreeEdge edge: edges) {
+            final Long fromId = nodes.containsKey(edge.getNodeFromName()) ?
+                    nodes.get(edge.getNodeFromName()).getLineageTreeNodeId() : null;
+            edge.setNodeFromId(fromId);
+            final Long toId = nodes.containsKey(edge.getNodeToName()) ?
+                    nodes.get(edge.getNodeToName()).getLineageTreeNodeId() : null;
+            edge.setNodeToId(toId);
+        }
     }
 
     enum LineageTreeEdgeParameters {
