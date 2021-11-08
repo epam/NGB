@@ -267,7 +267,9 @@ export default class ngbBlastSearchService {
     }
 
     async getCurrentSearch() {
-        let data = {};
+        let data = {
+            db: {}
+        };
         let error;
         if (this._currentSearchId) {
             data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this._currentSearchId));
@@ -362,7 +364,7 @@ export default class ngbBlastSearchService {
             id: search.id,
             title: search.title,
             algorithm: search.algorithm,
-            db: search.database ? search.database.id : undefined,
+            db: search.database,
             dbName: search.database ? search.database.name : '',
             dbSource: search.database ? search.database.source : undefined,
             dbType: search.database ? search.database.type : undefined,
@@ -391,7 +393,7 @@ export default class ngbBlastSearchService {
         const result = {
             title: search.title || '',
             algorithm: search.algorithm,
-            databaseId: search.db,
+            databaseId: search.db.id,
             executable: search.tool,
             query: search.sequence
         };
