@@ -49,7 +49,9 @@
                     md-no-cache="true"
                     md-search-text="$ctrl.dbSearchText"
                     md-selected-item="$ctrl.searchRequest.db"
-                    placeholder="">
+                    md-select-on-match="true"
+                    placeholder=""
+                    required="">
                 <md-item-template>
                     <span md-highlight-flags="gi" md-highlight-text="$ctrl.dbSearchText">{{item.name}}</span>
                 </md-item-template>
@@ -146,7 +148,7 @@
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"
                        type="submit"
-                       ng-disabled="blastSearchForm.$invalid"
+                       ng-disabled="blastSearchForm.$invalid || !$ctrl.searchRequest.db"
                        aria-label="submit">
                 Search
             </md-button>

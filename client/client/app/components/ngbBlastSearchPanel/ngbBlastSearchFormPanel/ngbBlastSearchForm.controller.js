@@ -172,7 +172,7 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     filterDBList(term, dbList) {
-        return dbList.filter(item => item.name.includes(term));
+        return dbList.filter(item => item.name.toLowerCase().includes(term.toLowerCase()));
     }
 
     onSearch() {
