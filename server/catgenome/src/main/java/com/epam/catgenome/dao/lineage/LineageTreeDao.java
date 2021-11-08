@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -55,6 +56,7 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
     private String insertLineageTreeQuery;
     private String deleteLineageTreeQuery;
     private String loadLineageTreeQuery;
+    private String loadLineageTreesQuery;
     private String loadAllLineageTreesQuery;
 
     /**
@@ -86,6 +88,15 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
         List<LineageTree> trees = getJdbcTemplate().query(loadLineageTreeQuery,
                 LineageTreeParameters.getRowMapper(), lineageTreeId);
         return CollectionUtils.isEmpty(trees) ? null : trees.get(0);
+    }
+
+    /**
+     * Loads {@code LineageTrees} from a database.
+     * @return a {@code List<LineageTree>} from the database
+     */
+    public List<LineageTree> loadLineageTrees(final Set<Long> lineageTreeIds) {
+        final String query = DaoHelper.replaceInClause(loadLineageTreesQuery, lineageTreeIds.size());
+        return getJdbcTemplate().query(query, LineageTreeParameters.getRowMapper(), lineageTreeIds.toArray());
     }
 
     /**

@@ -53,7 +53,7 @@ public class LineageTreeSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_TREE_BY_PROJECT_ID)
-    public List<LineageTree> loadLineageTrees(final long referenceId, final long lineageTreeId, final Long projectId) {
+    public List<LineageTree> loadLineageTrees(final long referenceId, final Long lineageTreeId, final Long projectId) {
         return lineageTreeManager.loadLineageTrees(referenceId);
     }
 

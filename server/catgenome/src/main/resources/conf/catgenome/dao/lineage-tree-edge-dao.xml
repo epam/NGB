@@ -46,5 +46,49 @@
                 ]]>
             </value>
         </property>
+        <property name="loadLineageTreeEdgesByIdQuery">
+            <value>
+                <![CDATA[
+                    with recursive sub_tree(
+                            lineage_tree_edge_id,
+                            lineage_tree_id,
+                            node_from,
+                            node_to,
+                            attributes,
+                            type_of_interaction,
+                            level
+                    ) as (
+                        SELECT
+                            lineage_tree_edge_id,
+                            lineage_tree_id,
+                            node_from,
+                            node_to,
+                            attributes,
+                            type_of_interaction,
+                            1
+                        FROM catgenome.lineage_tree_edge WHERE node_from = %s
+                        union all
+                        SELECT
+                            tree.lineage_tree_edge_id,
+                            tree.lineage_tree_id,
+                            tree.node_from,
+                            tree.node_to,
+                            tree.attributes,
+                            tree.type_of_interaction,
+                            level + 1
+                        FROM catgenome.lineage_tree_edge tree
+                               join sub_tree st on tree.node_from = st.node_to
+                        )
+                        SELECT
+                            lineage_tree_edge_id,
+                            lineage_tree_id,
+                            node_from,
+                            node_to,
+                            attributes,
+                            type_of_interaction
+                        FROM sub_tree
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

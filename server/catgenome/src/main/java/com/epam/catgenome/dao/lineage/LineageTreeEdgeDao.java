@@ -56,45 +56,7 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
     private String insertLineageTreeEdgeQuery;
     private String deleteLineageTreeEdgesQuery;
     private String loadLineageTreeEdgesQuery;
-
-    private static final String LOAD_LINEAGE_TREE_EDGES_BY_ID_QUERY = "with recursive sub_tree(\n" +
-            "                        lineage_tree_edge_id,\n" +
-            "                        lineage_tree_id,\n" +
-            "                        node_from,\n" +
-            "                        node_to,\n" +
-            "                        attributes,\n" +
-            "                        type_of_interaction,\n" +
-            "                        level\n" +
-            "                ) as (\n" +
-            "                    SELECT\n" +
-            "                        lineage_tree_edge_id,\n" +
-            "                        lineage_tree_id,\n" +
-            "                        node_from,\n" +
-            "                        node_to,\n" +
-            "                        attributes,\n" +
-            "                        type_of_interaction,\n" +
-            "                        1\n" +
-            "                    FROM catgenome.lineage_tree_edge where node_from = %s\n" +
-            "                    union all\n" +
-            "                    SELECT\n" +
-            "                        tree.lineage_tree_edge_id,\n" +
-            "                        tree.lineage_tree_id,\n" +
-            "                        tree.node_from,\n" +
-            "                        tree.node_to,\n" +
-            "                        tree.attributes,\n" +
-            "                        tree.type_of_interaction,\n" +
-            "                        level + 1\n" +
-            "                    FROM catgenome.lineage_tree_edge tree " +
-            "                           join sub_tree st on tree.node_from = st.node_to\n" +
-            "                    )\n" +
-            "                    SELECT\n" +
-            "                        lineage_tree_edge_id,\n" +
-            "                        lineage_tree_id,\n" +
-            "                        node_from,\n" +
-            "                        node_to,\n" +
-            "                        attributes,\n" +
-            "                        type_of_interaction\n" +
-            "                    FROM sub_tree\n";
+    private String loadLineageTreeEdgesByIdQuery;
 
     /**
      * Persists new LineageTreeEdges records.
@@ -152,7 +114,7 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
      * @return a {@code List<LineageTreeEdge>} from the database
      */
     public List<LineageTreeEdge> loadLineageTreeEdgesById(final long lineageTreeNodeId) {
-        return getJdbcTemplate().query(String.format(LOAD_LINEAGE_TREE_EDGES_BY_ID_QUERY, lineageTreeNodeId),
+        return getJdbcTemplate().query(String.format(loadLineageTreeEdgesByIdQuery, lineageTreeNodeId),
                 LineageTreeEdgeParameters.getRowMapper());
     }
 

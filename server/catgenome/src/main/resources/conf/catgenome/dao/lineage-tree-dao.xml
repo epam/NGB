@@ -54,6 +54,30 @@
                 ]]>
             </value>
         </property>
+        <property name="loadLineageTreesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        t.lineage_tree_id,
+                        t.nodes_path,
+                        t.edges_path,
+                        t.description
+                    FROM catgenome.lineage_tree t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                        WHERE lineage_tree_id IN (@in@)
+                ]]>
+            </value>
+        </property>
         <property name="loadAllLineageTreesQuery">
             <value>
                 <![CDATA[

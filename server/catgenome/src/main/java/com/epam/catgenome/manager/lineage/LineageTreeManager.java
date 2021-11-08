@@ -37,7 +37,6 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -126,34 +125,47 @@ public class LineageTreeManager {
     }
 
     public List<LineageTree> loadLineageTrees(final long referenceId) {
-        final List<LineageTree> trees = new ArrayList<>();
         final List<LineageTreeNode> referenceNodes = lineageTreeNodeDao.loadLineageTreeNodesByReference(referenceId);
+        final List<LineageTree> referenceTrees = new ArrayList<>();
+        final Map<Long, List<LineageTreeEdge>> edgesMap = new HashMap<>();
+        final Map<Long, Set<Long>> nodesMap = new HashMap<>();
+        final Set<Long> allNodeIds = new HashSet<>();
+        final Set<Long> allTreeIds = referenceNodes.stream()
+                .map(LineageTreeNode::getLineageTreeId)
+                .collect(Collectors.toSet());
         for (LineageTreeNode referenceNode: referenceNodes) {
-            LineageTree tree = loadLineageTreeByNodeId(referenceNode.getLineageTreeNodeId());
-            trees.add(tree);
-        }
-        return trees;
-    }
+            final List<LineageTreeEdge> edges = lineageTreeEdgeDao.loadLineageTreeEdgesById(
+                    referenceNode.getLineageTreeNodeId());
+            //edges
+            edgesMap.put(referenceNode.getLineageTreeNodeId(), edges);
 
-    public LineageTree loadLineageTreeByNodeId(final long lineageTreeNodeId) {
-        final List<LineageTreeEdge> edges = lineageTreeEdgeDao.loadLineageTreeEdgesById(lineageTreeNodeId);
-        final Set<Long> lineageTreeNodeIds = new HashSet<>();
-        for (LineageTreeEdge edge: edges) {
-            lineageTreeNodeIds.add(edge.getNodeFromId());
-            lineageTreeNodeIds.add(edge.getNodeToId());
+            //nodes
+            final Set<Long> nodeIds = new HashSet<>();
+            nodeIds.addAll(edges.stream().map(LineageTreeEdge::getNodeFromId).collect(Collectors.toList()));
+            nodeIds.addAll(edges.stream().map(LineageTreeEdge::getNodeToId).collect(Collectors.toList()));
+            nodeIds.add(referenceNode.getLineageTreeNodeId());
+            nodesMap.put(referenceNode.getLineageTreeNodeId(), nodeIds);
+            allNodeIds.addAll(nodeIds);
         }
-        lineageTreeNodeIds.add(lineageTreeNodeId);
-        final List<LineageTreeNode> nodes = lineageTreeNodeDao.loadLineageTreeNodesById(lineageTreeNodeIds);
-        if (CollectionUtils.isEmpty(nodes)) {
-            return null;
-        }
-        final Long lineageTreeId = nodes.get(0).getLineageTreeId();
-        final LineageTree lineageTree = getLineageTree(lineageTreeId);
-        lineageTree.setNodes(nodes);
-        lineageTree.setEdges(edges);
-        return lineageTree;
-    }
+        final List<LineageTreeNode> allNodes = lineageTreeNodeDao.loadLineageTreeNodesById(allNodeIds);
+        final List<LineageTree> allTrees = lineageTreeDao.loadLineageTrees(allTreeIds);
+        for (LineageTreeNode node: referenceNodes) {
+            final long referenceNodeId = node.getLineageTreeNodeId();
+            Set<Long> nodeIds = nodesMap.get(referenceNodeId);
+            LineageTree tree = allTrees.stream()
+                    .filter(t -> t.getLineageTreeId().equals(node.getLineageTreeId()))
+                    .findFirst()
+                    .orElse(null);
+            List<LineageTreeNode> nodes = allNodes.stream()
+                    .filter(n -> nodeIds.contains(n.getLineageTreeNodeId()))
+                    .collect(Collectors.toList());
 
+            tree.setEdges(edgesMap.get(referenceNodeId));
+            tree.setNodes(nodes);
+            referenceTrees.add(tree);
+        }
+        return referenceTrees;
+    }
 
     public List<LineageTree> loadAllLineageTrees() {
         return lineageTreeDao.loadAllLineageTrees();
