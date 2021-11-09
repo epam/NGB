@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -64,19 +63,16 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
      * @param nodes {@code List<LineageTreeNode>} LineageTreeNodes to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<LineageTreeNode> save(final List<LineageTreeNode> nodes) {
+    public void save(final List<LineageTreeNode> nodes) {
         if (!CollectionUtils.isEmpty(nodes)) {
-            List<Long> newIds = daoHelper.createIds(lineageTreeNodeSequenceName, nodes.size());
-            List<MapSqlParameterSource> params = new ArrayList<>(nodes.size());
+            final List<Long> newIds = daoHelper.createIds(lineageTreeNodeSequenceName, nodes.size());
+            final MapSqlParameterSource[] params = new MapSqlParameterSource[nodes.size()];
             for (int i = 0; i < nodes.size(); i++) {
                 nodes.get(i).setLineageTreeNodeId(newIds.get(i));
-                MapSqlParameterSource param = LineageTreeNodeParameters.getParameters(nodes.get(i));
-                params.add(param);
+                params[i] = LineageTreeNodeParameters.getParameters(nodes.get(i));
             }
-            getNamedParameterJdbcTemplate().batchUpdate(insertLineageTreeNodeQuery,
-                    params.toArray(new MapSqlParameterSource[nodes.size()]));
+            getNamedParameterJdbcTemplate().batchUpdate(insertLineageTreeNodeQuery, params);
         }
-        return nodes;
     }
 
     /**

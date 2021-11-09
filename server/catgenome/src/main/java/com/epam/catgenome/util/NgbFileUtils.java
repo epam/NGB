@@ -172,6 +172,7 @@ public final class NgbFileUtils {
     public static String getCellValue(final String value) {
         return (TextUtils.isBlank(value) || EMPTY_CELL_VALUES.contains(value.trim())) ? null : value.trim();
     }
+
     @NotNull
     public static File getFile(final String path) {
         Assert.isTrue(!TextUtils.isBlank(path), getMessage(MessagesConstants.PATH_IS_REQUIRED));

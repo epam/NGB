@@ -62,8 +62,8 @@ public class LineageTreeController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<LineageTree>> loadLineageTrees(@PathVariable final Long referenceId,
-                                                   @RequestParam(required = false) final Long lineageTreeId,
-                                                   @RequestParam(required = false) final Long projectId) {
+                                                      @RequestParam(required = false) final Long lineageTreeId,
+                                                      @RequestParam(required = false) final Long projectId) {
         return Result.success(lineageTreeSecurityService.loadLineageTrees(referenceId, lineageTreeId, projectId));
     }
 
@@ -76,7 +76,7 @@ public class LineageTreeController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<LineageTree> loadLineageTree(@PathVariable final Long lineageTreeId,
-                                                   @RequestParam(required = false) final Long projectId) {
+                                               @RequestParam(required = false) final Long projectId) {
         return Result.success(lineageTreeSecurityService.loadLineageTree(lineageTreeId, projectId));
     }
 

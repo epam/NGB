@@ -64,11 +64,10 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
      * @param lineageTree {@code LineageTree} a LineageTree to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public LineageTree saveLineageTree(final LineageTree lineageTree) {
+    public void saveLineageTree(final LineageTree lineageTree) {
         lineageTree.setLineageTreeId(daoHelper.createId(lineageTreeSequenceName));
         final MapSqlParameterSource params = LineageTreeParameters.getParameters(lineageTree);
         getNamedParameterJdbcTemplate().update(insertLineageTreeQuery, params);
-        return lineageTree;
     }
 
     /**
@@ -133,6 +132,7 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
             params.addValue(EDGES_PATH.name(), lineageTree.getEdgesPath());
             return params;
         }
+
         static RowMapper<LineageTree> getRowMapper() {
             return (rs, rowNum) -> parseTree(rs);
         }

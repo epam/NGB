@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -63,22 +62,20 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
      * @param edges {@code List<LineageTreeEdge>} LineageTreeEdges to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<LineageTreeEdge> save(final List<LineageTreeEdge> edges, final Map<String, LineageTreeNode> nodes) {
+    public void save(final List<LineageTreeEdge> edges, final Map<String, LineageTreeNode> nodes) {
         if (!CollectionUtils.isEmpty(edges)) {
-            List<Long> newIds = daoHelper.createIds(lineageTreeEdgeSequenceName, edges.size());
-            List<MapSqlParameterSource> params = new ArrayList<>(edges.size());
+            final List<Long> newIds = daoHelper.createIds(lineageTreeEdgeSequenceName, edges.size());
+            final MapSqlParameterSource[] params = new MapSqlParameterSource[edges.size()];
             for (int i = 0; i < edges.size(); i++) {
                 edges.get(i).setLineageTreeEdgeId(newIds.get(i));
             }
             setNodeIds(edges, nodes);
-            for (LineageTreeEdge edge : edges) {
-                MapSqlParameterSource param = LineageTreeEdgeParameters.getParameters(edge);
-                params.add(param);
+            for (int i = 0; i < edges.size(); i++) {
+                params[i] = LineageTreeEdgeParameters.getParameters(edges.get(i));
+                edges.get(i).setLineageTreeEdgeId(newIds.get(i));
             }
-            getNamedParameterJdbcTemplate().batchUpdate(insertLineageTreeEdgeQuery,
-                    params.toArray(new MapSqlParameterSource[edges.size()]));
+            getNamedParameterJdbcTemplate().batchUpdate(insertLineageTreeEdgeQuery, params);
         }
-        return edges;
     }
 
     /**

@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -83,21 +84,17 @@ public class LineageTreeManager {
         final String edgesPath = request.getEdgesPath();
         getFile(nodesPath);
         getFile(edgesPath);
-        List<LineageTreeNode> nodes = readNodes(nodesPath);
-        List<LineageTreeEdge> edges = readEdges(edgesPath,
+        final List<LineageTreeNode> nodes = readNodes(nodesPath);
+        final List<LineageTreeEdge> edges = readEdges(edgesPath,
                 nodes.stream().map(LineageTreeNode::getName).collect(Collectors.toList()));
-        LineageTree lineageTree = getLineageTree(request, nodesPath, edgesPath);
+        final LineageTree lineageTree = getLineageTree(request, nodesPath, edgesPath);
         biologicalDataItemManager.createBiologicalDataItem(lineageTree);
         lineageTree.setBioDataItemId(lineageTree.getId());
-        lineageTree = lineageTreeDao.saveLineageTree(lineageTree);
-        for (LineageTreeNode node: nodes) {
-            node.setLineageTreeId(lineageTree.getLineageTreeId());
-        }
-        for (LineageTreeEdge edge: edges) {
-            edge.setLineageTreeId(lineageTree.getLineageTreeId());
-        }
-        nodes = lineageTreeNodeDao.save(nodes);
-        edges = lineageTreeEdgeDao.save(edges, getNodesMap(nodes));
+        lineageTreeDao.saveLineageTree(lineageTree);
+        nodes.forEach(n -> n.setLineageTreeId(lineageTree.getLineageTreeId()));
+        edges.forEach(n -> n.setLineageTreeId(lineageTree.getLineageTreeId()));
+        lineageTreeNodeDao.save(nodes);
+        lineageTreeEdgeDao.save(edges, getNodesMap(nodes));
         lineageTree.setNodes(nodes);
         lineageTree.setEdges(edges);
         return lineageTree;
@@ -117,10 +114,8 @@ public class LineageTreeManager {
         if (lineageTree == null) {
             return null;
         }
-        final List<LineageTreeNode> nodes = lineageTreeNodeDao.loadLineageTreeNodes(lineageTreeId);
-        final List<LineageTreeEdge> edges = lineageTreeEdgeDao.loadLineageTreeEdges(lineageTreeId);
-        lineageTree.setNodes(nodes);
-        lineageTree.setEdges(edges);
+        lineageTree.setNodes(lineageTreeNodeDao.loadLineageTreeNodes(lineageTreeId));
+        lineageTree.setEdges(lineageTreeEdgeDao.loadLineageTreeEdges(lineageTreeId));
         return lineageTree;
     }
 
@@ -151,7 +146,7 @@ public class LineageTreeManager {
         final List<LineageTree> allTrees = lineageTreeDao.loadLineageTrees(allTreeIds);
         for (LineageTreeNode node: referenceNodes) {
             final long referenceNodeId = node.getLineageTreeNodeId();
-            Set<Long> nodeIds = nodesMap.get(referenceNodeId);
+            final Set<Long> nodeIds = nodesMap.get(referenceNodeId);
             LineageTree tree = allTrees.stream()
                     .filter(t -> t.getLineageTreeId().equals(node.getLineageTreeId()))
                     .findFirst()
@@ -160,9 +155,11 @@ public class LineageTreeManager {
                     .filter(n -> nodeIds.contains(n.getLineageTreeNodeId()))
                     .collect(Collectors.toList());
 
-            tree.setEdges(edgesMap.get(referenceNodeId));
-            tree.setNodes(nodes);
-            referenceTrees.add(tree);
+            if (tree != null) {
+                tree.setEdges(edgesMap.get(referenceNodeId));
+                tree.setNodes(nodes);
+                referenceTrees.add(tree);
+            }
         }
         return referenceTrees;
     }
@@ -207,8 +204,7 @@ public class LineageTreeManager {
         return nodes;
     }
 
-    private List<LineageTreeEdge> readEdges(final String path, final List<String> nodes)
-            throws IOException {
+    private List<LineageTreeEdge> readEdges(final String path, final List<String> nodes) throws IOException {
         final String separator = FileFormat.TSV.getSeparator();
         final List<LineageTreeEdge> edges = new ArrayList<>();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
@@ -263,11 +259,7 @@ public class LineageTreeManager {
 
     @NotNull
     private Map<String, LineageTreeNode> getNodesMap(final List<LineageTreeNode> nodes) {
-        final Map<String, LineageTreeNode> nodesMap = new HashMap<>();
-        for (LineageTreeNode node: nodes) {
-            nodesMap.put(node.getName(), node);
-        }
-        return nodesMap;
+        return nodes.stream().collect(Collectors.toMap(LineageTreeNode::getName, Function.identity()));
     }
 
     private LineageTree getLineageTree(final long lineageTreeId) {
