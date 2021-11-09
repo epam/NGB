@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: '3.9'
       - run: python3 -m pip install mkdocs mkdocs-material
-      - run: bash -eux build.sh
+      - run: bash build.sh
       - run: ./gradlew jacocoTestReport
       - run: bash <(curl -s https://codecov.io/bash)
       - run: ./publish.sh
