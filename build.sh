@@ -6,4 +6,4 @@ if [[ "${GITHUB_REF##*/}" == "release/"* ]]; then
   BUILD_DOCKER=buildDocker
 fi
 
-./gradlew buildJar buildCli buildDoc $BUILD_DOCKER -PbuildNumber=${{ github.run_number }} -PnoTest
+./gradlew buildJar buildCli buildDoc $BUILD_DOCKER -PbuildNumber=${github.run_number} -PnoTest
