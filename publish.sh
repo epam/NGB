@@ -3,7 +3,7 @@
 echo "Starting deployment"
 
 # Get current version
-NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=${{ github.run_number }} |  grep "Project version is " | sed 's/^.*is //')
+NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=test |  grep "Project version is " | sed 's/^.*is //')
 echo "Current version is ${NGB_VERSION}"
 
 cd dist
