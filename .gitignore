@@ -1,3 +1,4 @@
 /dist
 /docs/site
 /.gradle
+*.DS_Store
