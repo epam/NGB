@@ -2,7 +2,7 @@
 <!--
   ~ MIT License
   ~
-  ~ Copyright (c) 2016 EPAM Systems
+  ~ Copyright (c) 2016-2021 EPAM Systems
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -250,4 +250,19 @@
         <type>PUT</type>
         <url>/restapi/heatmap/%d/column/tree</url>
     </upd_column_tree>
+    <reg_lineage>
+        <name>reg_lineage</name>
+        <type>POST</type>
+        <url>/restapi/lineage/tree</url>
+    </reg_lineage>
+    <del_lineage>
+        <name>del_lineage</name>
+        <type>DELETE</type>
+        <url>/restapi/lineage/tree/%d</url>
+    </del_lineage>
+    <list_lineage>
+        <name>list_lineage</name>
+        <type>GET</type>
+        <url>/restapi/lineage/trees/all</url>
+    </list_lineage>
 </config>

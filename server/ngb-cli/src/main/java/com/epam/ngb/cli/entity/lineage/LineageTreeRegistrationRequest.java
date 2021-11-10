@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.entity.heatmap;
+package com.epam.ngb.cli.entity.lineage;
 
 import com.epam.ngb.cli.entity.RequestPayload;
 import lombok.Builder;
@@ -32,17 +32,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class HeatmapRegistrationRequest implements RequestPayload {
-    private String path;
+public class LineageTreeRegistrationRequest implements RequestPayload {
     private String name;
     private String prettyName;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
-    private int skipRows;
-    private int skipColumns;
+    private String description;
+    private String nodesPath;
+    private String edgesPath;
 }

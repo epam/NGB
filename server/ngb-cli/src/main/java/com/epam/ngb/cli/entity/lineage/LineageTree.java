@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.entity.heatmap;
+package com.epam.ngb.cli.entity.lineage;
 
 import com.epam.ngb.cli.manager.printer.Printable;
 import lombok.Builder;
@@ -38,30 +38,27 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Builder
-public class Heatmap implements Printable<Heatmap> {
-    private Long heatmapId;
+public class LineageTree implements Printable<LineageTree> {
+
+    private Long lineageTreeId;
     private Long bioDataItemId;
     private String name;
     private String prettyName;
-    private String path;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
-    private String rowTreePath;
-    private String columnTreePath;
+    private String description;
+    private String nodesPath;
+    private String edgesPath;
+
     /**
-     * Calculates a formatting string for a {@code List} of {@code Heatmap} objects
-     * for table output. Method calculates the width of columns for {@code Heatmap}'s fields
+     * Calculates a formatting string for a {@code List} of {@code LineageTree} objects
+     * for table output. Method calculates the width of columns for {@code LineageTree}'s fields
      * from the length of all items' fields in the list. Printed columns are defined by
      * {@code FieldFormat}, width of each column will be equal to the width of the field with
      * the longest string value.
-     * @param table {@code List} of {@code Heatmap} for formatting
+     * @param table {@code List} of {@code LineageTree} for formatting
      * @return format String to be applied to the {@param table} printing
      */
     @Override
-    public String getFormatString(List<Heatmap> table) {
+    public String getFormatString(List<LineageTree> table) {
         Map<FieldFormat, Integer> formatMap = new EnumMap<>(FieldFormat.class);
         for (FieldFormat field : FieldFormat.values()) {
             formatMap.put(field, field.name().length());
@@ -71,22 +68,21 @@ public class Heatmap implements Printable<Heatmap> {
     }
 
     /**
-     * Creates a String representation of {@code Heatmap} according to the {@param formatString}
-     * @param formatString to apply to {@code Heatmap} formatting
-     * @return a String representation of {@code Heatmap}
+     * Creates a String representation of {@code LineageTree} according to the {@param formatString}
+     * @param formatString to apply to {@code LineageTree} formatting
+     * @return a String representation of {@code LineageTree}
      */
     @Override
     public String formatItem(String formatString) {
         return String.format(formatString,
-                heatmapId,
+                lineageTreeId,
                 bioDataItemId,
                 name,
                 prettyName,
-                path,
-                cellAnnotationPath,
-                labelAnnotationPath,
-                rowTreePath,
-                columnTreePath);
+                description,
+                nodesPath,
+                edgesPath
+        );
     }
 
     @Override
@@ -95,17 +91,15 @@ public class Heatmap implements Printable<Heatmap> {
         return String.format(formatString, (Object[]) names);
     }
 
-    private void getItemFormat(List<Heatmap> table, Map<FieldFormat, Integer> formatMap) {
-        for (Heatmap dbs : table) {
-            calculateFieldWidth(formatMap, FieldFormat.HEATMAP_ID, String.valueOf(dbs.getHeatmapId()));
+    private void getItemFormat(List<LineageTree> table, Map<FieldFormat, Integer> formatMap) {
+        for (LineageTree dbs : table) {
+            calculateFieldWidth(formatMap, FieldFormat.LINEAGE_TREE_ID, String.valueOf(dbs.getLineageTreeId()));
             calculateFieldWidth(formatMap, FieldFormat.BIO_DATA_ITEM_ID, String.valueOf(dbs.getBioDataItemId()));
             calculateFieldWidth(formatMap, FieldFormat.NAME, dbs.getName());
             calculateFieldWidth(formatMap, FieldFormat.PRETTY_NAME, dbs.getPrettyName());
-            calculateFieldWidth(formatMap, FieldFormat.PATH, dbs.getPath());
-            calculateFieldWidth(formatMap, FieldFormat.CELL_ANNOTATION_PATH, dbs.getCellAnnotationPath());
-            calculateFieldWidth(formatMap, FieldFormat.LABEL_ANNOTATION_PATH, dbs.getLabelAnnotationPath());
-            calculateFieldWidth(formatMap, FieldFormat.ROW_TREE_PATH, dbs.getRowTreePath());
-            calculateFieldWidth(formatMap, FieldFormat.COLUMN_TREE_PATH, dbs.getColumnTreePath());
+            calculateFieldWidth(formatMap, FieldFormat.DESCRIPTION, dbs.getDescription());
+            calculateFieldWidth(formatMap, FieldFormat.NODES_PATH, dbs.getNodesPath());
+            calculateFieldWidth(formatMap, FieldFormat.EDGES_PATH, dbs.getEdgesPath());
         }
     }
 
@@ -119,17 +113,15 @@ public class Heatmap implements Printable<Heatmap> {
     }
 
     /**
-     * Represent the fields of the {@code Heatmap}, that will be included in the table for printing
+     * Represent the fields of the {@code Lineage Tree}, that will be included in the table for printing
      */
     private enum FieldFormat {
-        HEATMAP_ID,
+        LINEAGE_TREE_ID,
         BIO_DATA_ITEM_ID,
+        DESCRIPTION,
         NAME,
         PRETTY_NAME,
-        PATH,
-        CELL_ANNOTATION_PATH,
-        LABEL_ANNOTATION_PATH,
-        ROW_TREE_PATH,
-        COLUMN_TREE_PATH;
+        NODES_PATH,
+        EDGES_PATH;
     }
 }

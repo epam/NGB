@@ -83,5 +83,4 @@ public class PermissionGrantRequest implements RequestPayload {
     public void setId(Long id) {
         this.id = id;
     }
-
 }

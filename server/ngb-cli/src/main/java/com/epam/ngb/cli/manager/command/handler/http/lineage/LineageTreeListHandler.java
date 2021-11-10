@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http.blast;
+package com.epam.ngb.cli.manager.command.handler.http.lineage;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.BlastDatabase;
-import com.epam.ngb.cli.entity.BlastDatabaseVO;
 import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.entity.lineage.LineageTree;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
@@ -38,31 +37,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
-import static org.apache.commons.lang3.StringUtils.join;
 
-/**
- *{@code {@link BlastDatabasesListHandler }} represents a tool for handling 'list_blast_db' command and
- * listing Blast databases, registered on NGB server.
- */
-@Command(type = Command.Type.REQUEST, command = {"list_blast_db"})
+@Command(type = Command.Type.REQUEST, command = {"list_lineage"})
 @Slf4j
-public class BlastDatabasesListHandler extends AbstractHTTPCommandHandler {
+public class LineageTreeListHandler extends AbstractHTTPCommandHandler {
 
-    public static final String TYPE_PARAM = "type=%s";
-    public static final String PATH_PARAM = "path=%s";
     /**
-     * If true command will output registered databases in a table format, otherwise
+     * If true command will output registered lineage trees in a table format, otherwise
      * json format will be used
      */
     private boolean printTable;
-
-    private String type;
-    private String path;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
@@ -70,34 +57,19 @@ public class BlastDatabasesListHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 0, arguments.size()));
         }
-        this.type = options.getDatabaseType();
-        if (type != null && !BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_DATABASE_TYPE, type));
-        }
-        this.path = options.getDatabasePath();
         this.printTable = options.isPrintTable();
     }
 
-    @Override
-    public int runCommand() {
-        List<String> options = new ArrayList<>();
-        if (type != null) {
-            options.add(String.format(TYPE_PARAM, type));
-        }
-        if (path != null) {
-            options.add(String.format(PATH_PARAM, path));
-        }
-        HttpRequestBase request = getRequest(getRequestUrl()
-                + (options.isEmpty() ? "" : "?") + join(options, "&"));
-        String result = RequestManager.executeRequest(request);
-        ResponseResult<List<BlastDatabase>> responseResult;
+    @Override public int runCommand() {
+        final HttpRequestBase request = getRequest(getRequestUrl());
+        final String result = RequestManager.executeRequest(request);
+        final ResponseResult<List<LineageTree>> responseResult;
         try {
             responseResult = getMapper().readValue(result,
-                getMapper().getTypeFactory().constructParametrizedType(
-                    ResponseResult.class, ResponseResult.class,
                     getMapper().getTypeFactory().constructParametrizedType(
-                        List.class, List.class, BlastDatabase.class)));
+                            ResponseResult.class, ResponseResult.class,
+                            getMapper().getTypeFactory().constructParametrizedType(
+                                    List.class, List.class, LineageTree.class)));
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -105,14 +77,14 @@ public class BlastDatabasesListHandler extends AbstractHTTPCommandHandler {
             throw new ApplicationException(responseResult.getMessage());
         }
         if (responseResult.getPayload() == null ||
-            responseResult.getPayload().isEmpty()) {
-            log.info("No databases registered on the server.");
+                responseResult.getPayload().isEmpty()) {
+            log.info("No lineage trees registered on the server.");
         } else {
-            List<BlastDatabase> items = responseResult.getPayload();
+            List<LineageTree> lineageTrees = responseResult.getPayload();
             AbstractResultPrinter printer = AbstractResultPrinter
-                .getPrinter(printTable, items.get(0).getFormatString(items));
-            printer.printHeader(items.get(0));
-            items.forEach(printer::printItem);
+                    .getPrinter(printTable, lineageTrees.get(0).getFormatString(lineageTrees));
+            printer.printHeader(lineageTrees.get(0));
+            lineageTrees.forEach(printer::printItem);
         }
         return 0;
     }

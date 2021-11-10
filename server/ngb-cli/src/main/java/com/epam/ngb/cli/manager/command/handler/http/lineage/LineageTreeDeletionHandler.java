@@ -22,59 +22,62 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
-
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-
-import java.net.URISyntaxException;
-import java.util.List;
+package com.epam.ngb.cli.manager.command.handler.http.lineage;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * {@code {@link DatasetMovingHandler}} represents a tool for handling 'move_dataset' command and
- * changing the hierarchy of a dataset. This command requires strictly one argument:
- * - dataset ID or name (data set to apply changes)
- * Option "parentId" is used to determine command result, if it is not specified, the dataset will be
- * moved to dataset top level (no parent at all), if option is set, its value will be set
- * as parentID to the processed dataset.
- */
-@Command(type = Command.Type.REQUEST, command = {"move_dataset"})
-public class DatasetMovingHandler extends AbstractHTTPCommandHandler {
+import java.io.IOException;
+import java.util.List;
 
-    private Long datasetId;
-    private Long parentId;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+@Command(type = Command.Type.REQUEST, command = {"del_lineage"})
+@Slf4j
+public class LineageTreeDeletionHandler extends AbstractHTTPCommandHandler {
+
+    /**
+     * ID of lineage tree to delete
+     */
+    private Long lineageTreeId;
+
+    /**
+     * Verifies that input arguments contain the required parameter:
+     * the first and the only one argument must be lineage tree ID or name.
+     * If tree's name is provided, it's ID will be loaded from the NGB server.
+     * @param arguments command line arguments for 'del_lineage' command
+     * @param options aren't used in this command
+     */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
         if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        datasetId = parseProjectId(arguments.get(0));
-        if (options.getParent() != null) {
-            parentId = parseProjectId(options.getParent());
-        }
+        lineageTreeId = loadItemId(arguments.get(0));
     }
+    /**
 
-    @Override
-    public int runCommand() {
+     * Performs a heatmap deletion request to NGB server
+     * @return 0 if request completed successfully
+     */
+    @Override public int runCommand() {
         try {
-            String url = serverParameters.getServerUrl() + getRequestUrl();
-            URIBuilder builder = new URIBuilder(String.format(url, datasetId));
-            if (parentId != null) {
-                builder.addParameter("parentId", String.valueOf(parentId));
+            final String result = RequestManager.executeRequest(getRequest(String.format(getRequestUrl(),
+                    lineageTreeId)));
+            final ResponseResult responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
             }
-            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
-            RequestManager.executeRequest(request);
-        } catch (URISyntaxException e) {
+            log.info("Lineage tree " + lineageTreeId + " was successfully deleted.");
+        } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
         return 0;
