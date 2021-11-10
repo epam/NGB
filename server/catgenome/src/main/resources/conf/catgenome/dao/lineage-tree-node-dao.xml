@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.lineage.LineageTreeNodeDao" id="lineageTreeNodeDao" autowire="byName">
+        <property name="lineageTreeNodeSequenceName" value="catgenome.s_lineage_tree_node"/>
+        <property name="insertLineageTreeNodeQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.lineage_tree_node (
+                        lineage_tree_node_id,
+                        lineage_tree_id,
+                        name,
+                        description,
+                        reference_id,
+                        creation_date,
+                        attributes
+                    ) VALUES (
+                        :LINEAGE_TREE_NODE_ID,
+                        :LINEAGE_TREE_ID,
+                        :NAME,
+                        :DESCRIPTION,
+                        :REFERENCE_ID,
+                        :CREATION_DATE,
+                        :ATTRIBUTES
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteLineageTreeNodesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.lineage_tree_node WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadLineageTreeNodesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        lineage_tree_node_id,
+                        lineage_tree_id,
+                        name,
+                        description,
+                        reference_id,
+                        creation_date,
+                        attributes
+                    FROM catgenome.lineage_tree_node WHERE lineage_tree_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadLineageTreeNodesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        lineage_tree_node_id,
+                        lineage_tree_id,
+                        name,
+                        description,
+                        reference_id,
+                        creation_date,
+                        attributes
+                    FROM catgenome.lineage_tree_node WHERE reference_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadLineageTreeNodesByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        lineage_tree_node_id,
+                        lineage_tree_id,
+                        name,
+                        description,
+                        reference_id,
+                        creation_date,
+                        attributes
+                    FROM catgenome.lineage_tree_node WHERE lineage_tree_node_id IN (@in@)
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

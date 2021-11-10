@@ -23,20 +23,14 @@
  */
 package com.epam.catgenome.controller.vo.registration;
 
-import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class HeatmapRegistrationRequest extends DefaultFileRegistrationRequest {
-    private int skipRows;
-    private int skipColumns;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
+public class LineageTreeRegistrationRequest extends DefaultFileRegistrationRequest {
+    private String name;
+    private String description;
+    private String nodesPath;
+    private String edgesPath;
 }

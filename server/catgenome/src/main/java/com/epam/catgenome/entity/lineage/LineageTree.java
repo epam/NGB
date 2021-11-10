@@ -21,22 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.vo.registration;
+package com.epam.catgenome.entity.lineage;
 
-import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.security.AclClass;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-public class HeatmapRegistrationRequest extends DefaultFileRegistrationRequest {
-    private int skipRows;
-    private int skipColumns;
-    private String rowTreePath;
-    private String columnTreePath;
-    private String cellAnnotationPath;
-    private HeatmapAnnotationType cellAnnotationType;
-    private String labelAnnotationPath;
-    private HeatmapAnnotationType rowAnnotationType;
-    private HeatmapAnnotationType columnAnnotationType;
+@Builder
+public class LineageTree extends BiologicalDataItem {
+    private Long lineageTreeId;
+    private String description;
+    private Long bioDataItemId;
+    private String nodesPath;
+    private String edgesPath;
+    private List<LineageTreeNode> nodes;
+    private List<LineageTreeEdge> edges;
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.HEATMAP;
+    }
 }
