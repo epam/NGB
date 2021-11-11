@@ -1,23 +1,4 @@
 <div class="strain-lineage-node-container">
-    <div class="strain-lineage-node-tooltip-indicator"
-         ng-click="$ctrl.toggleTooltip = !$ctrl.toggleTooltip"
-         ng-if="$ctrl.nodeData.tooltip">
-        <md-tooltip class="strain-lineage-node-tooltip"
-                    md-delay="0"
-                    md-direction="right"
-                    md-visible="$ctrl.toggleTooltip"
-                    ng-if="$ctrl.toggleTooltip">
-            <div class="strain-lineage-node-tooltip-header" layout="row">
-                <span flex></span>
-                <span class="close" ng-click="$ctrl.toggleTooltip = false">X</span>
-            </div>
-            <div class="strain-lineage-node-tooltip-body" layout="column">
-                <div>
-                    {{$ctrl.nodeData.tooltip}}
-                </div>
-            </div>
-        </md-tooltip>
-    </div>
     <div class="strain-lineage-node-title" ng-if="$ctrl.nodeData.title">{{$ctrl.nodeData.title}}</div>
     <div class="strain-lineage-node-link" ng-if="$ctrl.nodeData.link">
         <a href="">

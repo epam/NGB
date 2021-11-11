@@ -4,7 +4,8 @@ export default  {
     template: require('./ngbCytoscape.tpl.html'),
     bindings: {
         elements: '<',
-        tag: '@'
+        tag: '@',
+        onElementClick: '&'
     },
     controller: ngbCytoscapeController
 };

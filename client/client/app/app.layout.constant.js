@@ -80,11 +80,10 @@ export default {
         },
         strainLineage: {
             displayed: false,
-            isHidden: true,
             icon: 'device_hub',
             panel: 'ngbStrainLineage',
             position: 'left',
-            title: 'STRAIN',
+            title: 'LINEAGE',
             name: 'layout>strainLineage'
         },
         homologs: {

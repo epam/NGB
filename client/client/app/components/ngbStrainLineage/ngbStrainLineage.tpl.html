@@ -1,10 +1,53 @@
-<div class="u-height__full" layout="row" layout-align="center start">
-    <div class="u-height__full" flex layout="column">
+<div ng-if="$ctrl.loading">
+    <div class="progress" layout-align="center center">
+        <span>Loading...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length === 0">
+    No strain lineages selected.<br />You can select dataset of reference with lineages
+</div>
+<div class="strain-lineage-container" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length > 0">
+    <md-input-container>
+        <label for="strain">
+            Source
+        </label>
+        <md-select aria-label="strain"
+                   id="strain"
+                   multiple="false"
+                   ng-change="$ctrl.onTreeSelect()"
+                   ng-model="$ctrl.currentTreeId">
+            <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
+                       ng-value="{{tree.id}}">
+                {{tree.prettyName || tree.name}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <div class="u-height__full" flex layout="column" ng-if="$ctrl.selectedTree">
+        <div class="tree-description-container">
+            <div>{{$ctrl.selectedTree.metadata.name}}</div>
+            <div>{{$ctrl.selectedTree.metadata.description}}</div>
+        </div>
+        <div class="element-description-container" ng-if="$ctrl.elementDescription">
+            <div class="element-description-header" layout="row">
+                <span flex></span>
+                <span class="close" ng-click="$ctrl.elementDescription = null">X</span>
+            </div>
+            <div class="element-description-body" layout="column">
+                <div class="element-description-row">
+                    <a href="" ng-if="$ctrl.elementDescription.name"><span>{{$ctrl.elementDescription.name}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}}</span></a>
+                </div>
+                <div class="element-description-row">
+                    {{$ctrl.elementDescription.tooltip}}
+                </div>
+            </div>
+        </div>
         <md-content flex layout="column">
             <div class="md-padding ngb-cytoscape-container" layout="column">
                 <ngb-cytoscape
-                        elements="$ctrl.strainElements"
+                        elements="$ctrl.selectedTree"
                         tag="ngb-strain-lineage-node"
+                        on-element-click="$ctrl.onElementClick(data)"
                 ></ngb-cytoscape>
             </div>
         </md-content>

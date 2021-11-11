@@ -36,7 +36,7 @@ export default class ngbCytoscapeController {
     wrapNodes(nodes, nodeTag, nodeStyle) {
         const wrappedNodes = [];
 
-        function wrapNode(nodeData, rp) {
+        function wrapNode(nodeData) {
             const id = nodeData.id;
             const div = document.createElement(nodeTag);
             div.setAttribute('data-node-data-json', JSON.stringify(nodeData));
@@ -93,6 +93,12 @@ export default class ngbCytoscapeController {
                 const layout = this.viewer.layout(this.settings.defaultLayout);
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
+                });
+                this.viewer.nodes().on('click', e => {
+                    this.onElementClick({data: e.target.data()});
+                });
+                this.viewer.edges().on('click', e => {
+                    this.onElementClick({data: e.target.data()});
                 });
                 layout.run();
 

@@ -6,22 +6,6 @@
   font-size: 12px;
   text-align: center;
   position: relative;
-  .strain-lineage-node-tooltip-indicator {
-    position: absolute;
-    right: 0;
-    top: 0;
-    &:after {
-      content: "";
-      position:absolute;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-bottom: 6px solid orange;
-      transform:rotate(45deg);
-      right: -4px;
-      top: -1px;
-      cursor: pointer;
-    }
-  }
   .strain-lineage-node-title {
     color: #da2c2c;
     font-weight: bold;
@@ -41,39 +25,5 @@
     }
   }
   .strain-lineage-node-desc {
-  }
-}
-
-.strain-lineage-node-tooltip {
-  .md-content {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    background: #FFFFFF;
-    color: #000000;
-    font-size: 14px;
-    border: 1px solid grey;
-    border-radius: 5px;
-
-    .strain-lineage-node-tooltip-header {
-      line-height: 14px;
-      justify-content: space-between;
-
-      .close {
-        font-size: 12px;
-        font-weight: bold;
-        cursor: pointer;
-        padding: 0;
-      }
-    }
-
-    .strain-lineage-node-tooltip-body {
-      display: table;
-
-      .strain-lineage-node-tooltip-row {
-        display: table-row;
-        border-spacing: 5px;
-      }
-    }
   }
 }

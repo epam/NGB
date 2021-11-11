@@ -223,4 +223,18 @@ export class GenomeDataService extends DataService {
                 .catch(reject);
         });
     }
+
+    getLineageTreesByReference(referenceId) {
+        return new Promise((resolve, reject) => {
+            this.get(`lineage/trees/${referenceId}`)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No lineage trees received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }
