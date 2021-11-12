@@ -90,7 +90,7 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 *Description*
 
 Registers a specified reference sequence file. FASTA, FA, FNA, GENBANK, GBK, GB files are accepted. Compressed files are not supported.
-Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index
+Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index 
 in the folder with the reference, if index isn't found it will be created. For remote references, "fai" index must be present on the
 remote source. NGB assumes that reference index will have the same name as reference with "fai" extension added. If reference path is
 **"/opt/genomes/hg38.fa"**, NGB will look for index file at path **"/opt/genomes/hg38.fa.fai"**.
@@ -280,8 +280,8 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 Registers a specified file. At least two arguments have to be specified:
 - Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier.
 - Filesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. BGZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz. (**bgzip** tool is available as a part of [htslib](http://www.htslib.org/) package. Or NGB CLI **sort** command can used for that as well).
-  BAM file path must be followed by a `?` symbol and a path to an index file (.BAI) (if a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. It also works well for vcf, bed and gene files).
-  If and only if CLI located on the same filesystem with NGB server relative path can be used.
+BAM file path must be followed by a `?` symbol and a path to an index file (.BAI) (if a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. It also works well for vcf, bed and gene files). 
+If and only if CLI located on the same filesystem with NGB server relative path can be used.
 
 To register files from the external cloud data storages (AWS S3), file path must be in the full view (starting from `s3://`, then the bucket name, folder name and so on slash-separated, ending with <FILE_NAME>.<FILE_EXT>), e.g.: `s3://ngb-s3/fruitfly/agnX1.09-28.trim.dm606.realign.vcf`. In case with AWS S3 storages, path to the files with indexes (BAM, VCF, BED, genes files) must be strongly followed by a `?` symbol and a path to their index files. CLI will not find such indexes automatically.
 > **Note**: for ability to work with files from AWS S3, do not forget to configure your NGB instance before start (see *"Configure for working with AWS S3"* paragraph [here](../installation/standalone.md)).
@@ -322,7 +322,7 @@ ngb del_file|df [<FILE_NAME>|<FILE_ID>] [options]
 *Description*
 
 Deletes a specified file from NGB server. File can be addressed by name or an identifier (retrieved from **reg_file** command, at registration time or **search** command).
-> **Note**: file couldn't be deleted, if it is added to any dataset. For deleting such file first remove it from all datasets.
+> **Note**: file couldn't be deleted, if it is added to any dataset. For deleting such file first remove it from all datasets. 
 
 *Example*
 ```bash
@@ -722,14 +722,13 @@ ngb reg_heatmap|rh [<PATH>] [options]
 //-skip-col (--skip-col)        Number of last heatmap columns to skip
 //-row-at (--heatmap-row-at)    Heatmap row annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 //-col-at (--heatmap-col-at)    Heatmap column annotation type [REFERENCE|GENE|DATASET|COORDINATE]
-
 ```
 *Description*
 
 Registers a heatmap. One argument has to be specified:
 * Heatmap path
 
-Heatmap suport navigation from annotation labels to specific locations.
+Heatmap suport navigation from annotation labels to specific locations. 
 Type of annotation maybe specified during heatmap registration for cell, row and column labels. If annotation type is
 not specified navigation isn't enabled for a heatmap. Four annotation types are supported:
 - REFERENCE - labels match reference name
@@ -912,12 +911,12 @@ ngb sort [<ORIGINAL_FILE_PATH>] [<SORTED_FILE_PATH>] [options]
 
 Sorts given feature file. At least one argument should be specified:
 * Path to a feature file to be sorted.
-  VCF, BED, GTF, GFF, GFF3 formats are supported. Uncompressed and BGZip-compressed files are supported.
+VCF, BED, GTF, GFF, GFF3 formats are supported. Uncompressed and BGZip-compressed files are supported.
 
 Optional argument is:
 * Target path to store a sorted feature file.
-  If this argument is not specified, sorted file will be stored in the same folder as the original one with the `.sorted.` suffix in the name.
-  Sorted file will be automatically BGZip-compressed, if a target file name contains `.gz` postfix. If target file is not specified, file compression is inherited from the original file.
+If this argument is not specified, sorted file will be stored in the same folder as the original one with the `.sorted.` suffix in the name.
+Sorted file will be automatically BGZip-compressed, if a target file name contains `.gz` postfix. If target file is not specified, file compression is inherited from the original file.
 
 *Example*
 ```bash
