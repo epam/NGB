@@ -722,8 +722,8 @@ ngb reg_heatmap|rh [<PATH>] [options]
 //-skip-col (--skip-col)        Number of last heatmap columns to skip
 //-row-at (--heatmap-row-at)    Heatmap row annotation type [REFERENCE|GENE|DATASET|COORDINATE]
 //-col-at (--heatmap-col-at)    Heatmap column annotation type [REFERENCE|GENE|DATASET|COORDINATE]
-```
 
+```
 *Description*
 
 Registers a heatmap. One argument has to be specified:
