@@ -1,10 +1,18 @@
 export default class ngbStrainLineageService {
 
     lineageTrees = [];
+    currentReferenceId = null;
 
     constructor(genomeDataService, dispatcher) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
+        this.initEvents();
+    }
+
+    initEvents() {
+        // this.dispatcher.on('read:show:lineage', data => {
+        //     this.currentReferenceId = data.referenceId;
+        // });
     }
 
     _currentTreeId = null;
@@ -28,6 +36,7 @@ export default class ngbStrainLineageService {
         const data = await this.genomeDataService.getLineageTreesByReference(referenceId);
         if (data) {
             this.lineageTrees = data.map(this._formatServerToClient);
+            this.currentTreeId = this.lineageTrees.length ? this.lineageTrees[0].id : null;
             return this.lineageTrees.map(tree => ({
                 id: tree.id,
                 name: tree.metadata.name,
@@ -45,6 +54,7 @@ export default class ngbStrainLineageService {
                 title: node.name,
                 description: node.description,
                 creationDate: node.creationDate,
+                referenceId: node.referenceId,
                 tooltip: node.attributes
             }
         });

@@ -8,6 +8,7 @@ import controller from './ngbStrainLineage.controller';
 
 // Import Style
 import './ngbStrainLineage.scss';
+
 import service from './ngbStrainLineage.service';
 import ngbStrainLineageNode from './ngbStrainLineageNode';
 

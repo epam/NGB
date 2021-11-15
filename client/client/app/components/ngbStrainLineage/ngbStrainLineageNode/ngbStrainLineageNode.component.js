@@ -4,6 +4,7 @@ export default  {
     controller: controller.UID,
     template: require('./ngbStrainLineageNode.tpl.html'),
     bindings: {
-        nodeDataJson: '@'
+        nodeDataJson: '@',
+        onElementClick: '&'
     }
 };

@@ -5,7 +5,8 @@ export default  {
     bindings: {
         elements: '<',
         tag: '@',
-        onElementClick: '&'
+        onElementClick: '&',
+        storageName: '@'
     },
     controller: ngbCytoscapeController
 };

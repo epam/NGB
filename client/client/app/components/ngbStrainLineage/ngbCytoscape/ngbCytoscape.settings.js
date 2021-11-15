@@ -37,5 +37,8 @@ export default {
         name: 'dagre',
         rankDir: 'TB'
     },
+    loadedLayout: {
+        name: 'preset'
+    },
     options: {}
 };

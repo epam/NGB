@@ -23,22 +23,21 @@
             </md-option>
         </md-select>
     </md-input-container>
-    <div class="u-height__full" flex layout="column" ng-if="$ctrl.selectedTree">
+    <div class="u-height__full tree-container" flex layout="column" ng-if="$ctrl.selectedTree">
         <div class="tree-description-container">
             <div>{{$ctrl.selectedTree.metadata.name}}</div>
             <div>{{$ctrl.selectedTree.metadata.description}}</div>
         </div>
         <div class="element-description-container" ng-if="$ctrl.elementDescription">
-            <div class="element-description-header" layout="row">
-                <span flex></span>
-                <span class="close" ng-click="$ctrl.elementDescription = null">X</span>
-            </div>
-            <div class="element-description-body" layout="column">
-                <div class="element-description-row">
-                    <a href="" ng-if="$ctrl.elementDescription.name"><span>{{$ctrl.elementDescription.name}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}}</span></a>
-                </div>
-                <div class="element-description-row">
-                    {{$ctrl.elementDescription.tooltip}}
+            <div class="md-content">
+                <div class="close" ng-click="$ctrl.elementDescription = null">X</div>
+                <div class="element-description-body" layout="column">
+                    <div class="element-description-row">
+                        <a href="" ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></a>
+                    </div>
+                    <div class="element-description-row">
+                        {{$ctrl.elementDescription.tooltip}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -48,6 +47,7 @@
                         elements="$ctrl.selectedTree"
                         tag="ngb-strain-lineage-node"
                         on-element-click="$ctrl.onElementClick(data)"
+                        storage-name="strainLineageLayout"
                 ></ngb-cytoscape>
             </div>
         </md-content>

@@ -1,9 +1,6 @@
 import baseController from '../../shared/baseController';
-import CytoscapeContext from '../../shared/cytoscapeContext';
 
 export default class ngbStrainLineageController extends baseController {
-    cytoscapeContext: CytoscapeContext = undefined;
-
     selectedTree = null;
     currentTreeId = null;
     lineageTreeList = [];
@@ -12,11 +9,13 @@ export default class ngbStrainLineageController extends baseController {
 
     events = {
         'layout:active:panel:change': this.activePanelChanged.bind(this),
-        'reference:change': this.initialize.bind(this)
+        'reference:change': this.initialize.bind(this),
+        'read:show:lineage': this.initialize.bind(this)
     };
 
     constructor(
         $scope,
+        $timeout,
         dispatcher,
         ngbStrainLineageService,
         appLayout,
@@ -28,6 +27,7 @@ export default class ngbStrainLineageController extends baseController {
             this,
             {
                 $scope,
+                $timeout,
                 dispatcher,
                 ngbStrainLineageService,
                 appLayout,
@@ -44,10 +44,14 @@ export default class ngbStrainLineageController extends baseController {
     }
 
     async initialize() {
-        if (this.projectContext.reference) {
-            this.lineageTreeList = await this.ngbStrainLineageService.loadStrainLineages(this.projectContext.reference.id);
+        const currentReference = this.ngbStrainLineageService.currentReferenceId
+            || (this.projectContext.reference ? this.projectContext.reference.id : null);
+        if (currentReference) {
+            this.lineageTreeList = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
             this.currentTreeId = this.ngbStrainLineageService.currentTreeId;
+            this.onTreeSelect();
             this.loading = false;
+            this.$timeout(() => this.$scope.$apply());
         }
     }
 
@@ -63,6 +67,6 @@ export default class ngbStrainLineageController extends baseController {
 
     onElementClick(data) {
         this.elementDescription = data;
-        this.$scope.$apply();
+        this.$timeout(() => this.$scope.$apply());
     }
 }

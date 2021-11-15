@@ -1,6 +1,15 @@
+import {menu} from '../../../utilities';
 import downloadFile from '../../common/menu/downloadFile';
 import header from '../../common/menu/header';
-import {menu} from '../../../utilities';
+
+function openLineage(tracks) {
+    const [dispatcher] = (tracks || [])
+        .map(track => track.config.dispatcher)
+        .filter(Boolean);
+    if (dispatcher) {
+        dispatcher.emitSimpleEvent('read:show:lineage');
+    }
+}
 
 export default {
     displayName: state => {
@@ -48,7 +57,13 @@ export default {
         },
         menu.getDivider(),
         header,
-        downloadFile
+        downloadFile,
+        {
+            label: 'Show lineage',
+            name: 'general>showLineage',
+            type: 'button',
+            perform: openLineage
+        }
     ],
     name: 'reference>general',
     type: 'submenu'

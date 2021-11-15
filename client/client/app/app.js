@@ -27,7 +27,6 @@ import components from './components';
 import BLASTContext from './shared/blastContext';
 import browserDetect from './shared/browserDetect';
 import sharedComponents from './shared/components';
-import CytoscapeContext from './shared/cytoscapeContext';
 import {dispatcher} from './shared/dispatcher';
 import eventHotkey from './shared/eventHotkeys';
 import HeatmapContext from './shared/heatmapContext';
@@ -74,5 +73,4 @@ export default angular.module('NGB', [
     .service('notificationsContext', NotificationsContext.instance)
     .service('miewContext', MiewContext.instance)
     .service('heatmapContext', HeatmapContext.instance)
-    .service('cytoscapeContext', CytoscapeContext.instance)
     .name;

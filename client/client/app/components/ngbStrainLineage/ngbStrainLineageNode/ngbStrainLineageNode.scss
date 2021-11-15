@@ -6,6 +6,7 @@
   font-size: 12px;
   text-align: center;
   position: relative;
+  cursor: pointer;
   .strain-lineage-node-title {
     color: #da2c2c;
     font-weight: bold;
@@ -16,13 +17,7 @@
     font-weight: bold;
     text-decoration: none;
     display: inline-block;
-    font-size: 0;
-    & a {
-      color: #2c4f9e;
-    }
-    & span {
-      font-size: 12px;
-    }
+    font-size: 12px;
   }
   .strain-lineage-node-desc {
   }
