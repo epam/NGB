@@ -1,0 +1,114 @@
+#---------------------------------------------------------------------
+# GitHub Action Workflow for NGB
+# Version 1.0
+# 2021
+#---------------------------------------------------------------------
+
+name: build
+# Controls when the workflow will run
+on:
+  push:
+    branches: 
+    - 'develop'
+    - 'release/**'
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".README.md"
+      - ".gitignore"
+  pull_request:
+    branches: 
+      - '**'
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".README.md"
+      - ".gitignore"
+      
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin" # See 'Supported distributions' for available options
+          java-version: "8"
+          cache: "gradle"
+      
+      - name: Correcting a Build Number
+        run: echo "BUILD_NUMBER=$(echo $((${{ github.run_number }}+3125)))" >> $GITHUB_ENV
+      
+      - name: Get Current Version
+        run: echo "NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$BUILD_NUMBER |  grep "Project version is " | sed 's/^.*is //')" >> $GITHUB_ENV
+      
+      - name: Python Setup Action
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  
+      - run: python3 -m pip install mkdocs mkdocs-material
+
+      - name: Gradle Build Action
+        if: "!contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-executable: ./gradlew buildJar buildCli buildDoc -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest
+
+      - name: Gradle Build Action with Docker
+        if: "contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-executable: ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest
+
+      - name: Gradle Coverage Action
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-executable: ./gradlew jacocoTestReport
+      
+      - name: Upload a Build Artifact on the GitHub Actions job page
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: ngb-${{ env.NGB_VERSION }}.${{ env.BUILD_NUMBER }}.${{ github.sha }}
+          path: dist
+          retention-days: 7
+
+      - name: Upload Coverage to Codecov
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        uses: codecov/codecov-action@v2
+
+      - name: Configure AWS Credentials
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      
+      - name: Copy a Build Artifact to AWS
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        run: aws s3 cp dist s3://ngb-oss-builds/public/builds/$GITHUB_REF_NAME/ga.${{ env.NGB_VERSION }}/ --recursive
+        shell: bash
+
+      - name: Publishing to Docker Hub
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'release')) }}
+        run: |
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
+            docker tag ngb:latest ${{ secrets.DOCKER_USER }}/ngb:${{ env.NGB_VERSION }}
+            docker push ${{ secrets.DOCKER_USER }}/ngb:${{ env.NGB_VERSION }}
+
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'release')) }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/catgenome.jar,dist/ngb-cli.tar.gz,dist/ngb-docs.tar.gz"
+          tag: ${{ env.NGB_VERSION }}.${{ env.BUILD_NUMBER }}
+          name: Release ${{ env.NGB_VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
