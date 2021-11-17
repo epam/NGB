@@ -1,8 +1,8 @@
-# 
+# Notes in multiple datasets
 
 > Test verifies
 
-- the test checks that notes are not displayed in the additional menu in Browser when opening multiple datasets at the same time
+- the test checks that notes are displayed in the additional menu in Browser when opened multiple datasets related to one reference 
 
 **Prerequisites**
 
@@ -13,13 +13,10 @@
 | :-----: | ---- | ---- |
 |   1   | Login to NGB||
 |   2   | Go to **DATASETS** panel||
-|   3   | Select **SV_Sample1** dataset| <li> Dataset is selected with all related files <li>**Description** view is displayed in **BROWSER** header <br><br> ***Summary** view should be displayed in the BROWSER header, if there is **no Description** file in Dataset*|
-|   4   | Click on **Description** view in the header of **BROWSER** panel | Additional control menu is expanded with following values:<li>**Description** (check-box) - *selected by default* <li>**Summary** (check-box) <li> **+ Add note** (button in blue color) <br><br>Previously added notes can be displayed in alphabetical order below the **+ Add note** button |                                                                     
-|   5   | Click **+ Add note** button| The following values are displayed in the **BROWSER** window:<br><li> **Note title** field - ***mandatory** text field to specify a note title* <li> Empty text field below "Note title" - ***optional** field to specify a note description (content) (support **Markdown** formatting)* <li> **SAVE** and **CANCEL** buttons are located in the right upper corner of Browser window <li> **SAVE** button is disabled by default <br><br>**Add note** view display instead **Description** view in the BROWSER header |
-|   6   | Fill **Note title** field by any value (e.g. **Note1**)| <li>**Note title** field is filled <li> **SAVE** button is enabled in blue color|
-|   7   | Click **SAVE** button|<li>Title of new note (**Note1**) display in the Browser header instead of **Add note** value|
-|   8   | Repeat 2-7 steps for **SV_Sample2**| Title of new note display in the Browser header instead of **Add note** value|
-|   9   | Go to **DATASETS** panel||
-|   10  | Set checkbox in **SV_Sample1** dataset| **SV_Sample1** and **SV_Sample2** datasets are selected|
-|   11  | Go to header of Browser panel||
-|   12  | Click on **Description** view in the header of **BROWSER** panel| Additional control menu is expanded with following values:<li>**Description** (check-box) - *selected by default* <li>**Summary** (check-box) <br><br>**No** "**+ Add note**" button and **notes** in the expanded additional menu |
+|   3   | Select **SV_Sample1** dataset| <li> Dataset is selected with all related files <li>**Description** view is displayed in **BROWSER** header <br><br> ***Summary** view should be displayed in the BROWSER header, if there is **no Description** files in Dataset*|
+|   4   | Click on **Description** view in the header of **BROWSER** panel | Additional control menu is expanded with following values:<li>**Summary** (check-box) <li>**Description** html files (check-boxes) - *selected by default if exist*<br><br><li>Previously added notes can be displayed in alphabetical order below the **Description** files (check-boxes) <li> **+ Add note** (button in blue color) displays at the bottom of the list |  
+|   4   | Select **SV_Sample2** dataset| <li> Dataset is selected with all related files <br><br> **Summary** view is displayed in the BROWSER header|
+|   5   | Click on **Summary** view in the header of **BROWSER** panel | Additional control menu is expanded with following values: <li>**Summary** (check-box)  - *selected by default* <li> The 2 selected datasets are displayed below, visually separated by a blue line (**SV_Sample1** and **SV_Sample2**) <li> In each of the displayed datasets, Description htmk files (if exists), notes (if exists) and the **+Add** note button are displayed related to a specific dataset |  
+|   6   | Go to **DATASETS** panel ||
+|   7   | Deselect **SV_Sample1** dataset| ** SV_Sample1 ** dataset not selected|
+|   8   | Click on **Summary** view in the header of **BROWSER** panel | Additional control menu is expanded with following values:<li>**Summary** (check-box) *selected by default if no html description files* <br><br><li>Previously added notes can be displayed in alphabetical order below the **Description/Summary**  (check-boxes) <li> **+ Add note** (button in blue color) displays at the bottom of the list |  
