@@ -2,9 +2,12 @@ import baseController from '../../shared/baseController';
 
 export default class ngbStrainLineageController extends baseController {
     selectedTree = null;
-    currentTreeId = null;
+    selectedTreeId = null;
     lineageTreeList = [];
     loading = true;
+    treeLoading = false;
+    error = false;
+    treeError = false;
     elementDescription = null;
 
     events = {
@@ -47,9 +50,20 @@ export default class ngbStrainLineageController extends baseController {
         const currentReference = this.ngbStrainLineageService.currentReferenceId
             || (this.projectContext.reference ? this.projectContext.reference.id : null);
         if (currentReference) {
-            this.lineageTreeList = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
-            this.currentTreeId = this.ngbStrainLineageService.currentTreeId;
-            this.onTreeSelect();
+            if (!this.selectedTreeId) {
+                this.loading = true;
+            }
+            const {data, error} = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
+            if (!error) {
+                this.error = false;
+                this.lineageTreeList = data;
+                if (!this.selectedTreeId) {
+                    this.selectedTreeId = this.ngbStrainLineageService.selectedTreeId;
+                    await this.onTreeSelect();
+                }
+            } else {
+                this.error = error;
+            }
             this.loading = false;
             this.$timeout(() => this.$scope.$apply());
         }
@@ -60,9 +74,18 @@ export default class ngbStrainLineageController extends baseController {
         this.dispatcher.emit('cytoscape:panel:active', isActive);
     }
 
-    onTreeSelect() {
-        this.ngbStrainLineageService.currentTreeId = this.currentTreeId;
-        this.selectedTree = this.ngbStrainLineageService.getLineageTreeById(this.currentTreeId);
+    async onTreeSelect() {
+        this.treeLoading = true;
+        this.ngbStrainLineageService.selectedTreeId = this.selectedTreeId;
+        const {tree, error} = await this.ngbStrainLineageService.getLineageTreeById(this.selectedTreeId);
+        if (error) {
+            this.treeError = error;
+        } else {
+            this.treeError = false;
+            this.selectedTree = tree;
+        }
+
+        this.treeLoading = false;
     }
 
     onElementClick(data) {

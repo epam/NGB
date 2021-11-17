@@ -237,4 +237,18 @@ export class GenomeDataService extends DataService {
                 .catch(reject);
         });
     }
+
+    getLineageTreeById(id) {
+        return new Promise((resolve, reject) => {
+            this.get(`lineage/tree/${id}`)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No data received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }

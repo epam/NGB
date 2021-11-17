@@ -4,7 +4,7 @@
     </div>
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length === 0">
+<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && !$ctrl.error && $ctrl.lineageTreeList.length === 0">
     No strain lineages selected.<br />You can select dataset of reference with lineages
 </div>
 <div class="strain-lineage-container" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length > 0">
@@ -16,7 +16,7 @@
                    id="strain"
                    multiple="false"
                    ng-change="$ctrl.onTreeSelect()"
-                   ng-model="$ctrl.currentTreeId">
+                   ng-model="$ctrl.selectedTreeId">
             <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
                        ng-value="{{tree.id}}">
                 {{tree.prettyName || tree.name}}
@@ -43,7 +43,17 @@
         </div>
         <md-content flex layout="column">
             <div class="md-padding ngb-cytoscape-container" layout="column">
+                <div ng-if="$ctrl.treeLoading">
+                    <div class="progress" layout-align="center center">
+                        <span>Loading...</span>
+                    </div>
+                    <md-progress-linear md-mode="query"></md-progress-linear>
+                </div>
+                <div class="strain-lineage-container-error" ng-if="!$ctrl.treeLoading && $ctrl.treeError">
+                    {{$ctrl.treeError}}
+                </div>
                 <ngb-cytoscape
+                        ng-if="!$ctrl.treeLoading && !$ctrl.treeError"
                         elements="$ctrl.selectedTree"
                         tag="ngb-strain-lineage-node"
                         on-element-click="$ctrl.onElementClick(data)"

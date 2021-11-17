@@ -3,7 +3,7 @@
      ng-mousemove="$ctrl.onMouseMove()"
      ng-mouseup="$ctrl.onMouseUp($event)">
     <div class="strain-lineage-node-title" ng-if="!$ctrl.nodeData.referenceId">{{$ctrl.nodeData.title}}</div>
-    <div class="strain-lineage-node-link" ng-click="$ctrl.navigateToTrack($event)" ng-if="$ctrl.nodeData.referenceId">
+    <div class="strain-lineage-node-link" ng-if="$ctrl.nodeData.referenceId" ng-mouseup="$ctrl.navigateToReference($event, $ctrl.nodeData.referenceId)">
         {{$ctrl.nodeData.title}}
     </div>
     <div class="strain-lineage-node-desc" ng-if="$ctrl.nodeData.creationDate">{{$ctrl.nodeData.creationDate}}</div>
