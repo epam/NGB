@@ -11,7 +11,7 @@ export default class ngbStrainLineageService {
     }
 
     initEvents() {
-        // this.dispatcher.on('read:show:lineage', data => {
+        // this.dispatcher.on('reference:show:lineage', data => {
         //     this.currentReferenceId = data.referenceId;
         // });
     }

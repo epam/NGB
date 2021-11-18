@@ -7,7 +7,7 @@ function openLineage(tracks) {
         .map(track => track.config.dispatcher)
         .filter(Boolean);
     if (dispatcher) {
-        dispatcher.emitSimpleEvent('read:show:lineage');
+        dispatcher.emitSimpleEvent('reference:show:lineage');
     }
 }
 

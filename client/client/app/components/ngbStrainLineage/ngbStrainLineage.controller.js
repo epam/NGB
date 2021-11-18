@@ -13,7 +13,7 @@ export default class ngbStrainLineageController extends baseController {
     events = {
         'layout:active:panel:change': this.activePanelChanged.bind(this),
         'reference:change': this.initialize.bind(this),
-        'read:show:lineage': this.initialize.bind(this)
+        'reference:show:lineage': this.initialize.bind(this)
     };
 
     constructor(

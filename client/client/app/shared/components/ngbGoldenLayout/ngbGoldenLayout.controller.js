@@ -59,7 +59,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'read:show:mate': this.panelAddBrowserWithPairRead.bind(this),
         'read:show:blat': this.panelAddBlatSearchPanel.bind(this),
         'read:show:blast': this.panelAddBlastSearchPanel.bind(this),
-        'read:show:lineage': this.panelAddStrainLineage.bind(this),
+        'reference:show:lineage': this.panelAddStrainLineage.bind(this),
         'tracks:state:change': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blat': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blast': this.panelRemoveBlastSearchPanel.bind(this),
