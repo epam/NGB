@@ -1,6 +1,7 @@
-import webpack, { optimize } from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import UglifyJSPlugin from 'uglifyjs-webpack-plugin';
+import webpack, {optimize} from 'webpack';
 
 const DEV = global.buildOptions.dev;
 const globals = {
@@ -17,8 +18,10 @@ export const extractTextPlugin = new ExtractTextPlugin('[name].css');
 
 const prodPlugins = [
     extractTextPlugin,
-    new optimize.UglifyJsPlugin({
-        mangle: false
+    new UglifyJSPlugin({
+        uglifyOptions: {
+            mangle: false
+        }
     }),
     new optimize.DedupePlugin(),
     new optimize.AggressiveMergingPlugin()
@@ -33,7 +36,7 @@ export default [
         inject: 'body'
     }),
     function () { // sets build to failure if a compilation error occurred
-        this.plugin("done", function (stats) {
+        this.plugin('done', function (stats) {
             if (stats.compilation.errors && stats.compilation.errors.length) {
                 console.log(stats.compilation.errors);
                 process.exit(1);
