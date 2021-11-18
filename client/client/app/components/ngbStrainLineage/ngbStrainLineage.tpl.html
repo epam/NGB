@@ -1,0 +1,65 @@
+<div ng-if="$ctrl.loading">
+    <div class="progress" layout-align="center center">
+        <span>Loading...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && !$ctrl.error && $ctrl.lineageTreeList.length === 0">
+    No strain lineages selected.<br />You can select dataset of reference with lineages
+</div>
+<div class="strain-lineage-container" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length > 0">
+    <md-input-container>
+        <label for="strain">
+            Source
+        </label>
+        <md-select aria-label="strain"
+                   id="strain"
+                   multiple="false"
+                   ng-change="$ctrl.onTreeSelect()"
+                   ng-model="$ctrl.selectedTreeId">
+            <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
+                       ng-value="{{tree.id}}">
+                {{tree.prettyName || tree.name}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <div class="u-height__full tree-container" flex layout="column" ng-if="$ctrl.selectedTree">
+        <div class="tree-description-container">
+            <div>{{$ctrl.selectedTree.metadata.name}}</div>
+            <div>{{$ctrl.selectedTree.metadata.description}}</div>
+        </div>
+        <div class="element-description-container" ng-if="$ctrl.elementDescription">
+            <div class="md-content">
+                <div class="close" ng-click="$ctrl.elementDescription = null">X</div>
+                <div class="element-description-body" layout="column">
+                    <div class="element-description-row">
+                        <a href="" ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></a>
+                    </div>
+                    <div class="element-description-row">
+                        {{$ctrl.elementDescription.tooltip}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <md-content flex layout="column">
+            <div class="md-padding ngb-cytoscape-container" layout="column">
+                <div ng-if="$ctrl.treeLoading">
+                    <div class="progress" layout-align="center center">
+                        <span>Loading...</span>
+                    </div>
+                    <md-progress-linear md-mode="query"></md-progress-linear>
+                </div>
+                <div class="strain-lineage-container-error" ng-if="!$ctrl.treeLoading && $ctrl.treeError">
+                    {{$ctrl.treeError}}
+                </div>
+                <ngb-cytoscape
+                        ng-if="!$ctrl.treeLoading && !$ctrl.treeError"
+                        elements="$ctrl.selectedTree"
+                        tag="ngb-strain-lineage-node"
+                        on-element-click="$ctrl.onElementClick(data)"
+                        storage-name="strainLineageLayout"
+                ></ngb-cytoscape>
+            </div>
+        </md-content>
+    </div>
+</div>

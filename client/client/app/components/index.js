@@ -1,23 +1,24 @@
 import angular from 'angular';
+import ngbBlastSearchPanel from './ngbBlastSearchPanel';
+import ngbBlatSearchPanel from './ngbBlatSearchPanel';
 import ngbBookmarksPanel from './ngbBookmarksPanel';
 import ngbBrowser from './ngbBrowser';
 import ngbDataSets from './ngbDataSets';
 import ngbFeatureInfoPanel from './ngbFeatureInfoPanel';
+import ngbGenesTablePanel from './ngbGenesTablePanel';
+import ngbGenomeAnnotations from './ngbGenomeAnnotations';
+import ngbHeatmapPanel from './ngbHeatmapPanel';
+import ngbHomologsPanel from './ngbHomologsPanel';
 import ngbLogModule from './ngbLog';
 import ngbMolecularViewer from './ngbMolecularViewer';
+import ngbOrganizeTracks from './ngbOrganizeTracks';
 import ngbProjectInfoPanel from './ngbProjectInfoPanel';
 import ngbSashimiPlot from './ngbSashimiPlot';
-import ngbTracksView from './ngbTracksView';
+import ngbStrainLineage from './ngbStrainLineage';
 import ngbTracksSelection from './ngbTracksSelection';
+import ngbTracksView from './ngbTracksView';
 import ngbVariantPanel from './ngbVariantPanel';
 import ngbVariantsTablePanel from './ngbVariantsTablePanel';
-import ngbOrganizeTracks from './ngbOrganizeTracks';
-import ngbGenomeAnnotations from './ngbGenomeAnnotations';
-import ngbBlatSearchPanel from './ngbBlatSearchPanel';
-import ngbHeatmapPanel from './ngbHeatmapPanel';
-import ngbBlastSearchPanel from './ngbBlastSearchPanel';
-import ngbGenesTablePanel from './ngbGenesTablePanel';
-import ngbHomologsPanel from './ngbHomologsPanel';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -38,5 +39,6 @@ export default angular.module('NGB_Panels', [
     ngbBlastSearchPanel,
     ngbGenesTablePanel,
     ngbHomologsPanel,
-    ngbHeatmapPanel
+    ngbHeatmapPanel,
+    ngbStrainLineage
 ]).name;

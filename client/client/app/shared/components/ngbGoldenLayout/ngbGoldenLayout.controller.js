@@ -18,6 +18,7 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbLog: 'ngbLog',
         ngbBlatSearchPanel: 'ngbBlatSearchPanel',
         ngbBlastSearchPanel: 'ngbBlastSearchPanel',
+        ngbStrainLineagePanel: 'ngbStrainLineage',
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -58,10 +59,11 @@ export default class ngbGoldenLayoutController extends baseController {
         'read:show:mate': this.panelAddBrowserWithPairRead.bind(this),
         'read:show:blat': this.panelAddBlatSearchPanel.bind(this),
         'read:show:blast': this.panelAddBlastSearchPanel.bind(this),
+        'reference:show:lineage': this.panelAddStrainLineage.bind(this),
         'tracks:state:change': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blat': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blast': this.panelRemoveBlastSearchPanel.bind(this),
-        'variant:show:pair': this.panelAddBrowserWithVariation.bind(this)
+        'variant:show:pair': this.panelAddBrowserWithVariation.bind(this),
     };
 
     $onDestroy() {
@@ -356,6 +358,7 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
+
     blastSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlastSearchPanel) {
@@ -443,6 +446,24 @@ export default class ngbGoldenLayoutController extends baseController {
             const parent = blastSearchItem.parent;
             if (parent && parent.type === 'stack') {
                 parent.setActiveContentItem(blastSearchItem);
+            }
+        }
+    }
+
+    panelAddStrainLineage() {
+        const layoutChange = this.appLayout.Panels.strainLineage;
+        layoutChange.displayed = true;
+
+        const [strainLineageItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbStrainLineagePanel);
+
+        if (!strainLineageItem) {
+            this.panelAdd(layoutChange);
+        } else {
+            const parent = strainLineageItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(strainLineageItem);
             }
         }
     }

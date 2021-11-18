@@ -1,0 +1,24 @@
+.strain-lineage-node-container {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  border: 2px solid grey;
+  font-size: 12px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  .strain-lineage-node-title {
+    color: #da2c2c;
+    font-weight: bold;
+    display: inline-block;
+  }
+  .strain-lineage-node-link {
+    color: #2c4f9e;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+  }
+  .strain-lineage-node-desc {
+  }
+}

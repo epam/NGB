@@ -1,48 +1,46 @@
-import browserDetect from './shared/browserDetect';
-browserDetect();
-
-import './shared/hotkeys';
-
-// Import modules for work on Safari
-import 'intl';
-import 'intl/locale-data/jsonp/en.js';
-
 // Import base modules
 import angular from 'angular';
 import angularAnimate from 'angular-animate';
 import angularAria from 'angular-aria';
-import angularMaterial from './compat/angularMaterial';
 import angularMaterialIcons from 'angular-material-icons';
 import angularMessages from 'angular-messages';
 import angularNvd3 from 'angular-nvd3';
 import angularUiRouter from 'angular-ui-router';
 
-// Import internal modules
-import projectContext from './shared/projectContext';
-import MiewContext from './shared/miewContext';
-import SelectionContext from './shared/selectionContext';
-import BLASTContext from './shared/blastContext';
-import NotificationsContext from './shared/notificationsContext';
-import HeatmapContext from './shared/heatmapContext';
+// Import modules for work on Safari
+import 'intl';
+import 'intl/locale-data/jsonp/en.js';
+// Import dependencies
+import appConstants from '../constants/angular-module';
+import dataServices from '../dataServices/angular-module';
+import {FCSourcesManager, GroupAutoScaleManager} from '../modules/render/index';
 import config from './app.config';
 import controller from './app.controller';
-import {dispatcher} from './shared/dispatcher';
-import eventHotkey from './shared/eventHotkeys';
 import interceptor from './app.interceptor';
-import lastActionRepeater from './shared/lastActionRepeater';
 import layoutConstant from './app.layout.constant.js';
 import routes from './app.routes';
-// Import dependencies
-
-import appConstants from '../constants/angular-module';
-import appServices from './shared/services';
-import components from './components';
-import dataServices from '../dataServices/angular-module';
-import {GroupAutoScaleManager, FCSourcesManager} from '../modules/render/index';
-import sharedComponents from './shared/components';
 
 //Import styles
 import './app.scss';
+import angularMaterial from './compat/angularMaterial';
+import components from './components';
+import BLASTContext from './shared/blastContext';
+import browserDetect from './shared/browserDetect';
+import sharedComponents from './shared/components';
+import {dispatcher} from './shared/dispatcher';
+import eventHotkey from './shared/eventHotkeys';
+import HeatmapContext from './shared/heatmapContext';
+import './shared/hotkeys';
+import lastActionRepeater from './shared/lastActionRepeater';
+import MiewContext from './shared/miewContext';
+import NotificationsContext from './shared/notificationsContext';
+
+// Import internal modules
+import projectContext from './shared/projectContext';
+import SelectionContext from './shared/selectionContext';
+import appServices from './shared/services';
+
+browserDetect();
 
 export default angular.module('NGB', [
     angularAria,

@@ -1,9 +1,9 @@
-import * as  geneTypes from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
 import {scaleModes} from '../../modules/render/tracks/common/scaleModes';
-import {displayModes} from '../../modules/render/tracks/wig/modes';
-import {variantsView} from '../../modules/render/tracks/vcf/modes';
 import {displayModes as featureCountsDisplayModes} from '../../modules/render/tracks/featureCounts/modes';
+import * as  geneTypes from '../../modules/render/tracks/gene/geneTypes';
+import {variantsView} from '../../modules/render/tracks/vcf/modes';
+import {displayModes} from '../../modules/render/tracks/wig/modes';
 
 export default {
     defaultSettings: {
@@ -176,6 +176,9 @@ export default {
             },
             'layout>variants': {
                 hotkey: 'ALT + V'
+            },
+            'layout>strainLineage': {
+                hotkey: 'ALT + S'
             },
             'vcf>nextVariation': {
                 hotkey: 'SHIFT + ARROWRIGHT'
