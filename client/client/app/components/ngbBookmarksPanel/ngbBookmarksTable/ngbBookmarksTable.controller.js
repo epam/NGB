@@ -151,6 +151,7 @@ export default class ngbBookmarksTableController extends baseController {
             this.projectContext.vcfColumns = vcfColumns;
         }
         const customNames = entity.customNames;
+        this.dispatcher.emitGlobalEvent('session:load:started', {layoutChange: this.appLayout.Panels.bookmark});
         if (customNames) {
             this.trackNamingService.setCustomNames(customNames);
         }
