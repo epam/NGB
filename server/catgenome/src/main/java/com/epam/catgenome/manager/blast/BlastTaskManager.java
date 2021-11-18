@@ -318,4 +318,8 @@ public class BlastTaskManager {
         }
         return blastRequest;
     }
+
+    public List<Long> getTaxIds(String database) throws BlastRequestException {
+        return blastRequestManager.getTaxIds(database);
+    }
 }

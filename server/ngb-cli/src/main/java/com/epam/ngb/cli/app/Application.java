@@ -76,6 +76,7 @@ public class Application {
             + "list_spec\t: lists all species, registered on the server\t{list_spec}\n\n"
             + "BLAST DATABASE commands:\n"
             + "rbd\treg_blast_db\t: registers a database\t{rbd \"name\" \"path\" \"type\" \"source\"}\n"
+            + "ubd\tupd_blast_db\t: updates database organisms\t{ubd 2}\n"
             + "dbd\tdel_blast_db\t: deletes a database \t{dbd 2}\n"
             + "lbd\tlist_blast_db\t: lists all databases, registered on the server\t{lbd -dt \"type\" -dp \"path\"}\n\n"
             + "HEATMAP commands:\n"

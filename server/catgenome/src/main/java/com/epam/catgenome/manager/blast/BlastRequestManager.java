@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -129,8 +130,18 @@ public class BlastRequestManager {
             Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
             return result.getPayload();
         } catch (BlastResponseException e) {
-            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
-                    .ERROR_BLAST_REQUEST), e);
+            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST), e);
+        }
+    }
+
+    public List<Long> getTaxIds(final String database) throws BlastRequestException {
+        validateBlastEnabled();
+        try {
+            Result<List<Long>> result = QueryUtils.execute(blastApi.getTaxIds(database));
+            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            return result.getPayload();
+        } catch (BlastResponseException e) {
+            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST), e);
         }
     }
 

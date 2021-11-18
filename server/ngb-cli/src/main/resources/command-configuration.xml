@@ -195,6 +195,11 @@
         <type>POST</type>
         <url>/restapi/blast/database</url>
     </reg_blast_db>
+    <upd_blast_db>
+        <name>upd_blast_db</name>
+        <type>PUT</type>
+        <url>/restapi/blast/database/%d/organisms</url>
+    </upd_blast_db>
     <del_blast_db>
         <name>del_blast_db</name>
         <type>DELETE</type>

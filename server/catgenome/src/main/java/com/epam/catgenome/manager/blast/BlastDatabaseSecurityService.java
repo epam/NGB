@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
@@ -39,26 +40,31 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 public class BlastDatabaseSecurityService {
 
     @Autowired
-    private BlastDatabaseManager blastDatabaseManager;
+    private BlastDatabaseManager databaseManager;
 
     @PreAuthorize(ROLE_ADMIN)
-    public void save(final BlastDatabase database) {
-        blastDatabaseManager.save(database);
+    public BlastDatabase save(final BlastDatabase database) throws IOException {
+        return databaseManager.save(database);
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public void updateDatabaseOrganisms(long id) throws IOException {
+        databaseManager.updateDatabaseOrganisms(id);
     }
 
     @AclTree
     @PreAuthorize(ROLE_ADMIN)
     public void delete(final long id) {
-        blastDatabaseManager.delete(id);
+        databaseManager.delete(id);
     }
 
     @PreAuthorize(ROLE_USER)
     public BlastDatabase loadById(final long id) {
-        return blastDatabaseManager.loadById(id);
+        return databaseManager.loadById(id);
     }
 
     @PreAuthorize(ROLE_USER)
     public List<BlastDatabase> load(final BlastDatabaseType type, final String path) {
-        return blastDatabaseManager.load(type, path);
+        return databaseManager.load(type, path);
     }
 }

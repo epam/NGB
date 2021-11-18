@@ -670,6 +670,21 @@ Registers a database. Four arguments have to be specified:
 $ ngb reg_blast_db "Homo_sapiens" "Homo_sapiens.GRCh38" "NUCLEOTIDE" "CUSTOM"
 ```
 
+### Update database organisms
+```
+ngb upd_blast_db|ubd [<ID>]
+```
+*Description*
+
+Updates database organisms. One argument has to be specified:
+* Database id
+
+*Example*
+```bash
+# Update database with id 2
+$ ngb upd_blast_db 2
+```
+
 ### List databases
 ```
 ngb list_blast_db|lbd [options]

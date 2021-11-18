@@ -30,7 +30,6 @@ import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import junit.framework.TestCase;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +66,7 @@ public class HeatmapManagerTest extends TestCase {
 
 
     @Before
-    public void setUp() throws IOException, ParseException {
+    public void setUp() throws IOException {
         this.contentFileName = context.getResource("classpath:heatmap//heatmap.tsv").getFile().getPath();
         this.labelAnnotationFileName = context.getResource("classpath:heatmap//label_annotation.tsv")
                 .getFile().getPath();

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -59,9 +61,8 @@ public class BlastDatabaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> saveDatabase(@RequestBody final BlastDatabase database) {
-        blastDatabaseSecurityService.save(database);
-        return Result.success(null);
+    public Result<BlastDatabase> saveDatabase(@RequestBody final BlastDatabase database) throws IOException {
+        return Result.success(blastDatabaseSecurityService.save(database));
     }
 
     @GetMapping(value = "/blast/database/{id}")
@@ -72,8 +73,21 @@ public class BlastDatabaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastDatabase> loadDataBase(@PathVariable final long id) {
+    public Result<BlastDatabase> loadDatabase(@PathVariable final long id) {
         return Result.success(blastDatabaseSecurityService.loadById(id));
+    }
+
+    @PutMapping(value = "/blast/database/{id}/organisms")
+    @ApiOperation(
+            value = "Updates database organisms",
+            notes = "Updates database organisms for given database Id",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> updateDatabaseOrganisms(@PathVariable final long id) throws IOException {
+        blastDatabaseSecurityService.updateDatabaseOrganisms(id);
+        return Result.success(null);
     }
 
     @GetMapping(value = "/blast/databases")
@@ -97,7 +111,7 @@ public class BlastDatabaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastDatabase> deleteDatabase(@PathVariable final long id) {
+    public Result<Boolean> deleteDatabase(@PathVariable final long id) {
         blastDatabaseSecurityService.delete(id);
         return Result.success(null);
     }

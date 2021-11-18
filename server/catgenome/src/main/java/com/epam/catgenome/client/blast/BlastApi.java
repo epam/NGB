@@ -39,6 +39,8 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
+import java.util.List;
+
 public interface BlastApi {
     @Headers("Content-type: application/json")
     @POST("restapi/blast")
@@ -59,4 +61,8 @@ public interface BlastApi {
     @Headers("Content-type: application/json")
     @POST("restapi/createdb")
     Call<Result<CreateDatabaseResponse>> createDatabase(@Body CreateDatabaseRequest databaseVO);
+
+    @Headers("Content-type: application/json")
+    @POST("restapi/taxIds")
+    Call<Result<List<Long>>> getTaxIds(@Path(value = "database", encoded = true) String database);
 }
