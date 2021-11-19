@@ -68,7 +68,7 @@ export default class ngbProjectSummaryController {
             return dataset;
         });
         this.heatmap = undefined;
-        this.currentHeapmapId = undefined;
+        this.currentHeatmapId = undefined;
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
@@ -138,6 +138,7 @@ export default class ngbProjectSummaryController {
             });
         });
         this.files = files;
+        this.checkHeatmapConsistency(this.currentHeatmapId, this.files.filter(this.isHeatmapSelector));
     }
 
     datasetContainsMetadata() {
@@ -149,12 +150,27 @@ export default class ngbProjectSummaryController {
     }
 
     setHeatmap(heatmap) {
-        if (this.currentHeapmapId === heatmap.id) {
+        if (this.currentHeatmapId === heatmap.id) {
             this.heatmap = undefined;
-            this.currentHeapmapId = undefined;
+            this.currentHeatmapId = undefined;
         } else {
             this.heatmap = heatmap;
-            this.currentHeapmapId = heatmap.id;
+            this.currentHeatmapId = heatmap.id;
+        }
+    }
+
+    checkHeatmapConsistency(currentHeatmapId, heatmaps) {
+        if (!currentHeatmapId || !heatmaps || !heatmaps.length) {
+            return;
+        }
+        let isConsistent = false;
+        for (const heatmap of heatmaps) {
+            isConsistent = heatmap && heatmap.names.some(name => name.id === currentHeatmapId);
+            if (isConsistent) break;
+        }
+        if (!isConsistent) {
+            this.heatmap = undefined;
+            this.currentHeatmapId = undefined;
         }
     }
 
