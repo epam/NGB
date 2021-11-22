@@ -107,4 +107,15 @@ export default class ngbStrainLineageController extends baseController {
     resetDataTooltip() {
         this.onElementClick(undefined);
     }
+
+    navigateToReference(event, referenceId) {
+        if (!referenceId || !this.projectContext || !this.projectContext.references || !this.projectContext.references.length) {
+            return;
+        }
+        const referenceObj = this.projectContext.references.filter(reference => reference.id === referenceId).pop();
+        const payload = this.ngbStrainLineageService.getOpenReferencePayload(this.projectContext, referenceObj);
+        if (payload) {
+            this.projectContext.changeState(payload);
+        }
+    }
 }

@@ -25,7 +25,6 @@
     </md-input-container>
     <div class="u-height__full tree-container" flex layout="column" ng-if="$ctrl.selectedTree">
         <div class="tree-description-container">
-            <div>{{$ctrl.selectedTree.metadata.name}}</div>
             <div>{{$ctrl.selectedTree.metadata.description}}</div>
         </div>
         <div class="element-description-container" ng-if="$ctrl.elementDescription">
@@ -33,7 +32,9 @@
                 <div class="close" ng-click="$ctrl.elementDescription = null">X</div>
                 <div class="element-description-body" layout="column">
                     <div class="element-description-row">
-                        <a href="" ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></a>
+                        <div ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId}"
+                             ng-click="$ctrl.navigateToReference($event, $ctrl.elementDescription.referenceId)"
+                             ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></div>
                     </div>
                     <div class="element-description-row">
                         {{$ctrl.elementDescription.tooltip}}

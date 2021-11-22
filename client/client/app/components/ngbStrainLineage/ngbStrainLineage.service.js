@@ -1,3 +1,5 @@
+import {mapTrackFn} from '../ngbDataSets/internal/utilities';
+
 export default class ngbStrainLineageService {
 
     cutLineageTrees = [];
@@ -143,6 +145,39 @@ export default class ngbStrainLineageService {
 
     setCurrentStrainLineageAsList() {
         this.cutLineageTrees = this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
+    }
+
+    getOpenReferencePayload(context, referenceObj) {
+        if (referenceObj && context.datasets) {
+            // we'll open first dataset of this reference
+            const tree = context.datasets || [];
+            const find = (items = []) => {
+                const projects = items.filter(item => item.isProject);
+                const [dataset] = projects.filter(item => item.reference && item.reference.id === referenceObj.id);
+                if (dataset) {
+                    return dataset;
+                }
+                for (const project of projects) {
+                    const nested = find(project.nestedProjects);
+                    if (nested) {
+                        return nested;
+                    }
+                }
+                return null;
+            };
+            const dataset = find(tree);
+            if (dataset) {
+                const tracks = [dataset.reference];
+                const tracksState = [mapTrackFn(dataset.reference)];
+                return {
+                    tracks,
+                    tracksState,
+                    reference: dataset.reference,
+                    shouldAddAnnotationTracks: true
+                };
+            }
+        }
+        return null;
     }
 
 }

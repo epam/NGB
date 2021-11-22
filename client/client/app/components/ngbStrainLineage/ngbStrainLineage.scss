@@ -16,16 +16,6 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-
-  //.heatmap-viewer {
-  //  flex: 1;
-  //
-  //  .heatmap-container {
-  //    height: calc(100% - 5px);
-  //    box-sizing: border-box;
-  //    border: none;
-  //  }
-  //}
 }
 .tree-container {
   position: relative;
@@ -67,8 +57,10 @@
           display: table-row;
           border-spacing: 5px;
 
-          a {
+          .element-description-navigation {
             color: #2c4f9e;
+            text-decoration: underline;
+            cursor: pointer;
           }
         }
       }

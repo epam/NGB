@@ -45,7 +45,7 @@ export default class ngbCytoscapeController {
         function wrapNode(node) {
             const div = document.createElement(nodeTag);
             div.setAttribute('data-node-data-json', JSON.stringify(node.data));
-            div.setAttribute('on-element-click', '$ctrl.onElementClick({data: data})');
+            div.setAttribute('data-on-element-click', '$ctrl.onElementClick({data: data})');
             div.classList = ['strain-lineage-cytoscape-node'];
             div.style.width = `${nodeStyle.width}px`;
             div.style.height = `${nodeStyle.height}px`;
