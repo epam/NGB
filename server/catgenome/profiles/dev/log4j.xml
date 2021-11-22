@@ -37,7 +37,7 @@
         </layout>
     </appender>
 
-    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" additivity="false">
+    <logger name="com.epam.catgenome.app.CustomRequestLoggingFilter" additivity="false">
         <appender-ref ref="requests-debug-appender"/>
     </logger>
 

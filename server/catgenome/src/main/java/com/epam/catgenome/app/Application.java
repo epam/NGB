@@ -95,8 +95,8 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
-    public CommonsRequestLoggingFilter requestLoggingFilter() {
-        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
+    public CustomRequestLoggingFilter requestLoggingFilter() {
+        CustomRequestLoggingFilter loggingFilter = new CustomRequestLoggingFilter();
         loggingFilter.setIncludeClientInfo(true);
         loggingFilter.setIncludeQueryString(true);
         loggingFilter.setIncludePayload(true);
