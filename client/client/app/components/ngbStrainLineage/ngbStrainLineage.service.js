@@ -40,14 +40,21 @@ export default class ngbStrainLineageService {
         }
         try {
             const data = await this.genomeDataService.getLineageTreesByReference(referenceId);
+            const treeSortFn = (a, b) => {
+                const aName = a.prettyName || a.name || '';
+                const bName = b.prettyName || b.name || '';
+                return aName.localeCompare(bName);
+            };
             if (data) {
                 if (this.selectedTreeId) {
                     this.cutLineageTrees = this.getUniqueTrees(
-                        this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId)
+                        this.getCurrentStrainLineageAsList()
                             .concat(data.map(this._formatCutListToClient))
-                    );
+                    ).sort(treeSortFn);
                 } else {
-                    this.cutLineageTrees = data.map(this._formatCutListToClient);
+                    this.cutLineageTrees = data
+                        .map(this._formatCutListToClient)
+                        .sort(treeSortFn);
                     this.selectedTreeId = this.cutLineageTrees.length ? this.cutLineageTrees[0].id : null;
                 }
                 return {
@@ -128,6 +135,14 @@ export default class ngbStrainLineageService {
                 error: e.message
             };
         }
+    }
+
+    getCurrentStrainLineageAsList() {
+        return this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
+    }
+
+    setCurrentStrainLineageAsList() {
+        this.cutLineageTrees = this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
     }
 
 }

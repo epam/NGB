@@ -73,13 +73,13 @@ export default class ngbCytoscapeController {
                 let elements, layoutSettings;
                 if (savedLayout) {
                     elements = {
-                        nodes: this.wrapNodes(savedLayout.nodes, this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(this.getPlainNodes(savedLayout.nodes), this.tag, this.settings.style.node),
                         edges: savedLayout.edges
                     };
                     layoutSettings = this.settings.loadedLayout;
                 } else {
                     elements = {
-                        nodes: this.wrapNodes(this.elements.nodes, this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(this.getPlainNodes(this.elements.nodes), this.tag, this.settings.style.node),
                         edges: this.elements.edges
                     };
                     layoutSettings = this.settings.defaultLayout;

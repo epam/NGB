@@ -4,7 +4,7 @@
     </div>
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && !$ctrl.error && $ctrl.lineageTreeList.length === 0">
+<div class="strain-lineage-container-error" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length === 0">
     No strain lineages selected.<br />You can select dataset of reference with lineages
 </div>
 <div class="strain-lineage-container" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length > 0">

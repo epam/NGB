@@ -65,8 +65,16 @@ export default class ngbStrainLineageController extends baseController {
                 this.error = error;
             }
             this.loading = false;
-            this.$timeout(() => this.$scope.$apply());
+        } else {
+            if (this.lineageTreeList.length && this.selectedTreeId) {
+                this.ngbStrainLineageService.setCurrentStrainLineageAsList();
+                this.lineageTreeList = this.ngbStrainLineageService.getCurrentStrainLineageAsList();
+            }
+            if (this.projectContext.references.length) {
+                this.loading = false;
+            }
         }
+        this.$timeout(() => this.$scope.$apply());
     }
 
     activePanelChanged(o) {
@@ -76,6 +84,9 @@ export default class ngbStrainLineageController extends baseController {
 
     async onTreeSelect() {
         this.treeLoading = true;
+        if (this.ngbStrainLineageService.selectedTreeId !== this.selectedTreeId) {
+            this.resetDataTooltip();
+        }
         this.ngbStrainLineageService.selectedTreeId = this.selectedTreeId;
         const {tree, error} = await this.ngbStrainLineageService.getLineageTreeById(this.selectedTreeId);
         if (error) {
@@ -84,12 +95,16 @@ export default class ngbStrainLineageController extends baseController {
             this.treeError = false;
             this.selectedTree = tree;
         }
-
         this.treeLoading = false;
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onElementClick(data) {
         this.elementDescription = data;
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    resetDataTooltip() {
+        this.onElementClick(undefined);
     }
 }
