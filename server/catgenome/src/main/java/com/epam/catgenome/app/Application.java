@@ -25,7 +25,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 /**
  * Main entry point for Spring Boot Application
