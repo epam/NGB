@@ -25,6 +25,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 /**
  * Main entry point for Spring Boot Application
@@ -51,6 +52,9 @@ public class Application extends SpringBootServletInitializer {
 
     @Value("${swift.stack.path.style.access:false}")
     private boolean isPathStyleAccess;
+
+    @Value("${request.logging.filter.max.payload.length:64000}")
+    private int maxPayloadLength;
 
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
@@ -88,5 +92,15 @@ public class Application extends SpringBootServletInitializer {
             return new AzureBlobClient();
         }
         return new AzureBlobClient(storageAccount, storageKey);
+    }
+
+    @Bean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
+        loggingFilter.setIncludeClientInfo(true);
+        loggingFilter.setIncludeQueryString(true);
+        loggingFilter.setIncludePayload(true);
+        loggingFilter.setMaxPayloadLength(maxPayloadLength);
+        return loggingFilter;
     }
 }
