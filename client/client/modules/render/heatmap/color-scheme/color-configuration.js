@@ -1,6 +1,6 @@
-import * as helpers from './helpers';
 import {HeatmapDataType} from '../heatmap-data';
 import {white} from './colors';
+import * as helpers from './helpers';
 
 const {ColorFormats} = helpers;
 
@@ -159,7 +159,7 @@ export default class ColorConfiguration {
     }
 
     get from() {
-        return this._from;
+        return this._from ? +this._from : this._from;
     }
 
     set from(from) {
@@ -171,7 +171,7 @@ export default class ColorConfiguration {
     }
 
     get to() {
-        return this._to;
+        return this._to ? +this._to : this._to;
     }
 
     set to(to) {

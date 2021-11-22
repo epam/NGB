@@ -1,3 +1,5 @@
+import baseController from '../../shared/baseController';
+
 function heatmapNameSorter(a, b) {
     const aName = (a.prettyName || a.name || '').toLowerCase();
     const bName = (b.prettyName || b.name || '').toLowerCase();
@@ -16,21 +18,34 @@ function heatmapNameSorter(a, b) {
     return 0;
 }
 
-export default class ngbHeatmapPanelController {
+export default class ngbHeatmapPanelController extends baseController {
     static get UID() {
         return 'ngbHeatmapPanelController';
     }
 
+    sessionLoadStarted = false;
+
+    events = {
+        'session:load:started': this.onSessionLoad.bind(this),
+    };
+
     constructor($scope, appLayout, dispatcher, heatmapContext) {
-        this.appLayout = appLayout;
-        this.dispatcher = dispatcher;
-        this.heatmapContext = heatmapContext;
+        super();
+        Object.assign(this, {
+            $scope,
+            appLayout,
+            dispatcher,
+            heatmapContext
+        });
         this.onHeatmapNavigationCallback = this.onHeatmapNavigation.bind(this);
         this.onHeatmapOptionsChangeCallback = this.onHeatmapOptionsChange.bind(this);
         this.heatmapContext.selectFirst();
         $scope.$on('$destroy', () => {
-            this.heatmapContext.heatmap = undefined;
+            if (!this.sessionLoadStarted) {
+                this.heatmapContext.heatmap = undefined;
+            }
         });
+        this.initEvents();
     }
 
     get loading() {
@@ -112,5 +127,9 @@ export default class ngbHeatmapPanelController {
         ) {
             this.heatmapContext.setCurrentState(options.serialize());
         }
+    }
+
+    onSessionLoad() {
+        this.sessionLoadStarted = true;
     }
 }
