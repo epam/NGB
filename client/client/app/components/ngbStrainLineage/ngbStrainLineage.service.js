@@ -1,5 +1,7 @@
 import {mapTrackFn} from '../ngbDataSets/internal/utilities';
 
+const LOCAL_STORAGE_KEY = 'strain-lineage-state';
+
 export default class ngbStrainLineageService {
 
     cutLineageTrees = [];
@@ -10,6 +12,8 @@ export default class ngbStrainLineageService {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.initEvents();
+        const savedState = this.loadState();
+        this._selectedTreeId = savedState.selectedTree ? savedState.selectedTree.id : null;
     }
 
     initEvents() {
@@ -24,6 +28,12 @@ export default class ngbStrainLineageService {
 
     set selectedTreeId(value) {
         this._selectedTreeId = value;
+        const [selectedTree] = this.getCurrentStrainLineageAsList();
+        this.saveState({selectedTree: selectedTree});
+    }
+
+    get localStorageKey() {
+        return LOCAL_STORAGE_KEY;
     }
 
     static instance(genomeDataService, dispatcher) {
@@ -178,6 +188,15 @@ export default class ngbStrainLineageService {
             }
         }
         return null;
+    }
+
+    saveState(state) {
+        const savedState = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
+        localStorage.setItem(this.localStorageKey, JSON.stringify({...savedState, ...state}));
+    }
+
+    loadState() {
+        return JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
     }
 
 }

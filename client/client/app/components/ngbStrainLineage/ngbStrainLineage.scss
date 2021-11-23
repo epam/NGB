@@ -21,6 +21,7 @@
   position: relative;
   .element-description-container {
     width: 50%;
+    max-width: 300px;
     position: absolute;
     top: 0;
     right: 0;
@@ -62,6 +63,10 @@
             text-decoration: underline;
             cursor: pointer;
           }
+        }
+
+        .element-description-empty {
+          color: #999;
         }
       }
     }

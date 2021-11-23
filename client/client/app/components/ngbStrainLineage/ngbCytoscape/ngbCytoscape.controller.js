@@ -16,6 +16,7 @@ export default class ngbCytoscapeController {
         Cytoscape.use(dom_node);
 
         const resizeHandler = () => {
+            this.centerCytoscape();
         };
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
@@ -68,8 +69,8 @@ export default class ngbCytoscapeController {
                 this.viewer = null;
             }
             this.$timeout(() => {
-                let savedLayout = localStorage.getItem(this.storageName);
-                savedLayout = savedLayout ? JSON.parse(savedLayout)[this.elements.id] : undefined;
+                const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
+                const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
                 let elements, layoutSettings;
                 if (savedLayout) {
                     elements = {
@@ -119,17 +120,27 @@ export default class ngbCytoscapeController {
         }
     }
 
+    centerCytoscape() {
+        if (this.viewer) {
+            this.viewer.resize();
+            this.viewer.center();
+        }
+    }
+
     saveLayout() {
-        let savedLayout = localStorage.getItem(this.storageName) || '{}';
-        savedLayout = {
-            ...JSON.parse(savedLayout),
+        const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
+        if (!Object.prototype.hasOwnProperty.call(savedState, 'layout')) {
+            savedState.layout = {};
+        }
+        savedState.layout = {
+            ...savedState.layout,
             [this.elements.id]: {
                 nodes: this.getPlainNodes(this.viewer.nodes().jsons()),
                 edges: this.viewer.edges().jsons()
             }
         };
 
-        localStorage.setItem(this.storageName, JSON.stringify(savedLayout));
+        localStorage.setItem(this.storageName, JSON.stringify(savedState));
     }
 
     getPlainNodes(nodes) {

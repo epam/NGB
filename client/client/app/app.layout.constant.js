@@ -82,7 +82,7 @@ export default {
             displayed: false,
             icon: 'device_hub',
             panel: 'ngbStrainLineage',
-            position: 'left',
+            position: 'right',
             title: 'LINEAGE',
             name: 'layout>strainLineage'
         },
