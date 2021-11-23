@@ -11,6 +11,9 @@ export default class ngbCytoscapeController {
         this.settings = cytoscapeSettings;
         this.dispatcher = dispatcher;
         this.$timeout = $timeout;
+        this.actionsManager = {
+            ready: false
+        };
 
         Cytoscape.use(dagre);
         Cytoscape.use(dom_node);
@@ -112,10 +115,33 @@ export default class ngbCytoscapeController {
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
                 });
                 this.viewer.edges().on('click', e => {
-                    this.onElementClick({data: e.target.data()});
+                    const edgeData = e.target.data();
+                    this.onElementClick({
+                        data: {
+                            ...edgeData.tooltip,
+                            title: edgeData.fullLabel
+                        }
+                    });
                 });
                 layout.run();
-
+                const viewerContext = this;
+                this.actionsManager = {
+                    ZOOM_STEP: 0.1,
+                    zoom: viewerContext.viewer.zoom(),
+                    zoomIn() {
+                        this.zoom += this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(this.zoom);
+                    },
+                    zoomOut() {
+                        this.zoom -= this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(this.zoom);
+                    },
+                    restoreDefault: () => {
+                        viewerContext.viewer.layout(this.settings.defaultLayout).run();
+                        viewerContext.saveLayout();
+                    },
+                    ready: true
+                };
             });
         }
     }

@@ -23,7 +23,12 @@ export default class ngbStrainLineageNodeController {
         if (this.navigationInProcess) {
             this.navigationInProcess = false;
         } else if (!this.isDrag && event.which === LEFT_CLICK) {
-            this.onElementClick({data: this.nodeData});
+            this.onElementClick({
+                data: {
+                    ...this.nodeData,
+                    title: this.nodeData.fullTitle
+                }
+            });
         }
     }
 

@@ -1,0 +1,33 @@
+$toolbar-button-margin: 0;
+
+ngb-cytoscape-toolbar-panel {
+  display: block;
+  position: absolute;
+  width: 36px;
+  right: 28px;
+  margin-top: -36px;
+  top: 40%;
+  z-index: 2;
+  opacity: .25;
+
+  &:hover,
+  &:active,
+  &:focus {
+    opacity: 1;
+  }
+
+  .md-button {
+    &:hover {
+      opacity: 1;
+    }
+
+    margin: $toolbar-button-margin;
+    min-width: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  .restore {
+    margin-top: 20px;
+  }
+}

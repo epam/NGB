@@ -1,6 +1,7 @@
 import {mapTrackFn} from '../ngbDataSets/internal/utilities';
 
 const LOCAL_STORAGE_KEY = 'strain-lineage-state';
+const MAX_TITLE_LENGTH = 15;
 
 export default class ngbStrainLineageService {
 
@@ -96,10 +97,13 @@ export default class ngbStrainLineageService {
     }
 
     _formatTreeToClient(data) {
+        const cropTitle = (title, maxLength) =>
+            (title && title.length > maxLength) ? `${title.substring(0, maxLength - 1)  }...` : title;
         const formatNodes = (node = []) => ({
             data: {
                 id: `n_${node.lineageTreeNodeId}`,
-                title: node.name,
+                title: cropTitle(node.name, MAX_TITLE_LENGTH),
+                fullTitle: node.name,
                 description: node.description,
                 creationDate: node.creationDate,
                 referenceId: node.referenceId,
@@ -111,7 +115,8 @@ export default class ngbStrainLineageService {
                 id: `e_${edge.lineageTreeEdgeId.toString()}`,
                 source: `n_${edge.nodeFromId.toString()}`,
                 target: `n_${edge.nodeToId.toString()}`,
-                label: edge.typeOfInteraction,
+                label: cropTitle(edge.typeOfInteraction, MAX_TITLE_LENGTH),
+                fullLabel: edge.typeOfInteraction,
                 tooltip: edge.attributes
             }
         });

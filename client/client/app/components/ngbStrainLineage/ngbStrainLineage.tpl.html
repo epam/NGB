@@ -36,11 +36,14 @@
                              ng-click="$ctrl.navigateToReference($event, $ctrl.elementDescription.referenceId)"
                              ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></div>
                     </div>
+                    <div class="element-description-row" ng-if="$ctrl.elementDescription.description">
+                        {{$ctrl.elementDescription.description}}
+                    </div>
                     <div class="element-description-row" ng-if="$ctrl.elementDescription.tooltip">
                         {{$ctrl.elementDescription.tooltip}}
                     </div>
                     <div class="element-description-empty"
-                         ng-if="!$ctrl.elementDescription.title && !$ctrl.elementDescription.tooltip">
+                         ng-if="!$ctrl.elementDescription.title && !$ctrl.elementDescription.tooltip && !$ctrl.elementDescription.description">
                         No attributes
                     </div>
                 </div>
