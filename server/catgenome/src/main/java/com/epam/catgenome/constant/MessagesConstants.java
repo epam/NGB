@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -247,13 +247,13 @@ public final class MessagesConstants {
 
     //ACL SERVICES MESSAGES
     public static final String ERROR_MUTABLE_ACL_RETURN = "error.mutable.acl.return";
-    // AUTHORIZATION
+    //AUTHORIZATION
     public static final String ERROR_USER_NAME_NOT_FOUND = "error.user.name.not.found";
     public static final String ERROR_ACL_CLASS_NOT_SUPPORTED = "error.acl.class.not.supported";
     public static final String ERROR_PERMISSION_PARAM_REQUIRED = "error.permission.param.required";
     public static final String ERROR_ROLE_OR_USER_NOT_FOUND = "error.role.or.user.not.found";
 
-    // USER
+    //USER
     public static final String ERROR_USER_NAME_REQUIRED = "error.user.name.required";
     public static final String ERROR_USER_NAME_EXISTS = "error.user.name.exists";
     public static final String ERROR_ROLE_ID_NOT_FOUND = "error.role.id.not.found";
@@ -263,7 +263,7 @@ public final class MessagesConstants {
     public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
     public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
-    // BLAST TASK
+    //BLAST TASK
     public static final String ERROR_BLAST_NOT_AVAILABLE = "error.blast.not.available";
     public static final String ERROR_TASK_NOT_FOUND = "error.blast.task.not.found";
     public static final String ERROR_TASK_CAN_NOT_BE_DELETED = "error.blast.task.cant.be.deleted";
@@ -272,25 +272,28 @@ public final class MessagesConstants {
     public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
     public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
 
-    // METADATA
+    //METADATA
     public static final String ERROR_METADATA_ENTITY_ID_NOT_SPECIFIED = "error.metadata.entity.id.not.specified";
     public static final String ERROR_METADATA_ENTITY_CLASS_NOT_SPECIFIED = "error.metadata.entity.class.not.specified";
     public static final String ERROR_METADATA_EMPTY_KEY = "error.metadata.empty.key";
     public static final String ERROR_METADATA_EMPTY_VALUE = "error.metadata.empty.value";
 
-//    HEATMAP
+    //Heatmap
     public static final String ERROR_HEATMAP_NOT_FOUND = "error.heatmap.not.found";
     public static final String PATH_IS_REQUIRED = "error.path.is.required";
     public static final String ERROR_INCORRECT_FILE_FORMAT = "error.incorrect.file.format";
     public static final String ERROR_UNSUPPORTED_HEATMAP_FILE_EXTENSION = "error.unsupported.heatmap.file.extension";
 
-    //    LINEAGE TREE
+    //Lineage tree
     public static final String ERROR_LINEAGE_TREE_NOT_FOUND = "error.lineage.tree.not.found";
     public static final String ERROR_LINEAGE_INCORRECT_COLUMN_NUM = "error.lineage.incorrect.column.num";
     public static final String ERROR_LINEAGE_NODE_NAME_REQUIRED = "error.lineage.node.name.required";
     public static final String ERROR_LINEAGE_NODE_NOT_FOUND = "error.lineage.node.not.found";
     public static final String ERROR_LINEAGE_NOT_UNIQUE_NODE_NAME = "error.lineage.not.unique.node.name";
     public static final String ERROR_LINEAGE_INCORRECT_EDGE = "error.lineage.incorrect.edge";
+
+    //Attributes
+    public static final String ERROR_ATTRIBUTE_INVALID_VALUE = "error.attribute.invalid.value";
 
     private MessagesConstants() {
         // No-op

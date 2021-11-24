@@ -38,13 +38,11 @@ import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -53,9 +51,7 @@ import java.io.Reader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +63,7 @@ import static com.epam.catgenome.constant.Constants.DATE_FORMAT;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getCellValue;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static com.epam.catgenome.util.Utils.parseAttributes;
 
 @Service
 @RequiredArgsConstructor
@@ -131,25 +128,6 @@ public class LineageTreeManager {
 
     public List<LineageTree> loadAllLineageTrees() {
         return lineageTreeDao.loadAllLineageTrees();
-    }
-
-    public static Map<String, String> parseAttributes(final String attributes) {
-        if (TextUtils.isEmpty(attributes)) {
-            return null;
-        }
-        final Map<String, String> map = new HashMap<>();
-        Arrays.stream(attributes.split(",")).forEach(a -> {
-            final String[] attr = a.split("=");
-            Assert.isTrue(attr.length == 2, getMessage(MessagesConstants.ERROR_INCORRECT_FILE_FORMAT));
-            map.put(attr[0], attr[1]);
-        });
-        return map;
-    }
-
-    public static String serializeAttributes(final Map<String, String> attributes) {
-        return CollectionUtils.isEmpty(attributes) ? null : attributes.keySet().stream()
-                .map(key -> key + "=" + attributes.get(key))
-                .collect(Collectors.joining(", "));
     }
 
     private List<LineageTreeNode> readNodes(final String path) throws IOException {

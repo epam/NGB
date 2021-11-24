@@ -43,8 +43,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.catgenome.manager.lineage.LineageTreeManager.serializeAttributes;
-import static com.epam.catgenome.manager.lineage.LineageTreeManager.parseAttributes;
+import static com.epam.catgenome.util.Utils.parseAttributes;
+import static com.epam.catgenome.util.Utils.serializeAttributes;
 
 @Getter
 @Setter
