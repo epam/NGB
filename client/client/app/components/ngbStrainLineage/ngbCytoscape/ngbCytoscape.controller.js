@@ -11,11 +11,15 @@ export default class ngbCytoscapeController {
         this.settings = cytoscapeSettings;
         this.dispatcher = dispatcher;
         this.$timeout = $timeout;
+        this.actionsManager = {
+            ready: false
+        };
 
         Cytoscape.use(dagre);
         Cytoscape.use(dom_node);
 
         const resizeHandler = () => {
+            this.centerCytoscape();
         };
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
@@ -45,7 +49,7 @@ export default class ngbCytoscapeController {
         function wrapNode(node) {
             const div = document.createElement(nodeTag);
             div.setAttribute('data-node-data-json', JSON.stringify(node.data));
-            div.setAttribute('on-element-click', '$ctrl.onElementClick({data: data})');
+            div.setAttribute('data-on-element-click', '$ctrl.onElementClick({data: data})');
             div.classList = ['strain-lineage-cytoscape-node'];
             div.style.width = `${nodeStyle.width}px`;
             div.style.height = `${nodeStyle.height}px`;
@@ -68,18 +72,18 @@ export default class ngbCytoscapeController {
                 this.viewer = null;
             }
             this.$timeout(() => {
-                let savedLayout = localStorage.getItem(this.storageName);
-                savedLayout = savedLayout ? JSON.parse(savedLayout)[this.elements.id] : undefined;
+                const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
+                const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
                 let elements, layoutSettings;
                 if (savedLayout) {
                     elements = {
-                        nodes: this.wrapNodes(savedLayout.nodes, this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(this.getPlainNodes(savedLayout.nodes), this.tag, this.settings.style.node),
                         edges: savedLayout.edges
                     };
                     layoutSettings = this.settings.loadedLayout;
                 } else {
                     elements = {
-                        nodes: this.wrapNodes(this.elements.nodes, this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(this.getPlainNodes(this.elements.nodes), this.tag, this.settings.style.node),
                         edges: this.elements.edges
                     };
                     layoutSettings = this.settings.defaultLayout;
@@ -111,25 +115,58 @@ export default class ngbCytoscapeController {
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
                 });
                 this.viewer.edges().on('click', e => {
-                    this.onElementClick({data: e.target.data()});
+                    const edgeData = e.target.data();
+                    this.onElementClick({
+                        data: {
+                            ...edgeData.tooltip,
+                            title: edgeData.fullLabel
+                        }
+                    });
                 });
                 layout.run();
-
+                const viewerContext = this;
+                this.actionsManager = {
+                    ZOOM_STEP: 0.1,
+                    zoom: viewerContext.viewer.zoom(),
+                    zoomIn() {
+                        this.zoom += this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(this.zoom);
+                    },
+                    zoomOut() {
+                        this.zoom -= this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(this.zoom);
+                    },
+                    restoreDefault: () => {
+                        viewerContext.viewer.layout(this.settings.defaultLayout).run();
+                        viewerContext.saveLayout();
+                    },
+                    ready: true
+                };
             });
         }
     }
 
+    centerCytoscape() {
+        if (this.viewer) {
+            this.viewer.resize();
+            this.viewer.center();
+        }
+    }
+
     saveLayout() {
-        let savedLayout = localStorage.getItem(this.storageName) || '{}';
-        savedLayout = {
-            ...JSON.parse(savedLayout),
+        const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
+        if (!Object.prototype.hasOwnProperty.call(savedState, 'layout')) {
+            savedState.layout = {};
+        }
+        savedState.layout = {
+            ...savedState.layout,
             [this.elements.id]: {
                 nodes: this.getPlainNodes(this.viewer.nodes().jsons()),
                 edges: this.viewer.edges().jsons()
             }
         };
 
-        localStorage.setItem(this.storageName, JSON.stringify(savedLayout));
+        localStorage.setItem(this.storageName, JSON.stringify(savedState));
     }
 
     getPlainNodes(nodes) {

@@ -1,5 +1,3 @@
-import {mapTrackFn} from '../../ngbDataSets/internal/utilities';
-
 const LEFT_CLICK = 1;
 
 export default class ngbStrainLineageNodeController {
@@ -7,8 +5,9 @@ export default class ngbStrainLineageNodeController {
     isDrag = false;
     navigationInProcess = false;
 
-    constructor(projectContext) {
+    constructor(projectContext, ngbStrainLineageService) {
         this.projectContext = projectContext;
+        this.ngbStrainLineageService = ngbStrainLineageService;
         this.nodeData = JSON.parse(this.nodeDataJson);
     }
 
@@ -24,7 +23,12 @@ export default class ngbStrainLineageNodeController {
         if (this.navigationInProcess) {
             this.navigationInProcess = false;
         } else if (!this.isDrag && event.which === LEFT_CLICK) {
-            this.onElementClick({data: this.nodeData});
+            this.onElementClick({
+                data: {
+                    ...this.nodeData,
+                    title: this.nodeData.fullTitle
+                }
+            });
         }
     }
 
@@ -38,42 +42,10 @@ export default class ngbStrainLineageNodeController {
             return;
         }
         const referenceObj = this.projectContext.references.filter(reference => reference.id === referenceId).pop();
-        const payload = this.getOpenReferencePayload(referenceObj);
+        const payload = this.ngbStrainLineageService.getOpenReferencePayload(this.projectContext, referenceObj);
         if (payload) {
             this.projectContext.changeState(payload);
         }
     }
 
-    getOpenReferencePayload(referenceObj) {
-        if (referenceObj && this.projectContext.datasets) {
-            // we'll open first dataset of this reference
-            const tree = this.projectContext.datasets || [];
-            const find = (items = []) => {
-                const projects = items.filter(item => item.isProject);
-                const [dataset] = projects.filter(item => item.reference && item.reference.id === referenceObj.id);
-                if (dataset) {
-                    return dataset;
-                }
-                for (const project of projects) {
-                    const nested = find(project.nestedProjects);
-                    if (nested) {
-                        return nested;
-                    }
-                }
-                return null;
-            };
-            const dataset = find(tree);
-            if (dataset) {
-                const tracks = [dataset.reference];
-                const tracksState = [mapTrackFn(dataset.reference)];
-                return {
-                    tracks,
-                    tracksState,
-                    reference: dataset.reference,
-                    shouldAddAnnotationTracks: true
-                };
-            }
-        }
-        return null;
-    }
 }

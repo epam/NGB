@@ -1,3 +1,8 @@
+import {mapTrackFn} from '../ngbDataSets/internal/utilities';
+
+const LOCAL_STORAGE_KEY = 'strain-lineage-state';
+const MAX_TITLE_LENGTH = 15;
+
 export default class ngbStrainLineageService {
 
     cutLineageTrees = [];
@@ -8,6 +13,8 @@ export default class ngbStrainLineageService {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.initEvents();
+        const savedState = this.loadState();
+        this._selectedTreeId = savedState.selectedTree ? savedState.selectedTree.id : null;
     }
 
     initEvents() {
@@ -22,6 +29,12 @@ export default class ngbStrainLineageService {
 
     set selectedTreeId(value) {
         this._selectedTreeId = value;
+        const [selectedTree] = this.getCurrentStrainLineageAsList();
+        this.saveState({selectedTree: selectedTree});
+    }
+
+    get localStorageKey() {
+        return LOCAL_STORAGE_KEY;
     }
 
     static instance(genomeDataService, dispatcher) {
@@ -40,14 +53,21 @@ export default class ngbStrainLineageService {
         }
         try {
             const data = await this.genomeDataService.getLineageTreesByReference(referenceId);
+            const treeSortFn = (a, b) => {
+                const aName = a.prettyName || a.name || '';
+                const bName = b.prettyName || b.name || '';
+                return aName.localeCompare(bName);
+            };
             if (data) {
                 if (this.selectedTreeId) {
                     this.cutLineageTrees = this.getUniqueTrees(
-                        this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId)
+                        this.getCurrentStrainLineageAsList()
                             .concat(data.map(this._formatCutListToClient))
-                    );
+                    ).sort(treeSortFn);
                 } else {
-                    this.cutLineageTrees = data.map(this._formatCutListToClient);
+                    this.cutLineageTrees = data
+                        .map(this._formatCutListToClient)
+                        .sort(treeSortFn);
                     this.selectedTreeId = this.cutLineageTrees.length ? this.cutLineageTrees[0].id : null;
                 }
                 return {
@@ -77,10 +97,13 @@ export default class ngbStrainLineageService {
     }
 
     _formatTreeToClient(data) {
+        const cropTitle = (title, maxLength) =>
+            (title && title.length > maxLength) ? `${title.substring(0, maxLength - 1)  }...` : title;
         const formatNodes = (node = []) => ({
             data: {
                 id: `n_${node.lineageTreeNodeId}`,
-                title: node.name,
+                title: cropTitle(node.name, MAX_TITLE_LENGTH),
+                fullTitle: node.name,
                 description: node.description,
                 creationDate: node.creationDate,
                 referenceId: node.referenceId,
@@ -92,7 +115,8 @@ export default class ngbStrainLineageService {
                 id: `e_${edge.lineageTreeEdgeId.toString()}`,
                 source: `n_${edge.nodeFromId.toString()}`,
                 target: `n_${edge.nodeToId.toString()}`,
-                label: edge.typeOfInteraction,
+                label: cropTitle(edge.typeOfInteraction, MAX_TITLE_LENGTH),
+                fullLabel: edge.typeOfInteraction,
                 tooltip: edge.attributes
             }
         });
@@ -128,6 +152,56 @@ export default class ngbStrainLineageService {
                 error: e.message
             };
         }
+    }
+
+    getCurrentStrainLineageAsList() {
+        return this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
+    }
+
+    setCurrentStrainLineageAsList() {
+        this.cutLineageTrees = this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
+    }
+
+    getOpenReferencePayload(context, referenceObj) {
+        if (referenceObj && context.datasets) {
+            // we'll open first dataset of this reference
+            const tree = context.datasets || [];
+            const find = (items = []) => {
+                const projects = items.filter(item => item.isProject);
+                const [dataset] = projects.filter(item => item.reference && item.reference.id === referenceObj.id);
+                if (dataset) {
+                    return dataset;
+                }
+                for (const project of projects) {
+                    const nested = find(project.nestedProjects);
+                    if (nested) {
+                        return nested;
+                    }
+                }
+                return null;
+            };
+            const dataset = find(tree);
+            if (dataset) {
+                const tracks = [dataset.reference];
+                const tracksState = [mapTrackFn(dataset.reference)];
+                return {
+                    tracks,
+                    tracksState,
+                    reference: dataset.reference,
+                    shouldAddAnnotationTracks: true
+                };
+            }
+        }
+        return null;
+    }
+
+    saveState(state) {
+        const savedState = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
+        localStorage.setItem(this.localStorageKey, JSON.stringify({...savedState, ...state}));
+    }
+
+    loadState() {
+        return JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
     }
 
 }
