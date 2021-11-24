@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,11 +45,11 @@ public class SortHandlerTest extends AbstractCliTest {
     private static final String CORRECT_UNSORTED = "unsorted.bed";
     private static final String UNSUPPORTED_FORMAT_FILE = "unsupported.bam";
 
-
     @BeforeClass
     public static void setUp() {
         server.start();
         server.enableSortService();
+        server.addGetFormatsRequest();
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -61,11 +61,10 @@ public class SortHandlerTest extends AbstractCliTest {
     @Test
     public void testCorrectSort() {
         SortHandler handler = getSortHandler();
-        handler.parseAndVerifyArguments(Collections.singletonList(String.valueOf(CORRECT_UNSORTED)),
+        handler.parseAndVerifyArguments(Collections.singletonList(CORRECT_UNSORTED),
                 new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailIfMemoryUsageIsIncorrect() {
@@ -88,7 +87,6 @@ public class SortHandlerTest extends AbstractCliTest {
         final ApplicationOptions options = new ApplicationOptions();
         handler.parseAndVerifyArguments(Collections.singletonList(UNSUPPORTED_FORMAT_FILE), options);
     }
-
 
     private SortHandler getSortHandler() {
         SortHandler handler = new SortHandler();

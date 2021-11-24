@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package com.epam.ngb.cli.manager.command.handler.http;
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.manager.command.ServerParameters;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -49,17 +48,12 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
     private static final String PATH_TO_REFERENCE = "/path/ref.fa";
     private static final String RELATIVE_PATH_TO_REFERENCE = "path/ref.fa";
 
-
     @BeforeClass
     public static void setUp() {
         server.start();
-
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, REFERENCE_NAME);
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, null);
-
-        server.addReferenceRegistration(REF_ID, REF_BIO_ID,
-                Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_REFERENCE), null);
-
+        server.addReferenceRegistration(REF_ID, REF_BIO_ID, RELATIVE_PATH_TO_REFERENCE, null);
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -85,7 +79,6 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
         handler.parseAndVerifyArguments(Collections.singletonList(PATH_TO_REFERENCE), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {

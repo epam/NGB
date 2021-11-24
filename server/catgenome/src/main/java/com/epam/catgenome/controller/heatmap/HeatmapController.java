@@ -150,7 +150,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateRowTree(@PathVariable final long heatmapId,
-                                         @RequestParam final String path) throws IOException {
+                                         @RequestParam(required = false) final String path) throws IOException {
         heatmapSecurityService.updateRowTree(heatmapId, path);
         return Result.success(null);
     }
@@ -164,7 +164,7 @@ public class HeatmapController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateColumnTree(@PathVariable final long heatmapId,
-                                            @RequestParam final String path) throws IOException {
+                                            @RequestParam(required = false) final String path) throws IOException {
         heatmapSecurityService.updateColumnTree(heatmapId, path);
         return Result.success(null);
     }

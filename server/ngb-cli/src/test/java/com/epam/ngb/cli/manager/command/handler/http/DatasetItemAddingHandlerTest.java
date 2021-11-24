@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,6 +83,7 @@ public class DatasetItemAddingHandlerTest extends AbstractCliTest {
 
         server.addItemToDataset(DATASET_ID, DATASET_NAME, Collections.singletonList(reference), vcf);
         server.addItemToDataset(DATASET_ID, DATASET_NAME, Collections.singletonList(reference), bam);
+        server.addGetFormatsRequest();
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
