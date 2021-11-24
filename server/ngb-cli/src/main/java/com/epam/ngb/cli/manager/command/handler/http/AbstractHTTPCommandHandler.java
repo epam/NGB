@@ -51,6 +51,7 @@ import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -335,6 +336,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             return Long.parseLong(strId);
         } else {
             List<BiologicalDataItem> items = loadItemsByName(strId);
+            if (CollectionUtils.isEmpty(items)) {
+                throw new ApplicationException(getMessage(ERROR_FILE_NOT_FOUND, strId));
+            }
             return items.get(0).getId();
         }
     }

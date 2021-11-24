@@ -86,6 +86,10 @@ public class Application {
             + "uca\tupd_cell_annotation\t: updates heatmap cell annotation\t{uca 1 -path \"path\"}\n\n"
             + "urt\tupd_row_tree\t: updates heatmap row tree\t{urt 1 -path \"path\"}\n\n"
             + "uct\tupd_column_tree\t: updates heatmap column tree\t{uct 1 -path \"path\"}\n\n"
+            + "LINEAGE TREE commands:\n"
+            + "rl\treg_lineage\t: registers a lineage tree\t{rl \"nodes_path\" \"edges_path\"}\n"
+            + "dl\tdel_lineage\t: deletes a lineage tree \t{dl 2}\n"
+            + "ll\tlist_lineage\t: lists all lineage trees, registered on the server\t{ll}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -359,5 +363,4 @@ public class Application {
     protected void exit(int code) {
         System.exit(code);
     }
-
 }

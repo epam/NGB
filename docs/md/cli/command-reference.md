@@ -850,6 +850,56 @@ Updates heatmap column tree. One argument has to be specified:
 $ ngb upd_column_tree 1 -path "column_tree.csv"
 ```
 
+## Lineage tree commands
+### Register lineage tree
+```
+ngb reg_lineage|rl [<NODES_PATH>] [<EDGES_PATH>] [options]
+//Options:
+//-n (--name)                   Lineage tree name
+//-pt (--pretty)                Lineage tree pretty name
+
+```
+*Description*
+
+Registers a lineage tree. Two arguments have to be specified:
+* Nodes file path
+* Edges file path
+
+*Example*
+```bash
+# Create new lineage tree with nodes path "nodes.txt", edges path "edges.txt"
+$ ngb reg_lineage "nodes.txt" "edges.txt"
+```
+
+### List lineage trees
+```
+ngb list_lineage|ll
+```
+
+*Description*
+
+List all lineage trees registered on NGB server.
+
+*Example*
+```bash
+# List all lineage trees registered on NGB server
+$ ngb list_lineage
+```
+
+### Delete lineage tree
+```
+ngb del_lineage|dl [<ID>]
+```
+*Description*
+
+Deletes a specified lineage tree from NGB server.
+
+*Example*
+```bash
+# Delete lineage tree with id 2
+$ ngb del_lineage 2
+```
+
 ## Utility commands
 ### Sort feature file
 ```

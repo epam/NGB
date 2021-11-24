@@ -22,71 +22,64 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http.heatmap;
+package com.epam.ngb.cli.manager.command.handler.http.lineage;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.entity.lineage.LineageTree;
+import com.epam.ngb.cli.entity.lineage.LineageTreeRegistrationRequest;
 import com.epam.ngb.cli.exception.ApplicationException;
+import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
-import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.methods.HttpPost;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 @Slf4j
-public abstract class AbstractHeatmapUpdateHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"reg_lineage"})
+public class LineageTreeRegistrationHandler extends AbstractHTTPCommandHandler {
 
-    private Long heatmapId;
-    private String path;
+    private LineageTreeRegistrationRequest registrationRequest;
 
     /**
-      * Verifies input arguments
-      * @param options
-      */
+     * Verifies input arguments
+     * @param arguments command line arguments for 'reg_lineage' command
+     * @param options
+     */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 1) {
+        if (arguments.size() != 2) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 2, arguments.size()));
         }
-        heatmapId = loadItemId(arguments.get(0));
-        path = options.getPath();
-        parseAnnotationType(options);
+        registrationRequest = LineageTreeRegistrationRequest.builder()
+                .nodesPath(arguments.get(0))
+                .edgesPath(arguments.get(1))
+                .build();
+        registrationRequest.setName(options.getName());
+        registrationRequest.setPrettyName(options.getPrettyName());
     }
 
-    @Override 
-    public int runCommand() {
-        String url = serverParameters.getServerUrl() + getRequestUrl();
+    @Override public int runCommand() {
+        final HttpPost request = (HttpPost) getRequest(getRequestUrl());
+        final String result = getPostResult(registrationRequest, request);
         try {
-            URIBuilder builder = new URIBuilder(String.format(url, heatmapId));
-            builder.addParameter("path", path);
-            addAnnotationType(builder);
-            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
-            String result = RequestManager.executeRequest(request);
-            ResponseResult responseResult = getMapper().readValue(result,
-                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            ResponseResult<LineageTree> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            LineageTree.class));
             if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             }
-            log.info("Heatmap " + heatmapId + " was successfully updated.");
-        } catch (IOException | URISyntaxException e) {
+            log.info("Lineage tree was successfully registered. ID: " +
+                    responseResult.getPayload().getLineageTreeId() + ".");
+        } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
         return 0;
-    }
-
-    protected void parseAnnotationType(ApplicationOptions options) {
-        //no op
-    }
-    protected void addAnnotationType(URIBuilder builder) {
-        //no op
     }
 }
