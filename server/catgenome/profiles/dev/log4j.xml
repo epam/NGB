@@ -18,6 +18,16 @@
         </layout>
     </appender>
 
+    <appender name="requests-debug-appender" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="Threshold" value="DEBUG"/>
+        <param name="File" value="${catalina.base}/logs/requests.log"/>
+        <param name="MaxBackupIndex" value="30"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value='{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F", "debug_line":"%L","debug_message":"%m"}%n'/>
+        </layout>
+    </appender>
+
     <appender name="error-appender" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="Encoding" value="UTF-8" />
         <param name="Threshold" value="ERROR"/>
@@ -26,6 +36,10 @@
             <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
         </layout>
     </appender>
+
+    <logger name="com.epam.catgenome.app.CustomRequestLoggingFilter" additivity="false">
+        <appender-ref ref="requests-debug-appender"/>
+    </logger>
 
     <category name="org.springframework.aop.framework.CglibAopProxy">
         <priority value="ERROR"/>

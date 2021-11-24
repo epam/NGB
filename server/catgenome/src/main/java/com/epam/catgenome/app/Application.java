@@ -52,6 +52,9 @@ public class Application extends SpringBootServletInitializer {
     @Value("${swift.stack.path.style.access:false}")
     private boolean isPathStyleAccess;
 
+    @Value("${request.logging.filter.max.payload.length:64000}")
+    private int maxPayloadLength;
+
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
     }
@@ -88,5 +91,15 @@ public class Application extends SpringBootServletInitializer {
             return new AzureBlobClient();
         }
         return new AzureBlobClient(storageAccount, storageKey);
+    }
+
+    @Bean
+    public CustomRequestLoggingFilter requestLoggingFilter() {
+        CustomRequestLoggingFilter loggingFilter = new CustomRequestLoggingFilter();
+        loggingFilter.setIncludeClientInfo(true);
+        loggingFilter.setIncludeQueryString(true);
+        loggingFilter.setIncludePayload(true);
+        loggingFilter.setMaxPayloadLength(maxPayloadLength);
+        return loggingFilter;
     }
 }
