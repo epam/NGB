@@ -290,6 +290,7 @@ public final class MessagesConstants {
     public static final String ERROR_LINEAGE_NODE_NAME_REQUIRED = "error.lineage.node.name.required";
     public static final String ERROR_LINEAGE_NODE_NOT_FOUND = "error.lineage.node.not.found";
     public static final String ERROR_LINEAGE_NOT_UNIQUE_NODE_NAME = "error.lineage.not.unique.node.name";
+    public static final String ERROR_LINEAGE_INCORRECT_EDGE = "error.lineage.incorrect.edge";
 
     private MessagesConstants() {
         // No-op
