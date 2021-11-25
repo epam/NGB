@@ -27,8 +27,6 @@ import com.epam.catgenome.controller.vo.registration.LineageTreeRegistrationRequ
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.lineage.LineageTree;
 import junit.framework.TestCase;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,9 +46,7 @@ public class LineageManagerTest extends TestCase {
     private static final int FULL_TREE_NODES_NUM = 10;
     private static final int FULL_TREE_EDGES_NUM = 10;
     private static final int REFERENCE_ID = 5;
-    private static final int LAST_NODE_REFERENCE_ID = 10;
-    private static final int BY_REFERENCE_NODES_NUM = 6;
-    private static final int BY_REFERENCE_EDGES_NUM = 6;
+    private static final int ATTRIBUTES_MAP_SIZE = 2;
 
     @Autowired
     private LineageTreeManager lineageTreeManager;
@@ -62,7 +58,7 @@ public class LineageManagerTest extends TestCase {
     private String edgesFileName;
 
     @Before
-    public void setUp() throws IOException, ParseException {
+    public void setUp() throws IOException {
         this.nodesFileName = context.getResource("classpath:lineage//nodes.txt").getFile().getPath();
         this.edgesFileName = context.getResource("classpath:lineage//edges.txt").getFile().getPath();
     }
@@ -89,6 +85,8 @@ public class LineageManagerTest extends TestCase {
         assertEquals(lineageTree.getNodes().get(0).getLineageTreeNodeId(),
                 lineageTree.getEdges().get(0).getNodeFromId());
         assertEquals(lineageTree.getLineageTreeId(), lineageTree.getEdges().get(0).getLineageTreeId());
+        assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getNodes().get(0).getAttributes().size());
+        assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getEdges().get(0).getAttributes().size());
     }
 
     @Test
@@ -96,30 +94,6 @@ public class LineageManagerTest extends TestCase {
         registerLineageTree("loadLineageTrees");
         List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(REFERENCE_ID);
         assertFalse(lineageTrees.isEmpty());
-        assertEquals(BY_REFERENCE_NODES_NUM, lineageTrees.get(0).getNodes().size());
-        assertEquals(BY_REFERENCE_EDGES_NUM, lineageTrees.get(0).getEdges().size());
-    }
-
-    @Test
-    public void loadTwoTreesByReferenceId() throws IOException {
-        registerLineageTree("tree1");
-        registerLineageTree("tree2");
-        List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(REFERENCE_ID);
-        assertFalse(lineageTrees.isEmpty());
-        assertEquals(2, lineageTrees.size());
-        assertEquals("tree1", lineageTrees.get(0).getName());
-        assertEquals("tree2", lineageTrees.get(1).getName());
-        assertEquals(BY_REFERENCE_NODES_NUM, lineageTrees.get(0).getNodes().size());
-        assertEquals(BY_REFERENCE_EDGES_NUM, lineageTrees.get(0).getEdges().size());
-    }
-
-    @Test
-    public void loadTreeByReferenceIdOneNode() throws IOException {
-        registerLineageTree("loadTreeByReferenceIdOneNode");
-        List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(LAST_NODE_REFERENCE_ID);
-        assertFalse(lineageTrees.isEmpty());
-        assertEquals(1, lineageTrees.get(0).getNodes().size());
-        assertTrue(CollectionUtils.isEmpty(lineageTrees.get(0).getEdges()));
     }
 
     @Test

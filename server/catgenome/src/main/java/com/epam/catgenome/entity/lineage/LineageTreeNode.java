@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -39,5 +40,5 @@ public class LineageTreeNode {
     private String description;
     private Long referenceId;
     private LocalDate creationDate;
-    private String attributes;
+    private Map<String, String> attributes;
 }

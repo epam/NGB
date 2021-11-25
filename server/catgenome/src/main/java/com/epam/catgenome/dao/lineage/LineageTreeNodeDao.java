@@ -43,6 +43,9 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
+import static com.epam.catgenome.util.Utils.parseAttributes;
+import static com.epam.catgenome.util.Utils.serializeAttributes;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -126,8 +129,9 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
             params.addValue(NAME.name(), lineageTreeNode.getName());
             params.addValue(DESCRIPTION.name(), lineageTreeNode.getDescription());
             params.addValue(REFERENCE_ID.name(), lineageTreeNode.getReferenceId());
-            params.addValue(CREATION_DATE.name(), Timestamp.valueOf(lineageTreeNode.getCreationDate().atStartOfDay()));
-            params.addValue(ATTRIBUTES.name(), lineageTreeNode.getAttributes());
+            params.addValue(CREATION_DATE.name(), lineageTreeNode.getCreationDate() == null ? null :
+                    Timestamp.valueOf(lineageTreeNode.getCreationDate().atStartOfDay()));
+            params.addValue(ATTRIBUTES.name(), serializeAttributes(lineageTreeNode.getAttributes()));
             return params;
         }
 
@@ -142,8 +146,9 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
                     .name(rs.getString(NAME.name()))
                     .description(rs.getString(DESCRIPTION.name()))
                     .referenceId(rs.getLong(REFERENCE_ID.name()))
-                    .creationDate(rs.getTimestamp(CREATION_DATE.name()).toLocalDateTime().toLocalDate())
-                    .attributes(rs.getString(ATTRIBUTES.name()))
+                    .creationDate(rs.getTimestamp(CREATION_DATE.name()) == null ? null :
+                            rs.getTimestamp(CREATION_DATE.name()).toLocalDateTime().toLocalDate())
+                    .attributes(parseAttributes(rs.getString(ATTRIBUTES.name())))
                     .build();
         }
     }

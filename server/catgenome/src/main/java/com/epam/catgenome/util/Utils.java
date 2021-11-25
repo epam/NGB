@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,17 @@ package com.epam.catgenome.util;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.constant.Constants;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -59,9 +62,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.manager.aws.S3Manager.generateSignedUrl;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -479,5 +486,25 @@ public final class Utils {
         }
         return orderBy.isEmpty() ? query
                 : query + String.format(ORDER_BY_CLAUSE, join(orderBy, ", "));
+    }
+
+    public static Map<String, String> parseAttributes(final String attributes) {
+        if (TextUtils.isEmpty(attributes)) {
+            return null;
+        }
+        final Map<String, String> map = new HashMap<>();
+        Arrays.stream(attributes.split(",")).forEach(a -> {
+            final String[] attr = a.split("=");
+            Assert.isTrue(attr.length == 2,
+                    getMessage(MessagesConstants.ERROR_ATTRIBUTE_INVALID_VALUE, a));
+            map.put(attr[0], attr[1]);
+        });
+        return map;
+    }
+
+    public static String serializeAttributes(final Map<String, String> attributes) {
+        return CollectionUtils.isEmpty(attributes) ? null : attributes.keySet().stream()
+                .map(key -> key + "=" + attributes.get(key))
+                .collect(Collectors.joining(", "));
     }
 }

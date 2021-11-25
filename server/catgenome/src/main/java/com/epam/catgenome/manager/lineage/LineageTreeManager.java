@@ -52,8 +52,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,6 +63,7 @@ import static com.epam.catgenome.constant.Constants.DATE_FORMAT;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getCellValue;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static com.epam.catgenome.util.Utils.parseAttributes;
 
 @Service
 @RequiredArgsConstructor
@@ -121,47 +120,10 @@ public class LineageTreeManager {
 
     public List<LineageTree> loadLineageTrees(final long referenceId) {
         final List<LineageTreeNode> referenceNodes = lineageTreeNodeDao.loadLineageTreeNodesByReference(referenceId);
-        final List<LineageTree> referenceTrees = new ArrayList<>();
-        final Map<Long, List<LineageTreeEdge>> edgesMap = new HashMap<>();
-        final Map<Long, Set<Long>> nodesMap = new HashMap<>();
-        final Set<Long> allNodeIds = new HashSet<>();
         final Set<Long> allTreeIds = referenceNodes.stream()
                 .map(LineageTreeNode::getLineageTreeId)
                 .collect(Collectors.toSet());
-        for (LineageTreeNode referenceNode: referenceNodes) {
-            final List<LineageTreeEdge> edges = lineageTreeEdgeDao.loadLineageTreeEdgesById(
-                    referenceNode.getLineageTreeNodeId());
-            //edges
-            edgesMap.put(referenceNode.getLineageTreeNodeId(), edges);
-
-            //nodes
-            final Set<Long> nodeIds = new HashSet<>();
-            nodeIds.addAll(edges.stream().map(LineageTreeEdge::getNodeFromId).collect(Collectors.toList()));
-            nodeIds.addAll(edges.stream().map(LineageTreeEdge::getNodeToId).collect(Collectors.toList()));
-            nodeIds.add(referenceNode.getLineageTreeNodeId());
-            nodesMap.put(referenceNode.getLineageTreeNodeId(), nodeIds);
-            allNodeIds.addAll(nodeIds);
-        }
-        final List<LineageTreeNode> allNodes = lineageTreeNodeDao.loadLineageTreeNodesById(allNodeIds);
-        final List<LineageTree> allTrees = lineageTreeDao.loadLineageTrees(allTreeIds);
-        for (LineageTreeNode node: referenceNodes) {
-            final long referenceNodeId = node.getLineageTreeNodeId();
-            final Set<Long> nodeIds = nodesMap.get(referenceNodeId);
-            LineageTree tree = allTrees.stream()
-                    .filter(t -> t.getLineageTreeId().equals(node.getLineageTreeId()))
-                    .findFirst()
-                    .orElse(null);
-            List<LineageTreeNode> nodes = allNodes.stream()
-                    .filter(n -> nodeIds.contains(n.getLineageTreeNodeId()))
-                    .collect(Collectors.toList());
-
-            if (tree != null) {
-                tree.setEdges(edgesMap.get(referenceNodeId));
-                tree.setNodes(nodes);
-                referenceTrees.add(tree);
-            }
-        }
-        return referenceTrees;
+        return lineageTreeDao.loadLineageTrees(allTreeIds);
     }
 
     public List<LineageTree> loadAllLineageTrees() {
@@ -191,11 +153,11 @@ public class LineageTreeManager {
 
                 LineageTreeNode node = LineageTreeNode.builder()
                         .name(nodeName)
+                        .description(getCellValue(cells[1]))
                         .referenceId(getCellValue(cells[2]) == null ? null : Long.valueOf(getCellValue(cells[2])))
                         .creationDate(getCellValue(cells[3]) == null ? null :
-                                LocalDate.parse(getCellValue(cells[3]),
-                                        DateTimeFormatter.ofPattern(DATE_FORMAT)))
-                        .attributes(getCellValue(cells[4]))
+                                LocalDate.parse(getCellValue(cells[3]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
+                        .attributes(parseAttributes(getCellValue(cells[4])))
                         .build();
                 nodes.add(node);
                 nodeNames.add(nodeName);
@@ -226,10 +188,12 @@ public class LineageTreeManager {
                 Assert.notNull(nodeToName, getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NAME_REQUIRED));
                 Assert.isTrue(nodes.contains(nodeToName),
                         getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NOT_FOUND, nodeToName));
+                Assert.isTrue(!nodeFromName.equals(nodeToName),
+                        getMessage(MessagesConstants.ERROR_LINEAGE_INCORRECT_EDGE, nodeFromName));
                 LineageTreeEdge edge = LineageTreeEdge.builder()
                         .nodeFromName(nodeFromName)
                         .nodeToName(nodeToName)
-                        .attributes(getCellValue(cells[2]))
+                        .attributes(parseAttributes(getCellValue(cells[2])))
                         .typeOfInteraction(getCellValue(cells[3]))
                         .build();
                 edges.add(edge);

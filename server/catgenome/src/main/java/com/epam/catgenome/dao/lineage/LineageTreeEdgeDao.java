@@ -43,6 +43,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.catgenome.util.Utils.parseAttributes;
+import static com.epam.catgenome.util.Utils.serializeAttributes;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -129,7 +132,7 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
             params.addValue(LINEAGE_TREE_ID.name(), lineageTreeEdge.getLineageTreeId());
             params.addValue(NODE_FROM.name(), lineageTreeEdge.getNodeFromId());
             params.addValue(NODE_TO.name(), lineageTreeEdge.getNodeToId());
-            params.addValue(ATTRIBUTES.name(), lineageTreeEdge.getAttributes());
+            params.addValue(ATTRIBUTES.name(), serializeAttributes(lineageTreeEdge.getAttributes()));
             params.addValue(TYPE_OF_INTERACTION.name(), lineageTreeEdge.getTypeOfInteraction());
             return params;
         }
@@ -144,7 +147,7 @@ public class LineageTreeEdgeDao extends NamedParameterJdbcDaoSupport {
                     .lineageTreeId(rs.getLong(LINEAGE_TREE_ID.name()))
                     .nodeFromId(rs.getLong(NODE_FROM.name()))
                     .nodeToId(rs.getLong(NODE_TO.name()))
-                    .attributes(rs.getString(ATTRIBUTES.name()))
+                    .attributes(parseAttributes(rs.getString(ATTRIBUTES.name())))
                     .typeOfInteraction(rs.getString(TYPE_OF_INTERACTION.name()))
                     .build();
         }

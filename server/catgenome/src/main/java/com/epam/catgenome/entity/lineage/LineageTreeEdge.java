@@ -27,6 +27,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 @Setter
 @Getter
 @Builder
@@ -37,6 +39,6 @@ public class LineageTreeEdge {
     private String nodeFromName;
     private Long nodeToId;
     private String nodeToName;
-    private String attributes;
+    private Map<String, String> attributes;
     private String typeOfInteraction;
 }
