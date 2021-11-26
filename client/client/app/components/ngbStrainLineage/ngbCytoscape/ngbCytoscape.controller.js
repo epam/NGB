@@ -118,7 +118,7 @@ export default class ngbCytoscapeController {
                     const edgeData = e.target.data();
                     this.onElementClick({
                         data: {
-                            ...edgeData.tooltip,
+                            attributes: edgeData.tooltip,
                             title: edgeData.fullLabel
                         }
                     });

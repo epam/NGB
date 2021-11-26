@@ -34,7 +34,17 @@
                     <div class="element-description-row">
                         <div ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId}"
                              ng-click="$ctrl.navigateToReference($event, $ctrl.elementDescription.referenceId)"
-                             ng-if="$ctrl.elementDescription.title"><span>{{$ctrl.elementDescription.title}}</span><span ng-if="$ctrl.elementDescription.creationDate"> (sequenced {{$ctrl.elementDescription.creationDate}})</span></div>
+                             ng-if="$ctrl.elementDescription.title">
+                            <span>{{$ctrl.elementDescription.title}}</span>
+                            <span ng-if="$ctrl.elementDescription.creationDate">
+                                (sequenced {{$ctrl.elementDescription.creationDate}})
+                            </span>
+                        </div>
+                    </div>
+                    <div class="element-description-row"
+                         ng-if="$ctrl.elementDescription.attributes"
+                         ng-repeat="(key, value) in $ctrl.elementDescription.attributes">
+                        <span>{{key}}</span>: <span>{{value}}</span>
                     </div>
                     <div class="element-description-row" ng-if="$ctrl.elementDescription.description">
                         {{$ctrl.elementDescription.description}}
