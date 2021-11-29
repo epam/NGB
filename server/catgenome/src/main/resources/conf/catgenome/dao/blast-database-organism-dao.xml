@@ -33,7 +33,7 @@
                         database_organism_id,
                         database_id,
                         tax_id
-                    FROM catgenome.blast_database_organism WHERE database_id = ?
+                    FROM catgenome.blast_database_organism
                 ]]>
             </value>
         </property>

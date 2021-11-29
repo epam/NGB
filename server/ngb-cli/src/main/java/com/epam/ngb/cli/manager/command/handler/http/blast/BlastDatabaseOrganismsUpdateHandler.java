@@ -33,11 +33,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import static com.epam.ngb.cli.constants.MessageConstants.*;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 @Command(type = Command.Type.REQUEST, command = {"upd_blast_db"})
 @Slf4j
-public class BlastDatabaseUpdateHandler extends AbstractHTTPCommandHandler {
+public class BlastDatabaseOrganismsUpdateHandler extends AbstractHTTPCommandHandler {
 
     private Long databaseId;
 
@@ -57,7 +57,7 @@ public class BlastDatabaseUpdateHandler extends AbstractHTTPCommandHandler {
 
     @Override public int runCommand() {
         RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), databaseId)));
-        log.info("Database with id: '" + databaseId + "' was updated.");
+        log.info("Database '" + databaseId + "' organisms were updated.");
         return 0;
     }
 }

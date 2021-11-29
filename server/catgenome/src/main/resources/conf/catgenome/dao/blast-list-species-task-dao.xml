@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.blast.BlastListSpeciesTaskDao" id="blastListSpeciesTaskDao" autowire="byName">
+        <property name="insertTaskQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.blast_list_species_task (
+                        task_id,
+                        database_id,
+                        created_date,
+                        status,
+                        status_reason,
+                        update_date
+                    ) VALUES (
+                        :TASK_ID,
+                        :DATABASE_ID,
+                        :CREATED_DATE,
+                        :STATUS,
+                        :STATUS_REASON,
+                        :UPDATE_DATE
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updateTaskQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.blast_list_species_task SET
+                        status = :STATUS,
+                        status_reason = :STATUS_REASON,
+                        update_date = :UPDATE_DATE
+                    WHERE
+                        task_id = :TASK_ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteTasksQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.blast_list_species_task
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        task_id,
+                        database_id,
+                        created_date,
+                        status,
+                        status_reason,
+                        update_date
+                    FROM catgenome.blast_list_species_task WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadTasksQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        task_id,
+                        database_id,
+                        created_date,
+                        status,
+                        status_reason,
+                        update_date
+                    FROM catgenome.blast_list_species_task
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

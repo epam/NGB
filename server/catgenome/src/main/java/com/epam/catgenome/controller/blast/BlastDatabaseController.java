@@ -28,11 +28,13 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.manager.blast.BlastDatabaseSecurityService;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,6 +77,20 @@ public class BlastDatabaseController extends AbstractRESTController {
             })
     public Result<BlastDatabase> loadDatabase(@PathVariable final long id) {
         return Result.success(blastDatabaseSecurityService.loadById(id));
+    }
+
+    @GetMapping(value = "/blast/database/{id}/organisms")
+    @ApiOperation(
+            value = "Returns list of Organisms by term",
+            notes = "Returns list of Organisms by term",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Taxonomy>> loadTaxonomies(@RequestParam final String term,
+                                                 @PathVariable final long id)
+            throws IOException, ParseException {
+        return Result.success(blastDatabaseSecurityService.searchOrganisms(term, id));
     }
 
     @PutMapping(value = "/blast/database/{id}/organisms")

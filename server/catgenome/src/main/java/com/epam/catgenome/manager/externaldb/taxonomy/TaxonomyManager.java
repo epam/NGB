@@ -83,12 +83,14 @@ public class TaxonomyManager {
     @Value("${taxonomy.top.hits:10}")
     private int taxonomyTopHits;
 
-    public List<Taxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
+    public List<Taxonomy> searchOrganisms(final String terms, final Integer topHits)
+            throws IOException, ParseException {
         final List<Taxonomy> organisms = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
             IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(buildTaxonomySearchQuery(terms), taxonomyTopHits);
+            TopDocs topDocs = searcher.search(buildTaxonomySearchQuery(terms),
+                    topHits == null ? taxonomyTopHits: topHits);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 organisms.add(

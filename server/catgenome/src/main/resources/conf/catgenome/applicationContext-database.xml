@@ -45,6 +45,7 @@
     <import resource="classpath:conf/catgenome/dao/blast-task-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/blast-database-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/blast-database-organism-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/blast-list-species-task-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bed-graph-file-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/person-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bookmark-dao.xml" />
@@ -69,5 +70,4 @@
     <import resource="classpath:conf/catgenome/dao/lineage-tree-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/lineage-tree-node-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/lineage-tree-edge-dao.xml" />
-
 </beans>

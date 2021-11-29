@@ -42,7 +42,7 @@ public class TaxonomySecurityService {
     @PreAuthorize(ROLE_USER)
     public List<Taxonomy> searchOrganisms(final String term)
             throws IOException, ParseException {
-        return taxonomyManager.searchOrganisms(term);
+        return taxonomyManager.searchOrganisms(term, null);
     }
 
     @PreAuthorize(ROLE_USER)

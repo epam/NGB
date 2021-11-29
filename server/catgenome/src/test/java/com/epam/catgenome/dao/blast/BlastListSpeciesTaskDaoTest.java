@@ -21,59 +21,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast;
+
+package com.epam.catgenome.dao.blast;
 
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseSource;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
-import junit.framework.TestCase;
+import com.epam.catgenome.entity.blast.BlastListSpeciesTask;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
+import java.time.LocalDateTime;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BlastDatabaseManagerTest extends TestCase {
+@Transactional
+public class BlastListSpeciesTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
 
     @Autowired
-    private BlastDatabaseManager manager;
+    private BlastListSpeciesTaskDao listSpeciesTaskDao;
+    @Autowired
+    private BlastDatabaseDao  blastDatabaseDao;
 
     @Test
-    public void createDatabaseOneTaxIdTest() throws IOException {
-        BlastDatabase database = registerDatabase();
-        database = manager.loadById(database.getId());
-        assertNotNull(database);
-        assertEquals("createDatabaseTest", database.getName());
-        assertEquals("path", database.getPath());
-        assertEquals(BlastDatabaseType.NUCLEOTIDE, database.getType());
-        assertEquals(BlastDatabaseSource.CUSTOM, database.getSource());
+    public void testCreateTask() {
+        BlastListSpeciesTask task = createTask();
+        task = listSpeciesTaskDao.loadTask(task.getTaskId());
+        Assert.assertNotNull(task);
     }
 
     @Test
-    public void updateOrganismsTest() throws IOException {
-        final BlastDatabase database = registerDatabase();
-        assertNotNull(database);
-        manager.updateDatabaseOrganisms(database.getId());
+    public void testDeleteTasks() {
+        BlastListSpeciesTask task = createTask();
+        task = listSpeciesTaskDao.loadTask(task.getTaskId());
+        Assert.assertNotNull(task);
+        listSpeciesTaskDao.deleteTasks();
+        task = listSpeciesTaskDao.loadTask(task.getTaskId());
+        Assert.assertNull(task);
     }
 
-    @Test
-    public void deleteDatabaseTest() throws IOException {
-        final BlastDatabase database = registerDatabase();
-        manager.delete(database.getId());
-        assertNull(manager.loadById(database.getId()));
-    }
-
-    private BlastDatabase registerDatabase() throws IOException {
+    private BlastListSpeciesTask createTask() {
         final BlastDatabase database = BlastDatabase.builder()
-                .name("createDatabaseTest")
-                .path("path")
-                .type(BlastDatabaseType.NUCLEOTIDE)
+                .name("Human")
+                .path("Human")
                 .source(BlastDatabaseSource.CUSTOM)
+                .type(BlastDatabaseType.NUCLEOTIDE)
                 .build();
-        return manager.save(database);
+        blastDatabaseDao.saveDatabase(database);
+        final BlastListSpeciesTask task = BlastListSpeciesTask.builder()
+                .taskId(1L)
+                .createdDate(LocalDateTime.now())
+                .status(BlastTaskStatus.CREATED)
+                .databaseId(database.getId())
+                .build();
+        listSpeciesTaskDao.saveTask(task);
+        return task;
     }
 }

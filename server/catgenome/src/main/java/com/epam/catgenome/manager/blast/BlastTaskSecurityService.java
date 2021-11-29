@@ -108,9 +108,4 @@ public class BlastTaskSecurityService {
     public CreateDatabaseResponse createDatabase(final CreateDatabaseRequest request) throws BlastRequestException {
         return blastTaskManager.createDatabase(request);
     }
-
-    @PreAuthorize(ROLE_USER)
-    public List<Long> getTaxIds(String database) throws BlastRequestException {
-        return blastTaskManager.getTaxIds(database);
-    }
 }

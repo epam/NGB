@@ -63,7 +63,7 @@ public class TaxonomyManagerTest extends TestCase {
 
     @Test
     public void searchOrganismsTest() throws IOException, ParseException {
-        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium");
+        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium", null);
         assertNotNull(organisms);
         assertEquals(ORGANISMS_COUNT, organisms.size());
     }
@@ -71,7 +71,7 @@ public class TaxonomyManagerTest extends TestCase {
     @Test
     public void searchOrganismsAfterReIndexingTest() throws IOException, ParseException {
         taxonomyManager.writeLuceneTaxonomyIndex(fileName);
-        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium");
+        List<Taxonomy> organisms =  taxonomyManager.searchOrganisms("Azorhizobium", null);
         assertNotNull(organisms);
         assertEquals(ORGANISMS_COUNT, organisms.size());
     }

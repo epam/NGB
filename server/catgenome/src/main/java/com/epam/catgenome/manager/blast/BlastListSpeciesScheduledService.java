@@ -23,8 +23,8 @@
  */
 package com.epam.catgenome.manager.blast;
 
-import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.dao.blast.BlastListSpeciesTaskDao;
+import com.epam.catgenome.entity.blast.BlastListSpeciesTask;
 import com.epam.catgenome.entity.blast.BlastTaskStatus;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
@@ -34,19 +34,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BlastTaskScheduledService {
-    private final BlastTaskManager blastTaskManager;
-    private final BlastTaskDao blastTaskDao;
+@Transactional(propagation = Propagation.REQUIRED)
+public class BlastListSpeciesScheduledService {
+    private final BlastListSpeciesTaskDao updateTaskDao;
     private final BlastRequestManager blastRequestManager;
+    private final BlastDatabaseManager databaseManager;
 
     @Scheduled(fixedRateString = "${blast.update.status.rate:60000}")
     public void updateTaskStatuses() {
@@ -59,21 +64,24 @@ public class BlastTaskScheduledService {
         final QueryParameters parameters = QueryParameters.builder()
                 .filters(Collections.singletonList(filter))
                 .build();
-        final List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
+        final List<BlastListSpeciesTask> tasks = updateTaskDao.loadTasks(parameters);
         tasks.forEach(t -> {
             try {
-                final BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getId());
+                final BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getTaskId());
                 final String status = blastRequestInfo.getStatus();
                 if (!status.equals(t.getStatus().name())) {
                     final BlastTaskStatus newStatus = BlastTaskStatus.valueOf(status);
+                    if (BlastTaskStatus.DONE.equals(newStatus)) {
+                        databaseManager.saveDatabaseOrganisms(t.getTaskId(), t.getDatabaseId());
+                    }
                     t.setStatus(newStatus);
                     t.setStatusReason(blastRequestInfo.getReason());
                     if (newStatus.isFinal()) {
                         t.setEndDate(LocalDateTime.now());
                     }
-                    blastTaskManager.updateTask(t);
+                    updateTaskDao.updateTask(t);
                 }
-            } catch (BlastRequestException e) {
+            } catch (BlastRequestException | IOException e) {
                 log.debug(e.getMessage());
             }
         });

@@ -25,7 +25,9 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.security.acl.aspect.AclTree;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -66,5 +68,10 @@ public class BlastDatabaseSecurityService {
     @PreAuthorize(ROLE_USER)
     public List<BlastDatabase> load(final BlastDatabaseType type, final String path) {
         return databaseManager.load(type, path);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<Taxonomy> searchOrganisms(final String term, final long databaseId) throws IOException, ParseException {
+        return databaseManager.searchOrganisms(term, databaseId);
     }
 }

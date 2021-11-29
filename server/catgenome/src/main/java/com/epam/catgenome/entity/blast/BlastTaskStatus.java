@@ -23,7 +23,9 @@
  */
 package com.epam.catgenome.entity.blast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum BlastTaskStatus {
@@ -58,6 +60,14 @@ public enum BlastTaskStatus {
 
     public boolean isFinal() {
         return finalStatus;
+    }
+
+    public static List<String> getNotFinalStatuses() {
+        final List<String> statuses = new ArrayList<>();
+        statuses.add(String.valueOf(BlastTaskStatus.CREATED.getId()));
+        statuses.add(String.valueOf(BlastTaskStatus.SUBMITTED.getId()));
+        statuses.add(String.valueOf(BlastTaskStatus.RUNNING.getId()));
+        return statuses;
     }
 
     public static BlastTaskStatus getById(int id) {

@@ -25,6 +25,7 @@ package com.epam.catgenome.dao.blast;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastDatabaseOrganism;
+import com.epam.catgenome.util.db.Filter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.epam.catgenome.util.Utils.addFiltersToQuery;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Getter
 @Setter
@@ -85,9 +90,23 @@ public class BlastDatabaseOrganismDao extends NamedParameterJdbcDaoSupport {
      * @param databaseId {@code long} an ID of a database
      * @return a {@code List<BlastDatabaseOrganism>} from the database
      */
-    public List<BlastDatabaseOrganism> loadDatabaseOrganisms(final long databaseId) {
-        return getJdbcTemplate().query(loadDatabaseOrganismsQuery,
-                DatabaseOrganismParameters.getRowMapper(), databaseId);
+    public List<BlastDatabaseOrganism> loadDatabaseOrganisms(final List<Long> taxIds,
+                                                             final long databaseId) {
+        final List<Filter> filters = new ArrayList<>();
+        final Filter taxIdsFilter = Filter.builder()
+                .field("tax_id")
+                .operator("in")
+                .value("(" + join(taxIds, ",") + ")")
+                .build();
+        final Filter databaseIdFilter = Filter.builder()
+                .field("database_id")
+                .operator("=")
+                .value(String.valueOf(databaseId))
+                .build();
+        filters.add(taxIdsFilter);
+        filters.add(databaseIdFilter);
+        final String query = addFiltersToQuery(loadDatabaseOrganismsQuery, filters);
+        return getJdbcTemplate().query(query, DatabaseOrganismParameters.getRowMapper());
     }
 
     enum DatabaseOrganismParameters {
