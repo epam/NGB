@@ -3,7 +3,7 @@ export default {
     style: {
         node: {
             'content': 'data(id)',
-            'width': 100,
+            'width': 175,
             'height': 50,
             'text-opacity': 1,
             'text-valign': 'center',

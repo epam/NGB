@@ -102,7 +102,7 @@ export default class ngbStrainLineageService {
         const formatNodes = (node = []) => ({
             data: {
                 id: `n_${node.lineageTreeNodeId}`,
-                title: cropTitle(node.name, MAX_TITLE_LENGTH),
+                title: node.name,
                 fullTitle: node.name,
                 description: node.description,
                 creationDate: node.creationDate,

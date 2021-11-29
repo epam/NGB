@@ -26,6 +26,7 @@ $element-hover-color: $element-link-color;
     max-height: 2em;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: center;
 
     &.strain-lineage-node-link {
       color: $element-link-color;
