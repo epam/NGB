@@ -1,23 +1,67 @@
+$element-link-color: #2c4f9e;
+$element-hover-color: $element-link-color;
+
 .strain-lineage-node-container {
   width: 100%;
   height: 100%;
-  background-color: #fff;
-  border: 2px solid grey;
+  background-color: #fafafa;
+  border: 1px solid #666;
+  border-radius: 5px;
   font-size: 12px;
-  text-align: center;
+  line-height: 12px;
+  text-align: left;
   position: relative;
   cursor: pointer;
+  padding: 5px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  box-shadow: 0 0 2px 2px rgba(170, 170, 170, 0.25);
+
   .strain-lineage-node-title {
     font-weight: bold;
     display: inline-block;
+    max-height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.strain-lineage-node-link {
+      color: $element-link-color;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
-  .strain-lineage-node-link {
-    color: #2c4f9e;
-    font-weight: bold;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 12px;
+
+  &.selected {
+    background-color: $element-hover-color;
+    border-color: darken($element-hover-color, 25%);
+    box-shadow: none;
+    color: white;
+
+    .strain-lineage-node-title {
+      &.strain-lineage-node-link {
+        color: white;
+      }
+    }
   }
+
+  &:hover {
+    box-shadow: 0 0 2px 2px transparentize($element-hover-color, 0.8);
+    border-color: $element-hover-color;
+  }
+
+  &.selected:hover {
+    background-color: lighten($element-hover-color, 5%);
+    border-color: darken($element-hover-color, 25%);
+    box-shadow: none;
+  }
+
   .strain-lineage-node-desc {
+    font-size: smaller;
   }
 }

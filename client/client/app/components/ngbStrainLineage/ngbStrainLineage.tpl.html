@@ -29,30 +29,36 @@
         </div>
         <div class="element-description-container" ng-if="$ctrl.elementDescription">
             <div class="md-content">
-                <div class="close" ng-click="$ctrl.elementDescription = null">X</div>
+                <ng-md-icon
+                        class="close"
+                        icon="clear"
+                        size="16"
+                        aria-label="Close"
+                        ng-click="$ctrl.onElementClick(null)"
+                ></ng-md-icon>
                 <div class="element-description-body" layout="column">
-                    <div class="element-description-row">
-                        <div ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId}"
+                    <div class="element-description-row"
+                         ng-if="$ctrl.elementDescription.title">
+                        <div class="element-description-title"
+                             ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId}"
                              ng-click="$ctrl.navigateToReference($event, $ctrl.elementDescription.referenceId)"
                              ng-if="$ctrl.elementDescription.title">
                             <span>{{$ctrl.elementDescription.title}}</span>
-                            <span ng-if="$ctrl.elementDescription.creationDate">
-                                (sequenced {{$ctrl.elementDescription.creationDate}})
-                            </span>
                         </div>
-                    </div>
-                    <div class="element-description-row"
-                         ng-if="$ctrl.elementDescription.attributes"
-                         ng-repeat="(key, value) in $ctrl.elementDescription.attributes">
-                        <span>{{key}}</span>: <span>{{value}}</span>
+                        <span class="sequenced"
+                              ng-if="$ctrl.elementDescription.creationDate">
+                            , sequenced: {{$ctrl.elementDescription.creationDate|date}}
+                        </span>
                     </div>
                     <div class="element-description-row" ng-if="$ctrl.elementDescription.description">
                         {{$ctrl.elementDescription.description}}
                     </div>
-                    <div class="element-description-row"
-                         ng-if="$ctrl.elementDescription.tooltip"
-                         ng-repeat="(key, value) in $ctrl.elementDescription.tooltip">
-                        <span>{{key}}</span>: <span>{{value}}</span>
+                    <div class="element-description-row element-description-attributes"
+                         ng-if="$ctrl.elementDescription.tooltip">
+                        <div class="element-description-attribute"
+                             ng-repeat="(key, value) in $ctrl.elementDescription.tooltip">
+                            <span>{{key}}: {{value}}</span>
+                        </div>
                     </div>
                     <div class="element-description-empty"
                          ng-if="!$ctrl.elementDescription.title && !$ctrl.elementDescription.tooltip && !$ctrl.elementDescription.description">

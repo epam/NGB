@@ -5,6 +5,7 @@ import component from './ngbStrainLineage.component';
 
 // Import internal modules
 import controller from './ngbStrainLineage.controller';
+import dateFilter from './dateFilter';
 
 // Import Style
 import './ngbStrainLineage.scss';
@@ -16,4 +17,5 @@ export default angular.module('ngbStrainLineage', [cytoscapeComponent, ngbStrain
     .component('ngbStrainLineage', component)
     .controller(controller.UID, controller)
     .service('ngbStrainLineageService', service.instance)
+    .filter('date', dateFilter)
     .name;

@@ -16,13 +16,11 @@ export default {
             'border-width': 1
         },
         edge: {
-            'curve-style': 'taxi',
-            'taxi-turn': 20,
-            'taxi-turn-min-distance': 5,
-            'width': 3,
-            'line-color': 'grey',
-            'target-arrow-color': 'grey',
-            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            'width': 1,
+            'line-color': '#666',
+            'target-arrow-color': '#666',
+            'target-arrow-shape': 'triangle'
         },
         edgeLabel: {
             'text-rotation': 'none',
@@ -30,7 +28,8 @@ export default {
             'font-size': '12px',
             'font-weight': 'bold',
             'text-background-color': '#fff',
-            'text-background-opacity': 1
+            'text-background-opacity': 1,
+            'color': '#2c4f9e'
         }
     },
     defaultLayout: {
@@ -40,5 +39,9 @@ export default {
     loadedLayout: {
         name: 'preset'
     },
-    options: {}
+    options: {
+        wheelSensitivity: 0.25,
+        minZoom: 0.25,
+        maxZoom: 4
+    }
 };

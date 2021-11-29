@@ -3,6 +3,23 @@ import Cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import dom_node from 'cytoscape-dom-node';
 
+const SELECTED_COLOR = '#2c4f9e';
+const SELECTED_WIDTH = 3;
+
+const clearEdgesSelectionStyle = (cy, settings) => {
+    if (cy && settings) {
+        cy.edges().css('width', settings.style.edge.width);
+        cy.edges().css('line-color', settings.style.edge['line-color']);
+        cy.edges().css('target-arrow-color', settings.style.edge['target-arrow-color']);
+    }
+};
+
+const setEdgeSelectionStyle = edge => {
+    edge.css('width', SELECTED_WIDTH);
+    edge.css('line-color', SELECTED_COLOR);
+    edge.css('target-arrow-color', SELECTED_COLOR);
+};
+
 export default class ngbCytoscapeController {
     constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings) {
         this.$scope = $scope;
@@ -24,8 +41,21 @@ export default class ngbCytoscapeController {
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
         this.dispatcher.on('cytoscape:panel:active', cytoscapeActiveEventHandler);
+        const handleSelectionChange = (e) => {
+            clearEdgesSelectionStyle(this.viewer, this.settings);
+            if (this.viewer && e && e.id) {
+                this.viewer.edges().forEach((edge) => {
+                    const data = edge.data();
+                    if (data.id === e.id) {
+                        setEdgeSelectionStyle(edge);
+                    }
+                });
+            }
+        };
+        this.dispatcher.on('cytoscape:selection:change', handleSelectionChange);
         $scope.$on('$destroy', () => {
             this.dispatcher.removeListener('cytoscape:panel:active', cytoscapeActiveEventHandler);
+            this.dispatcher.removeListener('cytoscape:selection:change', handleSelectionChange);
             angular.element($window).off('resize', resizeHandler);
         });
     }
@@ -116,25 +146,35 @@ export default class ngbCytoscapeController {
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
-                    this.onElementClick({
-                        data: {
-                            attributes: edgeData.tooltip,
-                            title: edgeData.fullLabel
-                        }
-                    });
+                    const {
+                        label,
+                        tooltip
+                    } = edgeData || {};
+                    if (label || tooltip) {
+                        this.onElementClick({
+                            data: {
+                                id: edgeData.id,
+                                tooltip: edgeData.tooltip,
+                                title: edgeData.fullLabel
+                            }
+                        });
+                    } else {
+                        this.onElementClick(null);
+                    }
                 });
                 layout.run();
                 const viewerContext = this;
                 this.actionsManager = {
-                    ZOOM_STEP: 0.1,
-                    zoom: viewerContext.viewer.zoom(),
+                    ZOOM_STEP: 0.25,
+                    duration: 250,
+                    zoom: () => viewerContext.viewer.zoom(),
                     zoomIn() {
-                        this.zoom += this.ZOOM_STEP;
-                        viewerContext.viewer.zoom(this.zoom);
+                        const zoom = this.zoom() + this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(zoom);
                     },
                     zoomOut() {
-                        this.zoom -= this.ZOOM_STEP;
-                        viewerContext.viewer.zoom(this.zoom);
+                        const zoom = this.zoom() - this.ZOOM_STEP;
+                        viewerContext.viewer.zoom(zoom);
                     },
                     restoreDefault: () => {
                         viewerContext.viewer.layout(this.settings.defaultLayout).run();

@@ -24,7 +24,7 @@
     max-width: 300px;
     position: absolute;
     top: 0;
-    right: 0;
+    right: 15px;
     z-index: 1;
 
     .md-content {
@@ -32,38 +32,70 @@
       flex-direction: column;
       height: auto;
       background: #FFFFFF;
-      color: #000000;
-      font-size: 14px;
-      border: 1px solid grey;
+      color: #333333;
+      font-size: 13px;
       border-radius: 5px;
-      padding: 5px;
+      border: 1px solid #aaa;
+      padding: 10px;
+      box-shadow: 2px 2px 8px 2px #aaa;
 
       .close {
-        line-height: 14px;
-        font-size: 12px;
-        width: 12px;
-        font-weight: bold;
         cursor: pointer;
-        padding: 0;
         position: absolute;
-        top: 3px;
-        right: 0;
+        top: 5px;
+        right: 5px;
+        fill: #777;
+      }
+
+      .close:hover {
+        fill: #333333;
       }
 
       .element-description-body {
         display: table;
-        padding-right: 10px;
+        padding-right: 16px;
 
         .element-description-row {
-          display: table-row;
+          display: flex;
+          align-items: baseline;
           border-spacing: 5px;
           word-break: break-all;
+          padding: 5px 0;
 
-          .element-description-navigation {
-            color: #2c4f9e;
-            text-decoration: underline;
-            cursor: pointer;
+          .element-description-title {
+            font-weight: bold;
+
+            &.element-description-navigation {
+              color: #2c4f9e;
+              text-decoration: underline;
+              cursor: pointer;
+            }
           }
+
+          .sequenced {
+            font-size: smaller;
+            font-style: italic;
+          }
+        }
+
+        .element-description-attributes {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+
+          .element-description-attribute {
+            margin: 2px 0;
+            padding: 2px 4px;
+            background: #f9f9f9;
+            border: 1px solid #e9e9e9;
+            border-radius: 3px;
+            font-size: smaller;
+            text-transform: uppercase;
+          }
+        }
+
+        .element-description-row:not(:last-child) {
+          border-bottom: 1px solid #eee;
         }
 
         .element-description-empty {

@@ -100,7 +100,10 @@ export default class ngbStrainLineageController extends baseController {
     }
 
     onElementClick(data) {
+        const {id} = data || {};
+        this.ngbStrainLineageService.selectedElementId = id;
         this.elementDescription = data;
+        this.dispatcher.emitSimpleEvent('cytoscape:selection:change', data);
         this.$timeout(() => this.$scope.$apply());
     }
 
