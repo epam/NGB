@@ -21,19 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast.dto;
+package com.epam.catgenome.entity.blast;
 
-import com.epam.catgenome.entity.blast.BlastTask;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder
-public class TaskPage {
-    List<BlastTask> blastTasks;
-    long totalCount;
+public class BlastDatabaseOrganism {
+    private Long databaseOrganismId;
+    private Long databaseId;
+    private Long taxId;
 }

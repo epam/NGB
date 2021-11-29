@@ -23,15 +23,20 @@
  */
 package com.epam.catgenome.entity.blast;
 
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BlastDatabase {
     private Long id;
     private String name;
@@ -39,4 +44,5 @@ public class BlastDatabase {
     private Long referenceId;
     private BlastDatabaseType type;
     private BlastDatabaseSource source;
+    private List<Taxonomy> organisms;
 }

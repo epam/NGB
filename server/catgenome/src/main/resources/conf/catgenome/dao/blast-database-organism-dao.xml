@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.blast.BlastDatabaseOrganismDao" id="databaseOrganismDao" autowire="byName">
+        <property name="databaseOrganismSequenceName" value="catgenome.s_blast_database_organism"/>
+        <property name="insertDatabaseOrganismQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.blast_database_organism (
+                        database_organism_id,
+                        database_id,
+                        tax_id
+                    ) VALUES (
+                        :DATABASE_ORGANISM_ID,
+                        :DATABASE_ID,
+                        :TAX_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteDatabaseOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.blast_database_organism WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadDatabaseOrganismsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_organism_id,
+                        database_id,
+                        tax_id
+                    FROM catgenome.blast_database_organism
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.dao;
+package com.epam.catgenome.dao.blast;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,8 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.epam.catgenome.dao.blast.BlastDatabaseDao;
-import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseSource;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;

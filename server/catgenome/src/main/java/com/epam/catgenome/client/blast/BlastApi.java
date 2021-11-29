@@ -38,6 +38,9 @@ import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
+
+import java.util.List;
 
 public interface BlastApi {
     @Headers("Content-type: application/json")
@@ -59,4 +62,11 @@ public interface BlastApi {
     @Headers("Content-type: application/json")
     @POST("restapi/createdb")
     Call<Result<CreateDatabaseResponse>> createDatabase(@Body CreateDatabaseRequest databaseVO);
+
+    @Headers("Content-type: application/json")
+    @POST("restapi/db/listspecies")
+    Call<Result<BlastRequestInfo>> createListSpeciesTask(@Query(value = "name") String databaseName);
+
+    @GET("restapi/db/listspecies/{id}")
+    Call<Result<List<Long>>> listSpecies(@Path(value = "id", encoded = true) long taskId);
 }

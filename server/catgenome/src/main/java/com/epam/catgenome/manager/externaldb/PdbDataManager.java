@@ -29,7 +29,6 @@ import com.epam.catgenome.client.rscb.RCSBApiBuilder;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.RSCBResponseException;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Alignment;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Dasalignment;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
@@ -44,6 +43,7 @@ import com.epam.catgenome.util.QueryUtils;
 import org.apache.catalina.util.URLEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -79,7 +79,7 @@ public class PdbDataManager {
         try {
             final String query = replaceHttpSymbols(RCSB_ENTRY_QUERY, pdbIds);
             return parseToDataset(QueryUtils.execute(rcsbApi.getDataset(query)), pdbIds);
-        } catch (RSCBResponseException e) {
+        } catch (IOException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_UNEXPECTED_FORMAT, LOCATION), e);
         }
@@ -95,7 +95,7 @@ public class PdbDataManager {
             final String query = replaceHttpSymbols(PDB_MAP_ENTRY, pdbIds);
             return parseToDasalignment(QueryUtils.execute(rcsbApi.getDasalignment(query)));
 
-        } catch (RSCBResponseException e) {
+        } catch (IOException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_UNEXPECTED_FORMAT, LOCATION), e);
         }

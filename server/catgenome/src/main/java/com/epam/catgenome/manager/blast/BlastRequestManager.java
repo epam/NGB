@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.CreateDatabaseRequest;
-import com.epam.catgenome.exception.BlastResponseException;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.exception.BlastRequestException;
@@ -44,11 +43,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.List;
 
 @Service
 @Slf4j
 public class BlastRequestManager {
 
+    private static final String ERROR = "ERROR";
     private BlastApi blastApi;
 
     @Value("${blast.server.url:}")
@@ -74,9 +76,9 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.createTask(blastRequest));
-            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            Assert.isTrue(!result.getStatus().equals(ERROR), result.getMessage());
             return result.getPayload();
-        } catch (BlastResponseException e) {
+        } catch (IOException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
@@ -86,7 +88,7 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getTask(id)).getPayload();
-        } catch (BlastResponseException e) {
+        } catch (IOException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
@@ -96,7 +98,7 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.cancelTask(id));
-        } catch (BlastResponseException e) {
+        } catch (IOException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
@@ -106,7 +108,7 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getResult(taskId)).getPayload();
-        } catch (BlastResponseException e) {
+        } catch (IOException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
@@ -116,7 +118,7 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             return QueryUtils.execute(blastApi.getRawResult(taskId));
-        } catch (BlastResponseException e) {
+        } catch (IOException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
         }
@@ -126,11 +128,28 @@ public class BlastRequestManager {
         validateBlastEnabled();
         try {
             Result<CreateDatabaseResponse> result = QueryUtils.execute(blastApi.createDatabase(request));
-            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            Assert.isTrue(!result.getStatus().equals(ERROR), result.getMessage());
             return result.getPayload();
-        } catch (BlastResponseException e) {
-            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
-                    .ERROR_BLAST_REQUEST), e);
+        } catch (IOException e) {
+            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST), e);
+        }
+    }
+
+    public BlastRequestInfo createListSpeciesTask(final String databaseName) throws IOException {
+        validateBlastEnabled();
+        final Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.createListSpeciesTask(databaseName));
+        Assert.isTrue(!result.getStatus().equals(ERROR), result.getMessage());
+        return result.getPayload();
+    }
+
+    public List<Long> listSpecies(final long taskId) throws BlastRequestException {
+        validateBlastEnabled();
+        try {
+            final Result<List<Long>> result = QueryUtils.execute(blastApi.listSpecies(taskId));
+            Assert.isTrue(!result.getStatus().equals(ERROR), result.getMessage());
+            return result.getPayload();
+        } catch (IOException e) {
+            throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST), e);
         }
     }
 

@@ -40,15 +40,10 @@ public interface QueryUtils {
         return url.endsWith("/") ? url : url + "/";
     }
 
-    static <T> T execute(final Call<T> call) {
-        try {
-            final Response<T> response = call.execute();
-            validateResponseStatus(response);
-
-            return response.body();
-        } catch (IOException e) {
-            throw new RSCBResponseException(e);
-        }
+    static <T> T execute(final Call<T> call) throws IOException {
+        final Response<T> response = call.execute();
+        validateResponseStatus(response);
+        return response.body();
     }
 
     static <T> void validateResponseStatus(final Response<T> response) throws IOException {

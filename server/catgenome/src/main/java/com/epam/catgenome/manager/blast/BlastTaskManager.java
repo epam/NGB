@@ -104,7 +104,7 @@ public class BlastTaskManager {
         validateOrganisms(taskVO);
         final BlastDatabase blastDatabase = databaseManager.loadById(taskVO.getDatabaseId());
         final BlastRequest blastRequest = buildBlastRequest(taskVO, blastDatabase);
-        BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
+        final BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST));
         }
@@ -118,7 +118,7 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteTask(final long taskId) {
-        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
         Assert.isTrue(!BlastTaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
@@ -130,15 +130,16 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteTasks() {
-        QueryParameters params = new QueryParameters();
-        List<Filter> getFilters = new ArrayList<>();
+        final List<Filter> getFilters = new ArrayList<>();
         getFilters.add(new Filter("status", "<>", String.valueOf(BlastTaskStatus.RUNNING.getId())));
         getFilters.add(new Filter("owner", "=", "'" + authManager.getAuthorizedUser() + "'"));
-        params.setFilters(getFilters);
-        List<Long> taskIdsList = blastTaskDao.loadAllTasks(params).stream().map(BlastTask::getId)
+        final QueryParameters params = QueryParameters.builder()
+                .filters(getFilters)
+                .build();
+        final List<Long> taskIdsList = blastTaskDao.loadAllTasks(params).stream().map(BlastTask::getId)
                 .collect(Collectors.toList());
-        String taskIds = "(" + join(taskIdsList, ",") + ")";
-        List<Filter> deleteFilters = Collections.singletonList(new Filter("task_id", "in", taskIds));
+        final String taskIds = "(" + join(taskIdsList, ",") + ")";
+        final List<Filter> deleteFilters = Collections.singletonList(new Filter("task_id", "in", taskIds));
         blastTaskDao.deleteOrganisms(deleteFilters);
         blastTaskDao.deleteExclOrganisms(deleteFilters);
         blastTaskDao.deleteParameters(deleteFilters);
@@ -147,22 +148,22 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public TaskPage loadTasks(final QueryParameters queryParameters) {
-        TaskPage taskPage = new TaskPage();
-        long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
-        List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
-        taskPage.setTotalCount(totalCount);
-        taskPage.setBlastTasks(blastTasks);
-        return taskPage;
+        final long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
+        final List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
+        return TaskPage.builder()
+                .totalCount(totalCount)
+                .blastTasks(blastTasks)
+                .build();
     }
 
     public TaskPage loadCurrentUserTasks(final QueryParameters queryParameters) {
-        List<Filter> filters = new ArrayList<>();
-        Filter currentUserFilter = new Filter("owner", "=",
+        final List<Filter> filters = new ArrayList<>();
+        final Filter currentUserFilter = new Filter("owner", "=",
                 "'" + authManager.getAuthorizedUser() + "'");
         filters.add(currentUserFilter);
         filters.addAll(ListUtils.emptyIfNull(queryParameters.getFilters()));
-        SortInfo sortByCreatedDate = new SortInfo("created_date", false);
-        List<SortInfo> sortInfos = ListUtils.defaultIfNull(queryParameters.getSortInfos(),
+        final SortInfo sortByCreatedDate = new SortInfo("created_date", false);
+        final List<SortInfo> sortInfos = ListUtils.defaultIfNull(queryParameters.getSortInfos(),
                 Collections.singletonList(sortByCreatedDate));
         queryParameters.setFilters(filters);
         queryParameters.setSortInfos(sortInfos);
@@ -180,10 +181,10 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void cancelTask(final long id) throws BlastRequestException {
-        BlastTask blastTask = blastTaskDao.loadTaskById(id);
+        final BlastTask blastTask = blastTaskDao.loadTaskById(id);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
-        Result<BlastRequestInfo> result = blastRequestManager.cancelTask(id);
-        BlastTaskStatus status = getStatus(result);
+        final Result<BlastRequestInfo> result = blastRequestManager.cancelTask(id);
+        final BlastTaskStatus status = getStatus(result);
         if (status != null && !blastTask.getStatus().equals(status)) {
             blastTask.setStatus(status);
             if (status.isFinal()) {
@@ -211,7 +212,7 @@ public class BlastTaskManager {
 
     private BlastTaskStatus getStatus(final Result<BlastRequestInfo> result) {
         if ("ERROR".equals(result.getStatus())) {
-            String message = result.getMessage();
+            final String message = result.getMessage();
             BlastTaskStatus status = null;
             for (BlastTaskStatus taskStatus: BlastTaskStatus.values()) {
                 if (message.contains(taskStatus.name())) {
