@@ -22,7 +22,7 @@
     <appender name="requests-debug-appender" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="Encoding" value="UTF-8" />
         <param name="Threshold" value="DEBUG"/>
-        <param name="File" value="${catalina.base}/logs/requests.log"/>
+        <param name="File" value="./logs/requests.log"/>
         <param name="MaxBackupIndex" value="30"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value='{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F", "debug_line":"%L","debug_message":"%m"}%n'/>
