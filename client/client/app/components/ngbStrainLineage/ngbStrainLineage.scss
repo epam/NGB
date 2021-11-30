@@ -57,6 +57,7 @@
 
         .element-description-row {
           display: flex;
+          flex-wrap: wrap;
           align-items: baseline;
           border-spacing: 5px;
           word-break: break-all;
@@ -64,6 +65,7 @@
 
           .element-description-title {
             font-weight: bold;
+            margin-right: 5px;
 
             &.element-description-navigation {
               color: #2c4f9e;
@@ -75,6 +77,7 @@
           .sequenced {
             font-size: smaller;
             font-style: italic;
+            white-space: nowrap;
           }
         }
 

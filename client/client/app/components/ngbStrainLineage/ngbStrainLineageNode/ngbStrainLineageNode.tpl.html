@@ -5,12 +5,12 @@
      ng-mouseup="$ctrl.onMouseUp($event)">
     <div class="strain-lineage-node-title"
          ng-if="!$ctrl.nodeData.referenceId">
-        {{$ctrl.nodeData.title}}
+        {{$ctrl.nodeData.title | crop}}
     </div>
     <div class="strain-lineage-node-title strain-lineage-node-link"
          ng-if="$ctrl.nodeData.referenceId"
          ng-mouseup="$ctrl.navigateToReference($event, $ctrl.nodeData.referenceId)">
-        {{$ctrl.nodeData.title}}
+        {{$ctrl.nodeData.title | crop}}
     </div>
     <div class="strain-lineage-node-desc"
          ng-if="$ctrl.nodeData.creationDate">

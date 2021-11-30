@@ -36,7 +36,9 @@ export default class ngbCytoscapeController {
         Cytoscape.use(dom_node);
 
         const resizeHandler = () => {
-            this.centerCytoscape();
+            if (this.resizeCytoscape()) {
+                this.centerCytoscape();
+            }
         };
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
@@ -143,6 +145,7 @@ export default class ngbCytoscapeController {
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
+                    this.resizeCytoscape();
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
@@ -186,9 +189,24 @@ export default class ngbCytoscapeController {
         }
     }
 
-    centerCytoscape() {
+    resizeCytoscape() {
         if (this.viewer) {
             this.viewer.resize();
+            const newSize = {
+                width: this.viewer.width(),
+                height: this.viewer.height()
+            };
+            const changed = !this.viewerSize ||
+                this.viewerSize.width !== newSize.width ||
+                this.viewerSize.height !== newSize.height;
+            this.viewerSize = newSize;
+            return changed;
+        }
+        return false;
+    }
+
+    centerCytoscape() {
+        if (this.viewer) {
             this.viewer.center();
         }
     }
