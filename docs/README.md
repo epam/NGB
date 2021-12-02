@@ -35,6 +35,7 @@ The following sections are currently covered in a documentation
     * [Genes](md/user-guide/genes.md)
     * [BLAST search](md/user-guide/blast-search.md)
     * [Homologs search](md/user-guide/homologs-search.md)
+    * [Strain lineage](md/user-guide/strain-lineage.md)
 * Administrator guide
     * [Overview](md/user-guide/um-overview.md)
     * [Users](md/user-guide/um-users.md)
