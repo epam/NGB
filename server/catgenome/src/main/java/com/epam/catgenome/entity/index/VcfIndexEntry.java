@@ -52,6 +52,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private String geneName; //TODO: remove, use geneNameList
     private String geneNames;
     private String failedFilter;
+    private String sampleName;
     private VariationImpact impact;
     private VariationEffect effect;
     private Map<String, Object> info;
@@ -62,6 +63,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private List<String> geneIdList;
     private List<String> geneNameList;
     private Set<VariationType> variationTypes;
+    private Set<String> sampleNames;
     private Set<String> failedFilters;
 
 
@@ -86,6 +88,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         info = origin.getInfo() != null ? new HashMap<>(origin.getInfo()) : null;
         quality = origin.getQuality();
         isExon = origin.getExon();
+        sampleName = origin.getSampleName();
     }
 
     public VariationImpact getImpact() {
@@ -110,6 +113,14 @@ public class VcfIndexEntry extends FeatureIndexEntry {
 
     public void setVariationType(VariationType type) {
         this.variationType = type;
+    }
+
+    public String getSampleName() {
+        return sampleName;
+    }
+
+    public void setSampleName(String sampleName) {
+        this.sampleName = sampleName;
     }
 
     public String getGene() {
@@ -216,6 +227,14 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         this.variationTypes = variationTypes;
     }
 
+    public Set<String> getSampleNames() {
+        return sampleNames;
+    }
+
+    public void setSampleNames(Set<String> sampleNames) {
+        this.sampleNames = sampleNames;
+    }
+
 
     @Override public boolean equals(Object o) {
         if (this == o) {
@@ -231,6 +250,9 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         VcfIndexEntry that = (VcfIndexEntry) o;
 
         if (variationType != that.variationType) {
+            return false;
+        }
+        if (!sampleName.equals(that.sampleName)) {
             return false;
         }
         if ((gene != null) ? !gene.equals(that.gene) : (that.gene != null)) {
@@ -267,6 +289,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     @Override public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (variationType != null ? variationType.hashCode() : 0);
+        result = 31 * result + (sampleName != null ? sampleName.hashCode() : 0);
         result = 31 * result + (gene != null ? gene.hashCode() : 0);
         result = 31 * result + (geneIds != null ? geneIds.hashCode() : 0);
         result = 31 * result + (geneName != null ? geneName.hashCode() : 0);

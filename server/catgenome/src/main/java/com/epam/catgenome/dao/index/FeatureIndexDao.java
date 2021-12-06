@@ -182,6 +182,7 @@ public class FeatureIndexDao {
         FEATURE_NAME("featureName"),
 
         VARIATION_TYPE("variationType"),
+        SAMPLE_NAME("sampleName"),
         FAILED_FILTER("failedFilter"),
         GENE_ID("geneId"),
         GENE_IDS("geneIds"), // gene Ids, concatenated by comma

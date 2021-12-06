@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -240,6 +242,7 @@ public class NCBIShortVarManager {
     private void fillVariationList(final List<Variation> resultList, final ExchangeSet snpResultJaxb) {
         for (Rs rs : snpResultJaxb.getRs()) {
             Variation nggbVariation = new Variation();
+            Map<String, GenotypeData> genotypeDataMap = new HashMap<>();
             GenotypeData genotypeData = new GenotypeData();
 
             nggbVariation.setIdentifier("rs" + rs.getRsId());
@@ -267,7 +270,8 @@ public class NCBIShortVarManager {
                 }
             }
             correctNggbVariation(rs.getAssembly().get(0), nggbVariation);
-            nggbVariation.setGenotypeData(genotypeData);
+            genotypeDataMap.put("Sample", genotypeData);
+            nggbVariation.setGenotypeData(genotypeDataMap);
             resultList.add(nggbVariation);
         }
     }

@@ -27,17 +27,24 @@ package com.epam.catgenome.dao.index.indexer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.entity.vcf.GenotypeData;
+import com.epam.catgenome.entity.vcf.OrganismType;
+import com.epam.catgenome.entity.vcf.Variation;
+import com.epam.catgenome.entity.vcf.VariationType;
+import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
@@ -53,6 +60,8 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.NO_STRAIN_GENOTYPE_STRING;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes <b>large</b> VCF file entries: {@link VariantContext}
@@ -127,7 +136,8 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
             List<OrganismType> organismTypes = new ArrayList<>();
             for (int i = 0; i < context.getAlternateAlleles().size(); i++) {
                 Variation variation = VcfFileReader.createVariation(context, getVcfHeader(), i);
-                organismTypes.add(variation.getGenotypeData().getOrganismType());
+                organismTypes.addAll(variation.getGenotypeData().values().stream()
+                        .map(GenotypeData::getOrganismType).collect(Collectors.toList()));
             }
 
             if (!organismTypes.isEmpty() && organismTypes.stream()
@@ -135,12 +145,19 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
                 return;
             }
 
-            VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
-            Document document = creator.buildDocument(indexEntry, vcfFile.getId());
-            try {
-                writer.addDocument(facetsConfig.build(document));
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to create index");
+            for (String sampleName: context.getSampleNames()) {
+                if (!context.getGenotype(sampleName).getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+                    Set<String> sampleNames = new HashSet<>();
+                    sampleNames.add(sampleName);
+                    masterEntry.setSampleNames(sampleNames);
+                    VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
+                    Document document = creator.buildDocument(indexEntry, vcfFile.getId());
+                    try {
+                        writer.addDocument(facetsConfig.build(document));
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("Failed to create index");
+                    }
+                }
             }
         }
     }

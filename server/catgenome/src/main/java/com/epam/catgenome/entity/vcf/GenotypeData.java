@@ -24,11 +24,16 @@
 
 package com.epam.catgenome.entity.vcf;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Map;
 
 /**
  * Contains genotype information from a VCF file
  */
+@Getter
+@Setter
 public class GenotypeData {
     private OrganismType organismType;
 
@@ -47,6 +52,8 @@ public class GenotypeData {
      */
     private Map<String, Object> info;
 
+    private Map<String, Object> extendedAttributes;
+
     public GenotypeData() {
         // No-op
     }
@@ -60,37 +67,5 @@ public class GenotypeData {
         this.organismType = organismType;
         this.genotype = genotype;
         this.genotypeString = genotypeString;
-    }
-
-    public OrganismType getOrganismType() {
-        return organismType;
-    }
-
-    public void setOrganismType(OrganismType organismType) {
-        this.organismType = organismType;
-    }
-
-    public int[] getGenotype() {
-        return genotype;
-    }
-
-    public void setGenotype(int[] genotype) {
-        this.genotype = genotype;
-    }
-
-    public String getGenotypeString() {
-        return genotypeString;
-    }
-
-    public void setGenotypeString(String genotypeString) {
-        this.genotypeString = genotypeString;
-    }
-
-    public Map<String, Object> getInfo() {
-        return info;
-    }
-
-    public void setInfo(Map<String, Object> info) {
-        this.info = info;
     }
 }

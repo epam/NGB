@@ -77,6 +77,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         config.setIndexFieldName(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 FeatureIndexFields.VARIATION_TYPE.getFacetName());
         config.setMultiValued(FeatureIndexFields.VARIATION_TYPE.getFieldName(), true);
+        config.setIndexFieldName(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                FeatureIndexFields.SAMPLE_NAME.getFacetName());
+        config.setMultiValued(FeatureIndexFields.SAMPLE_NAME.getFieldName(), true);
 
         config.setIndexFieldName(FeatureIndexFields.FAILED_FILTER.getFieldName(),
                 FeatureIndexFields.FAILED_FILTER.getFacetName());
@@ -189,6 +192,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         requiredFields.add(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         requiredFields.add(FeatureIndexFields.IS_EXON.getFieldName());
         requiredFields.add(FeatureIndexFields.FAILED_FILTER.getFieldName());
+        requiredFields.add(FeatureIndexFields.SAMPLE_NAME.getFieldName());
         if (!CollectionUtils.isEmpty(vcfInfoFields)) {
             for (String infoField : vcfInfoFields) {
                 requiredFields.add(infoField.toLowerCase());
@@ -225,10 +229,20 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 vcfIndexEntry.getVariationTypes()
                         .add(VariationType.valueOf(variationType.toUpperCase()));
             }
-
             vcfIndexEntry.setVariationType(VariationType.valueOf(
                     doc.get(FeatureIndexFields.VARIATION_TYPE.getFieldName()).toUpperCase()));
         }
+
+        String[] sampleNames = doc.getValues(FeatureIndexFields.SAMPLE_NAME.getFieldName());
+        if (sampleNames.length > 0) {
+            vcfIndexEntry.setSampleNames(new HashSet<>());
+            for (String sampleName : sampleNames) {
+                vcfIndexEntry.getSampleNames()
+                        .add(sampleName);
+            }
+            vcfIndexEntry.setSampleName(doc.get(FeatureIndexFields.SAMPLE_NAME.getFieldName()));
+        }
+
         vcfIndexEntry.setFailedFilter(doc.get(FeatureIndexFields.FAILED_FILTER.getFieldName()));
 
         IndexableField qualityField = doc.getField(FeatureIndexFields.QUALITY.getFieldName());
@@ -249,7 +263,6 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 }
             }
         }
-
         return vcfIndexEntry;
     }
 
@@ -262,6 +275,16 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
             document.add(
                     new SortedSetDocValuesField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                             new BytesRef(type.name())));
+        }
+
+        for (String sampleName : entry.getSampleNames()) {
+            document.add(new StringField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                    sampleName, Field.Store.YES));
+            document.add(new SortedSetDocValuesFacetField(
+                    FeatureIndexFields.SAMPLE_NAME.getFieldName(), sampleName));
+            document.add(
+                    new SortedSetDocValuesField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                            new BytesRef(sampleName)));
         }
 
         if (CollectionUtils.isNotEmpty(entry.getFailedFilters())) {

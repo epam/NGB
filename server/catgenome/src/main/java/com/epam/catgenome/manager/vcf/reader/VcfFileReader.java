@@ -83,6 +83,7 @@ public class VcfFileReader extends AbstractVcfReader {
     private FileManager fileManager;
 
     public static final double HTSJDK_WRONG_QUALITY = -10.0;
+    public static final String NO_STRAIN_GENOTYPE_STRING = ".";
 
     protected static final String BIND_CIPOS_ATTRIBUTE = "CIPOS";
 
@@ -148,6 +149,79 @@ public class VcfFileReader extends AbstractVcfReader {
         }
     }
 
+    /**
+     * Translates HTSJDK's {@code VariantContext} object into our {@code Variant} entity
+     *
+     * @param context     a {@code VariantContext} object, that presents a variation from parsed VCF file.
+     * @param header      a {@code VCFHeader} object, that represents a header of parsed VCF file.
+     * @param sampleIndex {@code Integer} a name of a sample.
+     * @return a {@code Variation} object, representing desired variation.
+     */
+    public static Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
+        String ref = context.getReference().getDisplayString();
+        List<String> alt = context.getAlternateAlleles().stream().map(Allele::getDisplayString)
+                .collect(Collectors.toList());
+
+        // First, determine OrganismType
+        Map<String, GenotypeData> genotypeData = getGenotypeData(context);
+
+        Variation variation = new Variation(context.getStart(), context.getEnd(), ref, alt);
+        variation.setGenotypeData(genotypeData);
+
+        variation.setFailedFilters(context.getFilters().stream().map(f -> {
+            VCFHeaderLine vcfHeaderLine = header.getFilterHeaderLine(f);
+            return new Filter(f, vcfHeaderLine != null ? vcfHeaderLine.getValue() : null);
+        }).collect(Collectors.toList()));
+
+        variation.setIdentifier(context.getID());
+
+        Double qual = context.getPhredScaledQual();
+        variation.setQuality(Double.compare(qual, HTSJDK_WRONG_QUALITY) != 0 ? qual : 0);
+
+        determineVariationType(context, sampleIndex, variation);
+
+        return variation;
+    }
+
+    @NotNull private static Map<String, GenotypeData> getGenotypeData(VariantContext context) {
+        Map<String, GenotypeData> genotypeDataMap = new HashMap<>();
+        for (String sampleName: context.getSampleNames()) {
+            Genotype genotype = context.getGenotype(sampleName);
+            if (!genotype.getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+                GenotypeData genotypeData;
+                int[] genotypeArray = null;
+                OrganismType organismType;
+                switch (genotype.getType()) {
+                    case HOM_VAR:
+                        organismType = OrganismType.HOMOZYGOUS;
+                        int altIndex = context.getAlternateAlleles().indexOf(genotype.getAllele(0)) + 1;
+                        genotypeArray = new int[]{altIndex, altIndex};
+                        break;
+                    case MIXED:
+                    case HET:
+                        genotypeArray = new int[2];
+                        organismType = determineHeterozygousGenotype(context, genotype, genotypeArray);
+                        break;
+                    case UNAVAILABLE:
+                    case NO_CALL:
+                        organismType = OrganismType.NOT_SPECIFIED;
+                        break;
+                    case HOM_REF:
+                        organismType = OrganismType.NO_VARIATION;
+                        genotypeArray = new int[]{0, 0};
+                        break;
+                    default:
+                        organismType = OrganismType.NOT_SPECIFIED;
+                }
+                genotypeData = new GenotypeData(organismType, genotypeArray, genotype.getGenotypeString());
+                genotypeData.setExtendedAttributes(genotype.getExtendedAttributes());
+                genotypeData.setInfo(getGenotypeInfo(genotype));
+                genotypeDataMap.put(sampleName, genotypeData);
+            }
+        }
+        return genotypeDataMap;
+    }
+
     private boolean isOutOfBounds(int fromPosition, boolean forward, int end) {
         return (forward && fromPosition + 1 >= end) || (!forward && fromPosition - 1 <= end);
     }
@@ -210,8 +284,7 @@ public class VcfFileReader extends AbstractVcfReader {
         Variation lastFeature = null;
         while (iterator.hasNext()) {
             Variation variation = createVariation(iterator.next(), vcfHeader, sampleIndex);
-            if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION &&
+            if (isVariation(variation) &&
                     variation.getEndIndex() < fromPosition) {
                 lastFeature = variation;
             }
@@ -228,86 +301,12 @@ public class VcfFileReader extends AbstractVcfReader {
             while (iterator.hasNext()) {
                 VariantContext feature = iterator.next();
                 Variation variation = createVariation(feature, vcfHeader, sampleIndex);
-                if (variation.getGenotypeData() == null ||
-                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION
-                        && variation.getStartIndex() > fromPosition) {
+                if (isVariation(variation) && variation.getStartIndex() > fromPosition) {
                     return variation;
                 }
             }
         }
         return null;
-    }
-
-    /**
-     * Translates HTSJDK's {@code VariantContext} object into our {@code Variant} entity
-     *
-     * @param context     a {@code VariantContext} object, that presents a variation from parsed VCF file.
-     * @param header      a {@code VCFHeader} object, that represents a header of parsed VCF file.
-     * @param sampleIndex {@code Integer} a name of a sample.
-     * @return a {@code Variation} object, representing desired variation.
-     */
-    public static Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
-        String ref = context.getReference().getDisplayString();
-        List<String> alt = context.getAlternateAlleles().stream().map(Allele::getDisplayString)
-                .collect(Collectors.toList());
-        Genotype genotype = sampleIndex != null ? context.getGenotype(sampleIndex) : null;
-
-        // First, determine OrganismType
-        GenotypeData genotypeData = getGenotypeData(context, genotype);
-
-        Variation variation = new Variation(context.getStart(), context.getEnd(), ref, alt);
-        variation.setGenotypeData(genotypeData);
-
-        variation.setFailedFilters(context.getFilters().stream().map(f -> {
-            VCFHeaderLine vcfHeaderLine = header.getFilterHeaderLine(f);
-            return new Filter(f, vcfHeaderLine != null ? vcfHeaderLine.getValue() : null);
-        }).collect(Collectors.toList()));
-
-        variation.setIdentifier(context.getID());
-
-        Double qual = context.getPhredScaledQual();
-        variation.setQuality(Double.compare(qual, HTSJDK_WRONG_QUALITY) != 0 ? qual : 0);
-
-        determineVariationType(context, sampleIndex, variation);
-
-        return variation;
-    }
-
-    @NotNull private static GenotypeData getGenotypeData(VariantContext context, Genotype genotype) {
-        GenotypeData genotypeData;
-        if (genotype == null) {
-            genotypeData = new GenotypeData();
-            genotypeData.setOrganismType(OrganismType.NOT_SPECIFIED);
-        } else {
-            int[] genotypeArray = null;
-            OrganismType organismType;
-
-            switch (genotype.getType()) {
-                case HOM_VAR:
-                    organismType = OrganismType.HOMOZYGOUS;
-                    int altIndex = context.getAlternateAlleles().indexOf(genotype.getAllele(0)) + 1;
-                    genotypeArray = new int[]{altIndex, altIndex};
-                    break;
-                case MIXED:
-                case HET:
-                    genotypeArray = new int[2];
-                    organismType = determineHeterozygousGenotype(context, genotype, genotypeArray);
-                    break;
-                case UNAVAILABLE:
-                case NO_CALL:
-                    organismType = OrganismType.NOT_SPECIFIED;
-                    break;
-                case HOM_REF:
-                    organismType = OrganismType.NO_VARIATION;
-                    genotypeArray = new int[]{0, 0};
-                    break;
-                default:
-                    organismType = OrganismType.NOT_SPECIFIED;
-            }
-
-            genotypeData = new GenotypeData(organismType, genotypeArray, genotype.getGenotypeString());
-        }
-        return genotypeData;
     }
 
     private boolean checkBounds(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
@@ -355,8 +354,7 @@ public class VcfFileReader extends AbstractVcfReader {
                 if (loadInfo) {
                     parseInfo(variation, context, header, sampleIndex, vcfFile);
                 }
-                if (variation.getGenotypeData() == null ||
-                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                if (isVariation(variation)) {
                     variations.add(variation);
                 }
             }
@@ -364,6 +362,12 @@ public class VcfFileReader extends AbstractVcfReader {
         } else {
             return loadStatisticVariations(iterator, track, header, vcfFile, sampleIndex, loadInfo);
         }
+    }
+
+    private static boolean isVariation(Variation variation) {
+        return variation.getGenotypeData() == null ||
+                variation.getGenotypeData().values().stream()
+                        .anyMatch(g -> !g.getOrganismType().equals(OrganismType.NO_VARIATION));
     }
 
     private List<Variation> loadStatisticVariations(CloseableIterator<VariantContext> iterator, Track<Variation>
@@ -401,21 +405,18 @@ public class VcfFileReader extends AbstractVcfReader {
 
             if (context.getEnd() > to && context.getStart() >= from && context.getType() ==
                     VariantContext.Type.SYMBOLIC) {
-                if (variation.getGenotypeData() == null ||
-                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                if (isVariation(variation)) {
                     extendingVariations.add(variation);
                 }
                 continue;
             }
 
-            if (!found && (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION)) {
+            if (!found && (isVariation(variation))) {
                 variations.add(variation);
                 found = true;
             }
 
-            if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+            if (isVariation(variation)) {
                 variationCount++;
             }
             lastContext = context;
@@ -496,9 +497,9 @@ public class VcfFileReader extends AbstractVcfReader {
 
     private static void setNoVariationOrganism(Variation variation) {
         if (variation.getGenotypeData() == null) {
-            variation.setGenotypeData(new GenotypeData());
+            variation.setGenotypeData(new HashMap<>());
         }
-        variation.getGenotypeData().setOrganismType(OrganismType.NO_VARIATION);
+        variation.getGenotypeData().values().forEach(g -> g.setOrganismType(OrganismType.NO_VARIATION));
     }
 
     /**
@@ -510,7 +511,7 @@ public class VcfFileReader extends AbstractVcfReader {
      * @param sampleIndex {@code Integer} a sample index from a VCF file. If is null, no genotype information
      * @param vcfFile     a {@code VcfFile}, where variation is located
      */
-    public void parseInfo(Variation variation, VariantContext context, VCFHeader header, Integer
+    private void parseInfo(Variation variation, VariantContext context, VCFHeader header, Integer
             sampleIndex, VcfFile vcfFile) {
         final Map<String, Variation.InfoField> verboseAttributes = new HashMap<>();
         final Map<String, Object> attributes = context.getAttributes();
@@ -526,12 +527,7 @@ public class VcfFileReader extends AbstractVcfReader {
             }
         }
         variation.setInfo(verboseAttributes);
-        if (sampleIndex != null) {
-            Genotype genotype = context.getGenotype(sampleIndex);
-            if (genotype != null) {
-                setGenotypeData(variation, header, genotype);
-            }
-        }
+        setGenotypeData(variation, header, context);
         if (variation.getType() == VariationType.BND) {
             parseBNFDInfo(variation, context, sampleIndex, vcfFile);
         }
@@ -562,23 +558,40 @@ public class VcfFileReader extends AbstractVcfReader {
         }
     }
 
-    private void setGenotypeData(Variation variation, VCFHeader header, Genotype genotype) {
+    private void setGenotypeData(Variation variation, VCFHeader header, VariantContext context) {
+        for (String sampleName: context.getSampleNames()) {
+            Genotype genotype = context.getGenotype(sampleName);
+            Map<String, Object> genotypeInfo = new HashMap<>();
+            if (genotype.getAD() != null) {
+                genotypeInfo.put(header.getFormatHeaderLine("AD").getDescription(), genotype.getAD());
+            }
+            genotypeInfo.put(header.getFormatHeaderLine("GQ") != null ? header.getFormatHeaderLine("GQ")
+                    .getDescription() : "GQ", genotype.getGQ());
+            genotypeInfo.put(header.getFormatHeaderLine("DP") != null ? header.getFormatHeaderLine("DP")
+                    .getDescription() : "DP", genotype.getDP());
+            if (genotype.getPL() != null) {
+                genotypeInfo.put(header.getFormatHeaderLine("PL") != null ? header.getFormatHeaderLine("PL")
+                        .getDescription() : "PL", genotype.getPL());
+            }
+            genotypeInfo.put(header.getFormatHeaderLine("GT") != null ? header.getFormatHeaderLine("GT")
+                    .getDescription() : "GT", genotype.getGenotypeString());
+            variation.getGenotypeData().get(sampleName).setInfo(genotypeInfo);
+            variation.getGenotypeData().get(sampleName).setExtendedAttributes(genotype.getExtendedAttributes());
+        }
+    }
+
+    private static Map<String, Object> getGenotypeInfo(Genotype genotype) {
         Map<String, Object> genotypeInfo = new HashMap<>();
         if (genotype.getAD() != null) {
-            genotypeInfo.put(header.getFormatHeaderLine("AD").getDescription(), genotype.getAD());
+            genotypeInfo.put("AD", genotype.getAD());
         }
-        genotypeInfo.put(header.getFormatHeaderLine("GQ") != null ? header.getFormatHeaderLine("GQ")
-                .getDescription() : "GQ", genotype.getGQ());
-        genotypeInfo.put(header.getFormatHeaderLine("DP") != null ? header.getFormatHeaderLine("DP")
-                .getDescription() : "DP", genotype.getDP());
+        genotypeInfo.put("GQ", genotype.getGQ());
+        genotypeInfo.put("DP", genotype.getDP());
         if (genotype.getPL() != null) {
-            genotypeInfo.put(header.getFormatHeaderLine("PL") != null ? header.getFormatHeaderLine("PL")
-                    .getDescription() : "PL", genotype.getPL());
+            genotypeInfo.put("PL", genotype.getPL());
         }
-        genotypeInfo.put(header.getFormatHeaderLine("GT") != null ? header.getFormatHeaderLine("GT")
-                .getDescription() : "GT", genotype.getGenotypeString());
-
-        variation.getGenotypeData().setInfo(genotypeInfo);
+        genotypeInfo.put("GT", genotype.getGenotypeString());
+        return genotypeInfo;
     }
 
     /**

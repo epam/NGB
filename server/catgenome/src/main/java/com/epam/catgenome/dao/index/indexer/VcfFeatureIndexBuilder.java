@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.vcf.GenotypeData;
 import com.epam.catgenome.entity.vcf.InfoItem;
 import com.epam.catgenome.entity.vcf.OrganismType;
 import com.epam.catgenome.entity.vcf.Variation;
@@ -68,6 +69,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.NO_STRAIN_GENOTYPE_STRING;
+
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes VCF file entries: {@link VariantContext}
  */
@@ -99,7 +102,6 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
             VcfIndexEntry masterEntry = new VcfIndexEntry();
             masterEntry.setUuid(UUID.randomUUID());
             masterEntry.setFeatureId(context.getID());
-
             masterEntry
                     .setChromosome(Utils.getFromChromosomeMap(chromosomeMap, context.getContig()));
             masterEntry.setStartIndex(context.getStart());
@@ -115,15 +117,20 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
             List<OrganismType> organismTypes = new ArrayList<>();
             for (int i = 0; i < context.getAlternateAlleles().size(); i++) {
                 Variation variation = VcfFileReader.createVariation(context, vcfHeader, i);
-                organismTypes.add(variation.getGenotypeData().getOrganismType());
+                organismTypes.addAll(variation.getGenotypeData().values().stream()
+                        .map(GenotypeData::getOrganismType).collect(Collectors.toList()));
             }
 
             if (!organismTypes.isEmpty() && organismTypes.stream()
                     .anyMatch(type -> type.equals(OrganismType.NO_VARIATION))) {
                 return;
             }
-
-            allEntries.add(masterEntry);
+            for (String sampleName: context.getSampleNames()) {
+                if (!context.getGenotype(sampleName).getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+                    masterEntry.setSampleName(sampleName);
+                    allEntries.add(masterEntry);
+                }
+            }
         }
     }
 

@@ -129,6 +129,7 @@ public final class ProjectConverter {
                 FeatureFile featureFile = (FeatureFile) item.getBioDataItem();
                 vo.setReferenceId(featureFile.getReferenceId());
                 vo.setCompressed(featureFile.getCompressed());
+                vo.setMultiSample(featureFile.getMultiSample());
             }
 
             if (item.getBioDataItem() instanceof VcfFile) {
