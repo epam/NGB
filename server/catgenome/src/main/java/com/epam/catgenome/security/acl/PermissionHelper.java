@@ -49,6 +49,7 @@ import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,7 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
@@ -327,10 +329,11 @@ public class PermissionHelper {
                 referenceGenomeManager.loadReferenceIdsByAnnotationFileId(heatmap.getBioDataItemId()));
     }
 
-    public boolean isLineageTreeRegisteredForReference(Long id) {
+    public boolean isLineageTreeRegisteredForReference(final Long id) {
         final LineageTree lineageTree = lineageTreeManager.loadLineageTree(id);
-        return CollectionUtils.isNotEmpty(
-                referenceGenomeManager.loadReferenceIdsByAnnotationFileId(lineageTree.getBioDataItemId()));
+        return ListUtils.emptyIfNull(lineageTree.getNodes())
+                .stream()
+                .anyMatch(node -> Objects.nonNull(node.getReferenceId()));
     }
 
     public boolean sessionIsReadable(final NGBSession session) {
