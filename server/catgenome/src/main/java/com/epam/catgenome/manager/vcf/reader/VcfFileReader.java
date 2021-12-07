@@ -183,11 +183,15 @@ public class VcfFileReader extends AbstractVcfReader {
         return variation;
     }
 
-    @NotNull private static Map<String, GenotypeData> getGenotypeData(VariantContext context) {
-        Map<String, GenotypeData> genotypeDataMap = new HashMap<>();
+    public static boolean isEmptyStrain(final Genotype genotype) {
+        return genotype.getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING);
+    }
+
+    @NotNull private static Map<String, GenotypeData> getGenotypeData(final VariantContext context) {
+        final Map<String, GenotypeData> genotypeDataMap = new HashMap<>();
         for (String sampleName: context.getSampleNames()) {
             Genotype genotype = context.getGenotype(sampleName);
-            if (!genotype.getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+            if (!isEmptyStrain(genotype)) {
                 GenotypeData genotypeData;
                 int[] genotypeArray = null;
                 OrganismType organismType;

@@ -61,7 +61,7 @@ import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.NO_STRAIN_GENOTYPE_STRING;
+import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.isEmptyStrain;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes <b>large</b> VCF file entries: {@link VariantContext}
@@ -146,7 +146,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
             }
 
             for (String sampleName: context.getSampleNames()) {
-                if (!context.getGenotype(sampleName).getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+                if (!isEmptyStrain(context.getGenotype(sampleName))) {
                     Set<String> sampleNames = new HashSet<>();
                     sampleNames.add(sampleName);
                     masterEntry.setSampleNames(sampleNames);

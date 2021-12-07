@@ -69,7 +69,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.NO_STRAIN_GENOTYPE_STRING;
+import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.isEmptyStrain;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes VCF file entries: {@link VariantContext}
@@ -126,7 +126,7 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
                 return;
             }
             for (String sampleName: context.getSampleNames()) {
-                if (!context.getGenotype(sampleName).getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING)) {
+                if (!isEmptyStrain(context.getGenotype(sampleName))) {
                     masterEntry.setSampleName(sampleName);
                     allEntries.add(masterEntry);
                 }
