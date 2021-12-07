@@ -41,7 +41,7 @@ strain-04	strain-07	Project=Bacteria,Type=AMR study UV
 | 6 | Select **Empty** lineage in the **Source** drop-down field| Visualization of the chosen lineage tree is displayed in the **LINEAGE** panel|
 | 7 | Сhange the arrangement of **Empty** tree nodes in the panel | Nodes are changed| 
 | 8 | Remember new arrangement of nodes in the tree ||
-| 9 | Go to **BROWSER** panel|| 
+| 9| Go to **BROWSER** panel|| 
 | 10| Set CHR:**2** in **Chromosome** field of **BROWSER** header|The **Location** icon is appeared in the main menu on the left page side|
 | 11| Click **Location** button| **Save session** pop-up is appeared| 
 | 12| Fill Session name - **Empty Lineage**| |
