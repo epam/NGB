@@ -3,7 +3,7 @@
 | 1 | Login to NGB | |
 | 2  | Go to **DATASETS** panel||
 | 3  | Select **SV_Sample1** dataset |
-| 4  | Go to **DATASETS** panel| |
+| 4  | Go to **DATASETS** panel||
 | 5  | Select any reference with attached lineage (e.g. **SV_Sample1**)||
 | 6  | Go to **BROWSER** panel ||
 | 7  | Select **1** value in **Chromosome** field of **BROWSER** header|Panel with tracks are displayed in **BROWSER** panel|

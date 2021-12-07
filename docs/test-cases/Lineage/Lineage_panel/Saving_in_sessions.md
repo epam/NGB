@@ -37,7 +37,7 @@ strain-04	strain-07	Project=Bacteria,Type=AMR study UV
 | 2 | Go to **DATASETS** panel| |
 | 3 | Select any dataset in **GRCH38** reference(e.g. **SV_Sample1**)||
 | 4 | Go to **Views** menu on the main toolbar| <li> **Views** menu is displayed <li> **LINEAGE** panel is displayed after HEATMAP panel|
-| 5 | Select **LINEAGE** panel| <li> **LINEAGE** panel is opened|
+| 5| Select **LINEAGE** panel| <li> **LINEAGE** panel is opened|
 | 6 | Select **Empty** lineage in the **Source** drop-down field| Visualization of the chosen lineage tree is displayed in the **LINEAGE** panel|
 | 7 | Сhange the arrangement of **Empty** tree nodes in the panel | Nodes are changed| 
 | 8 | Remember new arrangement of nodes in the tree ||

@@ -35,4 +35,4 @@ strain-01	strain-02	key1=value1,key2=value2 UV
 | 10| Reload the NGB(Ctrl+F5)| The following message displays in the **LINEAGE** panel for all datasets of the **HG38** reference: ***No strain lineages selected. You can select dataset of reference with lineages*** <li> No **Source** field and tree visualization|
 | 11 | Go to **DATASETS** panel| |
 | 12 | Select any dataset in **GRCH38** reference (e.g. **SV_Sample1**)| <li> The first tree in the list of the **Source** field displays in the Lineage panel in all datasets of **GRCH38** reference <li> Visualization of the chosen lineage tree is displayed in the panel| 
-| 13 | Expand **Source** dropdown field| No **Remove-lineage** in the list for all datasets of **GRCH38** reference |
+| 13| Expand **Source** dropdown field| No **Remove-lineage** in the list for all datasets of **GRCH38** reference |

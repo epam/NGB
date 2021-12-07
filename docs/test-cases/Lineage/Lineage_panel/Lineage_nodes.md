@@ -29,7 +29,7 @@ Strain-03	Long-long test name     Project=Genomics_test_project,Class=Insecta_te
 | Steps | Actions | Expected results |
 | :---: | --- | --- |
 | 1 | Login to NGB | |
-| 2  | Go to **DATASETS** panel||
+| 2 | Go to **DATASETS** panel||
 | 3  | Select **SV_Sample1** dataset ||
 | 4 | Go to **Views** menu on the main toolbar| <li> **Views** menu is displayed <li> **LINEAGE** panel is displayed after HEATMAP panel|
 | 5  | Select **LINEAGE** panel| <li> **LINEAGE** panel is opened|
