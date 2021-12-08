@@ -219,7 +219,6 @@ public class VcfFileReader extends AbstractVcfReader {
                 }
                 genotypeData = new GenotypeData(organismType, genotypeArray, genotype.getGenotypeString());
                 genotypeData.setExtendedAttributes(genotype.getExtendedAttributes());
-                genotypeData.setInfo(getGenotypeInfo(genotype));
                 genotypeDataMap.put(sampleName, genotypeData);
             }
         }
@@ -369,7 +368,7 @@ public class VcfFileReader extends AbstractVcfReader {
     }
 
     private static boolean isVariation(Variation variation) {
-        return variation.getGenotypeData() == null ||
+        return variation.getGenotypeData() == null || variation.getGenotypeData().isEmpty() ||
                 variation.getGenotypeData().values().stream()
                         .anyMatch(g -> !g.getOrganismType().equals(OrganismType.NO_VARIATION));
     }
@@ -563,7 +562,10 @@ public class VcfFileReader extends AbstractVcfReader {
     }
 
     private void setGenotypeData(Variation variation, VCFHeader header, VariantContext context) {
-        for (String sampleName: context.getSampleNames()) {
+        if (variation.getGenotypeData() == null) {
+            return;
+        }
+        for (String sampleName: variation.getGenotypeData().keySet()) {
             Genotype genotype = context.getGenotype(sampleName);
             Map<String, Object> genotypeInfo = new HashMap<>();
             if (genotype.getAD() != null) {
@@ -582,20 +584,6 @@ public class VcfFileReader extends AbstractVcfReader {
             variation.getGenotypeData().get(sampleName).setInfo(genotypeInfo);
             variation.getGenotypeData().get(sampleName).setExtendedAttributes(genotype.getExtendedAttributes());
         }
-    }
-
-    private static Map<String, Object> getGenotypeInfo(Genotype genotype) {
-        Map<String, Object> genotypeInfo = new HashMap<>();
-        if (genotype.getAD() != null) {
-            genotypeInfo.put("AD", genotype.getAD());
-        }
-        genotypeInfo.put("GQ", genotype.getGQ());
-        genotypeInfo.put("DP", genotype.getDP());
-        if (genotype.getPL() != null) {
-            genotypeInfo.put("PL", genotype.getPL());
-        }
-        genotypeInfo.put("GT", genotype.getGenotypeString());
-        return genotypeInfo;
     }
 
     /**

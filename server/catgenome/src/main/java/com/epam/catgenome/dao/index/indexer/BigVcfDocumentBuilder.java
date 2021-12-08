@@ -277,14 +277,16 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             new BytesRef(type.name())));
         }
 
-        for (String sampleName : entry.getSampleNames()) {
-            document.add(new StringField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
-                    sampleName, Field.Store.YES));
-            document.add(new SortedSetDocValuesFacetField(
-                    FeatureIndexFields.SAMPLE_NAME.getFieldName(), sampleName));
-            document.add(
-                    new SortedSetDocValuesField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
-                            new BytesRef(sampleName)));
+        if (entry.getSampleNames() != null) {
+            for (String sampleName : entry.getSampleNames()) {
+                document.add(new StringField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                        sampleName, Field.Store.YES));
+                document.add(new SortedSetDocValuesFacetField(
+                        FeatureIndexFields.SAMPLE_NAME.getFieldName(), sampleName));
+                document.add(
+                        new SortedSetDocValuesField(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                                new BytesRef(sampleName)));
+            }
         }
 
         if (CollectionUtils.isNotEmpty(entry.getFailedFilters())) {

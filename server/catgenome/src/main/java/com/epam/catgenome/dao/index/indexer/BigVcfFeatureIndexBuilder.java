@@ -51,6 +51,7 @@ import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.Utils;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -145,17 +146,27 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
                 return;
             }
 
-            for (String sampleName: context.getSampleNames()) {
-                if (!isEmptyStrain(context.getGenotype(sampleName))) {
-                    Set<String> sampleNames = new HashSet<>();
-                    sampleNames.add(sampleName);
-                    masterEntry.setSampleNames(sampleNames);
-                    VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
-                    Document document = creator.buildDocument(indexEntry, vcfFile.getId());
-                    try {
-                        writer.addDocument(facetsConfig.build(document));
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException("Failed to create index");
+            if (CollectionUtils.isEmpty(context.getSampleNames())) {
+                VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
+                Document document = creator.buildDocument(indexEntry, vcfFile.getId());
+                try {
+                    writer.addDocument(facetsConfig.build(document));
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("Failed to create index");
+                }
+            } else {
+                for (String sampleName: context.getSampleNames()) {
+                    if (!isEmptyStrain(context.getGenotype(sampleName))) {
+                        Set<String> sampleNames = new HashSet<>();
+                        sampleNames.add(sampleName);
+                        masterEntry.setSampleNames(sampleNames);
+                        VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
+                        Document document = creator.buildDocument(indexEntry, vcfFile.getId());
+                        try {
+                            writer.addDocument(facetsConfig.build(document));
+                        } catch (IOException e) {
+                            throw new IllegalArgumentException("Failed to create index");
+                        }
                     }
                 }
             }

@@ -92,6 +92,7 @@ public class VcfControllerTest extends AbstractControllerTest {
     private static final String URL_VCF_PREV_VARIATION = "/restapi/vcf/%d/prev";
 
     private static final String VCF_FILE_REGISTER = "/restapi/vcf/register";
+    private static final String NA_19238 = "NA19238";
 
     @Autowired
     ApplicationContext context;
@@ -149,6 +150,7 @@ public class VcfControllerTest extends AbstractControllerTest {
 
         Assert.assertNotNull(res.getPayload().getId());
         Assert.assertEquals(res.getPayload().getName(), "samples.vcf");
+        Assert.assertTrue(res.getPayload().getMultiSample());
         Long fileId = res.getPayload().getId();
 
         Assert.assertNotNull("Test chromosome is not saved", testChromosome.getId());
@@ -184,9 +186,11 @@ public class VcfControllerTest extends AbstractControllerTest {
                                 getTypeFactory().constructParametrizedType(Track.class, Track.class, Variation.class)));
 
         Assert.assertFalse(vcfRes.getPayload().getBlocks().isEmpty());
+        Assert.assertFalse(vcfRes.getPayload().getBlocks().get(0).getGenotypeData().get(NA_19238)
+                .getExtendedAttributes().isEmpty());
 
         Assert.assertNull(vcfRes.getPayload().getBlocks().get(0).getInfo());
-        Assert.assertNull(vcfRes.getPayload().getBlocks().get(0).getGenotypeData().getInfo());
+        Assert.assertNull(vcfRes.getPayload().getBlocks().get(0).getGenotypeData().get(NA_19238).getInfo());
 
         // Load variation extended info
         final VariationQuery query = new VariationQuery();
@@ -211,7 +215,7 @@ public class VcfControllerTest extends AbstractControllerTest {
 
         Assert.assertNotNull(variationExtendedRes.getPayload());
         Assert.assertFalse(variationExtendedRes.getPayload().getInfo().isEmpty());
-        Assert.assertFalse(variationExtendedRes.getPayload().getGenotypeData().getInfo().isEmpty());
+        Assert.assertFalse(variationExtendedRes.getPayload().getGenotypeData().get(NA_19238).getInfo().isEmpty());
 
         // jump to next/prev
         testJump(fileId, res.getPayload(), vcfRes);

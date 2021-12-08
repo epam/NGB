@@ -99,7 +99,6 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
@@ -590,8 +589,7 @@ public class VcfManager {
 
     @NotNull
     private Map<String, Pair<Integer, Integer>> readMetaMap(VcfFile file, Map<String, Chromosome> chromosomeMap,
-            FeatureReader<VariantContext> reader, Reference reference, boolean doIndex)
-        throws IOException, GeneReadingException {
+            FeatureReader<VariantContext> reader, Reference reference, boolean doIndex) throws IOException {
         Map<String, Pair<Integer, Integer>> metaMap = new HashMap<>();
         CloseableIterator<VariantContext> iterator = reader.iterator();
         int startPosition = 1;
@@ -670,8 +668,8 @@ public class VcfManager {
             List<VcfSample> samples = sampleMap.entrySet().stream().map(e -> new VcfSample(e.getKey(), e.getValue()))
                     .collect(Collectors.toList());
             vcfFile.setSamples(samples);
-            vcfFile.setMultiSample(sampleMap.size() > 1);
         }
+        vcfFile.setMultiSample(sampleMap != null && sampleMap.size() > 1);
 
         BiologicalDataItemResourceType resourceType = BiologicalDataItemResourceType.translateRequestType(
             request.getType());

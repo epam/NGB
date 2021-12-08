@@ -39,7 +39,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
@@ -68,7 +67,6 @@ import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.Query2TrackConverter;
 import com.epam.catgenome.controller.vo.TrackQuery;
-import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -86,9 +84,6 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
@@ -101,7 +96,6 @@ import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.Utils;
 
 /**
@@ -127,6 +121,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_GOOGLE = "classpath:templates/1000-genomes.chrMT" +
             ".vcf";
     private static final String HTTP_VCF = "http://localhost/vcf/BK0010_S12.vcf";
+    private static final String NA_19238 = "NA19238";
     public static final String PRETTY_NAME = "pretty";
 
     @Mock
@@ -245,7 +240,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadVcfFile() throws IOException, InterruptedException, VcfReadingException {
+    public void testSaveLoadVcfFile() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -257,8 +252,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadVcfCompressedFile() throws IOException, ClassNotFoundException, InterruptedException,
-                                                       ParseException, VcfReadingException {
+    public void testSaveLoadVcfCompressedFile() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -278,7 +272,7 @@ public class VcfManagerTest extends AbstractManagerTest {
      */
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException, VcfReadingException {
+    public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -301,44 +295,8 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadSmallScaleVcfFileGa4GH() throws IOException, InterruptedException, NoSuchAlgorithmException,
-                                                        ExternalDbUnavailableException, VcfReadingException {
-
-        String fetchRes1 = readFile("GA4GH_id10473.json");
-        String fetchRes2 = readFile("GA4GH_id10473_variant.json");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
-                .thenReturn(fetchRes1)
-                .thenReturn(fetchRes2);
-
-        String fetchRes3 = readFile("GA4GH_id10473_param.json");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
-                .thenReturn(fetchRes3);
-
-
-        VcfFile vcfFileGA4GH = regesterVcfGA4GH();
-        vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
-        List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
-        Track<Variation> trackResult;
-        Long sampleId = 0L;
-        for (VcfSample sample : vcfSamples) {
-            if (sample.getName().equals(SAMPLE_NAME)) {
-                sampleId = sample.getId();
-            }
-        }
-        trackResult = testLoadGA4GH(vcfFileGA4GH, TEST_SMALL_SCALE_FACTOR, true, sampleId);
-        List<Variation> ambiguousVariations = trackResult.getBlocks().stream().filter((b) ->
-                b.getVariationsCount() != null && b.getVariationsCount() > 1).collect(Collectors.toList());
-
-        Assert.assertFalse(ambiguousVariations.isEmpty());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedSummary()
-            throws IOException, InterruptedException, FeatureIndexException,
-                   NoSuchAlgorithmException, FeatureFileReadingException {
+            throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -353,7 +311,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Variation variation = vcfManager.loadVariation(query);
 
         Assert.assertFalse(variation.getInfo().isEmpty());
-        Assert.assertFalse(variation.getGenotypeData().getInfo().isEmpty());
+        Assert.assertFalse(variation.getGenotypeData().get(NA_19238).getInfo().isEmpty());
 
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
         Assert.assertFalse(filterInfo.getInfoItems().isEmpty());
@@ -382,8 +340,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertFalse(variation.getGeneNames().isEmpty());
     }
 
-    public VcfFile regesterVcfGA4GH()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+    public VcfFile regesterVcfGA4GH() {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceIdGA4GH);
         request.setType(BiologicalDataItemResourceType.GA4GH);
@@ -396,8 +353,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Ignore
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testAllTrackGa4GH()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+    public void testAllTrackGa4GH() throws IOException {
         VcfFile vcfFileGA4GH = regesterVcfGA4GH();
         vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
         List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
@@ -407,32 +363,10 @@ public class VcfManagerTest extends AbstractManagerTest {
         }
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testGetVariantsGA4GH() throws IOException, InterruptedException,
-                                              ExternalDbUnavailableException,
-                                              Ga4ghResourceUnavailableException {
-
-        String fetchRes1 = readFile("GA4GH_id10473_variant_2.json");
-
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
-                .thenReturn(fetchRes1);
-
-
-        VcfGa4ghReader reader = new VcfGa4ghReader(httpDataManager, referenceGenomeManager);
-        List<VariantGA4GH> ghList = reader.getVariantsGA4GH(varSet, start.toString(), end.toString(),
-                testChrGA4GH.getName());
-        Assert.assertFalse(ghList.isEmpty());
-        Assert.assertNotNull(ghList.get(1).getNames());
-        Assert.assertFalse(ghList.get(1).getCalls().isEmpty());
-    }
-
     @Ignore
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterDownloadFile() throws IOException, ClassNotFoundException, InterruptedException,
-                                                 ParseException, NoSuchAlgorithmException, VcfReadingException {
+    public void testRegisterDownloadFile() {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setType(BiologicalDataItemResourceType.DOWNLOAD);
@@ -443,7 +377,6 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(vcfFile.getId());
 
     }
-
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
@@ -467,9 +400,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testLoadStructuralVariations()
-            throws IOException, InterruptedException, NoSuchAlgorithmException,
-                   FeatureFileReadingException {
+    public void testLoadStructuralVariations() throws IOException {
         Resource refResource = context.getResource("classpath:templates/A3.fa");
 
         ReferenceRegistrationRequest refRequest = new ReferenceRegistrationRequest();
@@ -511,85 +442,9 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(bindVarInfo.getBindInfo().get("BIND_POS"));
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterGA4GH()
-        throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-               ExternalDbUnavailableException, VcfReadingException {
-
-        String fetchRes1 = readFile("GA4GH_id10473.json");
-        String fetchRes2 = readFile("GA4GH_id10473_variant.json");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
-                .thenReturn(fetchRes1)
-                .thenReturn(fetchRes2);
-
-        String fetchRes5 = readFile("GA4GH_id10473_param.json");
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
-                .thenReturn(fetchRes5);
-
-
-
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        VcfFile vcfFileGA4GH = regesterVcfGA4GH();
-        vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
-        List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
-        Long sampleId = 0L;
-        for (VcfSample sample : vcfSamples) {
-            if (sample.getName().equals(SAMPLE_NAME)) {
-                sampleId = sample.getId();
-            }
-        }
-        Track<Variation> trackResultGA4GH = testLoadGA4GH(vcfFileGA4GH, 1D, true, sampleId);
-
-        VariationQuery query = new VariationQuery();
-        query.setChromosomeId(testChrGA4GH.getId());
-        query.setId(vcfFileGA4GH.getId());
-
-        Assert.assertNotNull(vcfFileGA4GH);
-        Assert.assertNotNull(vcfFileGA4GH.getId());
-        Assert.assertFalse(trackResultGA4GH.getBlocks().isEmpty());
-
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_GOOGLE);
-        request.setReferenceId(referenceIdGA4GH);
-        request.setPath(resource.getFile().getAbsolutePath());
-        request.setType(BiologicalDataItemResourceType.FILE);
-        VcfFile vcfFileFile = vcfManager.registerVcfFile(request);
-        Assert.assertNotNull(vcfFileFile);
-        Assert.assertNotNull(vcfFileFile.getId());
-
-        vcfSamples = vcfFileFile.getSamples();
-        for (VcfSample sample : vcfSamples) {
-            if (sample.getName().equals(SAMPLE_NAME)) {
-                sampleId = sample.getId();
-            }
-        }
-
-        Track<Variation> trackResultFile = testLoadGA4GH(vcfFileFile, 1D, true, sampleId);
-        Assert.assertFalse(trackResultFile.getBlocks().isEmpty());
-
-        Variation varGA4GH = trackResultGA4GH.getBlocks().get(0);
-        Variation varFILE = trackResultFile.getBlocks().get(0);
-
-        Assert.assertEquals(varGA4GH.getInfo().get("AC").getValue(), varFILE.getInfo().get("AC").getValue());
-        Assert.assertEquals(varGA4GH.getGenotypeData().getGenotype().length, varFILE.getGenotypeData().getGenotype()
-                .length);
-        Assert.assertEquals(varGA4GH.getGenotypeData().getOrganismType(), varFILE.getGenotypeData().getOrganismType());
-        Assert.assertEquals(varGA4GH.getGenotypeData().getGenotypeString(), varFILE.getGenotypeData()
-                .getGenotypeString());
-        Assert.assertEquals(varGA4GH.getType(), varFILE.getType());
-        Assert.assertEquals(varGA4GH.getStartIndex(), varFILE.getStartIndex());
-        Assert.assertEquals(varGA4GH.getReferenceAllele(), varFILE.getReferenceAllele());
-        Assert.assertEquals(varGA4GH.getGeneNames(), varFILE.getGeneNames());
-
-    }
-
     @Test(expected = IllegalArgumentException.class)
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testUnregisterVcfFile()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+    public void testUnregisterVcfFile() throws IOException {
         // Register vcf file.
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -663,9 +518,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         getNextFeature(referenceId, BiologicalDataItemResourceType.FILE);
         logger.info("success, next feature variation for file");
-        //test getNextFeature for GA4GH
-        getNextFeature(referenceIdGA4GH, BiologicalDataItemResourceType.GA4GH);
-        logger.info("success, next feature variation for GA4GH");
     }
 
     @Test
@@ -809,10 +661,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                                                                                     // item which is added externally
     }
 
-    private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException,
-                                                                                            InterruptedException,
-                                                                                            NoSuchAlgorithmException,
-                                                                                            VcfReadingException {
+    private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
 
         switch (type) {
