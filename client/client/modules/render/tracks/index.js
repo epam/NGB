@@ -1,10 +1,13 @@
 import {BAMTrack as BAM} from './bam';
 import {BEDTrack as BED} from './bed';
 import {BLASTTrack as BLAST} from './blast';
+import {
+    FeatureCountsTrack as FEATURE_COUNTS
+} from './featureCounts';
 import {GENETrack as GENE} from './gene';
 import {default as HEATMAP} from './heatmap';
-import {FeatureCountsTrack as FEATURE_COUNTS} from './featureCounts';
 import {MAFTrack as MAF} from './maf';
+import {MultiSampleVCFTrack as MultiSampleVCF} from './vcf/multi-sample-vcf';
 import {REFERENCETrack as REFERENCE} from './reference';
 import {RulerTrack as Ruler} from './ruler';
 import {SEGTrack as SEG} from './seg';
@@ -22,6 +25,7 @@ export default {
     Ruler,
     SEG,
     VCF,
+    MultiSampleVCF,
     WIG,
     HEATMAP
 };

@@ -29,6 +29,9 @@ export default class ngbTrackController {
     }
 
     get instanceConstructor() {
+        if (/^vcf$/i.test(this.track.format) && this.track.multiSample) {
+            return trackConstructors.MultiSampleVCF;
+        }
         return trackConstructors[this.track.format];
     }
 

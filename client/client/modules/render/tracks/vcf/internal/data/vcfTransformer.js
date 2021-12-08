@@ -115,24 +115,16 @@ export class VcfTransformer extends GeneTransformer {
 
         variants.forEach(variant => this.addAllelesDescriptions(variant));
         variants = this.combineBubbles(variants, viewport);
-        const hoverData = this.addVariantsLayerIndices(variants);
+        this.addVariantsLayerIndices(variants);
         return {
-            hoverData: hoverData,
             variants: variants,
             viewport: viewport
         };
     }
 
-    transformData(data, viewport) {
-        if (this.collapsed) {
-            return this.transformCollapsedData(data, viewport);
-        }
+    transformExpandedData(data, viewport) {
         if (data === null || data === undefined) {
-            return {
-                statisticsItems: [],
-                variants: [],
-                viewport: viewport
-            };
+            return [];
         }
         data.forEach(x => VcfAnalyzer.analyzeVariant(x, this._chromosome.name));
         let variants = [];
@@ -191,6 +183,13 @@ export class VcfTransformer extends GeneTransformer {
         variants = this.expandBubbles(this.combineBubbles(variants, viewport));
         data = null;
         return variants;
+    }
+
+    transformData(data, viewport) {
+        if (this.collapsed) {
+            return this.transformCollapsedData(data, viewport);
+        }
+        return this.transformExpandedData(data, viewport);
     }
 
     addAllelesDescriptions(variant) {
