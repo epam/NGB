@@ -142,7 +142,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
             }
 
             if (!organismTypes.isEmpty() && organismTypes.stream()
-                    .anyMatch(type -> type.equals(OrganismType.NO_VARIATION))) {
+                    .allMatch(type -> type.equals(OrganismType.NO_VARIATION))) {
                 return;
             }
 
