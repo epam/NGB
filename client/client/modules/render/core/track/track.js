@@ -369,8 +369,8 @@ export class Track extends BaseTrack {
 
     //noinspection JSDuplicatedDeclaration
     set height(val) {
-        const max = typeof this._maxHeight === 'function' ? this._maxHeight(this.state, this.trackConfig) : this._maxHeight;
-        const min = typeof this._minHeight === 'function' ? this._minHeight(this.state, this.trackConfig) : this._minHeight;
+        const max = typeof this._maxHeight === 'function' ? this._maxHeight(this.state, this.trackConfig, this) : this._maxHeight;
+        const min = typeof this._minHeight === 'function' ? this._minHeight(this.state, this.trackConfig, this) : this._minHeight;
         const newHeight = Math.floor(Math.max(Math.min(val, max), min));
 
         if (newHeight === this.height)

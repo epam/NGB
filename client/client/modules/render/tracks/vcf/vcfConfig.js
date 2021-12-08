@@ -1,4 +1,7 @@
+import GeneConfig from '../gene/geneConfig';
+
 export default {
+    ...GeneConfig,
     animation: {
         fade: {
             duration: 0.25,

@@ -65,10 +65,11 @@ export default class VcfRenderer extends CachedTrackRenderer {
         this._linesArea.mask = undefined;
         if (this._mask.length > 0) {
             const mask = new PIXI.Graphics();
+            const global = this.container.getGlobalPosition();
             for (let i = 0; i < this._mask.length; i++) {
                 const rect = this._mask[i];
                 mask.beginFill(0x000000, 1);
-                mask.drawRect(rect.x1 + this._drawScope.translateFactor, rect.y1 + this.container.parent.y, rect.x2 - rect.x1, rect.y2 - rect.y1);
+                mask.drawRect(rect.x1 + this._drawScope.translateFactor, rect.y1 + global.y, rect.x2 - rect.x1, rect.y2 - rect.y1);
                 mask.endFill();
             }
             this._linesArea.mask = mask;

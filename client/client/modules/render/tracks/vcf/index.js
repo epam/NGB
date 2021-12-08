@@ -8,7 +8,6 @@ import {
 import {GENETrack} from '../gene';
 import VcfConfig from './vcfConfig';
 import {VcfDataService} from '../../../../dataServices';
-import GeneConfig from '../gene/geneConfig';
 import {default as menu} from './menu';
 import Menu from '../../core/menu';
 import {variantsView} from './modes';
@@ -27,7 +26,7 @@ export class VCFTrack extends GENETrack {
     projectContext;
 
     static getTrackDefaultConfig() {
-        return Object.assign({}, GeneConfig, VcfConfig);
+        return VcfConfig;
     }
 
     get stateKeys() {
@@ -259,6 +258,44 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         }
     }
 
+    onStatisticsClicked (statisticsContainer: StatisticsContainer) {
+        const length = statisticsContainer.variant.endIndex - statisticsContainer.variant.startIndex;
+        const bubbleExpandFactor = 5;
+        this.moveBrush({
+            end: statisticsContainer.variant.endIndex + length / bubbleExpandFactor,
+            start: statisticsContainer.variant.startIndex - length / bubbleExpandFactor
+        });
+    }
+
+    onVariantContainerClicked (variantContainer: VariantContainer, position) {
+        const mapEndContainersFn = (m) => ({
+            chromosome: m.chromosome || this.config.chromosome.name,
+            chromosomeId: this.dataConfig.chromosomeId,
+            position: m.displayPosition || m.position
+        });
+        const [endPoints] = variantContainer._endContainers
+            .filter(m => m.visible === true)
+            .map(mapEndContainersFn);
+        const variantRequest = new EventVariationInfo(
+            {
+                chromosome: {
+                    id: this.config.chromosome.id,
+                    name: this.config.chromosome.name
+                },
+                endPoints,
+                id: variantContainer._variant.identifier,
+                position: variantContainer._variant.serverStartIndex,
+                type: variantContainer._variant.type,
+                vcfFileId: this.dataConfig.id,
+                projectId: this.config.projectId,
+                projectIdNumber: this.config.project.id
+            }
+        );
+        if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
+            this.dataItemClicked(this, variantRequest, {name: 'variant-request', position});
+        }
+    }
+
     onClick({x, y}) {
         if (this.state.variantsView === variantsView.variantsViewExpanded) {
             const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
@@ -307,40 +344,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         } else {
             const variantContainer = this.renderer.onClick({x, y});
             if (variantContainer && variantContainer instanceof StatisticsContainer) {
-                const length = variantContainer.variant.endIndex - variantContainer.variant.startIndex;
-                const bubbleExpandFactor = 5;
-                this.moveBrush({
-                    end: variantContainer.variant.endIndex + length / bubbleExpandFactor,
-                    start: variantContainer.variant.startIndex - length / bubbleExpandFactor
-                });
+                this.onStatisticsClicked(variantContainer);
             } else if (variantContainer instanceof VariantContainer) {
-                const self = this;
-                const mapEndContainersFn = function (m) {
-                    return {
-                        chromosome: m.chromosome || self.config.chromosome.name,
-                        chromosomeId: self.dataConfig.chromosomeId,
-                        position: m.displayPosition || m.position
-                    };
-                };
-                const [endPoints] = variantContainer._endContainers.filter(m => m.visible === true).map(mapEndContainersFn);
-                const variantRequest = new EventVariationInfo(
-                    {
-                        chromosome: {
-                            id: this.config.chromosome.id,
-                            name: this.config.chromosome.name
-                        },
-                        endPoints,
-                        id: variantContainer._variant.identifier,
-                        position: variantContainer._variant.serverStartIndex,
-                        type: variantContainer._variant.type,
-                        vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId,
-                        projectIdNumber: this.config.project.id
-                    }
-                );
-                if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
-                    this.dataItemClicked(this, variantRequest, {name: 'variant-request', position: {x, y}});
-                }
+                this.onVariantContainerClicked(variantContainer, {x, y});
             }
         }
     }
@@ -379,12 +385,16 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         return true;
     }
 
-    onMouseOut() {
-        super.onMouseOut();
+    unhoverRenderer () {
         this._lastHovered = null;
         if (this.state.variantsView === variantsView.variantsViewCollapsed) {
             this.renderer.onMove();
         }
+    }
+
+    onMouseOut() {
+        super.onMouseOut();
+        this.unhoverRenderer();
         // for correct animations
         this.requestAnimation();
     }
