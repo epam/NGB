@@ -35,27 +35,25 @@ import java.util.List;
 import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_LINEAGE_TREE_MANAGER;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 @RequiredArgsConstructor
 public class LineageTreeSecurityService {
 
-    private static final String READ_TREE_BY_PROJECT_ID =
-            "readOnALineageTreeIsAllowed(#lineageTreeId, #projectId)";
-
     private final LineageTreeManager lineageTreeManager;
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_TREE_BY_PROJECT_ID)
+    @PreAuthorize(ROLE_USER)
     public LineageTree loadLineageTree(final long lineageTreeId, final Long projectId) {
         return lineageTreeManager.loadLineageTree(lineageTreeId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_TREE_BY_PROJECT_ID)
+    @PreAuthorize(ROLE_USER)
     public List<LineageTree> loadLineageTrees(final long referenceId, final Long lineageTreeId, final Long projectId) {
         return lineageTreeManager.loadLineageTrees(referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_LINEAGE_TREE_MANAGER)
+    @PreAuthorize(ROLE_USER)
     public List<LineageTree> loadAllLineageTrees() {
         return lineageTreeManager.loadAllLineageTrees();
     }
