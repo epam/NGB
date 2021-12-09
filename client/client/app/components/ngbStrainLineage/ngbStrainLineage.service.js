@@ -58,11 +58,17 @@ export default class ngbStrainLineageService {
             return aName.localeCompare(bName);
         };
         if (!this.allLineageTrees.length) {
-            this.allLineageTrees = await this.loadAllStrainLineages();
+            this.allLineageTrees = (await this.loadAllStrainLineages()).sort(treeSortFn);
+            if (this.selectedTreeId && !this.allLineageTrees.some(tree => tree.id === this.selectedTreeId)) {
+                this.selectedTreeId = null;
+            }
         }
         if (!referenceId) {
+            if (!this.selectedTreeId) {
+                this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+            }
             return {
-                allData: this.allLineageTrees.sort(treeSortFn),
+                allData: this.allLineageTrees,
                 referenceData: [],
                 error: false
             };
@@ -85,15 +91,21 @@ export default class ngbStrainLineageService {
                     error: false
                 };
             } else {
+                if (!this.selectedTreeId) {
+                    this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+                }
                 return {
-                    allData: this.allLineageTrees.sort(treeSortFn),
+                    allData: this.allLineageTrees,
                     referenceData: [],
                     error: false
                 };
             }
         } catch (e) {
+            if (!this.selectedTreeId) {
+                this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+            }
             return {
-                allData: this.allLineageTrees.sort(treeSortFn),
+                allData: this.allLineageTrees,
                 referenceData: [],
                 error: e.message
             };

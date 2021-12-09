@@ -68,6 +68,10 @@ export default class ngbStrainLineageController extends baseController {
         } else {
             const {allData, referenceData} = await this.ngbStrainLineageService.loadStrainLineages(null);
             this.lineageTreeList = this.constructTreeList(referenceData, allData);
+            if (!this.selectedTreeId) {
+                this.selectedTreeId = this.ngbStrainLineageService.selectedTreeId;
+                await this.onTreeSelect();
+            }
             if (this.projectContext.references.length) {
                 this.loading = false;
             }
