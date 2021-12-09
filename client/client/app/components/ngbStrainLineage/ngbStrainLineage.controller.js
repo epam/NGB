@@ -53,10 +53,10 @@ export default class ngbStrainLineageController extends baseController {
             if (!this.selectedTreeId) {
                 this.loading = true;
             }
-            const {data, error} = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
+            const {allData, referenceData, error} = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
             if (!error) {
                 this.error = false;
-                this.lineageTreeList = data;
+                this.lineageTreeList = this.constructTreeList(referenceData, allData);
                 if (!this.selectedTreeId) {
                     this.selectedTreeId = this.ngbStrainLineageService.selectedTreeId;
                     await this.onTreeSelect();
@@ -66,15 +66,27 @@ export default class ngbStrainLineageController extends baseController {
             }
             this.loading = false;
         } else {
-            if (this.lineageTreeList.length && this.selectedTreeId) {
-                this.ngbStrainLineageService.setCurrentStrainLineageAsList();
-                this.lineageTreeList = this.ngbStrainLineageService.getCurrentStrainLineageAsList();
-            }
+            const {allData, referenceData} = await this.ngbStrainLineageService.loadStrainLineages(null);
+            this.lineageTreeList = this.constructTreeList(referenceData, allData);
             if (this.projectContext.references.length) {
                 this.loading = false;
             }
         }
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    constructTreeList(referenceData, allData) {
+        let result = [];
+        if (referenceData.length) {
+            result = referenceData;
+        }
+        if (result.length && allData.length) {
+            result = result.concat([{divider: true}]);
+        }
+        if (allData.length) {
+            result = result.concat(allData);
+        }
+        return result;
     }
 
     activePanelChanged(o) {

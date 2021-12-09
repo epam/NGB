@@ -224,6 +224,20 @@ export class GenomeDataService extends DataService {
         });
     }
 
+    getAllLineageTrees() {
+        return new Promise((resolve, reject) => {
+            this.get('lineage/trees/all')
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No lineage trees received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
     getLineageTreesByReference(referenceId) {
         return new Promise((resolve, reject) => {
             this.get(`lineage/trees/${referenceId}`)

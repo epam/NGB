@@ -5,7 +5,7 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="strain-lineage-container-error" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length === 0">
-    No strain lineages selected.<br />You can select dataset of reference with lineages
+    No strain lineages found.
 </div>
 <div class="strain-lineage-container" ng-if="!$ctrl.loading && $ctrl.lineageTreeList.length > 0">
     <md-input-container>
@@ -18,8 +18,12 @@
                    ng-change="$ctrl.onTreeSelect()"
                    ng-model="$ctrl.selectedTreeId">
             <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
-                       ng-value="{{tree.id}}">
-                {{tree.prettyName || tree.name}}
+                       ng-value="{{tree.id}}""
+                       ng-class="{'tree-list-divider': tree.divider}"
+                       ng-disabled="tree.divider"
+            >
+                <span ng-if="!tree.divider">{{tree.prettyName || tree.name}}</span>
+                <md-divider ng-if="tree.divider"></md-divider>
             </md-option>
         </md-select>
     </md-input-container>
