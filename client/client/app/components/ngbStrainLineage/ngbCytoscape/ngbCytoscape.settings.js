@@ -18,9 +18,14 @@ export default {
         edge: {
             'curve-style': 'bezier',
             'width': 1,
-            'line-color': '#666',
-            'target-arrow-color': '#666',
-            'target-arrow-shape': 'triangle'
+            'line-color': '#37474F',
+            'target-arrow-color': '#37474F',
+            'target-arrow-shape': 'triangle',
+            'overlay-color': '#4285F4',
+            'overlay-padding': '4px',
+            'underlay-color': '#4285F4',
+            'underlay-padding': '3px',
+            'underlay-opacity': '0'
         },
         edgeLabel: {
             'text-rotation': 'none',
