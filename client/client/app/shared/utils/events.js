@@ -1,6 +1,16 @@
 export class EventVariationInfo {
     constructor(obj) {
-        const {id, vcfFileId, projectId, projectIdNumber, chromosome, type, position, endPoints}=obj;
+        const {
+            id,
+            vcfFileId,
+            projectId,
+            projectIdNumber,
+            chromosome,
+            type,
+            position,
+            endPoints,
+            sample
+        } = obj;
 
         this._id = id;
         this._vcfFileId = vcfFileId;
@@ -10,6 +20,7 @@ export class EventVariationInfo {
         this._type = type;
         this._endPoints = endPoints;
         this._position = position;
+        this._sample = sample;
     }
 
     get id() {
@@ -44,6 +55,9 @@ export class EventVariationInfo {
         return this._position;
     }
 
+    get sample() {
+        return this._sample;
+    }
 }
 
 export class PairReadInfo {

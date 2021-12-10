@@ -267,7 +267,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         });
     }
 
-    onVariantContainerClicked (variantContainer: VariantContainer, position) {
+    onVariantContainerClicked (variantContainer: VariantContainer, position, sample) {
         const mapEndContainersFn = (m) => ({
             chromosome: m.chromosome || this.config.chromosome.name,
             chromosomeId: this.dataConfig.chromosomeId,
@@ -286,6 +286,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 id: variantContainer._variant.identifier,
                 position: variantContainer._variant.serverStartIndex,
                 type: variantContainer._variant.type,
+                sample,
                 vcfFileId: this.dataConfig.id,
                 projectId: this.config.projectId,
                 projectIdNumber: this.config.project.id

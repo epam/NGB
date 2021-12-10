@@ -1,6 +1,26 @@
 import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
 import {VcfTransformer} from './vcfTransformer';
 
+function mergeVariantInfo (variantInfo = {}, ...genotypeInfos) {
+    const result = {
+        ...variantInfo
+    };
+    for (const genotypeInfo of genotypeInfos) {
+        for (const [key, value] of Object.entries(genotypeInfo || {})) {
+            if (result.hasOwnProperty(key)) {
+                if (typeof result[key] === 'object') {
+                    result[key].value = value;
+                } else {
+                    result[key] = {value};
+                }
+            } else {
+                result[key] = {value};
+            }
+        }
+    }
+    return result;
+}
+
 export class MultiSampleVcfTransformer extends VcfTransformer {
     transformData (data, viewport) {
         const coverage = new Map();
@@ -55,7 +75,12 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                 }
                 variantsBySample.variants.push({
                     ...variant,
-                    genotypeData: info
+                    genotypeData: info,
+                    info: mergeVariantInfo(
+                        variant.info,
+                        info.info,
+                        info.extendedAttributes
+                    )
                 });
             }
         }

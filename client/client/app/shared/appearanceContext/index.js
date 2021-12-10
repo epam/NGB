@@ -10,7 +10,6 @@ class AppearanceContext {
     set embedded (value) {
         if (value !== this._embedded) {
             this._embedded = value;
-            console.log('Setting `embedded` mode to', !!value);
             this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded});
         }
     }

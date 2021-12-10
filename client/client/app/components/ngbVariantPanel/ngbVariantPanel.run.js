@@ -13,7 +13,8 @@ export default function run($mdDialog, dispatcher, projectContext) {
                     id: variant.id,
                     type: variant.type,
                     vcfFileId: variant.vcfFileId,
-                    position: variant.position
+                    position: variant.position,
+                    sample: variant.sample
                 };
 
                 $scope.variantRequest = Object.assign({

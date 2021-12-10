@@ -117,7 +117,7 @@ export default class ngbVariantVisualizerService {
                     error: 'Error loading variant info'
                 };
             }
-            const analyzedVariant = VcfAnalyzer.analyzeVariant(variantData, this.chromosome.name);
+            const analyzedVariant = VcfAnalyzer.analyzeVariant(variantData, this.chromosome.name, variant.sample);
             if (analyzedVariant.structural || analyzedVariant.interChromosome) {
                 return await this.analyzeStructuralVariant(analyzedVariant, selectedGeneFile);
             }

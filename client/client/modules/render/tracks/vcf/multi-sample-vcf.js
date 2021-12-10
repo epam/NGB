@@ -474,7 +474,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         return {x, y};
     }
 
-    onVariantClicked (variant, position) {
+    onVariantClicked (variant, position, sample) {
         const variantRequest = new EventVariationInfo(
             {
                 chromosome: {
@@ -484,6 +484,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 id: variant.identifier,
                 position: variant.serverStartIndex,
                 type: variant.type,
+                sample,
                 vcfFileId: this.dataConfig.id,
                 projectId: this.config.projectId,
                 projectIdNumber: this.config.project.id
@@ -509,9 +510,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 if (clickResult && clickResult instanceof StatisticsContainer) {
                     this.onStatisticsClicked(clickResult);
                 } else if (clickResult && clickResult instanceof VariantContainer) {
-                    this.onVariantContainerClicked(clickResult, originalPoint);
+                    this.onVariantContainerClicked(clickResult, originalPoint, sample);
                 } else if (clickResult) {
-                    this.onVariantClicked(clickResult, originalPoint);
+                    this.onVariantClicked(clickResult, originalPoint, sample);
                 }
             }
         }

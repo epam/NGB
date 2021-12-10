@@ -37,7 +37,7 @@ export default class ngbVariantInfoService{
                     this._dataService.getVariantInfo(request)
                         .then(
                             (data) => {
-                                callback(this._mapVariantPropertiesData(data));
+                                callback(this._mapVariantPropertiesData(data, variantRequest));
                             }, () => {
                                 errorCallback(this._constants.errorMessages.errorLoadingVariantInfo);
                             }
@@ -56,12 +56,31 @@ export default class ngbVariantInfoService{
         this._chromosomeName = value ? value : null;
     }
 
-    _mapVariantPropertiesData(variantData){
+    _mapVariantPropertiesData (variantData, variantRequest) {
         const variantProperties = [];
         const wideFlex = 100;
         const commonFlex = 50;
         const trimGenesMaxItems = 5;
         const trimGenesMaxLength = 30;
+        const {sample} = variantRequest || {};
+        const sampleInfo = variantData.genotypeData && sample ? variantData.genotypeData[sample] : undefined;
+        const info = variantData.info;
+        if (sampleInfo) {
+            variantData.genotypeData = sampleInfo;
+            const {
+                info: sInfo = {},
+                extendedAttributes = {}
+            } = sampleInfo;
+            for (const extended of [sInfo, extendedAttributes]) {
+                for (const [key, value] of Object.entries(extended || {})) {
+                    if (info.hasOwnProperty(key)) {
+                        info[key].value = value;
+                    } else {
+                        info[key] = {value};
+                    }
+                }
+            }
+        }
 
         variantProperties.push({
             displayMode: this._constants.displayModes.wide,
@@ -99,6 +118,14 @@ export default class ngbVariantInfoService{
             title: 'Location',
             values: [variantData.startIndex]
         });
+        if (sample) {
+            variantProperties.push({
+                displayMode: this._constants.displayModes.common,
+                flex: commonFlex,
+                title: 'Sample',
+                values: [sample]
+            });
+        }
         variantProperties.push({
             displayMode: this._constants.displayModes.common,
             flex: commonFlex,
@@ -106,23 +133,23 @@ export default class ngbVariantInfoService{
             values: [variantData.quality]
         });
 
-        for (const key in variantData.info) {
-            if (variantData.info.hasOwnProperty(key) && variantData.info[key].type !== 'TABLE') {
+        for (const key in info) {
+            if (info.hasOwnProperty(key) && info[key].type !== 'TABLE') {
                 let values = [];
-                if (Array.isArray(variantData.info[key].value)) {
-                    values = [...utilities.trimArray(variantData.info[key].value)];
+                if (Array.isArray(info[key].value)) {
+                    values = [...utilities.trimArray(info[key].value)];
                 }
                 else {
-                    values = [utilities.trimString(variantData.info[key].value)];
+                    values = [utilities.trimString(info[key].value)];
                 }
 
                 variantProperties.push({
-                    description: variantData.info[key].description,
+                    description: info[key].description,
                     displayMode: this._constants.displayModes.common,
                     flex:  commonFlex,
                     title: key,
                     values: values,
-                    type: variantData.info[key].type
+                    type: info[key].type
                 });
 
             }
@@ -130,29 +157,29 @@ export default class ngbVariantInfoService{
 
         const variantInfoTables = [];
 
-        for (const key in variantData.info) {
-            if (variantData.info.hasOwnProperty(key) && variantData.info[key].type === 'TABLE') {
-                const values = variantData.info[key].value;
+        for (const key in info) {
+            if (info.hasOwnProperty(key) && info[key].type === 'TABLE') {
+                const values = info[key].value;
                 const gridData = [];
                 for (let i = 0; i < values.length; i++) {
                     const data = {};
-                    for (let j = 0; j < variantData.info[key].header.length; j++) {
+                    for (let j = 0; j < info[key].header.length; j++) {
                         data[`header_${j}`] = values[i][j];
                     }
                     gridData.push(data);
                 }
 
                 const columnDefs = [];
-                for (let i = 0; i < variantData.info[key].header.length; i++) {
+                for (let i = 0; i < info[key].header.length; i++) {
                     columnDefs.push({
-                        displayName: variantData.info[key].header[i],
+                        displayName: info[key].header[i],
                         field: `header_${i}`,
                         minWidth: 100
                     });
                 }
 
                 variantInfoTables.push({
-                    description: variantData.info[key].description,
+                    description: info[key].description,
                     title: key,
                     values: {
                         columnDefs: columnDefs,
@@ -161,7 +188,7 @@ export default class ngbVariantInfoService{
                         enableScrollbars: true,
                         data: gridData
                     },
-                    type: variantData.info[key].type
+                    type: info[key].type
                 });
             }
         }

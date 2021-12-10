@@ -15,17 +15,27 @@ export default class VcfAnalyzer{
         }
     }
 
-    static analyzeVariant(variant, currentChromosome){
+    static analyzeVariant(variant, currentChromosome, sample){
         if (variant.analyzed) {
             return variant;
         }
         let zygosity = 0; // unknown
 
+        let organismType;
+
         if (variant.genotypeData && variant.genotypeData.organismType) {
-            switch (variant.genotypeData.organismType.toLowerCase()){
-                case 'homozygous': zygosity = 1; break;
-                case 'heterozygous': zygosity = 2; break;
+            organismType = variant.genotypeData.organismType;
+        } else if (sample && variant.genotypeData[sample]) {
+            organismType = variant.genotypeData[sample].organismType;
+        } else if (variant.genotypeData) {
+            const [firstSample] = Object.values(variant.genotypeData || {});
+            if (firstSample && firstSample.organismType) {
+                organismType = firstSample.organismType;
             }
+        }
+        switch ((organismType || '').toLowerCase()){
+            case 'homozygous': zygosity = 1; break;
+            case 'heterozygous': zygosity = 2; break;
         }
         const result = {
             analyzed: true,
