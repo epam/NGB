@@ -64,6 +64,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'tracks:state:change:blat': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blast': this.panelRemoveBlastSearchPanel.bind(this),
         'variant:show:pair': this.panelAddBrowserWithVariation.bind(this),
+        'browser:open:split:view': this.panelOpenSplitView.bind(this)
     };
 
     $onDestroy() {
@@ -199,10 +200,26 @@ export default class ngbGoldenLayoutController extends baseController {
         }
 
         if (state.panel === this.panels.ngbTracksView) {
-            const {chromosome, position} = state.browserData;
+            const {
+                chromosome,
+                position,
+                viewport = {}
+            } = state.browserData;
+            const {
+                start,
+                end
+            } = viewport;
             const chromosomeName = typeof chromosome === 'object' ? chromosome.name : chromosome;
-            const defTitle = `${chromosomeName} : ${position}`;
-            attr = `browser-id="'${chromosomeName}:${position}'" chromosome-name="'${chromosomeName}'" position="'${position}'" `;
+            const coordinates = start && end ? `${start}-${end}` : position;
+            const defTitle = `${chromosomeName} : ${coordinates}`;
+            attr = [
+                `browser-id="'${chromosomeName}:${coordinates}'"`,
+                `chromosome-name="'${chromosomeName}'"`,
+                position ? `position="${position}"` : undefined,
+                start && end ? `brush-start="${start}"` : undefined,
+                start && end ? `brush-end="${end}"` : undefined
+            ].filter(Boolean).join(' ');
+            attr = attr.concat(' ');
 
             container._config.title = this.$compile(
                 `<ngb-coordinates  ${attr} title="'${defTitle}'"></ngb-coordinates>`)(childScope);
@@ -292,6 +309,26 @@ export default class ngbGoldenLayoutController extends baseController {
             .getItemsByFilter(obj => obj.config && obj.config.componentState
             && obj.config.componentState.panel === this.panels.ngbBrowser);
 
+        if (browserItem) {
+            const stackItem = browserItem.parent;
+
+            if (stackItem.type === 'stack') {
+                const rowItem = stackItem.parent;
+                const index = rowItem.contentItems.indexOf(stackItem);
+
+                rowItem.addChild(newItem, index + 1);
+            }
+        } else {
+            this.addGLItemByPosition(newItem);
+        }
+    }
+
+    panelOpenSplitView(navigation) {
+        this.panelRemoveExtraWindows();
+        const newItem = this.service.createBrowserItemWithPosition(navigation);
+        const [browserItem] = this.goldenLayout.root
+            .getItemsByFilter(obj => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBrowser);
         if (browserItem) {
             const stackItem = browserItem.parent;
 

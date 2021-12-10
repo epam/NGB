@@ -1,8 +1,8 @@
-import baseController from '../../../../shared/baseController';
-import {stringParseInt} from '../../../utils/Int';
+import parseCoordinates, {getCoordinatesText} from './parse-coordinates';
 import $ from 'jquery';
-import angular from 'angular';
 import SearchResults from './ngbCoordinates.search.results';
+import angular from 'angular';
+import baseController from '../../../../shared/baseController';
 
 export default class ngbCoordinatesController extends baseController {
 
@@ -258,14 +258,36 @@ export default class ngbCoordinatesController extends baseController {
         }
     }
 
+    chromosomeKeyUp(event) {
+        if (!event) {
+            return;
+        }
+        if (/^enter$/i.test(event.key)) {
+            this.didTypeChromosome();
+        } else if (/^(esc|escape)$/i.test(event.key)) {
+            this.discardEdit();
+        }
+    }
+
+    coordinatesKeyUp(event) {
+        if (!event) {
+            return;
+        }
+        if (/^enter$/i.test(event.key)) {
+            this.didTypeCoordinates();
+        } else if (/^(esc|escape)$/i.test(event.key)) {
+            this.discardEdit();
+        }
+    }
+
     didTypeCoordinates() {
         (async()=> {
-            const parseResult = this._parseCoordinates();
-            if (!parseResult) {
+            const parseResult = await this._parseCoordinates();
+            if (parseResult) {
                 this._createTitle();
+                this.isChromosomeEditingMode = false;
+                this.isCoordinatesEditingMode = false;
             }
-            this.isChromosomeEditingMode = false;
-            this.isCoordinatesEditingMode = false;
         })();
     }
 
@@ -360,84 +382,41 @@ export default class ngbCoordinatesController extends baseController {
         this._chr = obj;
     }
 
-    _parseCoordinates() {
-        let chrName = null;
-        let start = null;
-        let end = null;
-
+    async _parseCoordinates() {
         //1. '' - should open specified chromosome and range
         if (!this.coordinatesText) {
             if (this.chromosome) {
-                [start, end] = [1, this.chromosome.size];
+                const [start, end] = [1, this.chromosome.size];
                 this.projectContext.changeState({viewport: {end, start}});
                 return true;
             }
             return false;
         }
-
-        // 'x : start-stop' - default
-        //'5 : 217 - 7726'.match(/(([0-9a-zA-Z]*)\D*\:)\D*(\d*)\D*\-\D*(\d*)/)
-        //['5 : 217 - 7726', '5 :', '5', '217', '7726']
-        const regexp_1 = /(([0-9a-zA-Z\D]*)\D*\:)\D*([0-9,. ]*)\D*\-\D*([0-9,. ]*)/;
-
-        //2. 'start-stop' - should open specified range on current chromosome
-        const regexp_2 = /^([0-9,. ]*)\D*\-\D*([0-9,. ]*)$/;
-
-        //3. 'chr:start' - should open specified chromosome and range from start-50bp to start+50bp
-        const regexp_3 = /^([0-9a-zA-Z\D]*)\D*\:\D*([0-9,. ]*)$/;
-
-        //4. 'start' - should open range from start-50bp to start+50bp on current chromosome
-        const regexp_4 = /^[0-9,. ]+$/;
-
-        //5. 'chr:' - should open specified chromosome and range from 1 to end of chromosome
-        const regexp_5 = /^([0-9a-zA-Z\D]*)\D*:$/;
-
-        if (regexp_1.test(this.coordinatesText)) {
-            [, , chrName, start, end] = this.coordinatesText.match(regexp_1);
-        } else if (regexp_2.test(this.coordinatesText)) {
-            [, start, end] = this.coordinatesText.match(regexp_2);
-        } else if (regexp_5.test(this.coordinatesText)) {
-            [, chrName] = this.coordinatesText.match(regexp_5);
-        } else if (regexp_3.test(this.coordinatesText)) {
-            [, chrName, start] = this.coordinatesText.match(regexp_3);
-        } else if (regexp_4.test(this.coordinatesText)) {
-            [start] = this.coordinatesText.match(regexp_4);
-        }
-
-        if (chrName) {
-            chrName = chrName.trim();
-        }
-
-        const chr = (!chrName || (this.chromosome && this.chromosome.name === chrName))
-            ? this.chromosome
-            : this.projectContext.getChromosome({name: chrName});
-
-        if (!chr) {
-            return false;
-        }
-
-        if (start) {
-            start = stringParseInt(start);
-            if (start < 1 || (end !== null && start > end) || start > chr.size) {
-                start = 1;
-            }
-
-            if (end) {
-                end = stringParseInt(end);
-                if (end > chr.size) {
-                    end = chr.size;
+        const [
+            currentBrowser,
+            splitViewBrowser
+        ] = await parseCoordinates(
+            this.coordinatesText,
+            this.projectContext,
+            this.chromosome ? this.chromosome.name : undefined,
+            this.contextMenuItems,
+            this.projectDataService,
+            this.projectContext.reference ? this.projectContext.reference.id : undefined
+        ) || [];
+        if (currentBrowser) {
+            this.coordinatesText = getCoordinatesText(currentBrowser);
+            this.projectContext.changeState(
+                currentBrowser,
+                false,
+                () => {
+                    if (splitViewBrowser && splitViewBrowser.chromosome && this.dispatcher) {
+                        this.dispatcher.emitSimpleEvent('browser:open:split:view', splitViewBrowser);
+                    }
                 }
-            }
-        } else {
-            start = 1;
-            end = chr.size;
+            );
+            return true;
         }
-
-        const viewport = (start && end) ? {end, start} : null;
-        const position = (start && !end) ? start : null;
-
-        this.projectContext.changeState({chromosome: {name: chr.name}, position, viewport});
-        return true;
+        return false;
     }
 }
 

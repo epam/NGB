@@ -75,7 +75,6 @@ export default class ngbShareLinkMenuController extends baseController {
         }
         const fullUrl = this.stateParamsService.createUrl(stateParams);
         this.url = await this.utilsDataService.generateShortUrl(fullUrl, this.alias);
-        console.log(this.embeddedMode, stateParams, this.url);
     }
 
     showState(value) {

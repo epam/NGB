@@ -81,9 +81,13 @@ export default class ngbGoldenLayout {
     }
 
     createBrowserItem(event: EventVariationInfo) {
+        return this.createBrowserItemWithPosition(event.endPoint);
+    }
+
+    createBrowserItemWithPosition(data) {
         const configItem = Object.assign({}, this.layout.Panels.browser);
         configItem.panel = 'ngbTracksView';
-        configItem.browserData = event.endPoint;
+        configItem.browserData = data;
         return this.createItem(configItem);
     }
 
