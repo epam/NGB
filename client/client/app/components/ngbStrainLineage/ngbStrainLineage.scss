@@ -17,8 +17,22 @@
   flex-direction: column;
   box-sizing: border-box;
 }
+
+.tree-list-divider {
+  height: 2px;
+
+  & div {
+    width: 100%;
+
+    md-divider {
+      border-top-color: #000;
+    }
+  }
+}
+
 .tree-container {
   position: relative;
+
   .element-description-container {
     width: 50%;
     max-width: 300px;

@@ -5,7 +5,8 @@ const MAX_TITLE_LENGTH = 15;
 
 export default class ngbStrainLineageService {
 
-    cutLineageTrees = [];
+    referenceLineageTrees = [];
+    allLineageTrees = [];
     currentReferenceId = null;
     _selectedTreeId = null;
 
@@ -41,48 +42,71 @@ export default class ngbStrainLineageService {
         return new ngbStrainLineageService(genomeDataService, dispatcher);
     }
 
-    getUniqueTrees(trees) {
-        return trees.filter((tree, index, self) =>
-            index === self.findIndex((t) => t.id === tree.id)
-        );
+    async loadAllStrainLineages() {
+        try {
+            const data = await this.genomeDataService.getAllLineageTrees();
+            return data ? data.map(this._formatCutListToClient) : [];
+        } catch (e) {
+            return [];
+        }
     }
 
     async loadStrainLineages(referenceId) {
+        const treeSortFn = (a, b) => {
+            const aName = a.prettyName || a.name || '';
+            const bName = b.prettyName || b.name || '';
+            return aName.localeCompare(bName);
+        };
+        if (!this.allLineageTrees.length) {
+            this.allLineageTrees = (await this.loadAllStrainLineages()).sort(treeSortFn);
+            if (this.selectedTreeId && !this.allLineageTrees.some(tree => tree.id === this.selectedTreeId)) {
+                this.selectedTreeId = null;
+            }
+        }
         if (!referenceId) {
-            return [];
+            if (!this.selectedTreeId) {
+                this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+            }
+            return {
+                allData: this.allLineageTrees,
+                referenceData: [],
+                error: false
+            };
         }
         try {
             const data = await this.genomeDataService.getLineageTreesByReference(referenceId);
-            const treeSortFn = (a, b) => {
-                const aName = a.prettyName || a.name || '';
-                const bName = b.prettyName || b.name || '';
-                return aName.localeCompare(bName);
-            };
             if (data) {
-                if (this.selectedTreeId) {
-                    this.cutLineageTrees = this.getUniqueTrees(
-                        this.getCurrentStrainLineageAsList()
-                            .concat(data.map(this._formatCutListToClient))
-                    ).sort(treeSortFn);
-                } else {
-                    this.cutLineageTrees = data
-                        .map(this._formatCutListToClient)
-                        .sort(treeSortFn);
-                    this.selectedTreeId = this.cutLineageTrees.length ? this.cutLineageTrees[0].id : null;
+                this.referenceLineageTrees = data
+                    .map(this._formatCutListToClient)
+                    .sort(treeSortFn);
+                if (!this.selectedTreeId) {
+                    this.selectedTreeId = this.referenceLineageTrees.length ? this.referenceLineageTrees[0].id : null;
                 }
+                const filteredAllLineageTrees = this.allLineageTrees
+                    .filter(tree => !this.referenceLineageTrees.some(refTree => refTree.id === tree.id))
+                    .sort(treeSortFn);
                 return {
-                    data: this.cutLineageTrees,
+                    allData: filteredAllLineageTrees,
+                    referenceData: this.referenceLineageTrees,
                     error: false
                 };
             } else {
+                if (!this.selectedTreeId) {
+                    this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+                }
                 return {
-                    data: [],
+                    allData: this.allLineageTrees,
+                    referenceData: [],
                     error: false
                 };
             }
         } catch (e) {
+            if (!this.selectedTreeId) {
+                this.selectedTreeId = this.allLineageTrees.length ? this.allLineageTrees[0].id : null;
+            }
             return {
-                data: [],
+                allData: this.allLineageTrees,
+                referenceData: [],
                 error: e.message
             };
         }
@@ -98,7 +122,7 @@ export default class ngbStrainLineageService {
 
     _formatTreeToClient(data) {
         const cropTitle = (title, maxLength) =>
-            (title && title.length > maxLength) ? `${title.substring(0, maxLength - 1)  }...` : title;
+            (title && title.length > maxLength) ? `${title.substring(0, maxLength - 1)}...` : title;
         const formatNodes = (node = []) => ({
             data: {
                 id: `n_${node.lineageTreeNodeId}`,
@@ -155,11 +179,7 @@ export default class ngbStrainLineageService {
     }
 
     getCurrentStrainLineageAsList() {
-        return this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
-    }
-
-    setCurrentStrainLineageAsList() {
-        this.cutLineageTrees = this.cutLineageTrees.filter(tree => tree.id === this.selectedTreeId);
+        return this.allLineageTrees.filter(tree => tree.id === this.selectedTreeId);
     }
 
     getOpenReferencePayload(context, referenceObj) {

@@ -1,7 +1,9 @@
 <section layout="column" ng-cloak>
-    <md-button class="md-raised" ng-click="$ctrl.zoomIn()">+</md-button>
+    <md-button class="md-raised" ng-click="$ctrl.zoomIn()"
+               ng-disabled="!$ctrl.actionsManager.canZoomIn">+</md-button>
     <md-divider md-inset="true"></md-divider>
-    <md-button class="md-raised" ng-click="$ctrl.zoomOut()">-</md-button>
+    <md-button class="md-raised" ng-click="$ctrl.zoomOut()"
+               ng-disabled="!$ctrl.actionsManager.canZoomOut">-</md-button>
     <md-button aria-label="restore default"
                class="md-raised restore"
                ng-click="$ctrl.restoreDefault()">
