@@ -3,14 +3,16 @@ import Cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import dom_node from 'cytoscape-dom-node';
 
-const SELECTED_COLOR = '#2c4f9e';
-const SELECTED_WIDTH = 3;
+const SELECTED_COLOR = '#4285F4';
+const SELECTED_WIDTH = 1;
+const SELECTED_OPACITY = 0.2;
 
 const clearEdgesSelectionStyle = (cy, settings) => {
     if (cy && settings) {
         cy.edges().css('width', settings.style.edge.width);
         cy.edges().css('line-color', settings.style.edge['line-color']);
         cy.edges().css('target-arrow-color', settings.style.edge['target-arrow-color']);
+        cy.edges().css('underlay-opacity', settings.style.edge['underlay-opacity']);
     }
 };
 
@@ -18,6 +20,7 @@ const setEdgeSelectionStyle = edge => {
     edge.css('width', SELECTED_WIDTH);
     edge.css('line-color', SELECTED_COLOR);
     edge.css('target-arrow-color', SELECTED_COLOR);
+    edge.css('underlay-opacity', SELECTED_OPACITY);
 };
 
 export default class ngbCytoscapeController {
