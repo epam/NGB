@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -554,7 +554,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             params.addValue(REFERENCE_GENOME_ID.name(), featureFile.getReferenceId());
             params.addValue(INDEX_ID.name(), featureFile.getIndex() != null ? featureFile.getIndex().getId() : null);
             params.addValue(COMPRESSED.name(), featureFile.getCompressed());
-            params.addValue(MULTI_SAMPLE.name(), featureFile.getMultiSample());
+
+            if (featureFile instanceof VcfFile) {
+                VcfFile vcfFile = (VcfFile) featureFile;
+                params.addValue(MULTI_SAMPLE.name(), vcfFile.getMultiSample());
+            }
 
             if (featureFile instanceof GeneFile) {
                 GeneFile geneFile = (GeneFile) featureFile;

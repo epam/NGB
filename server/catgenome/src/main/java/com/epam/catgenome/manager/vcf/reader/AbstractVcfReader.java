@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 
 package com.epam.catgenome.manager.vcf.reader;
+
+import static com.epam.catgenome.entity.BiologicalDataItemResourceType.GA4GH;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,15 +74,17 @@ public abstract class AbstractVcfReader implements VcfReader {
 
     /**
      * Factory method for creating a {@code VcfReader} instance according to the data resource type.
-     * File system is supported for VCF files.
+     * File system and GA4GH services are supported for VCF files.
      * @param resourceType determines the class of created {@code VcfReader}
+     * @param httpDataManager for access to VCF data in the GA4GH service
      * @param fileManager for access to VCF file in the file system
      * @param referenceGenomeManager for loading reference data
      * @return a {@code VcfReader} instance for reading VCF data
      */
     public static VcfReader createVcfReader(final BiologicalDataItemResourceType resourceType, final HttpDataManager
             httpDataManager, final FileManager fileManager, final ReferenceGenomeManager referenceGenomeManager) {
-        return new VcfFileReader(fileManager, referenceGenomeManager);
+        return resourceType == GA4GH ? new VcfGa4ghReader(httpDataManager, referenceGenomeManager) :
+                new VcfFileReader(fileManager, referenceGenomeManager);
     }
 
     /**

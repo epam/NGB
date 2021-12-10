@@ -1612,10 +1612,10 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final IndexSearchResult<VcfIndexEntry> res1 = featureIndexManager.filterVariations(form);
         final long mnpCount = res1.getEntries().stream()
                 .filter(e -> e.getVariationTypes().contains(VariationType.MNP))
-                .count() * samplesVcf.getSamples().size();
+                .count();
         final long insCount = res1.getEntries().stream()
                 .filter(e -> e.getVariationTypes().contains(VariationType.INS))
-                .count() * samplesVcf.getSamples().size();
+                .count();
 
         final List<Group> variationTypes =
                 featureIndexManager.groupVariations(form, FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name());

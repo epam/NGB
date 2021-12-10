@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -187,7 +187,14 @@ public class VcfFileReader extends AbstractVcfReader {
         return genotype.getGenotypeString().equals(NO_STRAIN_GENOTYPE_STRING);
     }
 
-    @NotNull private static Map<String, GenotypeData> getGenotypeData(final VariantContext context) {
+    public static boolean isVariation(final Variation variation) {
+        return variation.getGenotypeData() == null || variation.getGenotypeData().isEmpty() ||
+                variation.getGenotypeData().values().stream()
+                        .anyMatch(g -> !g.getOrganismType().equals(OrganismType.NO_VARIATION));
+    }
+
+    @NotNull
+    private static Map<String, GenotypeData> getGenotypeData(final VariantContext context) {
         final Map<String, GenotypeData> genotypeDataMap = new HashMap<>();
         for (String sampleName: context.getSampleNames()) {
             Genotype genotype = context.getGenotype(sampleName);
@@ -365,12 +372,6 @@ public class VcfFileReader extends AbstractVcfReader {
         } else {
             return loadStatisticVariations(iterator, track, header, vcfFile, sampleIndex, loadInfo);
         }
-    }
-
-    private static boolean isVariation(Variation variation) {
-        return variation.getGenotypeData() == null || variation.getGenotypeData().isEmpty() ||
-                variation.getGenotypeData().values().stream()
-                        .anyMatch(g -> !g.getOrganismType().equals(OrganismType.NO_VARIATION));
     }
 
     private List<Variation> loadStatisticVariations(CloseableIterator<VariantContext> iterator, Track<Variation>
@@ -606,7 +607,8 @@ public class VcfFileReader extends AbstractVcfReader {
         }
     }
 
-    @NotNull private static VariationType getVariationTypeFromAlleles(VariantContext context,
+    @NotNull
+    private static VariationType getVariationTypeFromAlleles(VariantContext context,
             Genotype genotype) {
         if (genotype.getAlleles().size() > 1) { // Complex deletion/insertion
             if (genotype.getAllele(0).isReference() ^ genotype.getAllele(1).isReference()) { // if one is reference
@@ -619,7 +621,8 @@ public class VcfFileReader extends AbstractVcfReader {
         }
     }
 
-    @NotNull private static VariationType getVariationTypeForSimpleInDels(VariantContext context,
+    @NotNull
+    private static VariationType getVariationTypeForSimpleInDels(VariantContext context,
             Genotype genotype) {
         Allele firstAllele = genotype.getAllele(0);
         Allele secondAllele = genotype.getAllele(1);
@@ -642,7 +645,8 @@ public class VcfFileReader extends AbstractVcfReader {
         return type;
     }
 
-    @NotNull private static VariationType getVariationTypeForComplexInDels(Genotype genotype) {
+    @NotNull
+    private static VariationType getVariationTypeForComplexInDels(Genotype genotype) {
         Allele firstAllele = genotype.getAllele(0);
         Allele secondAllele = genotype.getAllele(1);
         if (firstAllele.length() == secondAllele.length()) { // if it is a change

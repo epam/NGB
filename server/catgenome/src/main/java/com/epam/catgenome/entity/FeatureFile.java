@@ -47,7 +47,6 @@ public class FeatureFile extends IndexedDataItem {
     private Long bioDataItemId;
     @JsonIgnore
     private Boolean compressed;
-    private Boolean multiSample;
 
     public Long getReferenceId() {
         return referenceId;

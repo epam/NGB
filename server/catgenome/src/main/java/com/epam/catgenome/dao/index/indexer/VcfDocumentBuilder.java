@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,12 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
 
     private List<String> vcfInfoFields;
 
-    @Override protected void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
+    public void setVcfInfoFields(List<String> vcfInfoFields) {
+        this.vcfInfoFields = vcfInfoFields;
+    }
+
+    @Override
+    protected void addExtraFeatureFields(final Document document, final VcfIndexEntry entry) {
         document.add(new SortedStringField(
                 FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 entry.getVariationType().name()));
@@ -93,15 +98,16 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
 
         document.add(
                 new SortedStringField(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(),
-                        entry.getExon().toString()));
+                        entry.getIsExon().toString()));
 
         if (entry.getInfo() != null) {
             addVcfDocumentInfoFields(document, entry);
         }
     }
 
-    @Override protected Set<String> getRequiredFields() {
-        Set<String> requiredFields = new HashSet<>();
+    @Override
+    protected Set<String> getRequiredFields() {
+        final Set<String> requiredFields = new HashSet<>();
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName());
@@ -118,8 +124,9 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
         return requiredFields;
     }
 
-    @Override protected VcfIndexEntry createSpecificEntry(Document doc) {
-        VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
+    @Override
+    protected VcfIndexEntry createSpecificEntry(final Document doc) {
+        final VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
         vcfIndexEntry.setGene(doc.get(FeatureIndexDao.FeatureIndexFields.GENE_ID.getFieldName()));
 
         BytesRef bytes =
@@ -146,12 +153,12 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
                 isExonStr = bytes.utf8ToString();
             }
         }
-        boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
-        vcfIndexEntry.setExon(isExon);
+        final boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
+        vcfIndexEntry.setIsExon(isExon);
         vcfIndexEntry.getInfo()
                 .put(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(), isExon);
 
-        BytesRef featureIdBytes = doc.getBinaryValue(
+        final BytesRef featureIdBytes = doc.getBinaryValue(
                 FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName());
         if (featureIdBytes != null) {
             vcfIndexEntry.setVariationType(
@@ -180,7 +187,7 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
         return vcfIndexEntry;
     }
 
-    private void addVcfDocumentInfoFields(Document document, VcfIndexEntry vcfIndexEntry) {
+    private void addVcfDocumentInfoFields(final Document document, final VcfIndexEntry vcfIndexEntry) {
         for (Map.Entry<String, Object> info : vcfIndexEntry.getInfo().entrySet()) {
             if (VIEW_FIELD_PATTERN.matcher(info.getKey())
                     .matches()) { //view fields are for view purposes
@@ -231,9 +238,5 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
                 }
             }
         }
-    }
-
-    public void setVcfInfoFields(List<String> vcfInfoFields) {
-        this.vcfInfoFields = vcfInfoFields;
     }
 }

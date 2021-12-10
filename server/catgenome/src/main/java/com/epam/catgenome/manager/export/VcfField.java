@@ -39,7 +39,7 @@ public enum VcfField {
     IMPACT("impact", "Impact", o -> String.valueOf(o.getImpact())),
     EFFECT("effect", "Effect", o -> String.valueOf(o.getEffect())),
     QUALITY("quality", "Quality", o -> String.valueOf(o.getQuality())),
-    IS_EXON("isExon", "Exon", o -> String.valueOf(o.getExon())),
+    IS_EXON("isExon", "Exon", o -> String.valueOf(o.getIsExon())),
     START_INDEX("startIndex", "Position From", o -> String.valueOf(o.getStartIndex())),
     END_INDEX("endIndex", "Position To", o -> String.valueOf(o.getEndIndex())),
     FEATURE_ID("featureId", "Id", o -> String.valueOf(o.getFeatureId())),

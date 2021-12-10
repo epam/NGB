@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package com.epam.catgenome.dao.index.indexer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,9 +48,9 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.Utils;
+import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -59,6 +58,7 @@ import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,12 +78,12 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     private FacetsConfig facetsConfig;
     private VcfFile vcfFile;
 
-    public BigVcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader,
-            FeatureIndexDao featureIndexDao, VcfFile featureFile,
-            FileManager fileManager, List<GeneFile> geneFiles, Integer indexBufferSize) throws IOException {
+    public BigVcfFeatureIndexBuilder(final VcfFilterInfo filterInfo, final VCFHeader vcfHeader,
+            final FeatureIndexDao featureIndexDao, final VcfFile featureFile, final FileManager fileManager,
+            final List<GeneFile> geneFiles, final Integer indexBufferSize) throws IOException {
         super(filterInfo, vcfHeader, featureIndexDao);
         this.analyzer = new StandardAnalyzer();
-        Directory index = fileManager.createIndexForFile(featureFile);
+        final Directory index = fileManager.createIndexForFile(featureFile);
         this.writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                 IndexWriterConfig.OpenMode.CREATE_OR_APPEND).setRAMBufferSizeMB(indexBufferSize));
         this.geneFiles = geneFiles;
@@ -93,16 +93,16 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     }
 
     @Override
-    protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<VariationGeneInfo> geneIds,
-            String geneIdsString, String geneNamesString, Set<VariationType> types) {
+    protected List<VcfIndexEntry> simplify(final VcfIndexEntry indexEntry, final Set<VariationGeneInfo> geneIds,
+            final String geneIdsString, final String geneNamesString, final Set<VariationType> types) {
         indexEntry.setGeneIds(geneIdsString);
         indexEntry.setGeneNames(geneNamesString);
         indexEntry.setVariationTypes(types);
         indexEntry.setVariationType(types.stream().findFirst().orElse(VariationType.UNK));
         indexEntry.setFailedFilters(indexEntry.getVariantContext().getFilters());
 
-        List<String> geneIdList = new ArrayList<>(geneIds.size());
-        List<String> geneNameList = new ArrayList<>(geneIds.size());
+        final List<String> geneIdList = new ArrayList<>(geneIds.size());
+        final List<String> geneNameList = new ArrayList<>(geneIds.size());
         for (VariationGeneInfo i : geneIds) {
             geneIdList.add(i.geneId);
             geneNameList.add(i.geneName);
@@ -114,11 +114,11 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
         return Collections.singletonList(indexEntry);
     }
 
-    @Override public void add(VariantContext context, Map<String, Chromosome> chromosomeMap) {
+    @Override
+    public void add(final VariantContext context, final Map<String, Chromosome> chromosomeMap) {
         if (chromosomeMap.containsKey(context.getContig()) || chromosomeMap
                 .containsKey(Utils.changeChromosomeName(context.getContig()))) {
-            Chromosome chromosome =
-                    Utils.getFromChromosomeMap(chromosomeMap, context.getContig());
+            final Chromosome chromosome = Utils.getFromChromosomeMap(chromosomeMap, context.getContig());
             VcfIndexEntry masterEntry = new VcfIndexEntry();
             masterEntry.setUuid(UUID.randomUUID());
             masterEntry.setFeatureId(context.getID());
@@ -129,12 +129,13 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
             masterEntry.setFeatureType(FeatureType.VARIATION);
             masterEntry.setInfo(filterInfoByWhiteList(context, getFilterInfo(), getVcfHeader()));
             masterEntry.setVariantContext(context);
+            masterEntry.setSampleNames(getSampleNames(context));
 
-            double qual = context.getPhredScaledQual();
+            final double qual = context.getPhredScaledQual();
             masterEntry.setQuality(
                     MathUtils.equals(qual, VcfManager.HTSJDK_WRONG_QUALITY) ? 0D : qual);
 
-            List<OrganismType> organismTypes = new ArrayList<>();
+            final List<OrganismType> organismTypes = new ArrayList<>();
             for (int i = 0; i < context.getAlternateAlleles().size(); i++) {
                 Variation variation = VcfFileReader.createVariation(context, getVcfHeader(), i);
                 organismTypes.addAll(variation.getGenotypeData().values().stream()
@@ -146,31 +147,22 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
                 return;
             }
 
-            if (CollectionUtils.isEmpty(context.getSampleNames())) {
-                VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
-                Document document = creator.buildDocument(indexEntry, vcfFile.getId());
-                try {
-                    writer.addDocument(facetsConfig.build(document));
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Failed to create index");
-                }
-            } else {
-                for (String sampleName: context.getSampleNames()) {
-                    if (!isEmptyStrain(context.getGenotype(sampleName))) {
-                        Set<String> sampleNames = new HashSet<>();
-                        sampleNames.add(sampleName);
-                        masterEntry.setSampleNames(sampleNames);
-                        VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
-                        Document document = creator.buildDocument(indexEntry, vcfFile.getId());
-                        try {
-                            writer.addDocument(facetsConfig.build(document));
-                        } catch (IOException e) {
-                            throw new IllegalArgumentException("Failed to create index");
-                        }
-                    }
-                }
+            final VcfIndexEntry indexEntry = build(masterEntry, geneFiles, chromosome);
+            final Document document = creator.buildDocument(indexEntry, vcfFile.getId());
+            try {
+                writer.addDocument(facetsConfig.build(document));
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Failed to create index");
             }
         }
+    }
+
+    @NotNull
+    public static Set<String> getSampleNames(final VariantContext context) {
+        return context.getGenotypes().stream()
+                .filter(g -> !isEmptyStrain(g))
+                .map(Genotype::getSampleName)
+                .collect(Collectors.toSet());
     }
 
     public void close() {

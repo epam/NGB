@@ -182,7 +182,7 @@ public class FeatureIndexDao {
         FEATURE_NAME("featureName"),
 
         VARIATION_TYPE("variationType"),
-        SAMPLE_NAME("sampleName"),
+        SAMPLE_NAMES("sampleNames"),
         FAILED_FILTER("failedFilter"),
         GENE_ID("geneId"),
         GENE_IDS("geneIds"), // gene Ids, concatenated by comma
@@ -239,17 +239,17 @@ public class FeatureIndexDao {
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
                                         final List<? extends FeatureIndexEntry> entries,
-                                        VcfFilterInfo vcfFilterInfo) throws IOException {
+                                        final VcfFilterInfo vcfFilterInfo) throws IOException {
         try (
             StandardAnalyzer analyzer = new StandardAnalyzer();
             Directory index = fileManager.createIndexForFile(featureFile);
             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                 IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
-            AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
+            final AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
                     entries.isEmpty() ? new FeatureIndexEntry() : entries.get(0));
 
-            FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
+            final FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
 
             for (FeatureIndexEntry entry : entries) {
                 Document document = creator.buildDocument(entry, featureFile.getId());
@@ -260,12 +260,12 @@ public class FeatureIndexDao {
 
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
                                         final List<? extends FeatureIndexEntry> entries,
-                                        VcfFilterInfo vcfFilterInfo,
+                                        final VcfFilterInfo vcfFilterInfo,
                                         final IndexWriter writer) throws IOException {
-        AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
+        final AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
                 entries.isEmpty() ? new FeatureIndexEntry() : entries.get(0));
 
-        FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
+        final FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
 
         for (FeatureIndexEntry entry : entries) {
             Document document = creator.buildDocument(entry, featureFile.getId());
@@ -273,10 +273,8 @@ public class FeatureIndexDao {
         }
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
-            FeatureFile featureFile,
-            Integer maxResultsCount)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId, final FeatureFile featureFile,
+            final Integer maxResultsCount) throws IOException {
         return searchFeatures(featureId, Collections.singletonList(featureFile), maxResultsCount);
     }
 
@@ -320,17 +318,16 @@ public class FeatureIndexDao {
                                                                          SortField.Type.STRING)));
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInInterval(List<? extends FeatureFile> files, int start,
-            int end, Chromosome chromosome)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInInterval(final List<? extends FeatureFile> files,
+                     final int start, final int end, final Chromosome chromosome) throws IOException {
 
-        List<? extends FeatureFile> indexedFiles =
+        final List<? extends FeatureFile> indexedFiles =
                 files.stream().filter(f -> fileManager.indexForFeatureFileExists(f))
                         .collect(Collectors.toList());
         if (indexedFiles.isEmpty()) {
             return IndexSearchResult.empty();
         }
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -357,10 +354,10 @@ public class FeatureIndexDao {
      * @throws FeatureIndexException if something goes wrong
      */
     @Deprecated
-    public IndexSearchResult searchLuceneIndexForProject(final long projectId, String query,
-                                                     List<String> vcfInfoFields) throws FeatureIndexException {
+    public IndexSearchResult searchLuceneIndexForProject(final long projectId, final String query,
+                                                     final List<String> vcfInfoFields) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
-            QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
+            final QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return searchLuceneIndexForProject(projectId, queryParser.parse(query), vcfInfoFields);
         } catch (IOException | ParseException e) {
             throw new FeatureIndexException("Failed to perform index search for project " + projectId, e);
@@ -378,8 +375,8 @@ public class FeatureIndexDao {
      * @throws IOException
      */
     @Deprecated
-    public IndexSearchResult searchLuceneIndexForProject(final long projectId, Query query,
-                                                                     List<String> vcfInfoFields) throws IOException {
+    public IndexSearchResult searchLuceneIndexForProject(final long projectId, final Query query,
+                                                         final List<String> vcfInfoFields) throws IOException {
         return searchLuceneIndexForProject(projectId, query, vcfInfoFields, null, null);
     }
 
@@ -393,10 +390,9 @@ public class FeatureIndexDao {
      * @throws IOException
      */
     @Deprecated
-    private IndexSearchResult searchLuceneIndexForProject(final long projectId, Query query,
-                                             List<String> vcfInfoFields, Integer maxResultsCount, Sort sort) throws
-            IOException {
-        Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
+    private IndexSearchResult searchLuceneIndexForProject(final long projectId, final Query query,
+                                  final List<String> vcfInfoFields, final Integer maxResultsCount, final Sort sort) {
+        final Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
         int totalHits = 0;
         try (
@@ -407,9 +403,9 @@ public class FeatureIndexDao {
                 return IndexSearchResult.empty();
             }
 
-            IndexSearcher searcher = new IndexSearcher(reader);
+            final IndexSearcher searcher = new IndexSearcher(reader);
             final TopDocs docs;
-            int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
+            final int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
             if (sort == null) {
                 docs = searcher.search(query, resultsCount);
             } else {
@@ -419,8 +415,8 @@ public class FeatureIndexDao {
             totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
-            Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
+            final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
+            final AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     BiologicalDataItemFormat.VCF, vcfInfoFields);
             createIndexEntries(hits, entryMap, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
@@ -442,8 +438,8 @@ public class FeatureIndexDao {
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws FeatureIndexException if something is wrong in the filesystem or query syntax is wrong
      */
-    public IndexSearchResult searchFileIndexes(List<? extends FeatureFile> files, String query,
-                                                         List<String> vcfInfoFields) throws FeatureIndexException {
+    public IndexSearchResult searchFileIndexes(final List<? extends FeatureFile> files, final String query,
+                                                     final List<String> vcfInfoFields) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
             QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return searchFileIndexes(files, queryParser.parse(query), vcfInfoFields, null, null);
@@ -520,31 +516,30 @@ public class FeatureIndexDao {
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws IOException if something is wrong in the filesystem
      */
-    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(List<? extends FeatureFile> files,
-                                                                                Query query, List<String> vcfInfoFields,
-                                                                                Integer maxResultsCount, Sort sort)
+    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(final List<? extends FeatureFile> files,
+                final Query query, final List<String> vcfInfoFields, final Integer maxResultsCount, final Sort sort)
         throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return IndexSearchResult.empty();
         }
 
-        Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
+        final Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return IndexSearchResult.empty();
             }
 
-            IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final TopDocs docs = performSearch(searcher, query, reader, maxResultsCount, sort);
 
-            int totalHits = docs.totalHits;
+            final int totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
-            Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
+            final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
+            final AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
             createIndexEntries(hits, entryMap, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
@@ -565,8 +560,7 @@ public class FeatureIndexDao {
      * @return {@link GeneIndexEntry} if such document exists
      * @throws IOException if something is wrong in the filesystem
      */
-    public GeneIndexEntry searchGeneFeatureByUid(final GeneFile featureFile, final String uid)
-            throws IOException {
+    public GeneIndexEntry searchGeneFeatureByUid(final GeneFile featureFile, final String uid) throws IOException {
         final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
         final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
         try (MultiReader reader = openMultiReader(indexes)) {
@@ -636,13 +630,14 @@ public class FeatureIndexDao {
         return geneContent;
     }
 
-    public int getTotalVariationsCountFacet(List<? extends FeatureFile> files, Query query) throws IOException {
+    public int getTotalVariationsCountFacet(final List<? extends FeatureFile> files, final Query query)
+            throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return 0;
         }
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
-        long totalIndexSize = getTotalIndexSize(indexes);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
             closeIndices(indexes);
             return 0;
@@ -653,13 +648,13 @@ public class FeatureIndexDao {
                 return 0;
             }
 
-            FacetsCollector facetsCollector = new FacetsCollector();
-            IndexSearcher searcher = new IndexSearcher(reader);
+            final FacetsCollector facetsCollector = new FacetsCollector();
+            final IndexSearcher searcher = new IndexSearcher(reader);
             searcher.search(query, facetsCollector);
 
-            Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
+            final Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
                                                            FeatureIndexFields.FACET_UID.fieldName), facetsCollector);
-            FacetResult res = facets.getTopChildren(reader.numDocs(), FeatureIndexFields.F_UID.getFieldName());
+            final FacetResult res = facets.getTopChildren(reader.numDocs(), FeatureIndexFields.F_UID.getFieldName());
             if (res == null) {
                 return 0;
             }
@@ -673,18 +668,18 @@ public class FeatureIndexDao {
     public Sort createVcfSorting(final List<VcfFilterForm.OrderBy> orderBy,
                                  final List<? extends FeatureFile> files) throws IOException {
         if (CollectionUtils.isNotEmpty(orderBy)) {
-            ArrayList<SortField> sortFields = new ArrayList<>();
+            final ArrayList<SortField> sortFields = new ArrayList<>();
             for (VcfFilterForm.OrderBy o : orderBy) {
-                VcfIndexSortField sortField = VcfIndexSortField.getByName(o.getField());
+                final VcfIndexSortField sortField = VcfIndexSortField.getByName(o.getField());
                 if (sortField == null) {
-                    VcfFilterInfo info = vcfManager.getFiltersInfo(
+                    final VcfFilterInfo info = vcfManager.getFiltersInfo(
                             files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
 
-                    InfoItem infoItem = info.getInfoItemMap().get(o.getField());
+                    final InfoItem infoItem = info.getInfoItemMap().get(o.getField());
                     Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
 
-                    SortField.Type type = determineSortType(infoItem);
-                    SortField sf =
+                    final SortField.Type type = determineSortType(infoItem);
+                    final SortField sf =
                             new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
 
                     setMissingValuesOrder(sf, type, o.isDesc());
@@ -728,9 +723,9 @@ public class FeatureIndexDao {
 
                     sortFields.add(sf);
                 } else {
-                    if(getAvailableFieldsToSearch(featureFiles).getAvailableFilters().contains(o.getField())) {
-                        SortField.Type type = SortField.Type.STRING;
-                        SortField sf = new SortedSetSortField(o.getField(), o.isDesc());
+                    if (getAvailableFieldsToSearch(featureFiles).getAvailableFilters().contains(o.getField())) {
+                        final SortField.Type type = SortField.Type.STRING;
+                        final SortField sf = new SortedSetSortField(o.getField(), o.isDesc());
                         setMissingValuesOrder(sf, type, o.isDesc());
                         sortFields.add(sf);
                     }
@@ -782,15 +777,16 @@ public class FeatureIndexDao {
      * @return a {@link List} of {@link Group}s, mapping field value to number of variations, having this value
      * @throws IOException if something goes wrong with the file system
      */
-    public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
-        List<Group> res = new ArrayList<>();
+    public List<Group> groupVariations(final List<VcfFile> files, final Query query, final String groupBy)
+            throws IOException {
+        final List<Group> res = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(files)) {
             return Collections.emptyList();
         }
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
-        long totalIndexSize = getTotalIndexSize(indexes);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
             closeIndices(indexes);
             throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_FEATURE_INEDX_TOO_LARGE));
@@ -801,16 +797,16 @@ public class FeatureIndexDao {
                 return Collections.emptyList();
             }
 
-            IndexSearcher searcher = new IndexSearcher(reader);
+            final IndexSearcher searcher = new IndexSearcher(reader);
 
-            String groupByField = getGroupByField(files, groupBy);
-            SortedSetDocValuesReaderState state = new DefaultSortedSetDocValuesReaderState(reader,
+            final String groupByField = getGroupByField(files, groupBy);
+            final SortedSetDocValuesReaderState state = new DefaultSortedSetDocValuesReaderState(reader,
                     FeatureIndexFields.getFacetName(groupByField));
-            FacetsCollector collector = new FacetsCollector();
+            final FacetsCollector collector = new FacetsCollector();
             FacetsCollector.search(searcher, query, 10, collector);
 
-            Facets facets = new SortedSetDocValuesFacetCounts(state, collector);
-            FacetResult result = facets.getTopChildren(reader.numDocs(), groupByField);
+            final Facets facets = new SortedSetDocValuesFacetCounts(state, collector);
+            final FacetResult result = facets.getTopChildren(reader.numDocs(), groupByField);
             for (int i = 0; i < result.childCount; i++) {
                 LabelAndValue lv = result.labelValues[i];
                 res.add(new Group(lv.label, lv.value.intValue()));
@@ -822,7 +818,7 @@ public class FeatureIndexDao {
         return res;
     }
 
-    public long getTotalIndexSize(SimpleFSDirectory[] indexes) throws IOException {
+    public long getTotalIndexSize(final SimpleFSDirectory[] indexes) throws IOException {
         long totalIndexSize = 0;
         for (SimpleFSDirectory index : indexes) {
             totalIndexSize += getTotalIndexSize(index);
@@ -830,9 +826,9 @@ public class FeatureIndexDao {
         return totalIndexSize;
     }
 
-    private long getTotalIndexSize(Directory index) throws IOException {
+    private long getTotalIndexSize(final Directory index) throws IOException {
         long totalFileSize = 0L;
-        String[] files = index.listAll();
+        final String[] files = index.listAll();
         if (files == null) {
             return 0;
         }
@@ -842,13 +838,13 @@ public class FeatureIndexDao {
         return totalFileSize;
     }
 
-    private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
-        VcfIndexSortField sortField = VcfIndexSortField.getByName(groupBy);
+    private String getGroupByField(final List<VcfFile> files, final String groupBy) throws IOException {
+        final VcfIndexSortField sortField = VcfIndexSortField.getByName(groupBy);
         if (sortField == null) {
-            VcfFilterInfo info = vcfManager.getFiltersInfo(
+            final VcfFilterInfo info = vcfManager.getFiltersInfo(
                     files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
 
-            InfoItem infoItem = info.getInfoItemMap().get(groupBy);
+            final InfoItem infoItem = info.getInfoItemMap().get(groupBy);
             Assert.notNull(infoItem, "Unknown sort field: " + groupBy);
 
             if (infoItem.getType() == VCFHeaderLineType.Integer
@@ -867,21 +863,20 @@ public class FeatureIndexDao {
         }
     }
 
-    public MultiReader openMultiReader(SimpleFSDirectory[] indexes) throws IOException {
-        IndexReader[] readers = new IndexReader[indexes.length];
+    public MultiReader openMultiReader(final SimpleFSDirectory[] indexes) throws IOException {
+        final IndexReader[] readers = new IndexReader[indexes.length];
         for (int i = 0; i < indexes.length; i++) {
             readers[i] = DirectoryReader.open(indexes[i]);
         }
-
         return new MultiReader(readers, true);
     }
 
 
-    public TopDocs performSearch(IndexSearcher searcher, Query query, IndexReader reader,
-            Integer maxResultsCount, Sort sort) throws IOException {
+    public TopDocs performSearch(final IndexSearcher searcher, final Query query, final IndexReader reader,
+            final Integer maxResultsCount, final Sort sort) throws IOException {
         final TopDocs docs;
-        int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
-        Query constantQuery = new ConstantScoreQuery(query);
+        final int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
+        final Query constantQuery = new ConstantScoreQuery(query);
         if (sort == null) {
             docs = searcher.search(constantQuery, resultsCount);
         } else {
@@ -891,9 +886,9 @@ public class FeatureIndexDao {
     }
 
 
-    private void setBookmarks(Map<Long, BookmarkIndexEntry> foundBookmarkEntries) {
+    private void setBookmarks(final Map<Long, BookmarkIndexEntry> foundBookmarkEntries) {
         if (!foundBookmarkEntries.isEmpty()) { // batch load all bookmarks
-            List<Bookmark> bookmarks = bookmarkManager.loadBookmarksByIds(foundBookmarkEntries.keySet());
+            final List<Bookmark> bookmarks = bookmarkManager.loadBookmarksByIds(foundBookmarkEntries.keySet());
             bookmarks.forEach(b -> foundBookmarkEntries.get(b.getId()).setBookmark(b));
         }
     }
@@ -908,10 +903,10 @@ public class FeatureIndexDao {
      * @return a {@code List} of chromosome IDs
      * @throws IOException
      */
-    public List<Long> getChromosomeIdsWhereVariationsPresentFacet(List<? extends FeatureFile> files, String query)
-        throws FeatureIndexException {
+    public List<Long> getChromosomeIdsWhereVariationsPresentFacet(final List<? extends FeatureFile> files,
+                                                                  final String query) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
-            QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
+            final QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return getChromosomeIdsWhereVariationsPresentFacet(files, queryParser.parse(query));
         } catch (IOException | ParseException e) {
             throw new FeatureIndexException("Failed to perform facet index search for files " + files.stream()
@@ -928,28 +923,28 @@ public class FeatureIndexDao {
      * @return a {@code List} of chromosome IDs
      * @throws IOException
      */
-    public List<Long> getChromosomeIdsWhereVariationsPresentFacet(List<? extends FeatureFile> files, Query query)
-        throws IOException {
+    public List<Long> getChromosomeIdsWhereVariationsPresentFacet(final List<? extends FeatureFile> files,
+                                                                  final Query query) throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return Collections.emptyList();
         }
 
-        List<Long> chromosomeIds = new ArrayList<>();
+        final List<Long> chromosomeIds = new ArrayList<>();
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return Collections.emptyList();
             }
 
-            FacetsCollector facetsCollector = new FacetsCollector();
-            IndexSearcher searcher = new IndexSearcher(reader);
+            final FacetsCollector facetsCollector = new FacetsCollector();
+            final IndexSearcher searcher = new IndexSearcher(reader);
             searcher.search(query, facetsCollector);
 
-            Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
+            final Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
                                                    FeatureIndexFields.FACET_CHR_ID.getFieldName()), facetsCollector);
-            FacetResult res = facets.getTopChildren(FACET_LIMIT, FeatureIndexFields.CHR_ID.getFieldName());
+            final FacetResult res = facets.getTopChildren(FACET_LIMIT, FeatureIndexFields.CHR_ID.getFieldName());
             if (res == null) {
                 return Collections.emptyList();
             }
@@ -968,44 +963,44 @@ public class FeatureIndexDao {
         return luceneIndexMaxSizeForGrouping;
     }
 
-    private void closeIndices(SimpleFSDirectory[] indexes) {
+    private void closeIndices(final SimpleFSDirectory[] indexes) {
         for (SimpleFSDirectory index : indexes) {
             IOUtils.closeQuietly(index);
         }
     }
 
-    public Set<String> searchGenesInVcfFiles(String gene, List<VcfFile> vcfFiles) throws IOException {
+    public Set<String> searchGenesInVcfFiles(final String gene, final List<VcfFile> vcfFiles) throws IOException {
         if (CollectionUtils.isEmpty(vcfFiles)) {
             return Collections.emptySet();
         }
 
-        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-        PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
+        final PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
                                                                  gene.toLowerCase()));
-        PrefixQuery geneNamePrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_NAME.getFieldName(),
+        final PrefixQuery geneNamePrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_NAME.getFieldName(),
                                                                    gene.toLowerCase()));
-        BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
+        final BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
         geneIdOrNameQuery.add(geneIdPrefixQuery, BooleanClause.Occur.SHOULD);
         geneIdOrNameQuery.add(geneNamePrefixQuery, BooleanClause.Occur.SHOULD);
 
         builder.add(geneIdOrNameQuery.build(), BooleanClause.Occur.MUST);
-        BooleanQuery query =  builder.build();
+        final BooleanQuery query =  builder.build();
 
         Set<String> geneIds = new HashSet<>();
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return Collections.emptySet();
             }
             if (StringUtils.isEmpty(gene)) {
-                Fields fields = MultiFields.getFields(reader);
+                final Fields fields = MultiFields.getFields(reader);
                 fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_ID.getFieldName());
                 fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_NAME.getFieldName());
             } else {
-                IndexSearcher searcher = new IndexSearcher(reader);
+                final IndexSearcher searcher = new IndexSearcher(reader);
                 final TopDocs docs = searcher.search(query, reader.numDocs());
                 final ScoreDoc[] hits = docs.scoreDocs;
                 geneIds = fetchGeneIds(hits, searcher);
@@ -1021,10 +1016,11 @@ public class FeatureIndexDao {
         return geneIds;
     }
 
-    private void fetchTermValues(Set<String> geneIds, Fields fields, String fieldName) throws IOException {
-        Terms terms = fields.terms(fieldName);
+    private void fetchTermValues(final Set<String> geneIds, final Fields fields, final String fieldName)
+            throws IOException {
+        final Terms terms = fields.terms(fieldName);
         if (terms != null) {
-            TermsEnum iterator = terms.iterator();
+            final TermsEnum iterator = terms.iterator();
             BytesRef next = iterator.next();
             while (next != null) {
                 geneIds.add(next.utf8ToString());
@@ -1040,7 +1036,7 @@ public class FeatureIndexDao {
      * @param fileIds a list of Pair of feature types to file Ids, which entries to delete. To delete gene file
      *                entries, pass FeatureType.GENE
      */
-    public void deleteFromIndexByFileId(final long projectId, List<Pair<FeatureType, Long>> fileIds) {
+    public void deleteFromIndexByFileId(final long projectId, final List<Pair<FeatureType, Long>> fileIds) {
         if (fileIds == null || fileIds.isEmpty() || !fileManager.indexForProjectExists(projectId)) {
             return;
         }
@@ -1119,14 +1115,15 @@ public class FeatureIndexDao {
         }
     }
 
-    private void deleteDocumentByTypeAndId(FeatureType type, Long id, IndexWriter writer) throws IOException {
-        BooleanQuery.Builder deleteQueryBuilder = new BooleanQuery.Builder();
-        TermQuery idQuery = new TermQuery(new Term(FeatureIndexFields.FILE_ID.getFieldName(),
+    private void deleteDocumentByTypeAndId(final FeatureType type, final Long id, final IndexWriter writer)
+            throws IOException {
+        final BooleanQuery.Builder deleteQueryBuilder = new BooleanQuery.Builder();
+        final TermQuery idQuery = new TermQuery(new Term(FeatureIndexFields.FILE_ID.getFieldName(),
                                                    id.toString()));
         deleteQueryBuilder.add(idQuery, BooleanClause.Occur.MUST);
 
         if (type != FeatureType.GENE) {
-            TermQuery typeQuery = new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+            final TermQuery typeQuery = new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
                                                          type.getFileValue()));
             deleteQueryBuilder.add(typeQuery, BooleanClause.Occur.MUST);
         } else {
@@ -1139,16 +1136,16 @@ public class FeatureIndexDao {
         writer.deleteDocuments(deleteQueryBuilder.build());
     }
 
-    private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
-            IndexSearcher searcher, AbstractDocumentBuilder documentCreator) throws IOException {
+    private void createIndexEntries(final ScoreDoc[] hits, final Map<Integer, FeatureIndexEntry> entryMap,
+            final IndexSearcher searcher, final AbstractDocumentBuilder documentCreator) throws IOException {
         createIndexEntries(hits, entryMap, searcher, documentCreator, null, null);
     }
 
-    private ScoreDoc createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
-            IndexSearcher searcher, AbstractDocumentBuilder documentCreator, Integer page,
-            Integer pageSize) throws IOException {
-        int from = page != null ? (page - 1) * pageSize : 0;
-        int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
+    private ScoreDoc createIndexEntries(final ScoreDoc[] hits, final Map<Integer, FeatureIndexEntry> entryMap,
+            final IndexSearcher searcher, final AbstractDocumentBuilder documentCreator, final Integer page,
+            final Integer pageSize) throws IOException {
+        final int from = page != null ? (page - 1) * pageSize : 0;
+        final int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
         if (from > hits.length) {
             return null;
         }
@@ -1160,7 +1157,7 @@ public class FeatureIndexDao {
                     entry.getChromosome() != null ? entry.getChromosome().getId() : null,
                     entry.getStartIndex(), entry.getEndIndex(), entry.getFeatureId()), entry);
         }
-        int min = Math.max(to, hits.length);
+        final int min = Math.max(to, hits.length);
         if (hits.length == 0) {
             return null;
         } else {
@@ -1170,9 +1167,9 @@ public class FeatureIndexDao {
     }
 
 
-    private Set<String> fetchGeneIds(final ScoreDoc[] hits, IndexSearcher searcher) throws IOException {
-        Set<String> geneIds = new HashSet<>();
-        Set<String> requiredFields = new HashSet<>();
+    private Set<String> fetchGeneIds(final ScoreDoc[] hits, final IndexSearcher searcher) throws IOException {
+        final Set<String> geneIds = new HashSet<>();
+        final Set<String> requiredFields = new HashSet<>();
         requiredFields.add(FeatureIndexFields.GENE_ID.getFieldName());
         requiredFields.add(FeatureIndexFields.GENE_NAME.getFieldName());
         for (ScoreDoc hit : hits) {
@@ -1190,7 +1187,6 @@ public class FeatureIndexDao {
                 geneIds.add(geneName);
             }
         }
-
         return geneIds;
     }
 

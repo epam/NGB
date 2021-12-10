@@ -36,7 +36,10 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
+import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
+import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
 import org.codehaus.jettison.json.JSONObject;
@@ -295,6 +298,40 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadSmallScaleVcfFileGa4GH() throws IOException, ExternalDbUnavailableException {
+
+        String fetchRes1 = readFile("GA4GH_id10473.json");
+        String fetchRes2 = readFile("GA4GH_id10473_variant.json");
+        Mockito.when(
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                .thenReturn(fetchRes1)
+                .thenReturn(fetchRes2);
+
+        String fetchRes3 = readFile("GA4GH_id10473_param.json");
+        Mockito.when(
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                .thenReturn(fetchRes3);
+
+
+        VcfFile vcfFileGA4GH = regesterVcfGA4GH();
+        vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
+        List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
+        Track<Variation> trackResult;
+        Long sampleId = 0L;
+        for (VcfSample sample : vcfSamples) {
+            if (sample.getName().equals(SAMPLE_NAME)) {
+                sampleId = sample.getId();
+            }
+        }
+        trackResult = testLoadGA4GH(vcfFileGA4GH, TEST_SMALL_SCALE_FACTOR, true, sampleId);
+        List<Variation> ambiguousVariations = trackResult.getBlocks().stream().filter((b) ->
+                b.getVariationsCount() != null && b.getVariationsCount() > 1).collect(Collectors.toList());
+
+        Assert.assertFalse(ambiguousVariations.isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedSummary()
             throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
@@ -361,6 +398,25 @@ public class VcfManagerTest extends AbstractManagerTest {
             Track<Variation> trackResultGA4GH = testLoadGA4GH(vcfFileGA4GH, 1D, true, sample.getId());
             Assert.assertNotNull(trackResultGA4GH);
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testGetVariantsGA4GH() throws IOException, ExternalDbUnavailableException,
+            Ga4ghResourceUnavailableException {
+        String fetchRes1 = readFile("GA4GH_id10473_variant_2.json");
+
+        Mockito.when(
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                .thenReturn(fetchRes1);
+
+
+        VcfGa4ghReader reader = new VcfGa4ghReader(httpDataManager, referenceGenomeManager);
+        List<VariantGA4GH> ghList = reader.getVariantsGA4GH(varSet, start.toString(), end.toString(),
+                testChrGA4GH.getName());
+        Assert.assertFalse(ghList.isEmpty());
+        Assert.assertNotNull(ghList.get(1).getNames());
+        Assert.assertFalse(ghList.get(1).getCalls().isEmpty());
     }
 
     @Ignore
@@ -856,5 +912,4 @@ public class VcfManagerTest extends AbstractManagerTest {
         request.setPrettyName(prettyName);
         return vcfManager.registerVcfFile(request);
     }
-
 }

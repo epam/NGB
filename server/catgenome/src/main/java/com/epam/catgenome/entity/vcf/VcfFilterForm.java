@@ -191,11 +191,11 @@ public class VcfFilterForm extends AbstractFilterForm {
         }
     }
 
-    private void addSampleNamesFilter(BooleanQuery.Builder builder) {
+    private void addSampleNamesFilter(final BooleanQuery.Builder builder) {
         if (sampleNames != null && !sampleNames.field.isEmpty()) {
-            BooleanQuery.Builder typesBuilder = new BooleanQuery.Builder();
+            final BooleanQuery.Builder typesBuilder = new BooleanQuery.Builder();
             for (int i = 0; i < sampleNames.field.size(); i++) {
-                TermQuery termQuery = new TermQuery(new Term(FeatureIndexFields.SAMPLE_NAME.getFieldName(),
+                TermQuery termQuery = new TermQuery(new Term(FeatureIndexFields.SAMPLE_NAMES.getFieldName(),
                         sampleNames.field.get(i)));
                 typesBuilder.add(termQuery, sampleNames.conjunction ? BooleanClause.Occur.MUST :
                         BooleanClause.Occur.SHOULD);
