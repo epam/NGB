@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -230,6 +230,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         VCF_ID,
         VCF_REFERENCE_GENOME_ID,
         VCF_COMPRESSED,
+        VCF_MULTI_SAMPLE,
 
         GENE_ITEM_ID,
         GENE_REFERENCE_GENOME_ID,
@@ -488,6 +489,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             vcfFile.setId(rs.getLong(VCF_ID.name()));
             vcfFile.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             vcfFile.setCompressed(rs.getBoolean(VCF_COMPRESSED.name()));
+            vcfFile.setMultiSample(rs.getBoolean(VCF_MULTI_SAMPLE.name()));
             vcfFile.setReferenceId(rs.getLong(VCF_REFERENCE_GENOME_ID.name()));
             vcfFile.setIndex(index);
 
@@ -533,6 +535,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         REFERENCE_GENOME_ID,
         INDEX_ID,
         COMPRESSED,
+        MULTI_SAMPLE,
         EXTERNAL_DB_TYPE_ID,
         EXTERNAL_DB_ID,
         EXTERNAL_DB_ORGANISM;
@@ -551,6 +554,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             params.addValue(REFERENCE_GENOME_ID.name(), featureFile.getReferenceId());
             params.addValue(INDEX_ID.name(), featureFile.getIndex() != null ? featureFile.getIndex().getId() : null);
             params.addValue(COMPRESSED.name(), featureFile.getCompressed());
+
+            if (featureFile instanceof VcfFile) {
+                VcfFile vcfFile = (VcfFile) featureFile;
+                params.addValue(MULTI_SAMPLE.name(), vcfFile.getMultiSample());
+            }
 
             if (featureFile instanceof GeneFile) {
                 GeneFile geneFile = (GeneFile) featureFile;

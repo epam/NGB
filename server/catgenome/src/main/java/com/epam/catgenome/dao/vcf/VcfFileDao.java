@@ -213,7 +213,8 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
         FILE_PATH,
         INDEX_PATH,
         BOUNDS_PATH,
-        COMPRESSED
+        COMPRESSED,
+        MULTI_SAMPLE
     }
 
     enum SampleParameters {

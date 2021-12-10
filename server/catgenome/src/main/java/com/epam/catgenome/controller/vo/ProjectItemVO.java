@@ -63,6 +63,7 @@ public class ProjectItemVO {
     // FeatureFile properties
     private Long referenceId;
     private Boolean compressed;
+    private Boolean multiSample;
     // VCF properties
     private List<VcfSample> samples;
     private Map<String, String> metadata;

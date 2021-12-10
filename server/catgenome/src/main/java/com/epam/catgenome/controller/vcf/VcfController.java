@@ -148,8 +148,7 @@ public class VcfController extends AbstractRESTController {
             })
     public Callable<Result<Track<Variation>>> loadTrack(@RequestBody final VcfTrackQuery trackQuery,
                                               @RequestParam(required = false) final String fileUrl,
-                                              @RequestParam(required = false) final String indexUrl)
-        throws VcfReadingException {
+                                              @RequestParam(required = false) final String indexUrl) {
         return () -> {
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();

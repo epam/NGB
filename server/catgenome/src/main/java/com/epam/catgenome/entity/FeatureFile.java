@@ -27,6 +27,8 @@ package com.epam.catgenome.entity;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source:      FeatureFile
@@ -38,6 +40,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Represents basic properties of a feature file instance in the system (e.g. VCF file, GFF file)
  * </p>
  */
+@Getter
+@Setter
 public class FeatureFile extends IndexedDataItem {
     private Long referenceId;
     private Long bioDataItemId;

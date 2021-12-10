@@ -172,6 +172,7 @@
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,
+                        v.multi_sample as vcf_multi_sample,
 
                         g.gene_item_id,
                         g.reference_genome_id as gene_reference_genome_id,

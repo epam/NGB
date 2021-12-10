@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -267,7 +267,7 @@ public class NCBIShortVarManager {
                 }
             }
             correctNggbVariation(rs.getAssembly().get(0), nggbVariation);
-            nggbVariation.setGenotypeData(genotypeData);
+            nggbVariation.setGenotypeData(Collections.emptyMap());
             resultList.add(nggbVariation);
         }
     }

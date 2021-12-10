@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,10 +45,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.controller.vo.ga4gh.CallSet;
+import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.exception.RegistrationException;
+import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
+import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
@@ -81,8 +89,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.ga4gh.CallSet;
-import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BaseEntity;
@@ -100,12 +106,6 @@ import com.epam.catgenome.entity.vcf.VariationQuery;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.entity.vcf.VcfSample;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.GeneReadingException;
-import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
@@ -113,7 +113,6 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
-import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.FeatureReader;
@@ -598,8 +597,7 @@ public class VcfManager {
 
     @NotNull
     private Map<String, Pair<Integer, Integer>> readMetaMap(VcfFile file, Map<String, Chromosome> chromosomeMap,
-            FeatureReader<VariantContext> reader, Reference reference, boolean doIndex)
-        throws IOException, GeneReadingException {
+            FeatureReader<VariantContext> reader, Reference reference, boolean doIndex) throws IOException {
         Map<String, Pair<Integer, Integer>> metaMap = new HashMap<>();
         CloseableIterator<VariantContext> iterator = reader.iterator();
         int startPosition = 1;
@@ -737,6 +735,7 @@ public class VcfManager {
                     .collect(Collectors.toList());
             vcfFile.setSamples(samples);
         }
+        vcfFile.setMultiSample(sampleMap != null && sampleMap.size() > 1);
 
         BiologicalDataItemResourceType resourceType = BiologicalDataItemResourceType.translateRequestType(
             request.getType());
@@ -774,7 +773,7 @@ public class VcfManager {
     }
 
     @NotNull private VcfFile getVcfFileFromGA4GH(IndexedFileRegistrationRequest request,
-            String requestPath) {
+                                                 String requestPath) {
         VcfFile vcfFile;
         vcfFile = createVcfGA4GH(request);
         BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -842,7 +841,6 @@ public class VcfManager {
         InfoFieldParser parser = getExtendedInfoParser();
         return parser.isExtendedInfoField(description);
     }
-
 
     protected void setExtendedInfoTemplates(String extendedInfoTemplates) {
         this.extendedInfoTemplates = extendedInfoTemplates;

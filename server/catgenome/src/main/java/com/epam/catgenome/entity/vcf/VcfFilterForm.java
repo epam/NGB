@@ -60,6 +60,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private Boolean isExon;
     private Integer startIndex;
     private Integer endIndex;
+    private FilterSection<List<String>> sampleNames;
 
     private Integer page;
     /**
@@ -92,6 +93,7 @@ public class VcfFilterForm extends AbstractFilterForm {
         addGeneFilter(builder);
         addExonFilter(builder);
         addVariationTypeFilter(builder);
+        addSampleNamesFilter(builder);
         addFailedFilter(builder);
         addQualityFilter(builder);
         addPositionFilter(builder);
@@ -185,6 +187,19 @@ public class VcfFilterForm extends AbstractFilterForm {
                         BooleanClause.Occur.SHOULD);
             }
 
+            builder.add(typesBuilder.build(), BooleanClause.Occur.MUST);
+        }
+    }
+
+    private void addSampleNamesFilter(final BooleanQuery.Builder builder) {
+        if (sampleNames != null && !sampleNames.field.isEmpty()) {
+            final BooleanQuery.Builder typesBuilder = new BooleanQuery.Builder();
+            for (int i = 0; i < sampleNames.field.size(); i++) {
+                TermQuery termQuery = new TermQuery(new Term(FeatureIndexFields.SAMPLE_NAMES.getFieldName(),
+                        sampleNames.field.get(i)));
+                typesBuilder.add(termQuery, sampleNames.conjunction ? BooleanClause.Occur.MUST :
+                        BooleanClause.Occur.SHOULD);
+            }
             builder.add(typesBuilder.build(), BooleanClause.Occur.MUST);
         }
     }
@@ -406,6 +421,14 @@ public class VcfFilterForm extends AbstractFilterForm {
 
     public void setEndIndex(Integer endIndex) {
         this.endIndex = endIndex;
+    }
+
+    public FilterSection<List<String>> getSampleNames() {
+        return sampleNames;
+    }
+
+    public void setSampleNames(FilterSection<List<String>> sampleNames) {
+        this.sampleNames = sampleNames;
     }
 
     public static class FilterSection<T> {

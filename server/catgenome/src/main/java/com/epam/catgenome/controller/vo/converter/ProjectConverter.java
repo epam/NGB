@@ -132,6 +132,7 @@ public final class ProjectConverter {
             }
 
             if (item.getBioDataItem() instanceof VcfFile) {
+                vo.setMultiSample(((VcfFile) item.getBioDataItem()).getMultiSample());
                 vo.setSamples(((VcfFile) item.getBioDataItem()).getSamples());
             }
         }

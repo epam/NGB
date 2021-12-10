@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 package com.epam.catgenome.dao.index.searcher;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;

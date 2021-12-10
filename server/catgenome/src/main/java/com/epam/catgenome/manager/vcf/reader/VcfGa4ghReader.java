@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.vcf.reader;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,8 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+
+import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.isVariation;
 
 
 /**
@@ -116,8 +119,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
             List<VariantGA4GH> ghList, ArrayList<Variation> variations, VariantSet metadata) {
         for (VariantGA4GH ghEntity : ghList) {
             Variation variation = createVariation(ghEntity, loadInfo, vcfFile, metadata.getMetadata());
-            if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+            if (isVariation(variation)) {
                 variations.add(variation);
             }
         }
@@ -174,8 +176,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
         for (VariantGA4GH ghEntity : varList) {
             final Variation variation = createVariation(ghEntity, false, vcfFile,
                     variantSet.getMetadata());
-            if (variation.getGenotypeData() == null || variation.getGenotypeData().getOrganismType()
-                    != OrganismType.NO_VARIATION && variation.getEndIndex() < fromPosition) {
+            if (isVariation(variation) && variation.getEndIndex() < fromPosition) {
                 lastFeature = variation;
             }
         }
@@ -195,9 +196,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
         VariantSet variantSet = variationMetadata(vcfFile.getPath());
         for (VariantGA4GH ghEntity : varList) {
             Variation variation = createVariation(ghEntity, false, vcfFile, variantSet.getMetadata());
-            if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION &&
-                    variation.getStartIndex() > fromPosition) {
+            if (isVariation(variation) && variation.getStartIndex() > fromPosition) {
                 return variation;
             }
         }
@@ -238,13 +237,13 @@ public class VcfGa4ghReader extends AbstractVcfReader {
      */
     private Variation createVariation(final VariantGA4GH ghEntity, final boolean loadInfo, final VcfFile file,
                                       final List<VariantSetMetadata> metadata) {
-        final GenotypeData genotypeData = new GenotypeData();
+        final Map<String, GenotypeData> genotypeData = new HashMap<>();
 
         final Variation variation = new Variation(Integer.parseInt(ghEntity.getStart()) + 1,
                 Integer.parseInt(ghEntity.getEnd()), ghEntity.getReferenceBases(), ghEntity.getAlternateBases());
         variation.setGenotypeData(genotypeData);
 
-        if (genotypeData.getOrganismType() == OrganismType.NO_VARIATION) {
+        if (!isVariation(variation)) {
             return variation;
         }
         final Map<String, ArrayList<String>> infoVariation = ghEntity.getInfo();
@@ -292,7 +291,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
     }
 
     @NotNull
-    private Genotype getGenotype(VariantGA4GH ghEntity, VcfFile file, GenotypeData genotypeData,
+    private Genotype getGenotype(VariantGA4GH ghEntity, VcfFile file, Map<String, GenotypeData> genotypeData,
             int altIndex, Map<String, ArrayList<String>> infoCallSet,
             List<Allele> alleleList, List<Allele> altAlleles, Variation variation,
             List<Filter> filtersList) {
@@ -329,11 +328,11 @@ public class VcfGa4ghReader extends AbstractVcfReader {
         final Genotype genotype = new GenotypeGA4GH(file.getSamples().get(0).getName(), altAlleles, false, gq, dp, ad,
                 pl, null, null);
         determineOrganismType(ghEntity, genotypeData, altIndex, alleleList, genotype);
-        genotypeData.setGenotypeString(ghEntity.getAlternateBases().get(0));
+        genotypeData.values().forEach(e -> e.setGenotypeString(ghEntity.getAlternateBases().get(0)));
         return genotype;
     }
 
-    private void determineOrganismType(VariantGA4GH ghEntity, GenotypeData genotypeData,
+    private void determineOrganismType(VariantGA4GH ghEntity, Map<String, GenotypeData> genotypeData,
             int altIndex, List<Allele> alleleList, Genotype genotype) {
         final OrganismType organismType;
         int[] genotypeArray = null;
@@ -358,8 +357,10 @@ public class VcfGa4ghReader extends AbstractVcfReader {
             default:
                 organismType = OrganismType.NOT_SPECIFIED;
         }
-        genotypeData.setOrganismType(organismType);
-        genotypeData.setGenotype(genotypeArray);
+        genotypeData.values().forEach(e -> e.setOrganismType(organismType));
+        for (GenotypeData e : genotypeData.values()) {
+            e.setGenotype(genotypeArray);
+        }
     }
 
     public List<VariantGA4GH> getVariantsGA4GH(final String callSetId, final String start, final String end,
@@ -450,21 +451,18 @@ public class VcfGa4ghReader extends AbstractVcfReader {
             }
 
             if (Integer.parseInt(ghEntity.getEnd()) > to && Integer.parseInt(ghEntity.getStart()) >= from) {
-                if (variation.getGenotypeData() == null ||
-                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                if (isVariation(variation)) {
                     extendingVariations.add(variation);
                 }
                 continue;
             }
 
-            if (!found && (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION)) {
+            if (!found && isVariation(variation)) {
                 variations.add(variation);
                 found = true;
             }
 
-            if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+            if (isVariation(variation)) {
                 variationCount++;
             }
             lastContext = ghEntity;
@@ -560,9 +558,9 @@ public class VcfGa4ghReader extends AbstractVcfReader {
             default:
                 variation.setType(null);
                 if (variation.getGenotypeData() == null) {
-                    variation.setGenotypeData(new GenotypeData());
+                    variation.setGenotypeData(Collections.emptyMap());
                 }
-                variation.getGenotypeData().setOrganismType(OrganismType.NO_VARIATION);
+                variation.getGenotypeData().values().forEach(e -> e.setOrganismType(OrganismType.NO_VARIATION));
         }
     }
 

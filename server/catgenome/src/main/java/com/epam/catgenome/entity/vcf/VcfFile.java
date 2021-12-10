@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +29,18 @@ import java.util.List;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.security.AclClass;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents VCF file instance in a database. Contents various metadata to operate VCF files.
  */
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class VcfFile extends FeatureFile {
 
     private List<VcfSample> samples;
+    private Boolean multiSample;
 
     /**
      * Creates an empty {@code VcfFile} instance with a specified {@code BiologicalDataItemFormat.VCF}
@@ -47,37 +48,6 @@ public class VcfFile extends FeatureFile {
      */
     public VcfFile() {
         setFormat(BiologicalDataItemFormat.VCF);
-    }
-
-    public List<VcfSample> getSamples() {
-        return samples;
-    }
-
-    public void setSamples(List<VcfSample> samples) {
-        this.samples = samples;
-    }
-
-    @Override public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        VcfFile vcfFile = (VcfFile) o;
-
-        return (samples != null) ? samples.equals(vcfFile.samples) : (vcfFile.samples == null);
-
-    }
-
-    @Override public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (samples != null ? samples.hashCode() : 0);
-        return result;
     }
 
     @Override

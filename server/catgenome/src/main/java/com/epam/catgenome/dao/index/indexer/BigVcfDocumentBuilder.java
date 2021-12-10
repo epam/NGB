@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,7 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,14 +70,22 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
     private List<String> vcfInfoFields;
 
-    @Override public FacetsConfig createFacetsConfig(VcfFilterInfo info) {
-        FacetsConfig config = super.createFacetsConfig(info);
+    public void setVcfInfoFields(List<String> vcfInfoFields) {
+        this.vcfInfoFields = vcfInfoFields;
+    }
+
+    @Override
+    public FacetsConfig createFacetsConfig(final VcfFilterInfo info) {
+        final FacetsConfig config = super.createFacetsConfig(info);
 
         config.setIndexFieldName(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 FeatureIndexFields.CHROMOSOME_NAME.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 FeatureIndexFields.VARIATION_TYPE.getFacetName());
         config.setMultiValued(FeatureIndexFields.VARIATION_TYPE.getFieldName(), true);
+        config.setIndexFieldName(FeatureIndexFields.SAMPLE_NAMES.getFieldName(),
+                FeatureIndexFields.SAMPLE_NAMES.getFacetName());
+        config.setMultiValued(FeatureIndexFields.SAMPLE_NAMES.getFieldName(), true);
 
         config.setIndexFieldName(FeatureIndexFields.FAILED_FILTER.getFieldName(),
                 FeatureIndexFields.FAILED_FILTER.getFacetName());
@@ -104,13 +113,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
      * @param featureFileId an ID of {@link com.epam.catgenome.entity.FeatureFile}, to which feature belongs
      * @return a Lucene {@link Document}
      */
-    @Override public Document buildDocument(VcfIndexEntry entry, final Long featureFileId) {
-        Document document = new Document();
+    @Override
+    public Document buildDocument(final VcfIndexEntry entry, final Long featureFileId) {
+        final Document document = new Document();
         document.add(
-                new StringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId(),
-                        Field.Store.YES));
+                new StringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId(), Field.Store.YES));
 
-        FieldType fieldType = new FieldType();
+        final FieldType fieldType = new FieldType();
         fieldType.setOmitNorms(true);
         fieldType.setIndexOptions(IndexOptions.DOCS);
         fieldType.setStored(true);
@@ -171,8 +180,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         return document;
     }
 
-    @Override protected Set<String> getRequiredFields() {
-        Set<String> requiredFields = new HashSet<>();
+    @Override
+    protected Set<String> getRequiredFields() {
+        final Set<String> requiredFields = new HashSet<>();
         requiredFields.add(FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
         requiredFields.add(FeatureIndexFields.CHROMOSOME_ID.getFieldName());
         requiredFields.add(FeatureIndexFields.FILE_ID.getFieldName());
@@ -189,6 +199,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         requiredFields.add(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         requiredFields.add(FeatureIndexFields.IS_EXON.getFieldName());
         requiredFields.add(FeatureIndexFields.FAILED_FILTER.getFieldName());
+        requiredFields.add(FeatureIndexFields.SAMPLE_NAMES.getFieldName());
         if (!CollectionUtils.isEmpty(vcfInfoFields)) {
             for (String infoField : vcfInfoFields) {
                 requiredFields.add(infoField.toLowerCase());
@@ -197,8 +208,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         return requiredFields;
     }
 
-    @Override protected VcfIndexEntry createSpecificEntry(Document doc) {
-        VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
+    @Override
+    protected VcfIndexEntry createSpecificEntry(final Document doc) {
+        final VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
         vcfIndexEntry.setGene(doc.get(FeatureIndexFields.GENE_ID.getFieldName()));
         vcfIndexEntry.setGeneIds(doc.get(FeatureIndexFields.GENE_IDS.getFieldName()));
         vcfIndexEntry.setGeneNames(doc.get(FeatureIndexFields.GENE_NAMES.getFieldName()));
@@ -214,24 +226,30 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 isExonStr = bytes.utf8ToString();
             }
         }
-        boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
-        vcfIndexEntry.setExon(isExon);
+        final boolean isExon = Boolean.parseBoolean(isExonStr);
+        vcfIndexEntry.setIsExon(isExon);
         vcfIndexEntry.getInfo().put(FeatureIndexFields.IS_EXON.getFieldName(), isExon);
 
-        String[] variationTypes = doc.getValues(FeatureIndexFields.VARIATION_TYPE.getFieldName());
-        if (variationTypes.length > 0) {
+        final String[] variationTypes = doc.getValues(FeatureIndexFields.VARIATION_TYPE.getFieldName());
+        if (variationTypes != null && variationTypes.length > 0) {
             vcfIndexEntry.setVariationTypes(new HashSet<>());
             for (String variationType : variationTypes) {
                 vcfIndexEntry.getVariationTypes()
                         .add(VariationType.valueOf(variationType.toUpperCase()));
             }
-
             vcfIndexEntry.setVariationType(VariationType.valueOf(
                     doc.get(FeatureIndexFields.VARIATION_TYPE.getFieldName()).toUpperCase()));
         }
+
+        final String[] sampleNames = doc.getValues(FeatureIndexFields.SAMPLE_NAMES.getFieldName());
+        if (sampleNames != null && sampleNames.length > 0) {
+            vcfIndexEntry.setSampleNames(new HashSet<>());
+            Arrays.stream(sampleNames).forEach(s -> vcfIndexEntry.getSampleNames().add(s));
+        }
+
         vcfIndexEntry.setFailedFilter(doc.get(FeatureIndexFields.FAILED_FILTER.getFieldName()));
 
-        IndexableField qualityField = doc.getField(FeatureIndexFields.QUALITY.getFieldName());
+        final IndexableField qualityField = doc.getField(FeatureIndexFields.QUALITY.getFieldName());
         if (qualityField != null) {
             vcfIndexEntry.setQuality(qualityField.numericValue().doubleValue());
         }
@@ -249,11 +267,11 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 }
             }
         }
-
         return vcfIndexEntry;
     }
 
-    @Override protected void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
+    @Override
+    protected void addExtraFeatureFields(final Document document, final VcfIndexEntry entry) {
         for (VariationType type : entry.getVariationTypes()) {
             document.add(new StringField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                     type.name().toLowerCase(), Field.Store.YES));
@@ -262,6 +280,18 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
             document.add(
                     new SortedSetDocValuesField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                             new BytesRef(type.name())));
+        }
+
+        if (CollectionUtils.isNotEmpty(entry.getSampleNames())) {
+            for (String sampleName : entry.getSampleNames()) {
+                document.add(new StringField(FeatureIndexFields.SAMPLE_NAMES.getFieldName(),
+                        sampleName, Field.Store.YES));
+                document.add(new SortedSetDocValuesFacetField(
+                        FeatureIndexFields.SAMPLE_NAMES.getFieldName(), sampleName));
+                document.add(
+                        new SortedSetDocValuesField(FeatureIndexFields.SAMPLE_NAMES.getFieldName(),
+                                new BytesRef(sampleName)));
+            }
         }
 
         if (CollectionUtils.isNotEmpty(entry.getFailedFilters())) {
@@ -320,25 +350,25 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         }
 
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.IS_EXON.getFieldName(),
-                entry.getExon().toString()));
+                entry.getIsExon().toString()));
         document.add(new SortedSetDocValuesField(FeatureIndexFields.IS_EXON.getFieldName(),
-                new BytesRef(entry.getExon().toString())));
+                new BytesRef(entry.getIsExon().toString())));
         document.add(new StringField(FeatureIndexFields.IS_EXON.getFieldName(),
-                entry.getExon().toString().toLowerCase(), Field.Store.YES));
+                entry.getIsExon().toString().toLowerCase(), Field.Store.YES));
 
         if (entry.getInfo() != null) {
             addVcfDocumentInfoFields(document, entry);
         }
     }
 
-    private void addVcfDocumentInfoFields(Document document, VcfIndexEntry vcfIndexEntry) {
+    private void addVcfDocumentInfoFields(final Document document, final VcfIndexEntry vcfIndexEntry) {
         for (Map.Entry<String, Object> info : vcfIndexEntry.getInfo().entrySet()) {
             if (VIEW_FIELD_PATTERN.matcher(info.getKey())
                     .matches()) { //view fields are for view purposes
                 continue;
             }
 
-            String viewKey = "_" + info.getKey() + "_v";
+            final String viewKey = "_" + info.getKey() + "_v";
             if (info.getValue() instanceof Object[]) {
                 for (Object value : (Object[]) info.getValue()) {
                     addInfoField(value, info.getKey(), document);
@@ -363,7 +393,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         }
     }
 
-    private void addInfoField(Object value, String key, Document document) {
+    private void addInfoField(final Object value, final String key, final Document document) {
         if (value instanceof Integer) {
             document.add(new IntPoint(key.toLowerCase(), (Integer) value));
             document.add(new StoredField(key.toLowerCase(), (Integer) value));
@@ -376,8 +406,8 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         }
     }
 
-    private void addViewField(VcfIndexEntry vcfIndexEntry, Document document, String key,
-            String viewKey) {
+    private void addViewField(final VcfIndexEntry vcfIndexEntry, final Document document, final String key,
+            final String viewKey) {
         if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
             document.add(new StoredField(key.toLowerCase(),
                     vcfIndexEntry.getInfo().get(viewKey).toString()));
@@ -391,9 +421,5 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
             document.add(new SortedSetDocValuesField(key.toLowerCase(), new BytesRef(strValue)));
             document.add(new SortedSetDocValuesFacetField(key.toLowerCase(), strValue));
         }
-    }
-
-    public void setVcfInfoFields(List<String> vcfInfoFields) {
-        this.vcfInfoFields = vcfInfoFields;
     }
 }
