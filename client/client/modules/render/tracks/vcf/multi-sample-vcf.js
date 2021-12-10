@@ -17,8 +17,6 @@ import VcfConfig from './multi-sample-vcf-config';
 import {default as menu} from './menu';
 import {variantsView} from './modes';
 
-import {STRAINS_COUNT} from './internal/data/multi-sample-vcf-transformer';
-
 export class MultiSampleVCFTrack extends VCFTrack {
     sampleGraphics = new PIXI.Graphics();
     sampleTitlesContainer = new PIXI.Container();
@@ -75,12 +73,12 @@ export class MultiSampleVCFTrack extends VCFTrack {
             VcfConfig.scroll.width;
         this.sampleScroller.y = VcfConfig.coverageHeight;
         this.coverageMask = new PIXI.Graphics();
-        this.initializeSamples((new Array(STRAINS_COUNT)).fill({}).map((o, i) => `Strain #${i + 1}`));
+        this.initializeSamples();
     }
 
-    initializeSamples (samples = []) {
+    initializeSamples () {
         //todo: get samples
-        this.samples = samples.slice();
+        this.samples = [].slice();
         this.renderers = this.samples.map((sample) => ({
             sample,
             collapsed: new VCFSampleRenderer(VcfConfig, this),
@@ -90,6 +88,29 @@ export class MultiSampleVCFTrack extends VCFTrack {
         this.requestRenderRefresh();
     }
 
+    extendSamples (samples) {
+        let hasNewSamples = false;
+        for (const sample of samples) {
+            if (!this.samples.includes(sample)) {
+                hasNewSamples = true;
+                this.samples.push(sample);
+                this.renderers.push({
+                    sample,
+                    collapsed: new VCFSampleRenderer(VcfConfig, this),
+                    expanded: new VCFCollapsedRenderer(VcfConfig, this)
+                });
+            }
+        }
+        if (hasNewSamples) {
+            this._flags.renderReset = true;
+            const minHeight = VcfConfig.defaultHeight(this.state);
+            if (this.height < minHeight) {
+                this.height = minHeight;
+            }
+            this.requestRenderRefresh();
+        }
+    }
+
     applyAdditionalRequestParameters(params) {
         params.collapsed = false;
     }
@@ -97,9 +118,11 @@ export class MultiSampleVCFTrack extends VCFTrack {
     updateCacheData (multiSampleVcfData) {
         const {
             data,
-            coverage
+            coverage,
+            samples = []
         } = multiSampleVcfData;
         super.updateCacheData(data);
+        this.extendSamples(samples);
         if (this.cache) {
             delete this.cache.coverage;
             this.cache.coverage = coverage || [];

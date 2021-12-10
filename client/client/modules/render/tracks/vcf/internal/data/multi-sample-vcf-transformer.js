@@ -1,21 +1,16 @@
 import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
 import {VcfTransformer} from './vcfTransformer';
 
-export const STRAINS_COUNT = 200;
-
 export class MultiSampleVcfTransformer extends VcfTransformer {
     transformData (data, viewport) {
         const coverage = new Map();
         const variants = data || [];
-        const getVariantSamples = (variant) => {
-            // todo: remove mock
-            return (new Array(STRAINS_COUNT)).fill({}).map((o, index) => (
-                {
-                    sample: `Strain #${index + 1}`,
-                    info: {}
-                }
-            ));
-        };
+        const getVariantSamples = (variant) => Object
+            .keys(variant.genotypeData || {})
+            .map((sample) => ({
+                sample,
+                info: variant.genotypeData[sample]
+            }));
         const variantsBySamples = [];
         const expandCoverageItem = (startIndex, type, count) => {
             const prev = coverage.has(startIndex)
@@ -29,8 +24,10 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                 }
             );
         };
+        const allSamples = [];
         for (const variant of variants) {
             const samples = getVariantSamples(variant);
+            allSamples.push(...samples.map(o => o.sample));
             let {startIndex} = variant;
             startIndex += VcfAnalyzer.getVariantTranslation(variant);
             expandCoverageItem(startIndex, variant.type.toUpperCase(), samples.length);
@@ -58,10 +55,11 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                 }
                 variantsBySample.variants.push({
                     ...variant,
-                    sampleInfo: info
+                    genotypeData: info
                 });
             }
         }
+        const uniqueSamples = [...(new Set(allSamples))];
         const coverageData = [];
         let maximum = 0;
         for (const [position, coverageValue] of coverage) {
@@ -112,6 +110,7 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
         });
         return {
             data: transformedData,
+            samples: uniqueSamples,
             coverage: {
                 items: coverageDataSorted,
                 rawItems: coverageData,
