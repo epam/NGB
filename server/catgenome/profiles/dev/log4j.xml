@@ -5,7 +5,7 @@
         <param name="Target" value="System.out" />
         <param name="Encoding" value="UTF-8" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" />
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m{nolookups}%n" />
         </layout>
     </appender>
 
@@ -14,7 +14,7 @@
         <param name="Threshold" value="DEBUG"/>
         <param name="File" value="${catalina.base}/logs/catgenome-debug.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m{nolookups}%n" />
         </layout>
     </appender>
 
@@ -24,7 +24,7 @@
         <param name="File" value="${catalina.base}/logs/requests.log"/>
         <param name="MaxBackupIndex" value="30"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value='{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F", "debug_line":"%L","debug_message":"%m"}%n'/>
+            <param name="ConversionPattern" value='{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F", "debug_line":"%L","debug_message":"%m{nolookups}"}%n'/>
         </layout>
     </appender>
 
@@ -33,7 +33,7 @@
         <param name="Threshold" value="ERROR"/>
         <param name="File" value="${catalina.base}/logs/catgenome-error.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m{nolookups}%n" />
         </layout>
     </appender>
 
