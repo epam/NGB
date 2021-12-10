@@ -27,7 +27,8 @@ export default class ngbAppController extends baseController {
                 genomeDataService,
                 localDataService,
                 utilsDataService,
-                apiService) {
+                apiService,
+                appearanceContext) {
         super();
         Object.assign(this, {
             $scope,
@@ -42,7 +43,8 @@ export default class ngbAppController extends baseController {
             heatmapContext,
             projectDataService,
             utilsDataService,
-            apiService
+            apiService,
+            appearanceContext
         });
 
         this.utilsDataService.checkSessionExpirationBehavior();
@@ -158,6 +160,13 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
+            case 'setEmbedded': {
+                const embedded = event.data.params && event.data.params.embedded !== undefined
+                    ? !!(event.data.params.embedded)
+                    : true;
+                this._apiResponse(this.apiService.setEmbeddedMode(embedded), callerId);
+                break;
+            }
             default:
                 this._apiResponse({
                     message: 'Api error: No such method.',
@@ -225,7 +234,10 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot} = this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot, embedded} = this.$stateParams;
+        if (embedded) {
+            this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
+        }
 
         if (toolbar) {
             const toolbarVisibility = this.dictionaryState.on.toLowerCase() === toolbar.toLowerCase();

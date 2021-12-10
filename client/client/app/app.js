@@ -34,6 +34,7 @@ import './shared/hotkeys';
 import lastActionRepeater from './shared/lastActionRepeater';
 import MiewContext from './shared/miewContext';
 import NotificationsContext from './shared/notificationsContext';
+import AppearanceContext from './shared/appearanceContext';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
@@ -73,4 +74,5 @@ export default angular.module('NGB', [
     .service('notificationsContext', NotificationsContext.instance)
     .service('miewContext', MiewContext.instance)
     .service('heatmapContext', HeatmapContext.instance)
+    .service('appearanceContext', AppearanceContext.instance)
     .name;

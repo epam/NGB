@@ -8,14 +8,16 @@ export default class ngbApiService {
                     ngbDataSetsService,
                     $mdDialog,
                     localDataService,
-                    dispatcher) {
+                    dispatcher,
+                    appearanceContext) {
         return new ngbApiService(
             $state,
             projectContext,
             ngbDataSetsService,
             $mdDialog,
             localDataService,
-            dispatcher);
+            dispatcher,
+            appearanceContext);
     }
 
     projectContext;
@@ -23,10 +25,11 @@ export default class ngbApiService {
     $mdDialog;
     localDataService;
     dispatcher;
+    appearanceContext;
     datasets = [];
     references = [];
 
-    constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
+    constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher, appearanceContext) {
         Object.assign(this, {
             $mdDialog,
             $state,
@@ -34,6 +37,7 @@ export default class ngbApiService {
             localDataService,
             ngbDataSetsService,
             projectContext,
+            appearanceContext
         });
     }
 
@@ -281,6 +285,14 @@ export default class ngbApiService {
         return {
             isSuccessful: true,
             message: 'Ok'
+        };
+    }
+
+    setEmbeddedMode (embedded) {
+        this.appearanceContext.embedded = embedded;
+        return {
+            isSuccessful: true,
+            message: 'OK'
         };
     }
 
