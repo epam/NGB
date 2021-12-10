@@ -47,7 +47,7 @@ $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
 
   &.selected {
     background-color: $element-selected-background-color;
-    border: 2px solid $element-selected-border-color;
+    border: 1px solid $element-selected-border-color;
     box-shadow: 0px 2px 10px $element-selected-shadow-color;
   }
 
@@ -58,9 +58,9 @@ $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
   }
 
   &.selected:hover {
-    background-color: $element-hover-background-color;
+    background-color: darken($element-selected-background-color, 2%);
     box-shadow: 0px 2px 10px $element-shadow-color;
-    border: 1px solid $element-hover-border-color;
+    border: 1px solid lighten($element-selected-border-color, 10%);
   }
 
   .strain-lineage-node-desc {
