@@ -25,14 +25,14 @@
 <Configuration>
     <Appenders>
         <Console name="Out" target="SYSTEM_OUT" ignoreExceptions="true">
-            <PatternLayout pattern="%msg{nolookups}%n"/>
+            <PatternLayout pattern="%msg%n"/>
             <Filters>
                 <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
         </Console>
         <Console name="Err" target="SYSTEM_ERR" ignoreExceptions="false">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg{nolookups}%n"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
             <Filters>
                 <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
