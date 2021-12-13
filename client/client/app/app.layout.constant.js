@@ -75,7 +75,7 @@ export default {
             icon: 'grain',
             panel: 'ngbHeatmapPanel',
             position: 'right',
-            title: 'HEATMAP',
+            title: 'Heatmap',
             name: 'layout>heatmap'
         },
         strainLineage: {
@@ -83,7 +83,7 @@ export default {
             icon: 'device_hub',
             panel: 'ngbStrainLineage',
             position: 'right',
-            title: 'LINEAGE',
+            title: 'Lineage',
             name: 'layout>strainLineage'
         },
         homologs: {
@@ -92,7 +92,7 @@ export default {
             icon: 'search',
             panel: 'ngbHomologsPanel',
             position: 'right',
-            title: 'HOMOLOGS',
+            title: 'Homologs',
             name: 'layout>homologs'
         },
         ...(() => {
