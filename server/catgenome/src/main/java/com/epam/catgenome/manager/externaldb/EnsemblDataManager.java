@@ -72,23 +72,20 @@ public class EnsemblDataManager {
      * @return Ensemble entry from query
      * @throws ExternalDbUnavailableException
      */
-    public EnsemblEntryVO fetchEnsemblEntry(String geneId) throws ExternalDbUnavailableException {
-        ParameterNameValue[] params = new ParameterNameValue[]{
+    public EnsemblEntryVO fetchEnsemblEntry(final String geneId) throws ExternalDbUnavailableException {
+        final ParameterNameValue[] params = new ParameterNameValue[]{
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON),
             new ParameterNameValue(ENSEMBL_EXPAND_TOOL, "1"),
             new ParameterNameValue("utr", "1")};
 
-        String location = ensemblServer + ENSEMBL_TOOL + "/" + geneId + "?";
-
-        String geneData = httpDataManager.fetchData(location, params);
-
-        EnsemblEntryVO ensemblEntryVO;
+        final String location = ensemblServer + ENSEMBL_TOOL + "/" + geneId + "?";
+        final String geneData = httpDataManager.fetchData(location, params);
+        final EnsemblEntryVO ensemblEntryVO;
         try {
             ensemblEntryVO = objectMapper.readValue(geneData, EnsemblEntryVO.class);
         } catch (IOException e) {
             throw new ExternalDbUnavailableException("Unexpected result format", e);
         }
-
         return ensemblEntryVO;
     }
 
@@ -102,23 +99,21 @@ public class EnsemblDataManager {
      * @return Ensemble variation entry from query
      * @throws ExternalDbUnavailableException
      */
-    public EnsemblVariationEntryVO fetchVariationEntry(String variationId, String species)
+    public EnsemblVariationEntryVO fetchVariationEntry(final String variationId, final String species)
             throws ExternalDbUnavailableException {
-
-        ParameterNameValue[] params = new ParameterNameValue[]{
+        final ParameterNameValue[] params = new ParameterNameValue[]{
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON),
             new ParameterNameValue(ENSEMBL_EXPAND_TOOL, "1")};
 
-        String location = String.format("%s%s/%s/%s?", ensemblServer, ENSEMBL_VARIATION_TOOL, species, variationId);
-
-        String variationData = httpDataManager.fetchData(location, params);
+        final String location = String.format("%s%s/%s/%s?", ensemblServer, ENSEMBL_VARIATION_TOOL, species,
+                variationId);
+        final String variationData = httpDataManager.fetchData(location, params);
         try {
             return objectMapper.readValue(variationData, EnsemblVariationEntryVO.class);
         } catch (IOException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.ERROR_NO_DATA_FOR_URL,
                                                                               location), e);
         }
-
     }
 
     /**
@@ -137,19 +132,15 @@ public class EnsemblDataManager {
      * @return List of entry from query
      * @throws ExternalDbUnavailableException
      */
-    public List<EnsemblEntryVO> fetchVariationsOnRegion(String species, String chromosome,
-                                                        String start, String finish)
-            throws ExternalDbUnavailableException {
-
-        ParameterNameValue[] params = new ParameterNameValue[]{
+    public List<EnsemblEntryVO> fetchVariationsOnRegion(final String species, final String chromosome,
+                                    final String start, final String finish) throws ExternalDbUnavailableException {
+        final ParameterNameValue[] params = new ParameterNameValue[]{
             new ParameterNameValue("feature", ENSEMBL_VARIATION_TOOL),
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON)};
 
-        String location = String.format("%s%s/%s/%s", ensemblServer, ENSEMBL_OVERLAP_TOOL, species,
+        final String location = String.format("%s%s/%s/%s", ensemblServer, ENSEMBL_OVERLAP_TOOL, species,
                 chromosome + ":" + start + "-" + finish + "?");
-
-        String variationData = httpDataManager.fetchData(location, params);
-
+        final String variationData = httpDataManager.fetchData(location, params);
         List<EnsemblEntryVO> variationEntryVOList = Collections.emptyList();
 
         if (StringUtils.isNotEmpty(variationData)) {
@@ -159,10 +150,8 @@ public class EnsemblDataManager {
             } catch (IOException e) {
                 throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
                         .ERROR_NO_DATA_FOR_URL, location), e);
-
             }
         }
-
         return variationEntryVOList;
     }
 }

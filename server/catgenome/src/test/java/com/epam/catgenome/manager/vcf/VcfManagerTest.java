@@ -353,6 +353,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
         Assert.assertFalse(filterInfo.getInfoItems().isEmpty());
         Assert.assertFalse(filterInfo.getAvailableFilters().isEmpty());
+        Assert.assertFalse(filterInfo.getSampleNames().isEmpty());
 
         // now add a project and try to fetch genes affected
         vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);

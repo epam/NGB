@@ -24,7 +24,10 @@
 
 package com.epam.catgenome.controller.vo.externaldb.ensemblevo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source:
@@ -37,6 +40,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </p>
  *
  */
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EnsemblTranslationVO extends EnsemblDBBaseVO {
 
     @JsonProperty(value = "Parent")
@@ -44,21 +50,4 @@ public class EnsemblTranslationVO extends EnsemblDBBaseVO {
 
     @JsonProperty(value = "length")
     private String length;
-
-    public String getParent() {
-        return parent;
-    }
-
-    public void setParent(String parent) {
-        this.parent = parent;
-    }
-
-    public String getLength() {
-        return length;
-    }
-
-    public void setLength(String length) {
-        this.length = length;
-    }
-
 }

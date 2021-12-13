@@ -25,6 +25,8 @@
 package com.epam.catgenome.controller.vo.externaldb.ensemblevo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source:
@@ -37,6 +39,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </p>
  *
  */
+@Setter
+@Getter
 public class EnsemblExonVO extends EnsemblDBBaseVO {
 
     @JsonProperty(value = "version")
@@ -50,36 +54,4 @@ public class EnsemblExonVO extends EnsemblDBBaseVO {
 
     @JsonProperty(value = "strand")
     private String strand;
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public String getAssemblyName() {
-        return assemblyName;
-    }
-
-    public void setAssemblyName(String assemblyName) {
-        this.assemblyName = assemblyName;
-    }
-
-    public String getSeqRegionName() {
-        return seqRegionName;
-    }
-
-    public void setSeqRegionName(String seqRegionName) {
-        this.seqRegionName = seqRegionName;
-    }
-
-    public String getStrand() {
-        return strand;
-    }
-
-    public void setStrand(String strand) {
-        this.strand = strand;
-    }
 }

@@ -25,6 +25,8 @@
 package com.epam.catgenome.controller.vo.externaldb.ensemblevo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source:
@@ -37,6 +39,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </p>
  *
  */
+@Getter
+@Setter
 public class EnsemblBaseVO {
 
     @JsonProperty(value = "end")
@@ -44,22 +48,4 @@ public class EnsemblBaseVO {
 
     @JsonProperty(value = "start")
     private Long start;
-
-
-    public Long getEnd() {
-        return end;
-    }
-
-    public void setEnd(Long end) {
-        this.end = end;
-    }
-
-    public Long getStart() {
-        return start;
-    }
-
-    public void setStart(Long start) {
-        this.start = start;
-    }
-
 }

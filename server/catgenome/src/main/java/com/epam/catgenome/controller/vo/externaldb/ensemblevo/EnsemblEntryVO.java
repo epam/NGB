@@ -26,6 +26,9 @@ package com.epam.catgenome.controller.vo.externaldb.ensemblevo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Source: EnsemblEntryVO
@@ -38,6 +41,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </p>
  *
  */
+@Getter
+@Setter
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EnsemblEntryVO extends EnsemblFullBaseVO {
 
@@ -52,58 +58,4 @@ public class EnsemblEntryVO extends EnsemblFullBaseVO {
 
     @JsonProperty(value = "Transcript")
     private EnsemblTranscriptVO[] transcript;
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public EnsemblTranscriptVO[] getTranscript() {
-        return transcript;
-    }
-
-    public void setTranscript(EnsemblTranscriptVO[] transcript) {
-        this.transcript = transcript;
-    }
-
-    public String getFeatureType() {
-        return featureType;
-    }
-
-    public void setFeatureType(String featureType) {
-        this.featureType = featureType;
-    }
-
-    public String[] getAlleles() {
-        return alleles;
-    }
-
-    public void setAlleles(String[] alleles) {
-        this.alleles = alleles;
-    }
-    @Override
-    public String toString() {
-        return "EnsemblEntryVO{" +
-                "source='" + getSource() + '\'' +
-                ", objectType='" + getObjectType() + '\'' +
-                ", logicName='" + getLogicName() + '\'' +
-                ", version=" + getVersion() +
-                ", species='" + getSpecies() + '\'' +
-                ", description='" + description + '\'' +
-                ", displayName='" + getDisplayName() + '\'' +
-                ", assemblyName='" + getAssemblyName() + '\'' +
-                ", biotype='" + getBioType() + '\'' +
-                ", start='" + getStart() + '\'' +
-                ", end='" + getEnd() + '\'' +
-                ", seqRegionName='" + getSeqRegionName() + '\'' +
-                ", dbType='" + getDbType() + '\'' +
-                ", strand='" + getStrand() + '\'' +
-                ", id='" + getId() + '\'' +
-                ", transcript='" + transcript + '\'' +
-                '}';
-    }
-
 }

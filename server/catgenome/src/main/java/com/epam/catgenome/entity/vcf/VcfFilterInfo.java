@@ -29,39 +29,24 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Contains data to fill filter form on UI for a VCF FILTER and INFO header lines
  */
+@Getter
+@Setter
 public class VcfFilterInfo {
     @JsonIgnore
     private Map<String, InfoItem> infoItemMap; // map for inner representation only
 
     private Collection<InfoItem> infoItems;
     private Set<String> availableFilters;
-
-    public Collection<InfoItem> getInfoItems() {
-        return infoItems;
-    }
-
-    public Map<String, InfoItem> getInfoItemMap() {
-        return infoItemMap;
-    }
+    private Set<String> sampleNames;
 
     public void setInfoItemMap(Map<String, InfoItem> infoItemMap) {
         this.infoItemMap = infoItemMap;
         this.infoItems = infoItemMap.values();
-    }
-
-    public void setInfoItems(Collection<InfoItem> infoItems) {
-        this.infoItems = infoItems;
-    }
-
-    public Set<String> getAvailableFilters() {
-        return availableFilters;
-    }
-
-    public void setAvailableFilters(Set<String> availableFilters) {
-        this.availableFilters = availableFilters;
     }
 }
