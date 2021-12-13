@@ -6,7 +6,7 @@
         <param name="Threshold" value="ERROR"/>
         <param name="Encoding" value="UTF-8" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m{nolookups}%n" />
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" />
         </layout>
     </appender>
 
@@ -15,7 +15,7 @@
         <param name="Threshold" value="ERROR"/>
         <param name="File" value="${catalina.base}/logs/catgenome-error.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m{nolookups}%n" />
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
         </layout>
     </appender>
 
