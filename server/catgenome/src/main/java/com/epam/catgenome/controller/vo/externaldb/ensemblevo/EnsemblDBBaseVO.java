@@ -25,6 +25,8 @@
 package com.epam.catgenome.controller.vo.externaldb.ensemblevo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source:
@@ -37,6 +39,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * <p>
  *
  */
+@Getter
+@Setter
 public class EnsemblDBBaseVO extends EnsemblBaseVO {
     @JsonProperty(value = "object_type")
     private String objectType;
@@ -49,36 +53,4 @@ public class EnsemblDBBaseVO extends EnsemblBaseVO {
 
     @JsonProperty(value = "species")
     private String species;
-
-    public String getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(String species) {
-        this.species = species;
-    }
-
-    public String getObjectType() {
-        return objectType;
-    }
-
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
-    public String getDbType() {
-        return dbType;
-    }
-
-    public void setDbType(String dbType) {
-        this.dbType = dbType;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 }

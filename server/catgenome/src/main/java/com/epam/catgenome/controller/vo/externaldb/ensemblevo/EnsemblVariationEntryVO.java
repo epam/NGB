@@ -28,6 +28,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Source: EnsemblVariationEntryVO
@@ -39,6 +41,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </p>
  *
  */
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EnsemblVariationEntryVO {
 
@@ -72,87 +76,8 @@ public class EnsemblVariationEntryVO {
     @JsonProperty(value = "mappings")
     private List<VariationMapping> mappings;
 
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Double getMaf() {
-        return maf;
-    }
-
-    public void setMaf(Double maf) {
-        this.maf = maf;
-    }
-
-    public String getAmbiguity() {
-        return ambiguity;
-    }
-
-    public void setAmbiguity(String ambiguity) {
-        this.ambiguity = ambiguity;
-    }
-
-    public String getVarClass() {
-        return varClass;
-    }
-
-    public void setVarClass(String varClass) {
-        this.varClass = varClass;
-    }
-
-    public String[] getEvidences() {
-        return evidences;
-    }
-
-    public void setEvidences(String[] evidences) {
-        this.evidences = evidences;
-    }
-
-    public String getAncestralAllele() {
-        return ancestralAllele;
-    }
-
-    public void setAncestralAllele(String ancestralAllele) {
-        this.ancestralAllele = ancestralAllele;
-    }
-
-    public String getMinorAllele() {
-        return minorAllele;
-    }
-
-    public void setMinorAllele(String minorAllele) {
-        this.minorAllele = minorAllele;
-    }
-
-    public String getMostSevereConsequence() {
-        return mostSevereConsequence;
-    }
-
-    public void setMostSevereConsequence(String mostSevereConsequence) {
-        this.mostSevereConsequence = mostSevereConsequence;
-    }
-
-    public String[] getSynonyms() {
-        return synonyms;
-    }
-
-    public void setSynonyms(String[] synonyms) {
-        this.synonyms = synonyms;
-    }
-
-    public List<VariationMapping> getMappings() {
-        return mappings;
-    }
-
-    public void setMappings(List<VariationMapping> mappings) {
-        this.mappings = mappings;
-    }
-
+    @Getter
+    @Setter
     public static class VariationMapping extends EnsemblBaseVO {
 
         @JsonProperty(value = "location")
@@ -167,54 +92,5 @@ public class EnsemblVariationEntryVO {
         private String coordSystem;
         @JsonProperty(value = "allele_string")
         private String alleleString;
-
-        public String getLocation() {
-            return location;
-        }
-
-        public void setLocation(String location) {
-            this.location = location;
-        }
-
-        public String getAssemblyName() {
-            return assemblyName;
-        }
-
-        public void setAssemblyName(String assemblyName) {
-            this.assemblyName = assemblyName;
-        }
-
-        public String getSeqRegionName() {
-            return seqRegionName;
-        }
-
-        public void setSeqRegionName(String seqRegionName) {
-            this.seqRegionName = seqRegionName;
-        }
-
-        public Integer getStrand() {
-            return strand;
-        }
-
-        public void setStrand(Integer strand) {
-            this.strand = strand;
-        }
-
-        public String getCoordSystem() {
-            return coordSystem;
-        }
-
-        public void setCoordSystem(String coordSystem) {
-            this.coordSystem = coordSystem;
-        }
-
-        public String getAlleleString() {
-            return alleleString;
-        }
-
-        public void setAlleleString(String alleleString) {
-            this.alleleString = alleleString;
-        }
     }
-
 }

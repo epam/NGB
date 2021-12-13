@@ -422,7 +422,6 @@ public class GffManagerTest extends AbstractManagerTest {
                 .thenReturn(fetchRes2)
                 .thenReturn(fetchRes3);
 
-
         Chromosome otherChromosome = EntityHelper.createNewChromosome("22");
         otherChromosome.setSize(TEST_CHROMOSOME_SIZE);
         Reference otherReference = EntityHelper.createNewReference(otherChromosome,
@@ -432,7 +431,6 @@ public class GffManagerTest extends AbstractManagerTest {
         Long otherReferenceId = otherReference.getId();
 
         Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
-
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(otherReferenceId);
@@ -468,7 +466,6 @@ public class GffManagerTest extends AbstractManagerTest {
         }
     }
 
-
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testPBD() throws IOException, ExternalDbUnavailableException {
@@ -481,7 +478,6 @@ public class GffManagerTest extends AbstractManagerTest {
                 httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes1)
                 .thenReturn(fetchRes2);
-
 
         final DimStructure dimStructurelist = gffManager.getPBDItemsFromBD(PBD_TEST_ID);
         Assert.assertNotNull(dimStructurelist);
