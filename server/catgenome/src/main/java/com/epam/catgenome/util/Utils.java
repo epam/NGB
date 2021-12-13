@@ -26,14 +26,7 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.constant.Constants;
@@ -492,11 +485,10 @@ public final class Utils {
         if (TextUtils.isEmpty(attributes)) {
             return null;
         }
-        final Map<String, String> map = new HashMap<>();
+        final Map<String, String> map = new LinkedHashMap<>();
         Arrays.stream(attributes.split(",")).forEach(a -> {
             final String[] attr = a.split("=");
-            Assert.isTrue(attr.length == 2,
-                    getMessage(MessagesConstants.ERROR_ATTRIBUTE_INVALID_VALUE, a));
+            Assert.isTrue(attr.length == 2, getMessage(MessagesConstants.ERROR_ATTRIBUTE_INVALID_VALUE, a));
             map.put(attr[0], attr[1]);
         });
         return map;
@@ -505,6 +497,6 @@ public final class Utils {
     public static String serializeAttributes(final Map<String, String> attributes) {
         return CollectionUtils.isEmpty(attributes) ? null : attributes.keySet().stream()
                 .map(key -> key + "=" + attributes.get(key))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(","));
     }
 }
