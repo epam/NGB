@@ -296,6 +296,18 @@ export default class ngbApiService {
         };
     }
 
+    setButtonsVisibility (payload) {
+        Object.entries(payload).forEach(([key, value]) => {
+            if (this.appearanceContext[key] !== undefined) {
+                this.appearanceContext[key] = value;
+            }
+        });
+        return {
+            isSuccessful: true,
+            message: 'OK'
+        };
+    }
+
     /** returns a Promise */
     _processTracks(tracks, chosenReference) {
         const errors = [];

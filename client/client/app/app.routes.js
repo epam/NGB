@@ -23,7 +23,17 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 collapsedTrackHeaders: null,
                 miew: null,
                 heatmap: null,
-                embedded: null
+                embedded: null,
+
+                closeAllTracks: 'Off',
+                fitAllTracks: 'On',
+                organizeTracks: 'On',
+                genomeAnnotations: null,
+                projectInfoSections: null,
+                tracksSelection: 'On',
+                hideAll: 'Off',
+                maximise: null,
+                close: null
             },
             resolve: {
                 $stateParams: '$stateParams'

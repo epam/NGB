@@ -81,7 +81,7 @@ export default class ngbAppController extends baseController {
     _listener(event) {
         const callerId = event.data.callerId ? event.data.callerId : null;
         switch (event.data.method) {
-            case 'loadDataSet':
+            case 'loadDataSet': {
                 const id = parseInt(event.data.params && event.data.params.id ? event.data.params.id : null);
                 const forceSwitchRef = event.data.params && event.data.params.forceSwitchRef ? event.data.params.forceSwitchRef : false;
                 if (id) {
@@ -95,12 +95,14 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'navigateToCoordinate':
+            }
+            case 'navigateToCoordinate': {
                 const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
                 this.apiService.navigateToCoordinate(coordinates).then((response) => {
                     this._apiResponse(response, callerId);
                 });
                 break;
+            }
             case 'toggleSelectTrack':
                 if (event.data.params && event.data.params.track) {
                     this.apiService.toggleSelectTrack(event.data.params).then((response) => {
@@ -113,7 +115,7 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'loadTracks':
+            case 'loadTracks': {
                 const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null,
                     mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
                 if (tracks && mode) {
@@ -127,7 +129,8 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'setGlobalSettings':
+            }
+            case 'setGlobalSettings': {
                 const globalSettingsParams = event.data.params;
                 if (globalSettingsParams) {
                     this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams), callerId);
@@ -138,7 +141,8 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'setTrackSettings':
+            }
+            case 'setTrackSettings': {
                 const trackSettingParams = event.data.params;
                 if (trackSettingParams) {
                     this._apiResponse(this.apiService.setTrackSettings(trackSettingParams), callerId);
@@ -149,7 +153,8 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'setToken':
+            }
+            case 'setToken': {
                 const token = event.data.params && event.data.params.token ? event.data.params.token : null;
                 if (token) {
                     this._apiResponse(this.apiService.setToken(token), callerId);
@@ -160,11 +165,55 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
+            }
             case 'setEmbedded': {
                 const embedded = event.data.params && event.data.params.embedded !== undefined
                     ? !!(event.data.params.embedded)
                     : true;
                 this._apiResponse(this.apiService.setEmbeddedMode(embedded), callerId);
+                break;
+            }
+            case 'setButtonsVisibility': {
+                const isCloseVisible = event.data.params && event.data.params.close !== undefined
+                    ? !!(event.data.params.close)
+                    : true;
+                const isFitAllTracksVisible = event.data.params && event.data.params.fitAllTracks !== undefined
+                    ? !!(event.data.params.fitAllTracks)
+                    : true;
+                const isCloseAllTracksVisible = event.data.params && event.data.params.closeAllTracks !== undefined
+                    ? !!(event.data.params.closeAllTracks)
+                    : true;
+                const isOrganizeAllTracksVisible = event.data.params && event.data.params.organizeAllTracks !== undefined
+                    ? !!(event.data.params.organizeAllTracks)
+                    : true;
+                const isProjectInfoVisible = event.data.params && event.data.params.projectInfo !== undefined
+                    ? !!(event.data.params.projectInfo)
+                    : true;
+                const isGenomeAnnotationsVisible = event.data.params && event.data.params.genomeAnnotations !== undefined
+                    ? !!(event.data.params.genomeAnnotations)
+                    : true;
+                const isTracksSelectionVisible = event.data.params && event.data.params.tracksSelection !== undefined
+                    ? !!(event.data.params.tracksSelection)
+                    : true;
+                const isMaximiseVisible = event.data.params && event.data.params.maximise !== undefined
+                    ? !!(event.data.params.maximise)
+                    : true;
+                const isHideAll = event.data.params && event.data.params.hideAll !== undefined
+                ? !!(event.data.params.hideAll)
+                : false;
+
+                const payload = {
+                    hideAll:  isHideAll,
+                    close: isCloseVisible && !isHideAll,
+                    maximise: isMaximiseVisible && !isHideAll,
+                    fitAllTracks: isFitAllTracksVisible,
+                    closeAllTracks: isCloseAllTracksVisible,
+                    organizeTracks: isOrganizeAllTracksVisible,
+                    projectInfoSections: isProjectInfoVisible,
+                    genomeAnnotations: isGenomeAnnotationsVisible,
+                    tracksSelection: isTracksSelectionVisible
+                };
+                this._apiResponse(this.apiService.setButtonsVisibility(payload), callerId);
                 break;
             }
             default:
@@ -234,9 +283,13 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot, embedded} = this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot, embedded, ...rest} = this.$stateParams;
         if (embedded) {
             this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
+            const embeddedOptions = Object.entries(rest).filter(([key, value])=> this.appearanceContext[key] !== undefined);
+            embeddedOptions.forEach(([key, value]) => {
+                this.appearanceContext[key] = value && this.dictionaryState.on.toLowerCase() === value.toLowerCase();
+            });
         }
 
         if (toolbar) {
