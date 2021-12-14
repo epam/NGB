@@ -8,6 +8,7 @@
     - [Molecular viewer](#molecular-viewer-panel)
     - [BLAST search](#blast-panel)
     - [Heatmap panel](#heatmap-panel)
+    - [Lineage panel](#lineage-panel)
 - [Taking screenshots](#taking-screenshots)
 
 The NGB user interface is implemented as the main menu on the left side and a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.  
@@ -234,6 +235,19 @@ Besides their main function to visualize data, heatmaps can also be used to navi
 ![NGB GUI](images/overview-51.png)
 
 For more details see [here](tracks-heatmap.md).
+
+### Lineage panel
+
+Lineage is a one-directional graph where each node represent a strain (genome) and each edge between nodes represent an impact used to create a progeny from a parent strain.  
+NGB supports visualization of a lineage for a family of strains or reference genomes.
+
+![NGB GUI](images/overview-52.png)
+
+Any lineage node (strain) can be associated with a NGB reference ID - in this case, node's name is displayed as a hyperlink.  
+User can click such link to navigate to the corresponding reference track (at the same time, the lineage panel remains opened), e.g.:  
+  ![NGB GUI](images/overview-53.png)
+
+For more details see [here](strain-lineage.md).
 
 ## Taking screenshots
 

@@ -9,6 +9,7 @@
     - [Displaying additional details](#displaying-additional-details)
         - [Cell annotations](#cell-annotations)
         - [Row/column annotations](#rowcolumn-annotations)
+        - [Dendrograms](#dendrograms)
 - [Displaying at the Summary page](#displaying-at-the-summary-page)
 - [Heatmap as a reference annotation](#heatmap-as-a-reference-annotation)
 - [Navigation from annotations](#navigation-from-annotations)
@@ -146,7 +147,7 @@ If the scheme above was saved, our heatmap will be redrawn:
 
 ### Displaying additional details
 
-Any heatmap can have additional details - row/column annotations, cell annotations.  
+Any heatmap can have additional details - row/column annotations, cell annotations, dendrograms.  
 These details are defined by additional files that can be registered simultaneously with heatmap or added after.
 
 #### Cell annotations
@@ -196,6 +197,30 @@ Sample3    Gorilla_female
 
 If the current heatmap has a linked row/column annotations file - the corresponding annotation labels will appear on the corresponding axis of the heatmap (near the axis headers), e.g. annotations for columns:  
   ![NGB GUI](images/heatmap-15.png)
+
+You can manually hide/show annotations by click the **ANNOTATIONS** control in the left upper corner of the panel:  
+  ![NGB GUI](images/heatmap-24.png)  
+**_Note_**: this control is displayed on the panel only if a heatmap has a linked row/column annotations file.
+
+#### Dendrograms
+
+For each side of the histogram (rows/columns), may be set a dendrogram (phylogenetic tree).  
+File with a dendogram should be presented as plain `txt` file that content tree-date in [`Newick`](http://wiki.christophchamp.com/index.php?title=Newick_phylogenetic_tree_format) format.
+
+Example:
+
+```
+((Human:0.1,Gorilla:0.1):0.4,(Mouse:0.2,Rat:0.2):0.3);
+```
+
+**_Note_**: registered dendrogram files are not displayed in the datasets tree
+
+If the current heatmap has linked row/column phylogenetic tree file(s) - the corresponding dendrogram(s) will appear on the corresponding side of the heatmap, e.g. dendrogram for rows:  
+  ![NGB GUI](images/heatmap-25.png)
+
+You can manually hide/show dendrogram(s) by click the **DENDROGRAM** control in the left upper corner of the panel:  
+  ![NGB GUI](images/heatmap-26.png)  
+**_Note_**: this control is displayed on the panel only if a heatmap has a linked dendrogram file(s).
 
 ## Displaying at the Summary page
 
