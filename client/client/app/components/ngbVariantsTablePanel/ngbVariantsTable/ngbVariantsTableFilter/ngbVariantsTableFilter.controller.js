@@ -36,6 +36,16 @@ export default class ngbVariantsTableFilterController {
                     return await projectDataService.searchGeneNames(this.projectContext.referenceId, searchText, 'featureName');
                 };
             } break;
+            case 'sampleNames': {
+                this.isList = true;
+                this.list = (searchText) => {
+                    const sampleNames = projectContext.vcfSampleNames || [];
+                    const filtered = sampleNames.filter(s => !searchText ||
+                        s.toLowerCase().startsWith(searchText.toLowerCase())
+                    );
+                    return Promise.resolve(filtered);
+                };
+            } break;
             case 'chrName': {
                 this.isList = true;
                 this.list = this.projectContext.chromosomes.map(d => d.name.toUpperCase());

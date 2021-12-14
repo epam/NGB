@@ -49,6 +49,13 @@ export default class ngbVariantsFilterListController {
                 }
             }
                 break;
+            case 'sampleNames': {
+                if (this.projectContext.vcfFilter.sampleNames) {
+                    this.selectedItems = (this.projectContext.vcfFilter.sampleNames || []).map(t => t);
+                    this.displayText = [...this.selectedItems].join(', ');
+                }
+            }
+                break;
         }
     }
 
@@ -143,9 +150,11 @@ export default class ngbVariantsFilterListController {
     }
 
     apply() {
-        const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
+        const parts = this.displayText.split(',').map(part => part.trim());
         if (this.listElements.fullList && this.listElements.length > 0) {
-            this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+            const lowerCasedParts = parts.map(o => o.toLowerCase());
+            this.selectedItems = this.listElements.fullList
+                .filter(item => lowerCasedParts.indexOf(item.toLowerCase()) >= 0);
         } else {
             this.selectedItems = parts.filter(part => part !== '');
         }
@@ -191,6 +200,19 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedGenes = this.selectedItems;
+                    this.projectContext.scheduleFilterVariants();
+                }
+            }
+                break;
+            case 'sampleNames': {
+                const prevValue = (this.projectContext.vcfFilter.sampleNames || []);
+                prevValue.sort();
+                const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+                const currValue = (this.selectedItems || []);
+                currValue.sort();
+                const currValueStr = JSON.stringify(currValue).toUpperCase();
+                if (currValueStr !== prevValueStr) {
+                    this.projectContext.vcfFilter.sampleNames = this.selectedItems;
                     this.projectContext.scheduleFilterVariants();
                 }
             }

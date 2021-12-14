@@ -1,6 +1,4 @@
-import * as PIXI from 'pixi.js-legacy';
-import {EventVariationInfo} from '../../../../app/shared/utils/events';
-import {linearDimensionsConflict} from '../../utilities';
+import {ProjectDataService} from '../../../../dataServices';
 import {
     StatisticsContainer,
     VCFCollapsedRenderer,
@@ -9,13 +7,18 @@ import {
     VCFSamplesScroll,
     VariantContainer
 } from './internal';
+import * as PIXI from 'pixi.js-legacy';
 import CoordinateSystem from '../common/coordinateSystemRenderer';
+import {EventVariationInfo} from '../../../../app/shared/utils/events';
+import {linearDimensionsConflict} from '../../utilities';
 import Menu from '../../core/menu';
 import {MultiSampleVcfTransformer} from './internal';
 import {VCFTrack} from './index';
 import VcfConfig from './multi-sample-vcf-config';
 import {default as menu} from './menu';
 import {variantsView} from './modes';
+
+const projectDataService = new ProjectDataService();
 
 export class MultiSampleVCFTrack extends VCFTrack {
     sampleGraphics = new PIXI.Graphics();
@@ -73,17 +76,34 @@ export class MultiSampleVCFTrack extends VCFTrack {
             VcfConfig.scroll.width;
         this.sampleScroller.y = VcfConfig.coverageHeight;
         this.coverageMask = new PIXI.Graphics();
-        this.initializeSamples();
+        (this.initializeSamples)();
     }
 
-    initializeSamples () {
-        //todo: get samples
-        this.samples = [].slice();
+    async initializeSamples () {
+        const {
+            id,
+            projectId
+        } = this.dataConfig;
+        let samples = [];
+        if (id && projectId) {
+            try {
+                const {sampleNames = []} = await projectDataService
+                    .getProjectsFilterVcfInfo({value: {[projectId]: [id]}}) || {};
+                samples = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
+            } catch (e) {
+                console.warn(`Error fetching vcf info: ${e.message}`);
+            }
+        }
+        this.samples = samples.slice();
         this.renderers = this.samples.map((sample) => ({
             sample,
             collapsed: new VCFSampleRenderer(VcfConfig, this),
             expanded: new VCFCollapsedRenderer(VcfConfig, this)
         }));
+        const minHeight = VcfConfig.defaultHeight(this.state);
+        if (this.height < minHeight) {
+            this.height = minHeight;
+        }
         this._flags.renderReset = true;
         this.requestRenderRefresh();
     }

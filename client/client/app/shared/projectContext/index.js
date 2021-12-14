@@ -3,10 +3,11 @@ import * as vcfHighlightCondition from '../../../dataServices/utils/vcf-highligh
 
 const Math = window.Math;
 
-const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'geneNames', 'startIndex', 'info'];
+const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'sampleNames', 'geneNames', 'startIndex', 'info'];
 const DEFAULT_ORDERBY_VCF_COLUMNS = {
     'variationType': 'VARIATION_TYPE',
     'chrName': 'CHROMOSOME_NAME',
+    'sampleNames': 'SAMPLE',
     'geneNames': 'GENE_NAME',
     'startIndex': 'START_INDEX'
 };
@@ -95,6 +96,7 @@ export default class projectContext {
     _vcfFilterIsDefault = true;
     _infoFields = [];
     _vcfInfo = [];
+    _vcfSampleNames = [];
     _filteredVariants = [];
     _variantsDataByChromosomes = [];
     _variantsDataByType = [];
@@ -308,6 +310,10 @@ export default class projectContext {
 
     get vcfInfo() {
         return this._vcfInfo;
+    }
+
+    get vcfSampleNames() {
+        return this._vcfSampleNames;
     }
 
     get vcfInfoColumns() {
@@ -1297,9 +1303,15 @@ export default class projectContext {
         const additionalFiltersAreEmpty = projectContext.propertyIsEmpty(this.vcfFilter.additionalFilters);
         const selectedChromosomesIsEmpty = !this.vcfFilter.chromosomeIds || !this.vcfFilter.chromosomeIds.length;
         const selectedGenesIsEmpty = !this.vcfFilter.selectedGenes || !this.vcfFilter.selectedGenes.length;
+        const sampleNamesIsEmpty = !this.vcfFilter.sampleNames || !this.vcfFilter.sampleNames.length;
         const selectedVcfTypesIsEmpty = !this.vcfFilter.selectedVcfTypes || !this.vcfFilter.selectedVcfTypes.length;
         const positionIsEmpty = this.vcfFilter.startIndex === undefined && this.vcfFilter.endIndex === undefined;
-        this._vcfFilterIsDefault = additionalFiltersAreEmpty && selectedChromosomesIsEmpty && selectedGenesIsEmpty && selectedVcfTypesIsEmpty && positionIsEmpty;
+        this._vcfFilterIsDefault = additionalFiltersAreEmpty &&
+            selectedChromosomesIsEmpty &&
+            selectedGenesIsEmpty &&
+            selectedVcfTypesIsEmpty &&
+            positionIsEmpty &&
+            sampleNamesIsEmpty;
     }
 
     variantsFieldIsFiltered(fieldName) {
@@ -1310,6 +1322,9 @@ export default class projectContext {
                 break;
             case 'geneNames':
                 result = this.vcfFilter.selectedGenes && this.vcfFilter.selectedGenes.length;
+                break;
+            case 'sampleNames':
+                result = this.vcfFilter.sampleNames && this.vcfFilter.sampleNames.length;
                 break;
             case 'chrName':
                 result = this.vcfFilter.chromosomeIds && this.vcfFilter.chromosomeIds.length;
@@ -1331,6 +1346,9 @@ export default class projectContext {
                 break;
             case 'geneNames':
                 this.vcfFilter.selectedGenes = [];
+                break;
+            case 'sampleNames':
+                this.vcfFilter.sampleNames = [];
                 break;
             case 'chrName':
                 this.vcfFilter.chromosomeIds = [];
@@ -1809,6 +1827,7 @@ export default class projectContext {
             referenceDidChange = await this._changeReference(null);
             this._containsVcfFiles = false;
             this._vcfInfo = [];
+            this._vcfSampleNames = [];
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
             this._variationsPointer = null;
@@ -1861,14 +1880,19 @@ export default class projectContext {
     async _initializeVariants(onInit) {
         if (!this._isVariantsInitialized) {
             const vcfFileIdsByProject = this.getVcfFileIdsByProject();
-            const {infoItems} = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
+            const {
+                infoItems,
+                sampleNames = []
+            } = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
             this._vcfInfo = infoItems || [];
+            this._vcfSampleNames = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
             this._vcfFilter = {
                 additionalFilters: {},
                 chromosomeIds: [],
                 exons: false,
                 quality: {},
                 selectedGenes: [],
+                sampleNames: [],
                 selectedVcfTypes: [],
                 vcfFileIdsByProject
             };
@@ -2079,6 +2103,7 @@ export default class projectContext {
                     exons: false,
                     quality: {},
                     selectedGenes: [],
+                    sampleNames: [],
                     selectedVcfTypes: [],
                     vcfFileIdsByProject
                 };
@@ -2148,6 +2173,10 @@ export default class projectContext {
             conjunction: false,
             field: this._vcfFilter ? this._vcfFilter.selectedGenes : []
         };
+        const sampleNames = {
+            conjunction: false,
+            field: this._vcfFilter ? this._vcfFilter.sampleNames : []
+        };
         const variationTypes = {
             conjunction: false,
             field: this._vcfFilter ? this._vcfFilter.selectedVcfTypes : []
@@ -2169,7 +2198,8 @@ export default class projectContext {
             vcfFileIdsByProject,
             orderBy,
             startIndex,
-            endIndex
+            endIndex,
+            sampleNames
         };
 
         if (groupByChromosome && groupByChromosome.started) {
@@ -2240,6 +2270,10 @@ export default class projectContext {
             conjunction: false,
             field: this._vcfFilter ? this._vcfFilter.selectedGenes : []
         };
+        const sampleNames = {
+            conjunction: false,
+            field: this._vcfFilter ? this._vcfFilter.sampleNames : []
+        };
         const variationTypes = {
             conjunction: false,
             field: this._vcfFilter ? this._vcfFilter.selectedVcfTypes : []
@@ -2267,7 +2301,8 @@ export default class projectContext {
             pageSize,
             orderBy,
             startIndex,
-            endIndex
+            endIndex,
+            sampleNames
         };
         if (this.variationsPointer && this.variationsPointerPage + 1 === page) {
             filter.pointer = this.variationsPointer;
@@ -2378,7 +2413,8 @@ export default class projectContext {
                     startIndex: item.startIndex,
                     variantId: item.featureId,
                     variationType: item.variationType,
-                    vcfFileId: item.featureFileId
+                    vcfFileId: item.featureFileId,
+                    sampleNames: item.sampleNames
                 },
                 {...infoFieldsObj, ...item.info},
             );

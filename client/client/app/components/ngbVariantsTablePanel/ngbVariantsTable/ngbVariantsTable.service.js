@@ -1,3 +1,5 @@
+import headerCells from './ngbVariantsTable_header.tpl.html';
+
 export default class ngbVariantsTableService {
 
     static instance(projectContext, genomeDataService, projectDataService, variantsTableMessages, uiGridConstants) {
@@ -100,6 +102,28 @@ export default class ngbVariantsTableService {
                         minWidth: 50,
                         name: 'Gene',
                         width: '*',
+                        filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
+                        menuItems: [
+                            {
+                                title: 'Clear column filter',
+                                action: () => this.projectContext.clearVariantFieldFilter(column),
+                                shown: () => this.projectContext.variantsFieldIsFiltered(column)
+                            }
+                        ]
+                    };
+                }
+                    break;
+                case 'sampleNames': {
+                    columnSettings = {
+                        cellTemplate: `<div class="ui-grid-cell-contents" ng-class="COL_FIELD CUSTOM_FILTERS" >{{COL_FIELD | array}}</div>`,
+                        enableHiding: false,
+                        field: 'sampleNames',
+                        headerCellTemplate: headerCells,
+                        minWidth: 50,
+                        name: 'Samples',
+                        width: '*',
+                        enableSorting: false,
+                        enableColumnMenuFn: () => this.projectContext.variantsFieldIsFiltered(column),
                         filterApplied: () => this.projectContext.variantsFieldIsFiltered(column),
                         menuItems: [
                             {

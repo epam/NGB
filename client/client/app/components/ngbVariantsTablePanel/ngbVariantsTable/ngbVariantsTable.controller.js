@@ -164,6 +164,8 @@ export default class ngbVariantsTableController extends baseController {
                     return 'chrName';
                 case 'Gene':
                     return 'geneNames';
+                case 'Samples':
+                    return 'sampleNames';
                 case 'Position':
                     return 'startIndex';
                 case 'Info':
