@@ -224,4 +224,23 @@ export default class ngbStrainLineageService {
         return JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
     }
 
+    recoverLocalState(state) {
+        if (state) {
+            const {
+                selectedTree,
+                layout = {}
+            } = state;
+            const {
+                layout: currentLayout = {}
+            } = this.loadState() || {};
+            const newLayout = Object.assign(currentLayout, layout);
+            this.saveState(
+                {
+                    selectedTree,
+                    layout: newLayout
+                }
+            );
+            this._selectedTreeId = selectedTree ? selectedTree.id : null;
+        }
+    }
 }

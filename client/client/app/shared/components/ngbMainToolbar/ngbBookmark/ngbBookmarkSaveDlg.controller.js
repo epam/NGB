@@ -5,7 +5,17 @@ export default class ngbBookmarkSaveDlgController {
     bookmarkDescription;
     error;
 
-    constructor(dispatcher, $mdDialog, projectContext, miewContext, heatmapContext, $scope, trackNamingService, bookmarkDataService) {
+    constructor(
+        dispatcher,
+        $mdDialog,
+        projectContext,
+        miewContext,
+        heatmapContext,
+        $scope,
+        trackNamingService,
+        ngbStrainLineageService,
+        bookmarkDataService
+    ) {
         Object.assign(this, {
             dispatcher,
             $scope,
@@ -14,7 +24,8 @@ export default class ngbBookmarkSaveDlgController {
             miewContext,
             heatmapContext,
             trackNamingService,
-            bookmarkDataService
+            bookmarkDataService,
+            ngbStrainLineageService
         });
     }
 
@@ -28,6 +39,29 @@ export default class ngbBookmarkSaveDlgController {
 
     getterSetterDesc(value) {
         return arguments.length ? this.bookmarkDescription = value : this.bookmarkDescription;
+    }
+
+    getLineageState() {
+        if (this.ngbStrainLineageService) {
+            try {
+                const {
+                    selectedTree,
+                    layout = {}
+                } = this.ngbStrainLineageService.loadState() || {};
+                if (selectedTree) {
+                    const {id} = selectedTree;
+                    if (layout.hasOwnProperty(id)) {
+                        return {
+                            selectedTree,
+                            layout: {[id]: layout[id]}
+                        };
+                    }
+                }
+            } catch (_) {
+                return undefined;
+            }
+        }
+        return undefined;
     }
 
     save(event) {
@@ -58,7 +92,8 @@ export default class ngbBookmarkSaveDlgController {
             vcfColumns,
             customNames,
             this.miewContext.routeInfo,
-            this.heatmapContext.routeInfo
+            this.heatmapContext.routeInfo,
+            this.getLineageState()
         );
         const params = {
             owner: '',
@@ -101,7 +136,8 @@ function Bookmark(
     vcfColumns,
     customNames,
     miew,
-    heatmap
+    heatmap,
+    lineage
 ) {
     this.name = name;
     this.description = description;
@@ -137,4 +173,5 @@ function Bookmark(
     this.vcfColumns = vcfColumns;
     this.miew = miew;
     this.heatmap = heatmap;
+    this.lineage = lineage;
 }
