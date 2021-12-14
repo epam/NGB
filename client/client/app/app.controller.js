@@ -206,12 +206,12 @@ export default class ngbAppController extends baseController {
                     hideAll:  isHideAll,
                     close: isCloseVisible && !isHideAll,
                     maximise: isMaximiseVisible && !isHideAll,
-                    fitAllTracks: isFitAllTracksVisible,
-                    closeAllTracks: isCloseAllTracksVisible,
-                    organizeTracks: isOrganizeTracksVisible,
-                    projectInfoSections: isProjectInfoVisible,
-                    genomeAnnotations: isGenomeAnnotationsVisible,
-                    tracksSelection: isTracksSelectionVisible
+                    fitAllTracks: isFitAllTracksVisible && !isHideAll,
+                    closeAllTracks: isCloseAllTracksVisible && !isHideAll,
+                    organizeTracks: isOrganizeTracksVisible && !isHideAll,
+                    projectInfoSections: isProjectInfoVisible && !isHideAll,
+                    genomeAnnotations: isGenomeAnnotationsVisible && !isHideAll,
+                    tracksSelection: isTracksSelectionVisible && !isHideAll
                 };
                 this._apiResponse(this.apiService.setButtonsVisibility(payload), callerId);
                 break;
