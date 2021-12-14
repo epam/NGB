@@ -356,7 +356,7 @@ export default class ngbDataSetsService {
             }
             const getTrackId = track => `[${track.name.toLowerCase()}][${(track.projectId || '').toLowerCase()}]`;
             const getTrackStateId = track => `[${track.bioDataItemId.toLowerCase()}][${(track.projectId || '').toLowerCase()}]`;
-            const shouldAddAnnotationTracks = this.projectContext.reference === null || this.projectContext.reference.name.toLowerCase() !== reference.name.toLowerCase();
+            const shouldAddAnnotationTracks = !this.projectContext.reference || this.projectContext.reference.name.toLowerCase() !== reference.name.toLowerCase();
             const tracksIds = tracks.map(getTrackId);
             const tracksStateIds = tracksState.map(getTrackStateId);
             const self = this;
