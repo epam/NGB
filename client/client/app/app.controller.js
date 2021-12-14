@@ -183,8 +183,8 @@ export default class ngbAppController extends baseController {
                 const isCloseAllTracksVisible = event.data.params && event.data.params.closeAllTracks !== undefined
                     ? !!(event.data.params.closeAllTracks)
                     : true;
-                const isOrganizeAllTracksVisible = event.data.params && event.data.params.organizeAllTracks !== undefined
-                    ? !!(event.data.params.organizeAllTracks)
+                const isOrganizeTracksVisible = event.data.params && event.data.params.organizeTracks !== undefined
+                    ? !!(event.data.params.organizeTracks)
                     : true;
                 const isProjectInfoVisible = event.data.params && event.data.params.projectInfo !== undefined
                     ? !!(event.data.params.projectInfo)
@@ -208,7 +208,7 @@ export default class ngbAppController extends baseController {
                     maximise: isMaximiseVisible && !isHideAll,
                     fitAllTracks: isFitAllTracksVisible,
                     closeAllTracks: isCloseAllTracksVisible,
-                    organizeTracks: isOrganizeAllTracksVisible,
+                    organizeTracks: isOrganizeTracksVisible,
                     projectInfoSections: isProjectInfoVisible,
                     genomeAnnotations: isGenomeAnnotationsVisible,
                     tracksSelection: isTracksSelectionVisible

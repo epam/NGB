@@ -29,7 +29,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 fitAllTracks: 'On',
                 organizeTracks: 'On',
                 genomeAnnotations: null,
-                projectInfoSections: null,
+                projectInfo: null,
                 tracksSelection: 'On',
                 hideAll: 'Off',
                 maximise: null,

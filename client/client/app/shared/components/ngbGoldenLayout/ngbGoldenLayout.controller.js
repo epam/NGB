@@ -94,7 +94,7 @@ export default class ngbGoldenLayoutController extends baseController {
                 stack.contentItems.forEach(item => this.hideCloseIcon(item));
             }
         } else {
-            this.showCloseIcon();
+            stack.contentItems.forEach(item => this.showCloseIcon(item));
             this.showMaximiseIcon();
         }
     }
