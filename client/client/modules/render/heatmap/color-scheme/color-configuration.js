@@ -63,11 +63,13 @@ export default class ColorConfiguration {
         const {
             _color,
             color = white,
-            dataType = HeatmapDataType.number,
+            // TODO: fix behaviour difference then options are from colorConfiguration and from plain object
+            _dataType,
+            dataType = _dataType || HeatmapDataType.number,
             _from = (dataType === HeatmapDataType.number ? 0 : undefined),
             _to = (dataType === HeatmapDataType.number ? 1 : undefined),
-            from = _from,
-            to = _to,
+            from = dataType === HeatmapDataType.number && (_from !== undefined) ? +_from : _from,
+            to = dataType === HeatmapDataType.number && (_to !== undefined) ? +_to : _to,
             colorFormat = ColorFormats.number,
             validate = (() => {}),
             _singleValue = from === to,
@@ -159,7 +161,7 @@ export default class ColorConfiguration {
     }
 
     get from() {
-        return this._from ? +this._from : this._from;
+        return this._from;
     }
 
     set from(from) {
@@ -171,7 +173,7 @@ export default class ColorConfiguration {
     }
 
     get to() {
-        return this._to ? +this._to : this._to;
+        return this._to;
     }
 
     set to(to) {
