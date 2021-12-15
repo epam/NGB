@@ -67,8 +67,6 @@ export default class ngbProjectSummaryController {
             dataset.metadata = sortObjectByKeyValue(dataset.metadata);
             return dataset;
         });
-        this.heatmap = undefined;
-        this.currentHeatmapId = undefined;
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
@@ -171,6 +169,7 @@ export default class ngbProjectSummaryController {
         if (!isConsistent) {
             this.heatmap = undefined;
             this.currentHeatmapId = undefined;
+            this.viewHeatmapId = undefined;
         }
     }
 
