@@ -130,7 +130,7 @@ dependencies {
     compile group: "commons-validator", name: "commons-validator", version: "1.5.0"
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging
-    compile group: "org.apache.logging.log4j", name: "log4j", version: "2.15.0"
+    compile group: "org.apache.logging.log4j", name: "log4j", version: "2.16.0"
     compile group: "org.slf4j", name: "slf4j-api", version: project.ext.versionSlf4j
     compile group: "org.slf4j", name: "slf4j-log4j12", version: project.ext.versionSlf4j
     // Samtools
