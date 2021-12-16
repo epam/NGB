@@ -44,6 +44,9 @@ export default {
         const samplesCount = track && track.samples
             ? track.samples.length
             : Infinity;
+        if (state && state.variantsView === variantsView.variantsViewCollapsed) {
+            return coverageHeight + samplesCount * getSampleHeight(state);
+        }
         return coverageHeight + Math.min(maxSamplesToDisplay, samplesCount) * getSampleHeight(state);
     },
     minHeight: (state) => coverageHeight + getSampleHeight(state),
