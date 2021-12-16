@@ -59,6 +59,7 @@ export default class projectContext {
         softClip: 's2',
         spliceJunctions: 's3',
         variantsView: 'v',
+        collapseSamples: 'cs',
         viewAsPairs: 'v1',
         coverageDisplayMode: 'cdm',
         coverageScaleMode: 'csm',

@@ -21,6 +21,7 @@ import {variantsView} from './modes';
 const projectDataService = new ProjectDataService();
 
 export class MultiSampleVCFTrack extends VCFTrack {
+    multisample = true;
     sampleGraphics = new PIXI.Graphics();
     sampleTitlesContainer = new PIXI.Container();
     sampleScroller = new VCFSamplesScroll(VcfConfig);
@@ -30,9 +31,16 @@ export class MultiSampleVCFTrack extends VCFTrack {
     }
 
     static postStateMutatorFn = (track, key, prePayload) => {
-        const {oldVariantsView} = prePayload || {};
-        if (oldVariantsView !== track.state.variantsView) {
-            track.height = VcfConfig.defaultHeight(track.state);
+        const {
+            oldVariantsView,
+            oldCollapseSamples
+        } = prePayload || {};
+        track.transformer.collapseSamples = track.state.collapseSamples;
+        if (
+            oldVariantsView !== track.state.variantsView ||
+            oldCollapseSamples !== track.state.collapseSamples
+        ) {
+            track.height = VcfConfig.defaultHeight(track.state, track);
             if (track.sampleScroller) {
                 track.sampleScroller.reset();
             }
@@ -50,6 +58,13 @@ export class MultiSampleVCFTrack extends VCFTrack {
         }
     );
 
+    get isCollapsedSamplesMode () {
+        return this.state.variantsView === variantsView.variantsViewCollapsed &&
+            this.state.collapseSamples &&
+            this.cache &&
+            !!this.cache.collapsedSamplesInfo;
+    }
+
     get transformer () {
         if (!this._transformer) {
             this._transformer = new MultiSampleVcfTransformer(
@@ -62,13 +77,17 @@ export class MultiSampleVCFTrack extends VCFTrack {
     }
 
     get totalSamplesHeight () {
-        return (this.samples || []).length * VcfConfig.getSampleHeight(this.state);
+        if (this.isCollapsedSamplesMode) {
+            return VcfConfig.getSampleHeight(this.state, this);
+        }
+        return (this.samples || []).length * VcfConfig.getSampleHeight(this.state, this);
     }
 
     constructor(opts) {
         super(opts);
         this.samples = [];
         this.renderers = [];
+        this.collapsedSamplesRenderer = new VCFCollapsedRenderer(VcfConfig, this);
         this.coverageCoordinateSystemRenderer = new CoordinateSystem(this);
         this.coverageRenderer = new VCFSampleCoverageRenderer(VcfConfig, this);
         this.sampleScroller.x = this.viewport.canvasSize -
@@ -76,6 +95,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
             VcfConfig.scroll.width;
         this.sampleScroller.y = VcfConfig.coverageHeight;
         this.coverageMask = new PIXI.Graphics();
+        this.transformer.collapseSamples = this.state.collapseSamples;
         (this.initializeSamples)();
     }
 
@@ -91,6 +111,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
                     .getProjectsFilterVcfInfo({value: {[projectId]: [id]}}) || {};
                 samples = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
             } catch (e) {
+                // eslint-disable-next-line
                 console.warn(`Error fetching vcf info: ${e.message}`);
             }
         }
@@ -100,7 +121,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
             collapsed: new VCFSampleRenderer(VcfConfig, this),
             expanded: new VCFCollapsedRenderer(VcfConfig, this)
         }));
-        const minHeight = VcfConfig.defaultHeight(this.state);
+        const minHeight = VcfConfig.defaultHeight(this.state, this);
         if (this.height < minHeight) {
             this.height = minHeight;
         }
@@ -123,7 +144,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         }
         if (hasNewSamples) {
             this._flags.renderReset = true;
-            const minHeight = VcfConfig.defaultHeight(this.state);
+            const minHeight = VcfConfig.defaultHeight(this.state, this);
             if (this.height < minHeight) {
                 this.height = minHeight;
             }
@@ -139,13 +160,25 @@ export class MultiSampleVCFTrack extends VCFTrack {
         const {
             data,
             coverage,
-            samples = []
+            samples = [],
+            collapsedSamplesInfo
         } = multiSampleVcfData;
         super.updateCacheData(data);
         this.extendSamples(samples);
+        const currentCollapsedSamplesMode = this.isCollapsedSamplesMode;
         if (this.cache) {
             delete this.cache.coverage;
+            delete this.cache.collapsedSamplesInfo;
             this.cache.coverage = coverage || [];
+            this.cache.collapsedSamplesInfo = collapsedSamplesInfo;
+        }
+        if (this.isCollapsedSamplesMode !== currentCollapsedSamplesMode) {
+            this._flags.renderReset = true;
+            const minHeight = VcfConfig.defaultHeight(this.state, this);
+            if (this.height < minHeight) {
+                this.height = minHeight;
+            }
+            this.requestRenderRefresh();
         }
     }
 
@@ -202,6 +235,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         );
         this.sampleTitlesContainer.y = -this.sampleScroller.scrollPosition;
         this.sampleGraphics.y = -this.sampleScroller.scrollPosition;
+        this.collapsedSamplesRenderer.container.y = VcfConfig.coverageHeight - this.sampleScroller.scrollPosition;
         this.renderers.forEach((rendererBySample, index) => {
             const renderer = this.pickRenderer(rendererBySample);
             renderer.container.y = this.getRendererY(index);
@@ -272,13 +306,13 @@ export class MultiSampleVCFTrack extends VCFTrack {
 
     getRendererY (index, ignoreScroll = false) {
         return VcfConfig.coverageHeight +
-            index * VcfConfig.getSampleHeight(this.state) -
+            index * VcfConfig.getSampleHeight(this.state, this) -
             (ignoreScroll ? 0 : this.sampleScroller.scrollPosition);
     }
 
     rendererVisible (index) {
         const y1 = this.getRendererY(index);
-        const y2 = y1 + VcfConfig.getSampleHeight(this.state);
+        const y2 = y1 + VcfConfig.getSampleHeight(this.state, this);
         return linearDimensionsConflict(
             y1,
             y2,
@@ -292,6 +326,17 @@ export class MultiSampleVCFTrack extends VCFTrack {
             return renderer.expanded;
         }
         return renderer.collapsed;
+    }
+
+    pickCollapsedSamplesCache () {
+        const {
+            collapsedSamplesInfo,
+            ...rest
+        } = this.cache || {};
+        return {
+            ...rest,
+            data: collapsedSamplesInfo
+        };
     }
 
     pickCache (sample) {
@@ -311,6 +356,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
             return;
         }
         this.sampleGraphics.clear();
+        if (this.isCollapsedSamplesMode) {
+            return;
+        }
         if (this.state.variantsView === variantsView.variantsViewExpanded) {
             this.sampleGraphics.lineStyle(
                 1,
@@ -333,6 +381,26 @@ export class MultiSampleVCFTrack extends VCFTrack {
         this.sampleTitlesContainer.removeChildren();
         const backgroundGraphics = new PIXI.Graphics();
         this.sampleTitlesContainer.addChild(backgroundGraphics);
+        if (this.isCollapsedSamplesMode) {
+            const title = this.labelsManager.getLabel(
+                `${this.samples.length} samples`,
+                VcfConfig.sample.label.font
+            );
+            const y = this.getRendererY(0, true);
+            title.x = VcfConfig.sample.label.margin;
+            title.y = Math.round(y + VcfConfig.sample.label.margin);
+            this.sampleTitlesContainer.addChild(title);
+            backgroundGraphics
+                .beginFill(0xffffff, 0.75)
+                .drawRect(
+                    title.x - 1,
+                    title.y,
+                    title.width + 2,
+                    title.height
+                )
+                .endFill();
+            return;
+        }
         this.samples.forEach((sample, index) => {
             const y = this.getRendererY(index, true);
             const title = this.labelsManager.getLabel(
@@ -346,7 +414,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 );
             } else {
                 title.y = Math.round(
-                    y + VcfConfig.getSampleHeight(this.state) / 2.0 - title.height / 2.0
+                    y + VcfConfig.getSampleHeight(this.state, this) / 2.0 - title.height / 2.0
                 );
             }
             this.sampleTitlesContainer.addChild(title);
@@ -378,13 +446,19 @@ export class MultiSampleVCFTrack extends VCFTrack {
             this.container.addChild(this.sampleGraphics);
             this.renderSampleGraphics();
             this.renderSampleTitles();
-            this.renderers.forEach((rendererBySample, index) => {
-                rendererBySample.collapsed.clear();
-                const renderer = this.pickRenderer(rendererBySample);
-                renderer.container.y = this.getRendererY(index);
-                renderer.height = VcfConfig.getSampleHeight(this.state);
-                this.container.addChild(renderer.container);
-            });
+            if (this.isCollapsedSamplesMode) {
+                this.collapsedSamplesRenderer.container.y = VcfConfig.coverageHeight;
+                this.collapsedSamplesRenderer.height = this.height - VcfConfig.coverageHeight;
+                this.container.addChild(this.collapsedSamplesRenderer.container);
+            } else {
+                this.renderers.forEach((rendererBySample, index) => {
+                    rendererBySample.collapsed.clear();
+                    const renderer = this.pickRenderer(rendererBySample);
+                    renderer.container.y = this.getRendererY(index);
+                    renderer.height = VcfConfig.getSampleHeight(this.state, this);
+                    this.container.addChild(renderer.container);
+                });
+            }
             this.container.addChild(this.sampleTitlesContainer);
             this.container.addChild(this.sampleScroller);
             this.correctScrollPosition();
@@ -454,18 +528,30 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 flags.heightChanged || flags.dataChanged,
                 this._showCenterLine
             );
-            this.renderers.forEach((rendererBySample, index) => {
-                const renderer = this.pickRenderer(rendererBySample);
-                renderer.height = VcfConfig.getSampleHeight(this.state);
-                renderer.container.visible = this.rendererVisible(index) &&
+            if (this.isCollapsedSamplesMode) {
+                this.collapsedSamplesRenderer.height = this.height - VcfConfig.coverageHeight;
+                this.collapsedSamplesRenderer.container.visible =
                     this._variantsMaximumRange >= this.viewport.actualBrushSize;
-                renderer.render(
+                this.collapsedSamplesRenderer.render(
                     this.viewport,
-                    this.pickCache(rendererBySample.sample),
+                    this.pickCollapsedSamplesCache(),
                     flags.heightChanged || flags.dataChanged || flags.renderReset,
                     this._showCenterLine
                 );
-            });
+            } else {
+                this.renderers.forEach((rendererBySample, index) => {
+                    const renderer = this.pickRenderer(rendererBySample);
+                    renderer.height = VcfConfig.getSampleHeight(this.state, this);
+                    renderer.container.visible = this.rendererVisible(index) &&
+                        this._variantsMaximumRange >= this.viewport.actualBrushSize;
+                    renderer.render(
+                        this.viewport,
+                        this.pickCache(rendererBySample.sample),
+                        flags.heightChanged || flags.dataChanged || flags.renderReset,
+                        this._showCenterLine
+                    );
+                });
+            }
             somethingChanged = true;
         }
         return somethingChanged;
@@ -477,6 +563,13 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 x,
                 y,
                 coverage: true
+            };
+        }
+        if (this.isCollapsedSamplesMode) {
+            return {
+                x,
+                y: y - VcfConfig.coverageHeight,
+                collapsedSamples: true
             };
         }
         for (let index = 0; index < this.samples.length; index += 1) {
@@ -520,8 +613,17 @@ export class MultiSampleVCFTrack extends VCFTrack {
             x,
             y,
             coverage,
-            sample
+            sample,
+            collapsedSamples
         } = this.getMousePositionOverSample(originalPoint);
+        if (!coverage && collapsedSamples) {
+            const clickResult = this.collapsedSamplesRenderer.onClick({x, y});
+            if (clickResult && clickResult instanceof StatisticsContainer) {
+                this.onStatisticsClicked(clickResult);
+            } else if (clickResult && clickResult instanceof VariantContainer) {
+                this.onVariantContainerClicked(clickResult, originalPoint, sample);
+            }
+        }
         if (!coverage && sample) {
             const [rendererBySample] = this.renderers.filter(o => o.sample === sample);
             if (rendererBySample) {
@@ -531,6 +633,8 @@ export class MultiSampleVCFTrack extends VCFTrack {
                     this.onStatisticsClicked(clickResult);
                 } else if (clickResult && clickResult instanceof VariantContainer) {
                     this.onVariantContainerClicked(clickResult, originalPoint, sample);
+                } else if (clickResult && clickResult.isStatistics) {
+                    this.onStatisticsClicked({variant: clickResult});
                 } else if (clickResult) {
                     this.onVariantClicked(clickResult, originalPoint, sample);
                 }
@@ -555,7 +659,8 @@ export class MultiSampleVCFTrack extends VCFTrack {
             x,
             y,
             coverage,
-            sample
+            sample,
+            collapsedSamples
         } = this.getMousePositionOverSample(originalPoint);
         let hoveredItem;
         let tooltipShown = false;
@@ -585,6 +690,39 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 this.tooltip.show(originalPoint);
                 tooltipShown = true;
             }
+            this.collapsedSamplesRenderer.onMove();
+            this.renderers
+                .forEach(rendererBySample => {
+                    const renderer = this.pickRenderer(rendererBySample);
+                    renderer.onMove();
+                });
+        } else if (collapsedSamples) {
+            hoveredItem = this.collapsedSamplesRenderer.onMove({x, y});
+            if (
+                hoveredItem &&
+                !(hoveredItem instanceof StatisticsContainer) &&
+                this.shouldDisplayTooltips
+            ) {
+                const tooltip = [
+                    ['Sample', sample],
+                    ['Chromosome', this.config.chromosome.name],
+                    ['Start', hoveredItem.variant.startIndex],
+                    ['End', hoveredItem.variant.endIndex],
+                    ['ID', hoveredItem.variant.identifier],
+                    ['Type', hoveredItem.variant.type],
+                    ['REF', hoveredItem.variant.referenceAllele],
+                    ['ALT', hoveredItem.variant.alternativeAlleles.join(', ')],
+                    ['Quality', hoveredItem.variant.quality && hoveredItem.variant.quality.toFixed(2)]
+                ];
+                const filters = hoveredItem.variant.failedFilters || [];
+                if (filters.length > 0) {
+                    tooltip.push(['Filter', filters.map(filter => filter.value).join(', ')]);
+                }
+                this.tooltip.setContent(tooltip);
+                this.tooltip.move(originalPoint);
+                this.tooltip.show(originalPoint);
+                tooltipShown = true;
+            }
             this.renderers
                 .forEach(rendererBySample => {
                     const renderer = this.pickRenderer(rendererBySample);
@@ -593,6 +731,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         } else if (sample) {
             const [rendererBySample] = this.renderers.filter(o => o.sample === sample);
             this.coverageRenderer.onMove();
+            this.collapsedSamplesRenderer.onMove();
             this.renderers
                 .filter(o => o.sample !== sample)
                 .forEach(rendererBySample => {
@@ -605,6 +744,8 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 if (
                     hoveredItem &&
                     !(hoveredItem instanceof StatisticsContainer) &&
+                    hoveredItem.variant &&
+                    !hoveredItem.variant.isStatistics &&
                     this.shouldDisplayTooltips
                 ) {
                     const tooltip = [
@@ -643,6 +784,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     unhoverRenderer () {
         this._lastHovered = null;
         this.coverageRenderer.onMove();
+        this.collapsedSamplesRenderer.onMove();
         this.renderers.forEach(rendererBySample => {
             const renderer = this.pickRenderer(rendererBySample);
             renderer.onMove();
@@ -651,6 +793,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
 
     animate(time) {
         let animate = this.coverageRenderer.animate();
+        animate = this.collapsedSamplesRenderer.animate(time) || animate;
         this.renderers.forEach(rendererBySample => {
             const renderer = this.pickRenderer(rendererBySample);
             animate = renderer.animate(time) || animate;

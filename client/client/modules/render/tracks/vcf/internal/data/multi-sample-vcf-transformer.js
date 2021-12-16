@@ -22,6 +22,14 @@ function mergeVariantInfo (variantInfo = {}, ...genotypeInfos) {
 }
 
 export class MultiSampleVcfTransformer extends VcfTransformer {
+    _collapseSamples = true;
+    get collapseSamples () {
+        return this._collapseSamples;
+    }
+    set collapseSamples (value) {
+        this._collapseSamples = value;
+    }
+
     transformData (data, viewport) {
         const coverage = new Map();
         const variants = data || [];
@@ -45,6 +53,7 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
             );
         };
         const allSamples = [];
+        const allVariantsBySample = [];
         for (const variant of variants) {
             const samples = getVariantSamples(variant);
             allSamples.push(...samples.map(o => o.sample));
@@ -73,7 +82,7 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                     };
                     variantsBySamples.push(variantsBySample);
                 }
-                variantsBySample.variants.push({
+                const sampledVariant = {
                     ...variant,
                     genotypeData: info,
                     info: mergeVariantInfo(
@@ -81,7 +90,9 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                         info.info,
                         info.extendedAttributes
                     )
-                });
+                };
+                variantsBySample.variants.push(sampledVariant);
+                allVariantsBySample.push(sampledVariant);
             }
         }
         const uniqueSamples = [...(new Set(allSamples))];
@@ -121,19 +132,22 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
                 last.endIndex = Math.max(last.endIndex, item.endIndex);
                 return result;
             }, []);
-        const transformedData = variantsBySamples.map(variantsBySample => {
-            if (!this.collapsed) {
-                return {
-                    sample: variantsBySample.sample,
-                    data: this.transformCollapsedData(variantsBySample.variants, viewport)
-                };
-            }
-            return {
+        const transformedData = variantsBySamples
+            .map(variantsBySample => ({
                 sample: variantsBySample.sample,
-                data: this.transformExpandedData(variantsBySample.variants, viewport)
-            };
-        });
+                data: this.transformCollapsedData(variantsBySample.variants, viewport)
+            }))
+            .map(info => ({
+                ...info,
+                hasStatistics: info.data && info.data.variants && info.data.variants.some(o => o.isStatistics)
+            }));
+        const hasStatistics = transformedData.some(o => o.hasStatistics);
+        let collapsedSamplesInfo;
+        if (hasStatistics) {
+            collapsedSamplesInfo = this.transformCollapsedData(allVariantsBySample, viewport);
+        }
         return {
+            collapsedSamplesInfo,
             data: transformedData,
             samples: uniqueSamples,
             coverage: {

@@ -49,6 +49,7 @@ export default {
             softClip: true,
             spliceJunctions: false,
             variantsView: variantsView.variantsViewCollapsed,
+            collapseSamples: true,
             viewAsPairs: false,
             coverageDisplayMode: displayModes.defaultDisplayMode,
             coverageScaleMode: scaleModes.defaultScaleMode,
