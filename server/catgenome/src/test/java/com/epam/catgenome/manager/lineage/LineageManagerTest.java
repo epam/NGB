@@ -87,6 +87,8 @@ public class LineageManagerTest extends TestCase {
         assertEquals(lineageTree.getLineageTreeId(), lineageTree.getEdges().get(0).getLineageTreeId());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getNodes().get(0).getAttributes().size());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getEdges().get(0).getAttributes().size());
+        assertEquals("value1", lineageTree.getNodes().get(0).getAttributes().get("key1"));
+        assertEquals("value1", lineageTree.getEdges().get(0).getAttributes().get("key1"));
     }
 
     @Test
