@@ -177,20 +177,20 @@ export default class ngbAppController extends baseController {
                 const isCloseVisible = event.data.params && event.data.params.close !== undefined
                     ? !!(event.data.params.close)
                     : true;
-                const isFitAllTracksVisible = event.data.params && event.data.params.fitAllTracks !== undefined
-                    ? !!(event.data.params.fitAllTracks)
+                const isFitTracksVisible = event.data.params && event.data.params.fitTracks !== undefined
+                    ? !!(event.data.params.fitTracks)
                     : true;
-                const isCloseAllTracksVisible = event.data.params && event.data.params.closeAllTracks !== undefined
-                    ? !!(event.data.params.closeAllTracks)
+                const isCloseTracksVisible = event.data.params && event.data.params.closeTracks !== undefined
+                    ? !!(event.data.params.closeTracks)
                     : true;
-                const isOrganizeTracksVisible = event.data.params && event.data.params.organizeTracks !== undefined
-                    ? !!(event.data.params.organizeTracks)
+                const isOrganizeTracksVisible = event.data.params && event.data.params.arrayTracks !== undefined
+                    ? !!(event.data.params.arrayTracks)
                     : true;
                 const isProjectInfoVisible = event.data.params && event.data.params.projectInfo !== undefined
                     ? !!(event.data.params.projectInfo)
                     : true;
-                const isGenomeAnnotationsVisible = event.data.params && event.data.params.genomeAnnotations !== undefined
-                    ? !!(event.data.params.genomeAnnotations)
+                const isGenomeAnnotationsVisible = event.data.params && event.data.params.genomeAnnot !== undefined
+                    ? !!(event.data.params.genomeAnnot)
                     : true;
                 const isTracksSelectionVisible = event.data.params && event.data.params.tracksSelection !== undefined
                     ? !!(event.data.params.tracksSelection)
@@ -198,20 +198,16 @@ export default class ngbAppController extends baseController {
                 const isMaximiseVisible = event.data.params && event.data.params.maximise !== undefined
                     ? !!(event.data.params.maximise)
                     : true;
-                const isHideAll = event.data.params && event.data.params.hideAll !== undefined
-                ? !!(event.data.params.hideAll)
-                : false;
 
                 const payload = {
-                    hideAll:  isHideAll,
-                    close: isCloseVisible && !isHideAll,
-                    maximise: isMaximiseVisible && !isHideAll,
-                    fitAllTracks: isFitAllTracksVisible && !isHideAll,
-                    closeAllTracks: isCloseAllTracksVisible && !isHideAll,
-                    organizeTracks: isOrganizeTracksVisible && !isHideAll,
-                    projectInfoSections: isProjectInfoVisible && !isHideAll,
-                    genomeAnnotations: isGenomeAnnotationsVisible && !isHideAll,
-                    tracksSelection: isTracksSelectionVisible && !isHideAll
+                    close: isCloseVisible,
+                    maximise: isMaximiseVisible,
+                    fitTracks: isFitTracksVisible,
+                    closeTracks: isCloseTracksVisible,
+                    arrayTracks: isOrganizeTracksVisible,
+                    projectInfo: isProjectInfoVisible,
+                    genomeAnnot: isGenomeAnnotationsVisible,
+                    tracksSelection: isTracksSelectionVisible
                 };
                 this._apiResponse(this.apiService.setButtonsVisibility(payload), callerId);
                 break;
@@ -286,9 +282,12 @@ export default class ngbAppController extends baseController {
         const {toolbar, layout, bookmark, screenshot, embedded, ...rest} = this.$stateParams;
         if (embedded) {
             this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
-            const embeddedOptions = Object.entries(rest).filter(([key, value])=> this.appearanceContext[key] !== undefined);
-            embeddedOptions.forEach(([key, value]) => {
-                this.appearanceContext[key] = value && this.dictionaryState.on.toLowerCase() === value.toLowerCase();
+        } else {
+            const controlsVisibilityParams = Object.entries(rest).filter(([key,])=> this.appearanceContext[key] !== undefined);
+            controlsVisibilityParams.forEach(([key, value]) => {
+                if (value !== null) {
+                    this.appearanceContext[key] = value && this.dictionaryState.on.toLowerCase() === value.toLowerCase();
+                }
             });
         }
 

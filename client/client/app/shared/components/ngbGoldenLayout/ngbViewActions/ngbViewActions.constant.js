@@ -1,3 +1,4 @@
+const hasTracks = (context) => context.tracks && context.tracks.length;
 const variantsTableDownloadAction = {
     name: 'variantsTableDownload',
     isDefault: false,
@@ -24,7 +25,7 @@ const variantsLoadingIndicatorAction = {
 const closeAllTracksAction = {
     name: 'closeAllTracks',
     isDefault: false,
-    isVisible:(appearance) => !appearance.embedded || (appearance.embedded && appearance.closeAllTracks  && !appearance.hideAll)
+    isVisible:(context, appearance) => !appearance.embedded && appearance.closeTracks
 };
 const fitAllTracksAction = {
     name: 'fitAllTracks',
@@ -33,11 +34,8 @@ const fitAllTracksAction = {
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
     isVisible: (context, appearance) => (
-        context.tracks && context.tracks.length &&
-        context.currentChromosome && !appearance.embedded
-    ) || (
-        context.tracks && context.tracks.length && context.currentChromosome &&
-        appearance.embedded && appearance.fitAllTracks && !appearance.hideAll
+        hasTracks(context) && context.currentChromosome &&
+        !appearance.embedded && appearance.fitTracks
     )
 };
 const variantsResetFilterActions = {
@@ -48,7 +46,6 @@ const variantsResetFilterActions = {
     label: 'Reset variants filter',
     isVisible: (context) => !context.vcfFilterIsDefault
 };
-const hasTracks = (context) => context.tracks && context.tracks.length;
 const organizeTracksAction = {
     name: 'organizeTracks',
     isDefault: true,
@@ -56,12 +53,8 @@ const organizeTracksAction = {
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
     isVisible: (context, appearance) => (
-        hasTracks(context) &&
-        context.currentChromosome  && !appearance.embedded
-    ) || (
-        appearance.embedded && appearance.organizeTracks &&
-        hasTracks(context) && context.currentChromosome &&
-        !appearance.hideAll
+        !appearance.embedded && appearance.arrayTracks &&
+        hasTracks(context) && context.currentChromosome
     )
 };
 
@@ -71,9 +64,7 @@ const genomeAnnotationsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: (context, appearance) => (hasTracks(context) && !appearance.embedded) || (
-        hasTracks(context) && appearance.embedded &&
-        appearance.genomeAnnotations && !appearance.hideAll)
+    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.genomeAnnot
 };
 
 const projectInfoSectionsAction = {
@@ -82,12 +73,7 @@ const projectInfoSectionsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: (context, appearance) => (
-        hasTracks(context) && !appearance.embedded
-        ) || (
-            hasTracks(context) && appearance.embedded &&
-            appearance.projectInfoSections && !appearance.hideAll
-        ),
+    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.projectInfo
 };
 
 
@@ -96,9 +82,9 @@ const tracksSelectionAction = {
         width: 'auto'
     },
     name: 'tracksSelection',
-    isVisible: (context, appearance) => (hasTracks(context) && context.currentChromosome && !appearance.embedded) || (
-        hasTracks(context) && context.currentChromosome && appearance.embedded &&
-        appearance.tracksSelection && !appearance.hideAll
+    isVisible: (context, appearance) => (
+        hasTracks(context) && context.currentChromosome &&
+        !appearance.embedded && appearance.tracksSelection
     )
 };
 

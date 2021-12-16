@@ -25,13 +25,12 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 heatmap: null,
                 embedded: null,
 
-                closeAllTracks: 'Off',
-                fitAllTracks: 'On',
-                organizeTracks: 'On',
-                genomeAnnotations: null,
+                closeTracks: null,
+                fitTracks: null,
+                arrayTracks: null,
+                genomeAnnot: null,
                 projectInfo: null,
-                tracksSelection: 'On',
-                hideAll: 'Off',
+                tracksSelection: null,
                 maximise: null,
                 close: null
             },
@@ -40,7 +39,26 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
             },
             reloadOnSearch: false,
             template: require('./app.tpl.html'),
-            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded'
+            url: `/:referenceId/:chromosome/:start/:end?
+            rewrite&
+            bookmark&
+            screenshot&
+            toolbar&
+            layout&
+            tracks&
+            filterByGenome&
+            collapsedTrackHeaders&
+            miew&
+            heatmap&
+            embedded&
+            closeTracks&
+            fitTracks&
+            arrayTracks&
+            genomeAnnot&
+            projectInfo&
+            tracksSelection&
+            maximise&
+            close`
         });
 
 }

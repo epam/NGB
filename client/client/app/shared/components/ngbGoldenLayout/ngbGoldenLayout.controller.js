@@ -86,16 +86,13 @@ export default class ngbGoldenLayoutController extends baseController {
         this.$scope.$apply();
         const context = this.appearanceContext;
         if (context.embedded) {
-            if (!context.hideAll) {
-                stack.contentItems.forEach(item => context.close ? this.showCloseIcon(item) : this.hideCloseIcon(item));
-                context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
-            } else {
-                this.hideMaximiseIcon();
-                stack.contentItems.forEach(item => this.hideCloseIcon(item));
-            }
+            stack && stack.contentItems ? stack.contentItems.forEach(item => this.hideCloseIcon(item)) : null;
+            this.hideMaximiseIcon();
         } else {
-            stack.contentItems.forEach(item => this.showCloseIcon(item));
-            this.showMaximiseIcon();
+            stack && stack.contentItems
+            ? stack.contentItems.forEach(item => context.close ? this.showCloseIcon(item) : this.hideCloseIcon(item))
+            : null;
+            context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
         }
     }
 
@@ -164,19 +161,17 @@ export default class ngbGoldenLayoutController extends baseController {
             });
             const context = this.appearanceContext;
             if (context.embedded) {
-                if (!context.hideAll) {
-                    context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
-                    context.close ? this.showCloseIcon() : this.hideCloseIcon();
-                } else {
-                    this.hideMaximiseIcon();
-                    this.hideCloseIcon();
-                }
+                this.hideMaximiseIcon();
+                this.hideCloseIcon();
+            } else {
+                context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
+                context.close ? this.showCloseIcon() : this.hideCloseIcon();
             }
         });
         
         this.goldenLayout.on('tabCreated', (tab) => {
             const context = this.appearanceContext;
-            if (context.embedded && (!context.close || context.hideAll)) {
+            if (context.embedded || !context.close) {
                 tab.closeElement.hide();
             } else {
                 tab.closeElement.show();
