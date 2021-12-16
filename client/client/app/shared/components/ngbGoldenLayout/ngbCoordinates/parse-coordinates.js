@@ -1,9 +1,9 @@
 // "chr x: start - end"
-const CHR_START_END_regExp = /^\s*([^:]+):\s*(\d+)\s*-\s*(\d+)\s*/;
+const CHR_START_END_regExp = /^\s*([^:\s]+):\s*(\d+)\s*-\s*(\d+)\s*/;
 // "chr: position"
-const CHR_POSITION_regExp = /^\s*([^:]+):\s*(\d+)\s*/;
+const CHR_POSITION_regExp = /^\s*([^:\s]+):\s*(\d+)\s*/;
 // "chr:"
-const CHR_regExp = /^\s*([^:]+):\s*/;
+const CHR_regExp = /^\s*([^:\s]+):\s*/;
 // "start - end"
 const START_END_regExp = /^\s*(\d+)\s*-\s*(\d+)\s*/;
 // "position"
@@ -98,6 +98,25 @@ async function findFeature(featureName, cache = [], projectDataService, referenc
     return undefined;
 }
 
+function getViewportByPosition (position, chromosome) {
+    if (!chromosome || !position) {
+        return undefined;
+    }
+    const offset = 100;
+    let start = correctPosition(chromosome, position - offset);
+    if (start) {
+        const end = correctPosition(chromosome, start + 2 * offset);
+        if (end) {
+            start = correctPosition(chromosome, end - 2 * offset);
+            return {
+                start,
+                end
+            };
+        }
+    }
+    return undefined;
+}
+
 export default async function parseCoordinates (
     string,
     projectContext,
@@ -140,7 +159,11 @@ export default async function parseCoordinates (
             const [, chrName, _position] = chrPosition;
             const chromosome = getChromosome(chrName, projectContext);
             const positionPayload = correctPosition(chromosome, _position);
-            if (chromosome && positionPayload) {
+            const viewport = getViewportByPosition(_position, chromosome);
+            if (chromosome && viewport.start && viewport.end) {
+                coordinates.push({chromosome, viewport});
+                currentChromosome = chromosome;
+            } else if (chromosome && positionPayload) {
                 coordinates.push({chromosome, position: positionPayload});
                 currentChromosome = chromosome;
             }
@@ -167,7 +190,10 @@ export default async function parseCoordinates (
         } else if (position && currentChromosome) {
             const [, _position] = position;
             const positionPayload = correctPosition(currentChromosome, _position);
-            if (positionPayload) {
+            const viewport = getViewportByPosition(_position, currentChromosome);
+            if (viewport.start && viewport.end) {
+                coordinates.push({chromosome: currentChromosome, viewport});
+            } else if (positionPayload) {
                 coordinates.push({chromosome: currentChromosome, position: positionPayload});
             }
         } else if (feature) {
