@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -237,7 +238,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
      */
     private Variation createVariation(final VariantGA4GH ghEntity, final boolean loadInfo, final VcfFile file,
                                       final List<VariantSetMetadata> metadata) {
-        final Map<String, GenotypeData> genotypeData = new HashMap<>();
+        final Map<String, GenotypeData> genotypeData = new LinkedHashMap<>();
 
         final Variation variation = new Variation(Integer.parseInt(ghEntity.getStart()) + 1,
                 Integer.parseInt(ghEntity.getEnd()), ghEntity.getReferenceBases(), ghEntity.getAlternateBases());

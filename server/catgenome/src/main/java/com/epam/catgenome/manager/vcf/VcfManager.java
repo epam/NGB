@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -416,7 +417,7 @@ public class VcfManager {
         final VcfFilterInfo filterInfo = new VcfFilterInfo();
         Map<String, InfoItem> infoItems = new HashMap<>();
         final Set<String> availableFilters = new HashSet<>();
-        final Set<String> sampleNames = new HashSet<>();
+        final Set<String> sampleNames = new LinkedHashSet<>();
 
         for (Long fileId : vcfFileIds) {
             VcfFile vcfFile = vcfFileManager.load(fileId);
@@ -433,9 +434,12 @@ public class VcfManager {
                         .collect(Collectors.toMap(InfoItem::getName, i -> i)));
                 availableFilters.addAll(header.getFilterLines().stream().map(VCFSimpleHeaderLine::getID)
                         .collect(Collectors.toList()));
+
             }
 
-            sampleNames.addAll(vcfFile.getSamples().stream().map(VcfSample::getName).collect(Collectors.toSet()));
+            for (VcfSample sample : vcfFile.getSamples()) {
+                sampleNames.add(sample.getName());
+            }
         }
 
         List<String> filtersWhiteList = getFilterWhiteList();
