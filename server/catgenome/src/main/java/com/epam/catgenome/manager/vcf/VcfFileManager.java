@@ -83,12 +83,11 @@ public class VcfFileManager implements SecuredEntityManager {
      * @param vcfFile a {@code VcfFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public VcfFile create(VcfFile vcfFile) {
+    public VcfFile create(final VcfFile vcfFile) {
         vcfFileDao.createVcfFile(vcfFile);
         if (vcfFile.getSamples() != null) {
             vcfFileDao.createSamples(vcfFile.getSamples(), vcfFile.getId());
         }
-
         return vcfFile;
     }
 
@@ -100,18 +99,17 @@ public class VcfFileManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
-    public VcfFile load(Long vcfFileId) {
+    public VcfFile load(final Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
-
         return vcfFile;
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+    public AbstractSecuredEntity changeOwner(final Long id, final String owner) {
         VcfFile vcfFile = load(id);
         biologicalDataItemDao.updateOwner(vcfFile.getBioDataItemId(), owner);
         vcfFile.setOwner(owner);
@@ -124,7 +122,7 @@ public class VcfFileManager implements SecuredEntityManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<VcfFile> loadVcfFiles(List<Long> ids) {
+    public List<VcfFile> loadVcfFiles(final List<Long> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
@@ -135,10 +133,9 @@ public class VcfFileManager implements SecuredEntityManager {
             notFound.removeAll(files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
             Assert.isTrue(notFound.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
                                                                        notFound.stream()
-                                                                           .map(i -> i.toString())
+                                                                           .map(Object::toString)
                                                                            .collect(Collectors.joining(", "))));
         }
-
         return files;
     }
 
@@ -172,5 +169,4 @@ public class VcfFileManager implements SecuredEntityManager {
     public Long createVcfFileId() {
         return vcfFileDao.createVcfFileId();
     }
-
 }

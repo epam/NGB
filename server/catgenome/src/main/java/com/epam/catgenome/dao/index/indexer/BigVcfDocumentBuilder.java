@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -243,7 +244,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
         final String[] sampleNames = doc.getValues(FeatureIndexFields.SAMPLE_NAMES.getFieldName());
         if (sampleNames != null && sampleNames.length > 0) {
-            vcfIndexEntry.setSampleNames(new HashSet<>());
+            vcfIndexEntry.setSampleNames(new LinkedHashSet<>());
             Arrays.stream(sampleNames).forEach(s -> vcfIndexEntry.getSampleNames().add(s));
         }
 

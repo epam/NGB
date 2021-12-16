@@ -27,6 +27,7 @@ package com.epam.catgenome.dao.index.indexer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -59,17 +61,14 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.isEmptyStrain;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes <b>large</b> VCF file entries: {@link VariantContext}
  */
+@Slf4j
 public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BigVcfFeatureIndexBuilder.class);
 
     private IndexWriter writer;
     private StandardAnalyzer analyzer;
@@ -159,17 +158,20 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
 
     @NotNull
     public static Set<String> getSampleNames(final VariantContext context) {
-        return context.getGenotypes().stream()
-                .filter(g -> !isEmptyStrain(g))
-                .map(Genotype::getSampleName)
-                .collect(Collectors.toSet());
+        final Set<String> names = new LinkedHashSet<>();
+        for (Genotype genotype : context.getGenotypes()) {
+            if (!isEmptyStrain(genotype)) {
+                names.add(genotype.getSampleName());
+            }
+        }
+        return names;
     }
 
     public void close() {
         try {
             this.writer.close();
         } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 }
