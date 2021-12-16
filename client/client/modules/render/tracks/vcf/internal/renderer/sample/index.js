@@ -40,6 +40,7 @@ class VCFSampleRenderer extends CachedTrackRenderer {
         this.dataContainer.addChild(this.lettersBackground);
         this.dataContainer.addChild(this.lettersContainer);
         this.freeLabelsZones = [];
+        this.bubbles = [];
         this.visualInfo = [];
         this.hoveredItem = undefined;
         this.initializeCentralLine();
@@ -471,7 +472,92 @@ class VCFSampleRenderer extends CachedTrackRenderer {
         return undefined;
     }
 
+    renderStatistics (variation, options) {
+        const {
+            viewport = this._track ? this._track.viewport : undefined,
+            y1,
+            y2,
+            graphics = this.graphics,
+            hovered = false,
+            renderLabels = true
+        } = options;
+        if (!viewport) {
+            return;
+        }
+        const config = this._config;
+        const {
+            startIndex,
+            endIndex,
+            highlightColor,
+            variationsCount
+        } = variation;
+        // todo: highlight!
+        if (renderLabels) {
+            const label = this.labelsManager.getLabel(`${variationsCount}`, config.collapsed.bubble.font);
+            const correctX = generateCorrectXFn(viewport);
+            const initialPosition = Math.floor(
+                correctX(
+                    viewport.project.brushBP2pixel((startIndex + endIndex) / 2.0) -
+                    label.width / 2.0
+                )
+            );
+            label.x = Math.round(
+                findPositionForLabel(
+                    this.freeLabelsZones,
+                    {
+                        x: initialPosition,
+                        width: label.width
+                    }
+                )
+            );
+            label.y = Math.floor((y1 + y2) / 2.0 - label.height / 2.0);
+            const yRadius = (y1 + y2) / 2.0;
+            const xRadius = Math.max(
+                label.width / 2.0 + config.collapsed.bubble.padding,
+                yRadius
+            );
+            this.bubbles.push({
+                variation,
+                xCenter: label.x + label.width / 2.0,
+                yCenter: (y1 + y2) / 2.0,
+                xRadius,
+                yRadius
+            });
+            this.lettersContainer.addChild(label);
+        }
+        const [bubble] = this.bubbles.filter(o => o.variation === variation);
+        if (bubble) {
+            let {xRadius} = bubble;
+            const {yRadius} = bubble;
+            if (hovered) {
+                xRadius += 1;
+            }
+            graphics
+                .beginFill(config.collapsed.bubble.fill, 1)
+                .lineStyle(1, config.collapsed.bubble.stroke, 1)
+                .drawRoundedRect(
+                    Math.floor(bubble.xCenter - xRadius),
+                    Math.ceil(bubble.yCenter - yRadius),
+                    xRadius * 2.0,
+                    yRadius * 2.0,
+                    bubble.yRadius + 1
+                )
+                .endFill();
+            return {
+                variant: variation,
+                position: {
+                    x1: Math.floor(bubble.xCenter - xRadius),
+                    x2: Math.ceil(bubble.xCenter + xRadius)
+                }
+            };
+        }
+        return undefined;
+    }
+
     renderVariation (variation, options) {
+        if (variation.isStatistics) {
+            return this.renderStatistics(variation, options);
+        }
         if (
             /^del$/i.test(variation.type) &&
             (!variation.structural || !variation.interChromosome)
@@ -493,10 +579,11 @@ class VCFSampleRenderer extends CachedTrackRenderer {
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
         this.clear();
-        const {data = []} = cache || {};
+        const {data: variantsData = {}} = cache || {};
+        const {variants: data = []} = variantsData;
         const config = this._config;
         const chromosomeParts = splitChromosomeByDeletions(
-            data.filter(variation => /^del$/i.test(variation.type))
+            data.filter(variation => !variation.isStatistics && /^del$/i.test(variation.type))
         );
         if (this._colors.base) {
             this.chromosomeGraphics
@@ -541,9 +628,11 @@ class VCFSampleRenderer extends CachedTrackRenderer {
         const sorted = data.slice();
         const variantLength = v => Math.abs(v.startIndex - v.endIndex);
         const variantTypeWeight = v => /^(del|inv)$/i.test(v.type) ? 1 : 0;
+        const statisticsFirst = v => v.isStatistics ? 0 : 1;
         sorted
             .sort((a, b) => variantTypeWeight(a) - variantTypeWeight(b))
-            .sort((a, b) => variantLength(b) - variantLength(a));
+            .sort((a, b) => variantLength(b) - variantLength(a))
+            .sort((a, b) => statisticsFirst(a) - statisticsFirst(b));
         sorted.forEach(variation => {
             const variantVisualInfo = this.renderVariation(
                 variation,
@@ -565,6 +654,7 @@ class VCFSampleRenderer extends CachedTrackRenderer {
         this.lettersBackground.clear();
         this.lettersContainer.removeChildren();
         this.freeLabelsZones = [{start: -Infinity, end: Infinity}];
+        this.bubbles = [];
         this.visualInfo = [];
     }
 

@@ -11,7 +11,10 @@ const collapsedSamplesToDisplayByDefault = Math.floor(
 );
 const maxSamplesToDisplay = 16;
 
-function getSampleHeight (state) {
+function getSampleHeight (state, track) {
+    if (track && track.isCollapsedSamplesMode) {
+        return sampleHeight;
+    }
     if (
         !state ||
         state.variantsView === variantsView.variantsViewExpanded
@@ -21,7 +24,10 @@ function getSampleHeight (state) {
     return collapsedSampleHeight;
 }
 
-function getSamplesToDisplayByDefault (state) {
+function getSamplesToDisplayByDefault (state, track) {
+    if (track && track.isCollapsedSamplesMode) {
+        return 1;
+    }
     if (
         !state ||
         state.variantsView === variantsView.variantsViewExpanded
@@ -31,8 +37,16 @@ function getSamplesToDisplayByDefault (state) {
     return collapsedSamplesToDisplayByDefault;
 }
 
-function defaultHeight (state) {
-    return coverageHeight + getSamplesToDisplayByDefault(state) * getSampleHeight(state);
+function getCoverageHeight (state) {
+    if (!state || state.variantsDensity) {
+        return coverageHeight;
+    }
+    return 0;
+}
+
+function defaultHeight (state, track) {
+    return getCoverageHeight(state)
+        + getSamplesToDisplayByDefault(state, track) * getSampleHeight(state, track);
 }
 
 export default {
@@ -41,16 +55,22 @@ export default {
     defaultHeight,
     getSampleHeight,
     maxHeight: (state, config, track) => {
+        if (track && track.isCollapsedSamplesMode) {
+            return maxSamplesToDisplay * getSampleHeight(state, track);
+        }
         const samplesCount = track && track.samples
             ? track.samples.length
             : Infinity;
         if (state && state.variantsView === variantsView.variantsViewCollapsed) {
-            return coverageHeight + samplesCount * getSampleHeight(state);
+            return getCoverageHeight(state) + samplesCount * getSampleHeight(state, track);
         }
-        return coverageHeight + Math.min(maxSamplesToDisplay, samplesCount) * getSampleHeight(state);
+        return getCoverageHeight(state)
+            + Math.min(maxSamplesToDisplay, samplesCount) * getSampleHeight(state, track);
     },
-    minHeight: (state) => coverageHeight + getSampleHeight(state),
+    minHeight: (state, config, track) => getCoverageHeight(state)
+        + getSampleHeight(state, track),
     coverageHeight,
+    getCoverageHeight,
     sampleHeight,
     collapsedSampleHeight,
     sample: {
@@ -70,6 +90,17 @@ export default {
     collapsed: {
         bar: {
             height: collapsedSampleHeight - 1
+        },
+        bubble: {
+            font: {
+                fill: 0x333333,
+                fontFamily: 'arial',
+                fontSize: '7pt',
+                fontWeight: 'bold'
+            },
+            fill: 0xffffff,
+            stroke: 0x92AEE7,
+            padding: 3
         },
         hoveredAlpha: 1,
         nucleotide: {
@@ -105,7 +136,7 @@ export default {
     },
     coverage: {
         color: 0x92AEE7,
-        barsThreshold: 2,
+        barsThreshold: 3,
         lineColor: 0x697EA6
     },
     scroll: {

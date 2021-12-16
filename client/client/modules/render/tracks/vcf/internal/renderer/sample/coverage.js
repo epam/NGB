@@ -32,14 +32,22 @@ class VCFSampleCoverageRenderer extends CachedTrackRenderer {
 
     renderCoverageItem(item, options = {}) {
         const {
-            x1,
-            x2,
+            x1: x1Initial,
+            x2: x2Initial,
             viewport = this._track ? this._track.viewport : undefined,
             graphics = this.graphics,
             converter,
             base: baseValue,
             hovered = false
         } = options;
+        const config = this._config.coverage;
+        const xCenter = (x1Initial + x2Initial) / 2.0;
+        let x1 = x1Initial;
+        let x2 = x2Initial;
+        if (Math.abs(x2Initial - x1Initial) < config.barsThreshold) {
+            x1 = xCenter - config.barsThreshold / 2.0;
+            x2 = xCenter + config.barsThreshold / 2.0;
+        }
         if (!viewport || typeof converter !== 'function') {
             return;
         }
@@ -51,7 +59,6 @@ class VCFSampleCoverageRenderer extends CachedTrackRenderer {
             item.coverage.G ||
             item.coverage.T ||
             item.coverage.N;
-        const config = this._config.coverage;
         if (hasNucleotideData) {
             const getNucleotideData = nucleotide => item.coverage[(nucleotide || '').toUpperCase()] || 0;
             const totalCorrected = item.coverage.total -
@@ -166,9 +173,6 @@ class VCFSampleCoverageRenderer extends CachedTrackRenderer {
                             getXPosition(item.endIndex + 0.5)
                         )
                     );
-                    if (Math.abs(x1 - x2) < 1) {
-                        continue;
-                    }
                     if (x2 < -viewport.canvasSize || x1 > 2.0 * viewport.canvasSize) {
                         continue;
                     }
