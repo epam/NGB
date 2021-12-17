@@ -83,6 +83,7 @@ repositories {
 }
 
 ext['jetty.version'] = '9.4.8.v20171121'
+ext['log4j2.version'] = '2.16.0'
 
 // >>>>> external dependencies used to compile and/or run application
 dependencies {
