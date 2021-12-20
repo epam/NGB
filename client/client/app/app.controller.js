@@ -173,43 +173,8 @@ export default class ngbAppController extends baseController {
                 this._apiResponse(this.apiService.setEmbeddedMode(embedded), callerId);
                 break;
             }
-            case 'setButtonsVisibility': {
-                const isCloseVisible = event.data.params && event.data.params.close !== undefined
-                    ? !!(event.data.params.close)
-                    : true;
-                const isFitTracksVisible = event.data.params && event.data.params.fitTracks !== undefined
-                    ? !!(event.data.params.fitTracks)
-                    : true;
-                const isCloseTracksVisible = event.data.params && event.data.params.closeTracks !== undefined
-                    ? !!(event.data.params.closeTracks)
-                    : true;
-                const isOrganizeTracksVisible = event.data.params && event.data.params.arrayTracks !== undefined
-                    ? !!(event.data.params.arrayTracks)
-                    : true;
-                const isProjectInfoVisible = event.data.params && event.data.params.projectInfo !== undefined
-                    ? !!(event.data.params.projectInfo)
-                    : true;
-                const isGenomeAnnotationsVisible = event.data.params && event.data.params.genomeAnnot !== undefined
-                    ? !!(event.data.params.genomeAnnot)
-                    : true;
-                const isTracksSelectionVisible = event.data.params && event.data.params.tracksSelection !== undefined
-                    ? !!(event.data.params.tracksSelection)
-                    : true;
-                const isMaximiseVisible = event.data.params && event.data.params.maximise !== undefined
-                    ? !!(event.data.params.maximise)
-                    : true;
-
-                const payload = {
-                    close: isCloseVisible,
-                    maximise: isMaximiseVisible,
-                    fitTracks: isFitTracksVisible,
-                    closeTracks: isCloseTracksVisible,
-                    arrayTracks: isOrganizeTracksVisible,
-                    projectInfo: isProjectInfoVisible,
-                    genomeAnnot: isGenomeAnnotationsVisible,
-                    tracksSelection: isTracksSelectionVisible
-                };
-                this._apiResponse(this.apiService.setButtonsVisibility(payload), callerId);
+            case 'setControlsVisibility': {
+                this._apiResponse(this.apiService.setControlsVisibility(event.data.params), callerId);
                 break;
             }
             default:
@@ -279,16 +244,21 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot, embedded, ...rest} = this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot, embedded, controls} = this.$stateParams;
         if (embedded) {
             this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
-        } else {
-            const controlsVisibilityParams = Object.entries(rest).filter(([key,])=> this.appearanceContext[key] !== undefined);
-            controlsVisibilityParams.forEach(([key, value]) => {
-                if (value !== null) {
-                    this.appearanceContext[key] = value && this.dictionaryState.on.toLowerCase() === value.toLowerCase();
-                }
-            });
+        } else if (controls) {
+            try {
+                const controlsVisibility = JSON.parse(controls);
+                this.appearanceContext.parse(
+                    Object.entries(controlsVisibility || {})
+                        .map(([key, value]) => ({[key]: this.dictionaryState.on.toLowerCase() === value.toLowerCase()}))
+                        .reduce((r, c) => ({...r, ...c}), {})
+                );
+            } catch (e) {
+                // eslint-disable-next-line
+                console.warn(`Wrong buttons format: ${e.message}`);
+            }
         }
 
         if (toolbar) {

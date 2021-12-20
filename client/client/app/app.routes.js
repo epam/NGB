@@ -24,15 +24,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 miew: null,
                 heatmap: null,
                 embedded: null,
-
-                closeTracks: null,
-                fitTracks: null,
-                arrayTracks: null,
-                genomeAnnot: null,
-                projectInfo: null,
-                tracksSelection: null,
-                maximise: null,
-                close: null
+                controls: null
             },
             resolve: {
                 $stateParams: '$stateParams'
@@ -51,14 +43,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
             miew&
             heatmap&
             embedded&
-            closeTracks&
-            fitTracks&
-            arrayTracks&
-            genomeAnnot&
-            projectInfo&
-            tracksSelection&
-            maximise&
-            close`
+            controls`
         });
 
 }

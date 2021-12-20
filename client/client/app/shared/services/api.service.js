@@ -296,12 +296,8 @@ export default class ngbApiService {
         };
     }
 
-    setButtonsVisibility (payload) {
-        Object.entries(payload).forEach(([key, value]) => {
-            if (this.appearanceContext[key] !== undefined) {
-                this.appearanceContext[key] = value;
-            }
-        });
+    setControlsVisibility (payload) {
+        this.appearanceContext.parse(payload);
         return {
             isSuccessful: true,
             message: 'OK'

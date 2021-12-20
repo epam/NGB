@@ -53,7 +53,7 @@ const organizeTracksAction = {
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
     isVisible: (context, appearance) => (
-        !appearance.embedded && appearance.arrayTracks &&
+        !appearance.embedded && appearance.organizeTracks &&
         hasTracks(context) && context.currentChromosome
     )
 };
@@ -64,7 +64,7 @@ const genomeAnnotationsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.genomeAnnot
+    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.genomeAnnotations
 };
 
 const projectInfoSectionsAction = {

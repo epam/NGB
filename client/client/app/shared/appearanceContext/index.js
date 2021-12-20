@@ -10,7 +10,7 @@ class AppearanceContext {
     set embedded (value) {
         if (value !== this._embedded) {
             this._embedded = value;
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded});
+            this.reportStateChange();
         }
     }
     get closeTracks () {
@@ -20,10 +20,10 @@ class AppearanceContext {
     set closeTracks (value) {
         if (value !== this._closeTracks) {
             this._closeTracks = value;
-            console.log('Setting `closeTracks` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, closeTracks: this._closeTracks});
+            this.reportStateChange();
         }
     }
+
     get fitTracks () {
         return this._fitTracks;
     }
@@ -31,32 +31,32 @@ class AppearanceContext {
     set fitTracks (value) {
         if (value !== this._fitTracks) {
             this._fitTracks = value;
-            console.log('Setting `fitTracks` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, fitTracks: this._fitTracks});
+            this.reportStateChange();
         }
-    }
-    get arrayTracks () {
-        return this._arrayTracks;
     }
 
-    set arrayTracks (value) {
-        if (value !== this._arrayTracks) {
-            this._arrayTracks = value;
-            console.log('Setting `arrayTracks` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, arrayTracks: this._arrayTracks});
-        }
-    }
-    get genomeAnnot () {
-        return this._genomeAnnot;
+    get organizeTracks () {
+        return this._organizeTracks;
     }
 
-    set genomeAnnot (value) {
-        if (value !== this._genomeAnnot) {
-            this._genomeAnnot = value;
-            console.log('Setting `genomeAnnotations` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, genomeAnnot: this._genomeAnnot});
+    set organizeTracks (value) {
+        if (value !== this._organizeTracks) {
+            this._organizeTracks = value;
+            this.reportStateChange();
         }
     }
+
+    get genomeAnnotations () {
+        return this._genomeAnnotations;
+    }
+
+    set genomeAnnotations (value) {
+        if (value !== this._genomeAnnotations) {
+            this._genomeAnnotations = value;
+            this.reportStateChange();
+        }
+    }
+
     get projectInfo() {
         return this._projectInfo;
     }
@@ -64,10 +64,10 @@ class AppearanceContext {
     set projectInfo (value) {
         if (value !== this._projectInfo) {
             this._projectInfo = value;
-            console.log('Setting `projectInfos` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, projectInfo: this._projectInfo});
+            this.reportStateChange();
         }
     }
+
     get tracksSelection () {
         return this._tracksSelection;
     }
@@ -75,10 +75,10 @@ class AppearanceContext {
     set tracksSelection (value) {
         if (value !== this._tracksSelection) {
             this._tracksSelection = value;
-            console.log('Setting `tracksSelection` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, tracksSelection: this._tracksSelection});
+            this.reportStateChange();
         }
     }
+
     get close () {
         return this._close;
     }
@@ -86,10 +86,10 @@ class AppearanceContext {
     set close (value) {
         if (value !== this._close) {
             this._close = value;
-            console.log('Setting `close` mode to', !!value);
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, close: this._close});
+            this.reportStateChange();
         }
     }
+
     get maximise () {
         return this._maximise;
     }
@@ -97,7 +97,7 @@ class AppearanceContext {
     set maximise (value) {
         if (value !== this._maximise) {
             this._maximise = value;
-            this.dispatcher.emitSimpleEvent('appearance:changed', {embedded: this._embedded, maximise: this._maximise});
+            this.reportStateChange();
         }
     }
 
@@ -106,12 +106,43 @@ class AppearanceContext {
         this._embedded = false;
         this._closeTracks = true;
         this._fitTracks = true;
-        this._arrayTracks = true;
-        this._genomeAnnot = true;
+        this._organizeTracks = true;
+        this._genomeAnnotations = true;
         this._projectInfo = true;
         this._tracksSelection = true;
         this._close = true;
         this._maximise = true;
+    }
+
+    reportStateChange () {
+        this.dispatcher.emitSimpleEvent('appearance:changed', this);
+    }
+
+    parse (visibilityPayload) {
+        if (visibilityPayload) {
+            // eslint-disable-next-line
+            console.log('Setting controls visibility:', visibilityPayload);
+            const {
+                close = !this.embedded && this.close,
+                maximize = !this.embedded && this.maximise,
+                fit = !this.embedded && this.fitTracks,
+                organize = !this.embedded && this.organizeTracks,
+                annotations = !this.embedded && this.genomeAnnotations,
+                project = !this.embedded && this.projectInfo,
+                selection = !this.embedded && this.tracksSelection,
+                clear = !this.embedded && this.closeTracks
+            } = visibilityPayload;
+            this._embedded = false;
+            this._closeTracks = clear;
+            this._fitTracks = fit;
+            this._organizeTracks = organize;
+            this._genomeAnnotations = annotations;
+            this._projectInfo = project;
+            this._tracksSelection = selection;
+            this._close = close;
+            this._maximise = maximize;
+            this.reportStateChange();
+        }
     }
 }
 
