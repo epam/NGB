@@ -30,7 +30,7 @@ export class VCFTrack extends GENETrack {
     }
 
     get stateKeys() {
-        return ['variantsView', 'header', 'collapseSamples'];
+        return ['variantsView', 'header', 'collapseSamples', 'variantsDensity'];
     }
 
     get featuresFilteringEnabled () {
@@ -39,11 +39,16 @@ export class VCFTrack extends GENETrack {
 
     static preStateMutatorFn = (track) => ({
         oldVariantsView: track.state.variantsView,
-        oldCollapseSamples: track.state.collapseSamples
+        oldCollapseSamples: track.state.collapseSamples,
+        oldVariantsDensity: track.state.variantsDensity
     });
 
     static postStateMutatorFn = (track, key, prePayload) => {
-        const {oldVariantsView, oldCollapseSamples} = prePayload || {};
+        const {
+            oldVariantsView,
+            oldCollapseSamples,
+            oldVariantsDensity
+        } = prePayload || {};
         track.transformer.collapsed = track.state.variantsView === variantsView.variantsViewCollapsed;
         if (
             oldVariantsView !== track.state.variantsView ||
@@ -51,6 +56,9 @@ export class VCFTrack extends GENETrack {
         ) {
             track.cache = {};
             track._flags.renderReset = true;
+        }
+        if (oldVariantsDensity !== track.state.variantsDensity) {
+            track._flags.heightChanged = true;
         }
         track.updateAndRefresh();
         track.reportTrackState();

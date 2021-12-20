@@ -33,12 +33,14 @@ export class MultiSampleVCFTrack extends VCFTrack {
     static postStateMutatorFn = (track, key, prePayload) => {
         const {
             oldVariantsView,
-            oldCollapseSamples
+            oldCollapseSamples,
+            oldVariantsDensity
         } = prePayload || {};
         track.transformer.collapseSamples = track.state.collapseSamples;
         if (
             oldVariantsView !== track.state.variantsView ||
-            oldCollapseSamples !== track.state.collapseSamples
+            oldCollapseSamples !== track.state.collapseSamples ||
+            oldVariantsDensity !== track.state.variantsDensity
         ) {
             track.height = VcfConfig.defaultHeight(track.state, track);
             if (track.sampleScroller) {
@@ -93,7 +95,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         this.sampleScroller.x = this.viewport.canvasSize -
             VcfConfig.scroll.margin -
             VcfConfig.scroll.width;
-        this.sampleScroller.y = VcfConfig.coverageHeight;
+        this.sampleScroller.y = VcfConfig.getCoverageHeight(this.state);
         this.coverageMask = new PIXI.Graphics();
         this.transformer.collapseSamples = this.state.collapseSamples;
         (this.initializeSamples)();
@@ -185,7 +187,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     // --- Scroller ---
 
     isScrollable() {
-        return this.totalSamplesHeight > this.height - VcfConfig.coverageHeight;
+        return this.totalSamplesHeight > this.height - VcfConfig.getCoverageHeight(this.state);
     }
 
     canScroll(delta) {
@@ -197,7 +199,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
                     (
                         this.sampleScroller.scrollPosition +
                         this.height -
-                        VcfConfig.coverageHeight) < this.totalSamplesHeight
+                        VcfConfig.getCoverageHeight(this.state)) < this.totalSamplesHeight
                 )
             );
     }
@@ -225,7 +227,10 @@ export class MultiSampleVCFTrack extends VCFTrack {
 
     correctScrollPosition () {
         const min = 0;
-        const max = Math.max(0, this.totalSamplesHeight - this.height + VcfConfig.coverageHeight);
+        const max = Math.max(
+            0,
+            this.totalSamplesHeight - this.height + VcfConfig.getCoverageHeight(this.state)
+        );
         this.sampleScroller.scrollPosition = Math.max(
             min,
             Math.min(
@@ -235,7 +240,8 @@ export class MultiSampleVCFTrack extends VCFTrack {
         );
         this.sampleTitlesContainer.y = -this.sampleScroller.scrollPosition;
         this.sampleGraphics.y = -this.sampleScroller.scrollPosition;
-        this.collapsedSamplesRenderer.container.y = VcfConfig.coverageHeight - this.sampleScroller.scrollPosition;
+        this.collapsedSamplesRenderer.container.y = VcfConfig.getCoverageHeight(this.state)
+            - this.sampleScroller.scrollPosition;
         this.renderers.forEach((rendererBySample, index) => {
             const renderer = this.pickRenderer(rendererBySample);
             renderer.container.y = this.getRendererY(index);
@@ -244,13 +250,14 @@ export class MultiSampleVCFTrack extends VCFTrack {
     }
 
     correctScrollMask () {
+        this.coverageMask.clear();
         this.coverageMask
             .beginFill(0x000000, 1)
             .drawRect(
                 0,
-                VcfConfig.coverageHeight,
+                VcfConfig.getCoverageHeight(this.state),
                 this.viewport.canvasSize,
-                this.height - VcfConfig.coverageHeight
+                this.height - VcfConfig.getCoverageHeight(this.state)
             )
             .endFill();
         this.sampleTitlesContainer.mask = this.coverageMask;
@@ -305,7 +312,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     // ------
 
     getRendererY (index, ignoreScroll = false) {
-        return VcfConfig.coverageHeight +
+        return VcfConfig.getCoverageHeight(this.state) +
             index * VcfConfig.getSampleHeight(this.state, this) -
             (ignoreScroll ? 0 : this.sampleScroller.scrollPosition);
     }
@@ -316,7 +323,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         return linearDimensionsConflict(
             y1,
             y2,
-            VcfConfig.coverageHeight,
+            VcfConfig.getCoverageHeight(this.state),
             this.height
         );
     }
@@ -444,11 +451,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
             });
             somethingChanged = true;
             this.container.addChild(this.sampleGraphics);
-            this.renderSampleGraphics();
-            this.renderSampleTitles();
             if (this.isCollapsedSamplesMode) {
-                this.collapsedSamplesRenderer.container.y = VcfConfig.coverageHeight;
-                this.collapsedSamplesRenderer.height = this.height - VcfConfig.coverageHeight;
+                this.collapsedSamplesRenderer.container.y = VcfConfig.getCoverageHeight(this.state);
+                this.collapsedSamplesRenderer.height = this.height - VcfConfig.getCoverageHeight(this.state);
                 this.container.addChild(this.collapsedSamplesRenderer.container);
             } else {
                 this.renderers.forEach((rendererBySample, index) => {
@@ -463,7 +468,6 @@ export class MultiSampleVCFTrack extends VCFTrack {
             this.container.addChild(this.sampleScroller);
             this.correctScrollPosition();
         } else if (flags.widthChanged || flags.heightChanged) {
-            this.renderSampleGraphics();
             this._zoomInRenderer.init(this._getZoomInPlaceholderText(), {
                 height: this._pixiRenderer.height,
                 width: this._pixiRenderer.width
@@ -475,7 +479,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
             this.coverageCoordinateSystemRenderer.visible = !zoomInPlaceholderVisible;
         }
         if (this.coverageRenderer) {
-            this.coverageRenderer.container.visible = !zoomInPlaceholderVisible;
+            this.coverageRenderer.container.visible = !zoomInPlaceholderVisible && this.state.variantsDensity;
         }
         if (this.sampleGraphics) {
             this.sampleGraphics.visible = !zoomInPlaceholderVisible;
@@ -489,16 +493,25 @@ export class MultiSampleVCFTrack extends VCFTrack {
         if (zoomInPlaceholderVisible) {
             this.sampleScroller.totalHeight = 0;
         }
-        if (flags.heightChanged) {
+        if (
+            flags.renderReset ||
+            flags.widthChanged ||
+            flags.heightChanged
+        ) {
+            this.renderSampleGraphics();
+            this.renderSampleTitles();
             this.correctScrollMask();
         }
         if (
-            flags.dataChanged
+            flags.dataChanged ||
+            flags.renderReset ||
+            flags.widthChanged ||
+            flags.heightChanged
         ) {
             this.coverageCoordinateSystemRenderer.renderCoordinateSystem(
                 this.viewport,
                 this.cache.coverage,
-                VcfConfig.coverageHeight,
+                VcfConfig.getCoverageHeight(this.state),
                 {
                     renderBaseLineAsBottomBorder: false
                 }
@@ -516,20 +529,20 @@ export class MultiSampleVCFTrack extends VCFTrack {
                 this.sampleScroller.x = this.viewport.canvasSize -
                     VcfConfig.scroll.margin -
                     VcfConfig.scroll.width;
-                this.sampleScroller.y = VcfConfig.coverageHeight;
+                this.sampleScroller.y = VcfConfig.getCoverageHeight(this.state);
                 this.sampleScroller.totalHeight = this.totalSamplesHeight;
-                this.sampleScroller.displayedHeight = this.height - VcfConfig.coverageHeight;
+                this.sampleScroller.displayedHeight = this.height - VcfConfig.getCoverageHeight(this.state);
                 this.sampleScroller.renderScroller(false);
             }
-            this.coverageRenderer.height = VcfConfig.coverageHeight;
+            this.coverageRenderer.height = VcfConfig.getCoverageHeight(this.state);
             this.coverageRenderer.render(
                 this.viewport,
                 this.cache,
-                flags.heightChanged || flags.dataChanged,
+                flags.heightChanged || flags.widthChanged || flags.dataChanged,
                 this._showCenterLine
             );
             if (this.isCollapsedSamplesMode) {
-                this.collapsedSamplesRenderer.height = this.height - VcfConfig.coverageHeight;
+                this.collapsedSamplesRenderer.height = this.height - VcfConfig.getCoverageHeight(this.state);
                 this.collapsedSamplesRenderer.container.visible =
                     this._variantsMaximumRange >= this.viewport.actualBrushSize;
                 this.collapsedSamplesRenderer.render(
@@ -558,7 +571,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     }
 
     getMousePositionOverSample ({x, y}) {
-        if (y < VcfConfig.coverageHeight) {
+        if (y < VcfConfig.getCoverageHeight(this.state)) {
             return {
                 x,
                 y,
@@ -568,7 +581,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
         if (this.isCollapsedSamplesMode) {
             return {
                 x,
-                y: y - VcfConfig.coverageHeight,
+                y: y - VcfConfig.getCoverageHeight(this.state),
                 collapsedSamples: true
             };
         }

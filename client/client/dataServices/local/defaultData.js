@@ -50,6 +50,7 @@ export default {
             spliceJunctions: false,
             variantsView: variantsView.variantsViewCollapsed,
             collapseSamples: true,
+            variantsDensity: true,
             viewAsPairs: false,
             coverageDisplayMode: displayModes.defaultDisplayMode,
             coverageScaleMode: scaleModes.defaultScaleMode,

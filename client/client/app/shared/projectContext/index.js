@@ -60,6 +60,7 @@ export default class projectContext {
         spliceJunctions: 's3',
         variantsView: 'v',
         collapseSamples: 'cs',
+        variantsDensity: 'vd',
         viewAsPairs: 'v1',
         coverageDisplayMode: 'cdm',
         coverageScaleMode: 'csm',

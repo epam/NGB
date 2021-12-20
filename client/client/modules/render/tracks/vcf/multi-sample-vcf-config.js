@@ -37,8 +37,16 @@ function getSamplesToDisplayByDefault (state, track) {
     return collapsedSamplesToDisplayByDefault;
 }
 
+function getCoverageHeight (state) {
+    if (!state || state.variantsDensity) {
+        return coverageHeight;
+    }
+    return 0;
+}
+
 function defaultHeight (state, track) {
-    return coverageHeight + getSamplesToDisplayByDefault(state, track) * getSampleHeight(state, track);
+    return getCoverageHeight(state)
+        + getSamplesToDisplayByDefault(state, track) * getSampleHeight(state, track);
 }
 
 export default {
@@ -53,10 +61,13 @@ export default {
         const samplesCount = track && track.samples
             ? track.samples.length
             : Infinity;
-        return coverageHeight + Math.min(maxSamplesToDisplay, samplesCount) * getSampleHeight(state, track);
+        return getCoverageHeight(state)
+            + Math.min(maxSamplesToDisplay, samplesCount) * getSampleHeight(state, track);
     },
-    minHeight: (state, config, track) => coverageHeight + getSampleHeight(state, track),
+    minHeight: (state, config, track) => getCoverageHeight(state)
+        + getSampleHeight(state, track),
     coverageHeight,
+    getCoverageHeight,
     sampleHeight,
     collapsedSampleHeight,
     sample: {

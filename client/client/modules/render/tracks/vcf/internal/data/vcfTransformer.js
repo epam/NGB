@@ -63,7 +63,7 @@ export class VcfTransformer extends GeneTransformer {
                 variants.push(Object.assign({isStatistics: false}, variant));
             } else {
                 if (previousItem) {
-                    if (variant.startIndex > previousItem.endIndex &&
+                    if (variant.startIndex >= previousItem.endIndex &&
 
                         variant.startIndex - viewport.convert
                             .pixel2brushBP(this.config.statistics.bubble.margin) <=
