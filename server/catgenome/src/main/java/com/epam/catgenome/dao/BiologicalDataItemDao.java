@@ -45,6 +45,7 @@ import com.epam.catgenome.entity.externaldb.ExternalDBType;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
+import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
@@ -281,6 +282,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         HEATMAP_CELL_ANNOTATION_PATH,
         HEATMAP_LABEL_ANNOTATION_PATH,
 
+        LINEAGE_TREE_ID,
+        DESCRIPTION,
+        NODES_PATH,
+        EDGES_PATH,
+
         INDEX_ID,
         INDEX_NAME,
         INDEX_TYPE,
@@ -374,6 +380,9 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 case HEATMAP:
                     dataItem = mapHeatMap(rs);
                     break;
+                case LINEAGE_TREE:
+                    dataItem = mapLineageTree(rs);
+                    break;
                 default:
                     dataItem = mapBioDataItem(rs);
             }
@@ -391,6 +400,17 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             heatmap.setRowTreePath(rs.getString(HEATMAP_ROW_TREE_PATH.name()));
             heatmap.setColumnTreePath(rs.getString(HEATMAP_COLUMN_TREE_PATH.name()));
             return heatmap;
+        }
+
+        private static BiologicalDataItem mapLineageTree(final ResultSet rs) throws SQLException {
+            final LineageTree lineageTree = LineageTree.builder().build();
+            lineageTree.setId(rs.getLong(LINEAGE_TREE_ID.name()));
+            lineageTree.setLineageTreeId(rs.getLong(LINEAGE_TREE_ID.name()));
+            lineageTree.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
+            lineageTree.setDescription(rs.getString(DESCRIPTION.name()));
+            lineageTree.setNodesPath(rs.getString(NODES_PATH.name()));
+            lineageTree.setEdgesPath(rs.getString(EDGES_PATH.name()));
+            return lineageTree;
         }
 
         private static BiologicalDataItem mapBioDataItem(ResultSet rs) throws SQLException {

@@ -124,7 +124,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param project {@code Project} a project to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveProject(Project project, Long parentId) {
+    public void saveProject(final Project project, final Long parentId) {
         if (project.getId() == null) {
             project.setId(daoHelper.createId(projectSequenceName));
             getNamedParameterJdbcTemplate().update(insertProjectQuery, ProjectParameters.getParameters(project,
@@ -156,13 +156,13 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return a list of nested {@code Project}s
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadNestedProjects(long parentId) {
+    public List<Project> loadNestedProjects(final long parentId) {
         return getJdbcTemplate().query(loadProjectsByParentIdQuery, ProjectParameters.getRowMapper(), parentId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
-        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
         final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
         getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
             ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
@@ -183,8 +183,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return a {@code Project} instance from the database
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Project loadProject(long projectId) {
-        List<Project> projects = getJdbcTemplate().query(loadProjectByIdQuery, ProjectParameters.getRowMapper(),
+    public Project loadProject(final long projectId) {
+        final List<Project> projects = getJdbcTemplate().query(loadProjectByIdQuery, ProjectParameters.getRowMapper(),
                                                          projectId);
         return projects.isEmpty() ? null : projects.get(0);
     }
@@ -195,8 +195,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return a {@code Project} instance from the database
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Project loadProject(String projectName) {
-        List<Project> projects = getJdbcTemplate().query(loadProjectByNameQuery, ProjectParameters.getRowMapper(),
+    public Project loadProject(final String projectName) {
+        final List<Project> projects = getJdbcTemplate().query(loadProjectByNameQuery, ProjectParameters.getRowMapper(),
                                                          projectName);
         return projects.isEmpty() ? null : projects.get(0);
     }
@@ -212,7 +212,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectId {@code Long} ID of a project to update
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateLastOpenedDate(long projectId) {
+    public void updateLastOpenedDate(final long projectId) {
         getJdbcTemplate().update(updateLastOpenedDateQuery, projectId);
     }
 
@@ -222,12 +222,12 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param parentId an ID of a parent project to move to
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void moveProjectToParent(long projectId, Long parentId) {
+    public void moveProjectToParent(final long projectId, final Long parentId) {
         if (parentId != null) {
             Assert.isTrue(projectId != parentId, "Project can't be it's own parent");
         }
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectParameters.PROJECT_ID.name(), projectId);
         params.addValue(ProjectParameters.PARENT_ID.name(), parentId);
 
@@ -239,7 +239,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectId ID of a Project to delete
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteProject(long projectId) {
+    public void deleteProject(final long projectId) {
         getJdbcTemplate().update(deleteProjectQuery, projectId);
     }
 
@@ -249,7 +249,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return a List of ProjectItems
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<ProjectItem> loadProjectItemsByProjectId(long projectId) {
+    public List<ProjectItem> loadProjectItemsByProjectId(final long projectId) {
         return getJdbcTemplate().query(loadProjectItemsByProjectIdQuery, ProjectItemParameters.getRowMapper(),
                 projectId);
     }
@@ -260,35 +260,17 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return a Map of ProjectItems to project IDs
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjectIds(List<Long> projectIds) {
+    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjectIds(final List<Long> projectIds) {
         if (projectIds.isEmpty()) {
             return Collections.emptyMap();
         }
-
         return loadProjectItemsByList(projectIds);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(List<Project> projects) {
-        List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
+    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(final List<Project> projects) {
+        final List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
         return loadProjectItemsByProjectIds(projectIds);
-    }
-
-    private Map<Long, Set<ProjectItem>> loadProjectItemsByList(List<Long> projectIds) {
-        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
-        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
-        String query = DaoHelper.getQueryFilledWithIdArray(loadProjectItemsByProjectIdsQuery, projectIds);
-        getJdbcTemplate().query(query, rs -> {
-            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
-
-            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
-            if (!itemsMap.containsKey(projectId)) {
-                itemsMap.put(projectId, new HashSet<>());
-            }
-
-            itemsMap.get(projectId).add(item);
-        });
-        return itemsMap;
     }
 
     /**
@@ -297,20 +279,20 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param biologicalItemId {@code Long} ID of an item to add
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void addProjectItem(long projectId, long biologicalItemId) {
-        Project project = loadProject(projectId);
+    public void addProjectItem(final long projectId, final long biologicalItemId) {
+        final Project project = loadProject(projectId);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
 
-        long newId = daoHelper.createId(projectItemSequenceName);
+        final long newId = daoHelper.createId(projectItemSequenceName);
 
-        Number countNumber = getJdbcTemplate().queryForObject(loadProjectItemsMaxNumberQuery,
+        final Number countNumber = getJdbcTemplate().queryForObject(loadProjectItemsMaxNumberQuery,
                                                               new SingleColumnRowMapper<>(), projectId);
         Integer count = 1;
         if (countNumber != null) {
             count = countNumber.intValue() + 1;
         }
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue(ProjectItemParameters.PROJECT_ITEM_ID.name(), newId);
         params.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
@@ -327,20 +309,20 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param items a {@code List&lt;BiologicalDataItem&gt;} of items to add
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void addProjectItems(long projectId, List<ProjectItem> items) {
-        Project project = loadProject(projectId);
+    public void addProjectItems(final long projectId, final List<ProjectItem> items) {
+        final Project project = loadProject(projectId);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
 
-        List<Long> newIds = daoHelper.createIds(projectItemSequenceName, items.size());
+        final List<Long> newIds = daoHelper.createIds(projectItemSequenceName, items.size());
 
-        Number countNumber = getJdbcTemplate().queryForObject(loadProjectItemsMaxNumberQuery,
+        final Number countNumber = getJdbcTemplate().queryForObject(loadProjectItemsMaxNumberQuery,
                                                         new SingleColumnRowMapper<>(), projectId);
         Integer count = 1;
         if (countNumber != null) {
             count = countNumber.intValue() + 1;
         }
 
-        ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
+        final ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
         for (int i = 0; i < items.size(); i++) {
             MapSqlParameterSource param = new MapSqlParameterSource();
 
@@ -362,8 +344,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public List<ProjectNote> saveProjectNotes(final List<ProjectNote> notes, final long projectId) {
         if (!CollectionUtils.isEmpty(notes)) {
-            List<Long> newIds = daoHelper.createIds(projectNoteSequenceName, notes.size());
-            List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
+            final List<Long> newIds = daoHelper.createIds(projectNoteSequenceName, notes.size());
+            final List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
             int i = 0;
             for (ProjectNote note: notes) {
                 note.setNoteId(newIds.get(i));
@@ -383,7 +365,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public List<ProjectNote> updateProjectNotes(final List<ProjectNote> notes) {
         if (!CollectionUtils.isEmpty(notes)) {
-            List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
+            final List<MapSqlParameterSource> params = new ArrayList<>(notes.size());
             for (ProjectNote note: notes) {
                 MapSqlParameterSource param = ProjectNoteParameters.getParameters(note);
                 params.add(param);
@@ -398,7 +380,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteProjectNotes(final List<Filter> filters) {
-        String query = addFiltersToQuery(deleteProjectNotesQuery, filters);
+        final String query = addFiltersToQuery(deleteProjectNotesQuery, filters);
         getJdbcTemplate().update(query);
     }
 
@@ -411,7 +393,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(loadProjectNotesQuery, ProjectNoteParameters.getRowMapper(), projectId);
     }
 
-    public Map<Long, Set<ProjectNote>> loadAllProjectNotes(List<Project> projects) {
+    public Map<Long, Set<ProjectNote>> loadAllProjectNotes(final List<Project> projects) {
         String query = loadAllProjectNotesQuery;
         if (!CollectionUtils.isEmpty(projects)) {
             List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
@@ -422,8 +404,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                     .build();
             query = addFiltersToQuery(loadAllProjectNotesQuery, Collections.singletonList(filter));
         }
-        List<ProjectNote> notes = getJdbcTemplate().query(query, ProjectNoteParameters.getRowMapper());
-        Map<Long, Set<ProjectNote>> notesMap = new HashMap<>();
+        final List<ProjectNote> notes = getJdbcTemplate().query(query, ProjectNoteParameters.getRowMapper());
+        final Map<Long, Set<ProjectNote>> notesMap = new HashMap<>();
         for (ProjectNote note: notes) {
             Long projectId = note.getProjectId();
             if (!notesMap.containsKey(projectId)) {
@@ -440,19 +422,19 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param biologicalItemId {@code Long} ID of an item to remove
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteProjectItem(long projectId, long biologicalItemId) {
-        List<Long> currentItemIds = getJdbcTemplate().query(loadProjectItemsIdsQuery, new SingleColumnRowMapper<>(),
-                projectId);
+    public void deleteProjectItem(final long projectId, final long biologicalItemId) {
+        final List<Long> currentItemIds = getJdbcTemplate().query(loadProjectItemsIdsQuery,
+                new SingleColumnRowMapper<>(), projectId);
 
         currentItemIds.remove(biologicalItemId);
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
         params.addValue(ProjectItemParameters.BIO_DATA_ITEM_ID.name(), biologicalItemId);
 
         getNamedParameterJdbcTemplate().update(deleteProjectItemQuery, params);
 
-        ArrayList<MapSqlParameterSource> updateParams = new ArrayList<>();
+        final ArrayList<MapSqlParameterSource> updateParams = new ArrayList<>();
         for (int i = 1; i <= currentItemIds.size(); i++) {
             MapSqlParameterSource param = new MapSqlParameterSource();
             param.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
@@ -472,15 +454,15 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param items a {@code List&lt;BiologicalDataItem&gt;} of items to remove
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteProjectItems(long projectId, List<ProjectItem> items) {
-        List<Long> currentItemIds = getJdbcTemplate().query(loadProjectItemsIdsQuery, new SingleColumnRowMapper<>(),
-                projectId);
+    public void deleteProjectItems(final long projectId, final List<ProjectItem> items) {
+        final List<Long> currentItemIds = getJdbcTemplate().query(loadProjectItemsIdsQuery,
+                new SingleColumnRowMapper<>(), projectId);
 
-        List<Long> idsToRemove = items.stream().map(i ->
+        final List<Long> idsToRemove = items.stream().map(i ->
                 getBioDataItemId(i.getBioDataItem())).collect(Collectors.toList());
         currentItemIds.removeAll(idsToRemove);
 
-        ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
+        final ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
 
         for (ProjectItem item : items) {
             MapSqlParameterSource param = new MapSqlParameterSource();
@@ -493,7 +475,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().batchUpdate(deleteProjectItemQuery, params.toArray(new
                 MapSqlParameterSource[items.size()]));
 
-        ArrayList<MapSqlParameterSource> updateParams = new ArrayList<>();
+        final ArrayList<MapSqlParameterSource> updateParams = new ArrayList<>();
         for (int i = 1; i <= currentItemIds.size(); i++) {
             MapSqlParameterSource param = new MapSqlParameterSource();
             param.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
@@ -508,7 +490,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteProjectItems(long projectId) {
+    public void deleteProjectItems(final long projectId) {
         getJdbcTemplate().update(deleteAllProjectItemsQuery, projectId);
     }
 
@@ -519,8 +501,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @return {@code true} if project item is hidden, {@code false} if not
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Boolean isProjectItemHidden(long projectId, long biologicalItemId) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
+    public Boolean isProjectItemHidden(final long projectId, final long biologicalItemId) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
         params.addValue(ProjectItemParameters.BIO_DATA_ITEM_ID.name(), biologicalItemId);
 
@@ -534,8 +516,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param biologicalItemId {@code Long} ID of an item to hide
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void hideProjectItem(long projectId, long biologicalItemId, boolean hide) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
+    public void hideProjectItem(final long projectId, final long biologicalItemId, final boolean hide) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);
         params.addValue(ProjectItemParameters.BIO_DATA_ITEM_ID.name(), biologicalItemId);
         params.addValue(ProjectItemParameters.HIDDEN.name(), hide);
@@ -549,8 +531,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param items a {@code List&lt;ProjectItem&gt;} list of project items to update hidden status
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void hideProjectItems(long projectId, List<ProjectItem> items) {
-        ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
+    public void hideProjectItems(final long projectId, final List<ProjectItem> items) {
+        final ArrayList<MapSqlParameterSource> params = new ArrayList<>(items.size());
 
         for (ProjectItem item : items) {
             MapSqlParameterSource param = new MapSqlParameterSource();
@@ -568,8 +550,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateOwner(Long id, String owner) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
+    public void updateOwner(final Long id, final String owner) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectParameters.PROJECT_ID.name(), id);
         params.addValue(ProjectParameters.OWNER.name(), owner);
 
@@ -718,7 +700,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         CONTENT;
 
         static MapSqlParameterSource getParameters(final ProjectNote note) {
-            MapSqlParameterSource params = new MapSqlParameterSource();
+            final MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(NOTE_ID.name(), note.getNoteId());
             params.addValue(PROJECT_ID.name(), note.getProjectId());
             params.addValue(TITLE.name(), note.getTitle());
@@ -740,7 +722,24 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    private Long getBioDataItemId(BiologicalDataItem item) {
+    private Map<Long, Set<ProjectItem>> loadProjectItemsByList(final List<Long> projectIds) {
+        final Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+        final String query = DaoHelper.getQueryFilledWithIdArray(loadProjectItemsByProjectIdsQuery, projectIds);
+        getJdbcTemplate().query(query, rs -> {
+            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
+
+            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
+            if (!itemsMap.containsKey(projectId)) {
+                itemsMap.put(projectId, new HashSet<>());
+            }
+
+            itemsMap.get(projectId).add(item);
+        });
+        return itemsMap;
+    }
+
+    private Long getBioDataItemId(final BiologicalDataItem item) {
         if (item instanceof FeatureFile) {
             return ((FeatureFile) item).getBioDataItemId();
         } else {

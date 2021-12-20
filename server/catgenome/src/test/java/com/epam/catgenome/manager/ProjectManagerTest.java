@@ -148,8 +148,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadDeleteProject()
-        throws IOException, InterruptedException, NoSuchAlgorithmException {
+    public void testSaveLoadDeleteProject() throws IOException {
         VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(file.getBioDataItemId());
@@ -231,8 +230,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadProjectWithPrettyName() throws IOException, InterruptedException,
-            NoSuchAlgorithmException {
+    public void testSaveLoadProjectWithPrettyName() throws IOException {
         VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(file.getBioDataItemId());
@@ -299,18 +297,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         // check that we can delete parent dataset with force option
         projectManager.deleteProject(root.getId(), true);
         assertNullLoadProjectWithNested(root);
-    }
-
-    private void assertNullLoadProjectWithNested(Project root) {
-        try {
-            // check that we handle exception as expected
-            Assert.assertNull(projectManager.load(root.getId()));
-        } catch (IllegalArgumentException e) {
-            // continue checking with child projects
-            Optional.ofNullable(root.getNestedProjects())
-                    .orElse(Collections.emptyList())
-                    .forEach(this::assertNullLoadProjectWithNested);
-        }
     }
 
     @Test
@@ -652,15 +638,24 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
     }
 
-    private void addVcfFileToProject(long projectId, String name, String path) throws IOException,
-                                                                                      InterruptedException,
-                                                                                      NoSuchAlgorithmException {
+    private void assertNullLoadProjectWithNested(Project root) {
+        try {
+            // check that we handle exception as expected
+            Assert.assertNull(projectManager.load(root.getId()));
+        } catch (IllegalArgumentException e) {
+            // continue checking with child projects
+            Optional.ofNullable(root.getNestedProjects())
+                    .orElse(Collections.emptyList())
+                    .forEach(this::assertNullLoadProjectWithNested);
+        }
+    }
+
+    private void addVcfFileToProject(long projectId, String name, String path) throws IOException {
         VcfFile vcfFile = addVcfFile(name, path);
         projectManager.addProjectItem(projectId, vcfFile.getBioDataItemId());
     }
 
-    private VcfFile addVcfFile(String name, String path)
-        throws IOException {
+    private VcfFile addVcfFile(String name, String path) throws IOException {
         Resource resource = context.getResource(path);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
