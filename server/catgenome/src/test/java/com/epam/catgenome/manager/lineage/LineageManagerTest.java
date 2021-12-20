@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.lineage;
 import com.epam.catgenome.controller.vo.registration.LineageTreeRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.lineage.LineageTree;
+import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.manager.project.ProjectManager;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -52,6 +54,9 @@ public class LineageManagerTest extends TestCase {
     private LineageTreeManager lineageTreeManager;
 
     @Autowired
+    private ProjectManager projectManager;
+
+    @Autowired
     private ApplicationContext context;
 
     private String nodesFileName;
@@ -65,7 +70,7 @@ public class LineageManagerTest extends TestCase {
 
     @Test
     public void createLineageTreeTest() throws IOException {
-        LineageTree lineageTree = registerLineageTree("createLineageTreeTest");
+        final LineageTree lineageTree = registerLineageTree("createLineageTreeTest");
         assertNotNull(lineageTree);
         assertEquals("createLineageTreeTest", lineageTree.getName());
         assertEquals("lineageTree", lineageTree.getPrettyName());
@@ -74,7 +79,8 @@ public class LineageManagerTest extends TestCase {
 
     @Test
     public void loadLineageTree() throws IOException {
-        LineageTree lineageTree = registerLineageTree("loadLineageTree");
+        final Project project = createProject();
+        final LineageTree lineageTree = registerLineageTree("loadLineageTree");
         assertNotNull(lineageTree);
         assertNotNull(lineageTree.getNodes());
         assertEquals(FULL_TREE_NODES_NUM, lineageTree.getNodes().size());
@@ -85,6 +91,9 @@ public class LineageManagerTest extends TestCase {
         assertEquals(lineageTree.getNodes().get(0).getLineageTreeNodeId(),
                 lineageTree.getEdges().get(0).getNodeFromId());
         assertEquals(lineageTree.getLineageTreeId(), lineageTree.getEdges().get(0).getLineageTreeId());
+        assertEquals(project.getId(), lineageTree.getNodes().get(0).getProjectId());
+        assertEquals(project.getId(), lineageTree.getNodes().get(1).getProjectId());
+        assertNull(lineageTree.getNodes().get(2).getProjectId());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getNodes().get(0).getAttributes().size());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getEdges().get(0).getAttributes().size());
         assertEquals("value1", lineageTree.getNodes().get(0).getAttributes().get("key1"));
@@ -94,13 +103,13 @@ public class LineageManagerTest extends TestCase {
     @Test
     public void loadOneTreeByReferenceId() throws IOException {
         registerLineageTree("loadLineageTrees");
-        List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(REFERENCE_ID);
+        final List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(REFERENCE_ID);
         assertFalse(lineageTrees.isEmpty());
     }
 
     @Test
     public void deleteLineageTreeTest() throws IOException {
-        LineageTree lineageTree = registerLineageTree("deleteLineageTreeTest");
+        final LineageTree lineageTree = registerLineageTree("deleteLineageTreeTest");
         LineageTree createdLineageTree = lineageTreeManager.loadLineageTree(lineageTree.getLineageTreeId());
         lineageTreeManager.deleteLineageTree(createdLineageTree.getLineageTreeId());
         createdLineageTree = lineageTreeManager.loadLineageTree(lineageTree.getLineageTreeId());
@@ -109,12 +118,19 @@ public class LineageManagerTest extends TestCase {
 
     @NotNull
     private LineageTree registerLineageTree(final String name) throws IOException {
-        LineageTreeRegistrationRequest request = new LineageTreeRegistrationRequest();
+        final LineageTreeRegistrationRequest request = new LineageTreeRegistrationRequest();
         request.setName(name);
         request.setPrettyName("lineageTree");
         request.setPath(nodesFileName);
         request.setNodesPath(nodesFileName);
         request.setEdgesPath(edgesFileName);
         return lineageTreeManager.createLineageTree(request);
+    }
+
+    @NotNull
+    private Project createProject() {
+        final Project project = new Project();
+        project.setName("dataset");
+        return projectManager.create(project);
     }
 }

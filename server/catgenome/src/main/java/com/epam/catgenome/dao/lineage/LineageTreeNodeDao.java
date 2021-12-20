@@ -119,6 +119,7 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
         NAME,
         DESCRIPTION,
         REFERENCE_ID,
+        PROJECT_ID,
         CREATION_DATE,
         ATTRIBUTES;
 
@@ -129,6 +130,7 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
             params.addValue(NAME.name(), lineageTreeNode.getName());
             params.addValue(DESCRIPTION.name(), lineageTreeNode.getDescription());
             params.addValue(REFERENCE_ID.name(), lineageTreeNode.getReferenceId());
+            params.addValue(PROJECT_ID.name(), lineageTreeNode.getProjectId());
             params.addValue(CREATION_DATE.name(), lineageTreeNode.getCreationDate() == null ? null :
                     Timestamp.valueOf(lineageTreeNode.getCreationDate().atStartOfDay()));
             params.addValue(ATTRIBUTES.name(), serializeAttributes(lineageTreeNode.getAttributes()));

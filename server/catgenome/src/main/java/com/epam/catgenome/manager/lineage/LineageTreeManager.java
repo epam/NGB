@@ -28,11 +28,13 @@ import com.epam.catgenome.controller.vo.registration.LineageTreeRegistrationRequ
 import com.epam.catgenome.dao.lineage.LineageTreeDao;
 import com.epam.catgenome.dao.lineage.LineageTreeEdgeDao;
 import com.epam.catgenome.dao.lineage.LineageTreeNodeDao;
+import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.lineage.LineageTreeEdge;
 import com.epam.catgenome.entity.lineage.LineageTreeNode;
+import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
@@ -70,12 +72,13 @@ import static com.epam.catgenome.util.Utils.parseAttributes;
 @Slf4j
 public class LineageTreeManager {
 
-    private static final int NODES_FILE_COLUMNS = 5;
+    private static final int NODES_FILE_COLUMNS = 6;
     private static final int EDGES_FILE_COLUMNS = 4;
     private final LineageTreeDao lineageTreeDao;
     private final LineageTreeNodeDao lineageTreeNodeDao;
     private final LineageTreeEdgeDao lineageTreeEdgeDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
+    private final ProjectDao projectDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public LineageTree createLineageTree(final LineageTreeRegistrationRequest request) throws IOException {
@@ -155,15 +158,28 @@ public class LineageTreeManager {
                         .name(nodeName)
                         .description(getCellValue(cells[1]))
                         .referenceId(getCellValue(cells[2]) == null ? null : Long.valueOf(getCellValue(cells[2])))
-                        .creationDate(getCellValue(cells[3]) == null ? null :
-                                LocalDate.parse(getCellValue(cells[3]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
-                        .attributes(parseAttributes(getCellValue(cells[4])))
+                        .projectId(getProjectId(getCellValue(cells[3])))
+                        .creationDate(getCellValue(cells[4]) == null ? null :
+                                LocalDate.parse(getCellValue(cells[4]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
+                        .attributes(parseAttributes(getCellValue(cells[5])))
                         .build();
                 nodes.add(node);
                 nodeNames.add(nodeName);
             }
         }
         return nodes;
+    }
+
+    private Long getProjectId(final String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            final Project project = projectDao.loadProject(value);
+            return project == null ? null : project.getId();
+        }
     }
 
     private List<LineageTreeEdge> readEdges(final String path, final List<String> nodes) throws IOException {

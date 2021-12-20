@@ -39,6 +39,7 @@ public class LineageTreeNode {
     private String name;
     private String description;
     private Long referenceId;
+    private Long projectId;
     private LocalDate creationDate;
     private Map<String, String> attributes;
 }

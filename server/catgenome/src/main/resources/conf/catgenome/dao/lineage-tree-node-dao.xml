@@ -13,6 +13,7 @@
                         name,
                         description,
                         reference_id,
+                        project_id,
                         creation_date,
                         attributes
                     ) VALUES (
@@ -21,6 +22,7 @@
                         :NAME,
                         :DESCRIPTION,
                         :REFERENCE_ID,
+                        :PROJECT_ID,
                         :CREATION_DATE,
                         :ATTRIBUTES
                     )
@@ -43,6 +45,7 @@
                         name,
                         description,
                         reference_id,
+                        project_id,
                         creation_date,
                         attributes
                     FROM catgenome.lineage_tree_node WHERE lineage_tree_id = ?
@@ -58,6 +61,7 @@
                         name,
                         description,
                         reference_id,
+                        project_id,
                         creation_date,
                         attributes
                     FROM catgenome.lineage_tree_node WHERE reference_id = ?
@@ -73,6 +77,7 @@
                         name,
                         description,
                         reference_id,
+                        project_id,
                         creation_date,
                         attributes
                     FROM catgenome.lineage_tree_node WHERE lineage_tree_node_id IN (@in@)
