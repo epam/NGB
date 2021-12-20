@@ -11,7 +11,6 @@ export default class ngbShareLinkMenuController extends baseController {
     screenShotVisible = false;
     screenShotVisibleValue = true;
     panelsHeadersVisibleValue = true;
-    embeddedMode = false;
     alias = null;
 
     events = {};
@@ -39,7 +38,6 @@ export default class ngbShareLinkMenuController extends baseController {
         $scope.$watch('$ctrl.screenShotVisibleValue', ::this.generateUrl);
         $scope.$watch('$ctrl.panelsHeadersVisibleValue', ::this.generateUrl);
         $scope.$watch('$ctrl.alias', ::this.generateUrl);
-        $scope.$watch('$ctrl.embeddedMode', ::this.generateUrl);
 
         this.generateUrl();
     }
@@ -66,9 +64,6 @@ export default class ngbShareLinkMenuController extends baseController {
         }
         if (tracksState) {
             stateParams.tracks = this.projectContext.convertTracksStateToJson(tracksState);
-        }
-        if (this.embeddedMode) {
-            stateParams.embedded = this.showState(this.embeddedMode);
         }
         if (this.trackState === true) {
             stateParams.tracks = JSON.stringify(tracksState);

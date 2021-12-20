@@ -2,11 +2,13 @@ const hasTracks = (context) => context.tracks && context.tracks.length;
 const variantsTableDownloadAction = {
     name: 'variantsTableDownload',
     isDefault: false,
-    isVisible: (context) => context.containsVcfFiles
+    isVisible: (context, appearance) => context.containsVcfFiles &&
+        !appearance.embedded && appearance.vcfDownload
 };
 const variantsTableColumnAction = {
     name: 'variantsTableColumn',
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.vcfColumns
 };
 const variantsTablePaginationAction = {
     name: 'variantsTablePagination',
@@ -91,11 +93,13 @@ const tracksSelectionAction = {
 const genesTableDownloadAction = {
     name: 'genesTableDownload',
     isDefault: false,
-    isVisible: (context) => !!context.reference
+    isVisible: (context, appearance) => !!context.reference &&
+        !appearance.embedded && appearance.genesDownload
 };
 const genesTableColumnAction = {
     name: 'genesTableColumn',
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.genesColumn
 };
 const genesResetFilterActions = {
     name: 'genesResetFilter',

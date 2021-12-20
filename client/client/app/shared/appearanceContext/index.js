@@ -101,6 +101,50 @@ class AppearanceContext {
         }
     }
 
+    get vcfColumns () {
+        return this._vcfColumns;
+    }
+
+    set vcfColumns (value) {
+        if (value !== this._vcfColumns) {
+            this._vcfColumns = value;
+            this.reportStateChange();
+        }
+    }
+
+    get vcfDownload () {
+        return this._vcfDownload;
+    }
+
+    set vcfDownload (value) {
+        if (value !== this._vcfDownload) {
+            this._vcfDownload = value;
+            this.reportStateChange();
+        }
+    }
+
+    get genesColumns () {
+        return this._genesColumns;
+    }
+
+    set genesColumns (value) {
+        if (value !== this._genesColumns) {
+            this._genesColumns = value;
+            this.reportStateChange();
+        }
+    }
+
+    get genesDownload () {
+        return this._genesDownload;
+    }
+
+    set genesDownload (value) {
+        if (value !== this._genesDownload) {
+            this._genesDownload = value;
+            this.reportStateChange();
+        }
+    }
+
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
         this._embedded = false;
@@ -112,6 +156,10 @@ class AppearanceContext {
         this._tracksSelection = true;
         this._close = true;
         this._maximise = true;
+        this._vcfColumns = true;
+        this._vcfDownload = true;
+        this._genesColumns = true;
+        this._genesDownload = true;
     }
 
     reportStateChange () {
@@ -130,7 +178,11 @@ class AppearanceContext {
                 annotations = !this.embedded && this.genomeAnnotations,
                 project = !this.embedded && this.projectInfo,
                 selection = !this.embedded && this.tracksSelection,
-                clear = !this.embedded && this.closeTracks
+                clear = !this.embedded && this.closeTracks,
+                vcfcolumns = !this.embedded && this.vcfColumns,
+                vcfdownload = !this.embedded && this.vcfDownload,
+                genescolumns = !this.embedded && this.genesColumns,
+                genesdownload = !this.embedded && this.genesDownload
             } = visibilityPayload;
             this._embedded = false;
             this._closeTracks = clear;
@@ -139,6 +191,10 @@ class AppearanceContext {
             this._genomeAnnotations = annotations;
             this._projectInfo = project;
             this._tracksSelection = selection;
+            this._vcfColumns = vcfcolumns;
+            this._vcfDownload = vcfdownload;
+            this._genesColumns = genescolumns;
+            this._genesDownload = genesdownload;
             this._close = close;
             this._maximise = maximize;
             this.reportStateChange();
