@@ -109,6 +109,11 @@
                         h.cell_annotation_path as HEATMAP_CELL_ANNOTATION_PATH,
                         h.label_annotation_path as HEATMAP_LABEL_ANNOTATION_PATH,
 
+                        l.lineage_tree_id,
+                        l.description,
+                        l.nodes_path,
+                        l.edges_path,
+
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
                         i.type as index_type,
@@ -132,6 +137,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
                                 i.bio_data_item_id = m.index_id
                                 OR i.bio_data_item_id = g.index_id
@@ -218,6 +224,11 @@
                         h.cell_annotation_path as HEATMAP_CELL_ANNOTATION_PATH,
                         h.label_annotation_path as HEATMAP_LABEL_ANNOTATION_PATH,
 
+                        l.lineage_tree_id,
+                        l.description,
+                        l.nodes_path,
+                        l.edges_path,
+
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
                         i.type as index_type,
@@ -241,6 +252,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
                                 i.bio_data_item_id = m.index_id
                                 OR i.bio_data_item_id = g.index_id
@@ -320,6 +332,11 @@
                         h.cell_annotation_path as HEATMAP_CELL_ANNOTATION_PATH,
                         h.label_annotation_path as HEATMAP_LABEL_ANNOTATION_PATH,
 
+                        l.lineage_tree_id,
+                        l.description,
+                        l.nodes_path,
+                        l.edges_path,
+
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
                         i.type as index_type,
@@ -343,6 +360,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
                                 i.bio_data_item_id = m.index_id
                                 OR i.bio_data_item_id = g.index_id
@@ -422,6 +440,11 @@
                         h.cell_annotation_path as HEATMAP_CELL_ANNOTATION_PATH,
                         h.label_annotation_path as HEATMAP_LABEL_ANNOTATION_PATH,
 
+                        l.lineage_tree_id,
+                        l.description,
+                        l.nodes_path,
+                        l.edges_path,
+
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
                         i.type as index_type,
@@ -445,6 +468,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
                                 i.bio_data_item_id = m.index_id
                                 OR i.bio_data_item_id = g.index_id
@@ -524,6 +548,11 @@
                         h.cell_annotation_path as HEATMAP_CELL_ANNOTATION_PATH,
                         h.label_annotation_path as HEATMAP_LABEL_ANNOTATION_PATH,
 
+                        l.lineage_tree_id,
+                        l.description,
+                        l.nodes_path,
+                        l.edges_path,
+
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
                         i.type as index_type,
@@ -547,6 +576,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
                                 i.bio_data_item_id = m.index_id
                                 OR i.bio_data_item_id = g.index_id
