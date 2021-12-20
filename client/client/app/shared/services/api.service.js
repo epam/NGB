@@ -296,6 +296,14 @@ export default class ngbApiService {
         };
     }
 
+    setControlsVisibility (payload) {
+        this.appearanceContext.parse(payload);
+        return {
+            isSuccessful: true,
+            message: 'OK'
+        };
+    }
+
     /** returns a Promise */
     _processTracks(tracks, chosenReference) {
         const errors = [];

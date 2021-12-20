@@ -1,11 +1,14 @@
+const hasTracks = (context) => context.tracks && context.tracks.length;
 const variantsTableDownloadAction = {
     name: 'variantsTableDownload',
     isDefault: false,
-    isVisible: context => context.containsVcfFiles
+    isVisible: (context, appearance) => context.containsVcfFiles &&
+        !appearance.embedded && appearance.vcfDownload
 };
 const variantsTableColumnAction = {
     name: 'variantsTableColumn',
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.vcfColumns
 };
 const variantsTablePaginationAction = {
     name: 'variantsTablePagination',
@@ -23,7 +26,8 @@ const variantsLoadingIndicatorAction = {
 };
 const closeAllTracksAction = {
     name: 'closeAllTracks',
-    isDefault: false
+    isDefault: false,
+    isVisible:(context, appearance) => !appearance.embedded && appearance.closeTracks
 };
 const fitAllTracksAction = {
     name: 'fitAllTracks',
@@ -31,7 +35,10 @@ const fitAllTracksAction = {
     event: 'tracks:fit:height',
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
-    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
+    isVisible: (context, appearance) => (
+        hasTracks(context) && context.currentChromosome &&
+        !appearance.embedded && appearance.fitTracks
+    )
 };
 const variantsResetFilterActions = {
     name: 'variantsResetFilter',
@@ -39,7 +46,7 @@ const variantsResetFilterActions = {
     event: 'variants:reset:filter',
     icon: 'delete_sweep',
     label: 'Reset variants filter',
-    isVisible: context => !context.vcfFilterIsDefault
+    isVisible: (context) => !context.vcfFilterIsDefault
 };
 const organizeTracksAction = {
     name: 'organizeTracks',
@@ -47,7 +54,10 @@ const organizeTracksAction = {
     event: 'tracks:organize',
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
-    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
+    isVisible: (context, appearance) => (
+        !appearance.embedded && appearance.organizeTracks &&
+        hasTracks(context) && context.currentChromosome
+    )
 };
 
 const genomeAnnotationsAction = {
@@ -56,7 +66,7 @@ const genomeAnnotationsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: context => context.tracks && context.tracks.length
+    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.genomeAnnotations
 };
 
 const projectInfoSectionsAction = {
@@ -65,25 +75,31 @@ const projectInfoSectionsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: context => context.tracks && context.tracks.length,
+    isVisible: (context, appearance) => hasTracks(context) && !appearance.embedded && appearance.projectInfo
 };
+
 
 const tracksSelectionAction = {
     liStyle: {
         width: 'auto'
     },
     name: 'tracksSelection',
-    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome,
+    isVisible: (context, appearance) => (
+        hasTracks(context) && context.currentChromosome &&
+        !appearance.embedded && appearance.tracksSelection
+    )
 };
 
 const genesTableDownloadAction = {
     name: 'genesTableDownload',
     isDefault: false,
-    isVisible: context => !!context.reference
+    isVisible: (context, appearance) => !!context.reference &&
+        !appearance.embedded && appearance.genesDownload
 };
 const genesTableColumnAction = {
     name: 'genesTableColumn',
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.genesColumn
 };
 const genesResetFilterActions = {
     name: 'genesResetFilter',
@@ -91,7 +107,7 @@ const genesResetFilterActions = {
     event: 'genes:reset:filter',
     icon: 'delete_sweep',
     label: 'Reset genes filter',
-    isVisible: context => !context.genesFilterIsDefault
+    isVisible: (context) => !context.genesFilterIsDefault
 };
 const bookmarksTablePaginationAction = {
     name: 'bookmarksTablePagination',
@@ -107,7 +123,7 @@ const bookmarksResetFilterActions = {
     event: 'bookmarks:reset:filter',
     icon: 'delete_sweep',
     label: 'Reset sessions filter',
-    isVisible: context => !context.bookmarksFilterIsDefault
+    isVisible: (context) => !context.bookmarksFilterIsDefault
 };
 
 export default {

@@ -28,7 +28,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, appLayout) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, appearanceContext, ngbViewActionsConstant, appLayout) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -37,6 +37,7 @@ export default class ngbGoldenLayoutController extends baseController {
             GoldenLayout,
             dispatcher,
             projectContext,
+            appearanceContext,
             appLayout,
             ngbViewActions: ngbViewActionsConstant
         });
@@ -81,6 +82,40 @@ export default class ngbGoldenLayoutController extends baseController {
         this.goldenLayout.updateSize();
     }
 
+    updateHeaderView(stack) {
+        this.$scope.$apply();
+        const context = this.appearanceContext;
+        if (context.embedded) {
+            stack && stack.contentItems ? stack.contentItems.forEach(item => this.hideCloseIcon(item)) : null;
+            this.hideMaximiseIcon();
+        } else {
+            stack && stack.contentItems
+            ? stack.contentItems.forEach(item => context.close ? this.showCloseIcon(item) : this.hideCloseIcon(item))
+            : null;
+            context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
+        }
+    }
+
+    hideCloseIcon(item) {
+        if (item && item.tab) {
+            item.tab.closeElement.hide();
+        }
+        this.goldenLayout.container.find('.lm_close').hide();
+    }
+    showCloseIcon(item) {
+        if (item) {
+            item.tab.closeElement.show();
+        }
+        this.goldenLayout.container.find('.lm_close').show();
+    }
+
+    hideMaximiseIcon() {
+        this.goldenLayout.container.find('.lm_maximise').hide();
+    }
+    showMaximiseIcon() {
+        this.goldenLayout.container.find('.lm_maximise').show();
+    }
+
     initLayout() {
 
         let layout = this.projectContext.layout;
@@ -105,12 +140,14 @@ export default class ngbGoldenLayoutController extends baseController {
             Object.assign(childScope, this.ngbViewActions);
             childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
             childScope.projectContext = this.projectContext;
+            childScope.appearanceContext = this.appearanceContext;
 
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 
             const html = this.$compile(viewActionsTemplate)(childScope);
 
             stack.header.controlsContainer.prepend(html);
+            this.dispatcher.on('appearance:changed', () => this.updateHeaderView(stack));
 
             stack.on('activeContentItemChanged', (contentItem) => {
                 childScope.viewName = contentItem.config.componentState.panel;
@@ -122,7 +159,23 @@ export default class ngbGoldenLayoutController extends baseController {
                 }
                 this.dispatcher.emit('layout:active:panel:change', contentItem.config.componentState.panel);
             });
-
+            const context = this.appearanceContext;
+            if (context.embedded) {
+                this.hideMaximiseIcon();
+                this.hideCloseIcon();
+            } else {
+                context.maximise ? this.showMaximiseIcon() : this.hideMaximiseIcon();
+                context.close ? this.showCloseIcon() : this.hideCloseIcon();
+            }
+        });
+        
+        this.goldenLayout.on('tabCreated', (tab) => {
+            const context = this.appearanceContext;
+            if (context.embedded || !context.close) {
+                tab.closeElement.hide();
+            } else {
+                tab.closeElement.show();
+            }
         });
 
 
@@ -155,7 +208,7 @@ export default class ngbGoldenLayoutController extends baseController {
                 const panelItem = this.service.layout.Panels[panelName];
 
                 let [glItem] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
-                obj.config.componentState && obj.config.componentState.panel === panelItem.panel);
+                    obj.config.componentState && obj.config.componentState.panel === panelItem.panel);
 
                 if (glItem) {
                     const parent = glItem.parent;
@@ -173,7 +226,7 @@ export default class ngbGoldenLayoutController extends baseController {
     handlePanelChange(event) {
         if (event.layoutChange.displayed === true) {
             const [panel] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
-            obj.config.componentState && obj.config.componentState.panel === event.layoutChange.panel);
+                obj.config.componentState && obj.config.componentState.panel === event.layoutChange.panel);
             if (!panel) {
                 this.panelAdd(event.layoutChange);
             } else {
@@ -284,7 +337,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const newItem = this.service.createBrowserItem(data.variant);
         const [browserItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBrowser);
+                && obj.config.componentState.panel === this.panels.ngbBrowser);
 
         if (browserItem) {
             const stackItem = browserItem.parent;
@@ -307,7 +360,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const newItem = this.service.createBrowserItem(event);
         const [browserItem] = this.goldenLayout.root
             .getItemsByFilter(obj => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBrowser);
+                && obj.config.componentState.panel === this.panels.ngbBrowser);
 
         if (browserItem) {
             const stackItem = browserItem.parent;
@@ -354,13 +407,13 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
 
-        if(!savedBlatRequest) {
+        if (!savedBlatRequest) {
             return;
         }
 
         const [currentBlatSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlatRequest.id);
 
-        if(!currentBlatSearchBamTrack) {
+        if (!currentBlatSearchBamTrack) {
             this.panelRemove(this.appLayout.Panels.blat);
         }
     }
@@ -376,13 +429,13 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const savedBlastRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
 
-        if(!savedBlastRequest) {
+        if (!savedBlastRequest) {
             return;
         }
 
         const [currentBlastSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlastRequest.id);
 
-        if(!currentBlastSearchBamTrack) {
+        if (!currentBlastSearchBamTrack) {
             this.panelRemove(this.appLayout.Panels.blast);
         }
     }
@@ -426,7 +479,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const [blatSearchItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
-            && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
+                && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
 
         const payload = {
             id: event.id,
@@ -513,7 +566,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
             if (itemStacksArr.length) {
                 const itemStacksFilteredPositions = itemStacksArr.filter(stack => stack.config.componentState
-                && stack.config.componentState.position === newItem.componentState.position);
+                    && stack.config.componentState.position === newItem.componentState.position);
 
                 if (itemStacksFilteredPositions.length) {
                     return itemStacksFilteredPositions[0];
@@ -569,7 +622,7 @@ export default class ngbGoldenLayoutController extends baseController {
             //todo maybe save extrawindow in var and remove it
             this.goldenLayout.root
                 .getItemsByFilter(obj => obj.config &&
-                obj.config.componentState && obj.config.componentState.panel === this.panels.ngbTracksView)
+                    obj.config.componentState && obj.config.componentState.panel === this.panels.ngbTracksView)
                 .forEach(obj => {
                     obj.remove();
                 });
