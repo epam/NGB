@@ -56,7 +56,6 @@ export default class ngbStrainLineageController extends baseController {
             const {allData, referenceData, error} = await this.ngbStrainLineageService.loadStrainLineages(currentReference);
             if (!error) {
                 this.error = false;
-                this.lineageTreeList = this.constructTreeList(referenceData, allData);
                 if (!this.selectedTreeId) {
                     this.selectedTreeId = this.ngbStrainLineageService.selectedTreeId;
                     await this.onTreeSelect();
@@ -64,6 +63,7 @@ export default class ngbStrainLineageController extends baseController {
             } else {
                 this.error = error;
             }
+            this.lineageTreeList = this.constructTreeList(referenceData, allData);
             this.loading = false;
         } else {
             const {allData, referenceData} = await this.ngbStrainLineageService.loadStrainLineages(null);
@@ -109,7 +109,7 @@ export default class ngbStrainLineageController extends baseController {
             this.treeError = error;
         } else {
             this.treeError = false;
-            this.selectedTree = tree;
+            this.selectedTree = this.setDatasetNames(tree);
         }
         this.treeLoading = false;
         this.$timeout(() => this.$scope.$apply());
@@ -127,6 +127,27 @@ export default class ngbStrainLineageController extends baseController {
         this.onElementClick(undefined);
     }
 
+    setDatasetNames(tree) {
+        const datasets = this.projectContext.datasets || [];
+        tree.nodes.forEach(node => {
+            if (node.data.projectId && node.data.referenceId) {
+                const [dataset] = datasets.filter(d => d.id === node.data.projectId);
+                if (dataset) {
+                    node.data.projectName = dataset.name;
+                }
+            }
+        });
+        return tree;
+    }
+
+    navigate(event, element) {
+        if (element.referenceId) {
+            this.navigateToReference(event, element.referenceId);
+        } else if (element.projectId) {
+            this.navigateToDataset(event, element.projectId);
+        }
+    }
+
     navigateToReference(event, referenceId) {
         if (!referenceId || !this.projectContext || !this.projectContext.references || !this.projectContext.references.length) {
             return;
@@ -137,4 +158,15 @@ export default class ngbStrainLineageController extends baseController {
             this.projectContext.changeState(payload);
         }
     }
+
+    navigateToDataset(event, projectId) {
+        if (!projectId || !this.projectContext || !this.projectContext.datasets || !this.projectContext.datasets.length) {
+            return;
+        }
+        const payload = this.ngbStrainLineageService.getOpenDatasetPayload(this.projectContext.datasets, projectId);
+        if (payload) {
+            this.projectContext.changeState(payload);
+        }
+    }
+
 }

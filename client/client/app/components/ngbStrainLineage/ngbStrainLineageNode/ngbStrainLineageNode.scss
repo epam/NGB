@@ -34,15 +34,25 @@ $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
+  }
 
-    &.strain-lineage-node-link {
-      color: $element-link-color;
-      text-decoration: none;
+  .strain-lineage-node-link {
+    color: $element-link-color;
+    text-decoration: none;
 
-      &:hover {
-        text-decoration: underline;
-      }
+    &:hover {
+      text-decoration: underline;
     }
+  }
+
+  .strain-lineage-node-dataset {
+    font-weight: bold;
+    display: inline-block;
+    max-height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    margin: 3px 0;
   }
 
   &.selected {

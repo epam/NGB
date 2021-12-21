@@ -18,10 +18,9 @@
                    ng-change="$ctrl.onTreeSelect()"
                    ng-model="$ctrl.selectedTreeId">
             <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
-                       ng-value="{{tree.id}}""
+                       ng-value="{{tree.id}}"
                        ng-class="{'tree-list-divider': tree.divider}"
-                       ng-disabled="tree.divider"
-            >
+                       ng-disabled="tree.divider">
                 <span ng-if="!tree.divider">{{tree.prettyName || tree.name}}</span>
                 <md-divider ng-if="tree.divider"></md-divider>
             </md-option>
@@ -44,15 +43,22 @@
                     <div class="element-description-row"
                          ng-if="$ctrl.elementDescription.title">
                         <div class="element-description-title"
-                             ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId}"
-                             ng-click="$ctrl.navigateToReference($event, $ctrl.elementDescription.referenceId)"
+                             ng-class="{'element-description-navigation': $ctrl.elementDescription.referenceId || $ctrl.elementDescription.projectId}"
+                             ng-click="$ctrl.navigate($event, $ctrl.elementDescription)"
                              ng-if="$ctrl.elementDescription.title">
                             <span>{{$ctrl.elementDescription.title}}</span>
                         </div>
                         <span class="sequenced"
                               ng-if="$ctrl.elementDescription.creationDate">
-                            Preserved on: {{$ctrl.elementDescription.creationDate|date}}
+                            Preserved on: {{$ctrl.elementDescription.creationDate | date}}
                         </span>
+                    </div>
+                    <div class="element-description-row"
+                         ng-if="$ctrl.elementDescription.projectId && $ctrl.elementDescription.referenceId">
+                        <div class="element-description-navigation"
+                             ng-click="$ctrl.navigateToDataset($event, $ctrl.elementDescription.projectId)">
+                            <span>{{$ctrl.elementDescription.projectName}}</span>
+                        </div>
                     </div>
                     <div class="element-description-row" ng-if="$ctrl.elementDescription.description">
                         {{$ctrl.elementDescription.description}}
