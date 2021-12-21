@@ -87,6 +87,8 @@ This example demonstrates major capabilities of a JS API
 * [setGlobalSettings](#setglobalsettings)
 * [setTrackSettings](#settracksettings)
 * [setToken](#settoken)
+* [setEmbedded](#setembedded)
+* [setControlsVisibility](#setcontrolsvisibility)
 
 ### loadDataSet
 
@@ -325,6 +327,61 @@ The object to be passed to NGB window:
     //coordinates string
     params: {
         token: token
+    }
+}
+```
+
+## NGB panels controls visibility
+
+### setEmbedded
+
+Set **embedded** mode (all panels controls like *close*, *maximize*, *fit all tracks* buttons will be hidden)
+
+The object to be passed to NGB window:
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "setEmbedded",
+    //embedded mode
+    params: {
+        embedded: true
+    }
+}
+```
+
+### setControlsVisibility
+
+Specify panel's controls visibility. You can hide/show *close*, *maximize*, *fit all tracks* etc. buttons visibility using this method.
+
+Possible keys:
+
+* `close`: panel's close buttons;
+* `maximize`: panel's maximize buttons;
+* `fit`: fit all tracks button;
+* `organize`: organize tracks button;
+* `annotations`: genome annotation files button;
+* `project`: project info button;
+* `selection`: tracks selection button;
+* `clear`: close all tracks button;
+* `vcfcolumns` (lowercased!): specify VCF columns to display button;
+* `vcfdownload` (lowercased!): download variants table button;
+* `genesdownload` (lowercased!): download genes table button.
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "setControlsVisibility",
+    //controls visibility
+    params: {
+        close: false,
+        maximize: true,
+        fit: false
     }
 }
 ```
