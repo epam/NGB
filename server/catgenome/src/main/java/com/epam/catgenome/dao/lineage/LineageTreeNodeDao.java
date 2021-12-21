@@ -142,16 +142,23 @@ public class LineageTreeNodeDao extends NamedParameterJdbcDaoSupport {
         }
 
         static LineageTreeNode parseLineageTreeNode(final ResultSet rs) throws SQLException {
-            return LineageTreeNode.builder()
+            final LineageTreeNode.LineageTreeNodeBuilder builder = LineageTreeNode.builder()
                     .lineageTreeNodeId(rs.getLong(LINEAGE_TREE_NODE_ID.name()))
                     .lineageTreeId(rs.getLong(LINEAGE_TREE_ID.name()))
                     .name(rs.getString(NAME.name()))
                     .description(rs.getString(DESCRIPTION.name()))
-                    .referenceId(rs.getLong(REFERENCE_ID.name()))
                     .creationDate(rs.getTimestamp(CREATION_DATE.name()) == null ? null :
                             rs.getTimestamp(CREATION_DATE.name()).toLocalDateTime().toLocalDate())
-                    .attributes(parseAttributes(rs.getString(ATTRIBUTES.name())))
-                    .build();
+                    .attributes(parseAttributes(rs.getString(ATTRIBUTES.name())));
+            final long referenceId = rs.getLong(REFERENCE_ID.name());
+            if (!rs.wasNull()) {
+                builder.referenceId(referenceId);
+            }
+            final long projectId = rs.getLong(PROJECT_ID.name());
+            if (!rs.wasNull()) {
+                builder.projectId(projectId);
+            }
+            return builder.build();
         }
     }
 }
