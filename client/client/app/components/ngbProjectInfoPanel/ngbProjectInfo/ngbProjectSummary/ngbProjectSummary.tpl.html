@@ -20,10 +20,10 @@
             <div class="summary-item"
                           ng-repeat="nameObject in file.names track by nameObject.id">
                 <md-checkbox class="heatmap-selector"
-                             ng-change="ctrl.setHeatmap(nameObject.track)"
+                             ng-click="ctrl.setHeatmap(nameObject.track)"
                              ng-false-value="undefined"
                              ng-if="ctrl.isHeatmapSelector(file)"
-                             ng-model="currentHeatmapId"
+                             ng-model="ctrl.viewHeatmapId"
                              ng-true-value="{{nameObject.track.id}}">
                     <span>{{nameObject.customName || nameObject.name}}</span>
                 </md-checkbox>

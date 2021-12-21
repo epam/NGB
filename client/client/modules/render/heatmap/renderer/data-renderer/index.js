@@ -18,6 +18,8 @@ const BLOCK_HEIGHT = 512;
 
 const PIXI_WEB_GL_RENDERER_TYPE = 1;
 
+const LARGE_MAP_SCALE = 25;
+
 class HeatmapDataRenderer extends InteractiveZone {
     static RenderMode = {
         canvas: 'canvas',
@@ -411,7 +413,11 @@ class HeatmapDataRenderer extends InteractiveZone {
                     this.requestRender();
                 }
             };
-            const {value} = this.data.data.entriesWithinRadius(event, radius).next();
+            const {value} = this.viewport.scale.tickSize < LARGE_MAP_SCALE
+                ? this.data.data.entriesWithinRadius(event, radius).next()
+                : {
+                    value: this.data.data.getHeatMapItem(Math.floor(event.column), Math.floor(event.row))
+                };
             hover(value);
         }
     }
