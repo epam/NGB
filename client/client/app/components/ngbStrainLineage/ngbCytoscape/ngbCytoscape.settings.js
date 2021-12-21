@@ -4,7 +4,7 @@ export default {
         node: {
             'content': 'data(id)',
             'width': 175,
-            'height': 50,
+            'height': 60,
             'text-opacity': 1,
             'text-valign': 'center',
             'text-halign': 'center',

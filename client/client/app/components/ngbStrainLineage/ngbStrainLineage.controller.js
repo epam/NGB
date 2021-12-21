@@ -130,7 +130,7 @@ export default class ngbStrainLineageController extends baseController {
     setDatasetNames(tree) {
         const datasets = this.projectContext.datasets || [];
         tree.nodes.forEach(node => {
-            if (node.data.projectId) {
+            if (node.data.projectId && node.data.referenceId) {
                 const [dataset] = datasets.filter(d => d.id === node.data.projectId);
                 if (dataset) {
                     node.data.projectName = dataset.name;
@@ -138,6 +138,14 @@ export default class ngbStrainLineageController extends baseController {
             }
         });
         return tree;
+    }
+
+    navigate(event, element) {
+        if (element.referenceId) {
+            this.navigateToReference(event, element.referenceId);
+        } else if (element.projectId) {
+            this.navigateToDataset(event, element.projectId);
+        }
     }
 
     navigateToReference(event, referenceId) {

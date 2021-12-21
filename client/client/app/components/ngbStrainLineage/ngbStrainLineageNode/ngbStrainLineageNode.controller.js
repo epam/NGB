@@ -56,6 +56,14 @@ export default class ngbStrainLineageNodeController {
         }
     }
 
+    navigate(event, element) {
+        if (element.referenceId) {
+            this.navigateToReference(event, element.referenceId);
+        } else if (element.projectId) {
+            this.navigateToDataset(event, element.projectId);
+        }
+    }
+
     navigateToReference(event, referenceId) {
         this.navigationInProcess = true;
         if (!referenceId || !this.projectContext || !this.projectContext.references || !this.projectContext.references.length) {

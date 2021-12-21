@@ -4,16 +4,12 @@
      ng-mousemove="$ctrl.onMouseMove($event)"
      ng-mouseup="$ctrl.onMouseUp($event)">
     <div class="strain-lineage-node-title"
-         ng-if="!$ctrl.nodeData.referenceId">
+         ng-class="{'strain-lineage-node-link': $ctrl.nodeData.referenceId || $ctrl.nodeData.projectId}"
+         ng-mouseup="$ctrl.navigate($event, $ctrl.nodeData)">
         {{$ctrl.nodeData.title | crop}}
     </div>
-    <div class="strain-lineage-node-title strain-lineage-node-link"
-         ng-if="$ctrl.nodeData.referenceId"
-         ng-mouseup="$ctrl.navigateToReference($event, $ctrl.nodeData.referenceId)">
-        {{$ctrl.nodeData.title | crop}}
-    </div>
-    <div class="strain-lineage-node-title strain-lineage-node-link"
-         ng-if="$ctrl.nodeData.projectId"
+    <div class="strain-lineage-node-dataset strain-lineage-node-link"
+         ng-if="$ctrl.nodeData.projectId && $ctrl.nodeData.referenceId"
          ng-mouseup="$ctrl.navigateToDataset($event, $ctrl.nodeData.projectId)">
         {{$ctrl.nodeData.projectName | crop}}
     </div>
