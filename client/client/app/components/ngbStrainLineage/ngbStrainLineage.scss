@@ -78,14 +78,14 @@
           padding: 5px 0;
 
           .element-description-title {
-            font-weight: bold;
             margin-right: 5px;
+          }
 
-            &.element-description-navigation {
-              color: #2c4f9e;
-              text-decoration: underline;
-              cursor: pointer;
-            }
+          .element-description-navigation {
+            font-weight: bold;
+            color: #2c4f9e;
+            text-decoration: underline;
+            cursor: pointer;
           }
 
           .sequenced {

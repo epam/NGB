@@ -12,6 +12,11 @@
          ng-mouseup="$ctrl.navigateToReference($event, $ctrl.nodeData.referenceId)">
         {{$ctrl.nodeData.title | crop}}
     </div>
+    <div class="strain-lineage-node-title strain-lineage-node-link"
+         ng-if="$ctrl.nodeData.projectId"
+         ng-mouseup="$ctrl.navigateToDataset($event, $ctrl.nodeData.projectId)">
+        {{$ctrl.nodeData.projectName | crop}}
+    </div>
     <div class="strain-lineage-node-desc"
          ng-if="$ctrl.nodeData.creationDate">
         {{$ctrl.nodeData.creationDate | date}}

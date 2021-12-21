@@ -2,6 +2,7 @@ import {mapTrackFn} from '../ngbDataSets/internal/utilities';
 
 const LOCAL_STORAGE_KEY = 'strain-lineage-state';
 const MAX_TITLE_LENGTH = 15;
+const MAXIMUM_TRACKS_TO_OPEN = 20;
 
 export default class ngbStrainLineageService {
 
@@ -131,6 +132,7 @@ export default class ngbStrainLineageService {
                 description: node.description,
                 creationDate: node.creationDate,
                 referenceId: node.referenceId,
+                projectId: node.projectId,
                 tooltip: node.attributes
             }
         });
@@ -214,6 +216,50 @@ export default class ngbStrainLineageService {
         }
         return null;
     }
+
+    getOpenDatasetPayload(tree, projectId) {
+        const find = (items = []) => {
+            const projects = items.filter(item => item.isProject);
+            let match = projects.filter(item => item.id === projectId);
+            for (const project of projects) {
+                match = match.concat(find(project.nestedProjects));
+            }
+            return match;
+        };
+        const raw = find(tree);
+        const [referenceDataset] = raw
+            .filter(dataset => dataset.reference);
+        if (referenceDataset) {
+            const reference = referenceDataset.reference;
+            const datasetsToNavigate = raw
+                .filter(dataset => dataset.reference && dataset.reference.id === reference.id);
+            let tracks = [reference];
+            let tracksState = [mapTrackFn(reference)];
+            const addDatasetItems = (dataset) => {
+                const items = dataset._lazyItems || dataset.items;
+                for (const item of items) {
+                    if (item.isProject) {
+                        addDatasetItems(item);
+                    } else if (item.format !== 'REFERENCE') {
+                        tracks.push(item);
+                        tracksState.push(mapTrackFn(item));
+                    }
+                }
+            };
+            for (const dataset of datasetsToNavigate) {
+                addDatasetItems(dataset);
+            }
+            tracks = tracks.slice(0, MAXIMUM_TRACKS_TO_OPEN);
+            tracksState = tracksState.slice(0, MAXIMUM_TRACKS_TO_OPEN);
+            return {
+                tracks,
+                tracksState,
+                reference
+            };
+        }
+        return null;
+    }
+
 
     saveState(state) {
         const savedState = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');

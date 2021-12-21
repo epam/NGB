@@ -109,7 +109,7 @@ export default class ngbStrainLineageController extends baseController {
             this.treeError = error;
         } else {
             this.treeError = false;
-            this.selectedTree = tree;
+            this.selectedTree = this.setDatasetNames(tree);
         }
         this.treeLoading = false;
         this.$timeout(() => this.$scope.$apply());
@@ -127,6 +127,19 @@ export default class ngbStrainLineageController extends baseController {
         this.onElementClick(undefined);
     }
 
+    setDatasetNames(tree) {
+        const datasets = this.projectContext.datasets || [];
+        tree.nodes.forEach(node => {
+            if (node.data.projectId) {
+                const [dataset] = datasets.filter(d => d.id === node.data.projectId);
+                if (dataset) {
+                    node.data.projectName = dataset.name;
+                }
+            }
+        });
+        return tree;
+    }
+
     navigateToReference(event, referenceId) {
         if (!referenceId || !this.projectContext || !this.projectContext.references || !this.projectContext.references.length) {
             return;
@@ -137,4 +150,15 @@ export default class ngbStrainLineageController extends baseController {
             this.projectContext.changeState(payload);
         }
     }
+
+    navigateToDataset(event, projectId) {
+        if (!projectId || !this.projectContext || !this.projectContext.datasets || !this.projectContext.datasets.length) {
+            return;
+        }
+        const payload = this.ngbStrainLineageService.getOpenDatasetPayload(this.projectContext.datasets, projectId);
+        if (payload) {
+            this.projectContext.changeState(payload);
+        }
+    }
+
 }
