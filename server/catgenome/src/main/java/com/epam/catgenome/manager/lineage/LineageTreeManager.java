@@ -174,10 +174,13 @@ public class LineageTreeManager {
         if (value == null) {
             return null;
         }
+        Project project;
         try {
-            return Long.valueOf(value);
+            final long projectId = Long.parseLong(value);
+            project = projectDao.loadProject(projectId);
+            return project == null ? null : project.getId();
         } catch (NumberFormatException e) {
-            final Project project = projectDao.loadProject(value);
+            project = projectDao.loadProject(value);
             return project == null ? null : project.getId();
         }
     }
