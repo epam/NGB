@@ -47,17 +47,17 @@ http://...?screenshot=${screenshotVisibility}&toolbar=${toolbarVisibility}&layou
 * `collapsedTrackHeaders` - (optional) sets tracks headers to be collapsed
 * `embedded` - (optional) sets **embedded** mode - all panel controls (close button, maximize button etc.) will be hidden. Accepted values: `On`, `Off`
 * `controls` - (optional, ignored if `embedded` mode is set) sets panel controls visibility. `controlsVisibilityConfiguration` should be a valid JSON string; possible keys:
-    * `close`: panel's close buttons. Accepted values: `On`, `Off`
-    * `maximize`: panel's maximize buttons. Accepted values: `On`, `Off`
-    * `fit`: fit all tracks button. Accepted values: `On`, `Off`
-    * `organize`: organize tracks button. Accepted values: `On`, `Off`
-    * `annotations`: genome annotation files button. Accepted values: `On`, `Off`
-    * `project`: project info button. Accepted values: `On`, `Off`
-    * `selection`: tracks selection button. Accepted values: `On`, `Off`
-    * `clear`: close all tracks button. Accepted values: `On`, `Off`
-    * `vcfcolumns` (lowercased!): specify VCF columns to display button. Accepted values: `On`, `Off`
-    * `vcfdownload` (lowercased!): download variants table button. Accepted values: `On`, `Off`
-    * `genesdownload` (lowercased!): download genes table button. Accepted values: `On`, `Off`
+    * `close`: panel's **Close** buttons. Accepted values: `On`, `Off`
+    * `maximize`: panel's **Maximize** buttons. Accepted values: `On`, `Off`
+    * `fit`: **Fit all tracks** button. Accepted values: `On`, `Off`
+    * `organize`: **Organize tracks** button. Accepted values: `On`, `Off`
+    * `annotations`: **Select genome annotation files** button. Accepted values: `On`, `Off`
+    * `project`: **Project info** button. Accepted values: `On`, `Off`
+    * `selection`: **Tracks selection** button. Accepted values: `On`, `Off`
+    * `clear`: **Close all tracks** button. Accepted values: `On`, `Off`
+    * `vcfcolumns` (lowercased!): **Specify VCF columns to display** button. Accepted values: `On`, `Off`
+    * `vcfdownload` (lowercased!): **Download variants table** button. Accepted values: `On`, `Off`
+    * `genesdownload` (lowercased!): **Download genes table** button. Accepted values: `On`, `Off`
 
 ## Examples
 

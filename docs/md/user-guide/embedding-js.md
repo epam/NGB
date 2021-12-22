@@ -338,6 +338,7 @@ The object to be passed to NGB window:
 Set **embedded** mode (all panels controls like *close*, *maximize*, *fit all tracks* buttons will be hidden)
 
 The object to be passed to NGB window:
+
 ```javascript
 {
     //some unique identifier that will be in returned object
@@ -353,21 +354,24 @@ The object to be passed to NGB window:
 
 ### setControlsVisibility
 
-Specify panel's controls visibility. You can hide/show *close*, *maximize*, *fit all tracks* etc. buttons visibility using this method.
+Specify panel's controls visibility.  
+You can hide/show panels' buttons **Close**, **Maximize**, **Fit all tracks** etc.  
+To show the control - set the value of the corresponding key as `true`.  
+To hide the control - set the value of the corresponding key as `false`.
 
 Possible keys:
 
-* `close`: panel's close buttons;
-* `maximize`: panel's maximize buttons;
-* `fit`: fit all tracks button;
-* `organize`: organize tracks button;
-* `annotations`: genome annotation files button;
-* `project`: project info button;
-* `selection`: tracks selection button;
-* `clear`: close all tracks button;
-* `vcfcolumns` (lowercased!): specify VCF columns to display button;
-* `vcfdownload` (lowercased!): download variants table button;
-* `genesdownload` (lowercased!): download genes table button.
+* `close`: panel's **Close** buttons
+* `maximize`: panel's **Maximize** buttons
+* `fit`: **Fit all tracks** button
+* `organize`: **Organize tracks** button
+* `annotations`: **Select genome annotation files** button
+* `project`: **Project info** button
+* `selection`: **Tracks selection** button
+* `clear`: **Close all tracks** button
+* `vcfcolumns` (lowercased!): **Specify VCF columns to display** button
+* `vcfdownload` (lowercased!): **Download variants table** button
+* `genesdownload` (lowercased!): **Download genes table** button
 
 The object to be passed to NGB window:
 
