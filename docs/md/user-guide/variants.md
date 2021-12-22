@@ -6,7 +6,12 @@
 - [Highlight variants of interest](#highlight-variants-of-interest)
 
 **Variants** panel is used to show the list of variants loaded from the project's VCF files in a tabular view.  
-  ![NGB GUI](images/overview-18.png)
+  ![NGB GUI](images/variants-1.png)
+
+In case when [multi-strain](tracks-vcf.md#multi-strains-vcf) (multi-sample) VCF file is opened, an additional column "**Samples**" appears in the **Variants** table.  
+This column contains the list of samples ID (names) in which the specific variation is presented, e.g.:  
+  ![NGB GUI](images/variants-2.png)  
+**_Note_**: for the variants from the single-sample VCF files, this column is empty.
 
 To navigate to a variant, click the variant's row in the table. This variant will be opened in the "**Browser**" panel, at the corressponding VCF track.
 
@@ -16,48 +21,48 @@ When you click a variation at the VCF track, a popup with the results of a DNA r
 There are two types of visualization:
 
 - **SNP and small indels** - shows variations on an exons-introns structure, aminoacids on REF/ALT sequences  
-  ![NGB GUI](images/annotations-1.png)
+  ![NGB GUI](images/variants-3.png)
 - **Structural variations** -  shows large chromosome rearangements. A specific visualization is used for each SV type:
     - **INV**  
-    ![NGB GUI](images/annotations-2.png)
+    ![NGB GUI](images/variants-4.png)
     - **BND**  
-    ![NGB GUI](images/annotations-3.png)
+    ![NGB GUI](images/variants-5.png)
     - **DEL**  
-    ![NGB GUI](images/annotations-4.png)
+    ![NGB GUI](images/variants-6.png)
     - **DUP**  
-    ![NGB GUI](images/annotations-5.png)
+    ![NGB GUI](images/variants-7.png)
 
 If `UNIPROT` contains information on protein domains for a gene involved in a variation, these will be visualized as colors on genes.  
 By default, breakpoints of an SV would be highlighted with a red line, indicating the places where the genes fused. To toggle this functionality, (un)tick the Highlight breakpoints checkbox on the **VISUALIZER** tab.  
-  ![NGB GUI](images/annotations-6.png)
+  ![NGB GUI](images/variants-8.png)
 
 ## Filters for variants panel
 
 **Filters** are used to filter variants displayed in the **Variants** panel. You can use one or more parameters to filter variants.  
 To open them - click the _hamburger_ icon and select the "**Show filters**" item in the list:  
-  ![NGB GUI](images/overview-5.png)
+  ![NGB GUI](images/variants-9.png)
 
 Filter fields will appear under the column headers:  
-  ![NGB GUI](images/overview-13.png)
+  ![NGB GUI](images/variants-10.png)
 
 Changing one or more filtering parameters triggers the refreshing of the **Variants** panel:  
-  ![NGB GUI](images/overview-14.png)  
-  ![NGB GUI](images/overview-15.png)
+  ![NGB GUI](images/variants-11.png)  
+  ![NGB GUI](images/variants-12.png)
 
 To reset the filter(s):
 
 - for the certain column, click the arrow icon at the column header and select the "**Clear column filter**" item (see **1** at the picture below)
 - for all columns simultaneously, click the _trash bin_ icon in the **Variants** panel header (see **2** at the picture below)  
-  ![NGB GUI](images/overview-16.png)
+  ![NGB GUI](images/variants-13.png)
 
 To hide the filters row - click the _hamburger_ icon in the **Variants** panel header and unset the "**Show filters**" item.
 
 ## Download the variants table data
 
 To download the data displayed in the **Variants** table - click the _download_ icon in the panel header:  
-  ![NGB GUI](images/overview-28.png)  
+  ![NGB GUI](images/variants-14.png)  
 The pop-up will appear:  
-  ![NGB GUI](images/overview-29.png)
+  ![NGB GUI](images/variants-15.png)
 
 Here:
 
@@ -65,10 +70,10 @@ Here:
 - set the checkbox if the the header should be included to the downloading file (_header is not included by default_)
 
 Once the setup is finished, click the **Download** button. Table will be downloaded automatically:  
-  ![NGB GUI](images/overview-30.png)
+  ![NGB GUI](images/variants-16.png)
 
 The downloaded table will contain only the same data that was displayed in the **Variants** table before the download (considering all filters and sortings):  
-  ![NGB GUI](images/overview-31.png)
+  ![NGB GUI](images/variants-17.png)
 
 ## Highlight variants of interest
 
@@ -156,27 +161,30 @@ By default, the variants highlighting is disabled.
 To enable it and select the certain conditions profile:
 
 1. Click the _gear_ icon in the main menu to open the **Settings**:  
-  ![NGB GUI](images/overview-19.png)
+  ![NGB GUI](images/variants-18.png)
 2. The settings pop-up will be opened. Select the **VCF** tab:  
-  ![NGB GUI](images/overview-20.png)
+  ![NGB GUI](images/variants-19.png)
 3. At the **VCF** tab, enable the variants highlighting feature. For that - set the corresponding checkbox:  
-  ![NGB GUI](images/overview-21.png)
+  ![NGB GUI](images/variants-20.png)
 4. If the checkbox is enabled - the list with condition profiles will appear:  
-  ![NGB GUI](images/overview-22.png)
+  ![NGB GUI](images/variants-21.png)
 5. Select the desired profile from the list. _In our example, we will use the profile described above - "Example conditions"_:  
-  ![NGB GUI](images/overview-23.png)  
+  ![NGB GUI](images/variants-22.png)  
   Click the **SAVE** button to confirm changes.
 6. Once the profile is selected, the variants satisfied to the profile conditions will be highlighted in the condition colors:  
-  ![NGB GUI](images/overview-24.png)  
+  ![NGB GUI](images/variants-23.png)  
   **_Note_**: rows not satisfied the conditions will remain the same (without additional highlighting)
 7. If open any of the highlighted variants - it will be highlighted at the VCF-track as well:  
-  ![NGB GUI](images/overview-25.png)
+  ![NGB GUI](images/variants-24.png)
 8. For the collapsed VCF-tracks, when several variants are merged into a "bubble" and among them there are some variants of interest from different condition sets - such "bubble" is being highlighted in all corresponding colors (like pie chart diagram), e.g.:  
-  ![NGB GUI](images/overview-26.png)
+  ![NGB GUI](images/variants-25.png)
 
 > **_Notes_**:
 >
 > - Conditions profile doesn't consider the dataset (will be automatically applied to any dataset with VCF files).
 > - If the same variant matches different condition sets from the profile, it should be highlighted only in a color of the first condition set in the list
+> - The feature is applied to multi-sample VCF as well, e.g.:  
+> ![NGB GUI](images/variants-26.png)  
+> ![NGB GUI](images/variants-27.png)
 
 To disable the highlighting feature - disable the checkbox in the settings.
