@@ -6,6 +6,7 @@
     - [Using click-to-zoom](#using-click-to-zoom)
     - [Using scrolling on a track](#using-scrolling-on-a-track)
     - [Using unified coordinates and search control](#using-unified-coordinates-and-search-control)
+        - [Split view](#split-view)
     - [Viewing features info](#viewing-features-info)
 - [Tracks selection](#tracks-selection)
 - [Tracks renaming](#tracks-renaming)
@@ -51,16 +52,50 @@ When viewing a track, you can also use **Shift + mouse wheel scroll** to zoom in
   ![NGB GUI](images/tracks-5.png)  
   ![NGB GUI](images/tracks-6.png)
 
-To navigate to a region of interest, the following steps should be performed:
+To navigate to a region of interest, one of the following steps should be performed:
 
 - Select a chromosome from the chromosome selector dropdown to open the whole chromosome scale in the Browser panel:  
   ![NGB GUI](images/tracks-7.png)
-- Type a chromosome's name and position of interest on a coordinates and search input control and press Enter on your keyboard to open a particular position. Supported formats of inputs are:
-    - "Chromosome name" : "start" - "end", e.g 2: 29223634 - 29225485
-    - "Chromosome name" : "position", e.g. X: 48054699  
-      ![NGB GUI](images/tracks-8.png)
-- Type a gene, transcript, feature or bookmarks name on a coordinates and search input control. Search results will be displayed at the list. To navigate to the region of a particular feature, click on a corresponding search result item:  
+- Type a chromosome's name and position of interest in a coordinates and search input control and press Enter on your keyboard to open a particular position. Supported formats of inputs are:
+    - `COORDINATE` e.g. "_29225485_" - the location will be opened on the current chromosome and have the specified coordinate as central position
+    - `START-END` e.g. "_29223634-29225485_" - the location will be opened on the current chromosome and have the specified coordinates as location boundaries
+    - `CHROMOSOME:COORDINATE` e.g. "_1:29223634_" - the location will be opened on the specified chromosome and have the specified coordinate as central position
+    - `CHROMOSOME:START-END` e.g. "_3:29223634-29225485_" - the location will be opened on the specified chromosome and have the specified coordinates as location boundaries  
+    ![NGB GUI](images/tracks-8.png)
+- Type a gene, transcript, feature or bookmarks name in a coordinates and search input control. Search results will be displayed at the list. To navigate to the region of a particular feature, click a corresponding search result item or press Enter key to navigate to the first item from the search results list:  
   ![NGB GUI](images/tracks-9.png)
+
+#### Split view
+
+Users can also split browser for any location of interest - via the unified coordinates and search control.
+
+For that, specify two sets of coordinates (separated by space) to the unified coordinates and search control, and confirm the input by press the Enter key.  
+After that, the **Browser** pane will be splitted to two panes:
+
+- in the main (left) pane, the first specified location will be displayed
+- in the second (right) pane, the second location will be displayed
+
+Example:
+
+- specify two sets of coordinates to the unified coordinates and search control, e.g.:  
+  ![NGB GUI](images/tracks-43.png)
+- press Enter key, the **Browser** pane will be splitted according to specified locations:  
+  ![NGB GUI](images/tracks-44.png)
+
+Locations should be separated by any count of spaces.  
+Only two locations can be specified simultaneously. User doesn't have the ability to split an additional browser pane or navigate to other location in the additional browser pane using its unified coordinates and search control.
+
+The following formats for each location are supported:
+
+- `COORDINATE` e.g. "_29225485_" - the location will be opened on the current chromosome and have the specified coordinate as central position
+- `START-END` e.g. "_29223634-29225485_" - the location will be opened on the current chromosome and have the specified coordinates as location boundaries
+- `CHROMOSOME:COORDINATE` e.g. "_1:29223634_" - the location will be opened on the specified chromosome and have the specified coordinate as central position
+- `CHROMOSOME:START-END` e.g. "_3:29223634-29225485_" - the location will be opened on the specified chromosome and have the specified coordinates as location boundaries  
+- `FEATURE` e.g. "_kras_" - a gene, transcript, feature name. Will be opened the first location from search results list for the specified feature
+
+Example of the splitting for the locations set "_brca1 4:151600-151720_":  
+  ![NGB GUI](images/tracks-46.png)  
+  ![NGB GUI](images/tracks-45.png)
 
 ### Viewing features info
 
