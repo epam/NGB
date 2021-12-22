@@ -36,7 +36,8 @@ Each node of the lineage tree has the following attributes:
 
 - **_name_** - strain name that will be displayed on the lineage
 - **_description_** - text description of the strain
-- **_reference ID_** (_optional_) - NGB ID of the reference that corresponds to the strain
+- **_reference_** (_optional_) - NGB ID/name of the reference that corresponds to the strain
+- **_dataset_** (_optional_) - NGB ID/name of the dataset that corresponds to the strain
 - **_sequencing date_** - date of the strain creation
 - **_metadata_** (_optional_) - a set of key-value metadata attached to the strain
 
@@ -47,10 +48,18 @@ To view full node's info, including **_description_** and **_metadata_**, you sh
   ![NGB GUI](images/lineage-06.png)  
   Node's info block will appear in the right upper corner of the panel.
 
-If a node is associated with a reference ID, node's name is displayed as a hyperlink.  
-You can click it to navigate to the corresponding reference track (at the same time, the lineage panel remains opened).  
-If a node is not associated with a reference ID, its name is displayed as plain text, e.g.:  
+If a node is not associated with any reference or dataset, its name is displayed as plain text:  
+  ![NGB GUI](images/lineage-13.png)
+
+If a node is associated with a **_reference_** or a **_dataset_**, node's name is displayed as a hyperlink.  
+You can click it to navigate to the reference track or to open the dataset correspondingly (at the same time, the lineage panel remains opened):  
   ![NGB GUI](images/lineage-07.png)
+
+If a node is associated simultaneously with a **_reference_** and a **_dataset_**, two hyperlinks will be displayed in the node:
+
+- top hyperlink with _node's name_ that will navigate to the reference track
+- bottom hyperlink with _dataset's name_ that will open the corresponding dataset  
+  ![NGB GUI](images/lineage-14.png)
 
 ### Edge
 
@@ -98,7 +107,8 @@ The nodes file contains the following columns:
 
 - _name_ - unique name of the node
 - _description_ - node description
-- _reference\_id_ - NGB reference ID (_optional_)
+- _reference\_id_ - NGB reference ID/name (_optional_)
+- _dataset_ - NGB dataset ID/name (_optional_)
 - _creation\_date_ - creation date
 - _attributes_ - list of the node metadata (_optional_)
 
@@ -116,11 +126,11 @@ can be described by:
 - the following node file, e.g.:
 
 ```
-name        description       reference_id  creation_date   attributes
-Wild_type   description_wild  -             1998-05-11      key1=value1,key2=value2
-Strain-01   description_1     1             1999-12-01      key1=value1
-Strain-02   description_2     -             2001-06-10      key2=value2
-Strain-03   description_3     22            2001-08-29      -
+name        description       reference_id  dataset  creation_date   attributes
+Wild_type   description_wild  -             -        1998-05-11      key1=value1,key2=value2
+Strain-01   description_1     -             12       1999-12-01      key1=value1
+Strain-02   description_2     -             -        2001-06-10      key2=value2
+Strain-03   description_3     22            -        2001-08-29      -
 ```
 
 - the following edge file, e.g.:

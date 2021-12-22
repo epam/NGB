@@ -20,3 +20,88 @@ You can see the details of a variation as follows:
     ![NGB GUI](images/tracks-vcf-5.png)
     - **Show pair in split screen** - click here to show the second breakpoint in split view. _This option is only available if you clicked on a structural variation and its second breakpoint is not on the screen (e.g. long inversions or BNDs on other chromosome)._  
     ![NGB GUI](images/tracks-vcf-6.png)
+
+## Multi-strains VCF
+
+NGB supports multi-strain (multi-sample) VCF files.  
+Multi-sample VCF file is a regular VCF file with variants info in several samples.
+
+The main difference from a single-sample VCF file: genotype data for samples is presented as separate columns after a `FORMAT` column - one column per sample (strain).  
+Format defined in the `FORMAT` column is applied to the information in each sample column.
+
+Multi-sample VCF file is displayed in the **Datasets** panel like regular VCF file.  
+But the displaying in the **Browser** panel differs a little.
+
+Displaying details can be configured via the **Variants view** menu.  
+Possible views:
+
+### Collapsed
+
+In this regimen, samples are being displaying similar to the reads at [alignment tracks](tracks-bam.md#viewing-bam-alignments). Each sample line includes variants that are related to the corresponding sample:
+
+- each sample is shown as a gray line for a whole reference width - ![NGB GUI](images/tracks-vcf-7.png)
+- `SNV` variant is shown as a separate color rectangle(s) with the corresponding alternative nucleotide letter(s) - ![NGB GUI](images/tracks-vcf-8.png)
+- `INS` variant is shown as a perpendicular violet line in the insertion position - ![NGB GUI](images/tracks-vcf-9.png)
+- `DEL` variant is shown as a black line linked two "separate" parts of the "sample" - for the width of the deletion - ![NGB GUI](images/tracks-vcf-10.png)
+- `BND` or other complex variant is shown as a perpendicular black line in the variant position with the corresponding variant info - ![NGB GUI](images/tracks-vcf-11.png)
+
+Each sample line is marked by the name of the corresponding sample.  
+Example of the _collapsed_ view:  
+    ![NGB GUI](images/tracks-vcf-12.png)
+
+On the large scale, if the variations are located at the same pixel, they are also shown as bubbles:  
+    ![NGB GUI](images/tracks-vcf-13.png)
+
+### Expanded
+
+In this regimen, each sample is being displayed similar to the regular single sample VCF-track, but
+all variants are being located in one line (without vertical distribution).  
+Each sample line is marked by the name of the corresponding sample as well.  
+Example of the _expanded_ view:  
+    ![NGB GUI](images/tracks-vcf-14.png)
+
+On the large scale, if the variations are located at the same pixel, they are also shown as bubbles:  
+    ![NGB GUI](images/tracks-vcf-15.png)
+
+### Merge samples
+
+This regimen can be enabled only with the _collapsed_ view simultaneously and on the large scales.  
+In this regimen, all samples (strains) are being "merged" in one line:
+
+- only summary count of samples is being displayed
+- each variation displayed at the track represents the "merged" variations in that position
+- details by the separate variations are available in the notes above the variation
+
+Example of the _merge samples_ view:  
+    ![NGB GUI](images/tracks-vcf-16.png)
+
+Details of the separate variation:  
+    ![NGB GUI](images/tracks-vcf-17.png)
+
+### Show density
+
+In this regimen, the histogram above the variants block is shown.  
+That histogram displays summary count of variants in each position over all samples of the track.  
+The histogram has the auto-scale according to shown values.
+
+Example of the enabled _Show density_ view:  
+    ![NGB GUI](images/tracks-vcf-18.png)
+
+When hovering any bar at the histogram - the corresponding tooltip appears, that includes:
+
+- summary count of variants in that position
+- count of each variant type in this position  
+    ![NGB GUI](images/tracks-vcf-19.png)
+
+In case of `SNV` variants, histogram bar is being highlighted in different colors - proportionally to sums of different nucleotides matches in this position among all variations count, e.g.:  
+    ![NGB GUI](images/tracks-vcf-20.png)  
+    ![NGB GUI](images/tracks-vcf-21.png)
+
+### Additional details
+
+You can see the details of a specific sample variation similar to single-sample VCF track:
+
+- when you hover over a variation, a tooltip with the basic information appears:  
+    ![NGB GUI](images/tracks-vcf-22.png)
+- When you click a variation, menu appears that contains the **Show Info** option - click it to display a pop-up with detailed information and a visualization of the variation's results (refer to [**Working with Annotations**](variants.md#viewing-variation-annotation) for the details):  
+    ![NGB GUI](images/tracks-vcf-23.png)
