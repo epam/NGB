@@ -1,6 +1,6 @@
 name	description	referenceId	dataset	creation_date	attributes
 strain-01	description1	1	dataset	2020-11-10	key1=value1,key2=value2
-strain-02	description2	2	1	2020-11-11	key1=value1,key2=value2
+strain-02	description2	2	999	2020-11-11	key1=value1,key2=value2
 strain-03	description3	3	.	2020-11-12	key1=value1,key2=value2
 strain-04	description4	4	.	2020-11-10	key1=value1,key2=value2
 strain-05	description5	5	.	2020-11-10	key1=value1,key2=value2

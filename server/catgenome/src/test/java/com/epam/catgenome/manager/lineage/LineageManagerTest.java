@@ -30,6 +30,7 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.manager.project.ProjectManager;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -49,6 +53,10 @@ public class LineageManagerTest extends TestCase {
     private static final int FULL_TREE_EDGES_NUM = 10;
     private static final int REFERENCE_ID = 5;
     private static final int ATTRIBUTES_MAP_SIZE = 2;
+    private static final String NODES = "name\tdescription\treferenceId\tdataset\tcreation_date\tattributes\n" +
+            "strain-01\t.\t1\t%s\t2020-11-10\t.\n";
+    private static final String EDGES = "from\tto\tattributes\ttype_of_interaction\n";
+    private Project project;
 
     @Autowired
     private LineageTreeManager lineageTreeManager;
@@ -66,21 +74,43 @@ public class LineageManagerTest extends TestCase {
     public void setUp() throws IOException {
         this.nodesFileName = context.getResource("classpath:lineage//nodes.txt").getFile().getPath();
         this.edgesFileName = context.getResource("classpath:lineage//edges.txt").getFile().getPath();
+        project = createProject();
+    }
+
+    @After
+    public void teardown() throws IOException {
+        projectManager.deleteProject(project.getId(), true);
     }
 
     @Test
     public void createLineageTreeTest() throws IOException {
-        final LineageTree lineageTree = registerLineageTree("createLineageTreeTest");
+        final LineageTree lineageTree = registerLineageTree("createLineageTreeTest", nodesFileName, edgesFileName);
         assertNotNull(lineageTree);
         assertEquals("createLineageTreeTest", lineageTree.getName());
         assertEquals("lineageTree", lineageTree.getPrettyName());
         assertEquals(BiologicalDataItemResourceType.FILE, lineageTree.getType());
+        lineageTreeManager.deleteLineageTree(lineageTree.getLineageTreeId());
+    }
+
+    @Test
+    public void createLineageTreeDatasetIdTest() throws IOException {
+        final File nodesTmpFile = File.createTempFile("testNodes", "txt");
+        final File edgesTmpFile = File.createTempFile("testEdges", "txt");
+        Files.write(nodesTmpFile.toPath(), String.format(NODES, project.getId()).getBytes(StandardCharsets.UTF_8));
+        Files.write(edgesTmpFile.toPath(), EDGES.getBytes(StandardCharsets.UTF_8));
+        final LineageTree lineageTree = registerLineageTree("createLineageTreeDatasetIdTest",
+                nodesTmpFile.toString(),
+                edgesTmpFile.toString());
+        nodesTmpFile.delete();
+        edgesTmpFile.delete();
+        assertNotNull(lineageTree);
+        assertEquals(project.getId(), lineageTree.getNodes().get(0).getProjectId());
+        lineageTreeManager.deleteLineageTree(lineageTree.getLineageTreeId());
     }
 
     @Test
     public void loadLineageTree() throws IOException {
-        final Project project = createProject();
-        final LineageTree lineageTree = registerLineageTree("loadLineageTree");
+        final LineageTree lineageTree = registerLineageTree("loadLineageTree", nodesFileName, edgesFileName);
         assertNotNull(lineageTree);
         assertNotNull(lineageTree.getNodes());
         assertEquals(FULL_TREE_NODES_NUM, lineageTree.getNodes().size());
@@ -92,24 +122,26 @@ public class LineageManagerTest extends TestCase {
                 lineageTree.getEdges().get(0).getNodeFromId());
         assertEquals(lineageTree.getLineageTreeId(), lineageTree.getEdges().get(0).getLineageTreeId());
         assertEquals(project.getId(), lineageTree.getNodes().get(0).getProjectId());
-        assertEquals(project.getId(), lineageTree.getNodes().get(1).getProjectId());
+        assertNull(lineageTree.getNodes().get(1).getProjectId());
         assertNull(lineageTree.getNodes().get(2).getProjectId());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getNodes().get(0).getAttributes().size());
         assertEquals(ATTRIBUTES_MAP_SIZE, lineageTree.getEdges().get(0).getAttributes().size());
         assertEquals("value1", lineageTree.getNodes().get(0).getAttributes().get("key1"));
         assertEquals("value1", lineageTree.getEdges().get(0).getAttributes().get("key1"));
+        lineageTreeManager.deleteLineageTree(lineageTree.getLineageTreeId());
     }
 
     @Test
     public void loadOneTreeByReferenceId() throws IOException {
-        registerLineageTree("loadLineageTrees");
+        final LineageTree lineageTree = registerLineageTree("loadLineageTrees", nodesFileName, edgesFileName);
         final List<LineageTree> lineageTrees = lineageTreeManager.loadLineageTrees(REFERENCE_ID);
         assertFalse(lineageTrees.isEmpty());
+        lineageTreeManager.deleteLineageTree(lineageTree.getLineageTreeId());
     }
 
     @Test
     public void deleteLineageTreeTest() throws IOException {
-        final LineageTree lineageTree = registerLineageTree("deleteLineageTreeTest");
+        final LineageTree lineageTree = registerLineageTree("deleteLineageTreeTest", nodesFileName, edgesFileName);
         LineageTree createdLineageTree = lineageTreeManager.loadLineageTree(lineageTree.getLineageTreeId());
         lineageTreeManager.deleteLineageTree(createdLineageTree.getLineageTreeId());
         createdLineageTree = lineageTreeManager.loadLineageTree(lineageTree.getLineageTreeId());
@@ -117,7 +149,9 @@ public class LineageManagerTest extends TestCase {
     }
 
     @NotNull
-    private LineageTree registerLineageTree(final String name) throws IOException {
+    private LineageTree registerLineageTree(final String name,
+                                            final String nodesFileName,
+                                            final String edgesFileName) throws IOException {
         final LineageTreeRegistrationRequest request = new LineageTreeRegistrationRequest();
         request.setName(name);
         request.setPrettyName("lineageTree");
