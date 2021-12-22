@@ -10,6 +10,7 @@ export default class ngbStrainLineageService {
     allLineageTrees = [];
     currentReferenceId = null;
     _selectedTreeId = null;
+    _selectedElementId = null;
 
     constructor(genomeDataService, dispatcher) {
         this.dispatcher = dispatcher;
@@ -19,10 +20,8 @@ export default class ngbStrainLineageService {
         this._selectedTreeId = savedState.selectedTree ? savedState.selectedTree.id : null;
     }
 
-    initEvents() {
-        // this.dispatcher.on('reference:show:lineage', data => {
-        //     this.currentReferenceId = data.referenceId;
-        // });
+    get selectedElementId() {
+        return this._selectedElementId;
     }
 
     get selectedTreeId() {
@@ -33,6 +32,16 @@ export default class ngbStrainLineageService {
         this._selectedTreeId = value;
         const [selectedTree] = this.getCurrentStrainLineageAsList();
         this.saveState({selectedTree: selectedTree});
+    }
+
+    set selectedElementId(value) {
+        this._selectedElementId = value;
+    }
+
+    initEvents() {
+        this.dispatcher.on('session:load:started', () => {
+            this.selectedElementId = null;
+        });
     }
 
     get localStorageKey() {

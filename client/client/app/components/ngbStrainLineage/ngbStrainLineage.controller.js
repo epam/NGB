@@ -101,6 +101,7 @@ export default class ngbStrainLineageController extends baseController {
     async onTreeSelect() {
         this.treeLoading = true;
         if (this.ngbStrainLineageService.selectedTreeId !== this.selectedTreeId) {
+            this.ngbStrainLineageService.selectedElementId = null;
             this.resetDataTooltip();
         }
         this.ngbStrainLineageService.selectedTreeId = this.selectedTreeId;
