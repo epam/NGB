@@ -87,6 +87,8 @@ This example demonstrates major capabilities of a JS API
 * [setGlobalSettings](#setglobalsettings)
 * [setTrackSettings](#settracksettings)
 * [setToken](#settoken)
+* [setEmbedded](#setembedded)
+* [setControlsVisibility](#setcontrolsvisibility)
 
 ### loadDataSet
 
@@ -325,6 +327,65 @@ The object to be passed to NGB window:
     //coordinates string
     params: {
         token: token
+    }
+}
+```
+
+## NGB panels controls visibility
+
+### setEmbedded
+
+Set **embedded** mode (all panels controls like *close*, *maximize*, *fit all tracks* buttons will be hidden)
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "setEmbedded",
+    //embedded mode
+    params: {
+        embedded: true
+    }
+}
+```
+
+### setControlsVisibility
+
+Specify panel's controls visibility.  
+You can hide/show panels' buttons **Close**, **Maximize**, **Fit all tracks** etc.  
+To show the control - set the value of the corresponding key as `true`.  
+To hide the control - set the value of the corresponding key as `false`.
+
+Possible keys:
+
+* `close`: panel's **Close** buttons
+* `maximize`: panel's **Maximize** buttons
+* `fit`: **Fit all tracks** button
+* `organize`: **Organize tracks** button
+* `annotations`: **Select genome annotation files** button
+* `project`: **Project info** button
+* `selection`: **Tracks selection** button
+* `clear`: **Close all tracks** button
+* `vcfcolumns` (lowercased!): **Specify VCF columns to display** button
+* `vcfdownload` (lowercased!): **Download variants table** button
+* `genesdownload` (lowercased!): **Download genes table** button
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "setControlsVisibility",
+    //controls visibility
+    params: {
+        close: false,
+        maximize: true,
+        fit: false
     }
 }
 ```
