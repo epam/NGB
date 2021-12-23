@@ -31,6 +31,7 @@ export default class ngbCytoscapeController {
         this.settings = cytoscapeSettings;
         this.dispatcher = dispatcher;
         this.$timeout = $timeout;
+        this.savedViewerState = {};
         this.actionsManager = {
             ready: false
         };
@@ -74,6 +75,7 @@ export default class ngbCytoscapeController {
             !!changes.elements.previousValue &&
             !!changes.elements.currentValue &&
             (changes.elements.previousValue.id !== changes.elements.currentValue.id)) {
+            this.savedViewerState = {};
             this.reloadCytoscape(true);
         }
     }
@@ -148,7 +150,11 @@ export default class ngbCytoscapeController {
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
+                    this.viewer.on('pan ', () => {
+                        this.savedViewerState.pan = this.viewer.pan();
+                    });
                     this.resizeCytoscape();
+                    this.loadSavedState(this.savedViewerState);
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
@@ -178,6 +184,7 @@ export default class ngbCytoscapeController {
                         const zoom = this.zoom() + this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
                         viewerContext.centerCytoscape();
+                        viewerContext.savedViewerState.zoom = viewerContext.viewer.zoom();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
@@ -185,6 +192,7 @@ export default class ngbCytoscapeController {
                         const zoom = this.zoom() - this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
                         viewerContext.centerCytoscape();
+                        viewerContext.savedViewerState.zoom = viewerContext.viewer.zoom();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
@@ -192,8 +200,8 @@ export default class ngbCytoscapeController {
                         viewerContext.viewer.layout(this.settings.defaultLayout).run();
                         viewerContext.saveLayout();
                     },
-                    canZoomIn: true,
-                    canZoomOut: true,
+                    canZoomIn: viewerContext.viewer.zoom() < viewerContext.viewer.maxZoom(),
+                    canZoomOut: viewerContext.viewer.zoom() > viewerContext.viewer.minZoom(),
                     ready: true
                 };
             });
@@ -219,6 +227,15 @@ export default class ngbCytoscapeController {
     centerCytoscape() {
         if (this.viewer) {
             this.viewer.center();
+        }
+    }
+
+    loadSavedState(savedViewerState) {
+        if (savedViewerState.zoom) {
+            this.viewer.zoom(savedViewerState.zoom);
+        }
+        if (savedViewerState.pan) {
+            this.viewer.pan(savedViewerState.pan);
         }
     }
 
