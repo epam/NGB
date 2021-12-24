@@ -144,7 +144,10 @@ export class MultiSampleVcfTransformer extends VcfTransformer {
         const hasStatistics = transformedData.some(o => o.hasStatistics);
         let collapsedSamplesInfo;
         if (hasStatistics) {
-            collapsedSamplesInfo = this.transformCollapsedData(allVariantsBySample, viewport);
+            collapsedSamplesInfo = this.transformCollapsedData(
+                allVariantsBySample.sort((a, b) => a.startIndex - b.startIndex),
+                viewport
+            );
         }
         return {
             collapsedSamplesInfo,

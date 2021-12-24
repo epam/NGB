@@ -1,5 +1,5 @@
 import * as vcfHighlightCondition from '../../../../../../dataServices/utils/vcf-highlight-condition-service';
-import {NumberFormatter, PixiTextSize, Sorting} from '../../../../utilities';
+import {linearDimensionsConflict, NumberFormatter, PixiTextSize, Sorting} from '../../../../utilities';
 import {GeneTransformer} from '../../../gene/internal';
 import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
 
@@ -50,6 +50,8 @@ export class VcfTransformer extends GeneTransformer {
         const labelStyle = this.config.statistics.label;
 
         data.forEach(variant => VcfAnalyzer.analyzeVariant(variant, this._chromosome.name));
+        const bubbleMarginBP = viewport.convert
+            .pixel2brushBP(this.config.statistics.bubble.margin)
         for (let i = 0; i < data.length; i++) {
             const variant = data[i];
             variant.variationsCount = variant.variationsCount || 1;
@@ -63,12 +65,14 @@ export class VcfTransformer extends GeneTransformer {
                 variants.push(Object.assign({isStatistics: false}, variant));
             } else {
                 if (previousItem) {
-                    if (variant.startIndex >= previousItem.endIndex &&
-
-                        variant.startIndex - viewport.convert
-                            .pixel2brushBP(this.config.statistics.bubble.margin) <=
-                        (previousItem.endIndex + previousItem.startIndex) / 2
-                        + viewport.convert.pixel2brushBP(previousItem.bubble.radius)) {
+                    const x1 = variant.startIndex - bubbleMarginBP;
+                    const x2 = variant.startIndex + bubbleMarginBP;
+                    const r = viewport.convert.pixel2brushBP(previousItem.bubble.radius);
+                    const bx1 = (previousItem.endIndex + previousItem.startIndex) / 2
+                        - r;
+                    const bx2 = (previousItem.endIndex + previousItem.startIndex) / 2
+                        + r;
+                    if (linearDimensionsConflict(x1, x2, bx1, bx2)) {
 
                         if (!previousItem.variants) {
                             previousItem.variants = [Object.assign({}, {
