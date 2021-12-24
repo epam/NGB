@@ -32,6 +32,18 @@
                 ]]>
             </value>
         </property>
+        <property name="updateBiologicalDataItemQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.biological_data_item SET
+                        name = :NAME,
+                        path = :PATH,
+                        source = :SOURCE,
+                        pretty_name = :PRETTY_NAME
+                    WHERE bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
         <property name="updateOwnerQuery">
             <value>
                 <![CDATA[

@@ -1,0 +1,2 @@
+from	to	attributes	type_of_interaction
+strain-01	strain-02	key1=value1,key2=value2	UV

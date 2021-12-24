@@ -41,25 +41,31 @@ import java.util.List;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 @Slf4j
-@Command(type = Command.Type.REQUEST, command = {"reg_lineage"})
-public class LineageTreeRegistrationHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"upd_lineage"})
+public class LineageTreeUpdateHandler extends AbstractHTTPCommandHandler {
 
     private LineageTreeRegistrationRequest registrationRequest;
+    /**
+     * ID of lineage tree to update
+     */
+    private Long lineageTreeId;
 
     /**
      * Verifies input arguments
-     * @param arguments command line arguments for 'reg_lineage' command
+     * @param arguments command line arguments for 'upd_lineage' command
      * @param options
      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 2) {
+        if (arguments.size() != 3) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 2, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 3, arguments.size()));
         }
+        lineageTreeId = loadItemId(arguments.get(0));
         registrationRequest = LineageTreeRegistrationRequest.builder()
-                .nodesPath(arguments.get(0))
-                .edgesPath(arguments.get(1))
+                .lineageTreeId(lineageTreeId)
+                .nodesPath(arguments.get(1))
+                .edgesPath(arguments.get(2))
                 .description(options.getDescription())
                 .build();
         registrationRequest.setName(options.getName());
@@ -76,8 +82,7 @@ public class LineageTreeRegistrationHandler extends AbstractHTTPCommandHandler {
             if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             }
-            log.info("Lineage tree was successfully registered. ID: " +
-                    responseResult.getPayload().getLineageTreeId() + ".");
+            log.info("Lineage tree was successfully updated. ID: " + lineageTreeId + ".");
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

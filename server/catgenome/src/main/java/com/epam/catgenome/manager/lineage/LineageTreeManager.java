@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.lineage;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.LineageTreeRegistrationRequest;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.lineage.LineageTreeDao;
 import com.epam.catgenome.dao.lineage.LineageTreeEdgeDao;
 import com.epam.catgenome.dao.lineage.LineageTreeNodeDao;
@@ -40,6 +41,7 @@ import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -78,23 +80,65 @@ public class LineageTreeManager {
     private final LineageTreeNodeDao lineageTreeNodeDao;
     private final LineageTreeEdgeDao lineageTreeEdgeDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
+    private final BiologicalDataItemDao biologicalDataItemDao;
     private final ProjectDao projectDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public LineageTree createLineageTree(final LineageTreeRegistrationRequest request) throws IOException {
+    public LineageTree saveLineageTree(final LineageTreeRegistrationRequest request) throws IOException {
         final String nodesPath = request.getNodesPath();
         final String edgesPath = request.getEdgesPath();
         getFile(nodesPath);
         getFile(edgesPath);
+        final Long lineageTreeId = request.getLineageTreeId();
+        LineageTree lineageTree;
+        if (lineageTreeId == null) {
+            lineageTree = LineageTree.builder()
+                    .nodesPath(nodesPath)
+                    .edgesPath(edgesPath)
+                    .description(request.getDescription())
+                    .build();
+            lineageTree.setName(getBioDataItemName(request.getName(), nodesPath));
+            lineageTree.setPrettyName(request.getPrettyName());
+            lineageTree.setType(BiologicalDataItemResourceType.FILE);
+            lineageTree.setFormat(BiologicalDataItemFormat.LINEAGE_TREE);
+            lineageTree.setCreatedDate(new Date());
+            lineageTree.setPath(nodesPath);
+            lineageTree.setSource(nodesPath);
+            biologicalDataItemManager.createBiologicalDataItem(lineageTree);
+            lineageTree.setBioDataItemId(lineageTree.getId());
+        } else {
+            lineageTree = getLineageTree(lineageTreeId);
+            if (!TextUtils.isBlank(request.getName())) {
+                lineageTree.setName(request.getName());
+            }
+            if (!TextUtils.isBlank(request.getPrettyName())) {
+                lineageTree.setPrettyName(request.getPrettyName());
+            }
+            if (!TextUtils.isBlank(request.getDescription())) {
+                lineageTree.setDescription(request.getDescription());
+            }
+            lineageTree.setPath(nodesPath);
+            lineageTree.setSource(nodesPath);
+            lineageTree.setNodesPath(nodesPath);
+            lineageTree.setEdgesPath(edgesPath);
+            biologicalDataItemDao.updateBiologicalDataItem(lineageTree, lineageTree.getBioDataItemId());
+            lineageTreeEdgeDao.deleteLineageTreeEdges(lineageTreeId);
+            lineageTreeNodeDao.deleteLineageTreeNodes(lineageTreeId);
+        }
+        lineageTreeDao.saveLineageTree(lineageTree);
+        return saveNodesAndEdges(lineageTree, nodesPath, edgesPath);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public LineageTree saveNodesAndEdges(final LineageTree lineageTree,
+                                          final String nodesPath,
+                                          final String edgesPath) throws IOException {
+        final long lineageTreeId = lineageTree.getLineageTreeId();
         final List<LineageTreeNode> nodes = readNodes(nodesPath);
         final List<LineageTreeEdge> edges = readEdges(edgesPath,
                 nodes.stream().map(LineageTreeNode::getName).collect(Collectors.toList()));
-        final LineageTree lineageTree = getLineageTree(request, nodesPath, edgesPath);
-        biologicalDataItemManager.createBiologicalDataItem(lineageTree);
-        lineageTree.setBioDataItemId(lineageTree.getId());
-        lineageTreeDao.saveLineageTree(lineageTree);
-        nodes.forEach(n -> n.setLineageTreeId(lineageTree.getLineageTreeId()));
-        edges.forEach(n -> n.setLineageTreeId(lineageTree.getLineageTreeId()));
+        nodes.forEach(n -> n.setLineageTreeId(lineageTreeId));
+        edges.forEach(n -> n.setLineageTreeId(lineageTreeId));
         lineageTreeNodeDao.save(nodes);
         lineageTreeEdgeDao.save(edges, getNodesMap(nodes));
         lineageTree.setNodes(nodes);
@@ -219,25 +263,6 @@ public class LineageTreeManager {
             }
         }
         return edges;
-    }
-
-    @NotNull
-    private LineageTree getLineageTree(final LineageTreeRegistrationRequest request,
-                                       final String nodesPath,
-                                       final String edgesPath) {
-        final LineageTree lineageTree = LineageTree.builder()
-                .nodesPath(nodesPath)
-                .edgesPath(edgesPath)
-                .description(request.getDescription())
-                .build();
-        lineageTree.setPath(nodesPath);
-        lineageTree.setName(getBioDataItemName(request.getName(), nodesPath));
-        lineageTree.setPrettyName(request.getPrettyName());
-        lineageTree.setType(BiologicalDataItemResourceType.FILE);
-        lineageTree.setFormat(BiologicalDataItemFormat.LINEAGE_TREE);
-        lineageTree.setCreatedDate(new Date());
-        lineageTree.setSource(nodesPath);
-        return lineageTree;
     }
 
     @NotNull
