@@ -255,6 +255,11 @@
         <type>POST</type>
         <url>/restapi/lineage/tree</url>
     </reg_lineage>
+    <upd_lineage>
+        <name>upd_lineage</name>
+        <type>POST</type>
+        <url>/restapi/lineage/tree</url>
+    </upd_lineage>
     <del_lineage>
         <name>del_lineage</name>
         <type>DELETE</type>

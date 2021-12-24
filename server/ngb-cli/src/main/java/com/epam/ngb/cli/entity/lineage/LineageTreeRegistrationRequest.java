@@ -33,6 +33,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class LineageTreeRegistrationRequest implements RequestPayload {
+    private Long lineageTreeId;
     private String name;
     private String prettyName;
     private String description;

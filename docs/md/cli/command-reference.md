@@ -857,6 +857,7 @@ ngb reg_lineage|rl [<NODES_PATH>] [<EDGES_PATH>] [options]
 //Options:
 //-n (--name)                   Lineage tree name
 //-pt (--pretty)                Lineage tree pretty name
+//-desc (--description)         Lineage tree description
 
 ```
 *Description*
@@ -869,6 +870,28 @@ Registers a lineage tree. Two arguments have to be specified:
 ```bash
 # Create new lineage tree with nodes path "nodes.txt", edges path "edges.txt"
 $ ngb reg_lineage "nodes.txt" "edges.txt"
+```
+
+### Update lineage tree
+```
+ngb upd_lineage|ul [<ID>] [<NODES_PATH>] [<EDGES_PATH>] [options]
+//Options:
+//-n (--name)                   Lineage tree name
+//-pt (--pretty)                Lineage tree pretty name
+//-desc (--description)         Lineage tree description
+
+```
+*Description*
+
+Updates a lineage tree. Three arguments have to be specified:
+* Lineage tree ID
+* Nodes file path
+* Edges file path
+
+*Example*
+```bash
+# Update lineage tree with id 2, new nodes path "nodes_new.txt", new edges path "edges_new.txt"
+$ ngb upd_lineage 2 "nodes_new.txt" "edges_new.txt"
 ```
 
 ### List lineage trees

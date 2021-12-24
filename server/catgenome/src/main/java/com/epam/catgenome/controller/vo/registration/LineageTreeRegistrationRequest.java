@@ -29,6 +29,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LineageTreeRegistrationRequest extends DefaultFileRegistrationRequest {
+    private Long lineageTreeId;
     private String name;
     private String description;
     private String nodesPath;

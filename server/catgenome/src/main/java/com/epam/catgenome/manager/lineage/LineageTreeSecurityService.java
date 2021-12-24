@@ -59,8 +59,8 @@ public class LineageTreeSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_LINEAGE_TREE_MANAGER)
-    public LineageTree createLineageTree(final LineageTreeRegistrationRequest request) throws IOException {
-        return lineageTreeManager.createLineageTree(request);
+    public LineageTree saveLineageTree(final LineageTreeRegistrationRequest request) throws IOException {
+        return lineageTreeManager.saveLineageTree(request);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_LINEAGE_TREE_MANAGER)

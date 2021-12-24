@@ -52,11 +52,12 @@ import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -74,9 +75,12 @@ import org.springframework.util.Assert;
  * A DAO class, managing BiologicalDataItem entities and containing common logic for it's ancestors retrieval
  * </p>
  */
+@Getter
+@Setter
 public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String biologicalDataItemSequenceName;
     private String insertBiologicalDataItemQuery;
+    private String updateBiologicalDataItemQuery;
     private String updateOwnerQuery;
     private String loadBiologicalDataItemsByIdsQuery;
     private String deleteBiologicalDataItemQuery;
@@ -165,6 +169,22 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.OWNER.name(), newOwner);
 
         getNamedParameterJdbcTemplate().update(updateOwnerQuery, params);
+    }
+
+    /**
+     * Update BiologicalDataItem
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateBiologicalDataItem(final BiologicalDataItem item, final long id) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+
+        params.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), id);
+        params.addValue(BiologicalDataItemParameters.NAME.name(), item.getName());
+        params.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
+        params.addValue(BiologicalDataItemParameters.SOURCE.name(), item.getSource());
+        params.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
+
+        getNamedParameterJdbcTemplate().update(updateBiologicalDataItemQuery, params);
     }
 
     /**
@@ -592,51 +612,5 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return params;
         }
 
-    }
-    @Required
-    public void setInsertBiologicalDataItemQuery(String insertBiologicalDataItemQuery) {
-        this.insertBiologicalDataItemQuery = insertBiologicalDataItemQuery;
-    }
-
-    @Required
-    public void setLoadBiologicalDataItemsByIdsQuery(String loadBiologicalDataItemsByIdsQuery) {
-        this.loadBiologicalDataItemsByIdsQuery = loadBiologicalDataItemsByIdsQuery;
-    }
-
-    @Required
-    public void setBiologicalDataItemSequenceName(String biologicalDataItemSequenceName) {
-        this.biologicalDataItemSequenceName = biologicalDataItemSequenceName;
-    }
-
-    @Required
-    public void setDeleteBiologicalDataItemQuery(String deleteBiologicalDataItemQuery) {
-        this.deleteBiologicalDataItemQuery = deleteBiologicalDataItemQuery;
-    }
-
-    @Required
-    public void setLoadBiologicalDataItemsByNameStrictQuery(
-            String loadBiologicalDataItemsByNameStrictQuery) {
-        this.loadBiologicalDataItemsByNameStrictQuery = loadBiologicalDataItemsByNameStrictQuery;
-    }
-
-    @Required
-    public void setLoadBiologicalDataItemsByNameQuery(String loadBiologicalDataItemsByNameQuery) {
-        this.loadBiologicalDataItemsByNameQuery = loadBiologicalDataItemsByNameQuery;
-    }
-
-    @Required
-    public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
-        this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
-    }
-
-    @Required
-    public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
-            String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
-        this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
-    }
-
-    @Required
-    public void setUpdateOwnerQuery(String updateOwnerQuery) {
-        this.updateOwnerQuery = updateOwnerQuery;
     }
 }

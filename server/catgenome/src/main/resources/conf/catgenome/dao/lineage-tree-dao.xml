@@ -23,6 +23,18 @@
                 ]]>
             </value>
         </property>
+        <property name="updateLineageTreeQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.lineage_tree SET
+                        nodes_path = :NODES_PATH,
+                        edges_path = :EDGES_PATH,
+                        description = :DESCRIPTION
+                    WHERE
+                        lineage_tree_id = :LINEAGE_TREE_ID
+                ]]>
+            </value>
+        </property>
         <property name="deleteLineageTreeQuery">
             <value>
                 <![CDATA[

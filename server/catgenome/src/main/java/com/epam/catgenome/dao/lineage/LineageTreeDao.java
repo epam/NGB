@@ -54,6 +54,7 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
     private DaoHelper daoHelper;
     private String lineageTreeSequenceName;
     private String insertLineageTreeQuery;
+    private String updateLineageTreeQuery;
     private String deleteLineageTreeQuery;
     private String loadLineageTreeQuery;
     private String loadLineageTreesQuery;
@@ -65,9 +66,14 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveLineageTree(final LineageTree lineageTree) {
-        lineageTree.setLineageTreeId(daoHelper.createId(lineageTreeSequenceName));
-        final MapSqlParameterSource params = LineageTreeParameters.getParameters(lineageTree);
-        getNamedParameterJdbcTemplate().update(insertLineageTreeQuery, params);
+        if (lineageTree.getLineageTreeId() == null) {
+            lineageTree.setLineageTreeId(daoHelper.createId(lineageTreeSequenceName));
+            getNamedParameterJdbcTemplate().update(insertLineageTreeQuery,
+                    LineageTreeParameters.getParameters(lineageTree));
+        } else {
+            getNamedParameterJdbcTemplate().update(updateLineageTreeQuery,
+                    LineageTreeParameters.getParameters(lineageTree));
+        }
     }
 
     /**

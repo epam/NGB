@@ -100,9 +100,9 @@ public class LineageTreeController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<LineageTree> createLineageTree(@RequestBody final LineageTreeRegistrationRequest request)
+    public Result<LineageTree> saveLineageTree(@RequestBody final LineageTreeRegistrationRequest request)
             throws IOException {
-        return Result.success(lineageTreeSecurityService.createLineageTree(request));
+        return Result.success(lineageTreeSecurityService.saveLineageTree(request));
     }
 
     @DeleteMapping(value = "/lineage/tree/{lineageTreeId}")
