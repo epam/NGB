@@ -1,4 +1,6 @@
 $toolbar-button-margin: 0;
+$search-input-background-color: rgb(250, 250, 250);
+$search-input-text-color: rgb(33, 33, 33);
 
 ngb-cytoscape-toolbar-panel {
   display: block;
@@ -29,5 +31,41 @@ ngb-cytoscape-toolbar-panel {
 
   .restore {
     margin-top: 20px;
+  }
+
+}
+.ngb-cytoscape-find-node {
+  position: absolute;
+  //left: -80px;
+  //top: 5px;
+  width: 200px;
+  background: #fff;
+  z-index: 10;
+  padding: 0;
+  .input-container {
+    display: inline-block;
+    margin: 0;
+    padding: 0 0 0 10px;
+    position: relative;
+    height: 36px;
+    border: 0;
+    color: $search-input-text-color;
+    font-style: italic;
+    background-color: $search-input-background-color;
+    transition: transform 1s;
+    z-index: 10;
+
+    &:focus {
+      outline: none;
+    }
+
+    .md-input {
+      height: 100%;
+    }
+
+    .md-errors-spacer {
+      min-height: 0;
+      height: 0;
+    }
   }
 }

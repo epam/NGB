@@ -150,7 +150,7 @@ export default class ngbCytoscapeController {
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
-                    this.viewer.on('pan ', () => {
+                    this.viewer.on('pan', () => {
                         this.savedViewerState.pan = this.viewer.pan();
                     });
                     this.resizeCytoscape();
@@ -177,6 +177,7 @@ export default class ngbCytoscapeController {
                 layout.run();
                 const viewerContext = this;
                 this.actionsManager = {
+                    NODE_ZOOM: 2,
                     ZOOM_STEP: 0.25,
                     duration: 250,
                     zoom: () => viewerContext.viewer.zoom(),
@@ -200,11 +201,42 @@ export default class ngbCytoscapeController {
                         viewerContext.viewer.layout(this.settings.defaultLayout).run();
                         viewerContext.saveLayout();
                     },
+                    searchNode(filter) {
+                        return viewerContext.viewer.nodes().filter(node =>
+                            node.data().title.toLocaleLowerCase().includes(filter.toLocaleLowerCase()))
+                            .map(node => ({
+                                id: node.data().id,
+                                title: node.data().title
+                            }));
+                    },
+                    selectNode(nodeId) {
+                        const [node] = viewerContext.viewer.nodes().filter(node => node.data().id === nodeId);
+                        if (!node) {
+                            return;
+                        }
+                        if (this.zoom() === this.NODE_ZOOM) {
+                            viewerContext.viewer.center(node);
+                            viewerContext.savedViewerState.pan = viewerContext.viewer.pan();
+                        } else {
+                            viewerContext.viewer.zoom({
+                                level: this.NODE_ZOOM,
+                                position: node.position()
+                            });
+                            viewerContext.savedViewerState.zoom = viewerContext.viewer.zoom();
+                            this.canZoomIn = viewerContext.viewer.zoom() < viewerContext.viewer.maxZoom();
+                            this.canZoomOut = viewerContext.viewer.zoom() > viewerContext.viewer.minZoom();
+                        }
+                    },
                     canZoomIn: viewerContext.viewer.zoom() < viewerContext.viewer.maxZoom(),
                     canZoomOut: viewerContext.viewer.zoom() > viewerContext.viewer.minZoom(),
                     ready: true
                 };
             });
+        } else {
+            if (this.viewer) {
+                this.viewer.off('pan');
+                this.viewer.off('dragfree');
+            }
         }
     }
 

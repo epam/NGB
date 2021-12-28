@@ -1,12 +1,42 @@
 <section layout="column" ng-cloak>
     <md-button class="md-raised" ng-click="$ctrl.zoomIn()"
-               ng-disabled="!$ctrl.actionsManager.canZoomIn">+</md-button>
+               ng-disabled="!$ctrl.actionsManager.canZoomIn">+
+    </md-button>
     <md-divider md-inset="true"></md-divider>
     <md-button class="md-raised" ng-click="$ctrl.zoomOut()"
-               ng-disabled="!$ctrl.actionsManager.canZoomOut">-</md-button>
+               ng-disabled="!$ctrl.actionsManager.canZoomOut">-
+    </md-button>
     <md-button aria-label="restore default"
                class="md-raised restore"
                ng-click="$ctrl.restoreDefault()">
         <ng-md-icon icon="cached"></ng-md-icon>
     </md-button>
+    <md-menu md-position-mode="right target">
+        <md-button aria-label="search node"
+                   class="md-raised"
+                   ng-click="$mdOpenMenu($event)">
+            <ng-md-icon icon="search"></ng-md-icon>
+        </md-button>
+        <md-menu-content class="ngb-cytoscape-find-node" md-whiteframe="4" width="3">
+            <md-autocomplete
+                    md-autofocus
+                    md-item-text="item.title"
+                    md-items="item in $ctrl.searchNode($ctrl.filter)"
+                    md-match-case-insensitive="true"
+                    md-menu-class="blast-organisms-livesearch-item"
+                    md-no-cache="true"
+                    md-search-text="$ctrl.filter"
+                    md-select-on-match="false"
+                    md-selected-item="$ctrl.selectedNode"
+                    md-selected-item-change="$ctrl.onSelect($ctrl.selectedNode.id)">
+                <md-item-template>
+                    <span md-highlight-flags="gi"
+                          md-highlight-text="$ctrl.filter">{{item.title}}</span>
+                </md-item-template>
+                <md-not-found>
+                    No nodes found.
+                </md-not-found>
+            </md-autocomplete>
+        </md-menu-content>
+    </md-menu>
 </section>
