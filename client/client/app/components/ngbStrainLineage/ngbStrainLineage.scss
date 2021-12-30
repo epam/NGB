@@ -37,6 +37,9 @@
     display: none;
   }
 }
+.strain-lineage-list-container {
+  z-index: 999; // to overlap cytoscape edge edit
+}
 
 .tree-description-container {
   margin-top: 5px;

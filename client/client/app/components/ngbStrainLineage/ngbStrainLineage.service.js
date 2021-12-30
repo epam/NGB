@@ -152,7 +152,9 @@ export default class ngbStrainLineageService {
                 target: `n_${edge.nodeToId.toString()}`,
                 label: cropTitle(edge.typeOfInteraction, MAX_TITLE_LENGTH),
                 fullLabel: edge.typeOfInteraction,
-                tooltip: edge.attributes
+                tooltip: edge.attributes,
+                cyedgebendeditingWeights: [1],
+                cyedgebendeditingDistances: [175]
             }
         });
         return {

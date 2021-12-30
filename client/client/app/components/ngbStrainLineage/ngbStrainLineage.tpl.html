@@ -16,6 +16,7 @@
                    id="strain"
                    multiple="false"
                    ng-change="$ctrl.onTreeSelect()"
+                   md-container-class="strain-lineage-list-container"
                    ng-model="$ctrl.selectedTreeId">
             <md-option ng-repeat="tree in $ctrl.lineageTreeList track by tree.id"
                        ng-value="{{tree.id}}"

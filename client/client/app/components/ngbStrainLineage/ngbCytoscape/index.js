@@ -1,11 +1,13 @@
 import angular from 'angular';
 
+// Import Style
+import 'cytoscape-context-menus/cytoscape-context-menus.css';
+
 // Import internal modules
 import cytoscapeComponent from './ngbCytoscape.component';
 import cytoscapeController from './ngbCytoscape.controller';
-
-// Import Style
 import './ngbCytoscape.scss';
+
 import cytoscapeSettings from './ngbCytoscape.settings';
 import ngbCytoscapeToolbarPanelModule from './ngbCytoscapeToolbarPanel';
 

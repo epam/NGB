@@ -16,7 +16,7 @@ export default {
             'border-width': 1
         },
         edge: {
-            'curve-style': 'bezier',
+            'curve-style': 'straight',
             'width': 1,
             'line-color': '#37474F',
             'target-arrow-color': '#37474F',
@@ -25,11 +25,13 @@ export default {
             'overlay-padding': '4px',
             'underlay-color': '#4285F4',
             'underlay-padding': '3px',
-            'underlay-opacity': '0'
+            'underlay-opacity': '0',
+            'text-wrap': 'wrap'
         },
         edgeLabel: {
             'text-rotation': 'none',
-            'content': 'data(label)',
+            'target-label': 'data(label)',
+            'target-text-offset': '20%',
             'font-size': '12px',
             'font-weight': 'bold',
             'text-background-color': '#fff',

@@ -1,7 +1,16 @@
+/* U. Dogrusoz , A. Karacelik, I. Safarli, H. Balci, L. Dervishi, and M.C. Siper,
+"Efficient methods and readily customizable libraries for managing complexity of large networks", PLoS ONE, 13(5): e0197238, 2018.
+ */
+
 import angular from 'angular';
 import Cytoscape from 'cytoscape';
+import contextMenus from 'cytoscape-context-menus';
 import dagre from 'cytoscape-dagre';
 import dom_node from 'cytoscape-dom-node';
+import edgeEditing from 'cytoscape-edge-editing';
+
+import $ from 'jquery';
+import konva from 'konva';
 
 const SELECTED_COLOR = '#4285F4';
 const SELECTED_WIDTH = 1;
@@ -38,6 +47,8 @@ export default class ngbCytoscapeController {
 
         Cytoscape.use(dagre);
         Cytoscape.use(dom_node);
+        Cytoscape.use(contextMenus);
+        edgeEditing( Cytoscape, $, konva );
 
         const resizeHandler = () => {
             if (this.resizeCytoscape()) {
@@ -101,6 +112,11 @@ export default class ngbCytoscapeController {
         return wrappedNodes;
     }
 
+    configureEdges(edges) {
+        return edges.map(edge => ({
+            ...edge,
+        }));
+    }
 
     reloadCytoscape(active) {
         if (active) {
@@ -115,13 +131,13 @@ export default class ngbCytoscapeController {
                 if (savedLayout) {
                     elements = {
                         nodes: this.wrapNodes(this.getPlainNodes(savedLayout.nodes), this.tag, this.settings.style.node),
-                        edges: savedLayout.edges
+                        edges: this.configureEdges(savedLayout.edges)
                     };
                     layoutSettings = this.settings.loadedLayout;
                 } else {
                     elements = {
                         nodes: this.wrapNodes(this.getPlainNodes(this.elements.nodes), this.tag, this.settings.style.node),
-                        edges: this.elements.edges
+                        edges: this.configureEdges(this.elements.edges)
                     };
                     layoutSettings = this.settings.defaultLayout;
                 }
@@ -146,6 +162,16 @@ export default class ngbCytoscapeController {
                     ...this.settings.options
                 });
                 this.viewer.domNode();
+                this.viewer.contextMenus();
+                this.viewer.edgeEditing({
+                    zIndex: 998,
+                    undoable: false,
+                    bendRemovalSensitivity: 16,
+                    enableMultipleAnchorRemovalOption: true,
+                    initAnchorsAutomatically: false,
+                    useTrailingDividersAfterContextMenuOptions: false,
+                    enableCreateAnchorOnDrag: true
+                });
                 const layout = this.viewer.layout(layoutSettings);
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
@@ -155,6 +181,7 @@ export default class ngbCytoscapeController {
                     });
                     this.resizeCytoscape();
                     this.loadSavedState(this.savedViewerState);
+                    this.viewer.style().update();
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
