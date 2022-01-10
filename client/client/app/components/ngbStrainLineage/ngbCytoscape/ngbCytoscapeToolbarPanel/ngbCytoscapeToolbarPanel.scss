@@ -9,7 +9,7 @@ ngb-cytoscape-toolbar-panel {
   right: 28px;
   margin-top: -36px;
   top: 40%;
-  z-index: 2;
+  z-index: 999;
   opacity: .25;
 
   &:hover,

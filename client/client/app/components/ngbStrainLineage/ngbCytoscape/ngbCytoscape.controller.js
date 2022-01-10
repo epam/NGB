@@ -162,7 +162,9 @@ export default class ngbCytoscapeController {
                     ...this.settings.options
                 });
                 this.viewer.domNode();
-                this.viewer.contextMenus();
+                this.viewer.contextMenus({
+                    menuItemClasses: 'cytoscape-context-item-menu'
+                });
                 this.viewer.edgeEditing({
                     zIndex: 998,
                     undoable: false,
@@ -176,6 +178,7 @@ export default class ngbCytoscapeController {
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
+                    this.viewer.on('tapend', 'edge', this.saveLayout.bind(this));
                     this.viewer.on('pan', () => {
                         this.savedViewerState.pan = this.viewer.pan();
                     });
@@ -263,6 +266,7 @@ export default class ngbCytoscapeController {
             if (this.viewer) {
                 this.viewer.off('pan');
                 this.viewer.off('dragfree');
+                this.viewer.off('tapend', 'edge');
             }
         }
     }
