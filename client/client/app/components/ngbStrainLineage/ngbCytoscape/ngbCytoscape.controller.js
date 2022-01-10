@@ -166,7 +166,7 @@ export default class ngbCytoscapeController {
                     menuItemClasses: 'cytoscape-context-item-menu'
                 });
                 this.viewer.edgeEditing({
-                    zIndex: 998,
+                    zIndex: 90,
                     undoable: false,
                     bendRemovalSensitivity: 16,
                     enableMultipleAnchorRemovalOption: true,
