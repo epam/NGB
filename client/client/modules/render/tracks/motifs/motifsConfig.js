@@ -11,14 +11,17 @@ export default {
     matches: {
         defaultColor: {
             positive: 0x3C99C4,
-            negative: 0xDD4C46},
-        height: 20,
+            negative: 0xDD4C46
+        },
+        height: 10,
+        margin: 5,
+        detailsThresholdPx: 5,
         strand: {
             arrow: {
-                height: 20,
-                margin: 10,
+                height: 6,
+                margin: 2,
                 mode: 'stroke',
-                thickness: 1
+                thickness: 2
             },
         }
     }

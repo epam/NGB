@@ -103,7 +103,7 @@ export default class ngbMotifsPanelService {
     }
 
     set searchMotifResults (result) {
-        this._searchMotifResults = [...result.map(item => {
+        this._searchMotifResults = [...(result || []).map(item => {
             const strand = this.setStrand(item.strand);
             return {
                 reference: this.projectContext.reference.id,
@@ -151,6 +151,8 @@ export default class ngbMotifsPanelService {
         this.searchMotifsParams = params;
         this.dispatcher.emitSimpleEvent('motifs:search:change');
         this.panelAddMotifsPanel();
+        this.isShowParamsTable = false;
+        this.dispatcher.emitSimpleEvent('motifs:show:results', this.searchMotifsParams[0]);
     }
 
     searchMotifRequest (request) {

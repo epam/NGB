@@ -1,6 +1,7 @@
 import {CachedTrack} from '../../core';
 import Menu from '../../core/menu';
 import {MotifsDataService} from '../../../../dataServices';
+import {linearDimensionsConflict} from '../../utilities';
 import MotifsConfig from './motifsConfig';
 import motifsMenuConfig from './exterior/motifsMenuConfig';
 import MotifsMatchesRenderer from './motifsRenderer';
@@ -15,6 +16,7 @@ export class MOTIFSTrack extends CachedTrack {
         this.dispatcher = opts.dispatcher;
         this.motifsContext = opts.motifsContext;
         this.motifStrand = opts.state.motifStrand;
+        this.motif = opts.state.motif || '';
         this._dataService = new MotifsDataService();
         this.renderer = new MotifsMatchesRenderer(
             this,
@@ -28,7 +30,8 @@ export class MOTIFSTrack extends CachedTrack {
     get stateKeys() {
         return [
             'color',
-            'motifStrand'
+            'motifStrand',
+            'motif'
         ];
     }
 
@@ -74,15 +77,15 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     cacheUpdateParameters (viewport) {
+        const payload = super.cacheUpdateParameters(viewport);
         const {
             referenceId,
             projectId
         } = this.config;
-        const payload = super.cacheUpdateParameters(viewport);
-        const motifLength = this.motifsContext.match.motif.length;
+        const motifLength = this.motif.length;
         const startIndex = Math.max(payload.startIndex - motifLength, 1);
         const endIndex = Math.min(payload.endIndex + motifLength, viewport.chromosome.end);
-        return {
+        const p = {
             id: referenceId,
             chromosomeId: payload.chromosomeId,
             startIndex,
@@ -91,9 +94,11 @@ export class MOTIFSTrack extends CachedTrack {
             option: {},
             collapsed: false,
             projectId: projectId || 0,
-            motif: this.motifsContext.match.motif,
+            motif: this.motif,
             strand: this.motifStrand.toUpperCase()
         };
+        console.log(p);
+        return p;
     }
 
     transformData(data) {
@@ -103,20 +108,18 @@ export class MOTIFSTrack extends CachedTrack {
                 const end = Math.max(block.startIndex, block.endIndex);
                 block.startIndex = start;
                 block.endIndex = end;
+                block.length = end - start;
                 return block;
             })
-            .sort((a, b) => a.start >= b.start);
-        if (matches.length && matches.length === 1) {
-            matches[0].levelY = 1;
-        }
-        for (let i = 0; i < matches.length - 1; i++) {
-            matches[i].levelY = matches[i].levelY ? matches[i].levelY : 1;
-            matches[i + 1].levelY = matches[i + 1].levelY ? matches[i + 1].levelY : 1;
-            if (matches[i].start === matches[i + 1].start) {
-                matches[i + 1].levelY = matches[i].levelY + 1;
-            }  else if (matches[i].end >= matches[i + 1].start) {
-                matches[i + 1].levelY = matches[i].levelY + 1;
-            }
+            .sort((a, b) => b.length - a.length)
+            .sort((a, b) => a.startIndex - b.startIndex);
+        const margin = this.viewport.convert.pixel2brushBP(MotifsConfig.matches.margin);
+        for (let i = 0; i < matches.length; i++) {
+            const match = matches[i];
+            const conflicts = matches
+                .slice(0, i)
+                .filter(concurrent => linearDimensionsConflict(match.startIndex, match.endIndex, concurrent.startIndex, concurrent.endIndex, margin));
+            match.levelY = Math.max(0, ...conflicts.map(conflict => conflict.levelY)) + 1;
         }
         return matches;
     }

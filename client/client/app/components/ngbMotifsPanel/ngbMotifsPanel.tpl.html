@@ -6,8 +6,10 @@
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div class="md-padding" ng-if="$ctrl.isSearchFailure">
-        <ngb-panel-error-list message-list="['Error']"></ngb-panel-error-list>
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
     </div>
-    <ngb-motifs-table ng-hide="$ctrl.isSearchInProgress && $ctrl.isShowParamsTable"></ngb-motifs-table>
+    <ngb-motifs-table ng-hide="$ctrl.isSearchInProgress && $ctrl.isShowParamsTable"
+                      loading="$ctrl.isSearchInProgress"
+    ></ngb-motifs-table>
 </div>
 

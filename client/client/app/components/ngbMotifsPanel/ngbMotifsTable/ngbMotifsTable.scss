@@ -18,3 +18,14 @@
       text-transform: capitalize;
     }
 }
+
+.motif-results-empty-result-container {
+  font-size: 12pt;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+}
+
+.motif-results-no-records-warning {
+  color: #999;
+}

@@ -79,6 +79,7 @@ export default class ngbMotifsTableService {
             this._currentParams = {
                 referenceId,
                 motif: params.motif,
+                name: params.name || params.motif,
                 searchType: setSearchType(params['search type']),
                 pageSize: this.pageSize,
             };
@@ -121,6 +122,7 @@ export default class ngbMotifsTableService {
         } = row;
         const {
             referenceId,
+            name: searchName,
             motif,
             searchType
         } = this.currentParams;
@@ -138,7 +140,7 @@ export default class ngbMotifsTableService {
         const rangeEnd = Math.max(start, end) + range;
 
         const strand = this.ngbMotifsPanelService.getStrand(row.strand).toLowerCase();
-        const name = (strand) => `${motif}_${strand}`;
+        const name = (strand) => `${searchName || motif}_${strand}`;
         const reference = this.projectContext.reference;
 
         const tracksOptions = {};
@@ -166,7 +168,8 @@ export default class ngbMotifsTableService {
                 isLocal: true,
                 format: 'MOTIFS',
                 state: {
-                    motifStrand: strand
+                    motifStrand: strand,
+                    motif
                 }
             });
         };

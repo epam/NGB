@@ -41,6 +41,14 @@ export default class ngbMotifsTableController  extends baseController {
         return ROW_HEIGHT;
     }
 
+    get emptyResults () {
+        return !this.loading &&
+            !this.isShowParamsTable && (
+            !this.ngbMotifsPanelService.searchMotifResults ||
+            this.ngbMotifsPanelService.searchMotifResults.length === 0
+        );
+    }
+
     static get UID() {
         return 'ngbMotifsTableController';
     }
@@ -64,6 +72,7 @@ export default class ngbMotifsTableController  extends baseController {
         });
         this.gridOptions.rowHeight = this.rowHeight;
         this.dispatcher.on('motifs:search:change', ::this.backToParamsTable);
+        this.dispatcher.on('motifs:show:results', this.showResultsTable.bind(this));
     }
 
     $onInit() {
@@ -122,9 +131,14 @@ export default class ngbMotifsTableController  extends baseController {
         const chromosomeId = row.currentChromosomeId;
         const request = row['search type'] === chromosomeType ?
             {chromosomeId, ...currentParams} : {...currentParams};
+        delete request.name;
         this.gridOptions.data = [];
         await this.loadData(request);
         this.searchRequestsHistory.push(request);
+        const firstHit = (this.ngbMotifsPanelService.searchMotifResults || [])[0];
+        if (firstHit) {
+            await this.ngbMotifsTableService.addTracks(firstHit);
+        }
     }
 
     async getDataDown () {
@@ -134,6 +148,7 @@ export default class ngbMotifsTableController  extends baseController {
         }
         const currentParams = this.ngbMotifsTableService.currentParams;
         const request = {chromosomeId, startPosition, ...currentParams};
+        delete request.name;
         await this.loadData(request, false);
         this.searchRequestsHistory.push(request);
         this.gridOptions.infiniteScrollUp = true;
@@ -148,6 +163,7 @@ export default class ngbMotifsTableController  extends baseController {
         const {startPosition, chromosomeId} = this.searchRequestsHistory[index];
         const currentParams = this.ngbMotifsTableService.currentParams;
         const request = {chromosomeId, startPosition, ...currentParams};
+        delete request.name;
         await this.loadData(request, true);
     }
 
@@ -157,8 +173,9 @@ export default class ngbMotifsTableController  extends baseController {
                 if (success) {
                     return this.ngbMotifsPanelService.searchMotifResults;
                 }
+                return [];
             });
-        if (results && results.length) {
+        if (results) {
             this.gridOptions.columnDefs = this.ngbMotifsTableService.getMotifsGridColumns();
             const data = isScrollTop ?
                 results.concat(this.gridOptions.data) :
@@ -202,9 +219,6 @@ export default class ngbMotifsTableController  extends baseController {
                     });
             }
             this.$timeout(() => this.$scope.$apply());
-        } else {
-            this.backToParamsTable();
-            return this.$timeout(() => this.$scope.$apply());
         }
     }
 

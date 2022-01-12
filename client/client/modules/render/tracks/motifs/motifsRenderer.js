@@ -1,8 +1,10 @@
-import {CachedTrackRenderer} from '../../core';
 import * as PIXI from 'pixi.js-legacy';
+import {CachedTrackRenderer} from '../../core';
+import drawStrandDirection from '../gene/internal/renderer/features/drawing/strandDrawing';
+
+const WHITE = 0xFFFFFF;
 
 export default class MotifsMatchesRenderer extends CachedTrackRenderer {
-
     constructor(track, config, options, strand) {
         super(track);
         this.track = track;
@@ -10,6 +12,8 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         this._height = config.height;
         this.options = options;
         this.strand = strand;
+        this.graphics = new PIXI.Graphics();
+        this.dataContainer.addChild(this.graphics);
         this.initializeCentralLine();
     }
 
@@ -34,11 +38,11 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
 
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
-        this.dataContainer.removeChildren();
         this.initializeMatches(viewport, cache);
     }
 
     initializeMatches(viewport, cache) {
+        this.graphics.clear();
         if (cache.data && cache.data.length > 0) {
             cache.data.forEach(match => {
                 this.initializeMatch(viewport, match);
@@ -51,41 +55,61 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         if (strand === match.strand.toLowerCase()) {
             const pixelsInBp = viewport.factor;
             const {startIndex, endIndex, levelY} = match;
-            const startX = viewport.project.brushBP2pixel(startIndex) - (pixelsInBp / 2);
-            const endX = viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2);
-
-            if (startX > -viewport.canvasSize && endX < 2 * viewport.canvasSize) {
-                const height = this.config.matches.height;
-                const color = this.getMatchColor(strand, this.track ? this.track.state : undefined);
-                const block = new PIXI.Graphics();
-                const y = levelY * (10 + height) - height;
-                const width = endX - startX;
-                block.beginFill(color, 1);
-                block.drawRect(startX, y, width, height);
-                block.endFill();
-
-                for (
-                    let i = 5;
-                    i + pixelsInBp < width;
-                    i += 25
-                ) {
-                    const strandLine = new PIXI.Graphics();
-                    strandLine.lineStyle(2, 0xffffff, 1);
-                    strandLine.position.x = startX;
-                    strandLine.position.y = y;
-                    if (strand === 'positive') {
-                        strandLine.moveTo(i, -1);
-                        strandLine.lineTo(i + pixelsInBp, height/2);
-                        strandLine.lineTo(i, height+1);
+            const correct = x => Math.max(
+                -viewport.canvasSize,
+                Math.min(
+                    x,
+                    2 * viewport.canvasSize
+                )
+            );
+            const startX = correct(viewport.project.brushBP2pixel(startIndex) - (pixelsInBp / 2));
+            const endX = correct(viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2));
+//GTCATTACAAATAACTCCTTTATTTCCGTTCCCTCTCCCCTCAAATGGCT
+            const height = this.config.matches.height;
+            const color = this.getMatchColor(strand, this.track ? this.track.state : undefined);
+            const centerY = levelY * (this.config.matches.margin + height) - height / 2.0;
+            const width = endX - startX;
+            if (width <= this.config.matches.detailsThresholdPx) {
+                const arrowWidth = 2.0 * height;
+                drawStrandDirection(
+                    strand,
+                    {
+                        x: startX + width / 2.0 - arrowWidth / 2.0,
+                        width: arrowWidth,
+                        height,
+                        centerY
+                    },
+                    this.graphics,
+                    color,
+                    {
+                        ...this.config.matches.strand.arrow,
+                        mode: 'fill',
+                        margin: 0,
+                        height
                     }
-                    if (strand === 'negative') {
-                        strandLine.moveTo(i + pixelsInBp, -1);
-                        strandLine.lineTo(i, height/2);
-                        strandLine.lineTo(i + pixelsInBp, height+1);
-                    }
-                    block.addChild(strandLine);
-                }
-                this.dataContainer.addChild(block);
+                );
+            } else {
+                this.graphics
+                    .beginFill(color, 1)
+                    .drawRect(
+                        startX,
+                        Math.round(centerY - height / 2.0),
+                        width,
+                        height
+                    )
+                    .endFill();
+                drawStrandDirection(
+                    strand,
+                    {
+                        x: startX,
+                        width,
+                        height,
+                        centerY
+                    },
+                    this.graphics,
+                    WHITE,
+                    this.config.matches.strand.arrow
+                );
             }
         }
     }
