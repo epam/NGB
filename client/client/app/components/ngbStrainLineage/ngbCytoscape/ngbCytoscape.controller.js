@@ -48,6 +48,7 @@ export default class ngbCytoscapeController {
         Cytoscape.use(dagre);
         Cytoscape.use(dom_node);
         Cytoscape.use(contextMenus);
+        konva.showWarnings = false;
         edgeEditing( Cytoscape, $, konva );
 
         const resizeHandler = () => {
