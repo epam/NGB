@@ -24,13 +24,17 @@
 
 package com.epam.catgenome.controller;
 
-import static java.util.Collections.*;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import org.junit.Assert;
@@ -70,8 +74,6 @@ import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -492,76 +494,6 @@ public class ProjectControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, treeWithParent.get(0).getNestedProjects().size());
     }
 
-    private ProjectVO saveProject(Project project, Long parentId) throws Exception {
-        ProjectVO projectVO = ProjectConverter.convertTo(project);
-
-        MockHttpServletRequestBuilder builder = post(URL_SAVE_PROJECT).content(getObjectMapper()
-                                                   .writeValueAsString(projectVO)).contentType(EXPECTED_CONTENT_TYPE);
-        if (parentId != null) {
-            builder.param("parentId", parentId.toString());
-        }
-
-        // save project
-        ResultActions actions = mvc()
-            .perform(builder)
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<ProjectVO> res = getObjectMapper()
-            .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                       getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                                                  ProjectVO.class));
-
-        ProjectVO loadedProject = res.getPayload();
-        Assert.assertNotNull(loadedProject);
-
-        return loadedProject;
-    }
-
-    private List<ProjectVO> loadMy() throws Exception {
-        ResultActions actions = mvc()
-            .perform(get(URL_LOAD_MY_PROJECTS)
-                         .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<ProjectVO>> myProjects = getObjectMapper()
-            .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                       getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                                                  getTypeFactory().constructParametrizedType(List.class,
-                                                                                         List.class, ProjectVO.class)));
-
-        Assert.assertNotNull(myProjects.getPayload());
-        Assert.assertFalse(myProjects.getPayload().isEmpty());
-
-        return myProjects.getPayload();
-    }
-
-    private ProjectVO loadProject(long projcetId) throws Exception {
-        ResultActions actions = mvc()
-            .perform(get(String.format(URL_LOAD_PROJECT, projcetId)).contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<ProjectVO> res = getObjectMapper()
-            .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                       getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                                                  ProjectVO.class));
-
-        ProjectVO loadedProject = res.getPayload();
-        Assert.assertNotNull(loadedProject);
-        return loadedProject;
-    }
-
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testAddRemoveHide() throws Exception {
@@ -848,29 +780,6 @@ public class ProjectControllerTest extends AbstractControllerTest {
         Assert.assertFalse(infoRes.getPayload().getInfoItems().isEmpty());
     }
 
-    private GeneFile addGeneFile(String name, String path) throws IOException, FeatureIndexException,
-            InterruptedException, NoSuchAlgorithmException {
-        Resource resource = context.getResource(path);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setName(name);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        return gffManager.registerGeneFile(request);
-    }
-
-    private VcfFile addVcfFile(String name, String path)
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
-        Resource resource = context.getResource(path);
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setName(name);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        return vcfManager.registerVcfFile(request);
-    }
-
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     // TODO: code of this test is equal to testFilterVcf, remove duplicated code
@@ -927,6 +836,96 @@ public class ProjectControllerTest extends AbstractControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()))
                 .andDo(MockMvcResultHandlers.print());
+    }
 
+    private ProjectVO saveProject(final Project project, final Long parentId) throws Exception {
+        ProjectVO projectVO = ProjectConverter.convertTo(project);
+
+        MockHttpServletRequestBuilder builder = post(URL_SAVE_PROJECT).content(getObjectMapper()
+                .writeValueAsString(projectVO)).contentType(EXPECTED_CONTENT_TYPE);
+        if (parentId != null) {
+            builder.param("parentId", parentId.toString());
+        }
+
+        // save project
+        ResultActions actions = mvc()
+                .perform(builder)
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<ProjectVO> res = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                ProjectVO.class));
+
+        ProjectVO loadedProject = res.getPayload();
+        Assert.assertNotNull(loadedProject);
+
+        return loadedProject;
+    }
+
+    private List<ProjectVO> loadMy() throws Exception {
+        ResultActions actions = mvc()
+                .perform(get(URL_LOAD_MY_PROJECTS)
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<List<ProjectVO>> myProjects = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                getTypeFactory().constructParametrizedType(List.class,
+                                        List.class, ProjectVO.class)));
+
+        Assert.assertNotNull(myProjects.getPayload());
+        Assert.assertFalse(myProjects.getPayload().isEmpty());
+
+        return myProjects.getPayload();
+    }
+
+    private ProjectVO loadProject(final long projcetId) throws Exception {
+        ResultActions actions = mvc()
+                .perform(get(String.format(URL_LOAD_PROJECT, projcetId)).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<ProjectVO> res = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                ProjectVO.class));
+
+        ProjectVO loadedProject = res.getPayload();
+        Assert.assertNotNull(loadedProject);
+        return loadedProject;
+    }
+
+    private GeneFile addGeneFile(final String name, final String path) throws IOException {
+        Resource resource = context.getResource(path);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setName(name);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        return gffManager.registerGeneFile(request);
+    }
+
+    private VcfFile addVcfFile(final String name, final String path) throws IOException {
+        Resource resource = context.getResource(path);
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setName(name);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        return vcfManager.registerVcfFile(request);
     }
 }

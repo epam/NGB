@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2021 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -417,7 +417,7 @@ public class VcfManager {
         final VcfFilterInfo filterInfo = new VcfFilterInfo();
         Map<String, InfoItem> infoItems = new HashMap<>();
         final Set<String> availableFilters = new HashSet<>();
-        final Set<String> sampleNames = new LinkedHashSet<>();
+        final List<VcfSample> samples = new LinkedList<>();
 
         for (Long fileId : vcfFileIds) {
             VcfFile vcfFile = vcfFileManager.load(fileId);
@@ -437,8 +437,10 @@ public class VcfManager {
 
             }
 
-            for (VcfSample sample : vcfFile.getSamples()) {
-                sampleNames.add(sample.getName());
+            for (VcfSample vcfFileSample : vcfFile.getSamples()) {
+                VcfSample sample = new VcfSample(vcfFileSample.getName(), vcfFileSample.getIndex());
+                sample.setPrettyName(vcfFileSample.getPrettyName());
+                samples.add(sample);
             }
         }
 
@@ -452,7 +454,7 @@ public class VcfManager {
                 "variation is located in exon region"));
         filterInfo.setInfoItemMap(infoItems);
         filterInfo.setAvailableFilters(availableFilters);
-        filterInfo.setSampleNames(sampleNames);
+        filterInfo.setSamples(samples);
 
         return filterInfo;
     }
