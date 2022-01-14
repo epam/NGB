@@ -9,10 +9,11 @@ def dockerDir = "$rootDir/docker/core"
 def runTests = !hasProperty("noTest")
 def database = hasProperty("database") ? database : "h2"
 def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
+def commitSha = hasProperty("commitSha") ? commitSha : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 6, patch: 1, build: buildNumber)    
+    version = new Version(major: 2, minor: 6, patch: 1, build: buildNumber, commit: commitSha)    
     task printVersion {
         doFirst {
             println "Project version is $version"
@@ -21,11 +22,11 @@ allprojects {
 }
 
 class Version {
-    int major, minor, patch
+    int major, minor, patch, commit
     String build
 
     String toString() {
-        "$major.$minor.$patch${build ? ".$build" : ''}"
+        "$major.$minor.$patch${build ? ".$build" : ''}${commit ? ".$commit" : ''}"
     }
 }
 
@@ -92,7 +93,8 @@ task buildWar(type: GradleBuild) {
 
     startParameter.projectProperties = [profile    : profile,
                                         database   : database,
-                                        buildNumber: buildNumber]
+                                        buildNumber: buildNumber,
+                                        commitSha  : commitSha]
 
     buildFile = "$rootDir/server/catgenome/build.gradle"
     dir = "$rootDir/server/catgenome"
@@ -114,7 +116,8 @@ task buildJar(type: GradleBuild) {
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,
-                                        buildNumber: buildNumber]
+                                        buildNumber: buildNumber,
+                                        commitSha  : commitSha]
     buildFile = "$rootDir/server/catgenome/build.gradle"
     dir = "$rootDir/server/catgenome"
     doLast {
@@ -211,7 +214,8 @@ task buildDesktopJar(type: GradleBuild) {
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,
-                                        buildNumber: buildNumber]
+                                        buildNumber: buildNumber,
+                                        commitSha  : commitSha]
     buildFile = "$rootDir/server/catgenome/build.gradle"
     dir = "$rootDir/server/catgenome"
     doLast {
@@ -253,10 +257,12 @@ task buildAll(type: GradleBuild) {
     dir = "$rootDir"
     if (runTests) {
         startParameter.projectProperties = [database   : database,
-                                            buildNumber: buildNumber]
+                                            buildNumber: buildNumber,
+                                            commitSha  : commitSha]
     } else {
         startParameter.projectProperties = [database   : database,
                                             buildNumber: buildNumber,
+                                            commitSha  : commitSha,
                                             noTest: '']
     }
 }
