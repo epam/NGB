@@ -6,6 +6,7 @@ task copyConfiguration {
         println "Target profile: $profile"
         println "Target database: $database"
         println "Build number: $buildNumber"
+        println "Commin SHA: $commitSha"
 //    version.build = buildNumber
         // specifies the content root directory? used to store
         //filterTokens.putAt("rootDirPath", profile == "dev" ? escape(rootDir.absolutePath)  : "")
