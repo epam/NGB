@@ -6,4 +6,4 @@ if [[ "$APPVEYOR_REPO_BRANCH" == "release/"* ]]; then
   BUILD_DOCKER=buildDocker
 fi
 
-./gradlew buildJar buildCli buildDoc $BUILD_DOCKER -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
+./gradlew buildJar buildCli buildDoc $BUILD_DOCKER -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PcommitSha=${APPVEYOR_REPO_COMMIT} -PnoTest
