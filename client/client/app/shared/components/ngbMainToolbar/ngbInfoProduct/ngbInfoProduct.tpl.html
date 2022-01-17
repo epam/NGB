@@ -3,13 +3,14 @@
         <md-icon md-svg-src="../../../../assets/icons/infoProduct.svg" aria-label="share"></md-icon>
     </md-button>
     <md-menu-content width="4" class="ngb-tool-menu ngb-product-info" md-whiteframe="4">
-        <ngb-version></ngb-version>
         <div class="page-title-header" flex layout>
             <div class="page-title-logo">
                 <md-icon md-svg-src="../../../../assets/icons/infoProduct.svg" aria-label="share"></md-icon>
             </div>
-            <h3 show-gt-sm class="md-title page-title">
-                NEW GENOME BROWSER</h3>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center">
+                <ngb-version></ngb-version>
+                <span class="md-title" style="align-self: flex-start;white-space: nowrap">NEW GENOME BROWSER</span>
+            </div>
         </div>
         <div flex class="report-issues" layout="row">
             <span>Report issues: </span>
