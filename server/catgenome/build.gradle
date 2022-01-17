@@ -3,7 +3,7 @@ import de.undercouch.gradle.tasks.download.Download
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
@@ -77,7 +77,7 @@ ext {
 
 // >>>>> repositories that should be used to find any external dependencies
 repositories {
-    jcenter()
+    mavenCentral()
     flatDir {
         dirs 'lib'
     }
@@ -92,6 +92,7 @@ dependencies {
     // Spring Framework
     configurations {
         all*.exclude module : 'spring-boot-starter-logging'
+        all*.exclude module:'slf4j-log4j12'
     }
     compile group: "org.springframework", name: "spring-jdbc", version: project.ext.versionSpring
     compile group: "org.springframework", name: "spring-context", version: project.ext.versionSpring
@@ -103,8 +104,8 @@ dependencies {
     compile group: "org.springframework.security", name: "spring-security-config", version: versionSpringSecurity
     compile group: 'org.springframework.security', name: 'spring-security-acl', version: versionSpringSecurity
 
-    compile group:"org.springframework.security.oauth", name:"spring-security-oauth2", version: "2.0.12.RELEASE"
-    compile group:"org.springframework.security.extensions", name:"spring-security-saml2-core", version:"1.0.2.RELEASE"
+    compile group: "org.springframework.security.oauth", name: "spring-security-oauth2", version: "2.0.12.RELEASE"
+    compile group: "org.springframework.security.extensions", name: "spring-security-saml2-core", version: "1.0.2.RELEASE"
 
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
     compile("org.springframework.boot:spring-boot-devtools")
@@ -176,7 +177,7 @@ dependencies {
     //hadoop
     compile group: "org.apache.hadoop", name:"hadoop-client", version: "2.2.0"
 
-    compile (group: "org.jetbrains.bio", name: "big", version: "0.8.3") {
+    compile(group: "org.jetbrains.bio", name: "big", version: "0.9.1") {
         exclude group: "com.github.samtools", module: "htsjdk"
     }
 
@@ -287,7 +288,7 @@ task tar(type: Tar) {
 }
 
 //Windows Distribution
-task customStartScriptsWin (type: CreateStartScripts) {
+task customStartScriptsWin(type: CreateStartScripts) {
     applicationName = appName
     mainClassName = springBootlauncherClass
     classpath = files(springBootJarName)
@@ -312,7 +313,7 @@ task downloadJreWin(type: Download) {
 task bundleWindows(type: Zip) {
     dependsOn downloadJreWin
     dependsOn customStartScriptsWin, bootRepackage
-    from (tarTree(resources.gzip("$buildDir/downloads/$windowsJre"))) {
+    from(tarTree(resources.gzip("$buildDir/downloads/$windowsJre"))) {
     }
 
     from("$buildDir/downloads/jre1.8.0") {
