@@ -38,4 +38,6 @@ public class Motif {
     private int end;
     private StrandSerializable strand;
     private String sequence;
+    private String geneId;
+    private String geneName;
 }
