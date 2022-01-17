@@ -3,6 +3,8 @@
 echo "Starting deployment"
 
 # Get current version
+#   Here we use a "short" version notation, i.e. {major}.{minor}.{patch}.${build}
+#   Commint SHA is not included in the artifacts naming. It is shown in the app only (e.g. in the GUI)
 NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$APPVEYOR_BUILD_NUMBER |  grep "Project version is " | sed 's/^.*is //')
 echo "Current version is ${NGB_VERSION}"
 
