@@ -31,7 +31,6 @@ import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
-import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.InfoItem;
@@ -39,6 +38,8 @@ import com.epam.catgenome.entity.vcf.OrganismType;
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
@@ -55,9 +56,7 @@ import org.apache.commons.math3.util.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,6 +67,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.FeatureIndexManager.fetchGeneIdsFromBatch;
+
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes VCF file entries: {@link VariantContext}
  */
@@ -76,16 +77,18 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
 
     private VcfFilterInfo filterInfo;
     private VCFHeader vcfHeader;
-    private FeatureIndexDao featureIndexDao;
+    private FeatureIndexManager featureIndexManager;
 
     private List<VcfIndexEntry> allEntries;
 
     private Map<GeneFile, NggbIntervalTreeMap<List<Gene>>> intervalMapCache = new HashMap<>();
 
-    public VcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
+    public VcfFeatureIndexBuilder(VcfFilterInfo filterInfo,
+                                  VCFHeader vcfHeader,
+                                  FeatureIndexManager featureIndexManager) {
         this.filterInfo = filterInfo;
         this.vcfHeader = vcfHeader;
-        this.featureIndexDao = featureIndexDao;
+        this.featureIndexManager = featureIndexManager;
         this.allEntries = new ArrayList<>();
     }
 
@@ -261,7 +264,7 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         return processedEntries;
     }
 
-    protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<VariationGeneInfo> geneIds,
+    protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<GeneInfo> geneIds,
             String geneIdsString, String geneNamesString, Set<VariationType> types) {
         List<String> ambiguousInfoFields = vcfHeader.getInfoHeaderLines().stream()
                 .filter(l -> l.getCount(indexEntry.getVariantContext()) > 1 && !isVariableLength(
@@ -275,29 +278,29 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         return splitAmbiguousInfoFields(simplifiedEntries, ambiguousInfoFields);
     }
 
-    private List<VcfIndexEntry> fillEntryDetails(VcfIndexEntry entry, List<GeneFile> geneFiles,
-            Chromosome chromosome, int start, int end) {
+    private List<VcfIndexEntry> fillEntryDetails(final VcfIndexEntry entry, final List<GeneFile> geneFiles,
+            final Chromosome chromosome, final int start, final int end) {
         String geneIdsString = null;
         String geneNamesString = null;
-        Set<VariationGeneInfo> geneIds = Collections.emptySet();
+        Set<GeneInfo> geneIds = Collections.emptySet();
 
         for (GeneFile geneFile : geneFiles) {
             if (!intervalMapCache.containsKey(geneFile)) {
                 intervalMapCache
-                        .put(geneFile, loadGenesIntervalMap(geneFile, start, end, chromosome));
+                        .put(geneFile, featureIndexManager.loadGenesIntervalMap(geneFile, start, end, chromosome));
             }
             NggbIntervalTreeMap<List<Gene>> intervalMap = intervalMapCache.get(geneFile);
 
             geneIds = fetchGeneIdsFromBatch(intervalMap, entry.getStartIndex(),
                     entry.getEndIndex(), chromosome);
             geneIdsString =
-                    geneIds.stream().map(i -> i.geneId).collect(Collectors.joining(", "));
+                    geneIds.stream().map(GeneInfo::getGeneId).collect(Collectors.joining(", "));
             geneNamesString =
-                    geneIds.stream().map(i -> i.geneName).collect(Collectors.joining(", "));
-            entry.setExon(geneIds.stream().anyMatch(i -> i.isExon));
+                    geneIds.stream().map(GeneInfo::getGeneName).collect(Collectors.joining(", "));
+            entry.setExon(geneIds.stream().anyMatch(GeneInfo::isExon));
         }
 
-        Set<VariationType> types = new HashSet<>();
+        final Set<VariationType> types = new HashSet<>();
         for (int i = 0; i < entry.getVariantContext().getAlternateAlleles().size(); i++) {
             Variation variation =
                     VcfFileReader.createVariation(entry.getVariantContext(), vcfHeader, i);
@@ -307,74 +310,8 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         return simplify(entry, geneIds, geneIdsString, geneNamesString, types);
     }
 
-    /**
-     * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
-     *
-     * @param intervalMap represents a batch loaded genes form gene file
-     * @param start       a start index of the variation
-     * @param end         an end index of the variation
-     * @param chromosome  a {@code Chromosome}
-     * @return a {@code Set} of IDs of genes, affected by the variation
-     */
-    private Set<VariationGeneInfo> fetchGeneIdsFromBatch(
-            NggbIntervalTreeMap<List<Gene>> intervalMap, int start, int end,
-            Chromosome chromosome) {
-        Set<VariationGeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
-        if (end > start) {
-            geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
-        }
-
-        return geneIds;
-    }
-
-    private NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(GeneFile geneFile, int start,
-            int end, Chromosome chromosome) {
-        final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
-        try {
-            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao
-                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
-                            chromosome);
-            searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
-                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
-                        Gene gene = new Gene();
-                        gene.setFeature(f.getFeatureType().name());
-                        gene.setStartIndex(f.getStartIndex());
-                        gene.setEndIndex(f.getEndIndex());
-                        gene.setGroupId(f.getFeatureId());
-                        gene.setFeatureName(f.getFeatureName().toUpperCase());
-                        return gene;
-                    }).forEach(g -> {
-                        Interval interval =
-                                new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
-                        genesRangeMap.putIfAbsent(interval, new ArrayList<>());
-                        genesRangeMap.get(interval).add(g);
-                    });
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-        genesRangeMap.setMaxEndIndex(start);
-        genesRangeMap.setMinStartIndex(end);
-        return genesRangeMap;
-    }
-
-    private Set<VariationGeneInfo> getGeneIds(NggbIntervalTreeMap<List<Gene>> intervalMap,
-            Chromosome chromosome, int start, int end) {
-        Collection<Gene> genes =
-                intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end)).stream()
-                        .flatMap(l -> l.stream()).collect(Collectors.toList());
-        Set<VariationGeneInfo> geneIds = new HashSet<>();
-        if (genes != null) {
-            boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
-            geneIds = genes.stream().filter(GeneUtils::isGene)
-                    .map(g -> new VariationGeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
-                    .collect(Collectors.toSet());
-        }
-
-        return geneIds;
-    }
-
     private List<VcfIndexEntry> simplifyVcfIndexEntries(VcfIndexEntry masterEntry,
-            VariantContext context, Set<VariationGeneInfo> geneIds, Set<VariationType> types,
+            VariantContext context, Set<GeneInfo> geneIds, Set<VariationType> types,
             String geneIdsString, String geneNamesString) {
         List<VcfIndexEntry> simplifiedEntries = new ArrayList<>();
         for (VariationType type : types) {
@@ -408,14 +345,14 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
     }
 
     private void simplifyGeneIds(VcfIndexEntry masterEntry, VariantContext context,
-            Set<VariationGeneInfo> geneIds, String geneIdsString, String geneNamesString,
+            Set<GeneInfo> geneIds, String geneIdsString, String geneNamesString,
             List<VcfIndexEntry> simplifiedEntries, VariationType type) {
-        for (VariationGeneInfo geneInfo : geneIds) {
+        for (GeneInfo geneInfo : geneIds) {
             if (context.getFilters().isEmpty()) {
                 VcfIndexEntry entry = new VcfIndexEntry(masterEntry);
                 entry.setVariationType(type);
-                entry.setGene(geneInfo.geneId);
-                entry.setGeneName(geneInfo.geneName);
+                entry.setGene(geneInfo.getGeneId());
+                entry.setGeneName(geneInfo.getGeneName());
                 entry.setGeneIds(geneIdsString);
                 entry.setGeneNames(geneNamesString);
 
@@ -424,8 +361,8 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
                 for (String filter : context.getFilters()) {
                     VcfIndexEntry entry = new VcfIndexEntry(masterEntry);
                     entry.setVariationType(type);
-                    entry.setGene(geneInfo.geneId);
-                    entry.setGeneName(geneInfo.geneName);
+                    entry.setGene(geneInfo.getGeneId());
+                    entry.setGeneName(geneInfo.getGeneName());
                     entry.setGeneIds(geneIdsString);
                     entry.setGeneNames(geneNamesString);
                     entry.setFailedFilter(filter);

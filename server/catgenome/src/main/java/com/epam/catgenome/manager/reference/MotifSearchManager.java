@@ -25,13 +25,8 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.index.FeatureIndexEntry;
-import com.epam.catgenome.entity.index.FeatureType;
-import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.StrandedSequence;
@@ -40,11 +35,11 @@ import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
 import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.motif.MotifSearcher;
-import htsjdk.samtools.util.Interval;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +51,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.FeatureIndexManager.fetchGeneIdsFromBatch;
 
 @Service
 @Slf4j
@@ -79,9 +75,7 @@ public class MotifSearchManager {
     @Autowired
     private ReferenceManager referenceManager;
     @Autowired
-    private FeatureIndexDao featureIndexDao;
-
-//    private Map<GeneFile, NggbIntervalTreeMap<List<Gene>>> intervalMapCache = new HashMap<>();
+    private FeatureIndexManager featureIndexManager;
 
     public Track<StrandedSequence> fillTrackWithMotifSearch(final Track<StrandedSequence> track,
                                                             final String motif,
@@ -153,9 +147,9 @@ public class MotifSearchManager {
                         ? defaultIncludeSequence
                         : request.getIncludeSequence();
 
-        int overlap = validateAndAdjustOverlap(request);
-        int startPosition = Math.max(1, request.getStartPosition() - overlap);
-        int endPosition = Math.min(chromosome.getSize(), request.getEndPosition() + overlap);
+        final int overlap = validateAndAdjustOverlap(request);
+        final int startPosition = Math.max(1, request.getStartPosition() - overlap);
+        final int endPosition = Math.min(chromosome.getSize(), request.getEndPosition() + overlap);
 
         final List<Motif> searchResult =
                 MotifSearcher.search(getSequence(startPosition, endPosition, reference, chromosome),
@@ -165,16 +159,16 @@ public class MotifSearchManager {
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
 
-        List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
+        final List<GeneFile> geneFiles = reference.getGeneFile() != null ?
                 Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-        String geneIdsString = null;
-        String geneNamesString = null;
-        Set<GeneInfo> geneIds = Collections.emptySet();
+        String geneIdsString;
+        String geneNamesString;
+        Set<GeneInfo> geneIds;
         Map<GeneFile, NggbIntervalTreeMap<List<Gene>>> intervalMapCache = new HashMap<>();
         for (GeneFile geneFile : geneFiles) {
 
             if (!intervalMapCache.containsKey(geneFile)) {
-                intervalMapCache.put(geneFile, loadGenesIntervalMap(geneFile, request.getStartPosition(),
+                intervalMapCache.put(geneFile, featureIndexManager.loadGenesIntervalMap(geneFile, request.getStartPosition(),
                         request.getEndPosition(), chromosome));
             }
             NggbIntervalTreeMap<List<Gene>> intervalMap = intervalMapCache.get(geneFile);
@@ -182,9 +176,9 @@ public class MotifSearchManager {
                 geneIds = fetchGeneIdsFromBatch(intervalMap, motif.getStart(),
                         motif.getEnd(), chromosome);
                 geneIdsString =
-                        geneIds.stream().map(i -> i.geneId).collect(Collectors.joining(", "));
+                        geneIds.stream().map(GeneInfo::getGeneId).collect(Collectors.joining(", "));
                 geneNamesString =
-                        geneIds.stream().map(i -> i.geneName).collect(Collectors.joining(", "));
+                        geneIds.stream().map(GeneInfo::getGeneName).collect(Collectors.joining(", "));
                 motif.setGeneId(geneIdsString);
                 motif.setGeneName(geneNamesString);
             }
@@ -199,83 +193,6 @@ public class MotifSearchManager {
                 .pageSize(searchResult.size())
                 .position(lastStart < chromosome.getSize() ? lastStart + 1 : null)
                 .build();
-    }
-
-    private Set<GeneInfo> getGeneIds(NggbIntervalTreeMap<List<Gene>> intervalMap,
-                                                                           Chromosome chromosome, int start, int end) {
-        Collection<Gene> genes =
-                intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end)).stream()
-                        .flatMap(Collection::stream).collect(Collectors.toList());
-        Set<GeneInfo> geneIds = new HashSet<>();
-        if (genes != null) {
-            boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
-            geneIds = genes.stream().filter(GeneUtils::isGene)
-                    .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
-                    .collect(Collectors.toSet());
-        }
-
-        return geneIds;
-    }
-
-    protected static class GeneInfo {
-        protected String geneId;
-        protected String geneName;
-        protected boolean isExon;
-
-        GeneInfo(String geneId, String geneName, boolean isExon) {
-            this.geneId = geneId;
-            this.geneName = geneName;
-            this.isExon = isExon;
-        }
-
-        @Override public int hashCode() {
-            return geneId.hashCode();
-        }
-
-        @Override public boolean equals(Object obj) {
-            return obj != null && obj.getClass() == this.getClass() && Objects
-                    .equals(((GeneInfo) obj).geneId, geneId);
-        }
-    }
-
-    private Set<GeneInfo> fetchGeneIdsFromBatch(
-            NggbIntervalTreeMap<List<Gene>> intervalMap, int start, int end,
-            Chromosome chromosome) {
-        Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
-        if (end > start) {
-            geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
-        }
-        return geneIds;
-    }
-
-    private NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(GeneFile geneFile, int start,
-                                                                 int end, Chromosome chromosome) {
-        final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
-        try {
-            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao
-                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
-                            chromosome);
-            searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
-                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
-                Gene gene = new Gene();
-                gene.setFeature(f.getFeatureType().name());
-                gene.setStartIndex(f.getStartIndex());
-                gene.setEndIndex(f.getEndIndex());
-                gene.setGroupId(f.getFeatureId());
-                gene.setFeatureName(f.getFeatureName().toUpperCase());
-                return gene;
-            }).forEach(g -> {
-                Interval interval =
-                        new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
-                genesRangeMap.putIfAbsent(interval, new ArrayList<>());
-                genesRangeMap.get(interval).add(g);
-            });
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-        genesRangeMap.setMaxEndIndex(start);
-        genesRangeMap.setMinStartIndex(end);
-        return genesRangeMap;
     }
 
     /**

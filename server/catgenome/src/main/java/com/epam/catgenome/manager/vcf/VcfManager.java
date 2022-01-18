@@ -620,7 +620,7 @@ public class VcfManager {
 
         BigVcfFeatureIndexBuilder indexer = null;
         if (doIndex) {
-            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao, file,
+            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexManager, file,
                             fileManager, geneFiles, indexBufferSize);
         }
 

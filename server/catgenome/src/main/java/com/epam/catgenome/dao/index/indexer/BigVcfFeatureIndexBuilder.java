@@ -38,7 +38,9 @@ import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.Utils;
@@ -69,9 +71,9 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     private VcfFile vcfFile;
 
     public BigVcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader,
-            FeatureIndexDao featureIndexDao, VcfFile featureFile,
-            FileManager fileManager, List<GeneFile> geneFiles, Integer indexBufferSize) throws IOException {
-        super(filterInfo, vcfHeader, featureIndexDao);
+                                     FeatureIndexManager featureIndexManager, VcfFile featureFile,
+                                     FileManager fileManager, List<GeneFile> geneFiles, Integer indexBufferSize) throws IOException {
+        super(filterInfo, vcfHeader, featureIndexManager);
         this.analyzer = new StandardAnalyzer();
         Directory index = fileManager.createIndexForFile(featureFile);
         this.writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
@@ -83,7 +85,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     }
 
     @Override
-    protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<VariationGeneInfo> geneIds,
+    protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<GeneInfo> geneIds,
             String geneIdsString, String geneNamesString, Set<VariationType> types) {
         indexEntry.setGeneIds(geneIdsString);
         indexEntry.setGeneNames(geneNamesString);
@@ -93,9 +95,9 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
 
         List<String> geneIdList = new ArrayList<>(geneIds.size());
         List<String> geneNameList = new ArrayList<>(geneIds.size());
-        for (VariationGeneInfo i : geneIds) {
-            geneIdList.add(i.geneId);
-            geneNameList.add(i.geneName);
+        for (GeneInfo i : geneIds) {
+            geneIdList.add(i.getGeneId());
+            geneNameList.add(i.getGeneName());
         }
 
         indexEntry.setGeneIdList(geneIdList);

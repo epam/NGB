@@ -69,9 +69,11 @@ import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.samtools.util.Interval;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
@@ -88,15 +90,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -654,7 +648,7 @@ public class FeatureIndexManager {
             String currentKey = null;
             VariantContext variantContext = null;
             BigVcfFeatureIndexBuilder indexer =
-                    new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao,
+                    new BigVcfFeatureIndexBuilder(info, vcfHeader, this,
                             vcfFile, fileManager, geneFiles, indexBufferSize);
 
             while (iterator.hasNext()) {
@@ -710,6 +704,69 @@ public class FeatureIndexManager {
         } else {
             addFeaturesFromUsualGeneFileToIndex(geneFile, chromosomeMap, allEntries);
         }
+    }
+
+    public NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(GeneFile geneFile, int start,
+                                                                 int end, Chromosome chromosome) {
+        final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
+        try {
+            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao
+                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
+                            chromosome);
+            searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
+                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
+                Gene gene = new Gene();
+                gene.setFeature(f.getFeatureType().name());
+                gene.setStartIndex(f.getStartIndex());
+                gene.setEndIndex(f.getEndIndex());
+                gene.setGroupId(f.getFeatureId());
+                gene.setFeatureName(f.getFeatureName().toUpperCase());
+                return gene;
+            }).forEach(g -> {
+                Interval interval =
+                        new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
+                genesRangeMap.putIfAbsent(interval, new ArrayList<>());
+                genesRangeMap.get(interval).add(g);
+            });
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        genesRangeMap.setMaxEndIndex(start);
+        genesRangeMap.setMinStartIndex(end);
+        return genesRangeMap;
+    }
+    /**
+     * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
+     *
+     * @param intervalMap represents a batch loaded genes form gene file
+     * @param start       a start index of the variation
+     * @param end         an end index of the variation
+     * @param chromosome  a {@code Chromosome}
+     * @return a {@code Set} of IDs of genes, affected by the variation
+     */
+    public static Set<GeneInfo> fetchGeneIdsFromBatch(
+            NggbIntervalTreeMap<List<Gene>> intervalMap, int start, int end,
+            Chromosome chromosome) {
+        Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
+        if (end > start) {
+            geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
+        }
+
+        return geneIds;
+    }
+
+    public static Set<GeneInfo> getGeneIds(NggbIntervalTreeMap<List<Gene>> intervalMap,
+                                                                     Chromosome chromosome, int start, int end) {
+        Collection<Gene> genes =
+                intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end)).stream()
+                        .flatMap(Collection::stream).collect(Collectors.toList());
+        Set<GeneInfo> geneIds;
+        boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
+        geneIds = genes.stream().filter(GeneUtils::isGene)
+                .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
+                .collect(Collectors.toSet());
+
+        return geneIds;
     }
 
     private IndexSearchResult<FeatureIndexEntry> mergeWithBookmarkSearch(final IndexSearchResult<FeatureIndexEntry> res,
