@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package com.epam.catgenome.dao.index.indexer;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
@@ -40,12 +39,10 @@ import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.GeneInfo;
-import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.util.Interval;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCompoundHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -177,7 +174,6 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
                         key.getName(), key.getType(), info.get(key.getName()).toString()));
                 return;
             }
-
             permittedInfo.put("_" + key.getName() + "_v", info.get(key.getName()).toString());
         } else {
             String numberString = info.get(key.getName()).toString();
@@ -252,8 +248,6 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
             start = Math.min(start, entry.getStartIndex());
             end = Math.max(end, entry.getEndIndex());
         }
-
-
         for (VcfIndexEntry indexEntry : allEntries) {
             List<VcfIndexEntry> filledEntries =
                     fillEntryDetails(indexEntry, geneFiles, chromosome, start, end);
@@ -286,34 +280,30 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
 
         for (GeneFile geneFile : geneFiles) {
             if (!intervalMapCache.containsKey(geneFile)) {
-                intervalMapCache
-                        .put(geneFile, featureIndexManager.loadGenesIntervalMap(geneFile, start, end, chromosome));
+                intervalMapCache.put(geneFile, featureIndexManager
+                        .loadGenesIntervalMap(Collections.singletonList(geneFile), start, end, chromosome));
             }
             NggbIntervalTreeMap<List<Gene>> intervalMap = intervalMapCache.get(geneFile);
 
-            geneIds = fetchGeneIdsFromBatch(intervalMap, entry.getStartIndex(),
-                    entry.getEndIndex(), chromosome);
-            geneIdsString =
-                    geneIds.stream().map(GeneInfo::getGeneId).collect(Collectors.joining(", "));
-            geneNamesString =
-                    geneIds.stream().map(GeneInfo::getGeneName).collect(Collectors.joining(", "));
+            geneIds = fetchGeneIdsFromBatch(intervalMap, entry.getStartIndex(), entry.getEndIndex(), chromosome);
+            geneIdsString = geneIds.stream().map(GeneInfo::getGeneId).collect(Collectors.joining(", "));
+            geneNamesString = geneIds.stream().map(GeneInfo::getGeneName).collect(Collectors.joining(", "));
             entry.setExon(geneIds.stream().anyMatch(GeneInfo::isExon));
         }
 
         final Set<VariationType> types = new HashSet<>();
         for (int i = 0; i < entry.getVariantContext().getAlternateAlleles().size(); i++) {
-            Variation variation =
-                    VcfFileReader.createVariation(entry.getVariantContext(), vcfHeader, i);
+            Variation variation = VcfFileReader.createVariation(entry.getVariantContext(), vcfHeader, i);
             types.add(variation.getType());
         }
 
         return simplify(entry, geneIds, geneIdsString, geneNamesString, types);
     }
 
-    private List<VcfIndexEntry> simplifyVcfIndexEntries(VcfIndexEntry masterEntry,
-            VariantContext context, Set<GeneInfo> geneIds, Set<VariationType> types,
-            String geneIdsString, String geneNamesString) {
-        List<VcfIndexEntry> simplifiedEntries = new ArrayList<>();
+    private List<VcfIndexEntry> simplifyVcfIndexEntries(final VcfIndexEntry masterEntry, final VariantContext context,
+                                                        final Set<GeneInfo> geneIds, final Set<VariationType> types,
+                                                        final String geneIdsString, final String geneNamesString) {
+        final List<VcfIndexEntry> simplifiedEntries = new ArrayList<>();
         for (VariationType type : types) {
             if (geneIds.isEmpty()) {
                 if (context.getFilters().isEmpty()) {
@@ -325,16 +315,15 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
                     simplifyFilters(masterEntry, context, simplifiedEntries, type);
                 }
             } else {
-                simplifyGeneIds(masterEntry, context, geneIds, geneIdsString, geneNamesString,
-                        simplifiedEntries, type);
+                simplifyGeneIds(masterEntry, context, geneIds, geneIdsString, geneNamesString, simplifiedEntries, type);
             }
         }
 
         return simplifiedEntries;
     }
 
-    private void simplifyFilters(VcfIndexEntry masterEntry, VariantContext context,
-            List<VcfIndexEntry> simplifiedEntries, VariationType type) {
+    private void simplifyFilters(final VcfIndexEntry masterEntry, final VariantContext context,
+                                 final List<VcfIndexEntry> simplifiedEntries, final VariationType type) {
         for (String filter : context.getFilters()) {
             VcfIndexEntry entry = new VcfIndexEntry(masterEntry);
             entry.setVariationType(type);
@@ -344,9 +333,9 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         }
     }
 
-    private void simplifyGeneIds(VcfIndexEntry masterEntry, VariantContext context,
-            Set<GeneInfo> geneIds, String geneIdsString, String geneNamesString,
-            List<VcfIndexEntry> simplifiedEntries, VariationType type) {
+    private void simplifyGeneIds(final VcfIndexEntry masterEntry, final VariantContext context,
+            final Set<GeneInfo> geneIds, final String geneIdsString, final String geneNamesString,
+            final List<VcfIndexEntry> simplifiedEntries, final VariationType type) {
         for (GeneInfo geneInfo : geneIds) {
             if (context.getFilters().isEmpty()) {
                 VcfIndexEntry entry = new VcfIndexEntry(masterEntry);
@@ -373,11 +362,11 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         }
     }
 
-    private List<VcfIndexEntry> splitAmbiguousInfoFields(List<VcfIndexEntry> entries,
-            List<String> ambigousInfoFields) {
+    private List<VcfIndexEntry> splitAmbiguousInfoFields(final List<VcfIndexEntry> entries,
+                                                         final List<String> ambiguousInfoFields) {
         ArrayList<VcfIndexEntry> queue = new ArrayList<>(entries);
         List<VcfIndexEntry> simplifiedEntries = new ArrayList<>();
-        for (String key : ambigousInfoFields) {
+        for (String key : ambiguousInfoFields) {
             ArrayList<VcfIndexEntry> nextIteration = new ArrayList<>();
             for (FeatureIndexEntry e : queue) {
                 VcfIndexEntry vcfIndexEntry = (VcfIndexEntry) e;
@@ -402,8 +391,8 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         return queue;
     }
 
-    private void makeCopies(VcfIndexEntry vcfIndexEntry, Object[] infoArray,
-            ArrayList<VcfIndexEntry> nextIteration, String key) {
+    private void makeCopies(final VcfIndexEntry vcfIndexEntry, final Object[] infoArray,
+                            final ArrayList<VcfIndexEntry> nextIteration, final String key) {
         for (Object element : infoArray) {
             VcfIndexEntry copy = new VcfIndexEntry(vcfIndexEntry);
             copy.getInfo().put(key, element);
@@ -418,26 +407,5 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
     @Override public void clear() {
         this.allEntries.clear();
         this.intervalMapCache.clear();
-    }
-
-    protected static class VariationGeneInfo {
-        protected String geneId;
-        protected String geneName;
-        protected boolean isExon;
-
-        VariationGeneInfo(String geneId, String geneName, boolean isExon) {
-            this.geneId = geneId;
-            this.geneName = geneName;
-            this.isExon = isExon;
-        }
-
-        @Override public int hashCode() {
-            return geneId.hashCode();
-        }
-
-        @Override public boolean equals(Object obj) {
-            return obj != null && obj.getClass() == this.getClass() && Objects
-                    .equals(((VariationGeneInfo) obj).geneId, geneId);
-        }
     }
 }

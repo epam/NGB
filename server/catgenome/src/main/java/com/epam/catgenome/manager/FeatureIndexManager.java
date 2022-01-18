@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,7 +90,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -706,13 +715,12 @@ public class FeatureIndexManager {
         }
     }
 
-    public NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(GeneFile geneFile, int start,
-                                                                 int end, Chromosome chromosome) {
+    public NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(final List<GeneFile> geneFiles, final int start,
+                                                                final int end, final Chromosome chromosome) {
         final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
         try {
-            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao
-                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
-                            chromosome);
+            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeaturesInInterval(geneFiles,
+                    start, end, chromosome);
             searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
                     || f.getFeatureType() == FeatureType.GENE).map(f -> {
                 Gene gene = new Gene();
@@ -735,6 +743,7 @@ public class FeatureIndexManager {
         genesRangeMap.setMinStartIndex(end);
         return genesRangeMap;
     }
+
     /**
      * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
      *
@@ -744,29 +753,59 @@ public class FeatureIndexManager {
      * @param chromosome  a {@code Chromosome}
      * @return a {@code Set} of IDs of genes, affected by the variation
      */
-    public static Set<GeneInfo> fetchGeneIdsFromBatch(
-            NggbIntervalTreeMap<List<Gene>> intervalMap, int start, int end,
-            Chromosome chromosome) {
-        Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
+    public static Set<GeneInfo> fetchGeneIdsFromBatch(final NggbIntervalTreeMap<List<Gene>> intervalMap,
+                                                      final int start,
+                                                      final int end,
+                                                      final Chromosome chromosome) {
+        final Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
         if (end > start) {
             geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
         }
-
         return geneIds;
     }
 
-    public static Set<GeneInfo> getGeneIds(NggbIntervalTreeMap<List<Gene>> intervalMap,
-                                                                     Chromosome chromosome, int start, int end) {
-        Collection<Gene> genes =
-                intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end)).stream()
-                        .flatMap(Collection::stream).collect(Collectors.toList());
+    public static Set<GeneInfo> getGeneIds(final NggbIntervalTreeMap<List<Gene>> intervalMap,
+                                           final Chromosome chromosome,
+                                           final int start,
+                                           final int end) {
+        final Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end))
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
         Set<GeneInfo> geneIds;
         boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
         geneIds = genes.stream().filter(GeneUtils::isGene)
                 .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
                 .collect(Collectors.toSet());
-
         return geneIds;
+    }
+
+    public void addGeneFeatureToIndex(final List<FeatureIndexEntry> allEntries, final GeneFeature feature,
+                                      final Map<String, Chromosome> chromosomeMap) {
+        if (chromosomeMap.containsKey(feature.getContig())
+                || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
+            GeneIndexEntry masterEntry = new GeneIndexEntry();
+            masterEntry.setFeatureId(feature.getFeatureId());
+            masterEntry.setUuid(UUID.randomUUID());
+            masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
+                    chromosomeMap.get(feature.getContig()) :
+                    chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));
+            masterEntry.setStartIndex(feature.getStart());
+            masterEntry.setEndIndex(feature.getEnd());
+            masterEntry.setFeatureType(GeneUtils.fetchType(feature));
+            masterEntry.setFeature(feature.getFeature());
+
+            masterEntry.setSource(feature.getSource());
+            masterEntry.setScore(feature.getScore());
+            masterEntry.setFrame(feature.getFrame());
+            Optional.ofNullable(feature.getStrand()).ifPresent(strand -> masterEntry.setStrand(strand.toValue()));
+            masterEntry.setAttributes(feature.getAttributes());
+
+            allEntries.add(masterEntry);
+
+            String featureName = feature.getFeatureName();
+            masterEntry.setFeatureName(featureName);
+        }
     }
 
     private IndexSearchResult<FeatureIndexEntry> mergeWithBookmarkSearch(final IndexSearchResult<FeatureIndexEntry> res,
@@ -796,8 +835,9 @@ public class FeatureIndexManager {
         return referenceGenomeManager.load(referenceId).getGeneFile();
     }
 
-    private void addFeaturesFromUsualGeneFileToIndex(GeneFile geneFile, Map<String, Chromosome> chromosomeMap,
-                                                     List<FeatureIndexEntry> allEntries) throws IOException {
+    private void addFeaturesFromUsualGeneFileToIndex(final GeneFile geneFile,
+                                                     final Map<String, Chromosome> chromosomeMap,
+                                                     final List<FeatureIndexEntry> allEntries) throws IOException {
         try (AbstractFeatureReader<GeneFeature, LineIterator> usualReader = fileManager.makeGeneReader(
                 geneFile, GeneFileType.ORIGINAL)) {
             CloseableIterator<GeneFeature> iterator = usualReader.iterator();
@@ -822,9 +862,11 @@ public class FeatureIndexManager {
         }
     }
 
-    private void addFeaturesFromIteratorToIndex(CloseableIterator<GeneFeature> iterator, Map<String, Chromosome>
-            chromosomeMap, GeneFile geneFile, List<FeatureIndexEntry> allEntries,
-                                                boolean transcriptIterator) throws IOException {
+    private void addFeaturesFromIteratorToIndex(final CloseableIterator<GeneFeature> iterator,
+                                                final Map<String, Chromosome> chromosomeMap,
+                                                final GeneFile geneFile,
+                                                final List<FeatureIndexEntry> allEntries,
+                                                final boolean transcriptIterator) throws IOException {
         GeneFeature feature = null;
         String currentKey = null;
 
@@ -845,51 +887,20 @@ public class FeatureIndexManager {
         }
     }
 
-    private String checkNextChromosome(Feature feature, String currentChromosomeName,
-                                       Map<String, Chromosome> chromosomeMap, List<FeatureIndexEntry> allEntries,
-                                       GeneFile geneFile) throws IOException {
+    private String checkNextChromosome(final Feature feature, final String currentChromosomeName,
+                                       final Map<String, Chromosome> chromosomeMap,
+                                       final List<FeatureIndexEntry> allEntries,
+                                       final GeneFile geneFile) throws IOException {
         if (!feature.getContig().equals(currentChromosomeName)) {
             if (currentChromosomeName != null && (chromosomeMap.containsKey(currentChromosomeName) ||
                                       chromosomeMap.containsKey(Utils.changeChromosomeName(currentChromosomeName)))) {
-
                 featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries, null);
                 LOGGER.info(MessageHelper.getMessage(
                     MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosomeName));
                 allEntries.clear();
             }
-
             return feature.getContig();
         }
-
         return currentChromosomeName;
-    }
-
-
-    public void addGeneFeatureToIndex(List<FeatureIndexEntry> allEntries, GeneFeature feature,
-                                     Map<String, Chromosome> chromosomeMap) {
-        if (chromosomeMap.containsKey(feature.getContig())
-                || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
-            GeneIndexEntry masterEntry = new GeneIndexEntry();
-            masterEntry.setFeatureId(feature.getFeatureId());
-            masterEntry.setUuid(UUID.randomUUID());
-            masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
-                    chromosomeMap.get(feature.getContig()) :
-                    chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));
-            masterEntry.setStartIndex(feature.getStart());
-            masterEntry.setEndIndex(feature.getEnd());
-            masterEntry.setFeatureType(GeneUtils.fetchType(feature));
-            masterEntry.setFeature(feature.getFeature());
-
-            masterEntry.setSource(feature.getSource());
-            masterEntry.setScore(feature.getScore());
-            masterEntry.setFrame(feature.getFrame());
-            Optional.ofNullable(feature.getStrand()).ifPresent(strand -> masterEntry.setStrand(strand.toValue()));
-            masterEntry.setAttributes(feature.getAttributes());
-
-            allEntries.add(masterEntry);
-
-            String featureName = feature.getFeatureName();
-            masterEntry.setFeatureName(featureName);
-        }
     }
 }
