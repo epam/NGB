@@ -1327,8 +1327,7 @@ export default class projectContext {
             filterDatasets,
             shouldAddAnnotationTracks,
             blatRegion,
-            keepBLASTTrack,
-            keepMotifTrack
+            keepBLASTTrack
         } = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
@@ -1361,7 +1360,7 @@ export default class projectContext {
             this._tracks = (this.tracks || [])
                 .filter(track => track.format !== 'BLAST');
         }
-        if (chromosomeDidChange && !keepMotifTrack) {
+        if (referenceDidChange) {
             this.tracksState = (this.tracksState || [])
                 .filter(track => track.format !== 'MOTIFS');
             this._tracks = (this.tracks || [])

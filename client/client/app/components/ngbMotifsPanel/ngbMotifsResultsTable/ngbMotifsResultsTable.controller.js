@@ -1,6 +1,6 @@
 import baseController from '../../../shared/baseController';
 
-const MOTIFS_RESULTS_COLUMNS = ['chromosome', 'start', 'end', 'strand'];
+const MOTIFS_RESULTS_COLUMNS = ['chromosome', 'start', 'end', 'strand', 'gene'];
 
 export default class ngbMotifsResultsTableController  extends baseController {
 
@@ -34,7 +34,6 @@ export default class ngbMotifsResultsTableController  extends baseController {
         saveTreeView: false,
         saveSelection: false
     };
-
     get motifsResultsColumns() {
         return MOTIFS_RESULTS_COLUMNS;
     }
@@ -53,6 +52,15 @@ export default class ngbMotifsResultsTableController  extends baseController {
     }
     get searchStopOn () {
         return this.ngbMotifsPanelService.searchStopOn;
+    }
+    get motifsResultsTitle () {
+        return this.ngbMotifsPanelService.motifsResultsTitle;
+    }
+    get currentParams () {
+        return this.ngbMotifsPanelService.currentParams;
+    }
+    get searchRequestsHistory () {
+        return this.ngbMotifsPanelService.searchRequestsHistory;
     }
     get emptyResults () {
         return !this.loading &&
@@ -83,9 +91,6 @@ export default class ngbMotifsResultsTableController  extends baseController {
             projectContext,
             ngbMotifsPanelService
         });
-        this.currentParams = this.ngbMotifsPanelService.currentParams;
-        this.searchRequestsHistory = this.ngbMotifsPanelService.searchRequestsHistory;
-        this.motifsResultsTitle = this.ngbMotifsPanelService.motifsResultsTitle;
         this.gridOptions.rowHeight = this.rowHeight;
         this.dispatcher.on('motifs:show:results', this.showResults.bind(this));
         this.dispatcher.on('motifs:add:tracks', this.addTracks.bind(this));
@@ -358,8 +363,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             chromosome: {
                 name: chromosome
             },
-            ...tracksOptions,
-            keepMotifTrack: true
+            ...tracksOptions
         }, false, () => {
             this.setMotif(currentMatch);
         });

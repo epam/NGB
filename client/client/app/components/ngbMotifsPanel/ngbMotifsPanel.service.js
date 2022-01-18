@@ -123,21 +123,14 @@ export default class ngbMotifsPanelService {
         this.dispatcher.on('reference:change', this.panelCloseMotifsPanel.bind(this));
     }
 
-    async searchMotif (params) {
-        this.requestNumber++;
-        this.isSearchInProgress = true;
-        this.isShowParamsTable = false;
-        this.motifsResultsTitle = params.name || params.motif;
-        const request = this.setSearchMotifRequest(params);
-        await this.showSearchMotifResults(request);
-        this.searchRequestsHistory.push(request);
-    }
-
     panelAddMotifsPanel (params) {
+        this.resetResultsData();
         this.setMotifsPanel(params);
         const layoutChange = this.appLayout.Panels.motifs;
-        layoutChange.displayed = true;
-        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        if (!layoutChange.displayed) {
+            layoutChange.displayed = true;
+            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        }
     }
 
     panelCloseMotifsPanel () {
@@ -167,6 +160,16 @@ export default class ngbMotifsPanelService {
         };
         this._searchMotifsParams.push(searchParams);
         return searchParams;
+    }
+
+    async searchMotif (params) {
+        this.requestNumber++;
+        this.isSearchInProgress = true;
+        this.isShowParamsTable = false;
+        this.motifsResultsTitle = params.name || params.motif;
+        const request = this.setSearchMotifRequest(params);
+        await this.showSearchMotifResults(request);
+        this.searchRequestsHistory.push(request);
     }
 
     setSearchMotifRequest(params) {
@@ -236,7 +239,8 @@ export default class ngbMotifsPanelService {
                 chromosome: item.contig,
                 start: item.start,
                 end: item.end,
-                strand
+                strand,
+                gene: item.geneNames
             };
         })];
     }
