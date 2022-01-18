@@ -77,12 +77,12 @@ public class ReversingRegexMotifSearchIterator implements Iterator<Motif> {
             posFlag = false;
             return new Motif(contig, positiveMatcher.start() + offset,
                     positiveMatcher.end() - 1 + offset, StrandSerializable.POSITIVE,
-                    includeSequence ? positiveMatcher.group() : null, null, null);
+                    includeSequence ? positiveMatcher.group() : null);
         }
         currentStartPositionNeg = negativeMatcher.start() + 1;
         negFlag = false;
         return new Motif(contig, negativeMatcher.start() + offset,
                 negativeMatcher.end() - 1 + offset, StrandSerializable.NEGATIVE,
-                includeSequence ? negativeMatcher.group() : null, null, null);
+                includeSequence ? negativeMatcher.group() : null);
     }
 }

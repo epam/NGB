@@ -63,7 +63,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.FeatureIndexManager.fetchGeneIdsFromBatch;
+import static com.epam.catgenome.util.IndexUtils.fetchGeneIdsFromBatch;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes VCF file entries: {@link VariantContext}

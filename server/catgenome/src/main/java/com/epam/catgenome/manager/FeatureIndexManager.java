@@ -91,7 +91,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -742,41 +741,6 @@ public class FeatureIndexManager {
         genesRangeMap.setMaxEndIndex(start);
         genesRangeMap.setMinStartIndex(end);
         return genesRangeMap;
-    }
-
-    /**
-     * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
-     *
-     * @param intervalMap represents a batch loaded genes form gene file
-     * @param start       a start index of the variation
-     * @param end         an end index of the variation
-     * @param chromosome  a {@code Chromosome}
-     * @return a {@code Set} of IDs of genes, affected by the variation
-     */
-    public static Set<GeneInfo> fetchGeneIdsFromBatch(final NggbIntervalTreeMap<List<Gene>> intervalMap,
-                                                      final int start,
-                                                      final int end,
-                                                      final Chromosome chromosome) {
-        final Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
-        if (end > start) {
-            geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
-        }
-        return geneIds;
-    }
-
-    public static Set<GeneInfo> getGeneIds(final NggbIntervalTreeMap<List<Gene>> intervalMap,
-                                           final Chromosome chromosome,
-                                           final int start,
-                                           final int end) {
-        final Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end))
-                .stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        final boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
-        return genes.stream()
-                .filter(GeneUtils::isGene)
-                .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
-                .collect(Collectors.toSet());
     }
 
     public void addGeneFeatureToIndex(final List<FeatureIndexEntry> allEntries, final GeneFeature feature,

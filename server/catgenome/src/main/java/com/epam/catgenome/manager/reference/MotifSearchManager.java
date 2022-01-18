@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.FeatureIndexManager.fetchGeneIdsFromBatch;
+import static com.epam.catgenome.util.IndexUtils.fetchGeneIdsFromBatch;
 
 @Service
 @Slf4j
@@ -163,20 +164,22 @@ public class MotifSearchManager {
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
 
-        final List<GeneFile> geneFiles = reference.getGeneFile() != null ?
-                Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-        String geneIdsString;
-        String geneNamesString;
-        Set<GeneInfo> geneIds;
+        if (!CollectionUtils.isEmpty(searchResult)) {
+            final List<GeneFile> geneFiles = reference.getGeneFile() != null ?
+                    Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
+            List<String> geneIds;
+            List<String> geneNames;
+            Set<GeneInfo> geneInfos;
 
-        final NggbIntervalTreeMap<List<Gene>> intervalMap = featureIndexManager.loadGenesIntervalMap(geneFiles,
-                request.getStartPosition(), request.getEndPosition(), chromosome);
-        for (Motif motif : searchResult) {
-            geneIds = fetchGeneIdsFromBatch(intervalMap, motif.getStart(), motif.getEnd(), chromosome);
-            geneIdsString = geneIds.stream().map(GeneInfo::getGeneId).collect(Collectors.joining(", "));
-            geneNamesString = geneIds.stream().map(GeneInfo::getGeneName).collect(Collectors.joining(", "));
-            motif.setGeneId(geneIdsString);
-            motif.setGeneName(geneNamesString);
+            final NggbIntervalTreeMap<List<Gene>> intervalMap = featureIndexManager.loadGenesIntervalMap(geneFiles,
+                    request.getStartPosition(), request.getEndPosition(), chromosome);
+            for (Motif motif : searchResult) {
+                geneInfos = fetchGeneIdsFromBatch(intervalMap, motif.getStart(), motif.getEnd(), chromosome);
+                geneIds = geneInfos.stream().map(GeneInfo::getGeneId).collect(Collectors.toList());
+                geneNames = geneInfos.stream().map(GeneInfo::getGeneName).collect(Collectors.toList());
+                motif.setGeneIds(geneIds);
+                motif.setGeneNames(geneNames);
+            }
         }
 
         final int lastStart = searchResult.isEmpty()

@@ -121,7 +121,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         if (includeSequence) {
             return getMotif(contig, match.start, match.end, currentStrand);
         }
-        return new Motif(contig, match.start + offset, match.end + offset, currentStrand, null, null, null);
+        return new Motif(contig, match.start + offset, match.end + offset, currentStrand, null);
     }
 
     private Motif getMotif(final String contig, final int start, final int end,  StrandSerializable strand) {
@@ -129,7 +129,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
         for (int i = start; i <= end; i++) {
             result.append((char) sequence[i]);
         }
-        return new Motif(contig, start + offset, end + offset, strand, result.toString(), null, null);
+        return new Motif(contig, start + offset, end + offset, strand, result.toString());
     }
 
     /**

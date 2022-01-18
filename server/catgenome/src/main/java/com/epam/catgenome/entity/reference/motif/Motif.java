@@ -29,6 +29,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +40,14 @@ public class Motif {
     private int end;
     private StrandSerializable strand;
     private String sequence;
-    private String geneId;
-    private String geneName;
+    private List<String> geneIds;
+    private List<String> geneNames;
+
+    public Motif(String contig, int start, int end, StrandSerializable strand, String sequence) {
+        this.contig = contig;
+        this.start = start;
+        this.end = end;
+        this.strand = strand;
+        this.sequence = sequence;
+    }
 }
