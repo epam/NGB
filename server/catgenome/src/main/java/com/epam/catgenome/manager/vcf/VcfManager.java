@@ -153,9 +153,6 @@ public class VcfManager {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
-    @Autowired
-    private FeatureIndexDao featureIndexDao;
-
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 

@@ -32,12 +32,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.entity.vcf.OrganismType;
+import com.epam.catgenome.entity.vcf.Variation;
+import com.epam.catgenome.entity.vcf.VariationType;
+import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.GeneInfo;
@@ -70,9 +73,10 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     private FacetsConfig facetsConfig;
     private VcfFile vcfFile;
 
-    public BigVcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader,
-                                     FeatureIndexManager featureIndexManager, VcfFile featureFile,
-                                     FileManager fileManager, List<GeneFile> geneFiles, Integer indexBufferSize) throws IOException {
+    public BigVcfFeatureIndexBuilder(final VcfFilterInfo filterInfo, final VCFHeader vcfHeader,
+                                     final FeatureIndexManager featureIndexManager, final VcfFile featureFile,
+                                     final FileManager fileManager, final List<GeneFile> geneFiles,
+                                     final Integer indexBufferSize) throws IOException {
         super(filterInfo, vcfHeader, featureIndexManager);
         this.analyzer = new StandardAnalyzer();
         Directory index = fileManager.createIndexForFile(featureFile);

@@ -612,8 +612,7 @@ public class FeatureIndexManager {
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
             final List<? extends FeatureIndexEntry> entries,
-            VcfFilterInfo vcfFilterInfo)
-            throws IOException {
+            final VcfFilterInfo vcfFilterInfo) throws IOException {
         featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo);
     }
 
@@ -693,9 +692,9 @@ public class FeatureIndexManager {
      * @param full
      * @throws IOException if an error occurred while writing index
      */
-    public void processGeneFile(GeneFile geneFile, final Map<String, Chromosome> chromosomeMap,
-            boolean full) throws IOException {
-        List<FeatureIndexEntry> allEntries = new ArrayList<>();
+    public void processGeneFile(final GeneFile geneFile, final Map<String, Chromosome> chromosomeMap,
+                                final boolean full) throws IOException {
+        final List<FeatureIndexEntry> allEntries = new ArrayList<>();
 
         LOGGER.info("Writing feature index for file {}:{}", geneFile.getId(), geneFile.getName());
 
@@ -721,21 +720,22 @@ public class FeatureIndexManager {
         try {
             IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeaturesInInterval(geneFiles,
                     start, end, chromosome);
-            searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
-                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
-                Gene gene = new Gene();
-                gene.setFeature(f.getFeatureType().name());
-                gene.setStartIndex(f.getStartIndex());
-                gene.setEndIndex(f.getEndIndex());
-                gene.setGroupId(f.getFeatureId());
-                gene.setFeatureName(f.getFeatureName().toUpperCase());
-                return gene;
-            }).forEach(g -> {
-                Interval interval =
-                        new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
-                genesRangeMap.putIfAbsent(interval, new ArrayList<>());
-                genesRangeMap.get(interval).add(g);
-            });
+            searchResult.getEntries().stream()
+                    .filter(f -> f.getFeatureType() == FeatureType.EXON || f.getFeatureType() == FeatureType.GENE)
+                    .map(f -> {
+                        Gene gene = new Gene();
+                        gene.setFeature(f.getFeatureType().name());
+                        gene.setStartIndex(f.getStartIndex());
+                        gene.setEndIndex(f.getEndIndex());
+                        gene.setGroupId(f.getFeatureId());
+                        gene.setFeatureName(f.getFeatureName().toUpperCase());
+                        return gene;
+                    })
+                    .forEach(g -> {
+                        Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
+                        genesRangeMap.putIfAbsent(interval, new ArrayList<>());
+                        genesRangeMap.get(interval).add(g);
+                    });
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -772,12 +772,11 @@ public class FeatureIndexManager {
                 .stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        Set<GeneInfo> geneIds;
-        boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
-        geneIds = genes.stream().filter(GeneUtils::isGene)
+        final boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
+        return genes.stream()
+                .filter(GeneUtils::isGene)
                 .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
                 .collect(Collectors.toSet());
-        return geneIds;
     }
 
     public void addGeneFeatureToIndex(final List<FeatureIndexEntry> allEntries, final GeneFeature feature,
