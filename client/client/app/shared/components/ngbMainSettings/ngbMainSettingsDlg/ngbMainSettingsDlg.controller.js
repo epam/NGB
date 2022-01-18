@@ -1,7 +1,12 @@
 const DEFAULT_CONFIG = 7000;
 export default class ngbMainSettingsDlgController {
     settings = null;
+    highlightTypes = {
+        VCF: 'VCF',
+        LINEAGE: 'LINEAGE'
+    };
     highlightProfileList = [];
+    lineageProfileList = [];
 
     accessToken = '';
     tokenValidDate;
@@ -15,7 +20,8 @@ export default class ngbMainSettingsDlgController {
     showTrackHeadersIsDisabled = false;
 
     /* @ngInject */
-    constructor(dispatcher, projectContext, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings, moment, userDataService, utilsDataService) {
+    constructor(dispatcher, projectContext, localDataService, $mdDialog,
+        ngbMainSettingsDlgService, $scope, settings, moment, userDataService, utilsDataService) {
         this._dispatcher = dispatcher;
         this._localDataService = localDataService;
         this.userIsAdmin = false;
@@ -30,6 +36,7 @@ export default class ngbMainSettingsDlgController {
 
         this.tokenValidDate = this.moment().add(1, 'month').toDate();
         this.highlightProfileList = projectContext.getTrackDefaultSettings('interest_profiles');
+        this.lineageProfileList = projectContext.getTrackDefaultSettings('lineage_profiles');
 
         utilsDataService.isRoleModelEnabled().then(res => {
             this.isRoleModelEnabled = res;
@@ -40,7 +47,7 @@ export default class ngbMainSettingsDlgController {
             }
         });
 
-        this.prepareDefaultHighlightProfile();
+        this.prepareDefaultHighlightProfiles();
 
         this.scope = $scope;
     }
@@ -84,15 +91,37 @@ export default class ngbMainSettingsDlgController {
         settings.highlightProfile = this.settings.isVariantsHighlighted
             ? settings.highlightProfile
             : undefined;
+        settings.lineageHighlightProfile = this.settings.isLineageHighlighted
+            ? settings.lineageHighlightProfile
+            : undefined;
         return settings;
     }
 
-    prepareDefaultHighlightProfile() {
-        if (this.settings.isVariantsHighlighted) {
-            this.settings.highlightProfile = this.settings.highlightProfile
-                || Object.keys(this.highlightProfileList).filter(
-                    name => this.highlightProfileList[name].is_default
-                )[0];
+    prepareDefaultHighlightProfiles() {
+        Object.values(this.highlightTypes, type => {
+            this.prepareDefaultHighlightProfile(type);
+        });
+    }
+
+    prepareDefaultHighlightProfile(type) {
+        switch (type) {
+            case this.highlightTypes.LINEAGE: {
+                if (this.settings.isLineageHighlighted) {
+                    this.settings.lineageHighlightProfile = this.settings.lineageHighlightProfile
+                        || Object.keys(this.lineageProfileList).filter(
+                            name => this.lineageProfileList[name].is_default
+                        )[0];
+                }
+                break;
+            }
+            case this.highlightTypes.VCF: {
+                if (this.settings.isVariantsHighlighted) {
+                    this.settings.highlightProfile = this.settings.highlightProfile
+                        || Object.keys(this.highlightProfileList).filter(
+                            name => this.highlightProfileList[name].is_default
+                        )[0];
+                }
+            }
         }
     }
 }

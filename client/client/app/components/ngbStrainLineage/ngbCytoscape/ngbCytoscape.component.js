@@ -6,7 +6,8 @@ export default  {
         elements: '<',
         tag: '@',
         onElementClick: '&',
-        storageName: '@'
+        storageName: '@',
+        elementsOptions: '<'
     },
     controller: ngbCytoscapeController
 };

@@ -210,6 +210,8 @@ export default {
         showCenterLine: true,
         showSoftClippedBase: true,
         isVariantsHighlighted: false,
-        highlightProfile: undefined
+        highlightProfile: undefined,
+        isLineageHighlighted: false,
+        lineageHighlightProfile: undefined
     }
 };
