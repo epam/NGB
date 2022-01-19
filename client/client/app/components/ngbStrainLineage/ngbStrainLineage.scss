@@ -38,7 +38,7 @@
   }
 }
 .strain-lineage-list-container {
-  z-index: 999; // to overlap cytoscape edge edit
+  z-index: 99; // to overlap cytoscape edge edit
 }
 
 .tree-description-container {
@@ -54,7 +54,7 @@
     position: absolute;
     top: 0;
     right: 15px;
-    z-index: 1;
+    z-index: 80;
 
     .md-content {
       display: flex;

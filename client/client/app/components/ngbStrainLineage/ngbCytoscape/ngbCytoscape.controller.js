@@ -49,7 +49,7 @@ export default class ngbCytoscapeController {
         Cytoscape.use(dom_node);
         Cytoscape.use(contextMenus);
         konva.showWarnings = false;
-        edgeEditing( Cytoscape, $, konva );
+        edgeEditing(Cytoscape, $, konva);
 
         const resizeHandler = () => {
             if (this.resizeCytoscape()) {
@@ -166,9 +166,10 @@ export default class ngbCytoscapeController {
                 this.viewer.contextMenus({
                     menuItemClasses: 'cytoscape-context-item-menu'
                 });
-                this.viewer.edgeEditing({
-                    zIndex: 90,
+                this.edgeEditingInstance = this.viewer.edgeEditing({
+                    zIndex: 50,
                     undoable: false,
+                    anchorShapeSizeFactor: 5,
                     bendRemovalSensitivity: 16,
                     enableMultipleAnchorRemovalOption: true,
                     initAnchorsAutomatically: false,
@@ -186,6 +187,12 @@ export default class ngbCytoscapeController {
                     this.resizeCytoscape();
                     this.loadSavedState(this.savedViewerState);
                     this.viewer.style().update();
+                });
+                this.viewer.nodes().on('mouseover', () => {
+                    $(this.cytoscapeContainer).find('div:first-child').css('z-index', 60);
+                });
+                this.viewer.nodes().on('mouseout', () => {
+                    $(this.cytoscapeContainer).find('div:first-child').css('z-index', 0);
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
@@ -229,6 +236,15 @@ export default class ngbCytoscapeController {
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     restoreDefault: () => {
+                        viewerContext.viewer.edges().forEach(edge => {
+                            if (this.edgeEditingInstance && this.edgeEditingInstance.getEdgeType(edge) !== 'none') {
+                                this.edgeEditingInstance.getAnchorsAsArray(edge).forEach((anchor, index) => {
+                                    this.edgeEditingInstance.deleteSelectedAnchor(edge, index);
+                                });
+                                edge.removeClass('edgebendediting-hasbendpoints edgebendediting-hasmultiplebendpoints');
+                            }
+                        });
+                        viewerContext.viewer.edges().unselect();
                         viewerContext.viewer.layout(this.settings.defaultLayout).run();
                         viewerContext.saveLayout();
                     },
