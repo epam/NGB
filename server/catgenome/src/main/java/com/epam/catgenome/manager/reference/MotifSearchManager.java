@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.gene.Gene;
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.StrandedSequence;
@@ -33,22 +35,28 @@ import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
 import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
 import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.motif.MotifSearcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IndexUtils.fetchGeneIdsFromBatch;
 
 @Service
 @Slf4j
@@ -71,7 +79,8 @@ public class MotifSearchManager {
 
     @Autowired
     private ReferenceManager referenceManager;
-
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
     public Track<StrandedSequence> fillTrackWithMotifSearch(final Track<StrandedSequence> track,
                                                             final String motif,
@@ -143,9 +152,9 @@ public class MotifSearchManager {
                         ? defaultIncludeSequence
                         : request.getIncludeSequence();
 
-        int overlap = validateAndAdjustOverlap(request);
-        int startPosition = Math.max(1, request.getStartPosition() - overlap);
-        int endPosition = Math.min(chromosome.getSize(), request.getEndPosition() + overlap);
+        final int overlap = validateAndAdjustOverlap(request);
+        final int startPosition = Math.max(1, request.getStartPosition() - overlap);
+        final int endPosition = Math.min(chromosome.getSize(), request.getEndPosition() + overlap);
 
         final List<Motif> searchResult =
                 MotifSearcher.search(getSequence(startPosition, endPosition, reference, chromosome),
@@ -154,6 +163,24 @@ public class MotifSearchManager {
                         .filter(motif -> motif.getEnd() >= request.getStartPosition()
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
+
+        if (!CollectionUtils.isEmpty(searchResult)) {
+            final List<GeneFile> geneFiles = reference.getGeneFile() != null ?
+                    Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
+            List<String> geneIds;
+            List<String> geneNames;
+            Set<GeneInfo> geneInfos;
+
+            final NggbIntervalTreeMap<List<Gene>> intervalMap = featureIndexManager.loadGenesIntervalMap(geneFiles,
+                    request.getStartPosition(), request.getEndPosition(), chromosome);
+            for (Motif motif : searchResult) {
+                geneInfos = fetchGeneIdsFromBatch(intervalMap, motif.getStart(), motif.getEnd(), chromosome);
+                geneIds = geneInfos.stream().map(GeneInfo::getGeneId).collect(Collectors.toList());
+                geneNames = geneInfos.stream().map(GeneInfo::getGeneName).collect(Collectors.toList());
+                motif.setGeneIds(geneIds);
+                motif.setGeneNames(geneNames);
+            }
+        }
 
         final int lastStart = searchResult.isEmpty()
                 ? request.getStartPosition()

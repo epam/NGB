@@ -153,9 +153,6 @@ public class VcfManager {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
-    @Autowired
-    private FeatureIndexDao featureIndexDao;
-
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
@@ -620,7 +617,7 @@ public class VcfManager {
 
         BigVcfFeatureIndexBuilder indexer = null;
         if (doIndex) {
-            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao, file,
+            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexManager, file,
                             fileManager, geneFiles, indexBufferSize);
         }
 

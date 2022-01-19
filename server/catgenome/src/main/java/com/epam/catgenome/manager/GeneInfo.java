@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,29 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.entity.reference.motif;
+package com.epam.catgenome.manager;
 
-import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
+import java.util.Objects;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
-public class Motif {
-    private String contig;
-    private int start;
-    private int end;
-    private StrandSerializable strand;
-    private String sequence;
-    private List<String> geneIds;
-    private List<String> geneNames;
+public class GeneInfo {
+    private String geneId;
+    private String geneName;
+    private boolean isExon;
 
-    public Motif(String contig, int start, int end, StrandSerializable strand, String sequence) {
-        this.contig = contig;
-        this.start = start;
-        this.end = end;
-        this.strand = strand;
-        this.sequence = sequence;
+    @Override public int hashCode() {
+        return geneId.hashCode();
+    }
+
+    @Override public boolean equals(Object obj) {
+        return obj != null && obj.getClass() == this.getClass() && Objects
+                .equals(((GeneInfo) obj).geneId, geneId);
     }
 }
+
