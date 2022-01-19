@@ -41,11 +41,11 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.motif.MotifSearcher;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -164,21 +164,18 @@ public class MotifSearchManager {
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
 
-        if (!CollectionUtils.isEmpty(searchResult)) {
-            final List<GeneFile> geneFiles = reference.getGeneFile() != null ?
-                    Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-            List<String> geneIds;
-            List<String> geneNames;
-            Set<GeneInfo> geneInfos;
+        if (CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
+            final List<GeneFile> geneFiles = Collections.singletonList(reference.getGeneFile());
+            final int start = searchResult.get(0).getStart();
+            final int end = searchResult.get(searchResult.size() - 1).getEnd();
 
             final NggbIntervalTreeMap<List<Gene>> intervalMap = featureIndexManager.loadGenesIntervalMap(geneFiles,
-                    request.getStartPosition(), request.getEndPosition(), chromosome);
+                    start, end, chromosome);
             for (Motif motif : searchResult) {
-                geneInfos = fetchGeneIdsFromBatch(intervalMap, motif.getStart(), motif.getEnd(), chromosome);
-                geneIds = geneInfos.stream().map(GeneInfo::getGeneId).collect(Collectors.toList());
-                geneNames = geneInfos.stream().map(GeneInfo::getGeneName).collect(Collectors.toList());
-                motif.setGeneIds(geneIds);
-                motif.setGeneNames(geneNames);
+                final Set<GeneInfo> geneInfos = fetchGeneIdsFromBatch(intervalMap,
+                        motif.getStart(), motif.getEnd(), chromosome);
+                motif.setGeneIds(geneInfos.stream().map(GeneInfo::getGeneId).collect(Collectors.toList()));
+                motif.setGeneNames(geneInfos.stream().map(GeneInfo::getGeneName).collect(Collectors.toList()));
             }
         }
 
