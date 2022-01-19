@@ -54,7 +54,6 @@ import com.epam.catgenome.entity.vcf.VcfSample;
  * </p>
  */
 @Setter
-@Getter
 public class VcfFileDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired

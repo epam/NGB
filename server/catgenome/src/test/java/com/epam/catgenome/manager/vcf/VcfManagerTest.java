@@ -117,6 +117,7 @@ import com.epam.catgenome.util.Utils;
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 public class VcfManagerTest extends AbstractManagerTest {
 
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
@@ -245,7 +246,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveLoadVcfFile() throws IOException {
         final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -257,7 +257,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveLoadMultiSampleVcfFile() throws IOException {
         final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_SAMPLES_VCF);
 
@@ -273,7 +272,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveLoadVcfCompressedFile() throws IOException {
         final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
 
@@ -288,7 +286,6 @@ public class VcfManagerTest extends AbstractManagerTest {
      * Should return a number of variations having type STATISTIC and variationsCount > 1
      */
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadSmallScaleVcfFile() throws IOException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -311,7 +308,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadSmallScaleVcfFileGa4GH() throws IOException, ExternalDbUnavailableException {
 
         String fetchRes1 = readFile("GA4GH_id10473.json");
@@ -345,7 +341,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedSummary() throws IOException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
@@ -403,7 +398,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Ignore
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testAllTrackGa4GH() throws IOException {
         VcfFile vcfFileGA4GH = registerVcfGA4GH();
         vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
@@ -415,7 +409,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testGetVariantsGA4GH() throws IOException, ExternalDbUnavailableException,
             Ga4ghResourceUnavailableException {
         String fetchRes1 = readFile("GA4GH_id10473_variant_2.json");
@@ -435,7 +428,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Ignore
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterDownloadFile() {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
@@ -448,7 +440,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterFile() throws IOException{
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -468,7 +459,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadStructuralVariations() throws IOException {
         Resource refResource = context.getResource("classpath:templates/A3.fa");
 
@@ -512,7 +502,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testUnregisterVcfFile() throws IOException {
         // Register vcf file.
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
@@ -563,7 +552,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGetNextFeature() throws IOException, ExternalDbUnavailableException {
         String fetchRes1 = readFile("GA4GH_id10473.json");
         String fetchRes2 = readFile("GA4GH_id10473_variant.json");
@@ -587,7 +575,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Ignore
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testSaveLoadUrl() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
@@ -642,7 +629,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Ignore
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadUrlNoRegistration() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
@@ -675,7 +661,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedSummaryUrl() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
@@ -711,7 +696,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedInfo() throws IOException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
@@ -726,7 +710,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveUnsorted() throws IOException {
         String invalidVcf = "unsorted.vcf";
         testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
@@ -737,7 +720,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterFileExtraChr() throws IOException {
         VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
         Assert.assertTrue(vcfFile != null);
