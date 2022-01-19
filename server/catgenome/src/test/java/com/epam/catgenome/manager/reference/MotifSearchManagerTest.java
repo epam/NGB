@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.reference;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.StrandedSequence;
 import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
 import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
@@ -61,6 +62,15 @@ public class MotifSearchManagerTest {
     public static final int END_POSITION = 1000;
     public static final int PAGE_SIZE = 100;
     public static final int BIG_PAGE_SIZE = 10000;
+    public static final int START_POSITION_15 = 15;
+    public static final int MOTIF_CCA_START_COORDINATE_12 = 12;
+    public static final int START_POSITION_3 = 3;
+    public static final int MOTIF_CCA_START_COORDINATE_2 = 2;
+    public static final String MOTIF_CCA = "CCA";
+    public static final String MOTIF_CCCC = "CCCC";
+    public static final int START_POSITION_1 = 1;
+    public static final int MOTIF_CCCC_START_POSITION_16 = 16;
+    public static final String MOTIF_CCAGCAGAAC = "CCAGCAGAAC";
 
     @Autowired
     ApplicationContext context;
@@ -236,7 +246,7 @@ public class MotifSearchManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void searchRegionMotifAtEdges() throws IOException {
-        final int expectedStartPosition = 1;
+        final int expectedStartPosition = START_POSITION_1;
         final int expectedEndPosition = testChromosome.getSize();
         final int smallShift = 100;
         final int shift = 3000;
@@ -325,7 +335,7 @@ public class MotifSearchManagerTest {
         final MotifSearchResult search = motifSearchManager.search(testRequest);
         Assert.assertEquals(0, search.getResult().size());
         Assert.assertEquals(0, search.getPageSize().longValue());
-        Assert.assertEquals(testStart + 1, search.getPosition().longValue());
+        Assert.assertEquals(testStart + START_POSITION_1, search.getPosition().longValue());
     }
 
     @Test
@@ -383,10 +393,10 @@ public class MotifSearchManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void searchChromosomeMotifsShouldResultWithTheSameResultWhenBufferVaried() {
 
-        final int testStart = 1;
+        final int testStart = START_POSITION_1;
         final int testEnd = 1000000;
         final int pageSize = 10000;
-        final int slidingWindow = 15;
+        final int slidingWindow = START_POSITION_15;
         final int expectedResultSize = 160;
         final int testBufferSizeStep = 123;
         final int numberOfBufferSteps = 5;
@@ -437,7 +447,7 @@ public class MotifSearchManagerTest {
     public void searchForSpecifiedPageSizeShouldReturnResultsWithSizeEqualPageSizeTest() {
         MotifSearchRequest request = MotifSearchRequest.builder()
                 .referenceId(a3TestReference.getId())
-                .startPosition(1)
+                .startPosition(START_POSITION_1)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
@@ -453,7 +463,7 @@ public class MotifSearchManagerTest {
     public void searchForLargeNumberOfResultsShouldReturnResultsFromSeveralChromosomesTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(hpGenomeTestReference.getId())
-                .chromosomeId(hpGenomeTestReference.getChromosomes().get(1).getId())
+                .chromosomeId(hpGenomeTestReference.getChromosomes().get(START_POSITION_1).getId())
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
                 .pageSize(PAGE_SIZE)
@@ -462,7 +472,7 @@ public class MotifSearchManagerTest {
         MotifSearchResult search = motifSearchManager.search(att);
         Set<String> chromosomes = search.getResult().stream().map(Motif::getContig)
                 .collect(Collectors.toSet());
-        Assert.assertTrue(chromosomes.size() > 1);
+        Assert.assertTrue(chromosomes.size() > START_POSITION_1);
     }
 
     @Test
@@ -470,8 +480,8 @@ public class MotifSearchManagerTest {
     public void checkThatPositionIsNullWhenWeSearchForLargeNumberOfResultsTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(hpGenomeTestReference.getId())
-                .chromosomeId(hpGenomeTestReference.getChromosomes().get(1).getId())
-                .startPosition(1)
+                .chromosomeId(hpGenomeTestReference.getChromosomes().get(START_POSITION_1).getId())
+                .startPosition(START_POSITION_1)
                 .motif(TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
                 .pageSize(PAGE_SIZE)
@@ -487,7 +497,7 @@ public class MotifSearchManagerTest {
     public void checkThatPositionIsNullWhenWeSearchFullGenomeButDataOnlyInFirstChrTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(testWgTestReference.getId())
-                .startPosition(1)
+                .startPosition(START_POSITION_1)
                 .chromosomeId(testWgTestReference.getChromosomes().get(0).getId())
                 .motif("CCC")
                 .searchType(MotifSearchType.WHOLE_GENOME)
@@ -587,7 +597,7 @@ public class MotifSearchManagerTest {
     public void searchForSpecifiedPageSizeByExtMotifShouldReturnResultsWithSizeEqualPageSizeTest() {
         MotifSearchRequest request = MotifSearchRequest.builder()
                 .referenceId(a3TestReference.getId())
-                .startPosition(1)
+                .startPosition(START_POSITION_1)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(EXTENDED_TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
@@ -603,7 +613,7 @@ public class MotifSearchManagerTest {
     public void searchForLargeNumberOfResultsByExtMotifShouldReturnResultsFromSeveralChromosomesTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(hpGenomeTestReference.getId())
-                .chromosomeId(hpGenomeTestReference.getChromosomes().get(1).getId())
+                .chromosomeId(hpGenomeTestReference.getChromosomes().get(START_POSITION_1).getId())
                 .motif(EXTENDED_TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
                 .pageSize(PAGE_SIZE)
@@ -612,7 +622,7 @@ public class MotifSearchManagerTest {
         MotifSearchResult search = motifSearchManager.search(att);
         Set<String> chromosomes = search.getResult().stream().map(Motif::getContig)
                 .collect(Collectors.toSet());
-        Assert.assertTrue(chromosomes.size() > 1);
+        Assert.assertTrue(chromosomes.size() > START_POSITION_1);
     }
 
     @Test
@@ -620,8 +630,8 @@ public class MotifSearchManagerTest {
     public void checkThatPositionIsNullWhenWeSearchByExtMotifForLargeNumberOfResultsTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(hpGenomeTestReference.getId())
-                .chromosomeId(hpGenomeTestReference.getChromosomes().get(1).getId())
-                .startPosition(1)
+                .chromosomeId(hpGenomeTestReference.getChromosomes().get(START_POSITION_1).getId())
+                .startPosition(START_POSITION_1)
                 .motif(EXTENDED_TEST_GENOME_MOTIF)
                 .searchType(MotifSearchType.WHOLE_GENOME)
                 .pageSize(BIG_PAGE_SIZE)
@@ -637,7 +647,7 @@ public class MotifSearchManagerTest {
     public void checkThatPositionIsNullWhenWeSearchFullGenomeByExtMotifButDataOnlyInFirstChrTest() {
         MotifSearchRequest att = MotifSearchRequest.builder()
                 .referenceId(testWgTestReference.getId())
-                .startPosition(1)
+                .startPosition(START_POSITION_1)
                 .chromosomeId(testWgTestReference.getChromosomes().get(0).getId())
                 .motif("CC+")
                 .searchType(MotifSearchType.WHOLE_GENOME)
@@ -647,5 +657,66 @@ public class MotifSearchManagerTest {
         MotifSearchResult search = motifSearchManager.search(att);
         Assert.assertNull(search.getPosition());
         Assert.assertFalse(search.getResult().isEmpty());
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldFindPrevMotifForRightCoordinate() {
+        MotifSearchRequest att = MotifSearchRequest.builder()
+                .referenceId(a3TestReference.getId())
+                .startPosition(START_POSITION_15)
+                .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
+                .motif(MOTIF_CCA)
+                .build();
+        StrandedSequence motif = motifSearchManager.getPreviousMotif(att);
+        Assert.assertNotNull(motif);
+        Assert.assertTrue(motif.getStartIndex() == MOTIF_CCA_START_COORDINATE_12);
+
+        att = MotifSearchRequest.builder()
+                .referenceId(a3TestReference.getId())
+                .startPosition(START_POSITION_3)
+                .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
+                .motif(MOTIF_CCA)
+                .build();
+        motif = motifSearchManager.getPreviousMotif(att);
+        Assert.assertNotNull(motif);
+        Assert.assertTrue(motif.getStartIndex() == MOTIF_CCA_START_COORDINATE_2);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldFindNextMotifForRightCoordinate() {
+        MotifSearchRequest att = MotifSearchRequest.builder()
+                .referenceId(a3TestReference.getId())
+                .startPosition(START_POSITION_1)
+                .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
+                .motif(MOTIF_CCCC)
+                .build();
+        StrandedSequence motif = motifSearchManager.getNextMotif(att);
+        Assert.assertNotNull(motif);
+        Assert.assertTrue(motif.getStartIndex() == MOTIF_CCCC_START_POSITION_16);
+
+        att = MotifSearchRequest.builder()
+                .referenceId(a3TestReference.getId())
+                .startPosition(MOTIF_CCCC_START_POSITION_16)
+                .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
+                .motif(MOTIF_CCCC)
+                .build();
+        motif = motifSearchManager.getNextMotif(att);
+        Assert.assertNotNull(motif);
+        Assert.assertTrue(motif.getStartIndex() > MOTIF_CCCC_START_POSITION_16);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldntFindPrevMotifForWrongCoordinate() {
+        MotifSearchRequest att = MotifSearchRequest.builder()
+                .referenceId(a3TestReference.getId())
+                .startPosition(START_POSITION_1)
+                .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
+                .motif(MOTIF_CCAGCAGAAC)
+                .build();
+        motifSearchManager.getPreviousMotif(att);
     }
 }

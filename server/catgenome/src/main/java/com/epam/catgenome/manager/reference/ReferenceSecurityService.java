@@ -163,4 +163,11 @@ public class ReferenceSecurityService {
     public MotifSearchResult getTableByMotif(final MotifSearchRequest motifSearchRequest) {
         return motifSearchManager.search(motifSearchRequest);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public StrandedSequence getNextOrPrevMotif(final MotifSearchRequest motifSearchRequest, final boolean forward) {
+        return forward
+                ? motifSearchManager.getNextMotif(motifSearchRequest)
+                : motifSearchManager.getPreviousMotif(motifSearchRequest);
+    }
 }

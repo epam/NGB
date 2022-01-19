@@ -413,4 +413,36 @@ public class ReferenceController extends AbstractRESTController {
     public Result<MotifSearchResult> loadMotifTable(@RequestBody MotifSearchRequest motifSearchRequest) {
         return Result.success(referenceSecurityService.getTableByMotif(motifSearchRequest));
     }
+
+    @RequestMapping(value = "/reference/motif/next", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns a next motif regarding request.",
+            notes = "Returns a next motif regarding request. " +
+                    "Parameters: referenceId, chromosomeId, motif, startPosition are required, " +
+                    "strand and includeSequence are optional, other are not considered.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<StrandedSequence> loadNextMotif(@RequestBody MotifSearchRequest motifSearchRequest) {
+        return Result.success(
+                referenceSecurityService.getNextOrPrevMotif(motifSearchRequest, true));
+    }
+
+    @RequestMapping(value = "/reference/motif/prev", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns a previous motif regarding request.",
+            notes = "Returns a previous motif regarding request. " +
+                    "Parameters: referenceId, chromosomeId, motif, startPosition are required, " +
+                    "strand and includeSequence are optional, other are not considered.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<StrandedSequence> loadPrevMotif(@RequestBody MotifSearchRequest motifSearchRequest) {
+        return Result.success(
+                referenceSecurityService.getNextOrPrevMotif(motifSearchRequest, false));
+    }
 }

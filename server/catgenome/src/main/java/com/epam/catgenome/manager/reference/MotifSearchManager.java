@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -122,6 +123,50 @@ public class MotifSearchManager {
         }
     }
 
+    public StrandedSequence getNextMotif(final MotifSearchRequest motifSearchRequest) {
+        verifyNextOrPrevSearchRequest(motifSearchRequest);
+        return search(
+                motifSearchRequest.toBuilder()
+                        .startPosition(motifSearchRequest.getStartPosition())
+                        .searchType(MotifSearchType.CHROMOSOME)
+                        // We need to set pageSize == 2 because first match could overlap startPosition but
+                        // start of this match will < motifSearchRequest.startPosition
+                        // (algorithm searches for all matches that overlap requested interval)
+                        .pageSize(2).build()
+        ).getResult()
+                .stream()
+                .filter(m -> m.getStart() > motifSearchRequest.getStartPosition())
+                .map(m -> new StrandedSequence(m.getStart(), m.getEnd(), m.getSequence(), m.getStrand()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No next motif can be found!"));
+    }
+
+    public StrandedSequence getPreviousMotif(final MotifSearchRequest motifSearchRequest) {
+        verifyNextOrPrevSearchRequest(motifSearchRequest);
+        int from = Math.max(0, motifSearchRequest.getStartPosition() - bufferSize);
+        int to = Math.max(0, motifSearchRequest.getStartPosition());
+        while (from != 0 || to != 0) {
+            Optional<Motif> result = search(
+                    motifSearchRequest.toBuilder().startPosition(from).endPosition(to)
+                            .searchType(MotifSearchType.REGION).pageSize(null).build())
+                    .getResult()
+                    .stream()
+                    .sorted((m1, m2) -> m2.getStart() - m1.getStart())
+                    .filter(m -> m.getStart() < motifSearchRequest.getStartPosition())
+                    .findFirst();
+            if (result.isPresent()) {
+                final Motif prevMotif = result.get();
+                return new StrandedSequence(prevMotif.getStart(), prevMotif.getEnd(),
+                        prevMotif.getSequence(), prevMotif.getStrand());
+            } else {
+                to = from;
+                from = Math.max(0, from - bufferSize);
+            }
+
+        }
+        throw new IllegalStateException("No previous motif can be found!");
+    }
+
     private void verifyMotifSearchRequest(final MotifSearchRequest request) {
         Assert.notNull(request.getSearchType(), getMessage("Search type is empty!"));
         Assert.notNull(request.getMotif(), getMessage("Motif is empty!"));
@@ -142,6 +187,19 @@ public class MotifSearchManager {
         }
         Assert.notNull(start, getMessage("Start position is empty!"));
         Assert.notNull(end, getMessage("End position is empty!"));
+    }
+
+    private void verifyNextOrPrevSearchRequest(final MotifSearchRequest request) {
+        Assert.notNull(request.getMotif(), getMessage("Motif is empty!"));
+        Assert.notNull(request.getReferenceId(), getMessage("Genome id is empty!"));
+        Assert.notNull(request.getChromosomeId(), getMessage("Chromosome not provided!"));
+        final Integer start = request.getStartPosition();
+        final Integer end = request.getEndPosition();
+        if (end != null && start != null) {
+            Assert.isTrue(end - start > 0,
+                    getMessage("Provided end and start are not valid: " + end + " < " + start));
+        }
+        Assert.notNull(start, getMessage("Start position is empty!"));
     }
 
     private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request, final Reference reference) {
