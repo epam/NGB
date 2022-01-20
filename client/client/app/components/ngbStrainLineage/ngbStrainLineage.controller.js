@@ -1,7 +1,9 @@
+import * as highlightCondition from '../../../dataServices/utils/highlight-condition-service';
 import baseController from '../../shared/baseController';
 
 export default class ngbStrainLineageController extends baseController {
     selectedTree = null;
+    selectedTreeOptions = null;
     selectedTreeId = null;
     lineageTreeList = [];
     loading = true;
@@ -9,11 +11,14 @@ export default class ngbStrainLineageController extends baseController {
     error = false;
     treeError = false;
     elementDescription = null;
+    highlightProfileConditions = [];
 
     events = {
         'layout:active:panel:change': this.activePanelChanged.bind(this),
         'reference:change': this.initialize.bind(this),
-        'reference:show:lineage': this.initialize.bind(this)
+        'reference:show:lineage': this.initialize.bind(this),
+        'settings:change': this.highlightLineage.bind(this),
+        'defaultSettings:change': this.highlightLineage.bind(this)
     };
 
     constructor(
@@ -22,7 +27,8 @@ export default class ngbStrainLineageController extends baseController {
         dispatcher,
         ngbStrainLineageService,
         appLayout,
-        projectContext
+        projectContext,
+        localDataService
     ) {
         super();
 
@@ -34,7 +40,8 @@ export default class ngbStrainLineageController extends baseController {
                 dispatcher,
                 ngbStrainLineageService,
                 appLayout,
-                projectContext
+                projectContext,
+                localDataService
             }
         );
 
@@ -47,6 +54,7 @@ export default class ngbStrainLineageController extends baseController {
     }
 
     async initialize() {
+        this.highlightLineage();
         const currentReference = this.ngbStrainLineageService.currentReferenceId
             || (this.projectContext.reference ? this.projectContext.reference.id : null);
         if (currentReference) {
@@ -110,6 +118,7 @@ export default class ngbStrainLineageController extends baseController {
         } else {
             this.treeError = false;
             this.selectedTree = this.setDatasetNames(tree);
+            this.selectedTreeOptions = this.getSelectedTreeOptions(this.selectedTree);
         }
         this.treeLoading = false;
         this.$timeout(() => this.$scope.$apply());
@@ -138,6 +147,48 @@ export default class ngbStrainLineageController extends baseController {
             }
         });
         return tree;
+    }
+
+    getSelectedTreeOptions(tree) {
+        const result = {
+            nodes: {}
+        };
+        (tree.nodes || []).forEach(node => {
+            result.nodes[node.data.id] = {
+                highlightColor: this.getHighlight(this.highlightProfileConditions, node.data.tooltip)
+            };
+        });
+        return result;
+    }
+
+    highlightLineage(state) {
+        this.highlightProfileConditions = this.getHighlightProfileConditions(
+            state ? state.lineageHighlightProfile : this.localDataService.getSettings().lineageHighlightProfile,
+            this.projectContext.getTrackDefaultSettings('lineage_profiles')
+        );
+        if (this.selectedTree) {
+            this.selectedTreeOptions = this.getSelectedTreeOptions(this.selectedTree);
+        }
+    }
+
+    getHighlight(highlightProfileConditions, data) {
+        let highlightColor;
+        highlightProfileConditions.forEach(item => {
+            if (!highlightColor && highlightCondition.isHighlighted(data, item.parsedCondition)) {
+                highlightColor = `#${item.highlightColor.toUpperCase()}`;
+            }
+        });
+        return highlightColor;
+    }
+
+    getHighlightProfileConditions(highlightProfile, highlightProfileList) {
+        if (highlightProfileList && highlightProfileList[highlightProfile]) {
+            return highlightProfileList[highlightProfile].conditions.map(item => ({
+                highlightColor: item.highlight_color,
+                parsedCondition: highlightCondition.parseFullCondition(item.condition)
+            }));
+        }
+        return [];
     }
 
     navigate(event, element) {

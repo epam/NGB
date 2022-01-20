@@ -355,8 +355,8 @@
                             </div>
                             <div class="row"><h4>Highlight variants of interest</h4></div>
                             <div class="row">
-                                <md-checkbox ng-change="ctrl.prepareDefaultHighlightProfile()" flex
-                                             aria-label="Display tooltips"
+                                <md-checkbox aria-label="Variants highlight" flex
+                                             ng-change="ctrl.prepareDefaultHighlightProfile(highlightTypes.VCF)"
                                              ng-model="ctrl.settings.isVariantsHighlighted">
                                     <div class="hint">
                                         Enabled
@@ -374,6 +374,39 @@
                                         </md-option>
                                     </md-select>
                                     <div ng-messages="settingsForm.highlightProfile.$error" role="alert">
+                                        <div ng-message="required">Select highlight profile or disable highlight
+                                            option.
+                                        </div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
+                <md-tab label="LINEAGE">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row"><h4>Highlight lineage</h4></div>
+                            <div class="row">
+                                <md-checkbox aria-label="Lineage highlight" flex
+                                             ng-change="ctrl.prepareDefaultHighlightProfile(highlightTypes.LINEAGE)"
+                                             ng-model="ctrl.settings.isLineageHighlighted">
+                                    <div class="hint">
+                                        Enabled
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row" ng-if="ctrl.settings.isLineageHighlighted">
+                                <md-input-container>
+                                    <label>Select the profile</label>
+                                    <md-select name="lineageHighlightProfile" ng-model="ctrl.settings.lineageHighlightProfile"
+                                                required>
+                                        <md-option ng-repeat="(name, profile) in ctrl.lineageProfileList track by name"
+                                                   ng-value="name">
+                                            {{ name }}
+                                        </md-option>
+                                    </md-select>
+                                    <div ng-messages="settingsForm.lineageHighlightProfile.$error" role="alert">
                                         <div ng-message="required">Select highlight profile or disable highlight
                                             option.
                                         </div>

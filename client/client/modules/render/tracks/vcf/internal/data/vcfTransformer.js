@@ -1,7 +1,7 @@
-import * as vcfHighlightCondition from '../../../../../../dataServices/utils/vcf-highlight-condition-service';
+import * as highlightCondition from '../../../../../../dataServices/utils/highlight-condition-service';
+import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
 import {linearDimensionsConflict, NumberFormatter, PixiTextSize, Sorting} from '../../../../utilities';
 import {GeneTransformer} from '../../../gene/internal';
-import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
 
 const Math = window.Math;
 
@@ -51,7 +51,7 @@ export class VcfTransformer extends GeneTransformer {
 
         data.forEach(variant => VcfAnalyzer.analyzeVariant(variant, this._chromosome.name));
         const bubbleMarginBP = viewport.convert
-            .pixel2brushBP(this.config.statistics.bubble.margin)
+            .pixel2brushBP(this.config.statistics.bubble.margin);
         for (let i = 0; i < data.length; i++) {
             const variant = data[i];
             variant.variationsCount = variant.variationsCount || 1;
@@ -216,7 +216,7 @@ export class VcfTransformer extends GeneTransformer {
         const linearizedInfo = {};
         Object.keys(variant.info || {}).forEach(name => linearizedInfo[name] = variant.info[name].value);
         highlightProfileConditions.forEach(item => {
-            if (!variant.highlightColor && vcfHighlightCondition.isHighlighted(linearizedInfo, item.parsedCondition)) {
+            if (!variant.highlightColor && highlightCondition.isHighlighted(linearizedInfo, item.parsedCondition)) {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
             }
         });

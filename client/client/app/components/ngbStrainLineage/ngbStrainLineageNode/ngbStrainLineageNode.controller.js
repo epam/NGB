@@ -6,11 +6,13 @@ export default class ngbStrainLineageNodeController {
 
     isDrag = false;
     navigationInProcess = false;
+    highlightStyle;
 
     constructor(projectContext, ngbStrainLineageService) {
         this.projectContext = projectContext;
         this.ngbStrainLineageService = ngbStrainLineageService;
         this.nodeData = JSON.parse(this.nodeDataJson);
+        this.highlightNode();
     }
 
     static get UID() {
@@ -85,5 +87,11 @@ export default class ngbStrainLineageNodeController {
         if (payload) {
             this.projectContext.changeState(payload);
         }
+    }
+
+    highlightNode() {
+        this.highlightStyle = this.nodeData.highlightColor
+            ? {'background-color': this.nodeData.highlightColor}
+            : undefined;
     }
 }

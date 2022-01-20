@@ -6,6 +6,10 @@ import dom_node from 'cytoscape-dom-node';
 const SELECTED_COLOR = '#4285F4';
 const SELECTED_WIDTH = 1;
 const SELECTED_OPACITY = 0.2;
+const elementOptionsType = {
+    NODE: 'nodes',
+    EDGE: 'edges'
+};
 
 const clearEdgesSelectionStyle = (cy, settings) => {
     if (cy && settings) {
@@ -76,6 +80,11 @@ export default class ngbCytoscapeController {
             (changes.elements.previousValue.id !== changes.elements.currentValue.id)) {
             this.reloadCytoscape(true);
         }
+        if (!!changes.elementsOptions &&
+            !!changes.elementsOptions.previousValue &&
+            !!changes.elementsOptions.currentValue) {
+            this.reloadCytoscape(true);
+        }
     }
 
     wrapNodes(nodes, nodeTag, nodeStyle) {
@@ -112,13 +121,21 @@ export default class ngbCytoscapeController {
                 let elements, layoutSettings;
                 if (savedLayout) {
                     elements = {
-                        nodes: this.wrapNodes(this.getPlainNodes(savedLayout.nodes), this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(
+                            this.applyOptions(this.getPlainNodes(savedLayout.nodes), elementOptionsType.NODE),
+                            this.tag,
+                            this.settings.style.node
+                        ),
                         edges: savedLayout.edges
                     };
                     layoutSettings = this.settings.loadedLayout;
                 } else {
                     elements = {
-                        nodes: this.wrapNodes(this.getPlainNodes(this.elements.nodes), this.tag, this.settings.style.node),
+                        nodes: this.wrapNodes(
+                            this.applyOptions(this.getPlainNodes(this.elements.nodes), elementOptionsType.NODE),
+                            this.tag,
+                            this.settings.style.node
+                        ),
                         edges: this.elements.edges
                     };
                     layoutSettings = this.settings.defaultLayout;
@@ -248,5 +265,25 @@ export default class ngbCytoscapeController {
             });
             return r;
         }, []);
+    }
+
+    applyOptions(elements, type) {
+        if (!this.elementsOptions) {
+            return;
+        }
+        switch (type) {
+            case elementOptionsType.NODE: {
+                return elements.reduce((r, cv) => {
+                    if (this.elementsOptions.nodes[cv.data.id]) {
+                        cv.data = {
+                            ...cv.data,
+                            ...this.elementsOptions.nodes[cv.data.id]
+                        };
+                    }
+                    r.push(cv);
+                    return r;
+                }, []);
+            }
+        }
     }
 }

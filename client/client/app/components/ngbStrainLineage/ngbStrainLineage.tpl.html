@@ -91,6 +91,7 @@
                 <ngb-cytoscape
                         ng-if="!$ctrl.treeLoading && !$ctrl.treeError"
                         elements="$ctrl.selectedTree"
+                        elements-options="$ctrl.selectedTreeOptions"
                         tag="ngb-strain-lineage-node"
                         on-element-click="$ctrl.onElementClick(data)"
                         storage-name="{{$ctrl.ngbStrainLineageService.localStorageKey}}"

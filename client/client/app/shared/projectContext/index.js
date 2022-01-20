@@ -1,5 +1,5 @@
 import {utilities} from '../../../app/components/ngbDataSets/internal';
-import * as vcfHighlightCondition from '../../../dataServices/utils/vcf-highlight-condition-service';
+import * as highlightCondition from '../../../dataServices/utils/highlight-condition-service';
 
 const Math = window.Math;
 
@@ -850,7 +850,7 @@ export default class projectContext {
         if (highlightProfileList && highlightProfileList[highlightProfile]) {
             this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
                 highlightColor: item.highlight_color,
-                parsedCondition: vcfHighlightCondition.parseFullCondition(item.condition)
+                parsedCondition: highlightCondition.parseFullCondition(item.condition)
             }));
         } else {
             this._highlightProfileConditions = [];
@@ -983,7 +983,7 @@ export default class projectContext {
         });
     }
 
-    downloadProjectDescription (id) {
+    downloadProjectDescription(id) {
         return this.projectDataService.downloadProjectDescription(id);
     }
 
@@ -2282,7 +2282,7 @@ export default class projectContext {
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
         let infoFields = this._infoFields || [];
-        infoFields = infoFields.concat(vcfHighlightCondition.getFieldSet(this.highlightProfileConditions));
+        infoFields = infoFields.concat(highlightCondition.getFieldSet(this.highlightProfileConditions));
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
@@ -2394,7 +2394,7 @@ export default class projectContext {
 
         return entries.map(item => {
             this.highlightProfileConditions.forEach(profile => {
-                if (!item.highlightColor && vcfHighlightCondition.isHighlighted(item.info, profile.parsedCondition)) {
+                if (!item.highlightColor && highlightCondition.isHighlighted(item.info, profile.parsedCondition)) {
                     item.highlightColor = `#${profile.highlightColor}`;
                 }
             });
