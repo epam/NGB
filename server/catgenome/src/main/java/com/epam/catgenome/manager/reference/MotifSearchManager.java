@@ -74,6 +74,9 @@ public class MotifSearchManager {
     @Value("${motif.search.include.sequence:false}")
     private boolean defaultIncludeSequence;
 
+    @Value("${motif.search.include.genes:false}")
+    private boolean includeGenes;
+
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
@@ -164,7 +167,7 @@ public class MotifSearchManager {
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
 
-        if (CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
+        if (includeGenes && CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
             final List<GeneFile> geneFiles = Collections.singletonList(reference.getGeneFile());
             final int start = searchResult.get(0).getStart();
             final int end = searchResult.get(searchResult.size() - 1).getEnd();
