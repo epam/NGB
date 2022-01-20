@@ -147,8 +147,10 @@ public class MotifSearchManager {
         int to = Math.max(0, motifSearchRequest.getStartPosition());
         while (from != 0 || to != 0) {
             Optional<Motif> result = search(
-                    motifSearchRequest.toBuilder().startPosition(from).endPosition(to)
-                            .searchType(MotifSearchType.REGION).pageSize(null).build())
+                    motifSearchRequest.toBuilder()
+                            .startPosition(from).endPosition(to)
+                            .searchType(MotifSearchType.REGION)
+                            .pageSize(Integer.MAX_VALUE).build())
                     .getResult()
                     .stream()
                     .sorted((m1, m2) -> m2.getStart() - m1.getStart())
