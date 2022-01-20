@@ -74,9 +74,6 @@ public class MotifSearchManager {
     @Value("${motif.search.include.sequence:false}")
     private boolean defaultIncludeSequence;
 
-    @Value("${motif.search.include.genes:false}")
-    private boolean includeGenes;
-
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
@@ -106,6 +103,10 @@ public class MotifSearchManager {
     }
 
     public MotifSearchResult search(final MotifSearchRequest request) {
+        return search(request, false);
+    }
+
+    public MotifSearchResult search(final MotifSearchRequest request, final boolean loadGenes) {
         verifyMotifSearchRequest(request);
         Reference reference = referenceGenomeManager.getOnlyReference(request.getReferenceId());
         if (reference == null) {
@@ -115,11 +116,11 @@ public class MotifSearchManager {
         reference.setChromosomes(referenceGenomeManager.loadChromosomes(request.getReferenceId()));
         switch (request.getSearchType()) {
             case WHOLE_GENOME:
-                return searchWholeGenomeMotifs(request, reference);
+                return searchWholeGenomeMotifs(request, reference, loadGenes);
             case CHROMOSOME:
-                return searchChromosomeMotifs(request, reference);
+                return searchChromosomeMotifs(request, reference, loadGenes);
             case REGION:
-                return searchRegionMotifs(request, reference);
+                return searchRegionMotifs(request, reference, loadGenes);
             default:
                 throw new IllegalStateException("Unexpected search type: " + request.getSearchType());
         }
@@ -147,7 +148,9 @@ public class MotifSearchManager {
         Assert.notNull(end, getMessage("End position is empty!"));
     }
 
-    private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request, final Reference reference) {
+    private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request,
+                                                 final Reference reference,
+                                                 final boolean loadGenes) {
         final Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         Assert.isTrue(request.getEndPosition() <= chromosome.getSize(),
                 getMessage(MessagesConstants.ERROR_POSITION_OUT_OF_RANGE, request.getEndPosition()));
@@ -167,7 +170,7 @@ public class MotifSearchManager {
                                 && motif.getStart() <= request.getEndPosition())
                         .collect(Collectors.toList());
 
-        if (includeGenes && CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
+        if (loadGenes && CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
             final List<GeneFile> geneFiles = Collections.singletonList(reference.getGeneFile());
             final int start = searchResult.get(0).getStart();
             final int end = searchResult.get(searchResult.size() - 1).getEnd();
@@ -216,7 +219,9 @@ public class MotifSearchManager {
         return sequence;
     }
 
-    private MotifSearchResult searchChromosomeMotifs(final MotifSearchRequest request, final Reference reference) {
+    private MotifSearchResult searchChromosomeMotifs(final MotifSearchRequest request,
+                                                     final Reference reference,
+                                                     final boolean loadGenes) {
         final Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         Assert.isTrue(request.getEndPosition() == null || request.getEndPosition() <= chromosome.getSize(),
                 getMessage(MessagesConstants.ERROR_POSITION_OUT_OF_RANGE, request.getEndPosition()));
@@ -242,8 +247,8 @@ public class MotifSearchManager {
                             .strand(request.getStrand())
                             .slidingWindow(request.getSlidingWindow())
                             .build(),
-                    reference
-            ).getResult());
+                    reference,
+                    loadGenes).getResult());
 
             currentStart = currentStart + bufferSize;
             currentEnd = Math.min(currentEnd + bufferSize, end);
@@ -273,7 +278,9 @@ public class MotifSearchManager {
                 : request.getSlidingWindow();
     }
 
-    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request, final Reference reference) {
+    private MotifSearchResult searchWholeGenomeMotifs(final MotifSearchRequest request,
+                                                      final Reference reference,
+                                                      final boolean loadGenes) {
         final int pageSize = request.getPageSize() == null ? defaultPageSize : request.getPageSize();
         int start = request.getStartPosition() == null ? 0 : request.getStartPosition();
         Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
@@ -289,7 +296,7 @@ public class MotifSearchManager {
                             .endPosition(end)
                             .slidingWindow(request.getSlidingWindow())
                             .build(),
-                    reference);
+                    reference, loadGenes);
         }
         final List<Chromosome> chromosomes = getChromosomesOfGenome(request.getReferenceId());
         final List<Motif> motifs = new ArrayList<>();
@@ -304,7 +311,7 @@ public class MotifSearchManager {
                             .endPosition(chromosome.getSize())
                             .slidingWindow(request.getSlidingWindow())
                             .build(),
-                    reference)
+                    reference, loadGenes)
                     .getResult()
                     .stream()
                     .limit(pageSize - motifs.size())
