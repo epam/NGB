@@ -54,6 +54,7 @@ export default class ngbStrainLineageController extends baseController {
     }
 
     async initialize() {
+        this.highlightLineage();
         const currentReference = this.ngbStrainLineageService.currentReferenceId
             || (this.projectContext.reference ? this.projectContext.reference.id : null);
         if (currentReference) {
