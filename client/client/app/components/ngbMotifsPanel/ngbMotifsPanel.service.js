@@ -150,13 +150,13 @@ export default class ngbMotifsPanelService {
     }
 
     setSearchMotifsParams (params) {
-        const currentChromosomeId = this.projectContext.currentChromosome.id;
+        const {id, name} = this.projectContext.currentChromosome;
         const searchParams = {
-            currentChromosomeId,
+            currentChromosomeId: id,
             name: params.title,
             motif: params.pattern,
             'search type': params.inReference ?
-                this.referenceType : this.chromosomeType,
+                this.referenceType : `${this.chromosomeType} [${name}]`,
         };
         this._searchMotifsParams.push(searchParams);
         return searchParams;
@@ -173,7 +173,8 @@ export default class ngbMotifsPanelService {
     }
 
     setSearchMotifRequest(params) {
-        const referenceType = params['search type'] === this.referenceType;
+        const searchType = params['search type'].split(' ')[0];
+        const referenceType = searchType === this.referenceType;
         const currentParams = {
             referenceId: this.projectContext.reference.id,
             motif: params.motif,
@@ -240,7 +241,7 @@ export default class ngbMotifsPanelService {
                 start: item.start,
                 end: item.end,
                 strand,
-                gene: item.geneNames
+                gene: (item.geneNames || []).join(', ')
             };
         })];
     }
