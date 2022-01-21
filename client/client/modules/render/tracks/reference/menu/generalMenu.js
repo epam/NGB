@@ -56,7 +56,7 @@ export default {
                     .map(track => track.config.dispatcher)
                     .filter(Boolean);
                 if (dispatcher) {
-                    dispatcher.emitSimpleEvent('reference:search:motifs:open');
+                    dispatcher.emitSimpleEvent('search:motifs:open');
                 }
             }
         },
