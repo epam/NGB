@@ -75,6 +75,9 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     async updateCache () {
+        if (MAXIMUM_RANGE <= this.viewport.actualBrushSize) {
+            return false;
+        }
         const updated = await super.updateCache();
         if (updated && this.cache) {
             const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
