@@ -426,8 +426,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<StrandedSequence> loadNextMotif(@RequestBody MotifSearchRequest motifSearchRequest) {
-        return Result.success(
-                referenceSecurityService.getNextOrPrevMotif(motifSearchRequest, true));
+        return Result.success(referenceSecurityService.getNextMotif(motifSearchRequest));
     }
 
     @RequestMapping(value = "/reference/motif/prev", method = RequestMethod.POST)
@@ -442,7 +441,6 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<StrandedSequence> loadPrevMotif(@RequestBody MotifSearchRequest motifSearchRequest) {
-        return Result.success(
-                referenceSecurityService.getNextOrPrevMotif(motifSearchRequest, false));
+        return Result.success(referenceSecurityService.getPrevMotif(motifSearchRequest));
     }
 }

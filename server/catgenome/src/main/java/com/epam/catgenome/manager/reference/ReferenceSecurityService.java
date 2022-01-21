@@ -165,9 +165,12 @@ public class ReferenceSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public StrandedSequence getNextOrPrevMotif(final MotifSearchRequest motifSearchRequest, final boolean forward) {
-        return forward
-                ? motifSearchManager.getNextMotif(motifSearchRequest)
-                : motifSearchManager.getPreviousMotif(motifSearchRequest);
+    public StrandedSequence getNextMotif(final MotifSearchRequest motifSearchRequest) {
+        return motifSearchManager.getNextMotif(motifSearchRequest);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public StrandedSequence getPrevMotif(final MotifSearchRequest motifSearchRequest) {
+        return motifSearchManager.getPreviousMotif(motifSearchRequest);
     }
 }
