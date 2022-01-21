@@ -1,15 +1,22 @@
 import {CachedTrack} from '../../core';
 import Menu from '../../core/menu';
 import {MotifsDataService} from '../../../../dataServices';
-import {linearDimensionsConflict} from '../../utilities';
+import {linearDimensionsConflict, PlaceholderRenderer} from '../../utilities';
 import MotifsConfig from './motifsConfig';
 import motifsMenuConfig from './exterior/motifsMenuConfig';
 import MotifsMatchesRenderer from './motifsRenderer';
+
+const MAXIMUM_RANGE = 500000;
 
 export class MOTIFSTrack extends CachedTrack {
 
     renderer;
     motifStrand = null;
+    _zoomInPlaceholderRenderer = null;
+
+    get maximumRange () {
+        return MAXIMUM_RANGE;
+    }
 
     constructor(opts) {
         super(opts);
@@ -24,6 +31,7 @@ export class MOTIFSTrack extends CachedTrack {
             opts,
             this.motifStrand
         );
+        this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this);
         this.dispatcher.on('motifs:results:change', this.reload.bind(this));
     }
 
@@ -67,6 +75,9 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     async updateCache () {
+        if (MAXIMUM_RANGE <= this.viewport.actualBrushSize) {
+            return false;
+        }
         const updated = await super.updateCache();
         if (updated && this.cache) {
             const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
@@ -97,7 +108,6 @@ export class MOTIFSTrack extends CachedTrack {
             motif: this.motif,
             strand: this.motifStrand.toUpperCase()
         };
-        console.log(p);
         return p;
     }
 
@@ -130,11 +140,37 @@ export class MOTIFSTrack extends CachedTrack {
         this.requestRenderRefresh();
     }
 
+    _getZoomInPlaceholderText() {
+        const unitThreshold = 1000;
+        const noReadText = {
+            unit: this.maximumRange < unitThreshold ? 'BP' : 'kBP',
+            value: this.maximumRange < unitThreshold
+                ? this.maximumRange : Math.ceil(this.maximumRange / unitThreshold)
+        };
+        return `Zoom in to see motifs.
+            Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
+    }
+
     render(flags) {
+        if (flags.renderReset) {
+            this.container.removeChildren();
+            this.container.addChild(this._zoomInPlaceholderRenderer.container);
+            this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
+        } else if (flags.widthChanged || flags.heightChanged) {
+            this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
+        }
+        this._zoomInPlaceholderRenderer.container.visible = this.maximumRange < this.viewport.actualBrushSize;
+        this.renderer.container.visible = this.maximumRange >= this.viewport.actualBrushSize;
+
         let somethingChanged = super.render(flags);
 
         if (flags.renderReset) {
-            this.container.removeChildren();
             this.container.addChild(this.renderer.container);
             somethingChanged = true;
         }

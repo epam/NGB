@@ -1,6 +1,6 @@
 import angular from 'angular';
 
-import './ngbMotifsPanel.scss';
+import './ngbMotifsDialog.scss';
 
 import run from './ngbMotifsDialog.run';
 import ngbMotifsPanel from './ngbMotifsPanel.component';
@@ -8,9 +8,11 @@ import ngbMotifsPanelController from './ngbMotifsPanel.controller';
 import ngbMotifsPanelService from './ngbMotifsPanel.service';
 import motifSequenceValidation from './motif.sequence.directive';
 
-import ngbMotifsTable from './ngbMotifsTable';
+import ngbMotifsResultsTable from './ngbMotifsResultsTable';
+import ngbMotifsParamsTable from './ngbMotifsParamsTable';
 
-export default angular.module('ngbMotifsPanel', [ngbMotifsTable])
+export default angular
+    .module('ngbMotifsPanel', [ngbMotifsResultsTable, ngbMotifsParamsTable])
     .directive('motifSequence', motifSequenceValidation)
     .controller(ngbMotifsPanelController.UID, ngbMotifsPanelController)
     .component('ngbMotifsPanel', ngbMotifsPanel)
