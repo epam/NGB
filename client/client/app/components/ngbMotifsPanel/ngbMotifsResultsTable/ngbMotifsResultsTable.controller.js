@@ -37,6 +37,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
     get motifsResultsColumns() {
         return MOTIFS_RESULTS_COLUMNS;
     }
+    loadingData = false;
 
     get positive () {
         return this.ngbMotifsPanelService.positive;
@@ -178,6 +179,8 @@ export default class ngbMotifsResultsTableController  extends baseController {
     }
 
     async loadData (request, isScrollTop) {
+        this.loadingData = true;
+        this.$timeout(() => this.$scope.$apply());
         const results = await this.ngbMotifsPanelService.getSearchMotifsResults(request)
             .then(success => {
                 if (success) {
@@ -185,6 +188,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
                 }
                 return [];
             });
+        this.loadingData = false;
         if (results) {
             this.gridOptions.columnDefs = this.getMotifsResultsGridColumns();
             const data = isScrollTop ?
