@@ -20,7 +20,7 @@
                         name="motif"
                         required
                         motif-sequence="true"
-                        ng-model="$ctrl.motif"
+                        ng-model="sequence"
                         placeholder="nucleotide sequence"
                         aria-label="Motif pattern"
                     >
@@ -32,7 +32,7 @@
                     <input
                         type="text"
                         name="title"
-                        ng-model="$ctrl.title"
+                        ng-model="title"
                         aria-label="Motif title"
                         placeholder="search task title"
                     >
@@ -52,7 +52,7 @@
         </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-        <md-button aria-label="find" ng-click="search()" class="md-primary" ng-disabled="!$ctrl.motif">
+        <md-button aria-label="find" ng-click="search()" class="md-primary" ng-disabled="!sequence">
             Search
         </md-button>
         <md-button aria-label="cancel" ng-click="cancel()">

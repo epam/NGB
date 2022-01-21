@@ -11,6 +11,9 @@
             {{$ctrl.motifsResultsTitle}}
         </span>
     </div>
+    <div ng-if="$ctrl.loadingData">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
     <div ui-grid="$ctrl.gridOptions"
          ui-grid-resize-columns
          ui-grid-move-columns
