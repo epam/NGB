@@ -4,8 +4,8 @@ export default class ngbMotifsPanelController{
         return 'ngbMotifsPanelController';
     }
 
-    constructor($scope, dispatcher, ngbMotifsPanelService) {
-        Object.assign(this, {$scope, dispatcher, ngbMotifsPanelService});
+    constructor($scope, ngbMotifsPanelService) {
+        Object.assign(this, {$scope, ngbMotifsPanelService});
     }
 
     get isSearchInProgress () {

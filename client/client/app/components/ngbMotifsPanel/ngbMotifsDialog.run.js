@@ -13,7 +13,7 @@ export default function run($mdDialog, dispatcher, ngbMotifsPanelService) {
                         title: $scope.$ctrl.title,
                         inReference: $scope.inReference,
                     };
-                    ngbMotifsPanelService.searchMotif(params);
+                    ngbMotifsPanelService.panelAddMotifsPanel(params);
                     $mdDialog.hide();
                 };
                 $scope.cancel = () => {

@@ -27,6 +27,7 @@ package com.epam.catgenome.util.motif;
 import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Value;
+import org.springframework.util.Assert;
 
 import java.util.Deque;
 import java.util.Iterator;
@@ -46,17 +47,19 @@ public class MotifSearchIterator implements Iterator<Motif> {
     private static final byte LOWERCASE_T = 't';
     private static final byte LOWERCASE_N = 'n';
 
+
     private final Deque<Match> positiveMatches;
     private final Deque<Match> negativeMatches;
     private final String contig;
     private final byte[] sequence;
     private final int offset;
     private final boolean includeSequence;
+    private final int maxSizeResultLimit;
 
 
     public MotifSearchIterator(final byte[] seq, final String iupacRegex,
                                final StrandSerializable strand, final String contig,
-                               final int start, final boolean includeSequence) {
+                               final int start, final boolean includeSequence, final int searchResultSizeLimit) {
         if (strand != null && strand != StrandSerializable.POSITIVE && strand != StrandSerializable.NEGATIVE) {
             throw new IllegalStateException("Not supported strand: " + strand);
         }
@@ -64,39 +67,36 @@ public class MotifSearchIterator implements Iterator<Motif> {
         this.sequence = seq;
         this.offset = start;
         this.includeSequence = includeSequence;
+        maxSizeResultLimit = searchResultSizeLimit;
 
         final Pattern pattern =
                 Pattern.compile(IupacRegexConverter.convertIupacToRegex(iupacRegex), Pattern.CASE_INSENSITIVE);
         if (strand == null) {
-            this.positiveMatches = populatePositiveMatches(pattern.matcher(new String(seq)));
-            this.negativeMatches = populateNegativeMatches(pattern.matcher(reverseAndComplement(seq)), seq.length);
+            this.positiveMatches = populateMatches(pattern.matcher(new String(seq)), true);
+            this.negativeMatches = populateMatches(pattern.matcher(reverseAndComplement(seq)), false);
         } else if (strand == StrandSerializable.POSITIVE) {
-            this.positiveMatches = populatePositiveMatches(pattern.matcher(new String(seq)));
+            this.positiveMatches = populateMatches(pattern.matcher(new String(seq)), true);
             this.negativeMatches = new LinkedList<>();
         } else {
             this.positiveMatches = new LinkedList<>();
-            this.negativeMatches = populateNegativeMatches(pattern.matcher(reverseAndComplement(seq)), seq.length);
+            this.negativeMatches = populateMatches(pattern.matcher(reverseAndComplement(seq)), false);
         }
     }
 
-    private Deque<Match> populatePositiveMatches(final Matcher matcher) {
+    private Deque<Match> populateMatches(final Matcher matcher, final boolean positive) {
         int position = 0;
         LinkedList<Match> matches = new LinkedList<>();
         while (matcher.find(position)) {
-            matches.add(new Match(matcher.start(), matcher.end() - 1));
+            matches.add(createMatch(matcher.start(), matcher.end(), positive));
             position = matcher.start() + 1;
+            Assert.isTrue(matches.size() <= maxSizeResultLimit,
+                    "Too many result, specify more concrete query. Configured max result size: " + maxSizeResultLimit);
         }
         return matches;
     }
 
-    private Deque<Match> populateNegativeMatches(final Matcher matcher, final int seqLength) {
-        int position = 0;
-        LinkedList<Match> matches = new LinkedList<>();
-        while (matcher.find(position)) {
-            matches.add(new Match(seqLength - matcher.end(), seqLength - matcher.start() -1));
-            position = matcher.start() + 1;
-        }
-        return matches;
+    private Match createMatch(final int start, final int end, final boolean positive) {
+        return positive ? new Match(start, end - 1) : new Match(sequence.length - end, sequence.length - start - 1);
     }
 
     @Override

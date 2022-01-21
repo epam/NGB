@@ -28,10 +28,9 @@ import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public final class MotifSearcher {
@@ -39,30 +38,30 @@ public final class MotifSearcher {
     private MotifSearcher() {
     }
 
-    public static List<Motif> search(final byte[] seq, final String regex,
-                                     final String contig, final int start, final boolean includeSequence) {
-        return search(seq, regex, null, contig, start, includeSequence);
+    public static Stream<Motif> search(final byte[] seq, final String regex,
+                                       final String contig, final int start,
+                                       final boolean includeSequence, final int searchResultSizeLimit) {
+        return search(seq, regex, null, contig, start, includeSequence, searchResultSizeLimit);
     }
 
-    public static List<Motif> search(final byte[] seq, final String regex,
-                                     final StrandSerializable strand, final String contig,
-                                     final int start, final boolean includeSequence) {
+    public static Stream<Motif> search(final byte[] seq, final String regex,
+                                       final StrandSerializable strand, final String contig, final int start,
+                                       final boolean includeSequence, final int searchResultSizeLimit) {
         return StreamSupport
                 .stream(Spliterators.spliteratorUnknownSize(
-                        getIterator(seq, regex, strand, contig, start, includeSequence),
-                        Spliterator.ORDERED), false)
-                .collect(Collectors.toList());
+                        getIterator(seq, regex, strand, contig, start, includeSequence, searchResultSizeLimit),
+                        Spliterator.ORDERED), false);
     }
 
-    public static Iterator<Motif> getIterator(final byte[] seq, final String regex,
-                                              final StrandSerializable strand, final String contig,
-                                              final int start, final boolean includeSequence) {
+    public static Iterator<Motif> getIterator(final byte[] seq, final String regex, final StrandSerializable strand,
+                                              final String contig, final int start,
+                                              final boolean includeSequence, final int searchResultSizeLimit) {
         if (IupacRegexConverter.validatePlainMotif(regex)) {
             return new SimpleMotifSearchIterator(seq, regex, strand, contig, start, includeSequence);
         } else if (strand == null && IupacRegexConverter.validateReversibleRegex(regex)) {
             return new ReversingRegexMotifSearchIterator(seq, regex, contig, start, includeSequence);
         } else {
-            return new MotifSearchIterator(seq, regex, strand, contig, start, includeSequence);
+            return new MotifSearchIterator(seq, regex, strand, contig, start, includeSequence, searchResultSizeLimit);
         }
     }
 }

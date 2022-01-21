@@ -39,14 +39,17 @@
                 </md-input-container>
             </div>
         </div>
-        <md-checkbox
-            aria-label="Search whole reference"
-            class="motifs-dialog-checkbox"
-            ng-checked="inReference"
-            ng-click="change()">
-            <p>Search whole reference</p>
-            <p class="motifs-dialog-checkbox-warning"><b>Warning:</b> this can take a long time</p>
-        </md-checkbox>
+        <div class="motifs-dialog-checkbox">
+            <md-checkbox
+                flex
+                aria-label="Search whole reference"
+                ng-checked="inReference"
+                ng-click="change()"
+            >
+                <p>Search whole reference</p>
+                <p class="motifs-dialog-checkbox-warning"><b>Warning:</b> this can take a long time</p>
+            </md-checkbox>
+        </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
         <md-button aria-label="find" ng-click="search()" class="md-primary" ng-disabled="!$ctrl.motif">

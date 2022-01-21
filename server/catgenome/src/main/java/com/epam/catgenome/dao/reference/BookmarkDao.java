@@ -128,7 +128,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
      * @param bookmarkIds {@code List} of {@code Bookmark} IDs to load
      * @return {@code Bookmark}
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bookmark> loadBookmarksByIds(final Collection<Long> bookmarkIds) {
         if (bookmarkIds == null || bookmarkIds.isEmpty()) {
             return Collections.emptyList();
@@ -174,7 +174,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
      * @param bookmarkIds a {@code List&lt;Long&gt;} of bookmarks IDs to load items for
      * @return a {@code Map} of {@code List}s of {@code ProjectItem}, mapped to their bookmark's IDs
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, List<BiologicalDataItem>> loadBookmarkItemsByBookmarkIds(Collection<Long> bookmarkIds) {
         if (bookmarkIds == null || bookmarkIds.isEmpty()) {
             return Collections.emptyMap();

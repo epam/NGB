@@ -1,0 +1,13 @@
+.motifs-params-table {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .ui-grid-viewport {
+        height: 100% !important;
+    }
+
+    .ui-grid-header-cell-label {
+        text-transform: capitalize;
+    }
+}
