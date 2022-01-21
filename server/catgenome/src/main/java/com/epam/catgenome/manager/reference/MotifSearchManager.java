@@ -152,7 +152,11 @@ public class MotifSearchManager {
 
     public StrandedSequence getPreviousMotif(final MotifSearchRequest motifSearchRequest) {
         verifyNextOrPrevSearchRequest(motifSearchRequest);
-        int from = Math.max(0, motifSearchRequest.getStartPosition() - bufferSize);
+        // we use here searchResultSizeLimit as shift window, because in the worst case
+        // we can have searchResultSizeLimit number of result (for example when each nucleotide is matched)
+        // and we need to find exactly last result to find a previous match.
+        // seems to be impossible case but still.
+        int from = Math.max(0, motifSearchRequest.getStartPosition() - searchResultSizeLimit);
         int to = Math.max(0, motifSearchRequest.getStartPosition());
         while (from != 0 || to != 0) {
             Optional<Motif> result = search(
@@ -171,7 +175,7 @@ public class MotifSearchManager {
                         prevMotif.getSequence(), prevMotif.getStrand());
             } else {
                 to = from;
-                from = Math.max(0, from - bufferSize);
+                from = Math.max(0, from - searchResultSizeLimit);
             }
 
         }

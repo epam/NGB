@@ -334,7 +334,6 @@ public class MotifSearchManagerTest {
 
         final MotifSearchResult search = motifSearchManager.search(testRequest);
         Assert.assertEquals(0, search.getResult().size());
-        Assert.assertEquals(0, search.getPageSize().longValue());
         Assert.assertEquals(testStart + START_POSITION_1, search.getPosition().longValue());
     }
 
