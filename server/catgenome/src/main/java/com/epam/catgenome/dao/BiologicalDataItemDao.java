@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.maf.MafFile;
+import com.epam.catgenome.entity.pathway.Pathway;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
@@ -287,6 +288,9 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         NODES_PATH,
         EDGES_PATH,
 
+        PATHWAY_ID,
+        PATHWAY_DESC,
+
         INDEX_ID,
         INDEX_NAME,
         INDEX_TYPE,
@@ -383,6 +387,9 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 case LINEAGE_TREE:
                     dataItem = mapLineageTree(rs);
                     break;
+                case PATHWAY:
+                    dataItem = mapPathway(rs);
+                    break;
                 default:
                     dataItem = mapBioDataItem(rs);
             }
@@ -411,6 +418,15 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             lineageTree.setNodesPath(rs.getString(NODES_PATH.name()));
             lineageTree.setEdgesPath(rs.getString(EDGES_PATH.name()));
             return lineageTree;
+        }
+
+        private static BiologicalDataItem mapPathway(final ResultSet rs) throws SQLException {
+            final Pathway pathway = Pathway.builder().build();
+            pathway.setId(rs.getLong(PATHWAY_ID.name()));
+            pathway.setPathwayId(rs.getLong(PATHWAY_ID.name()));
+            pathway.setPathwayDesc(rs.getString(PATHWAY_DESC.name()));
+            pathway.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
+            return pathway;
         }
 
         private static BiologicalDataItem mapBioDataItem(ResultSet rs) throws SQLException {

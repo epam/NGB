@@ -265,4 +265,19 @@
         <type>GET</type>
         <url>/restapi/lineage/trees/all</url>
     </list_lineage>
+    <reg_pathway>
+        <name>reg_pathway</name>
+        <type>POST</type>
+        <url>/restapi/pathway</url>
+    </reg_pathway>
+    <del_pathway>
+        <name>del_pathway</name>
+        <type>DELETE</type>
+        <url>/restapi/pathway/%d</url>
+    </del_pathway>
+    <list_pathway>
+        <name>list_pathway</name>
+        <type>GET</type>
+        <url>/restapi/pathways</url>
+    </list_pathway>
 </config>
