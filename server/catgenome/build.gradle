@@ -92,6 +92,7 @@ dependencies {
     // Spring Framework
     configurations {
         all*.exclude module : 'spring-boot-starter-logging'
+        all*.exclude module: 'log4j-slf4j-impl'
     }
     compile group: "org.springframework", name: "spring-jdbc", version: project.ext.versionSpring
     compile group: "org.springframework", name: "spring-context", version: project.ext.versionSpring
