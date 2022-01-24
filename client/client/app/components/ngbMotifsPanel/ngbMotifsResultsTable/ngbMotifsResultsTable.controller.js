@@ -93,8 +93,14 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ngbMotifsPanelService
         });
         this.gridOptions.rowHeight = this.rowHeight;
-        this.dispatcher.on('motifs:show:results', this.showResults.bind(this));
-        this.dispatcher.on('motifs:add:tracks', this.addTracks.bind(this));
+        const showResults = this.showResults.bind(this);
+        const addTracks = this.addTracks.bind(this);
+        this.dispatcher.on('motifs:show:results', showResults);
+        this.dispatcher.on('motifs:add:tracks', addTracks);
+        this.$scope.$on('$destroy', () => {
+            this.dispatcher.removeListener('motifs:show:results', showResults);
+            this.dispatcher.removeListener('motifs:add:tracks', addTracks);
+        });
     }
 
     $onInit() {
@@ -236,9 +242,9 @@ export default class ngbMotifsResultsTableController  extends baseController {
         }
     }
 
-    async showResults(result) {
-        this.gridOptions.data = result;
-        this.$timeout(::this.$scope.$apply);
+    showResults() {
+        this.gridOptions.data = this.ngbMotifsPanelService.searchMotifResults;
+        this.$timeout(() => this.$scope.$apply());
     }
 
     backToParamsTable () {

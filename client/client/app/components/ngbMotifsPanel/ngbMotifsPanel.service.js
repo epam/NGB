@@ -124,7 +124,6 @@ export default class ngbMotifsPanelService {
     }
 
     panelAddMotifsPanel (params) {
-        this.resetResultsData();
         this.setMotifsPanel(params);
         const layoutChange = this.appLayout.Panels.motifs;
         if (!layoutChange.displayed) {
@@ -166,6 +165,7 @@ export default class ngbMotifsPanelService {
         this.requestNumber++;
         this.isSearchInProgress = true;
         this.isShowParamsTable = false;
+        this.resetResultsData();
         this.motifsResultsTitle = params.name || params.motif;
         const request = this.setSearchMotifRequest(params);
         await this.showSearchMotifResults(request);
@@ -202,9 +202,9 @@ export default class ngbMotifsPanelService {
 
     async showSearchMotifResults(request) {
         await this.getSearchMotifsResults(request)
-            .then(success => {
-                const result = success ? this.searchMotifResults : [];
-                return this.dispatcher.emitSimpleEvent('motifs:show:results', result);
+            .then(result => {
+                this.setSearchMotifResults(result);
+                this.dispatcher.emitSimpleEvent('motifs:show:results');
             });
     }
 
@@ -215,19 +215,18 @@ export default class ngbMotifsPanelService {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = false;
                     this.errorMessageList = null;
-                    this.setSearchMotifResults(response.result);
                     this.searchStopOn = {
                         startPosition: response.position !== undefined ?
                             response.position : null,
                         chromosomeId: response.chromosomeId || null
                     };
-                    resolve(true);
+                    resolve(response.result);
                 })
                 .catch((error) => {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = true;
                     this.errorMessageList = [error.message];
-                    resolve(false);
+                    resolve([]);
                 });
         });
     }
@@ -266,14 +265,14 @@ export default class ngbMotifsPanelService {
 
     resetResultsData () {
         this._currentParams = {};
-        this.motifsResultsTitle = '';
+        this.motifsResultsTitle = null;
         this.searchRequestsHistory = [];
-        this.searchMotifResults = [];
+        this.searchMotifResults = null;
     }
 
     backToParamsTable () {
-        this.resetResultsData();
         this.isShowParamsTable = true;
+        this.resetResultsData();
         this.dispatcher.emitSimpleEvent('motifs:show:params');
     }
 
