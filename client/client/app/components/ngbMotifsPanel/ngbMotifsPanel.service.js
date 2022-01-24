@@ -142,10 +142,7 @@ export default class ngbMotifsPanelService {
     async setMotifsPanel (params) {
         const searchParams = this.setSearchMotifsParams(params);
         await this.searchMotif(searchParams);
-        const firstHit = (this.searchMotifResults || [])[0];
-        if (firstHit) {
-            this.dispatcher.emitSimpleEvent('motifs:add:tracks', firstHit);
-        }
+        this.dispatcher.emitSimpleEvent('motifs:add:tracks');
     }
 
     setSearchMotifsParams (params) {

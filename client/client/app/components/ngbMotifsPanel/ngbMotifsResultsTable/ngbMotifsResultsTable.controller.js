@@ -251,32 +251,48 @@ export default class ngbMotifsResultsTableController  extends baseController {
         this.ngbMotifsPanelService.backToParamsTable();
     }
 
-    async addTracks (row) {
-        const {
-            chromosome,
-            start,
-            end,
-        } = row;
-        const {
-            referenceId,
-            name,
-            motif,
-            searchType
-        } = this.currentParams;
+    setTrackState (row) {
+        const start = row ? row.start : this.projectContext.viewport.start;
+        const end = row ? row.end : this.projectContext.viewport.end;
+        const chromosome = row ? row.chromosome : this.projectContext.currentChromosome.name;
+        const strand = row ? row.strand : this.ngbMotifsPanelService.positiveStrand;
+
+        const range = Math.abs(end - start);
+        const rangeStart = row ? (Math.min(start, end) - range) : start;
+        const rangeEnd = row ? (Math.max(start, end) + range) : end;
+
         const currentMatch = {
             chromosome,
             start,
             end,
-            referenceId,
-            motif,
-            searchType
+            referenceId: this.currentParams.referenceId,
+            motif: this.currentParams.motif,
+            searchType: this.currentParams.searchType
         };
+        return {
+            rowStrand: strand,
+            chromosome,
+            start: rangeStart,
+            end: rangeEnd,
+            currentMatch
+        };
+    }
 
-        const range = Math.abs(end - start);
-        const rangeStart = Math.min(start, end) - range;
-        const rangeEnd = Math.max(start, end) + range;
+    async addTracks (row) {
+        const {
+            rowStrand,
+            chromosome,
+            start,
+            end,
+            currentMatch
+        } = this.setTrackState(row);
+        const {
+            referenceId,
+            name,
+            motif,
+        } = this.currentParams;
 
-        const strand = this.ngbMotifsPanelService.getStrand(row.strand).toLowerCase();
+        const strand = this.ngbMotifsPanelService.getStrand(rowStrand).toLowerCase();
         const getName = strand => `${name || motif}_${strand}`;
         const reference = this.projectContext.reference;
 
@@ -367,15 +383,17 @@ export default class ngbMotifsResultsTableController  extends baseController {
         }
         this.projectContext.changeState({
             viewport: {
-                start: rangeStart,
-                end: rangeEnd
+                start,
+                end
             },
             chromosome: {
                 name: chromosome
             },
             ...tracksOptions
         }, false, () => {
-            this.setMotif(currentMatch);
+            if (row) {
+                this.setMotif(currentMatch);
+            }
         });
     }
 
