@@ -32,6 +32,22 @@ export class MOTIFSTrack extends CachedTrack {
             this.motifStrand
         );
         this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this);
+        this._actions = [
+            {
+                enabled: function () {
+                    return true;
+                },
+                label: 'Navigation',
+                type: 'groupLinks',
+                links: [{
+                    label: 'Prev',
+                    handleClick: ::this.prevMotif
+                }, {
+                    label: 'Next',
+                    handleClick: ::this.nextMotif
+                }]
+            }
+        ];
         this.dispatcher.on('motifs:results:change', this.reload.bind(this));
     }
 
@@ -191,6 +207,38 @@ export class MOTIFSTrack extends CachedTrack {
             somethingChanged = true;
         }
         return somethingChanged;
+    }
+
+    nextMotif() {
+        const request = this.setRequestToMotif();
+        this.dataService.getNextMotifs(request)
+            .then(data => {
+                if (data && data.startIndex) {
+                    this.viewport.selectPosition(data.startIndex);
+                }
+            });
+    }
+
+    prevMotif() {
+        const request = this.setRequestToMotif();
+        this.dataService.getPrevMotifs(request)
+            .then(data => {
+                if (data && data.startIndex) {
+                    this.viewport.selectPosition(data.startIndex);
+                }
+            });
+    }
+
+    setRequestToMotif () {
+        const startPosition = Math.floor((this.viewport.brush.end + this.viewport.brush.start) / 2);
+        return {
+            referenceId: this.config.referenceId,
+            chromosomeId: this.config.chromosomeId,
+            startPosition,
+            motif: this.motif,
+            strand: this.motifStrand,
+            includeSequence: false,
+        };
     }
 
     destructor() {
