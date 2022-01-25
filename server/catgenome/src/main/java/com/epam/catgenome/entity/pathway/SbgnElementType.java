@@ -23,14 +23,26 @@
  */
 package com.epam.catgenome.entity.pathway;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+public enum SbgnElementType {
+    GLYPH("glyph"),
+    ARC("arc");
 
-@Getter
-@Setter
-@Builder
-public class PathwayEntry {
-    private Long pathwayId;
-    //TODO
+    public String getName() {
+        return name;
+    }
+
+    private final String name;
+
+    SbgnElementType(String name) {
+        this.name = name;
+    }
+
+    public static SbgnElementType getByName(final String name) {
+        for (SbgnElementType type : SbgnElementType.values()) {
+            if (name.equals(type.getName())) {
+                return type;
+            }
+        }
+        return null;
+    }
 }

@@ -69,5 +69,12 @@
                 ]]>
             </value>
         </property>
+        <property name="getTotalCountQuery">
+            <value>
+                <![CDATA[
+                    select count(*) as count from catgenome.pathway
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

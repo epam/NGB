@@ -441,6 +441,9 @@ public final class Utils {
     }
 
     public static String addParametersToQuery(final String query, final QueryParameters params) {
+        if (params == null) {
+            return query;
+        }
         return addPagingInfoToQuery(addSortInfoToQuery(addFiltersToQuery(query,
                 params.getFilters()), params.getSortInfos()), params.getPagingInfo());
     }

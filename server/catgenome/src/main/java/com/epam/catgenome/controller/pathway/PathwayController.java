@@ -28,7 +28,10 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.SbgnElement;
+import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.manager.pathway.PathwaySecurityService;
+import com.epam.catgenome.util.db.QueryParameters;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -36,8 +39,16 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
 
@@ -57,20 +68,49 @@ public class PathwayController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Pathway> loadPathway(@PathVariable final Long pathwayId,
-                                             @RequestParam(required = false) final Long projectId) {
+                                       @RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathway(pathwayId, projectId));
     }
 
-    @GetMapping(value = "/pathways")
+    @GetMapping(value = "/pathway/content/{pathwayId}")
     @ApiOperation(
-            value = "Returns all pathways",
-            notes = "Returns all pathways",
+            value = "Returns a pathway file content by pathway id",
+            notes = "Returns a pathway file content by pathway id",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void loadPathwayContent(@PathVariable final Long pathwayId,
+                                   @RequestParam(required = false) final Long projectId,
+                                   final HttpServletResponse response) throws IOException {
+        byte[] bytes = pathwaySecurityService.loadPathwayContent(pathwayId, projectId);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
+    }
+
+    @PostMapping(value = "/pathway/search")
+    @ApiOperation(
+            value = "Searches sbgn file elements",
+            notes = "Searches sbgn file elements",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<Pathway>> loadPathways() {
-        return Result.success(pathwaySecurityService.loadPathways());
+    public Result<List<SbgnElement>> searchElements(@RequestBody SbgnElement sbgnElement)
+            throws IOException, ParseException {
+        return Result.success(pathwaySecurityService.searchElements(sbgnElement));
+    }
+
+    @GetMapping(value = "/pathways")
+    @ApiOperation(
+            value = "Returns pathways page",
+            notes = "Returns pathways page",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Page<Pathway>> loadPathways(final QueryParameters queryParameters) {
+        return Result.success(pathwaySecurityService.loadPathways(queryParameters));
     }
 
     @PostMapping(value = "/pathway")
@@ -82,7 +122,7 @@ public class PathwayController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Pathway> createPathway(@RequestBody final PathwayRegistrationRequest request)
-            throws IOException, ParseException {
+            throws IOException, ParseException, JAXBException {
         return Result.success(pathwaySecurityService.createPathway(request));
     }
 

@@ -26,6 +26,9 @@ package com.epam.catgenome.manager.pathway;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.util.db.Page;
+import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.QueryParameters;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -57,11 +60,11 @@ public class PathwayManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException {
-        this.fileName = context.getResource("classpath:pathway//pathway.sbml").getFile().getPath();
+        this.fileName = context.getResource("classpath:pathway//Glycolysis.sbgn").getFile().getPath();
     }
 
     @Test
-    public void createPathwayTest() throws IOException, ParseException {
+    public void createPathwayTest() throws IOException, ParseException, JAXBException {
         final Pathway pathway = registerPathway("createPathwayTest", fileName);
         assertNotNull(pathway);
         assertEquals("createPathwayTest", pathway.getName());
@@ -70,22 +73,27 @@ public class PathwayManagerTest extends TestCase {
     }
 
     @Test
-    public void loadPathway() throws IOException, ParseException {
+    public void loadPathway() throws IOException, ParseException, JAXBException {
         final Pathway pathway = registerPathway("loadPathway", fileName);
         final Pathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
     }
 
     @Test
-    public void loadPathways() throws IOException, ParseException {
+    public void loadPathways() throws IOException, ParseException, JAXBException {
         registerPathway("loadPathways", fileName);
         registerPathway("loadPathways1", fileName);
-        final List<Pathway> pathways = pathwayManager.loadPathways();
-        assertEquals(2, pathways.size());
+        registerPathway("loadPathways2", fileName);
+        final QueryParameters parameters = new QueryParameters();
+        final PagingInfo pagingInfo = new PagingInfo(2, 1);
+        parameters.setPagingInfo(pagingInfo);
+        final Page<Pathway> pathways = pathwayManager.loadPathways(parameters);
+        assertEquals(2, pathways.getItems().size());
+        assertEquals(3, pathways.getTotalCount());
     }
 
     @Test
-    public void deletePathwayTest() throws IOException, ParseException {
+    public void deletePathwayTest() throws IOException, ParseException, JAXBException {
         final Pathway pathway = registerPathway("deletePathwayTest", fileName);
         Pathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
@@ -95,7 +103,8 @@ public class PathwayManagerTest extends TestCase {
     }
 
     @NotNull
-    private Pathway registerPathway(final String name, final String fileName) throws IOException, ParseException {
+    private Pathway registerPathway(final String name, final String fileName)
+            throws IOException, ParseException, JAXBException {
         final PathwayRegistrationRequest request = new PathwayRegistrationRequest();
         request.setName(name);
         request.setPrettyName("pathway");

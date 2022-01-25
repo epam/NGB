@@ -78,6 +78,9 @@ ext {
 // >>>>> repositories that should be used to find any external dependencies
 repositories {
     mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
     flatDir {
         dirs 'lib'
     }
@@ -187,6 +190,9 @@ dependencies {
 
     // newick format
     compile group: "com.github.qurben", name: "libnewicktree", version: "1.0"
+
+    // sbgn format
+    compile group: "com.github.sbgn", name: "libsbgn", version: "b619268"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")

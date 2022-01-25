@@ -294,6 +294,8 @@ public final class MessagesConstants {
 
     //Pathway
     public static final String ERROR_PATHWAY_NOT_FOUND = "error.pathway.not.found";
+    public static final String ERROR_PATHWAY_NO_GLYPHS = "error.pathway.no.glyphs.found";
+    public static final String ERROR_PATHWAY_NO_ARCS = "error.pathway.no.arcs.found";
 
     //Attributes
     public static final String ERROR_ATTRIBUTE_INVALID_VALUE = "error.attribute.invalid.value";

@@ -27,6 +27,7 @@ import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -42,6 +43,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import static com.epam.catgenome.util.Utils.addParametersToQuery;
+
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -54,6 +57,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
     private String deletePathwayQuery;
     private String loadPathwayQuery;
     private String loadPathwaysQuery;
+    private String getTotalCountQuery;
 
     /**
      * Persists new Pathway record.
@@ -89,8 +93,13 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code Pathways} from a database.
      * @return a {@code List<Pathway>} from the database
      */
-    public List<Pathway> loadAllPathways() {
-        return getJdbcTemplate().query(loadPathwaysQuery, PathwayParameters.getRowMapper());
+    public List<Pathway> loadAllPathways(final QueryParameters queryParameters) {
+        final String query = addParametersToQuery(loadPathwaysQuery, queryParameters);
+        return getJdbcTemplate().query(query, PathwayParameters.getRowMapper());
+    }
+
+    public long getTotalCount() {
+        return getJdbcTemplate().queryForObject(getTotalCountQuery, Long.class);
     }
 
     enum PathwayParameters {
