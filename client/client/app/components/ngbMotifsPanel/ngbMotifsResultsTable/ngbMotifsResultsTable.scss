@@ -6,18 +6,22 @@
 .motifs-back-to-params-button {
     min-width: 44px;
 }
-  
-.motifs-results-table {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
 
-    .ui-grid-viewport {
-        height: 100% !important;
+.ui-grid-container.motifs-results-container {
+    .motifs-results-table.ui-grid {
+        height: 90% !important;
     }
 
     .ui-grid-header-cell-label {
         text-transform: capitalize;
+    }
+
+    .ui-grid-contents-wrapper {
+        height: 90%;
+    }
+
+    .ui-grid-render-container {
+        height: 90%;
     }
 }
 

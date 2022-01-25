@@ -35,4 +35,30 @@ export class MotifsDataService extends DataService {
                 });
         });
     }
+
+    getNextMotifs (request) {
+        return new Promise((resolve, reject) => {
+            this.post('reference/motif/next', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve({});
+                    }
+                });
+        });
+    }
+
+    getPrevMotifs (request) {
+        return new Promise((resolve, reject) => {
+            this.post('reference/motif/prev', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve({});
+                    }
+                });
+        });
+    }
 }
