@@ -164,10 +164,10 @@ public class MotifSearchManager {
     public StrandedSequence getPreviousMotif(final MotifSearchRequest motifSearchRequest) {
         verifyNextOrPrevSearchRequest(motifSearchRequest);
         // we calculate shift window in this way, because in the worst case
-        // we can have searchResultSizeLimit number of result (for example when each nucleotide is matched)
+        // we can have searchResultSizeLimit number of result
+        // (for example when each nucleotide is matched: pattern [ACGT])
         // and we need to find exactly last result to find a previous match.
-        // seems to be impossible case but still.
-        // to get max exact searchResultSizeLimit result we need to adjust shift window regarding overlapping mechanism
+        // to get maximum searchResultSizeLimit result we need to adjust shift window regarding overlapping mechanism
         // that will be used in search() method
         final int shift = Math.max(1, searchResultSizeLimit - 2 * validateAndAdjustOverlap(motifSearchRequest) - 1);
         int from = Math.max(0, motifSearchRequest.getStartPosition() - shift);
