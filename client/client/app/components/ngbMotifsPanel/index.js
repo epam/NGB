@@ -10,9 +10,14 @@ import motifSequenceValidation from './motif.sequence.directive';
 
 import ngbMotifsResultsTable from './ngbMotifsResultsTable';
 import ngbMotifsParamsTable from './ngbMotifsParamsTable';
+import ngbMotifsResultsFilter from './ngbMotifsResultsTable/ngbMotifsResultsFilter';
 
 export default angular
-    .module('ngbMotifsPanel', [ngbMotifsResultsTable, ngbMotifsParamsTable])
+    .module('ngbMotifsPanel', [
+        ngbMotifsResultsTable,
+        ngbMotifsParamsTable,
+        ngbMotifsResultsFilter
+    ])
     .directive('motifSequence', motifSequenceValidation)
     .controller(ngbMotifsPanelController.UID, ngbMotifsPanelController)
     .component('ngbMotifsPanel', ngbMotifsPanel)

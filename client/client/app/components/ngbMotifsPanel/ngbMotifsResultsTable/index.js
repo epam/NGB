@@ -7,7 +7,8 @@ import ngbMotifsResultsTableController from './ngbMotifsResultsTable.controller'
 
 import ngbMotifsPanelService from '../ngbMotifsPanel.service';
 
-export default angular.module('ngbMotifsResultsTable', [])
+export default angular
+    .module('ngbMotifsResultsTable', [])
     .service('ngbMotifsPanelService', ngbMotifsPanelService.instance)
     .controller(ngbMotifsResultsTableController.UID, ngbMotifsResultsTableController)
     .component('ngbMotifsResultsTable', ngbMotifsResultsTable)

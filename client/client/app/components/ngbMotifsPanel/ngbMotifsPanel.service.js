@@ -17,6 +17,8 @@ export default class ngbMotifsPanelService {
     _currentParams = {};
     searchRequestsHistory = [];
     requestNumber = 0;
+    _searchMotifFilter = null;
+    _blockFilterResults = null;
 
     _isSearchInProgress = false;
     _isSearchFailure = false;
@@ -92,6 +94,10 @@ export default class ngbMotifsPanelService {
     }
     get negative () {
         return NEGATIVE;
+    }
+
+    get searchMotifFilter () {
+        return this._searchMotifFilter;
     }
 
     static instance (
@@ -181,8 +187,11 @@ export default class ngbMotifsPanelService {
         };
         this.setCurrentParams(currentParams);
         const chromosomeId = params.currentChromosomeId || this.projectContext.currentChromosome.id;
-        return referenceType ?
+        this.initializeFilters(chromosomeId);
+        const request = referenceType ?
             {...currentParams} : {chromosomeId, ...currentParams};
+        request.filter = this.getRequestFilter();
+        return request;
     }
 
     setCurrentParams (params) {
@@ -200,7 +209,6 @@ export default class ngbMotifsPanelService {
     async showSearchMotifResults(request) {
         await this.getSearchMotifsResults(request)
             .then(result => {
-                this.setSearchMotifResults(result);
                 this.dispatcher.emitSimpleEvent('motifs:show:results');
             });
     }
@@ -212,6 +220,7 @@ export default class ngbMotifsPanelService {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = false;
                     this.errorMessageList = null;
+                    this.setSearchMotifResults(response.result);
                     this.searchStopOn = {
                         startPosition: response.position !== undefined ?
                             response.position : null,
@@ -260,11 +269,83 @@ export default class ngbMotifsPanelService {
         }
     }
 
+    canScheduleFilterResults () {
+        return !this._blockFilterResults;
+    }
+
+    scheduleFilterResults() {
+        if (this._blockFilterResults) {
+            return;
+        }
+        this.dispatcher.emit('motifs:refresh:results');
+    }
+
+    initializeFilters (chromosomeId) {
+        if (this.currentParams.searchType === this.chromosomeType && chromosomeId) {
+            const chromosomeName = this.projectContext.chromosomes
+                .filter(chr => chr.id === chromosomeId)
+                .map(chr => chr.name)[0];
+            this._searchMotifFilter = {
+                chromosome: [chromosomeName],
+                strand: '',
+                gene: []
+            };
+        } else {
+            this._searchMotifFilter = null;
+        }
+        this.dispatcher.emitSimpleEvent('initialize:motif:filters');
+    }
+        
+
+    setFilter (key, value) {
+        const filter = {...this.searchMotifFilter};
+        filter[key] = [...value];
+        
+        this._searchMotifFilter = filter;
+    }
+
+    getRequestFilter () {
+        if (!this.searchMotifFilter) {
+            return;
+        }
+        const {chromosome, gene, strand} = this.searchMotifFilter;
+        const filter = {};
+        if (this.currentParams.searchType !== this.chromosomeType && chromosome) {
+            filter.chromosomeIds = this.projectContext.chromosomes
+                .filter(chr => (chromosome || []).indexOf(chr.name) >= 0)
+                .map(chr => chr.id);
+        }
+        if (gene && gene.length) {
+            filter.geneNames = [...gene];
+        }
+        if (strand) {
+            filter.strand = this.getStrand(strand[0]);
+        }
+        return filter;
+    }
+
+    async filterResults () {
+        const currentParams = {...this.currentParams};
+        delete currentParams.name;
+        this.searchRequestsHistory = [];
+        const wholeGenomeType = currentParams.searchType === this.wholeGenomeType;
+        const chromosomeId = this.projectContext.currentChromosome.id;
+        const request = wholeGenomeType ?
+            {...currentParams} : {chromosomeId, ...currentParams};
+        request.filter = this.getRequestFilter();
+        await this.getSearchMotifsResults(request)
+            .then(result => {
+                this.setSearchMotifResults(result);
+            });
+        this.searchRequestsHistory.push(request);
+    }
+
     resetResultsData () {
         this._currentParams = {};
         this.motifsResultsTitle = null;
         this.searchRequestsHistory = [];
         this.searchMotifResults = null;
+        this._searchMotifFilter = null;
     }
 
     backToParamsTable () {
