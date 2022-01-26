@@ -38,6 +38,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
         return MOTIFS_RESULTS_COLUMNS;
     }
     loadingData = false;
+    emptyFilteredResults = false;
 
     get positive () {
         return this.ngbMotifsPanelService.positive;
@@ -46,7 +47,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
         return this.ngbMotifsPanelService.negative;
     }
     get rowHeight () {
-        this.ngbMotifsPanelService.rowHeight;
+        return this.ngbMotifsPanelService.rowHeight;
     }
     get pageSize () {
         return this.ngbMotifsPanelService.pageSize;
@@ -65,6 +66,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
     }
     get emptyResults () {
         return !this.loading &&
+            !this.emptyFilteredResults &&
             !this.ngbMotifsPanelService.isShowParamsTable && (
             !this.ngbMotifsPanelService.searchMotifResults ||
             this.ngbMotifsPanelService.searchMotifResults.length === 0
@@ -95,11 +97,14 @@ export default class ngbMotifsResultsTableController  extends baseController {
         this.gridOptions.rowHeight = this.rowHeight;
         const showResults = this.showResults.bind(this);
         const addTracks = this.addTracks.bind(this);
+        const refreshResults = this.refreshResults.bind(this);
         this.dispatcher.on('motifs:show:results', showResults);
         this.dispatcher.on('motifs:add:tracks', addTracks);
+        this.dispatcher.on('motifs:refresh:results', refreshResults);
         this.$scope.$on('$destroy', () => {
             this.dispatcher.removeListener('motifs:show:results', showResults);
             this.dispatcher.removeListener('motifs:add:tracks', addTracks);
+            this.dispatcher.removeListener('motifs:refresh:results', refreshResults);
         });
     }
 
@@ -157,9 +162,11 @@ export default class ngbMotifsResultsTableController  extends baseController {
         if (startPosition === null || chromosomeId === null) {
             return;
         }
+        const filter = this.ngbMotifsPanelService.getRequestFilter();
         const request = {
             chromosomeId,
             startPosition,
+            filter,
             ...this.currentParams
         };
         delete request.name;
@@ -175,9 +182,11 @@ export default class ngbMotifsResultsTableController  extends baseController {
         this.searchRequestsHistory.pop();
         const index = this.searchRequestsHistory.length - 2;
         const {startPosition, chromosomeId} = this.searchRequestsHistory[index];
+        const filter = this.ngbMotifsPanelService.getRequestFilter();
         const request = {
             chromosomeId,
             startPosition,
+            filter,
             ...this.currentParams
         };
         delete request.name;
@@ -244,6 +253,36 @@ export default class ngbMotifsResultsTableController  extends baseController {
 
     showResults() {
         this.gridOptions.data = this.ngbMotifsPanelService.searchMotifResults;
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    async refreshResults () {
+        if (this.projectContext.reference) {
+            this.loadingData = true;
+            if (this.gridApi) {
+                this.gridApi.infiniteScroll.setScrollDirections(false, false);
+                this.gridApi.core.scrollTo(
+                    this.gridOptions.data[0],
+                    this.gridOptions.columnDefs[0]
+                );
+            }
+            await this.ngbMotifsPanelService.filterResults();
+            const results = this.ngbMotifsPanelService.searchMotifResults;
+            if (results && results.length === 0) {
+                this.emptyFilteredResults = true;
+            } else {
+                this.emptyFilteredResults = false;
+            }
+            this.gridOptions.data = results;
+            const self = this;
+            const {startPosition, chromosomeId} = this.searchStopOn;
+            this.$timeout(function () {
+                self.gridApi.infiniteScroll.dataLoaded(
+                    self.searchRequestsHistory.length > 2,
+                    startPosition !== null && chromosomeId !== null);
+            });
+        }
+        this.loadingData = false;
         this.$timeout(() => this.$scope.$apply());
     }
 
