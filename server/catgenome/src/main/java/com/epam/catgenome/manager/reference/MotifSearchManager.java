@@ -25,8 +25,14 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.StrandedSequence;
@@ -34,6 +40,7 @@ import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.entity.reference.motif.MotifSearchRequest;
 import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
+import com.epam.catgenome.entity.reference.motif.Region;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.GeneInfo;
@@ -42,6 +49,7 @@ import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.motif.MotifSearcher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,9 +59,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -116,6 +127,10 @@ public class MotifSearchManager {
     public MotifSearchResult search(final MotifSearchRequest request, final boolean loadGenes) {
         verifyMotifSearchRequest(request);
         final Reference reference = loadReferenceWithChromosomes(request);
+        final List<GeneIndexEntry> filterGenes = fetchGenes(request, reference);
+        if (CollectionUtils.isNotEmpty(filterGenes)) {
+            return searchGeneMotifs(request, reference, loadGenes, filterGenes);
+        }
         switch (request.getSearchType()) {
             case WHOLE_GENOME:
                 return searchWholeGenomeMotifs(request, reference, loadGenes);
@@ -207,6 +222,8 @@ public class MotifSearchManager {
             return;
         }
         Assert.notNull(request.getChromosomeId(), getMessage("Chromosome not provided!"));
+        Assert.isTrue(CollectionUtils.isEmpty(request.getChromosomeFilter()),
+                getMessage("Chromosome filter is supported only for whole genome search!"));
         if (end != null && start != null) {
             Assert.isTrue(end - start > 0,
                     getMessage("Provided end and start are not valid: " + end + " < " + start));
@@ -214,6 +231,8 @@ public class MotifSearchManager {
         if (searchType.equals(MotifSearchType.CHROMOSOME)) {
             return;
         }
+        Assert.isTrue(CollectionUtils.isEmpty(request.getGeneFilter()),
+                getMessage("Gene filter is not supported for region queries!"));
         Assert.notNull(start, getMessage("Start position is empty!"));
         Assert.notNull(end, getMessage("End position is empty!"));
     }
@@ -230,6 +249,49 @@ public class MotifSearchManager {
                     getMessage("Provided end and start are not valid: " + end + " < " + start));
         }
         Assert.notNull(start, getMessage("Start position is empty!"));
+    }
+
+    private MotifSearchResult searchGeneMotifs(final MotifSearchRequest request,
+                                               final Reference reference,
+                                               final boolean loadGenes,
+                                               final List<GeneIndexEntry> filterGenes) {
+        final int pageSize = Optional.ofNullable(request.getPageSize()).orElse(defaultPageSize);
+        final List<Motif> motifs = new ArrayList<>();
+        for (final Region region : getRequestIntervals(filterGenes, request, reference.getChromosomes())) {
+            motifs.addAll(searchRegionMotifs(MotifSearchRequest.builder()
+                    .motif(request.getMotif())
+                    .referenceId(request.getReferenceId())
+                    .chromosomeId(region.getChromosomeId())
+                    .startPosition(region.getStart())
+                    .endPosition(region.getEnd())
+                    .pageSize(pageSize)
+                    .includeSequence(request.getIncludeSequence())
+                    .strand(request.getStrandFilter())
+                    .slidingWindow(request.getSlidingWindow())
+                    .build(), reference, loadGenes)
+                    .getResult());
+
+            if (motifs.size() >= pageSize) {
+                break;
+            }
+        }
+        final List<Motif> result = motifs.stream()
+                .limit(Math.min(motifs.size(), pageSize))
+                .collect(Collectors.toList());
+        final Optional<Motif> lastMotif = CollectionUtils.isEmpty(result) ? Optional.empty() :
+                Optional.of(result.get(result.size() - 1));
+
+        return MotifSearchResult.builder()
+                .result(result)
+                .chromosomeId(lastMotif.flatMap(motif -> reference.getChromosomes()
+                        .stream()
+                        .filter(chr -> chr.getName().equals(motif.getContig()))
+                        .findFirst()
+                        .map(BaseEntity::getId))
+                        .orElse(null))
+                .pageSize(pageSize)
+                .position(lastMotif.map(m -> m.getEnd() + 1).orElse(null))
+                .build();
     }
 
     private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request,
@@ -250,7 +312,7 @@ public class MotifSearchManager {
 
         final Iterator<Motif> motifIterator = MotifSearcher.search(
                 getSequence(startPosition, endPosition, reference, chromosome),
-                        request.getMotif(), request.getStrand(), chromosome.getName(),
+                        request.getMotif(), request.getStrandFilter(), chromosome.getName(),
                         startPosition, includeSequence, searchResultSizeLimit
                 ).filter(motif -> motif.getEnd() >= request.getStartPosition()
                         && motif.getStart() <= request.getEndPosition())
@@ -340,7 +402,7 @@ public class MotifSearchManager {
                             .endPosition(currentEnd)
                             .pageSize(pageSize)
                             .includeSequence(request.getIncludeSequence())
-                            .strand(request.getStrand())
+                            .strand(request.getStrandFilter())
                             .slidingWindow(request.getSlidingWindow())
                             .build(),
                     reference,
@@ -381,23 +443,18 @@ public class MotifSearchManager {
         int start = request.getStartPosition() == null ? 0 : request.getStartPosition();
         Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         long chrId = chromosome.getId();
-        final int end = request.getEndPosition() == null ? chromosome.getSize() : request.getEndPosition();
-        if (end < chromosome.getSize()) {
-            return searchRegionMotifs(
-                    request.toBuilder()
-                            .pageSize(pageSize)
-                            .searchType(MotifSearchType.REGION)
-                            .chromosomeId(chrId)
-                            .startPosition(start)
-                            .endPosition(end)
-                            .slidingWindow(request.getSlidingWindow())
-                            .build(),
-                    reference, loadGenes);
-        }
-        final List<Chromosome> chromosomes = getChromosomesOfGenome(request.getReferenceId());
+        final List<Chromosome> chromosomes = reference.getChromosomes();
         final List<Motif> motifs = new ArrayList<>();
         while (chromosome != null && pageSize - motifs.size() > 0) {
             chrId = chromosome.getId();
+            if (CollectionUtils.isNotEmpty(request.getChromosomeFilter()) &&
+                    !request.getChromosomeFilter().contains(chrId)) {
+                log.debug("Requested chromosome {} doesn't match filter {}", chromosome.getId(),
+                        request.getChromosomeFilter());
+                start = 0;
+                chromosome = getNextChromosome(chromosomes, chromosome);
+                continue;
+            }
             motifs.addAll(searchChromosomeMotifs(
                     request.toBuilder()
                             .pageSize(pageSize - motifs.size())
@@ -452,13 +509,131 @@ public class MotifSearchManager {
                         getMessage(MessagesConstants.ERROR_WRONG_CHROMOSOME_ID, chromosomeId)));
     }
 
-    private List<Chromosome> getChromosomesOfGenome(final Long referenceId) {
-        return referenceGenomeManager.loadChromosomes(referenceId);
-    }
-
     private void checkSizeOfMotifSearchResult(final Collection<Motif> motifs) {
         Assert.isTrue(motifs.size() <= searchResultSizeLimit,
                 "Too many result, specify more concrete query. Configured max result size: " + searchResultSizeLimit);
 
+    }
+
+    private List<Region> getRequestIntervals(final List<GeneIndexEntry> genes,
+                                             final MotifSearchRequest request,
+                                             final List<Chromosome> chromosomes) {
+        final List<Region> regions = genes.stream()
+                .map(gene -> Region
+                        .builder()
+                        .chromosomeId(gene.getChromosome().getId())
+                        .start(gene.getStartIndex())
+                        .end(gene.getEndIndex())
+                        .strand(StrandSerializable.forValue(gene.getStrand()))
+                        .build())
+                .collect(Collectors.toList());
+        if (Objects.isNull(request.getChromosomeId())) {
+            return mergeRegions(regions);
+        }
+
+        final Set<Long> filteredChromosomes = chromosomes.stream()
+                .skip(getChromosomeIndex(chromosomes, request.getChromosomeId()))
+                .map(BaseEntity::getId)
+                .collect(Collectors.toSet());
+
+        final List<Region> filteredRegions = regions.stream()
+                .filter(region -> filteredChromosomes.contains(region.getChromosomeId()))
+                .map(region -> {
+                    if (Objects.nonNull(request.getStartPosition())
+                            && region.getChromosomeId().equals(request.getChromosomeId())) {
+                        //shift gene start to requested interval
+                        return region
+                                .toBuilder()
+                                .start(Math.max(request.getStartPosition(), region.getStart()))
+                                .build();
+                    }
+                    return region;
+                })
+                .collect(Collectors.toList());
+        return mergeRegions(filteredRegions);
+    }
+
+    private List<Region> mergeRegions(final List<Region> regions) {
+        if (regions.size() <= 1) {
+            return regions;
+        }
+        final List<Region> result = new ArrayList<>();
+        Region current = regions.get(0);
+        for (int i = 1; i < regions.size(); i++) {
+            final Region next = regions.get(i);
+            if (current.overlap(next)) {
+                current = current.merge(next);
+            } else {
+                result.add(current);
+                current = next;
+            }
+        }
+        if (!result.contains(current)) {
+            result.add(current);
+        }
+        return result;
+    }
+
+    private Integer getChromosomeIndex(final List<Chromosome> chromosomes,
+                                       final Long chromosomeId) {
+        for (int i = 0; i < chromosomes.size(); i++) {
+            if (chromosomes.get(i).getId().equals(chromosomeId)) {
+                return i;
+            }
+        }
+        throw new IllegalArgumentException(
+                getMessage("Chromosome {} was not found in reference", chromosomeId));
+    }
+
+    private List<GeneIndexEntry> fetchGenes(final MotifSearchRequest request,
+                                            final Reference reference) {
+        if (CollectionUtils.isEmpty(request.getGeneFilter())) {
+            return Collections.emptyList();
+        }
+        final GeneFilterForm geneFilterForm = new GeneFilterForm();
+        geneFilterForm.setFeatureNames(request.getGeneFilter());
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE.getFileValue()));
+        geneFilterForm.setChromosomeIds(getChromosomeFilter(request));
+        geneFilterForm.setPageSize(defaultPageSize);
+        geneFilterForm.setPage(1);
+        try {
+            final IndexSearchResult<GeneIndexEntry> result = featureIndexManager
+                    .searchGenesByReference(geneFilterForm, request.getReferenceId());
+
+            final List<GeneIndexEntry> entries = ListUtils.emptyIfNull(result.getEntries())
+                    .stream()
+                    .filter(gene -> Objects.isNull(request.getStrandFilter()) ||
+                            Objects.equals(request.getStrandFilter().toValue(), gene.getStrand()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(entries)) {
+                throw new IllegalStateException("No genes match specified filter: " + request.getGeneFilter());
+            }
+            entries.sort(Comparator.comparing(FeatureIndexEntry::getStartIndex));
+
+            if (request.getSearchType().equals(MotifSearchType.CHROMOSOME)) {
+                return entries;
+            }
+
+            final Map<Long, List<GeneIndexEntry>> chromosomeToGenes = entries.stream()
+                    .collect(Collectors.groupingBy(e -> e.getChromosome().getId()));
+            final List<GeneIndexEntry> sortedGenes = new ArrayList<>();
+            reference.getChromosomes()
+                    .forEach(chr ->
+                            sortedGenes.addAll(chromosomeToGenes.getOrDefault(chr.getId(), Collections.emptyList())));
+            return sortedGenes;
+        } catch (IOException e) {
+            log.error("Failed to fetch gene for motif filter: {}", e.getMessage());
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<Long> getChromosomeFilter(final MotifSearchRequest request) {
+        if (CollectionUtils.isNotEmpty(request.getChromosomeFilter())) {
+            return request.getChromosomeFilter();
+        }
+        if (request.getSearchType().equals(MotifSearchType.CHROMOSOME)) {
+            return Collections.singletonList(request.getChromosomeId());
+        }
+        return Collections.emptyList();
     }
 }
