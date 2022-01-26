@@ -85,6 +85,7 @@ public class MotifSearchManager {
 
     @Autowired
     private ReferenceManager referenceManager;
+
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
@@ -114,12 +115,7 @@ public class MotifSearchManager {
 
     public MotifSearchResult search(final MotifSearchRequest request, final boolean loadGenes) {
         verifyMotifSearchRequest(request);
-        Reference reference = referenceGenomeManager.getOnlyReference(request.getReferenceId());
-        if (reference == null) {
-            throw new IllegalStateException(getMessage(
-                    MessagesConstants.ERROR_REFERENCE_READING, request.getReferenceId()));
-        }
-        reference.setChromosomes(referenceGenomeManager.loadChromosomes(request.getReferenceId()));
+        final Reference reference = loadReferenceWithChromosomes(request);
         switch (request.getSearchType()) {
             case WHOLE_GENOME:
                 return searchWholeGenomeMotifs(request, reference, loadGenes);
@@ -134,36 +130,54 @@ public class MotifSearchManager {
 
     public StrandedSequence getNextMotif(final MotifSearchRequest motifSearchRequest) {
         verifyNextOrPrevSearchRequest(motifSearchRequest);
-        return search(
-                motifSearchRequest.toBuilder()
-                        .startPosition(motifSearchRequest.getStartPosition())
-                        .searchType(MotifSearchType.CHROMOSOME)
-                        // We need to set pageSize == 2 because first match could overlap startPosition but
-                        // start of this match will < motifSearchRequest.startPosition
-                        // (algorithm searches for all matches that overlap requested interval)
-                        .pageSize(2).build()
-        ).getResult()
-                .stream()
-                .filter(m -> m.getStart() > motifSearchRequest.getStartPosition())
-                .map(m -> new StrandedSequence(m.getStart(), m.getEnd(), m.getSequence(), m.getStrand()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No next motif can be found!"));
+        final Chromosome chromosome = fetchChromosomeById(
+                loadReferenceWithChromosomes(motifSearchRequest),
+                motifSearchRequest.getChromosomeId());
+        // please see explanation for this calculation in getPreviousMotif() method
+        final int shift = Math.max(1, searchResultSizeLimit - 2 * validateAndAdjustOverlap(motifSearchRequest) - 1);
+        int from = motifSearchRequest.getStartPosition();
+        int to = Math.min(chromosome.getSize(), from + shift);
+        while (from < chromosome.getSize()) {
+            final MotifSearchResult result = search(
+                    motifSearchRequest.toBuilder()
+                            .startPosition(from)
+                            .endPosition(to)
+                            .searchType(MotifSearchType.REGION)
+                            .pageSize(searchResultSizeLimit).build()
+            );
+            final Optional<StrandedSequence> next = result.getResult()
+                    .stream()
+                    .filter(m -> m.getStart() > motifSearchRequest.getStartPosition())
+                    .map(m -> new StrandedSequence(m.getStart(), m.getEnd(), m.getSequence(), m.getStrand()))
+                    .findFirst();
+
+            if (next.isPresent()) {
+                return next.get();
+            }
+
+            from = to;
+            to = Math.min(chromosome.getSize(), from + shift);
+        }
+        throw  new IllegalStateException("No next motif can be found!");
     }
 
     public StrandedSequence getPreviousMotif(final MotifSearchRequest motifSearchRequest) {
         verifyNextOrPrevSearchRequest(motifSearchRequest);
-        // we use here searchResultSizeLimit as shift window, because in the worst case
-        // we can have searchResultSizeLimit number of result (for example when each nucleotide is matched)
+        // we calculate shift window in this way, because in the worst case
+        // we can have searchResultSizeLimit number of result
+        // (for example when each nucleotide is matched: pattern [ACGT])
         // and we need to find exactly last result to find a previous match.
-        // seems to be impossible case but still.
-        int from = Math.max(0, motifSearchRequest.getStartPosition() - searchResultSizeLimit);
+        // to get maximum searchResultSizeLimit result we need to adjust shift window regarding overlapping mechanism
+        // that will be used in search() method
+        final int shift = Math.max(1, searchResultSizeLimit - 2 * validateAndAdjustOverlap(motifSearchRequest) - 1);
+        int from = Math.max(0, motifSearchRequest.getStartPosition() - shift);
         int to = Math.max(0, motifSearchRequest.getStartPosition());
         while (from != 0 || to != 0) {
             Optional<Motif> result = search(
                     motifSearchRequest.toBuilder()
                             .startPosition(from).endPosition(to)
                             .searchType(MotifSearchType.REGION)
-                            .pageSize(Integer.MAX_VALUE).build())
+                            .pageSize(searchResultSizeLimit).build())
                     .getResult()
                     .stream()
                     .sorted((m1, m2) -> m2.getStart() - m1.getStart())
@@ -175,7 +189,7 @@ public class MotifSearchManager {
                         prevMotif.getSequence(), prevMotif.getStrand());
             } else {
                 to = from;
-                from = Math.max(0, from - searchResultSizeLimit);
+                from = Math.max(0, from - shift);
             }
 
         }
@@ -207,7 +221,8 @@ public class MotifSearchManager {
     private void verifyNextOrPrevSearchRequest(final MotifSearchRequest request) {
         Assert.notNull(request.getMotif(), getMessage("Motif is empty!"));
         Assert.notNull(request.getReferenceId(), getMessage("Genome id is empty!"));
-        Assert.notNull(request.getChromosomeId(), getMessage("Chromosome not provided!"));
+        Assert.notNull(request.getChromosomeId(), getMessage("Chromosome is not provided!"));
+        Assert.notNull(request.getStrand(), getMessage("Strand is not provided!"));
         final Integer start = request.getStartPosition();
         final Integer end = request.getEndPosition();
         if (end != null && start != null) {
@@ -417,6 +432,16 @@ public class MotifSearchManager {
             }
         }
         return null;
+    }
+
+    private Reference loadReferenceWithChromosomes(final MotifSearchRequest request) {
+        Reference reference = referenceGenomeManager.getOnlyReference(request.getReferenceId());
+        if (reference == null) {
+            throw new IllegalStateException(getMessage(
+                    MessagesConstants.ERROR_REFERENCE_READING, request.getReferenceId()));
+        }
+        reference.setChromosomes(referenceGenomeManager.loadChromosomes(request.getReferenceId()));
+        return reference;
     }
 
     private Chromosome fetchChromosomeById(final Reference reference, final Long chromosomeId) {

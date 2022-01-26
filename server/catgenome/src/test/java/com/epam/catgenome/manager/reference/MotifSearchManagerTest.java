@@ -697,6 +697,7 @@ public class MotifSearchManagerTest {
                 .startPosition(START_POSITION_15)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(MOTIF_CCA)
+                .strand(StrandSerializable.POSITIVE)
                 .build();
         StrandedSequence motif = motifSearchManager.getPreviousMotif(att);
         Assert.assertNotNull(motif);
@@ -707,6 +708,7 @@ public class MotifSearchManagerTest {
                 .startPosition(START_POSITION_3)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(MOTIF_CCA)
+                .strand(StrandSerializable.POSITIVE)
                 .build();
         motif = motifSearchManager.getPreviousMotif(att);
         Assert.assertNotNull(motif);
@@ -721,6 +723,7 @@ public class MotifSearchManagerTest {
                 .startPosition(START_POSITION_1)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(MOTIF_CCCC)
+                .strand(StrandSerializable.POSITIVE)
                 .build();
         StrandedSequence motif = motifSearchManager.getNextMotif(att);
         Assert.assertNotNull(motif);
@@ -731,6 +734,7 @@ public class MotifSearchManagerTest {
                 .startPosition(MOTIF_CCCC_START_POSITION_16)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(MOTIF_CCCC)
+                .strand(StrandSerializable.POSITIVE)
                 .build();
         motif = motifSearchManager.getNextMotif(att);
         Assert.assertNotNull(motif);
@@ -745,6 +749,7 @@ public class MotifSearchManagerTest {
                 .startPosition(START_POSITION_1)
                 .chromosomeId(a3TestReference.getChromosomes().get(0).getId())
                 .motif(MOTIF_CCAGCAGAAC)
+                .strand(StrandSerializable.POSITIVE)
                 .build();
         motifSearchManager.getPreviousMotif(att);
     }
