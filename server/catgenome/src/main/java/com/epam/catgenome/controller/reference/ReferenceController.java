@@ -419,8 +419,8 @@ public class ReferenceController extends AbstractRESTController {
     @ApiOperation(
             value = "Returns a next motif regarding request.",
             notes = "Returns a next motif regarding request. " +
-                    "Parameters: referenceId, chromosomeId, motif, startPosition are required, " +
-                    "strand and includeSequence are optional, other are not considered.",
+                    "Parameters: referenceId, chromosomeId, motif, startPosition, strand are required, " +
+                    "includeSequence is optional, other are not considered.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -434,8 +434,8 @@ public class ReferenceController extends AbstractRESTController {
     @ApiOperation(
             value = "Returns a previous motif regarding request.",
             notes = "Returns a previous motif regarding request. " +
-                    "Parameters: referenceId, chromosomeId, motif, startPosition are required, " +
-                    "strand and includeSequence are optional, other are not considered.",
+                    "Parameters: referenceId, chromosomeId, motif, startPosition, strand are required, " +
+                    "includeSequence is optional, other are not considered.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
