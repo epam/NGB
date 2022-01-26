@@ -27,7 +27,6 @@ package com.epam.ngb.cli.manager.command.handler.http.pathway;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
-import com.epam.ngb.cli.entity.lineage.LineageTree;
 import com.epam.ngb.cli.entity.pathway.Pathway;
 import com.epam.ngb.cli.entity.pathway.PathwayRegistrationRequest;
 import com.epam.ngb.cli.exception.ApplicationException;
