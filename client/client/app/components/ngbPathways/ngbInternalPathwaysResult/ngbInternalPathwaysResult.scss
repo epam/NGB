@@ -1,0 +1,124 @@
+.ngb-cytoscape-container {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  flex: 1;
+}
+
+.internal-pathway-container-error {
+  margin: 10px;
+  color: #999;
+}
+
+.internal-pathway-container {
+  margin: 2px 10px;
+  height: calc(100% - 4px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.tree-list-divider {
+  height: 2px;
+
+  & div {
+    width: 100%;
+
+    md-divider {
+      border-top-color: #000;
+    }
+  }
+}
+
+.tree-container {
+  position: relative;
+
+  .element-description-container {
+    width: 50%;
+    max-width: 300px;
+    position: absolute;
+    top: 0;
+    right: 15px;
+    z-index: 1;
+
+    .md-content {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      background: #FFFFFF;
+      color: #333333;
+      font-size: 13px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      padding: 10px;
+      box-shadow: 2px 2px 8px 2px #aaa;
+
+      .close {
+        cursor: pointer;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        fill: #777;
+      }
+
+      .close:hover {
+        fill: #333333;
+      }
+
+      .element-description-body {
+        display: table;
+        padding-right: 16px;
+
+        .element-description-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          border-spacing: 5px;
+          word-break: break-all;
+          padding: 5px 0;
+
+          .element-description-title {
+            margin-right: 5px;
+          }
+
+          .element-description-navigation {
+            font-weight: bold;
+            color: #2c4f9e;
+            text-decoration: underline;
+            cursor: pointer;
+          }
+
+          .sequenced {
+            font-size: smaller;
+            font-style: italic;
+            white-space: nowrap;
+          }
+        }
+
+        .element-description-attributes {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+
+          .element-description-attribute {
+            margin: 2px 0;
+            padding: 2px 4px;
+            background: #f9f9f9;
+            border: 1px solid #e9e9e9;
+            border-radius: 3px;
+            font-size: smaller;
+            text-transform: uppercase;
+          }
+        }
+
+        .element-description-row:not(:last-child) {
+          border-bottom: 1px solid #eee;
+        }
+
+        .element-description-empty {
+          color: #999;
+        }
+      }
+    }
+  }
+}

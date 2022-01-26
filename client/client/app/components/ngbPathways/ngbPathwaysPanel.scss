@@ -1,0 +1,22 @@
+.pathways-link {
+  color: rgb(51, 103, 214);
+  font-weight: bold;
+  cursor: pointer;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+.pathways-search-result {
+  padding: 5px 2px;
+
+  .pathways-search-result-title {
+    font-weight: bold;
+    display: inline-block;
+    line-height: 28px;
+    font-size: 18px;
+  }
+}
+.pathways-no-feature {
+  font-weight: bold;
+}

@@ -1,10 +1,15 @@
 <section layout="column" ng-cloak>
-    <md-button class="md-raised" ng-click="$ctrl.zoomIn()"
+    <md-button class="md-raised"
+            ng-click="$ctrl.zoomIn()"
+               ng-if="$ctrl.actionsManager.zoomIn"
                ng-disabled="!$ctrl.actionsManager.canZoomIn">+</md-button>
     <md-divider md-inset="true"></md-divider>
-    <md-button class="md-raised" ng-click="$ctrl.zoomOut()"
+    <md-button class="md-raised"
+            ng-click="$ctrl.zoomOut()"
+               ng-if="$ctrl.actionsManager.zoomOut"
                ng-disabled="!$ctrl.actionsManager.canZoomOut">-</md-button>
     <md-button aria-label="restore default"
+               ng-if="$ctrl.actionsManager.restoreDefault"
                class="md-raised restore"
                ng-click="$ctrl.restoreDefault()">
         <ng-md-icon icon="cached"></ng-md-icon>

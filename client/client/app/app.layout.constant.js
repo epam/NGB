@@ -86,6 +86,14 @@ export default {
             title: 'Lineage',
             name: 'layout>strainLineage'
         },
+        pathways: {
+            displayed: false,
+            icon: 'device_hub',
+            panel: 'ngbPathwaysPanel',
+            position: 'right',
+            title: 'Pathways',
+            name: 'layout>pathways'
+        },
         homologs: {
             isHidden: true,
             displayed: false,

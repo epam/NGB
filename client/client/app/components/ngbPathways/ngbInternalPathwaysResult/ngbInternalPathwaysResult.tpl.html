@@ -1,0 +1,33 @@
+<div ng-if="$ctrl.loading">
+    <div class="progress" layout-align="center center">
+        <span>Loading...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="internal-pathway-container" ng-if="!$ctrl.loading">
+    <div layout="row">
+        <md-button
+                aria-label="back"
+                class="md-flat blast-search-result-back"
+                ng-click="$ctrl.changeState({state: 'INTERNAL_PATHWAYS'})"
+                type="button">
+            <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
+        </md-button>
+        <span class="blast-search-result-title">{{$ctrl.selectedTreeName}}</span>
+    </div>
+    <div class="u-height__full tree-container" flex layout="column">
+        <md-content flex layout="column">
+            <div class="md-padding ngb-cytoscape-container" layout="column">
+                <div class="internal-pathway-container-error" ng-if="$ctrl.treeError">
+                    {{$ctrl.treeError}}
+                </div>
+                <ngb-cytoscape-pathway
+                        elements="$ctrl.selectedTree"
+                        ng-if="!$ctrl.treeError"
+                        storage-name="{{$ctrl.ngbInternalPathwaysResultService.localStorageKey}}"
+                        tag="ngb-internal-pathway-node"
+                ></ngb-cytoscape-pathway>
+            </div>
+        </md-content>
+    </div>
+</div>
