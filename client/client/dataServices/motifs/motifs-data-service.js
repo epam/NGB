@@ -26,6 +26,11 @@ export class MotifsDataService extends DataService {
         const message = 'Motifs Data Service: error getting motif track';
         return new Promise((resolve, reject) => {
             this.post('reference/motif', request)
+                .catch(() => {
+                    resolve({
+                        blocks: []
+                    });
+                })
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -37,8 +42,11 @@ export class MotifsDataService extends DataService {
     }
 
     getNextMotifs (request) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.post('reference/motif/next', request)
+                .catch(() => {
+                    resolve([]);
+                })
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -50,8 +58,11 @@ export class MotifsDataService extends DataService {
     }
 
     getPrevMotifs (request) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.post('reference/motif/prev', request)
+                .catch(() => {
+                    resolve([]);
+                })
                 .then(data => {
                     if (data) {
                         resolve(data);

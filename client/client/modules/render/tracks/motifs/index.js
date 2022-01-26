@@ -211,7 +211,6 @@ export class MOTIFSTrack extends CachedTrack {
 
     nextMotif() {
         const request = this.setRequestToMotif();
-        request.startPosition += 1;
         this.dataService.getNextMotifs(request)
             .then(data => {
                 if (data && data.startIndex) {
@@ -222,7 +221,6 @@ export class MOTIFSTrack extends CachedTrack {
 
     prevMotif() {
         const request = this.setRequestToMotif();
-        request.startPosition -= 1;
         this.dataService.getPrevMotifs(request)
             .then(data => {
                 if (data && data.startIndex) {
