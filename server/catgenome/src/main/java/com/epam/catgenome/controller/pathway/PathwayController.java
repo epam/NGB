@@ -101,7 +101,7 @@ public class PathwayController extends AbstractRESTController {
         return Result.success(pathwaySecurityService.searchElements(sbgnElement));
     }
 
-    @GetMapping(value = "/pathways")
+    @PostMapping(value = "/pathways")
     @ApiOperation(
             value = "Returns pathways page",
             notes = "Returns pathways page",
@@ -109,7 +109,7 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Page<Pathway>> loadPathways(final QueryParameters queryParameters) {
+    public Result<Page<Pathway>> loadPathways(@RequestBody final QueryParameters queryParameters) {
         return Result.success(pathwaySecurityService.loadPathways(queryParameters));
     }
 
