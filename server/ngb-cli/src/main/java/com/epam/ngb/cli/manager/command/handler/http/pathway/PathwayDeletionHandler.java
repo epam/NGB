@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http.lineage;
+package com.epam.ngb.cli.manager.command.handler.http.pathway;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
@@ -38,20 +38,20 @@ import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
-@Command(type = Command.Type.REQUEST, command = {"del_lineage"})
+@Command(type = Command.Type.REQUEST, command = {"del_pathway"})
 @Slf4j
-public class LineageTreeDeletionHandler extends AbstractHTTPCommandHandler {
+public class PathwayDeletionHandler extends AbstractHTTPCommandHandler {
 
     /**
-     * ID of lineage tree to delete
+     * ID of metabolic pathway to delete
      */
-    private Long lineageTreeId;
+    private Long pathwayId;
 
     /**
      * Verifies that input arguments contain the required parameter:
-     * the first and the only one argument must be lineage tree ID or name.
-     * If tree's name is provided, it's ID will be loaded from the NGB server.
-     * @param arguments command line arguments for 'del_lineage' command
+     * the first and the only one argument must be metabolic pathway ID or name.
+     * If pathway's name is provided, it's ID will be loaded from the NGB server.
+     * @param arguments command line arguments for 'del_pathway' command
      * @param options aren't used in this command
      */
     @Override
@@ -60,23 +60,23 @@ public class LineageTreeDeletionHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        lineageTreeId = loadItemId(arguments.get(0));
+        pathwayId = loadItemId(arguments.get(0));
     }
     /**
 
-     * Performs a lineage tree deletion request to NGB server
+     * Performs a metabolic pathway deletion request to NGB server
      * @return 0 if request completed successfully
      */
     @Override public int runCommand() {
         try {
             final String result = RequestManager.executeRequest(getRequest(String.format(getRequestUrl(),
-                    lineageTreeId)));
+                    pathwayId)));
             final ResponseResult responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
             if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             }
-            log.info("Lineage tree " + lineageTreeId + " was successfully deleted.");
+            log.info("Metabolic pathway " + pathwayId + " was successfully deleted.");
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

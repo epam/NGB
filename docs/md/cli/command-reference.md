@@ -900,6 +900,55 @@ Deletes a specified lineage tree from NGB server.
 $ ngb del_lineage 2
 ```
 
+## Metabolic pathway commands
+### Register pathway
+```
+ngb reg_pathway|rp [<PATH>] [options]
+//Options:
+//-n (--name)                   Pathway name
+//-pt (--pretty)                Pathway pretty name
+
+```
+*Description*
+
+Registers a Pathway. One argument has to be specified:
+* Pathway file path
+
+*Example*
+```bash
+# Create new pathway with path "pathway.sbml"
+$ ngb reg_pathway "pathway.sbml"
+```
+
+### List metabolic pathways
+```
+ngb list_pathway|lp
+```
+
+*Description*
+
+List all pathways registered on NGB server.
+
+*Example*
+```bash
+# List all pathways registered on NGB server
+$ ngb list_pathway
+```
+
+### Delete metabolic pathway
+```
+ngb del_pathway|dp [<ID>]
+```
+*Description*
+
+Deletes a specified pathway from NGB server.
+
+*Example*
+```bash
+# Delete pathway with id 2
+$ ngb del_pathway 2
+```
+
 ## Utility commands
 ### Sort feature file
 ```

@@ -14,5 +14,7 @@ public enum AclClass {
     BOOKMARK,
     BUCKET,
     SESSION,
-    HEATMAP
+    HEATMAP,
+    LINEAGE,
+    PATHWAY
 }

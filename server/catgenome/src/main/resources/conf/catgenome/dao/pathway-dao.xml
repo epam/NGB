@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.pathway.PathwayDao" id="pathwayDao" autowire="byName">
+        <property name="pathwaySequenceName" value="catgenome.s_pathway"/>
+        <property name="insertPathwayQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.pathway (
+                        pathway_id,
+                        bio_data_item_id,
+                        pathway_desc
+                    ) VALUES (
+                        :PATHWAY_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :PATHWAY_DESC
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deletePathwayQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.pathway WHERE pathway_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPathwayQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        t.pathway_id,
+                        t.pathway_desc
+                    FROM catgenome.pathway t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                        WHERE pathway_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPathwaysQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        t.pathway_id,
+                        t.pathway_desc
+                    FROM catgenome.pathway t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                ]]>
+            </value>
+        </property>
+        <property name="getTotalCountQuery">
+            <value>
+                <![CDATA[
+                    select count(*) as count from catgenome.pathway
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

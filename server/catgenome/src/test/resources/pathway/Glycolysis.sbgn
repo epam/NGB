@@ -1,0 +1,1004 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbgn xmlns="http://sbgn.org/libsbgn/0.2">
+    <map language="process description">
+        <glyph class="process" id="http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT">
+            <bbox w="15.0" h="15.0" x="243.53595" y="210.26923"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT" x="251.03595" y="227.76923"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT" x="251.03595" y="207.76923"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4">
+            <label text="Solute carrier family 2, facilitated glucose transporter member 2"/>
+            <bbox w="48.0" h="25.0" x="10.140811" y="49.472897"/>
+        </glyph>
+        <glyph class="and" id="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0">
+            <bbox w="15.0" h="15.0" x="132.08476" y="106.370445"/>
+        </glyph>
+        <glyph class="and" id="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95">
+            <bbox w="15.0" h="15.0" x="1304.1571" y="573.66077"/>
+        </glyph>
+        <glyph class="and" id="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf">
+            <bbox w="15.0" h="15.0" x="1090.1747" y="601.0227"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_fe40feedb72354faf199698c20d47c1d">
+            <label text="D-Glucose"/>
+            <bbox w="48.0" h="20.0" x="130.5751" y="183.57672"/>
+        </glyph>
+        <glyph class="compartment" id="cytoplasm">
+            <label text="cytoplasm"/>
+            <bbox w="439.85754" h="337.5785" x="1132.3578" y="644.8523"/>
+        </glyph>
+        <glyph class="compartment" id="cytosol">
+            <label text="cytosol"/>
+            <bbox w="751.7422" h="528.9814" x="268.71902" y="386.38623"/>
+        </glyph>
+        <glyph class="compartment" id="Cell_Membrane">
+            <label text="Cell_Membrane"/>
+            <bbox w="52.0" h="28.999998" x="94.58334" y="18.446253"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" compartmentRef="cytoplasm">
+            <label text="Pyruvate kinase PKLR"/>
+            <bbox w="52.0" h="29.0" x="1310.5693" y="646.8523"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_75fc05d2afd2e1404e07d0862a65b900_http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" compartmentRef="cytoplasm">
+                <label text="Pyruvate kinase isozymes R/L"/>
+                <bbox w="48.0" h="25.0" x="1312.5693" y="648.8523"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_6a52095f9c9c1479f5a9865d185f4103" compartmentRef="cytoplasm">
+            <label text="NADH"/>
+            <bbox w="48.0" h="20.0" x="1388.6906" y="780.64996"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_3c2f070b5c98d5c1c66331b96d79e337" compartmentRef="cytoplasm">
+            <label text="Glyceric acid 1,3-biphosphate"/>
+            <bbox w="48.0" h="20.0" x="1425.6877" y="743.76666"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f" compartmentRef="cytoplasm">
+            <label text="D-Glyceraldehyde 3-phosphate"/>
+            <bbox w="48.0" h="20.0" x="1351.3798" y="833.512"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_78bb849c2c96bbcd050805c2589117cd" compartmentRef="cytoplasm">
+            <label text="Adenosine triphosphate"/>
+            <bbox w="48.0" h="20.0" x="1225.3423" y="866.73834"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb" compartmentRef="cytoplasm">
+            <label text="Glyceraldehyde-3-phosphate dehydrogenase"/>
+            <bbox w="52.0" h="29.0" x="1518.2153" y="651.20935"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_fc180bba1687e1c088481b99fa41ce71_http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb" compartmentRef="cytoplasm">
+                <label text="Glyceraldehyde-3-phosphate dehydrogenase"/>
+                <bbox w="48.0" h="25.0" x="1520.2153" y="653.20935"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_675f83ca1392e757512d5291badcb672" compartmentRef="cytoplasm">
+            <label text="Phosphoenolpyruvic acid"/>
+            <bbox w="48.0" h="20.0" x="1163.1759" y="861.8782"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_cb9641b9c34d7b0793f3ece33d1d3fa8" compartmentRef="cytoplasm">
+            <label text="Pyruvic acid"/>
+            <bbox w="48.0" h="20.0" x="1258.3888" y="832.2"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_6b8f617495e576bb6d978c23396979fc" compartmentRef="cytoplasm">
+            <label text="Phosphoric acid"/>
+            <bbox w="48.0" h="20.0" x="1417.3087" y="820.2842"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_ce7a11f7bc645caa7825f406b13b38c2" compartmentRef="cytoplasm">
+            <label text="NAD"/>
+            <bbox w="48.0" h="20.0" x="1452.8867" y="787.9686"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_8a4ffd3315ca8913a569beb50fae3472" compartmentRef="cytoplasm">
+            <label text="Adenosine diphosphate"/>
+            <bbox w="48.0" h="20.0" x="1198.676" y="815.8684"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_1d3d992ad5fe3505d33d13c80ef9820d" compartmentRef="cytoplasm">
+            <label text="Dihydroxyacetone phosphate"/>
+            <bbox w="48.0" h="20.0" x="1455.2255" y="960.4308"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1329.2814" y="736.3253"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" x="1336.7814" y="733.8253"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" x="1336.7814" y="753.8253"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1349.3003" y="925.0165"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT" x="1356.8003" y="922.5165"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT" x="1356.8003" y="942.5165"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1152.716" y="761.1545"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" x="1150.216" y="768.6545"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" x="1170.216" y="768.6545"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1332.9823" y="761.4154"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" x="1340.4823" y="778.9154"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" x="1340.4823" y="758.9154"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1396.9994" y="889.33466"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT" x="1404.4994" y="906.83466"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT" x="1404.4994" y="886.83466"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" compartmentRef="cytoplasm">
+            <bbox w="15.0" h="15.0" x="1134.3578" y="811.0298"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" x="1131.8578" y="818.5298"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" x="1151.8578" y="818.5298"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" compartmentRef="cytosol">
+            <label text="Glyceraldehyde-3-phosphate dehydrogenase"/>
+            <bbox w="52.0" h="29.0" x="966.4612" y="443.95236"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_39a1b7a1275abdef959e7ef66de15bf5_http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" compartmentRef="cytosol">
+                <label text="Glyceraldehyde-3-phosphate dehydrogenase"/>
+                <bbox w="48.0" h="25.0" x="968.4612" y="445.95236"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c" compartmentRef="cytosol">
+            <label text="α-D-Glucose"/>
+            <bbox w="48.0" h="20.0" x="523.63745" y="763.34106"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577" compartmentRef="cytosol">
+            <label text="Hexokinase-2"/>
+            <bbox w="48.0" h="25.0" x="512.7608" y="644.2233"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" compartmentRef="cytosol">
+            <label text="Water"/>
+            <bbox w="48.0" h="20.0" x="389.30234" y="533.1377"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" compartmentRef="cytosol">
+            <label text="Glucose-6-phosphate isomerase"/>
+            <bbox w="52.0" h="29.0" x="270.71902" y="775.6484"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_7f4289d664095e17cf08a40ae5dd78d9_http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" compartmentRef="cytosol">
+                <label text="Glucose-6-phosphate isomerase"/>
+                <bbox w="48.0" h="25.0" x="272.71902" y="777.6484"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_baba82876dc5b1c749879e34df66f527" compartmentRef="cytosol">
+            <label text="NADH"/>
+            <bbox w="48.0" h="20.0" x="966.38654" y="568.82043"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_07f72600ccd297a7811c3538c8543b38" compartmentRef="cytosol">
+            <label text="NAD"/>
+            <bbox w="48.0" h="20.0" x="968.4148" y="534.03577"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" compartmentRef="cytosol">
+            <label text="Adenosine diphosphate"/>
+            <bbox w="48.0" h="20.0" x="688.4933" y="682.79486"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_4fc26f2d401e388e21b95e8dbdccb5c4" compartmentRef="cytosol">
+            <label text="Phosphoglycerate kinase 1"/>
+            <bbox w="48.0" h="25.0" x="636.5439" y="500.67346"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_305e69f1b3c8b7a34a9d104e684b3651" compartmentRef="cytosol">
+            <label text="Pyruvic acid"/>
+            <bbox w="48.0" h="20.0" x="841.6793" y="543.09204"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" compartmentRef="cytosol">
+            <label text="Adenosine triphosphate"/>
+            <bbox w="48.0" h="20.0" x="676.4457" y="650.3509"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_31978aef91c669600bc9151c4eee22a7" compartmentRef="cytosol">
+            <label text="6-phosphofructokinase, muscle type"/>
+            <bbox w="48.0" h="25.0" x="578.2647" y="627.1497"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" compartmentRef="cytosol">
+            <label text="3-Phosphoglyceric acid"/>
+            <bbox w="48.0" h="20.0" x="396.94394" y="568.40564"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" compartmentRef="cytosol">
+            <label text="Glyceric acid 1,3-biphosphate"/>
+            <bbox w="48.0" h="20.0" x="774.33636" y="570.44495"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271" compartmentRef="cytosol">
+            <label text="Pyruvate kinase PKLR"/>
+            <bbox w="52.0" h="29.0" x="810.0325" y="422.19955"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_2609d89355c5a99fa8f2d7588a017100_http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271" compartmentRef="cytosol">
+                <label text="Pyruvate kinase isozymes R/L"/>
+                <bbox w="48.0" h="25.0" x="812.0325" y="424.19955"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf" compartmentRef="cytosol">
+            <label text="Phosphoenolpyruvic acid"/>
+            <bbox w="48.0" h="20.0" x="680.7421" y="606.91144"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_5cf117385de5afb6000a0806443e9645" compartmentRef="cytosol">
+            <label text="Fructose-bisphosphate aldolase A"/>
+            <bbox w="52.0" h="29.0" x="820.4345" y="726.8106"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_a533aa437407b3fdae6aeb5888f7c0dc_http___pathwaycommons_org_pc12_Complex_5cf117385de5afb6000a0806443e9645" compartmentRef="cytosol">
+                <label text="Fructose-bisphosphate aldolase A"/>
+                <bbox w="48.0" h="25.0" x="822.4345" y="728.8106"/>
+            </glyph>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_baee8deb80deba741d911de80a507aba" compartmentRef="cytosol">
+            <label text="Alpha-enolase"/>
+            <bbox w="48.0" h="25.0" x="478.3067" y="460.67557"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_e797fe9b35487fbb5a7f391cf24a4dc0" compartmentRef="cytosol">
+            <label text="Glucose 1-phosphate"/>
+            <bbox w="48.0" h="20.0" x="375.59338" y="495.53433"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc" compartmentRef="cytosol">
+            <label text="Dihydroxyacetone phosphate"/>
+            <bbox w="48.0" h="20.0" x="967.96906" y="728.41284"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" compartmentRef="cytosol">
+            <label text="Phosphate"/>
+            <bbox w="48.0" h="20.0" x="328.94727" y="519.7213"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04" compartmentRef="cytosol">
+            <label text="Glucose 6-phosphate"/>
+            <bbox w="48.0" h="20.0" x="455.32483" y="667.2458"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573" compartmentRef="cytosol">
+            <label text="β-D-Glucose"/>
+            <bbox w="48.0" h="20.0" x="576.39636" y="796.9641"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8" compartmentRef="cytosol">
+            <label text="β-D-Glucose 6-phosphate"/>
+            <bbox w="48.0" h="20.0" x="457.75006" y="767.64746"/>
+        </glyph>
+        <glyph class="complex" id="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" compartmentRef="cytosol">
+            <label text="Bisphosphoglycerate mutase"/>
+            <bbox w="52.0" h="29.0" x="408.02332" y="388.38623"/>
+            <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_0d77846f47fe54b3d936e0c9599c3440_http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" compartmentRef="cytosol">
+                <label text="Bisphosphoglycerate mutase"/>
+                <bbox w="48.0" h="25.0" x="410.02332" y="390.38623"/>
+            </glyph>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c" compartmentRef="cytosol">
+            <label text="2-Phospho-D-glyceric acid"/>
+            <bbox w="48.0" h="20.0" x="426.19086" y="614.2972"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41" compartmentRef="cytosol">
+            <label text="D-Glucose"/>
+            <bbox w="48.0" h="20.0" x="487.7858" y="427.54868"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_7fdaa35843e81c58f16379cc717c4a02" compartmentRef="cytosol">
+            <label text="Aldose 1-epimerase"/>
+            <bbox w="48.0" h="25.0" x="433.22427" y="888.3676"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" compartmentRef="cytosol">
+            <label text="Fructose 6-phosphate"/>
+            <bbox w="48.0" h="20.0" x="468.48245" y="721.08014"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_9c17da6967b79d3a7a9d7a21d8e60411" compartmentRef="cytosol">
+            <label text="Phosphoric acid"/>
+            <bbox w="48.0" h="20.0" x="958.02783" y="609.2213"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" compartmentRef="cytosol">
+            <label text="D-Glyceraldehyde 3-phosphate"/>
+            <bbox w="48.0" h="20.0" x="968.76935" y="687.4013"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_9cd78ed80dc205db4db3777ded7a0820" compartmentRef="cytosol">
+            <label text="Glucose-6-phosphatase"/>
+            <bbox w="48.0" h="25.0" x="511.1415" y="493.72162"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" compartmentRef="cytosol">
+            <label text="2,3-Diphosphoglyceric acid"/>
+            <bbox w="48.0" h="20.0" x="413.28577" y="469.78586"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_cfbde64586e83be10cc543870d5992e1" compartmentRef="cytosol">
+            <label text="Phosphoglycerate mutase 2"/>
+            <bbox w="48.0" h="25.0" x="271.09512" y="594.6539"/>
+        </glyph>
+        <glyph class="simple chemical" id="http___pathwaycommons_org_pc12_SmallMolecule_680af531dd217d8cad9b23ec46ac64fd" compartmentRef="cytosol">
+            <label text="Fructose 1,6-bisphosphate"/>
+            <bbox w="48.0" h="20.0" x="750.1862" y="647.64636"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_0dafad9d692645411ed0e4911fddadd1" compartmentRef="cytosol">
+            <label text="Phosphoglycerate mutase 1"/>
+            <bbox w="48.0" h="25.0" x="272.06036" y="634.5002"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="423.00153" y="813.4279"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT" x="430.50153" y="830.9279"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT" x="430.50153" y="810.9279"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="421.25394" y="743.32574"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT" x="428.75394" y="760.82574"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT" x="428.75394" y="740.82574"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="554.1405" y="852.3987"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT" x="571.6405" y="859.8987"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT" x="551.6405" y="859.8987"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="499.52817" y="820.3944"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT" x="497.02817" y="827.8944"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT" x="517.0282" y="827.8944"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="397.39355" y="687.99414"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT" x="404.89355" y="685.49414"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT" x="404.89355" y="705.49414"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="890.46796" y="652.989"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" x="887.96796" y="660.489"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" x="907.96796" y="660.489"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="509.26212" y="549.65704"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT" x="526.7621" y="557.15704"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT" x="506.76212" y="557.15704"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="533.3995" y="600.1614"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" x="540.8995" y="617.6614"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" x="540.8995" y="597.6614"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="585.8631" y="515.26807"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT" x="593.3631" y="512.76807"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT" x="593.3631" y="532.76807"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="460.01086" y="515.3036"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" x="467.51086" y="532.8036"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" x="467.51086" y="512.8036"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="306.01447" y="489.01126"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" x="313.51447" y="506.51126"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" x="313.51447" y="486.51126"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="374.01065" y="620.86456"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT" x="381.51065" y="618.36456"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT" x="381.51065" y="638.36456"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="635.32745" y="590.9039"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" x="652.82745" y="598.4039"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" x="632.82745" y="598.4039"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="582.2982" y="579.162"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" x="589.7982" y="576.662"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" x="589.7982" y="596.662"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="353.337" y="462.7995"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" x="360.837" y="460.2995"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" x="360.837" y="480.2995"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="350.2173" y="566.9228"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" x="367.7173" y="574.4228"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" x="347.7173" y="574.4228"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="607.05255" y="738.4288"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" x="624.55255" y="745.9288"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" x="604.55255" y="745.9288"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="590.2526" y="463.12827"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT" x="597.7526" y="480.62827"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT" x="597.7526" y="460.62827"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="584.50854" y="685.3321"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" x="592.00854" y="702.8321"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" x="592.00854" y="682.8321"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="293.7242" y="548.7756"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" x="291.2242" y="556.2756"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" x="311.2242" y="556.2756"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="346.21985" y="670.0174"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT" x="363.71985" y="677.5174"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT" x="343.71985" y="677.5174"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="375.18842" y="767.1884"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT" x="382.68842" y="764.6884"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT" x="382.68842" y="784.6884"/>
+        </glyph>
+        <glyph class="process" id="http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" compartmentRef="cytosol">
+            <bbox w="15.0" h="15.0" x="637.9631" y="692.05707"/>
+            <port id="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" x="635.4631" y="699.55707"/>
+            <port id="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" x="655.4631" y="699.55707"/>
+        </glyph>
+        <glyph class="macromolecule" id="http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0" compartmentRef="Cell_Membrane">
+            <label text="Solute carrier family 2, facilitated glucose transporter member 2"/>
+            <bbox w="48.0" h="25.0" x="96.58334" y="20.446253"/>
+        </glyph>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8--to--http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_9c17da6967b79d3a7a9d7a21d8e60411" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_9c17da6967b79d3a7a9d7a21d8e60411">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9--to--http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" target="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" target="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_78bb849c2c96bbcd050805c2589117cd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_78bb849c2c96bbcd050805c2589117cd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577" target="http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb--to--http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" source="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb" target="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8--to--http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c--to--http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4--to--http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c--to--http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271--to--http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" source="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271" target="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0--to--http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0" target="http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_baba82876dc5b1c749879e34df66f527" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_baba82876dc5b1c749879e34df66f527">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_675f83ca1392e757512d5291badcb672--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_675f83ca1392e757512d5291badcb672" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577--to--http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577" target="http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" target="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9--to--http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" target="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_baba82876dc5b1c749879e34df66f527--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_baba82876dc5b1c749879e34df66f527" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_0dafad9d692645411ed0e4911fddadd1--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Protein_0dafad9d692645411ed0e4911fddadd1" target="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_305e69f1b3c8b7a34a9d104e684b3651" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_305e69f1b3c8b7a34a9d104e684b3651">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886--to--http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_31978aef91c669600bc9151c4eee22a7--to--http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_31978aef91c669600bc9151c4eee22a7" target="http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_6a52095f9c9c1479f5a9865d185f4103" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_6a52095f9c9c1479f5a9865d185f4103">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" target="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a--to--http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886--to--http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a--to--http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_cb9641b9c34d7b0793f3ece33d1d3fa8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_cb9641b9c34d7b0793f3ece33d1d3fa8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_e797fe9b35487fbb5a7f391cf24a4dc0--to--http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_e797fe9b35487fbb5a7f391cf24a4dc0" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95--to--http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" source="http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95" target="http___pathwaycommons_org_pc12_Complex_5422329d995e1f1c13c4a986c74568eb-AND-http___pathwaycommons_org_pc12_Complex_f744c1f1e8810a6b125fbd66aa402e95">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_baee8deb80deba741d911de80a507aba--to--http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Protein_baee8deb80deba741d911de80a507aba" target="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_ce7a11f7bc645caa7825f406b13b38c2" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_ce7a11f7bc645caa7825f406b13b38c2">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc--to--http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_17c9ac9dc290f873df1c6e2923b2fcdc" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec--to--http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" target="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_3c2f070b5c98d5c1c66331b96d79e337" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_3c2f070b5c98d5c1c66331b96d79e337">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886--to--http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_aeec7533e7bae8a6a9c555f0091ced1a">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_ce7a11f7bc645caa7825f406b13b38c2--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_ce7a11f7bc645caa7825f406b13b38c2" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_7fdaa35843e81c58f16379cc717c4a02--to--http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_7fdaa35843e81c58f16379cc717c4a02" target="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_680af531dd217d8cad9b23ec46ac64fd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_680af531dd217d8cad9b23ec46ac64fd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_6b8f617495e576bb6d978c23396979fc" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_6b8f617495e576bb6d978c23396979fc">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_1d3d992ad5fe3505d33d13c80ef9820d" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_1d3d992ad5fe3505d33d13c80ef9820d">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_5cf117385de5afb6000a0806443e9645--to--http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_5cf117385de5afb6000a0806443e9645" target="http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_6a52095f9c9c1479f5a9865d185f4103--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_6a52095f9c9c1479f5a9865d185f4103" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429--to--http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_78bb849c2c96bbcd050805c2589117cd" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_78bb849c2c96bbcd050805c2589117cd">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c--to--http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_73ce7d75df9dc332ed9d14f7e64a3f9c">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_1059d9688bf87b174c7c17d072eeb8a8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" target="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573--to--http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_9c17da6967b79d3a7a9d7a21d8e60411--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_9c17da6967b79d3a7a9d7a21d8e60411" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_680af531dd217d8cad9b23ec46ac64fd" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_680af531dd217d8cad9b23ec46ac64fd">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_9f09ce437f9f3aa7b63e97d7ec24d79c">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf--to--http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_fb4e91df08ff9de727e1b04854559bbf" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9--to--http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" target="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_07f72600ccd297a7811c3538c8543b38--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_07f72600ccd297a7811c3538c8543b38" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429--to--http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_50f90dd3dd1d6749d4c451b705abcd4aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_5998a9cb3b8a7ec822ba9cd5ec4396adLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_675f83ca1392e757512d5291badcb672" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_675f83ca1392e757512d5291badcb672">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_8a4ffd3315ca8913a569beb50fae3472" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_8a4ffd3315ca8913a569beb50fae3472">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41--to--http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41" target="InputPort_http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_cfbde64586e83be10cc543870d5992e1--to--http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Protein_cfbde64586e83be10cc543870d5992e1" target="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_cfbde64586e83be10cc543870d5992e1--to--http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_cfbde64586e83be10cc543870d5992e1" target="http___pathwaycommons_org_pc12_BiochemicalReaction_03e9ee36253ad9809ed995cf12c64529LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97--to--http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_cb9641b9c34d7b0793f3ece33d1d3fa8--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_cb9641b9c34d7b0793f3ece33d1d3fa8" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_4fc26f2d401e388e21b95e8dbdccb5c4--to--http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_4fc26f2d401e388e21b95e8dbdccb5c4" target="http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_6b8f617495e576bb6d978c23396979fc--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_6b8f617495e576bb6d978c23396979fc" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_0dafad9d692645411ed0e4911fddadd1--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_0dafad9d692645411ed0e4911fddadd1" target="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9--to--http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_6f199e54b4b0304ef0930f14b2c389c9" target="http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_fe40feedb72354faf199698c20d47c1d" source="OutputPort_http___pathwaycommons_org_pc12_Transport_309295743d5faf180aabd52db5ecb832LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_fe40feedb72354faf199698c20d47c1d">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f--to--http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_1d3d992ad5fe3505d33d13c80ef9820d--to--http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_1d3d992ad5fe3505d33d13c80ef9820d" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_4bee5990f2cc4f143c8714ee9c12dfaaLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0--to--http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0" source="http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0" target="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429--to--http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_726583a1832cf5976d6387b7fb8bc429" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04--to--http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_29b8d6713de03a1d209131fa51c67a04" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_887353a14a320445a6180a5188ac4af7RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_9cd78ed80dc205db4db3777ded7a0820--to--http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_9cd78ed80dc205db4db3777ded7a0820" target="http___pathwaycommons_org_pc12_BiochemicalReaction_b439d85cc65a6374184d5883d44a22fcLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573--to--http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_d1edd73b321047f2afd6a208fcd28666LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_c7ac7e7dd594a03539a75b63e81e1f5eLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_d96d8fb6ae1da660e8cf699064764b97">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_fe3ffc0cec723faa9c04354f42837c1d" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41--to--http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_2e5b03309ae376fb545d9c8e8a9a0a41" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4--to--http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0" source="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4" target="http___pathwaycommons_org_pc12_Protein_78fa41f612da8638bdad5e306cbaa6e4-AND-http___pathwaycommons_org_pc12_Protein_1890a64a3394dab43bc3474da69abbe0">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="logic arc" id="http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf--to--http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" source="http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" target="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_89a31a6067858193e255e3f4e3ff5dd8">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08--to--http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_6438eeb3dfda74cf86aaf52d1c40fd08" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_3c2f070b5c98d5c1c66331b96d79e337--to--http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_3c2f070b5c98d5c1c66331b96d79e337" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_8a4ffd3315ca8913a569beb50fae3472--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_8a4ffd3315ca8913a569beb50fae3472" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979RIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_07f72600ccd297a7811c3538c8543b38" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_07f72600ccd297a7811c3538c8543b38">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec--to--http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" target="http___pathwaycommons_org_pc12_BiochemicalReaction_2348aaf6adfff323e12072fe3f61942bRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_13b777f283ed113fa0c116e36ea02573">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_305e69f1b3c8b7a34a9d104e684b3651--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_305e69f1b3c8b7a34a9d104e684b3651" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Complex_9ee1f02195af01611c343aacc9f8e271-AND-http___pathwaycommons_org_pc12_Complex_a37af56bdda68a35772f87f1476175cf" target="http___pathwaycommons_org_pc12_BiochemicalReaction_ad20a3b35056c986b89eb3bc47924979LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_7bfc9d2e46cc8febff127f6cbc12c4e4">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_7fdaa35843e81c58f16379cc717c4a02--to--http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Protein_7fdaa35843e81c58f16379cc717c4a02" target="http___pathwaycommons_org_pc12_BiochemicalReaction_00a7de3b7637eb1c0892acc529bf26bbRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577--to--http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_123278fdbea49eae2f42164686edf577" target="http___pathwaycommons_org_pc12_BiochemicalReaction_7cc8c8c697db6723e905439581e713d3LEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_65b32b82c2eea285d71dd54b1124700cRIGHT_TO_LEFT" target="http___pathwaycommons_org_pc12_SmallMolecule_d5884253044851690d86e55d6931861f">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Protein_baee8deb80deba741d911de80a507aba--to--http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT" source="http___pathwaycommons_org_pc12_Protein_baee8deb80deba741d911de80a507aba" target="http___pathwaycommons_org_pc12_BiochemicalReaction_40fd2a89912f358abcb51f837a6e1bceLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886--to--http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_ccdf4bc24be2e0b0101866ab505e5c9aLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="consumption" id="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd--to--http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT.input" source="http___pathwaycommons_org_pc12_SmallMolecule_f9dff8893cfef05d925da9ca231d25dd" target="InputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_8a8c46a66a8da9e068e64d38ecd0729fLEFT_TO_RIGHT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="production" id="http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT.output--to--http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886" source="OutputPort_http___pathwaycommons_org_pc12_BiochemicalReaction_6c7762a9b1191aced504624d71ca66afLEFT_TO_RIGHT" target="http___pathwaycommons_org_pc12_SmallMolecule_c587c8df325b02c7d7f0723834faf886">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+        <arc class="catalysis" id="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec--to--http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT" source="http___pathwaycommons_org_pc12_Complex_fcf3921c9e6bce6d8de34cd40656d3ec" target="http___pathwaycommons_org_pc12_BiochemicalReaction_95a75b5ad91cd525d2cd20a920fad8cdRIGHT_TO_LEFT">
+            <start x="0.0" y="0.0"/>
+            <end x="0.0" y="0.0"/>
+        </arc>
+    </map>
+</sbgn>

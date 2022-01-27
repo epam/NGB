@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.lineage;
+package com.epam.ngb.cli.entity;
 
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,18 +30,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-public class LineageTree extends BiologicalDataItem {
-    private Long lineageTreeId;
-    private String description;
-    private Long bioDataItemId;
-    private String nodesPath;
-    private String edgesPath;
-    private List<LineageTreeNode> nodes;
-    private List<LineageTreeEdge> edges;
-
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.LINEAGE;
-    }
+public class Page<T> {
+    List<T> items;
+    long totalCount;
 }

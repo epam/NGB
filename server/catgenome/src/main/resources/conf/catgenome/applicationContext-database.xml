@@ -68,5 +68,5 @@
     <import resource="classpath:conf/catgenome/dao/lineage-tree-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/lineage-tree-node-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/lineage-tree-edge-dao.xml" />
-
+    <import resource="classpath:conf/catgenome/dao/pathway-dao.xml" />
 </beans>
