@@ -99,7 +99,7 @@ const genesTableDownloadAction = {
 const genesTableColumnAction = {
     name: 'genesTableColumn',
     isDefault: false,
-    isVisible: (context, appearance) => !appearance.embedded && appearance.genesColumn
+    isVisible: (context, appearance) => !appearance.embedded && appearance.genesColumns
 };
 const genesResetFilterActions = {
     name: 'genesResetFilter',
