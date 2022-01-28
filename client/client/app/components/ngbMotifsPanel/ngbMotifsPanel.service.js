@@ -126,10 +126,8 @@ export default class ngbMotifsPanelService {
     panelAddMotifsPanel (params) {
         this.setMotifsPanel(params);
         const layoutChange = this.appLayout.Panels.motifs;
-        if (!layoutChange.displayed) {
-            layoutChange.displayed = true;
-            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
-        }
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 
     panelCloseMotifsPanel () {

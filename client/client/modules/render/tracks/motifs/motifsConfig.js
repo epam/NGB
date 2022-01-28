@@ -1,3 +1,6 @@
+const positive = 'POSITIVE';
+const negative = 'NEGATIVE';
+
 export default {
     height: 100,
     minHeight: 20,
@@ -10,8 +13,8 @@ export default {
     },
     matches: {
         defaultColor: {
-            positive: 0x3C99C4,
-            negative: 0xDD4C46
+            [positive]: 0x3C99C4,
+            [negative]: 0xDD4C46
         },
         height: 10,
         margin: 5,

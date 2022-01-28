@@ -51,8 +51,7 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
     }
 
     initializeMatch (viewport, match) {
-        const strand = this.strand.toLowerCase();
-        if (strand === match.strand.toLowerCase()) {
+        if (this.strand === match.strand) {
             const pixelsInBp = viewport.factor;
             const {startIndex, endIndex, levelY} = match;
             const correct = x => Math.max(
@@ -66,13 +65,13 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
             const endX = correct(viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2));
 //GTCATTACAAATAACTCCTTTATTTCCGTTCCCTCTCCCCTCAAATGGCT
             const height = this.config.matches.height;
-            const color = this.getMatchColor(strand, this.track ? this.track.state : undefined);
+            const color = this.getMatchColor(this.strand, this.track ? this.track.state : undefined);
             const centerY = levelY * (this.config.matches.margin + height) - height / 2.0;
             const width = endX - startX;
             if (width <= this.config.matches.detailsThresholdPx) {
                 const arrowWidth = 2.0 * height;
                 drawStrandDirection(
-                    strand,
+                    this.strand,
                     {
                         x: startX + width / 2.0 - arrowWidth / 2.0,
                         width: arrowWidth,
@@ -99,7 +98,7 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
                     )
                     .endFill();
                 drawStrandDirection(
-                    strand,
+                    this.strand,
                     {
                         x: startX,
                         width,
