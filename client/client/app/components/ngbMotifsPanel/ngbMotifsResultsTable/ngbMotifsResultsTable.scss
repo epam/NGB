@@ -2,26 +2,32 @@
     align-self: center;
     word-break: break-word;
 }
-  
+
 .motifs-back-to-params-button {
     min-width: 44px;
 }
 
 .ui-grid-container.motifs-results-container {
-    .motifs-results-table.ui-grid {
-        height: 90% !important;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+
+    .motifs-table-loading-indicator-container {
+        height: 6px;
     }
 
-    .ui-grid-header-cell-label {
-        text-transform: capitalize;
-    }
+    .motifs-table-container {
+        flex: 1;
+        overflow: auto;
+        display: block;
 
-    .ui-grid-contents-wrapper {
-        height: 90%;
-    }
+        .motifs-results-table.ui-grid {
+            height: calc(100% - 5px) !important;
+        }
 
-    .ui-grid-render-container {
-        height: 90%;
+        .ui-grid-header-cell-label {
+            text-transform: capitalize;
+        }
     }
 }
 
@@ -31,8 +37,7 @@
     text-align: center;
     z-index: 1000;
 }
-  
+
 .motifs-results-no-records-warning {
     color: #999;
 }
-  

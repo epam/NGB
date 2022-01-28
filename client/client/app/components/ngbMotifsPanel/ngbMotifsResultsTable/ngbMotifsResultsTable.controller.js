@@ -259,7 +259,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
 
         const range = Math.abs(end - start);
         const rangeStart = row ? (Math.min(start, end) - range) : start;
-        const rangeEnd = row ? Math.max(start, end) : end;
+        const rangeEnd = row ? (Math.max(start, end) + range) : end;
 
         const currentMatch = {
             chromosome,
