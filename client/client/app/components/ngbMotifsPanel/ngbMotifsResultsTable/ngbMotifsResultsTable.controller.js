@@ -67,10 +67,8 @@ export default class ngbMotifsResultsTableController  extends baseController {
     get emptyResults () {
         return !this.loading &&
             !this.emptyFilteredResults &&
-            !this.ngbMotifsPanelService.isShowParamsTable && (
-            !this.ngbMotifsPanelService.searchMotifResults ||
-            this.ngbMotifsPanelService.searchMotifResults.length === 0
-        );
+            !this.ngbMotifsPanelService.isShowParamsTable &&
+            (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
     static get UID() {
@@ -278,7 +276,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             const {startPosition, chromosomeId} = this.searchStopOn;
             this.$timeout(function () {
                 self.gridApi.infiniteScroll.dataLoaded(
-                    self.searchRequestsHistory.length > 2,
+                    false,
                     startPosition !== null && chromosomeId !== null);
             });
         }

@@ -176,6 +176,7 @@ export default class ngbMotifsResultsFilterListController {
         }
         this.input.focus();
         const index = this.selectedItems.indexOf(item);
+        const mutliple = ['strand'].includes(this.field.field);
         if (this.field.field === 'strand') {
             if (index >= 0) {
                 this.selectedItems = [];
@@ -190,7 +191,9 @@ export default class ngbMotifsResultsFilterListController {
             }
         }
         if (this.selectedItems.length) {
-            this.displayText = [...this.selectedItems, ''].join(', ');
+            this.displayText = [...this.selectedItems, mutliple ? '' : false]
+                .filter(Boolean)
+                .join(', ');
         } else {
             this.displayText = '';
         }
@@ -200,13 +203,7 @@ export default class ngbMotifsResultsFilterListController {
     apply() {
         const parts = this.displayText.split(',')
             .map(part => part.trim().toLowerCase());
-        if (this.listElements.fullList && this.listElements.preLoadedList.length > 0) {
-            this.selectedItems = this.listElements.fullList.filter(item => (
-                parts.indexOf(item.toLowerCase()) >= 0
-            ));
-        } else {
-            this.selectedItems = parts.filter(part => part !== '');
-        }
+        this.selectedItems = parts.filter(part => part !== '');
         this.displayText = this.selectedItems.join(', ');
         this.listIsDisplayed = false;
         if (!this.ngbMotifsPanelService.canScheduleFilterResults()) {
@@ -230,6 +227,16 @@ export default class ngbMotifsResultsFilterListController {
                 break;
             }
             case 'strand': {
+                this.selectedItems = (this.selectedItems || [])
+                    .map(item => (item || '').trim())
+                    .filter(item => /^(\+|\-)$/.test(item));
+                const selectedStrands = [...(new Set(this.selectedItems))];
+                if (selectedStrands.length >= 2) {
+                    this.selectedItems = [];
+                } else {
+                    this.selectedItems = selectedStrands;
+                }
+                this.displayText = this.selectedItems.join(', ');
                 const prevValue = (this.searchMotifFilter || {}).strand || [];
                 const prevValueStr = JSON.stringify(prevValue);
                 const currValue = (this.selectedItems || []).filter(item => (
@@ -256,5 +263,6 @@ export default class ngbMotifsResultsFilterListController {
                 break;
             }
         }
+        this.listElements.refreshList(null);
     }
 }
