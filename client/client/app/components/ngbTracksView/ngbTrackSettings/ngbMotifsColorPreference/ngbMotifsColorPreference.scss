@@ -1,5 +1,5 @@
 .content-wrapper {
-  min-height: 150px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   padding: 15px;
@@ -22,7 +22,6 @@
 .color-preference-controls {
   display: flex;
   flex-direction: row;
-  margin-top: 15px;
   margin-bottom: 5px;
   width: max-content;
 }

@@ -329,7 +329,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             motif,
         } = this.currentParams;
 
-        const strand = this.ngbMotifsPanelService.getStrand(rowStrand).toLowerCase();
+        const strand = this.ngbMotifsPanelService.getStrand(rowStrand);
         const getName = strand => `${name || motif}_${strand}`;
         const reference = this.projectContext.reference;
 

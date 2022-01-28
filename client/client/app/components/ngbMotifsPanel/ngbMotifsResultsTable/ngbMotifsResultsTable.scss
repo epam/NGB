@@ -1,6 +1,9 @@
 .motifs-results-title {
     align-self: center;
     word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .motifs-back-to-params-button {

@@ -15,7 +15,7 @@ function colorPerform (tracks, options) {
     if (dispatcher) {
         const strand = (tracks || []).map(track => track.motifStrand)[0];
         const configColors = (tracks || [])
-            .map(track =>  track.motifStrand &&
+            .map(track => track.motifStrand &&
                 track.trackConfig &&
                 track.trackConfig.matches &&
                 track.trackConfig.matches.defaultColor
