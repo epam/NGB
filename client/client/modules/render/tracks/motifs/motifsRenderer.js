@@ -63,7 +63,6 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
             );
             const startX = correct(viewport.project.brushBP2pixel(startIndex) - (pixelsInBp / 2));
             const endX = correct(viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2));
-//GTCATTACAAATAACTCCTTTATTTCCGTTCCCTCTCCCCTCAAATGGCT
             const height = this.config.matches.height;
             const color = this.getMatchColor(this.strand, this.track ? this.track.state : undefined);
             const centerY = levelY * (this.config.matches.margin + height) - height / 2.0;
