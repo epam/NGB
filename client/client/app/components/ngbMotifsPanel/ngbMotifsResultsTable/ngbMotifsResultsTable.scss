@@ -1,12 +1,15 @@
 .motifs-results-title {
     align-self: center;
     word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-  
+
 .motifs-back-to-params-button {
     min-width: 44px;
 }
-  
+
 .motifs-results-table {
     display: flex;
     flex-direction: column;
@@ -27,8 +30,7 @@
     text-align: center;
     z-index: 1000;
 }
-  
+
 .motifs-results-no-records-warning {
     color: #999;
 }
-  
