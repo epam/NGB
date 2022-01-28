@@ -58,7 +58,7 @@ export default class NumberFormatter {
         }
         else if (module === M){
             if (prefixMap && prefixMap.M) {
-                prefix = prefixMap.N;
+                prefix = prefixMap.M;
             } else {
                 prefix = 'M';
             }
