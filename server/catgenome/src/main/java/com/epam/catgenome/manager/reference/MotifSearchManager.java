@@ -600,11 +600,7 @@ public class MotifSearchManager {
             final IndexSearchResult<GeneIndexEntry> result = featureIndexManager
                     .searchGenesByReference(geneFilterForm, request.getReferenceId());
 
-            final List<GeneIndexEntry> entries = ListUtils.emptyIfNull(result.getEntries())
-                    .stream()
-                    .filter(gene -> Objects.isNull(request.getStrandFilter()) ||
-                            Objects.equals(request.getStrandFilter().toValue(), gene.getStrand()))
-                    .collect(Collectors.toList());
+            final List<GeneIndexEntry> entries = result.getEntries();
             if (CollectionUtils.isEmpty(entries)) {
                 throw new IllegalStateException("No genes match specified filter: " + request.getGeneFilter());
             }
