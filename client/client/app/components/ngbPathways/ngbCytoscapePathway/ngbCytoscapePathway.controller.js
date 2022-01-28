@@ -6,10 +6,6 @@ const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
 const $ = require('jquery');
 
 const SCALE = 0.3;
-const elementOptionsType = {
-    NODE: 'nodes',
-    EDGE: 'edges'
-};
 
 export default class ngbCytoscapePathwayController {
     constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings) {
@@ -71,27 +67,25 @@ export default class ngbCytoscapePathwayController {
             }
             this.$timeout(() => {
                 const sbgnStyle = sbgnStylesheet(Cytoscape);
-                // Object.keys(sbgnStyle).forEach(key => {
-                //     if(sbgnStyle[key].selector === 'edge') {
-                //         Object.keys(sbgnStyle[key].properties).forEach(propKey => {
-                //             if(sbgnStyle[key].properties[propKey].name === 'curve-style') {
-                //                 sbgnStyle[key].properties[propKey].value = 'taxi';
-                //             }
-                //         });
-                //     }
-                // });
-                // sbgnStyle.edge['curve-style'] = 'taxi';
-                // const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
-                // const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
-                // let elements, layoutSettings;
+                const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
+                const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
+                let elements;
+                if (savedLayout) {
+                    elements = {
+                        nodes: this.getPlainNodes(savedLayout.nodes),
+                        edges: savedLayout.edges
+                    };
+                } else {
+                    elements = {
+                        nodes: this.positionedNodes(this.elements.nodes),
+                        edges: this.elements.edges
+                    };
+                }
                 this.viewer = Cytoscape({
                     container: this.cytoscapeContainer,
                     style: sbgnStyle,
                     layout: {name: 'preset'},
-                    elements: {
-                        nodes: this.positionedNodes(this.elements.nodes),
-                        edges: this.elements.edges,
-                    },
+                    elements: elements,
                 });
                 const layout = this.viewer.layout(this.settings.loadedLayout);
                 layout.on('layoutready', () => {
@@ -120,7 +114,7 @@ export default class ngbCytoscapePathwayController {
                 layout.run();
                 const viewerContext = this;
                 this.actionsManager = {
-                    ZOOM_STEP: 0.25,
+                    ZOOM_STEP: 0.125,
                     duration: 250,
                     zoom: () => viewerContext.viewer.zoom(),
                     zoomIn() {
@@ -136,6 +130,16 @@ export default class ngbCytoscapePathwayController {
                         viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
+                    },
+                    restoreDefault: () => {
+                        this.viewer.batch(() => {
+                            this.viewer.remove(this.viewer.nodes());
+                            this.viewer.remove(this.viewer.edges());
+                            this.viewer.add(this.positionedNodes(this.elements.nodes));
+                            this.viewer.add(this.elements.edges);
+                        });
+                        // viewerContext.viewer.layout(this.settings.defaultLayout).run();
+                        viewerContext.saveLayout();
                     },
                     canZoomIn: true,
                     canZoomOut: true,
@@ -195,32 +199,12 @@ export default class ngbCytoscapePathwayController {
         }, []);
     }
 
-    applyOptions(elements, type) {
-        if (!this.elementsOptions) {
-            return;
-        }
-        switch (type) {
-            case elementOptionsType.NODE: {
-                return elements.reduce((r, cv) => {
-                    if (this.elementsOptions.nodes[cv.data.id]) {
-                        cv.data = {
-                            ...cv.data,
-                            ...this.elementsOptions.nodes[cv.data.id]
-                        };
-                    }
-                    r.push(cv);
-                    return r;
-                }, []);
-            }
-        }
-    }
-
     positionedNodes(nodes) {
         nodes.forEach(node => {
             if (node.data.bbox) {
                 node.position = {
-                    x: node.data.bbox.x/SCALE,
-                    y: node.data.bbox.y/SCALE
+                    x: node.data.bbox.x / SCALE,
+                    y: node.data.bbox.y / SCALE
                 };
             }
         });

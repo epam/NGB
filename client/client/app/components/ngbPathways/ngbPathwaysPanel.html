@@ -1,17 +1,19 @@
 <div class="blast-search-flex-column">
 
-    <md-input-container class="blast-search-input">
-        <label class="blast-search-input-label" for="task">Task title</label>
-        <input id="task" name="task" ng-model="$ctrl.searchRequest" type="text">
+    <form class="md-inline-form pathways-search-container" name="pathwaysSearchForm" ng-submit="$ctrl.searchPathway()">
+        <md-input-container class="pathways-search-input" flex>
+            <label class="pathways-search-input-label" for="searchKeyword">Search keyword</label>
+            <input id="searchKeyword" name="search_keyword" ng-model="$ctrl.searchRequest" type="text">
+        </md-input-container>
         <md-button aria-label="search"
-                   class="md-accent md-raised search-button"
+                   class="md-accent md-raised search-button pathways-search-button"
                    ng-click="$ctrl.searchPathway()"
                    ng-disabled="!$ctrl.searchRequest"
-                   type="button"
+                   type="submit"
         >
             Search
         </md-button>
-    </md-input-container>
+    </form>
     <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected"
                 ng-if="$ctrl.currentPathwaysState">
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.pathwaysStates.INTERNAL_PATHWAYS)" name="INTERNAL_PATHWAYS">
@@ -39,12 +41,12 @@
                   ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.KEGG"></ngb-kegg>
 
         <ngb-internal-pathways-table change-state="$ctrl.changeState(state)"
-                              class="blast-search-flex-column"
-                              flex
-                              ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.INTERNAL_PATHWAYS"></ngb-internal-pathways-table>
+                                     class="blast-search-flex-column"
+                                     flex
+                                     ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.INTERNAL_PATHWAYS"></ngb-internal-pathways-table>
         <ngb-internal-pathways-result change-state="$ctrl.changeState(state)"
-                               class="blast-search-flex-column"
-                               flex
-                               ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.INTERNAL_PATHWAYS_RESULT"></ngb-internal-pathways-result>
+                                      class="blast-search-flex-column"
+                                      flex
+                                      ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.INTERNAL_PATHWAYS_RESULT"></ngb-internal-pathways-result>
     </md-content>
 </div>

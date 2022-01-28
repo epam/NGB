@@ -4,7 +4,7 @@
     </div>
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div class="internal-pathway-container" ng-if="!$ctrl.loading">
+<div class="internal-pathway-container" layout="column" ng-if="!$ctrl.loading">
     <div layout="row">
         <md-button
                 aria-label="back"
@@ -13,11 +13,11 @@
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
-        <span class="blast-search-result-title">{{$ctrl.selectedTreeName}}</span>
+        <span class="blast-search-result-title">{{$ctrl.selectedTree.name}}</span>
     </div>
     <div class="u-height__full tree-container" flex layout="column">
         <md-content flex layout="column">
-            <div class="md-padding ngb-cytoscape-container" layout="column">
+            <div class="md-padding ngb-pathway-cytoscape-container">
                 <div class="internal-pathway-container-error" ng-if="$ctrl.treeError">
                     {{$ctrl.treeError}}
                 </div>

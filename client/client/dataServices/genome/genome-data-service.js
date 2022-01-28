@@ -238,14 +238,28 @@ export class GenomeDataService extends DataService {
     }
 
     getInternalPathwaysLoad(filter) {
-        return this._internalPathways;
+        // return this._internalPathways;
         return new Promise((resolve, reject) => {
-            this.post('homolog/search', filter)
+            this.post('pathways', filter)
                 .then((data) => {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject(new Error('No orthologs or paralogs received'));
+                        reject(new Error('No pathways received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
+    loadPathwayFileById(id) {
+        return new Promise((resolve, reject) => {
+            this.getRawFile('get', `pathway/content/${id}`, null, {customResponseType: 'text'})
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No pathway info received'));
                     }
                 })
                 .catch(reject);

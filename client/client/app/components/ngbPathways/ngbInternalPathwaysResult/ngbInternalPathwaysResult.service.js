@@ -1,7 +1,4 @@
 export default class ngbInternalPathwaysResultService {
-
-    currentReferenceId = null;
-
     constructor(genomeDataService, dispatcher) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
@@ -11,24 +8,22 @@ export default class ngbInternalPathwaysResultService {
         return new ngbInternalPathwaysResultService(genomeDataService, dispatcher);
     }
 
-    async getPathwayTreeById(id) {
-        if(!id) {
+    async getPathwayTree(treeConfig) {
+        if(!treeConfig.id) {
             return {
                 data: null,
                 error: false
             };
         }
-        const xml = require(`./xml/${id}.xml`);
+        const xml = await this.genomeDataService.loadPathwayFileById(treeConfig.id);
         try {
             const convert = require('sbgnml-to-cytoscape');
             const data = convert(xml);
+            data.id = treeConfig.id;
+            data.name = treeConfig.name;
             if (data) {
-                data.id = id;
                 return {
-                    data: {
-                        name: id,
-                        tree: data
-                    },
+                    data: data,
                     error: false
                 };
             } else {

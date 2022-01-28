@@ -1,9 +1,6 @@
-import {
-    SessionExpirationBehavior,
-    SessionExpirationBehaviorStorageKey
-} from './utils/session-expiration-behavior';
 import BluebirdPromise from 'bluebird';
 import ngbConstants from '../constants';
+import {SessionExpirationBehavior, SessionExpirationBehaviorStorageKey} from './utils/session-expiration-behavior';
 
 const AUTH_ERROR_CODE = 401;
 const ERROR_CODE_RANGE_START = 400;
@@ -98,6 +95,20 @@ export class DataService {
                     return Promise.reject(xhr.response);
                 }
                 return xhr.response;
+            });
+    }
+
+    getRawFile(method, url, data, ...rest) {
+        return $http(method, this._serverUrl + url, data, ...rest)
+            .then((xhr) => {
+                if (xhr.status === AUTH_ERROR_CODE) {
+                    this.handleAuthenticationError();
+                    return Promise.reject(xhr.response);
+                }
+                if (xhr.status >= ERROR_CODE_RANGE_START) {
+                    return Promise.reject(xhr.response);
+                }
+                return xhr.responseText;
             });
     }
 

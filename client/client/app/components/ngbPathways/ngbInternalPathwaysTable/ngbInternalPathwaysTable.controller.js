@@ -7,7 +7,6 @@ const RESIZE_DELAY = 300;
 export default class ngbInternalPathwaysTableController extends baseController {
     dispatcher;
     isProgressShown = true;
-    isEmptyResult = false;
     errorMessageList = [];
     debounce = (new Debounce()).debounce;
     gridOptions = {
@@ -39,7 +38,7 @@ export default class ngbInternalPathwaysTableController extends baseController {
     };
     events = {
         'pathways:internalPathways:page:change': this.loadData.bind(this),
-        'pathways:internalPathways:search': this.loadData.bind(this),
+        'pathways:internalPathways:search': this.initialize.bind(this),
         'read:show:pathways': this.loadData.bind(this)
     };
 
@@ -87,10 +86,10 @@ export default class ngbInternalPathwaysTableController extends baseController {
             }
         });
         await this.loadData();
+        this.isProgressShown = false;
     }
 
     async loadData() {
-        this.isProgressShown = true;
         try {
             await this.ngbInternalPathwaysTableService.searchInternalPathways(this.ngbPathwaysService.currentSearch);
             const dataLength = this.ngbInternalPathwaysTableService.internalPathways.length;
@@ -106,9 +105,7 @@ export default class ngbInternalPathwaysTableController extends baseController {
             } else {
                 this.isEmptyResults = true;
             }
-            this.isProgressShown = false;
         } catch (errorObj) {
-            this.isProgressShown = false;
             this.onError(errorObj.message);
         }
         this.$timeout(() => this.$scope.$apply());
@@ -121,7 +118,10 @@ export default class ngbInternalPathwaysTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbPathwaysService.currentInternalPathwaysId = row.entity.xml;
+            this.ngbPathwaysService.currentInternalPathway = {
+                id: row.entity.id,
+                name: row.entity.name
+            };
             this.changeState({state: 'INTERNAL_PATHWAYS_RESULT'});
         } else {
             event.stopImmediatePropagation();
@@ -136,7 +136,7 @@ export default class ngbInternalPathwaysTableController extends baseController {
         const {columns} = this.gridApi.saveState.save();
         const fieldTitleMap = (
             o => Object.keys(o).reduce(
-                (r, k) => Object.assign(r, { [o[k]]: k }), {}
+                (r, k) => Object.assign(r, {[o[k]]: k}), {}
             )
         )(this.ngbInternalPathwaysTableService.columnTitleMap);
         const mapNameToField = function ({name}) {

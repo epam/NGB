@@ -1,8 +1,6 @@
-.ngb-cytoscape-container {
-  width: 100%;
-  height: 100%;
-  min-height: 500px;
+.ngb-pathway-cytoscape-container {
   flex: 1;
+  position: relative;
 }
 
 .internal-pathway-container-error {
@@ -11,7 +9,7 @@
 }
 
 .internal-pathway-container {
-  margin: 2px 10px;
+  margin: 2px 0;
   height: calc(100% - 4px);
   display: flex;
   flex-direction: column;

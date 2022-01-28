@@ -6,7 +6,7 @@ const PATHWAYS_STATES = {
 
 export default class ngbPathwaysService {
     pathwaysServiceMap = {};
-    currentInternalPathwaysId;
+    currentInternalPathway;
 
     constructor(dispatcher, projectContext,
         ngbInternalPathwaysTableService, ngbInternalPathwaysResultService

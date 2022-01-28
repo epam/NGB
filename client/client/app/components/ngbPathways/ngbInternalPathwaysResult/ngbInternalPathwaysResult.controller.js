@@ -47,16 +47,15 @@ export default class ngbInternalPathwaysResultController extends baseController 
     }
 
     async initialize() {
-        if (!this.ngbPathwaysService.currentInternalPathwaysId) {
+        if (!this.ngbPathwaysService.currentInternalPathway) {
             return;
         }
-        const {data, error} = await this.ngbInternalPathwaysResultService.getPathwayTreeById(this.ngbPathwaysService.currentInternalPathwaysId);
+        const {data, error} = await this.ngbInternalPathwaysResultService.getPathwayTree(this.ngbPathwaysService.currentInternalPathway);
         if (error) {
             this.treeError = error;
         } else {
             this.treeError = false;
-            this.selectedTree = data.tree;
-            this.selectedTreeName = data.name;
+            this.selectedTree = data;
         }
         this.loading = false;
         this.$timeout(() => this.$scope.$apply());

@@ -1,5 +1,4 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
-import {calculateColor} from '../../../shared/utils/calculateColor';
 
 const DEFAULT_INTERNAL_PATHWAYS_COLUMNS = [
     'name', 'description'
@@ -13,12 +12,9 @@ const INTERNAL_PATHWAYS_COLUMN_TITLES = {
     description: 'Description'
 };
 const FIRST_PAGE = 1;
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 11;
 
 export default class ngbInternalPathwaysTableService extends ClientPaginationService {
-
-    _internalPathwaysResult;
-
     constructor(dispatcher, genomeDataService) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'pathways:internalPathways:page:change');
         this.dispatcher = dispatcher;
@@ -60,30 +56,18 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         return new ngbInternalPathwaysTableService(dispatcher, genomeDataService);
     }
 
-    getInternalPathwaysResultById(id) {
-        return this._internalPathwaysResult[id];
-    }
-
-    getInternalPathwaysById(id) {
-        return this.internalPathways.filter(h => h.groupId === id)[0] || {};
-    }
-
     async searchInternalPathways(currentSearch) {
-        const result = await this.loadInternalPathways(currentSearch);
-        this._internalPathways = result.internalPathways;
-        this._internalPathwaysResult = result.internalPathwaysResult;
+        this._internalPathways = await this.loadInternalPathways(currentSearch);
         this.dispatcher.emitSimpleEvent('internalPathways:result:change');
     }
 
     async loadInternalPathways(currentSearch) {
-        const emptyResult = {
-            internalPathways: [],
-            internalPathwaysResult: {}
-        };
         const filter = {
-            query: currentSearch,
-            page: this.currentPage,
-            pageSize: this.pageSize
+            pagingInfo: {
+                pageSize: this.pageSize,
+                pageNum: this.currentPage
+            },
+            sortInfos: this.orderBy
         };
         const data = await this.genomeDataService.getInternalPathwaysLoad(filter);
         if (data.error) {
@@ -91,58 +75,22 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
             this.currentPage = FIRST_PAGE;
             this._firstPage = FIRST_PAGE;
             this._pageError = data.message;
-            return emptyResult;
+            return [];
         } else {
             this._pageError = null;
         }
         this.totalPages = Math.ceil(data.totalCount / this.pageSize);
         if (data && data.items) {
-            return {
-                internalPathways: this.getInternalPathwaysSearch(data.items),
-                internalPathwaysResult: this.getInternalPathwaysResult(data.items)
-            };
+            return data.items.map(this._formatServerToClient);
         } else {
-            return emptyResult;
+            return [];
         }
-    }
-
-    getInternalPathwaysSearch(data) {
-        const result = [];
-        data.forEach(value => result.push(this._formatServerToClient(value)));
-        return result;
-    }
-
-    getInternalPathwaysResult(data) {
-        return data;
-        let maxHomologLength = 0;
-        const result = {};
-        if (data) {
-            data.forEach(internalPathways => {
-                maxHomologLength = 0;
-                result[internalPathways.groupId] = [];
-                internalPathways.genes.forEach((gene, key) => {
-                    result[internalPathways.groupId][key] = this._formatResultToClient(gene);
-                    if (maxHomologLength < result[internalPathways.groupId][key].aa) {
-                        maxHomologLength = result[internalPathways.groupId][key].aa;
-                    }
-                });
-                result[internalPathways.groupId].forEach((value, key) => {
-                    result[internalPathways.groupId][key].domainsObj = {
-                        domains: value.domains.map(d => ({...d, color: calculateColor(d.name)})),
-                        homologLength: value.aa,
-                        maxHomologLength: maxHomologLength,
-                        accession_id: value.accession_id
-                    };
-                    delete result[internalPathways.groupId][key].domains;
-                });
-            });
-        }
-        return result;
     }
 
     getInternalPathwaysGridColumns() {
         const result = [];
         const columnsList = this.internalPathwaysColumns;
+        const headerCells = require('./ngbInternalPathwaysTable_header.tpl.html');
         for (let i = 0; i < columnsList.length; i++) {
             let sortDirection = 0;
             let sortingPriority = 0;
@@ -162,8 +110,9 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                         cellTemplate: `<div class="ui-grid-cell-contents pathways-link"
                                        >{{row.entity.name}}</div>`,
                         enableHiding: false,
-                        enableColumnMenu: false,
+                        enableSorting: true,
                         field: 'name',
+                        headerCellTemplate: headerCells,
                         name: this.columnTitleMap[column]
                     };
                     break;
@@ -171,9 +120,9 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                 default: {
                     columnSettings = {
                         enableHiding: false,
-                        enableColumnMenu: false,
                         field: column,
                         minWidth: 40,
+                        headerCellTemplate: headerCells,
                         name: this.columnTitleMap[column],
                         width: '*'
                     };
@@ -194,52 +143,10 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     _formatServerToClient(internalPathways) {
-        return internalPathways;
-        const gene = new Set();
-        const proteinFrequency = {};
-        internalPathways.genes.forEach(g => {
-            gene.add(g.symbol);
-            if (proteinFrequency.hasOwnProperty(g.title)) {
-                proteinFrequency[g.title] += 1;
-            } else {
-                proteinFrequency[g.title] = 1;
-            }
-        });
-
-        const sortableProteinFrequency = [];
-        for (const protein in proteinFrequency) {
-            if (proteinFrequency.hasOwnProperty(protein)) {
-                sortableProteinFrequency.push([protein, proteinFrequency[protein]]);
-            }
-        }
-
-        sortableProteinFrequency.sort((b, a) => a[1] - b[1]);
-
         return {
-            groupId: internalPathways.groupId,
-            gene: [...gene].sort().join(', '),
-            protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
-            info: internalPathways.caption
+            id: internalPathways.pathwayId,
+            name: internalPathways.prettyName || internalPathways.name,
+            description: internalPathways.pathwayDesc
         };
     }
-
-    _formatResultToClient(result) {
-        return {
-            geneId: result.geneId,
-            name: result.symbol,
-            species: result.speciesScientificName,
-            accession_id: result.protAcc,
-            protGi: result.protGi,
-            aa: result.protLen,
-            taxId: result.taxId,
-            protein: result.title,
-            domains: (result.domains || []).map(d => ({
-                id: d.pssmId,
-                start: d.begin,
-                end: d.end,
-                name: d.cddName
-            }))
-        };
-    }
-
 }
