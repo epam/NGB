@@ -8,7 +8,8 @@ export default class ngbPathwaysPanelController extends baseController {
     searchRequest;
 
     events = {
-        'read:show:pathways': () => {
+        'read:show:pathways': data => {
+            this.searchRequest = data ? data.search : null;
             this.changeState('INTERNAL_PATHWAYS');
         }
     };
