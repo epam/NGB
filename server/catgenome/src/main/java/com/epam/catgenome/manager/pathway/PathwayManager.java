@@ -29,37 +29,44 @@ import com.epam.catgenome.dao.pathway.PathwayDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
-import com.epam.catgenome.entity.pathway.SbgnElement;
-import com.epam.catgenome.entity.pathway.SbgnElementType;
+import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.db.Page;
-import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.util.db.SortInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
 import org.sbgn.SbgnUtil;
-import org.sbgn.bindings.Arc;
 import org.sbgn.bindings.Glyph;
 import org.sbgn.bindings.Map;
 import org.sbgn.bindings.Sbgn;
@@ -92,103 +99,32 @@ public class PathwayManager {
     @Value("${pathway.index.directory}")
     private String pathwayIndexDirectory;
 
-    @Value("${pathway.top.hits:100}")
+    @Value("${pathway.top.hits:10000}")
     private int pathwayTopHits;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Pathway createPathway(final PathwayRegistrationRequest request)
-            throws IOException, ParseException, JAXBException {
+            throws IOException, JAXBException {
         final String path = request.getPath();
         final File pathwayFile = getFile(path);
         final Pathway pathway = getPathway(request);
         biologicalDataItemManager.createBiologicalDataItem(pathway);
         pathway.setBioDataItemId(pathway.getId());
         pathwayDao.savePathway(pathway);
-        writeLucenePathwayIndex(pathway.getPathwayId(), pathwayFile);
+        writeLucenePathwayIndex(pathway, readPathway(pathwayFile));
         return pathway;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deletePathway(final long pathwayId) {
+    public void deletePathway(final long pathwayId) throws IOException {
         final Pathway pathway = getPathway(pathwayId);
         pathwayDao.deletePathway(pathwayId);
         biologicalDataItemManager.deleteBiologicalDataItem(pathway.getBioDataItemId());
+        deleteDocument(pathwayId);
     }
 
     public Pathway loadPathway(final long pathwayId) {
         return pathwayDao.loadPathway(pathwayId);
-    }
-
-    public Page<Pathway> loadPathways(final QueryParameters queryParameters) {
-        final Page<Pathway> page = new Page<>();
-        final long totalCount = pathwayDao.getTotalCount();
-        final List<Pathway> items = pathwayDao.loadAllPathways(queryParameters);
-        page.setTotalCount(totalCount);
-        page.setItems(items);
-        return page;
-    }
-
-    public void writeLucenePathwayIndex(final long pathwayId, final File pathwayFile)
-            throws IOException, ParseException, JAXBException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
-             IndexWriter writer = new IndexWriter(
-                     index, new IndexWriterConfig(new StandardAnalyzer())
-                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
-            for (SbgnElement entry: readPathway(pathwayId, pathwayFile)) {
-                addDoc(writer, entry);
-            }
-        }
-    }
-
-    public List<SbgnElement> readPathway(final long pathwayId, final File pathwayFile) throws JAXBException {
-        final Sbgn sbgn = SbgnUtil.readFromFile(pathwayFile);
-        final Map map = sbgn.getMap().get(0);
-        Assert.isTrue(!map.getGlyph().isEmpty(), getMessage(MessagesConstants.ERROR_PATHWAY_NO_GLYPHS));
-        Assert.isTrue(!map.getArc().isEmpty(), getMessage(MessagesConstants.ERROR_PATHWAY_NO_ARCS));
-        final List<SbgnElement> entries = new ArrayList<>();
-        for (Glyph glyph : map.getGlyph()) {
-            SbgnElement entry = SbgnElement.builder()
-                    .pathwayId(pathwayId)
-                    .type(SbgnElementType.GLYPH)
-                    .clazz(glyph.getClazz())
-                    .entryId(glyph.getId())
-                    .label(glyph.getLabel() != null ? glyph.getLabel().getText() : null)
-                    .build();
-            entries.add(entry);
-        }
-        for (Arc arc : map.getArc()) {
-            SbgnElement entry = SbgnElement.builder()
-                    .pathwayId(pathwayId)
-                    .type(SbgnElementType.ARC)
-                    .clazz(arc.getClazz())
-                    .entryId(arc.getId())
-                    .build();
-            entries.add(entry);
-        }
-        return entries;
-    }
-
-    public List<SbgnElement> searchElements(final SbgnElement filter) throws IOException, ParseException {
-        final List<SbgnElement> elements = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            final Query query = buildPathwaySearchQuery(filter);
-            TopDocs topDocs = searcher.search(query, pathwayTopHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                elements.add(
-                        SbgnElement.builder()
-                                .pathwayId(getId(doc))
-                                .type(SbgnElementType.getByName(getDocValue(doc, PathwayIndexFields.TYPE)))
-                                .entryId(getDocValue(doc, PathwayIndexFields.ENTRY_ID))
-                                .clazz(getDocValue(doc, PathwayIndexFields.CLAZZ))
-                                .label(getDocValue(doc, PathwayIndexFields.LABEL))
-                                .build()
-                );
-            }
-        }
-        return elements;
     }
 
     public byte[] loadPathwayContent(final Long pathwayId) throws IOException {
@@ -198,28 +134,122 @@ public class PathwayManager {
         return FileUtils.readFileToByteArray(pathwayFile);
     }
 
-    private static void addDoc(final IndexWriter writer, final SbgnElement entry) throws IOException {
+    public Page<Pathway> loadPathways(final PathwayQueryParams params)
+            throws IOException, ParseException {
+        final Page<Pathway> page = new Page<>();
+        final List<Pathway> items = new ArrayList<>();
+        int totalCount = 0;
+        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
+             IndexReader reader = DirectoryReader.open(index)) {
+            final IndexSearcher searcher = new IndexSearcher(reader);
+            final Query query = TextUtils.isBlank(params.getTerm()) ? new MatchAllDocsQuery() :
+                    buildPathwaySearchQuery(params.getTerm());
+            TopDocs topDocs = searcher.search(query, pathwayTopHits);
+            totalCount = topDocs.totalHits;
+
+            if (totalCount > 0) {
+                final Sort sort = getSortBySortInfo(params.getSortInfo());
+
+                final int pageNum = params.getPagingInfo() == null ? 1 :
+                        params.getPagingInfo().getPageNum() > 0 ? params.getPagingInfo().getPageNum() : 1;
+                final int pageSize = params.getPagingInfo() == null ? totalCount :
+                        params.getPagingInfo().getPageSize() > 0 ? params.getPagingInfo().getPageSize() : totalCount;
+                final int numDocs = params.getPagingInfo() == null ? totalCount : pageNum * pageSize;
+
+                topDocs = searcher.search(query, numDocs, sort);
+
+                final int from = (pageNum - 1) * pageSize;
+                final int to = Math.min(from + pageSize, totalCount);
+
+                for (int i = from; i < to; i++) {
+                    int docId = topDocs.scoreDocs[i].doc;
+                    Document doc = searcher.doc(docId);
+                    Pathway pathway = Pathway.builder().pathwayId(getId(doc)).build();
+                    pathway.setName(getDocValue(doc, PathwayIndexFields.NAME));
+                    pathway.setPrettyName(getDocValue(doc, PathwayIndexFields.PRETTY_NAME));
+                    pathway.setPathwayDesc(getDocValue(doc, PathwayIndexFields.DESCRIPTION));
+                    items.add(pathway);
+                }
+            }
+        } catch (IndexNotFoundException e) {
+            log.debug(getMessage(MessagesConstants.ERROR_INDEX_DIRECTORY_IS_EMPTY), e);
+        }
+        page.setTotalCount(totalCount);
+        page.setItems(items);
+        return page;
+    }
+
+    private Sort getSortBySortInfo(final SortInfo sortInfo) {
+        return sortInfo == null ? new Sort(new SortField("name", SortField.Type.STRING, false)) :
+                new Sort(new SortField(sortInfo.getField(), SortField.Type.STRING, !sortInfo.isAscending()));
+    }
+
+    private void writeLucenePathwayIndex(final Pathway pathway, final String content)
+            throws IOException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            addDoc(writer, pathway, content);
+        }
+    }
+
+    private void deleteDocument(final long pathwayId) throws IOException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            final Term term = new Term(PathwayIndexFields.PATHWAY_ID.getFieldName(), String.valueOf(pathwayId));
+            writer.deleteDocuments(term);
+        }
+    }
+
+    private String readPathway(final File pathwayFile) throws JAXBException {
+        final Sbgn sbgn = SbgnUtil.readFromFile(pathwayFile);
+        final Map map = sbgn.getMap().get(0);
+        final List<String> entries = new ArrayList<>();
+        for (Glyph glyph : map.getGlyph()) {
+            if (glyph.getLabel() != null) {
+                entries.add(glyph.getLabel().getText());
+            }
+            glyph.getGlyph().forEach(g -> {
+                if (g.getLabel() != null) {
+                    entries.add(g.getLabel().getText());
+                }
+            });
+        }
+        return StringUtils.join(entries, ",");
+    }
+
+    private static void addDoc(final IndexWriter writer, final Pathway pathway, String content) throws IOException {
         final Document doc = new Document();
         doc.add(new StringField(PathwayIndexFields.PATHWAY_ID.getFieldName(),
-                String.valueOf(entry.getPathwayId()), Field.Store.YES));
-        doc.add(new StringField(PathwayIndexFields.TYPE.getFieldName(), entry.getType().getName(), Field.Store.YES));
-        doc.add(new StringField(PathwayIndexFields.CLAZZ.getFieldName(), entry.getClazz(), Field.Store.YES));
-        if (entry.getEntryId() != null) {
-            doc.add(new TextField(PathwayIndexFields.ENTRY_ID.getFieldName(), entry.getEntryId(), Field.Store.YES));
+                String.valueOf(pathway.getPathwayId()), Field.Store.YES));
+
+        doc.add(new SortedDocValuesField(PathwayIndexFields.NAME.getFieldName(), new BytesRef(pathway.getName())));
+        doc.add(new StoredField(PathwayIndexFields.NAME.getFieldName(), pathway.getName()));
+        doc.add(new StringField(PathwayIndexFields.NAME.getFieldName(),
+                pathway.getName(), Field.Store.YES));
+
+        if (!TextUtils.isBlank(pathway.getPrettyName())) {
+            doc.add(new StringField(PathwayIndexFields.PRETTY_NAME.getFieldName(),
+                    pathway.getPrettyName(), Field.Store.YES));
         }
-        if (entry.getLabel() != null) {
-            doc.add(new TextField(PathwayIndexFields.LABEL.getFieldName(), entry.getLabel(), Field.Store.YES));
+
+        if (!TextUtils.isBlank(pathway.getPathwayDesc())) {
+            doc.add(new TextField(PathwayIndexFields.DESCRIPTION.getFieldName(),
+                    pathway.getPathwayDesc(), Field.Store.YES));
         }
+
+        doc.add(new TextField(PathwayIndexFields.CONTENT.getFieldName(), content, Field.Store.YES));
         writer.addDocument(doc);
     }
 
     @Getter
     private enum PathwayIndexFields {
         PATHWAY_ID("pathwayId"),
-        TYPE("type"),
-        CLAZZ("clazz"),
-        ENTRY_ID("entryId"),
-        LABEL("label");
+        NAME("name"),
+        PRETTY_NAME("prettyName"),
+        DESCRIPTION("description"),
+        CONTENT("content");
 
         private final String fieldName;
 
@@ -236,29 +266,17 @@ public class PathwayManager {
         return Long.parseLong(doc.getField(PathwayIndexFields.PATHWAY_ID.getFieldName()).stringValue());
     }
 
-    private Query buildPathwaySearchQuery(final SbgnElement entry) throws ParseException {
+    private Query buildPathwaySearchQuery(final String term) throws ParseException {
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        if (entry.getPathwayId() != null) {
-            builder.add(buildQuery(PathwayIndexFields.PATHWAY_ID.getFieldName(),
-                    String.valueOf(entry.getPathwayId()), analyzer), BooleanClause.Occur.MUST);
-        }
-        if (entry.getType() != null) {
-            builder.add(buildQuery(PathwayIndexFields.TYPE.getFieldName(),
-                    entry.getType().name(), analyzer), BooleanClause.Occur.MUST);
-        }
-        if (entry.getClazz() != null) {
-            builder.add(buildQuery(PathwayIndexFields.CLAZZ.getFieldName(),
-                    entry.getClazz(), analyzer), BooleanClause.Occur.MUST);
-        }
-        if (entry.getEntryId() != null) {
-            builder.add(buildQuery(PathwayIndexFields.ENTRY_ID.getFieldName(),
-                    entry.getEntryId(), analyzer), BooleanClause.Occur.MUST);
-        }
-        if (entry.getLabel() != null) {
-            builder.add(buildPhraseQuery(PathwayIndexFields.LABEL.getFieldName(),
-                    entry.getLabel(), analyzer), BooleanClause.Occur.MUST);
-        }
+        builder.add(buildQuery(PathwayIndexFields.NAME.getFieldName(), term, analyzer),
+                BooleanClause.Occur.SHOULD);
+        builder.add(buildQuery(PathwayIndexFields.PRETTY_NAME.getFieldName(), term, analyzer),
+                BooleanClause.Occur.SHOULD);
+        builder.add(buildPhraseQuery(PathwayIndexFields.DESCRIPTION.getFieldName(), term, analyzer),
+                BooleanClause.Occur.SHOULD);
+        builder.add(buildPhraseQuery(PathwayIndexFields.CONTENT.getFieldName(), term, analyzer),
+                BooleanClause.Occur.SHOULD);
         return builder.build();
     }
 

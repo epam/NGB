@@ -26,9 +26,9 @@ package com.epam.catgenome.manager.pathway;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
-import com.epam.catgenome.util.db.QueryParameters;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public class PathwayManagerTest extends TestCase {
     }
 
     @Test
-    public void createPathwayTest() throws IOException, ParseException, JAXBException {
+    public void createPathwayTest() throws IOException, JAXBException {
         final Pathway pathway = registerPathway("createPathwayTest", fileName);
         assertNotNull(pathway);
         assertEquals("createPathwayTest", pathway.getName());
@@ -84,7 +84,7 @@ public class PathwayManagerTest extends TestCase {
         registerPathway("loadPathways", fileName);
         registerPathway("loadPathways1", fileName);
         registerPathway("loadPathways2", fileName);
-        final QueryParameters parameters = new QueryParameters();
+        final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
         final Page<Pathway> pathways = pathwayManager.loadPathways(parameters);
@@ -93,7 +93,7 @@ public class PathwayManagerTest extends TestCase {
     }
 
     @Test
-    public void deletePathwayTest() throws IOException, ParseException, JAXBException {
+    public void deletePathwayTest() throws IOException, JAXBException {
         final Pathway pathway = registerPathway("deletePathwayTest", fileName);
         Pathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
@@ -104,7 +104,7 @@ public class PathwayManagerTest extends TestCase {
 
     @NotNull
     private Pathway registerPathway(final String name, final String fileName)
-            throws IOException, ParseException, JAXBException {
+            throws IOException, JAXBException {
         final PathwayRegistrationRequest request = new PathwayRegistrationRequest();
         request.setName(name);
         request.setPrettyName("pathway");

@@ -25,9 +25,8 @@ package com.epam.catgenome.manager.pathway;
 
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.pathway.Pathway;
-import com.epam.catgenome.entity.pathway.SbgnElement;
+import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
-import com.epam.catgenome.util.db.QueryParameters;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -51,24 +49,19 @@ public class PathwaySecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Page<Pathway> loadPathways(final QueryParameters queryParameters) {
-        return pathwayManager.loadPathways(queryParameters);
+    public Page<Pathway> loadPathways(final PathwayQueryParams params) throws IOException, ParseException {
+        return pathwayManager.loadPathways(params);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
     public Pathway createPathway(final PathwayRegistrationRequest request)
-            throws IOException, ParseException, JAXBException {
+            throws IOException, JAXBException {
         return pathwayManager.createPathway(request);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
     public void deletePathway(final long pathwayId) throws IOException {
         pathwayManager.deletePathway(pathwayId);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    public List<SbgnElement> searchElements(final SbgnElement sbgnElement) throws IOException, ParseException {
-        return pathwayManager.searchElements(sbgnElement);
     }
 
     @PreAuthorize(ROLE_USER)

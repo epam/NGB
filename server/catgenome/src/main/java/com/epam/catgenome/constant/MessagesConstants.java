@@ -76,6 +76,7 @@ public final class MessagesConstants {
     public static final String ERROR_SPECIES_NOT_SPECIFIED = "error.no.species";
     public static final String ERROR_INDEX_NOT_SPECIFIED = "error.no.index.cache";
     public static final String ERROR_INDEX_URL_NOT_SPECIFIED = "error.no.index.url.cache";
+    public static final String ERROR_INDEX_DIRECTORY_IS_EMPTY = "error.empty.index.directory";
     public static final String ERROR_CHROMOSOME_NOT_SPECIFIED = "error.no.chromosome";
     public static final String ERROR_STARTPOSITION_NOT_SPECIFIED = "error.no.startposition";
     public static final String ERROR_FINISHPOSITION_NOT_SPECIFIED = "error.no.finishposition";
@@ -294,8 +295,6 @@ public final class MessagesConstants {
 
     //Pathway
     public static final String ERROR_PATHWAY_NOT_FOUND = "error.pathway.not.found";
-    public static final String ERROR_PATHWAY_NO_GLYPHS = "error.pathway.no.glyphs.found";
-    public static final String ERROR_PATHWAY_NO_ARCS = "error.pathway.no.arcs.found";
 
     //Attributes
     public static final String ERROR_ATTRIBUTE_INVALID_VALUE = "error.attribute.invalid.value";
