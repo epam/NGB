@@ -50,6 +50,13 @@ Table contains the following columns:
 - **Strand** - for the strand of the reference in which the match is found
 - **Gene** - for the gene name, in which the current match hits
 
+Table supports the filtering via the filter fields under the column headers:
+
+- by the _chromosome name_ - click the filter and select the desired chomosome(s)
+- by the _strand_ - click the filter and select the desired strand
+- by the _gene name_ - click the filter, start to specify the gene name and than select from the appeared list the desired gene(s)  
+  ![NGB GUI](images/motifs-16.png)
+
 Also, that panel view contains:
 
 - a button to navigate to the table with full list of motifs searches (see [below](#search-history) for details)
