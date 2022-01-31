@@ -32,6 +32,14 @@
             text-transform: capitalize;
         }
     }
+
+    .motifs-results-error {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+    }
 }
 
 .motifs-empty-results-container {

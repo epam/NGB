@@ -16,6 +16,13 @@
                             ng-if="$ctrl.loadingData">
         </md-progress-linear>
     </div>
+    <div class="md-padding"
+         ng-if="$ctrl.isFilteredSearchFailure && !$ctrl.loadingData">
+        <ngb-panel-error-list
+            class="motifs-results-error"
+            message-list="$ctrl.filteredErrorMessageList"
+        ></ngb-panel-error-list>
+    </div>
     <div class="motifs-table-container"
          ng-hide="$ctrl.emptyResults"
     >

@@ -94,11 +94,10 @@ export class MOTIFSTrack extends CachedTrack {
         if (MAXIMUM_RANGE <= this.viewport.actualBrushSize) {
             return false;
         }
-        const updated = await super.updateCache();
-        if (updated && this.cache) {
-            const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
-            this.cache.data = (data && data.blocks) ? this.transformData(data) : [];
-            return true;
+        const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
+        if (this.cache) {
+            this.cache.data = this.transformData(data);
+            return await super.updateCache();
         }
         return false;
     }
@@ -128,6 +127,9 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     transformData(data) {
+        if (!data.blocks || data.blocks.length === 0) {
+            return [];
+        }
         const matches = data.blocks
             .map(block => {
                 const start = Math.min(block.startIndex, block.endIndex);

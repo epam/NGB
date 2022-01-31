@@ -16,7 +16,6 @@ export default class ngbMotifsPanelService {
     _searchStopOn = {};
     _currentParams = {};
     searchRequestsHistory = [];
-    requestNumber = 0;
     _searchMotifFilter = null;
     _blockFilterResults = null;
 
@@ -24,6 +23,8 @@ export default class ngbMotifsPanelService {
     _isSearchFailure = false;
     _errorMessageList = null;
     _isShowParamsTable = false;
+    _isFilteredSearchFailure = false;
+    _filteredErrorMessageList = null;
 
     get isSearchInProgress () {
         return this._isSearchInProgress;
@@ -44,6 +45,20 @@ export default class ngbMotifsPanelService {
     }
     set errorMessageList (error) {
         this._errorMessageList = error;
+    }
+
+    get isFilteredSearchFailure () {
+        return this._isFilteredSearchFailure;
+    }
+    set isFilteredSearchFailure (value) {
+        this._isFilteredSearchFailure = value;
+    }
+
+    get filteredErrorMessageList () {
+        return this._filteredErrorMessageList;
+    }
+    set filteredErrorMessageList (error) {
+        this._filteredErrorMessageList = error;
     }
 
     get isShowParamsTable () {
@@ -152,18 +167,21 @@ export default class ngbMotifsPanelService {
     setSearchMotifsParams (params) {
         const {id, name} = this.projectContext.currentChromosome;
         const searchParams = {
+            id: this._searchMotifsParams.length + 1,
             currentChromosomeId: id,
             name: params.title,
             motif: params.pattern,
             'search type': params.inReference ?
                 this.referenceType : `${this.chromosomeType} [${name}]`,
         };
+        const getDisplayName = o => o.name || o.motif;
+        const sameDisplayNameFilter = track => getDisplayName(track) === getDisplayName(searchParams);
+        searchParams.duplicateIndex = this._searchMotifsParams.filter(sameDisplayNameFilter).length;
         this._searchMotifsParams.push(searchParams);
         return searchParams;
     }
 
     async searchMotif (params) {
-        this.requestNumber++;
         this.isSearchInProgress = true;
         this.isShowParamsTable = false;
         this.resetResultsData();
@@ -177,6 +195,8 @@ export default class ngbMotifsPanelService {
         const searchType = params['search type'].split(' ')[0];
         const referenceType = searchType === this.referenceType;
         const currentParams = {
+            id: params.id,
+            duplicateIndex: params.duplicateIndex,
             referenceId: this.projectContext.reference.id,
             motif: params.motif,
             searchType: referenceType ?
@@ -189,6 +209,8 @@ export default class ngbMotifsPanelService {
         const request = referenceType ?
             {...currentParams} : {chromosomeId, ...currentParams};
         request.filter = this.getRequestFilter();
+        delete request.id;
+        delete request.duplicateIndex;
         return request;
     }
 
@@ -205,19 +227,19 @@ export default class ngbMotifsPanelService {
     }
 
     async showSearchMotifResults(request) {
-        await this.getSearchMotifsResults(request)
-            .then(result => {
-                this.dispatcher.emitSimpleEvent('motifs:show:results');
-            });
+        await this.getSearchMotifsResults(request);
+        this.dispatcher.emitSimpleEvent('motifs:show:results');
     }
 
-    getSearchMotifsResults(request) {
+    getSearchMotifsResults(request, scroll = false) {
         return new Promise((resolve) => {
-            this.motifsDataService.getSearchMotifsResults(request)
+            this.motifsDataService.getSearchMotifsResults(request, scroll)
                 .then(response => {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = false;
                     this.errorMessageList = null;
+                    this.isFilteredSearchFailure = false;
+                    this.filteredErrorMessageList = null;
                     this.setSearchMotifResults(response.result);
                     this.searchStopOn = {
                         startPosition: response.position !== undefined ?
@@ -228,8 +250,24 @@ export default class ngbMotifsPanelService {
                 })
                 .catch((error) => {
                     this.isSearchInProgress = false;
-                    this.isSearchFailure = true;
-                    this.errorMessageList = [error.message];
+                    if (scroll ||
+                        (request.filter && JSON.stringify(request.filter) !== '{}')
+                    ) {
+                        this.isSearchFailure = false;
+                        this.errorMessageList = null;
+                        this.isFilteredSearchFailure = true;
+                        this.filteredErrorMessageList = [error.message || error];
+                    } else {
+                        this.isSearchFailure = true;
+                        this.errorMessageList = [error.message || error];
+                        this.isFilteredSearchFailure = false;
+                        this.filteredErrorMessageList = null;
+                    }
+                    this.setSearchMotifResults([]);
+                    this.searchStopOn = {
+                        startPosition: null,
+                        chromosomeId: null
+                    };
                     resolve([]);
                 });
         });
@@ -293,12 +331,12 @@ export default class ngbMotifsPanelService {
         }
         this.dispatcher.emitSimpleEvent('initialize:motif:filters');
     }
-        
+
 
     setFilter (key, value) {
         const filter = {...this.searchMotifFilter};
         filter[key] = [...value];
-        
+
         this._searchMotifFilter = filter;
     }
 
@@ -325,16 +363,15 @@ export default class ngbMotifsPanelService {
     async filterResults () {
         const currentParams = {...this.currentParams};
         delete currentParams.name;
+        delete currentParams.id;
+        delete currentParams.duplicateIndex;
         this.searchRequestsHistory = [];
         const wholeGenomeType = currentParams.searchType === this.wholeGenomeType;
         const chromosomeId = this.projectContext.currentChromosome.id;
         const request = wholeGenomeType ?
             {...currentParams} : {chromosomeId, ...currentParams};
         request.filter = this.getRequestFilter();
-        await this.getSearchMotifsResults(request)
-            .then(result => {
-                this.setSearchMotifResults(result);
-            });
+        await this.getSearchMotifsResults(request);
         this.searchRequestsHistory.push(request);
     }
 

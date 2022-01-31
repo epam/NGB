@@ -17,28 +17,24 @@ export class MotifsDataService extends DataService {
                     }
                 })
                 .catch(error => {
-                    if (request.filter) {
-                        resolve([]);
-                    }
                     reject(new Error((error && error.message) || message));
                 });
         });
     }
 
     loadMotifTrack (request) {
-        const message = 'Motifs Data Service: error getting motif track';
         return new Promise((resolve, reject) => {
             this.post('reference/motif', request)
                 .catch(() => {
-                    resolve({
-                        blocks: []
-                    });
+                    resolve({});
                 })
                 .then(data => {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject(new Error(message));
+                        const code = 'Motifs Data Service';
+                        const message = 'Motifs Data Service: error loading motif track';
+                        reject({code, message});
                     }
                 });
         });

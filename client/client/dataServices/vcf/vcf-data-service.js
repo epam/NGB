@@ -50,14 +50,16 @@ export class VcfDataService extends DataService {
                 vcf.fileUrl = undefined;
                 vcf.indexUrl = undefined;
             }
-            this.post(url, vcf).then((data) => {
-                if (data) {
-                    resolve(data.blocks ? data.blocks : []);
-                } else {
-                    const code = 'Vcf Data Service', message = 'Vcf Data Service: error loading vcf track';
-                    reject({code, message});
-                }
-            });
+            this.post(url, vcf)
+                .catch(() => resolve([]))
+                .then((data) => {
+                    if (data) {
+                        resolve(data.blocks ? data.blocks : []);
+                    } else {
+                        const code = 'Vcf Data Service', message = 'Vcf Data Service: error loading vcf track';
+                        reject({code, message});
+                    }
+                });
         });
     }
 
