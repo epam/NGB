@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.Getter;
@@ -93,6 +94,8 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 @Slf4j
 public class PathwayManager {
 
+    private static final String SBGN = "sbgn";
+
     private final PathwayDao pathwayDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
 
@@ -107,6 +110,8 @@ public class PathwayManager {
             throws IOException, JAXBException {
         final String path = request.getPath();
         final File pathwayFile = getFile(path);
+        Assert.isTrue(Utils.getFileExtension(request.getPath()).equals("." + SBGN),
+                getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, "pathway", SBGN));
         final Pathway pathway = getPathway(request);
         biologicalDataItemManager.createBiologicalDataItem(pathway);
         pathway.setBioDataItemId(pathway.getId());
@@ -177,6 +182,10 @@ public class PathwayManager {
         page.setTotalCount(totalCount);
         page.setItems(items);
         return page;
+    }
+
+    public List<Pathway> loadPathways() {
+        return pathwayDao.loadAllPathways(null);
     }
 
     private Sort getSortBySortInfo(final SortInfo sortInfo) {

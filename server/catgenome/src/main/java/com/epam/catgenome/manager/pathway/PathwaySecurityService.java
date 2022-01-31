@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -51,6 +52,11 @@ public class PathwaySecurityService {
     @PreAuthorize(ROLE_USER)
     public Page<Pathway> loadPathways(final PathwayQueryParams params) throws IOException, ParseException {
         return pathwayManager.loadPathways(params);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<Pathway> loadPathways(final Long projectId) {
+        return pathwayManager.loadPathways();
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)

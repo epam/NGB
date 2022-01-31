@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(value = "pathway", description = "Metabolic Pathways Management")
@@ -68,6 +69,18 @@ public class PathwayController extends AbstractRESTController {
     public Result<Pathway> loadPathway(@PathVariable final Long pathwayId,
                                        @RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathway(pathwayId, projectId));
+    }
+
+    @GetMapping(value = "/pathway/all")
+    @ApiOperation(
+            value = "Returns all registered pathways",
+            notes = "Returns all registered pathways",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Pathway>> loadPathways(@RequestParam(required = false) final Long projectId) {
+        return Result.success(pathwaySecurityService.loadPathways(projectId));
     }
 
     @GetMapping(value = "/pathway/content/{pathwayId}")

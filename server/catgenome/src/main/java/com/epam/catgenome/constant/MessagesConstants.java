@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017-2021 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,6 +90,7 @@ public final class MessagesConstants {
     public static final String INFO_BOUNDS_METADATA_LOAD = "info.bounds.metadata.load";
     public static final String INFO_HISTOGRAM_WRITE = "info.histogram.write";
     public static final String INFO_HISTOGRAM_LOAD = "info.histogram.load";
+    public static final String ERROR_UNSUPPORTED_FILE_EXTENSION = "error.unsupported.file.extension";
 
     //Track validation errors
     public static final String ERROR_INVALID_PARAM_TRACK_INDEXES_BELOW_ZERO = "error.invalid.param.track.indexes." +

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,8 @@ public enum BiologicalDataItemFormat {
     GB(18),
     FEATURE_COUNTS(19),
     HEATMAP(20),
-    LINEAGE_TREE(21);
+    LINEAGE_TREE(21),
+    PATHWAY(22);
 
     private long id;
     /**
