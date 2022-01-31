@@ -38,7 +38,6 @@ export default class ngbMotifsResultsTableController  extends baseController {
         return MOTIFS_RESULTS_COLUMNS;
     }
     loadingData = false;
-    emptyFilteredResults = false;
 
     get positive () {
         return this.ngbMotifsPanelService.positive;
@@ -64,9 +63,15 @@ export default class ngbMotifsResultsTableController  extends baseController {
     get searchRequestsHistory () {
         return this.ngbMotifsPanelService.searchRequestsHistory;
     }
+    get filteredErrorMessageList () {
+        return this.ngbMotifsPanelService.filteredErrorMessageList;
+    }
+    get isFilteredSearchFailure () {
+        return this.ngbMotifsPanelService.isFilteredSearchFailure;
+    }
     get emptyResults () {
         return !this.loading &&
-            !this.emptyFilteredResults &&
+            !this.isFilteredSearchFailure &&
             !this.ngbMotifsPanelService.isShowParamsTable &&
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
@@ -194,7 +199,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
     async loadData (request, isScrollTop) {
         this.loadingData = true;
         this.$timeout(() => this.$scope.$apply());
-        const results = await this.ngbMotifsPanelService.getSearchMotifsResults(request)
+        const results = await this.ngbMotifsPanelService.getSearchMotifsResults(request, true)
             .then(success => {
                 if (success) {
                     return this.ngbMotifsPanelService.searchMotifResults;
@@ -266,11 +271,6 @@ export default class ngbMotifsResultsTableController  extends baseController {
             }
             await this.ngbMotifsPanelService.filterResults();
             const results = this.ngbMotifsPanelService.searchMotifResults;
-            if (results && results.length === 0) {
-                this.emptyFilteredResults = true;
-            } else {
-                this.emptyFilteredResults = false;
-            }
             this.gridOptions.data = results;
             const self = this;
             const {startPosition, chromosomeId} = this.searchStopOn;

@@ -17,9 +17,6 @@ export class MotifsDataService extends DataService {
                     }
                 })
                 .catch(error => {
-                    if (request.filter) {
-                        resolve([]);
-                    }
                     reject(new Error((error && error.message) || message));
                 });
         });

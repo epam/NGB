@@ -24,6 +24,8 @@ export default class ngbMotifsPanelService {
     _isSearchFailure = false;
     _errorMessageList = null;
     _isShowParamsTable = false;
+    _isFilteredSearchFailure = false;
+    _filteredErrorMessageList = null;
 
     get isSearchInProgress () {
         return this._isSearchInProgress;
@@ -44,6 +46,20 @@ export default class ngbMotifsPanelService {
     }
     set errorMessageList (error) {
         this._errorMessageList = error;
+    }
+
+    get isFilteredSearchFailure () {
+        return this._isFilteredSearchFailure;
+    }
+    set isFilteredSearchFailure (value) {
+        this._isFilteredSearchFailure = value;
+    }
+
+    get filteredErrorMessageList () {
+        return this._filteredErrorMessageList;
+    }
+    set filteredErrorMessageList (error) {
+        this._filteredErrorMessageList = error;
     }
 
     get isShowParamsTable () {
@@ -205,19 +221,19 @@ export default class ngbMotifsPanelService {
     }
 
     async showSearchMotifResults(request) {
-        await this.getSearchMotifsResults(request)
-            .then(result => {
-                this.dispatcher.emitSimpleEvent('motifs:show:results');
-            });
+        await this.getSearchMotifsResults(request);
+        this.dispatcher.emitSimpleEvent('motifs:show:results');
     }
 
-    getSearchMotifsResults(request) {
+    getSearchMotifsResults(request, scroll = false) {
         return new Promise((resolve) => {
-            this.motifsDataService.getSearchMotifsResults(request)
+            this.motifsDataService.getSearchMotifsResults(request, scroll)
                 .then(response => {
                     this.isSearchInProgress = false;
                     this.isSearchFailure = false;
                     this.errorMessageList = null;
+                    this.isFilteredSearchFailure = false;
+                    this.filteredErrorMessageList = null;
                     this.setSearchMotifResults(response.result);
                     this.searchStopOn = {
                         startPosition: response.position !== undefined ?
@@ -228,8 +244,24 @@ export default class ngbMotifsPanelService {
                 })
                 .catch((error) => {
                     this.isSearchInProgress = false;
-                    this.isSearchFailure = true;
-                    this.errorMessageList = [error.message];
+                    if (scroll ||
+                        (request.filter && JSON.stringify(request.filter) !== '{}')
+                    ) {
+                        this.isSearchFailure = false;
+                        this.errorMessageList = null;
+                        this.isFilteredSearchFailure = true;
+                        this.filteredErrorMessageList = [error.message || error];
+                    } else {
+                        this.isSearchFailure = true;
+                        this.errorMessageList = [error.message || error];
+                        this.isFilteredSearchFailure = false;
+                        this.filteredErrorMessageList = null;
+                    }
+                    this.setSearchMotifResults([]);
+                    this.searchStopOn = {
+                        startPosition: null,
+                        chromosomeId: null
+                    };
                     resolve([]);
                 });
         });
@@ -331,10 +363,7 @@ export default class ngbMotifsPanelService {
         const request = wholeGenomeType ?
             {...currentParams} : {chromosomeId, ...currentParams};
         request.filter = this.getRequestFilter();
-        await this.getSearchMotifsResults(request)
-            .then(result => {
-                this.setSearchMotifResults(result);
-            });
+        await this.getSearchMotifsResults(request);
         this.searchRequestsHistory.push(request);
     }
 
