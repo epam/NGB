@@ -173,6 +173,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
+        delete request.motifTracksNumber;
         await this.loadData(request, false);
         this.searchRequestsHistory.push(request);
         this.gridOptions.infiniteScrollUp = true;
@@ -193,6 +194,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
+        delete request.motifTracksNumber;
         await this.loadData(request, true);
     }
 
@@ -327,16 +329,13 @@ export default class ngbMotifsResultsTableController  extends baseController {
             referenceId,
             name,
             motif,
+            motifTracksNumber
         } = this.currentParams;
 
         const strand = this.ngbMotifsPanelService.getStrand(rowStrand);
-        const getName = strand => `${name || motif}_${strand}`;
+        const searchId = motifTracksNumber / 2;
+        const getName = strand => `${name || motif}_${strand}[${searchId}]`;
         const reference = this.projectContext.reference;
-
-        const tracksOptions = {};
-        const motifsTracks = (this.projectContext.tracks || [])
-            .filter(track => track.format === 'MOTIFS');
-        const trackId = this.ngbMotifsPanelService.requestNumber;
 
         const motifsTrackPattern = strand => ({
             name: getName(strand),
@@ -344,7 +343,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             isLocal: true,
             projectId: '',
             bioDataItemId: getName(strand),
-            id: strand === this.positive ? trackId : trackId + 1,
+            id: searchId,
             reference,
             referenceId
         });
@@ -360,11 +359,30 @@ export default class ngbMotifsResultsTableController  extends baseController {
             }
         });
 
+        const motifsTracks = this.projectContext.getActiveTracks()
+            .filter(track => track.format === 'MOTIFS')
+            .map(track => track.name);
+        let positiveTrackPosition = 0;
+        let negativeTrackPosition = 0;
+        if (
+            !motifsTracks.includes(getName(this.positive)) &&
+            !motifsTracks.includes(getName(this.negative))
+        ) {
+            positiveTrackPosition = 1;
+            negativeTrackPosition = 2;
+        } else {
+            if (!motifsTracks.includes(getName(strand))) {
+                positiveTrackPosition = strand === this.positive ? 1 : 0;
+                negativeTrackPosition = strand === this.negative ? 1 : 0;
+            }
+        }
+
         const referenceTrackState = {
             referenceShowForwardStrand: true,
             referenceShowReverseStrand: true,
             referenceShowTranslation: false
         };
+        const tracksOptions = {};
         tracksOptions.tracks = (this.projectContext.tracks || []);
         tracksOptions.tracksState = (this.projectContext.tracksState || []);
         const [existingReferenceTrackState] = tracksOptions.tracksState
@@ -377,23 +395,6 @@ export default class ngbMotifsResultsTableController  extends baseController {
         }
         const referenceTrackStateIndex = tracksOptions
             .tracksState.indexOf(existingReferenceTrackState);
-
-        const motifsTracksNames = (motifsTracks || []).map(track => track.name);
-        let positiveTrackPosition = 0;
-        let negativeTrackPosition = 0;
-
-        if (
-            !motifsTracksNames.includes(getName(this.positive)) &&
-            !motifsTracksNames.includes(getName(this.negative))
-        ) {
-            positiveTrackPosition = 1;
-            negativeTrackPosition = 2;
-        } else {
-            if (!motifsTracksNames.includes(getName(strand))) {
-                positiveTrackPosition = strand === this.positive ? 1 : 0;
-                negativeTrackPosition = strand === this.negative ? 1 : 0;
-            }
-        }
         if (positiveTrackPosition !== 0) {
             tracksOptions.tracks.push(motifsTrackPattern(this.positive));
             tracksOptions.tracksState.splice(
