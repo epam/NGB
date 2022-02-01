@@ -7,7 +7,7 @@ export default  {
         tag: '@',
         onElementClick: '&',
         storageName: '@',
-        elementsOptions: '<'
+        searchParams: '<'
     },
     controller: ngbCytoscapePathwayController
 };

@@ -6,6 +6,8 @@ const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
 const $ = require('jquery');
 
 const SCALE = 0.3;
+const searchedColor = '#00cc00';
+let defaultNodeStyle = {};
 
 export default class ngbCytoscapePathwayController {
     constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings) {
@@ -57,6 +59,28 @@ export default class ngbCytoscapePathwayController {
             (changes.elements.previousValue.id !== changes.elements.currentValue.id)) {
             this.reloadCytoscape(true);
         }
+        if (!!changes.searchParams &&
+            !!changes.searchParams.previousValue &&
+            !!changes.searchParams.currentValue) {
+            if (changes.searchParams.currentValue.search
+                && changes.searchParams.previousValue.search !== changes.searchParams.currentValue.search) {
+                this.searchNode(
+                    changes.searchParams.currentValue.search,
+                    node => {
+                        node.style({
+                            'color': searchedColor,
+                            'border-color': searchedColor
+                        });
+                    },
+                    node => {
+                        node.style({
+                            'color': defaultNodeStyle.color,
+                            'border-color': defaultNodeStyle['border-color']
+                        });
+                    }
+                );
+            }
+        }
     }
 
     reloadCytoscape(active) {
@@ -67,6 +91,10 @@ export default class ngbCytoscapePathwayController {
             }
             this.$timeout(() => {
                 const sbgnStyle = sbgnStylesheet(Cytoscape);
+                defaultNodeStyle = {
+                    ...this.settings.style.node,
+                    ...this.getNodeStyle(sbgnStyle)
+                };
                 const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
                 const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
                 let elements;
@@ -209,5 +237,51 @@ export default class ngbCytoscapePathwayController {
             }
         });
         return nodes;
+    }
+
+    searchNode(term, onSatisfy, onDeny) {
+        if (!this.viewer) {
+            return;
+        }
+        const roots = this.viewer.nodes().roots();
+        this.viewer.nodes().dfs({
+            root: roots,
+            visit: node => {
+                if (this.deepSearch(node.data(), term)) {
+                    onSatisfy(node);
+                } else {
+                    onDeny(node);
+                }
+            }
+        });
+    }
+
+    deepSearch(obj, term) {
+        let result = false;
+        for (const key in obj) {
+            if (!obj.hasOwnProperty(key) || !obj[key]) continue;
+            if (obj[key] instanceof Object || obj[key] instanceof Array) {
+                result = this.deepSearch(obj[key], term);
+            } else {
+                result = obj[key].toString().toLocaleLowerCase()
+                    .includes(term.toLocaleLowerCase());
+            }
+            if (result) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    getNodeStyle(style) {
+        const result = {};
+        Object.keys(style).forEach(key => {
+            if (style[key].selector === 'node') {
+                Object.keys(style[key].properties).forEach(propKey => {
+                    result[style[key].properties[propKey].name] = style[key].properties[propKey].value;
+                });
+            }
+        });
+        return result;
     }
 }

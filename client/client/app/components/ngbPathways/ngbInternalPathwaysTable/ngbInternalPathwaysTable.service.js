@@ -67,7 +67,8 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
             },
-            sortInfos: this.orderBy
+            sortInfos: this.orderBy,
+            term: currentSearch
         };
         const data = await this.genomeDataService.getInternalPathwaysLoad(filter);
         if (data.error) {

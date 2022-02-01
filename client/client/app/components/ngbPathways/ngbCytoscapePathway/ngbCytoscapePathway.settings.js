@@ -1,6 +1,15 @@
 export default {
     viewer: {},
-    style: {},
+    style: {
+        node: {
+            'text-opacity': 1,
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'shape': 'rectangle',
+            'color': '#000',
+            'border-width': 1
+        }
+    },
     defaultLayout: {
         name: 'dagre',
         rankDir: 'TB'

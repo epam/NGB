@@ -2,7 +2,10 @@ import baseController from '../../../shared/baseController';
 
 export default class ngbInternalPathwaysResultController extends baseController {
     selectedTree = null;
-    selectedTreeName = null;
+    treeSearchParams = {
+        search: null
+    };
+    treeSearch = null;
     loading = true;
     treeError = false;
 
@@ -59,6 +62,12 @@ export default class ngbInternalPathwaysResultController extends baseController 
         }
         this.loading = false;
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    searchInTree() {
+        this.treeSearchParams = {
+            search: this.treeSearch
+        };
     }
 
     activePanelChanged(o) {

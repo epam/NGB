@@ -16,6 +16,25 @@
         <span class="blast-search-result-title">{{$ctrl.selectedTree.name}}</span>
     </div>
     <div class="u-height__full tree-container" flex layout="column">
+        <div class="pathway-search-panel">
+            <div class="md-content">
+                <div class="pathway-search-panel-body" layout="column">
+                    <div class="pathway-search-panel-row">
+                        <form layout="row" ng-submit="$ctrl.searchInTree()">
+                            <md-input-container class="pathway-tree-search-input" flex>
+                                <input id="pathwayTreeSearchKeyword" name="pathway_tree_search_keyword"
+                                       ng-model="$ctrl.treeSearch" type="text">
+                            </md-input-container>
+                            <md-button aria-label="search node"
+                                       class="md-raised pathway-tree-search-button"
+                                       ng-click="$ctrl.searchInTree()">
+                                <ng-md-icon icon="search"></ng-md-icon>
+                            </md-button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
         <md-content flex layout="column">
             <div class="md-padding ngb-pathway-cytoscape-container">
                 <div class="internal-pathway-container-error" ng-if="$ctrl.treeError">
@@ -26,6 +45,7 @@
                         ng-if="!$ctrl.treeError"
                         storage-name="{{$ctrl.ngbInternalPathwaysResultService.localStorageKey}}"
                         tag="ngb-internal-pathway-node"
+                        search-params="$ctrl.treeSearchParams"
                 ></ngb-cytoscape-pathway>
             </div>
         </md-content>
