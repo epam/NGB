@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 EPAM Systems
+ * Copyright (c) 2016 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.pathway;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.exception;
 
-@Getter
-@Setter
-@Builder
-public class SbgnElement {
-    private Long pathwayId;
-    private SbgnElementType type;
-    private String clazz;
-    private String entryId;
-    private String label;
+/**
+ * <p>
+ * This exception is thrown on errors in Bed files parsing
+ * </p>
+ */
+public class SbgnFileParsingException extends RuntimeException {
+
+    public SbgnFileParsingException(String s) {
+        super(s);
+    }
+
+    public SbgnFileParsingException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -278,6 +278,6 @@
     <list_pathway>
         <name>list_pathway</name>
         <type>GET</type>
-        <url>/restapi/pathways</url>
+        <url>/restapi/pathway/all</url>
     </list_pathway>
 </config>

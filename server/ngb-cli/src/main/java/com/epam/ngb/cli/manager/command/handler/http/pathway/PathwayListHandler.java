@@ -26,7 +26,6 @@ package com.epam.ngb.cli.manager.command.handler.http.pathway;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.Page;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.pathway.Pathway;
 import com.epam.ngb.cli.exception.ApplicationException;
@@ -64,13 +63,13 @@ public class PathwayListHandler extends AbstractHTTPCommandHandler {
     @Override public int runCommand() {
         final HttpRequestBase request = getRequest(getRequestUrl());
         final String result = RequestManager.executeRequest(request);
-        final ResponseResult<Page<Pathway>> responseResult;
+        final ResponseResult<List<Pathway>> responseResult;
         try {
             responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(
                             ResponseResult.class, ResponseResult.class,
                             getMapper().getTypeFactory()
-                                    .constructParametrizedType(Page.class, Page.class, Pathway.class)));
+                                    .constructParametrizedType(List.class, List.class, Pathway.class)));
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -78,10 +77,10 @@ public class PathwayListHandler extends AbstractHTTPCommandHandler {
             throw new ApplicationException(responseResult.getMessage());
         }
         if (responseResult.getPayload() == null ||
-                responseResult.getPayload().getItems().isEmpty()) {
+                responseResult.getPayload().isEmpty()) {
             log.info("No metabolic pathways registered on the server.");
         } else {
-            List<Pathway> pathways = responseResult.getPayload().getItems();
+            List<Pathway> pathways = responseResult.getPayload();
             AbstractResultPrinter printer = AbstractResultPrinter
                     .getPrinter(printTable, pathways.get(0).getFormatString(pathways));
             printer.printHeader(pathways.get(0));
