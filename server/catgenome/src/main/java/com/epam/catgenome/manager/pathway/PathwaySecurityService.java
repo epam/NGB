@@ -32,7 +32,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
 
@@ -60,8 +59,7 @@ public class PathwaySecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
-    public Pathway createPathway(final PathwayRegistrationRequest request)
-            throws IOException, JAXBException {
+    public Pathway createPathway(final PathwayRegistrationRequest request) throws IOException {
         return pathwayManager.createPathway(request);
     }
 

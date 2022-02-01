@@ -30,6 +30,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.Pathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
+import com.epam.catgenome.exception.SbgnFileParsingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
@@ -106,17 +107,21 @@ public class PathwayManager {
     private int pathwayTopHits;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Pathway createPathway(final PathwayRegistrationRequest request)
-            throws IOException, JAXBException {
+    public Pathway createPathway(final PathwayRegistrationRequest request) throws IOException {
         final String path = request.getPath();
         final File pathwayFile = getFile(path);
         Assert.isTrue(Utils.getFileExtension(request.getPath()).equals("." + SBGN),
                 getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, "pathway", SBGN));
         final Pathway pathway = getPathway(request);
+        pathway.setPathwayId(pathwayDao.createPathwayId());
+        try {
+            writeLucenePathwayIndex(pathway, readPathway(pathwayFile));
+        } catch (JAXBException e) {
+            throw new SbgnFileParsingException(getMessage(MessagesConstants.ERROR_FILE_PARSING, SBGN), e);
+        }
         biologicalDataItemManager.createBiologicalDataItem(pathway);
         pathway.setBioDataItemId(pathway.getId());
         pathwayDao.savePathway(pathway);
-        writeLucenePathwayIndex(pathway, readPathway(pathwayFile));
         return pathway;
     }
 
@@ -139,8 +144,7 @@ public class PathwayManager {
         return FileUtils.readFileToByteArray(pathwayFile);
     }
 
-    public Page<Pathway> loadPathways(final PathwayQueryParams params)
-            throws IOException, ParseException {
+    public Page<Pathway> loadPathways(final PathwayQueryParams params) throws IOException, ParseException {
         final Page<Pathway> page = new Page<>();
         final List<Pathway> items = new ArrayList<>();
         int totalCount = 0;
@@ -193,8 +197,7 @@ public class PathwayManager {
                 new Sort(new SortField(sortInfo.getField(), SortField.Type.STRING, !sortInfo.isAscending()));
     }
 
-    private void writeLucenePathwayIndex(final Pathway pathway, final String content)
-            throws IOException {
+    private void writeLucenePathwayIndex(final Pathway pathway, final String content) throws IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
              IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
@@ -235,11 +238,11 @@ public class PathwayManager {
 
         doc.add(new SortedDocValuesField(PathwayIndexFields.NAME.getFieldName(), new BytesRef(pathway.getName())));
         doc.add(new StoredField(PathwayIndexFields.NAME.getFieldName(), pathway.getName()));
-        doc.add(new StringField(PathwayIndexFields.NAME.getFieldName(),
+        doc.add(new TextField(PathwayIndexFields.NAME.getFieldName(),
                 pathway.getName(), Field.Store.YES));
 
         if (!TextUtils.isBlank(pathway.getPrettyName())) {
-            doc.add(new StringField(PathwayIndexFields.PRETTY_NAME.getFieldName(),
+            doc.add(new TextField(PathwayIndexFields.PRETTY_NAME.getFieldName(),
                     pathway.getPrettyName(), Field.Store.YES));
         }
 
@@ -282,7 +285,7 @@ public class PathwayManager {
                 BooleanClause.Occur.SHOULD);
         builder.add(buildQuery(PathwayIndexFields.PRETTY_NAME.getFieldName(), term, analyzer),
                 BooleanClause.Occur.SHOULD);
-        builder.add(buildPhraseQuery(PathwayIndexFields.DESCRIPTION.getFieldName(), term, analyzer),
+        builder.add(buildQuery(PathwayIndexFields.DESCRIPTION.getFieldName(), term, analyzer),
                 BooleanClause.Occur.SHOULD);
         builder.add(buildPhraseQuery(PathwayIndexFields.CONTENT.getFieldName(), term, analyzer),
                 BooleanClause.Occur.SHOULD);

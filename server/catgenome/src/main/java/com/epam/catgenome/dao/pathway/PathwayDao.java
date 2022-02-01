@@ -65,7 +65,6 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void savePathway(final Pathway pathway) {
-        pathway.setPathwayId(daoHelper.createId(pathwaySequenceName));
         final MapSqlParameterSource params = PathwayParameters.getParameters(pathway);
         getNamedParameterJdbcTemplate().update(insertPathwayQuery, params);
     }
@@ -76,6 +75,11 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deletePathway(final Long pathwayId) {
         getJdbcTemplate().update(deletePathwayQuery, pathwayId);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Long createPathwayId() {
+        return daoHelper.createId(pathwaySequenceName);
     }
 
     /**

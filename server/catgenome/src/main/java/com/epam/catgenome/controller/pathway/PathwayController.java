@@ -47,7 +47,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
 
@@ -120,8 +119,7 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Pathway> createPathway(@RequestBody final PathwayRegistrationRequest request)
-            throws IOException, JAXBException {
+    public Result<Pathway> createPathway(@RequestBody final PathwayRegistrationRequest request) throws IOException {
         return Result.success(pathwaySecurityService.createPathway(request));
     }
 
