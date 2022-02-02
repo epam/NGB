@@ -301,6 +301,11 @@ public final class MessagesConstants {
     //Attributes
     public static final String ERROR_ATTRIBUTE_INVALID_VALUE = "error.attribute.invalid.value";
 
+    //MOTIF SEARCH
+    public static final String ERROR_POSITION_OUT_OF_RANGE = "error.position.out.of.range";
+    public static final String ERROR_REFERENCE_SEQUENCE_READING = "error.reference.sequence.reading";
+    public static final String ERROR_WRONG_CHROMOSOME_ID = "error.wrong.chromosome.id";
+
     private MessagesConstants() {
         // No-op
     }

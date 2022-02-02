@@ -56,6 +56,7 @@ import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.exception.VcfReadingException;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.IOHelper;
@@ -153,7 +154,7 @@ public class VcfManager {
     private GeneTrackManager geneTrackManager;
 
     @Autowired
-    private FeatureIndexDao featureIndexDao;
+    private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
@@ -633,7 +634,7 @@ public class VcfManager {
 
         BigVcfFeatureIndexBuilder indexer = null;
         if (doIndex) {
-            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao, file,
+            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexManager, file,
                             fileManager, geneFiles, indexBufferSize);
         }
 

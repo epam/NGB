@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021-2022 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,48 +25,27 @@
 package com.epam.catgenome.entity.reference.motif;
 
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Value;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 @Value
 @Builder(toBuilder = true)
-public class MotifSearchRequest {
-
-    MotifSearchType searchType;
-    String motif;
-    Long referenceId;
+public class Region {
     Long chromosomeId;
-    Integer startPosition;
-    Integer endPosition;
+    Integer start;
+    Integer end;
     StrandSerializable strand;
-    Integer pageSize;
-    Boolean includeSequence;
-    Integer slidingWindow;
-    MotifFilter filter;
 
-    @JsonIgnore
-    public StrandSerializable getStrandFilter() {
-        return Optional.ofNullable(filter)
-                .map(MotifFilter::getStrand)
-                .orElse(strand);
+    public boolean overlap(final Region other) {
+        if (!this.chromosomeId.equals(other.chromosomeId)) {
+            return false;
+        }
+        return Math.max(this.start, other.start) <= Math.min(this.end, other.end);
     }
 
-    @JsonIgnore
-    public List<Long> getChromosomeFilter() {
-        return Optional.ofNullable(filter)
-                .map(MotifFilter::getChromosomeIds)
-                .orElse(Collections.emptyList());
-    }
-
-    @JsonIgnore
-    public List<String> getGeneFilter() {
-        return Optional.ofNullable(filter)
-                .map(MotifFilter::getGeneNames)
-                .orElse(Collections.emptyList());
+    public Region merge(final Region next) {
+        return this.toBuilder()
+                .end(Math.max(this.end, next.end))
+                .build();
     }
 }
