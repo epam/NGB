@@ -1,4 +1,5 @@
 import {extractTextPlugin} from './webpack.plugins';
+
 const DEV = global.buildOptions.dev;
 
 const wrapStyleLoader = loader => DEV

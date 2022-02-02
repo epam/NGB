@@ -119,4 +119,20 @@ export default class NgbGenesTableContextMenuController extends BaseController {
         this.dispatcher.emitSimpleEvent('read:show:homologs', data);
         event.stopImmediatePropagation();
     }
+
+    pathwaysSearch() {
+        this.close();
+        const layoutChange = this.appLayout.Panels.pathways;
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        const readInfo = {
+            search: this.entity[`${this.ngbGenesTableService.defaultPrefix}featureName`]
+        };
+        const data = {
+            ...readInfo,
+            source: 'gene'
+        };
+        this.dispatcher.emitSimpleEvent('read:show:pathways', data);
+        event.stopImmediatePropagation();
+    }
 }

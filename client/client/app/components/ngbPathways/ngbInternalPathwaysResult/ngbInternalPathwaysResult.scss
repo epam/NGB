@@ -1,0 +1,84 @@
+.ngb-pathway-cytoscape-container {
+  flex: 1;
+  position: relative;
+}
+
+.internal-pathway-container-error {
+  margin: 10px;
+  color: #999;
+}
+
+.internal-pathway-container {
+  margin: 2px 0;
+  height: calc(100% - 4px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.tree-list-divider {
+  height: 2px;
+
+  & div {
+    width: 100%;
+
+    md-divider {
+      border-top-color: #000;
+    }
+  }
+}
+
+.tree-container {
+  position: relative;
+
+  .pathway-search-panel {
+    width: 50%;
+    max-width: 300px;
+    position: absolute;
+    top: 0;
+    right: 15px;
+    z-index: 1;
+
+    .md-content {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      background: #FFFFFF;
+      color: #333333;
+      font-size: 13px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      padding: 10px;
+      box-shadow: 2px 2px 8px 2px #aaa;
+
+      .pathway-search-panel-body {
+        display: table;
+        padding-right: 16px;
+
+        .pathway-search-panel-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          border-spacing: 5px;
+          word-break: break-all;
+          padding: 5px 0;
+        }
+
+        .pathway-tree-search-input {
+          font-size: 14px;
+          margin: 5px 0 10px 6px;
+        }
+
+        .pathway-tree-search-input .md-errors-spacer {
+          min-height: 0;
+        }
+
+        .pathway-tree-search-button {
+          line-height: 32px;
+          min-height: 32px;
+          height: 32px;
+        }
+      }
+    }
+  }
+}

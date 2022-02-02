@@ -12,6 +12,7 @@ import ngbHomologsPanel from './ngbHomologsPanel';
 import ngbLogModule from './ngbLog';
 import ngbMolecularViewer from './ngbMolecularViewer';
 import ngbOrganizeTracks from './ngbOrganizeTracks';
+import ngbPathways from './ngbPathways';
 import ngbProjectInfoPanel from './ngbProjectInfoPanel';
 import ngbSashimiPlot from './ngbSashimiPlot';
 import ngbStrainLineage from './ngbStrainLineage';
@@ -40,5 +41,6 @@ export default angular.module('NGB_Panels', [
     ngbGenesTablePanel,
     ngbHomologsPanel,
     ngbHeatmapPanel,
-    ngbStrainLineage
+    ngbStrainLineage,
+    ngbPathways
 ]).name;

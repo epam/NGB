@@ -30,5 +30,15 @@
                 </span>
             </md-button>
         </md-menu-item>
+        <md-menu-item>
+            <md-button ng-click="ctrl.isGene && ctrl.pathwaysSearch($event)"
+                       ng-disabled="!ctrl.isGene">
+                <span>Show pathways</span>
+                <span class="ngb-context-menu-warning" ng-if="!ctrl.isGene">
+                    <ng-md-icon class="ngb-context-menu-warning-icon" icon="warning" size="15"></ng-md-icon>
+                    Feature type is not Gene or Name is missing
+                </span>
+            </md-button>
+        </md-menu-item>
     </md-menu-content>
 </div>

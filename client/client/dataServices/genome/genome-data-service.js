@@ -193,9 +193,6 @@ export class GenomeDataService extends DataService {
         });
     }
 
-    _orthoPara = [];
-    _orthoParaResult = [];
-
     getHomologeneLoad(filter) {
         return new Promise((resolve, reject) => {
             this.post('homologene/search', filter)
@@ -210,6 +207,22 @@ export class GenomeDataService extends DataService {
         });
     }
 
+    _internalPathways = {
+        items: [
+            {
+                name: 'activated_stat1alpha_induction_of_the_irf1_gene',
+                description: 'desc1',
+                xml: 'activated_stat1alpha_induction_of_the_irf1_gene'
+            },
+            {
+                name: 'Glycolysis',
+                description: 'desc2',
+                xml: 'Glycolysis'
+            },
+        ],
+        totalCount: 2
+    };
+
     getOrthoParaLoad(filter) {
         return new Promise((resolve, reject) => {
             this.post('homolog/search', filter)
@@ -218,6 +231,35 @@ export class GenomeDataService extends DataService {
                         resolve(data);
                     } else {
                         reject(new Error('No orthologs or paralogs received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
+    getInternalPathwaysLoad(filter) {
+        // return this._internalPathways;
+        return new Promise((resolve, reject) => {
+            this.post('pathways', filter)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No pathways received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
+    loadPathwayFileById(id) {
+        return new Promise((resolve, reject) => {
+            this.getRawFile('get', `pathway/content/${id}`, null, {customResponseType: 'text'})
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No pathway info received'));
                     }
                 })
                 .catch(reject);
