@@ -56,14 +56,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -119,9 +112,15 @@ public class PathwayManager {
         } catch (JAXBException e) {
             throw new SbgnFileParsingException(getMessage(MessagesConstants.ERROR_FILE_PARSING, SBGN), e);
         }
-        biologicalDataItemManager.createBiologicalDataItem(pathway);
-        pathway.setBioDataItemId(pathway.getId());
-        pathwayDao.savePathway(pathway);
+        try {
+            biologicalDataItemManager.createBiologicalDataItem(pathway);
+            pathway.setBioDataItemId(pathway.getId());
+            pathwayDao.savePathway(pathway);
+        } finally {
+            if (pathway.getBioDataItemId() == null) {
+                deleteDocument(pathway.getPathwayId());
+            }
+        }
         return pathway;
     }
 
@@ -287,7 +286,7 @@ public class PathwayManager {
                 BooleanClause.Occur.SHOULD);
         builder.add(buildQuery(PathwayIndexFields.DESCRIPTION.getFieldName(), term, analyzer),
                 BooleanClause.Occur.SHOULD);
-        builder.add(buildPhraseQuery(PathwayIndexFields.CONTENT.getFieldName(), term, analyzer),
+        builder.add(buildQuery(PathwayIndexFields.CONTENT.getFieldName(), term, analyzer),
                 BooleanClause.Occur.SHOULD);
         return builder.build();
     }
@@ -295,11 +294,6 @@ public class PathwayManager {
     private Query buildQuery(final String fieldName, final String fieldValue, final StandardAnalyzer analyzer)
             throws ParseException {
         return new QueryParser(fieldName, analyzer).parse(fieldValue);
-    }
-
-    private Query buildPhraseQuery(final String fieldName, final String fieldValue, final StandardAnalyzer analyzer) {
-        final QueryParser parser = new QueryParser(fieldName, analyzer);
-        return parser.createPhraseQuery(fieldName, fieldValue);
     }
 
     @NotNull
