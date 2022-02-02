@@ -60,17 +60,6 @@ const imagesLoader = {
     loader: 'url-loader?name=[name].[ext]'
 };
 
-const xmlLoader = {
-    // ASSET LOADER
-    // Reference: https://github.com/webpack/file-loader
-    // Copy png, jpg, jpeg, gif, svg, woff, woff2, ttf, eot files to output
-    // Rename the file using the asset hash
-    // Pass along the updated reference to your code
-    // You can add here any file extension you want to get copied to your output
-    test: /\.xml$/i,
-    loader: 'raw-loader',
-};
-
 const sassLoader = {
     // Sass Loader
     test: /\.scss$/,
@@ -94,7 +83,6 @@ export default [
     commonStyleLoader,
     HTMLLoader,
     imagesLoader,
-    xmlLoader,
     sassLoader,
     {test: /\.woff$/, loader: 'url?limit=65000&mimetype=application/font-woff&name=[name].[ext]'},
     {test: /\.woff2$/, loader: 'url?limit=65000&mimetype=application/font-woff2&name=[name].[ext]'},

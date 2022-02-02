@@ -85,7 +85,7 @@
     "postcss-loader": "^0.7.0",
     "postcss-normalize": "0.2.0",
     "pug-loader": "^1.0.2",
-    "raw-loader": "^0.5.1",
+    "raw-loader": "0.5.1",
     "sass-lint": "1.13.1",
     "sass-loader": "7.3.1",
     "style-loader": "^0.13.0",
