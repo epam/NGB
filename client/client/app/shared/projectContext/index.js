@@ -518,7 +518,7 @@ export default class projectContext {
     }
 
     setTrackState(track) {
-        if (track.duplicateId) {
+        if (track.duplicateId || track.format === 'MOTIFS') {
             return;
         }
         const name = track.name
@@ -1424,6 +1424,12 @@ export default class projectContext {
                 .filter(track => track.format !== 'BLAST');
             this._tracks = (this.tracks || [])
                 .filter(track => track.format !== 'BLAST');
+        }
+        if (referenceDidChange) {
+            this.tracksState = (this.tracksState || [])
+                .filter(track => track.format !== 'MOTIFS');
+            this._tracks = (this.tracks || [])
+                .filter(track => track.format !== 'MOTIFS');
         }
         let positionDidChange = false;
         let viewportDidChange = false;

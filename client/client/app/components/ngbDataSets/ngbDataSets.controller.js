@@ -21,7 +21,8 @@ export default class ngbDataSetsController extends baseController {
         ngbDataSetsService,
         projectContext,
         trackNamingService,
-        localDataService
+        localDataService,
+        appLayout
     ) {
         super();
         Object.assign(this, {
@@ -33,7 +34,8 @@ export default class ngbDataSetsController extends baseController {
             localDataService,
             projectContext,
             service: ngbDataSetsService,
-            trackNamingService
+            trackNamingService,
+            appLayout
         });
         $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
         this.initEvents();

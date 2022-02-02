@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017-2022 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.util;
 
 import java.io.BufferedInputStream;
@@ -8,19 +32,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.gene.Gene;
+import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.bam.BamHelper;
+import com.epam.catgenome.manager.gene.GeneUtils;
 import htsjdk.samtools.Defaults;
+import htsjdk.samtools.util.AbstractIterator;
+import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.samtools.util.BlockCompressedStreamConstants;
+import htsjdk.samtools.util.CloserUtil;
+import htsjdk.samtools.util.Interval;
+import htsjdk.samtools.util.LocationAware;
+import htsjdk.samtools.util.RuntimeIOException;
+import htsjdk.samtools.util.Tuple;
 import htsjdk.tribble.index.interval.IntervalIndexCreator;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import htsjdk.tribble.util.TabixUtils;
@@ -28,13 +67,6 @@ import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
-import htsjdk.samtools.util.AbstractIterator;
-import htsjdk.samtools.util.BlockCompressedInputStream;
-import htsjdk.samtools.util.BlockCompressedStreamConstants;
-import htsjdk.samtools.util.CloserUtil;
-import htsjdk.samtools.util.LocationAware;
-import htsjdk.samtools.util.RuntimeIOException;
-import htsjdk.samtools.util.Tuple;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
@@ -476,6 +508,41 @@ public final class IndexUtils {
         } catch (final Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    /**
+     * Fetch gene IDs of genes, affected by variation. The variation is specified by it's start and end indexes
+     *
+     * @param intervalMap represents a batch loaded genes form gene file
+     * @param start       a start index of the variation
+     * @param end         an end index of the variation
+     * @param chromosome  a {@code Chromosome}
+     * @return a {@code Set} of IDs of genes, affected by the variation
+     */
+    public static Set<GeneInfo> fetchGeneIdsFromBatch(final NggbIntervalTreeMap<List<Gene>> intervalMap,
+                                                      final int start,
+                                                      final int end,
+                                                      final Chromosome chromosome) {
+        final Set<GeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
+        if (end > start) {
+            geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
+        }
+        return geneIds;
+    }
+
+    public static Set<GeneInfo> getGeneIds(final NggbIntervalTreeMap<List<Gene>> intervalMap,
+                                           final Chromosome chromosome,
+                                           final int start,
+                                           final int end) {
+        final Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end))
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        final boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
+        return genes.stream()
+                .filter(GeneUtils::isGene)
+                .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
+                .collect(Collectors.toSet());
     }
 
     private static InputStream indexFileInputStream(final InputStream indexStream, String extension)

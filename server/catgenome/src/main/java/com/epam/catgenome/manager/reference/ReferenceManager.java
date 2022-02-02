@@ -409,11 +409,16 @@ public class ReferenceManager {
     public byte[] getSequenceByteArray(final int startIndex, final int endIndex,
             final Long referenceId, final String chromosomeName) throws IOException {
         final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
+        return getSequenceByteArray(startIndex, endIndex, reference, chromosomeName);
+    }
+
+    public byte[] getSequenceByteArray(final int startIndex, final int endIndex,
+                                       final Reference reference, final String chromosomeName) throws IOException {
         if (isNibReference(reference.getPath())) {
             try (BlockCompressedDataInputStream strm = fileManager
-                    .makeRefInputStream(referenceId, chromosomeName);
-                    DataInputStream indexStrm = fileManager
-                            .makeRefIndexInputStream(referenceId, chromosomeName)) {
+                    .makeRefInputStream(reference.getId(), chromosomeName);
+                 DataInputStream indexStrm = fileManager
+                         .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
                 return nibDataReader
                         .getByteNucleotidesFromNibFile(startIndex, endIndex, strm, indexStrm);
             }
@@ -423,7 +428,6 @@ public class ReferenceManager {
             return ref.getSequence(chromosomeName, startIndex, endIndex);
         }
     }
-
 
     protected Track<Sequence> getNucleotidesTrackFromNib(Track<Sequence> track)
             throws IOException, Ga4ghResourceUnavailableException {

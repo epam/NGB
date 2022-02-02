@@ -13,6 +13,7 @@ import {RulerTrack as Ruler} from './ruler';
 import {SEGTrack as SEG} from './seg';
 import {VCFTrack as VCF} from './vcf';
 import {WIGTrack as WIG} from './wig';
+import {MOTIFSTrack as MOTIFS} from './motifs';
 
 export default {
     BAM,
@@ -27,5 +28,6 @@ export default {
     VCF,
     MultiSampleVCF,
     WIG,
-    HEATMAP
+    HEATMAP,
+    MOTIFS
 };

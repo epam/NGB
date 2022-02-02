@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,9 +65,11 @@ import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.samtools.util.Interval;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
@@ -617,7 +619,7 @@ public class FeatureIndexManager {
             String currentKey = null;
             VariantContext variantContext = null;
             BigVcfFeatureIndexBuilder indexer =
-                    new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao,
+                    new BigVcfFeatureIndexBuilder(info, vcfHeader, this,
                             vcfFile, fileManager, geneFiles, indexBufferSize);
 
             while (iterator.hasNext()) {
@@ -653,9 +655,9 @@ public class FeatureIndexManager {
      * @param full
      * @throws IOException if an error occurred while writing index
      */
-    public void processGeneFile(GeneFile geneFile, final Map<String, Chromosome> chromosomeMap,
-            boolean full) throws IOException {
-        List<FeatureIndexEntry> allEntries = new ArrayList<>();
+    public void processGeneFile(final GeneFile geneFile, final Map<String, Chromosome> chromosomeMap,
+                                final boolean full) throws IOException {
+        final List<FeatureIndexEntry> allEntries = new ArrayList<>();
 
         LOGGER.info("Writing feature index for file {}:{}", geneFile.getId(), geneFile.getName());
 
@@ -672,6 +674,64 @@ public class FeatureIndexManager {
             }
         } else {
             addFeaturesFromUsualGeneFileToIndex(geneFile, chromosomeMap, allEntries);
+        }
+    }
+
+    public NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(final List<GeneFile> geneFiles, final int start,
+                                                                final int end, final Chromosome chromosome) {
+        final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
+        try {
+            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeaturesInInterval(geneFiles,
+                    start, end, chromosome);
+            searchResult.getEntries().stream()
+                    .filter(f -> f.getFeatureType() == FeatureType.EXON || f.getFeatureType() == FeatureType.GENE)
+                    .map(f -> {
+                        Gene gene = new Gene();
+                        gene.setFeature(f.getFeatureType().name());
+                        gene.setStartIndex(f.getStartIndex());
+                        gene.setEndIndex(f.getEndIndex());
+                        gene.setGroupId(f.getFeatureId());
+                        gene.setFeatureName(f.getFeatureName().toUpperCase());
+                        return gene;
+                    })
+                    .forEach(g -> {
+                        Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
+                        genesRangeMap.putIfAbsent(interval, new ArrayList<>());
+                        genesRangeMap.get(interval).add(g);
+                    });
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        genesRangeMap.setMaxEndIndex(start);
+        genesRangeMap.setMinStartIndex(end);
+        return genesRangeMap;
+    }
+
+    public void addGeneFeatureToIndex(final List<FeatureIndexEntry> allEntries, final GeneFeature feature,
+                                      final Map<String, Chromosome> chromosomeMap) {
+        if (chromosomeMap.containsKey(feature.getContig())
+                || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
+            GeneIndexEntry masterEntry = new GeneIndexEntry();
+            masterEntry.setFeatureId(feature.getFeatureId());
+            masterEntry.setUuid(UUID.randomUUID());
+            masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
+                    chromosomeMap.get(feature.getContig()) :
+                    chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));
+            masterEntry.setStartIndex(feature.getStart());
+            masterEntry.setEndIndex(feature.getEnd());
+            masterEntry.setFeatureType(GeneUtils.fetchType(feature));
+            masterEntry.setFeature(feature.getFeature());
+
+            masterEntry.setSource(feature.getSource());
+            masterEntry.setScore(feature.getScore());
+            masterEntry.setFrame(feature.getFrame());
+            Optional.ofNullable(feature.getStrand()).ifPresent(strand -> masterEntry.setStrand(strand.toValue()));
+            masterEntry.setAttributes(feature.getAttributes());
+
+            allEntries.add(masterEntry);
+
+            String featureName = feature.getFeatureName();
+            masterEntry.setFeatureName(featureName);
         }
     }
 
@@ -703,8 +763,9 @@ public class FeatureIndexManager {
         return referenceGenomeManager.load(referenceId).getGeneFile();
     }
 
-    private void addFeaturesFromUsualGeneFileToIndex(GeneFile geneFile, Map<String, Chromosome> chromosomeMap,
-                                                     List<FeatureIndexEntry> allEntries) throws IOException {
+    private void addFeaturesFromUsualGeneFileToIndex(final GeneFile geneFile,
+                                                     final Map<String, Chromosome> chromosomeMap,
+                                                     final List<FeatureIndexEntry> allEntries) throws IOException {
         try (AbstractFeatureReader<GeneFeature, LineIterator> usualReader = fileManager.makeGeneReader(
                 geneFile, GeneFileType.ORIGINAL)) {
             CloseableIterator<GeneFeature> iterator = usualReader.iterator();
@@ -729,9 +790,11 @@ public class FeatureIndexManager {
         }
     }
 
-    private void addFeaturesFromIteratorToIndex(CloseableIterator<GeneFeature> iterator, Map<String, Chromosome>
-            chromosomeMap, GeneFile geneFile, List<FeatureIndexEntry> allEntries,
-                                                boolean transcriptIterator) throws IOException {
+    private void addFeaturesFromIteratorToIndex(final CloseableIterator<GeneFeature> iterator,
+                                                final Map<String, Chromosome> chromosomeMap,
+                                                final GeneFile geneFile,
+                                                final List<FeatureIndexEntry> allEntries,
+                                                final boolean transcriptIterator) throws IOException {
         GeneFeature feature = null;
         String currentKey = null;
 
@@ -752,51 +815,20 @@ public class FeatureIndexManager {
         }
     }
 
-    private String checkNextChromosome(Feature feature, String currentChromosomeName,
-                                       Map<String, Chromosome> chromosomeMap, List<FeatureIndexEntry> allEntries,
-                                       GeneFile geneFile) throws IOException {
+    private String checkNextChromosome(final Feature feature, final String currentChromosomeName,
+                                       final Map<String, Chromosome> chromosomeMap,
+                                       final List<FeatureIndexEntry> allEntries,
+                                       final GeneFile geneFile) throws IOException {
         if (!feature.getContig().equals(currentChromosomeName)) {
             if (currentChromosomeName != null && (chromosomeMap.containsKey(currentChromosomeName) ||
                                       chromosomeMap.containsKey(Utils.changeChromosomeName(currentChromosomeName)))) {
-
                 featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries, null);
                 LOGGER.info(MessageHelper.getMessage(
                     MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosomeName));
                 allEntries.clear();
             }
-
             return feature.getContig();
         }
-
         return currentChromosomeName;
-    }
-
-
-    public void addGeneFeatureToIndex(List<FeatureIndexEntry> allEntries, GeneFeature feature,
-                                     Map<String, Chromosome> chromosomeMap) {
-        if (chromosomeMap.containsKey(feature.getContig())
-                || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
-            GeneIndexEntry masterEntry = new GeneIndexEntry();
-            masterEntry.setFeatureId(feature.getFeatureId());
-            masterEntry.setUuid(UUID.randomUUID());
-            masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
-                    chromosomeMap.get(feature.getContig()) :
-                    chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));
-            masterEntry.setStartIndex(feature.getStart());
-            masterEntry.setEndIndex(feature.getEnd());
-            masterEntry.setFeatureType(GeneUtils.fetchType(feature));
-            masterEntry.setFeature(feature.getFeature());
-
-            masterEntry.setSource(feature.getSource());
-            masterEntry.setScore(feature.getScore());
-            masterEntry.setFrame(feature.getFrame());
-            Optional.ofNullable(feature.getStrand()).ifPresent(strand -> masterEntry.setStrand(strand.toValue()));
-            masterEntry.setAttributes(feature.getAttributes());
-
-            allEntries.add(masterEntry);
-
-            String featureName = feature.getFeatureName();
-            masterEntry.setFeatureName(featureName);
-        }
     }
 }

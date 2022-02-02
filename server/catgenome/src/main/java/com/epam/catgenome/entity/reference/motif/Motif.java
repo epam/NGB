@@ -25,17 +25,29 @@
 package com.epam.catgenome.entity.reference.motif;
 
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
-import lombok.Builder;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
-@Builder
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Motif {
+    private String contig;
+    private int start;
+    private int end;
+    private StrandSerializable strand;
+    private String sequence;
+    private List<String> geneIds;
+    private List<String> geneNames;
 
-    String contig;
-    int start;
-    int end;
-    StrandSerializable strand;
-    String value;
-
+    public Motif(String contig, int start, int end, StrandSerializable strand, String sequence) {
+        this.contig = contig;
+        this.start = start;
+        this.end = end;
+        this.strand = strand;
+        this.sequence = sequence;
+    }
 }

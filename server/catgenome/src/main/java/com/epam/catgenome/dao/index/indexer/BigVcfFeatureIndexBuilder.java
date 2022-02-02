@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -45,7 +44,9 @@ import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.Utils;
@@ -78,9 +79,11 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     private VcfFile vcfFile;
 
     public BigVcfFeatureIndexBuilder(final VcfFilterInfo filterInfo, final VCFHeader vcfHeader,
-            final FeatureIndexDao featureIndexDao, final VcfFile featureFile, final FileManager fileManager,
-            final List<GeneFile> geneFiles, final Integer indexBufferSize) throws IOException {
-        super(filterInfo, vcfHeader, featureIndexDao);
+                                     final FeatureIndexManager featureIndexManager,
+                                     final VcfFile featureFile, final FileManager fileManager,
+                                     final List<GeneFile> geneFiles, final Integer indexBufferSize)
+            throws IOException {
+        super(filterInfo, vcfHeader, featureIndexManager);
         this.analyzer = new StandardAnalyzer();
         final Directory index = fileManager.createIndexForFile(featureFile);
         this.writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
@@ -92,7 +95,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
     }
 
     @Override
-    protected List<VcfIndexEntry> simplify(final VcfIndexEntry indexEntry, final Set<VariationGeneInfo> geneIds,
+    protected List<VcfIndexEntry> simplify(final VcfIndexEntry indexEntry, final Set<GeneInfo> geneIds,
             final String geneIdsString, final String geneNamesString, final Set<VariationType> types) {
         indexEntry.setGeneIds(geneIdsString);
         indexEntry.setGeneNames(geneNamesString);
@@ -100,11 +103,11 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
         indexEntry.setVariationType(types.stream().findFirst().orElse(VariationType.UNK));
         indexEntry.setFailedFilters(indexEntry.getVariantContext().getFilters());
 
-        final List<String> geneIdList = new ArrayList<>(geneIds.size());
-        final List<String> geneNameList = new ArrayList<>(geneIds.size());
-        for (VariationGeneInfo i : geneIds) {
-            geneIdList.add(i.geneId);
-            geneNameList.add(i.geneName);
+        List<String> geneIdList = new ArrayList<>(geneIds.size());
+        List<String> geneNameList = new ArrayList<>(geneIds.size());
+        for (GeneInfo i : geneIds) {
+            geneIdList.add(i.getGeneId());
+            geneNameList.add(i.getGeneName());
         }
 
         indexEntry.setGeneIdList(geneIdList);

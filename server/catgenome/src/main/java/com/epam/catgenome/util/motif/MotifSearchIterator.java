@@ -22,11 +22,12 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.util;
+package com.epam.catgenome.util.motif;
 
 import com.epam.catgenome.entity.reference.motif.Motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Value;
+import org.springframework.util.Assert;
 
 import java.util.Deque;
 import java.util.Iterator;
@@ -46,49 +47,56 @@ public class MotifSearchIterator implements Iterator<Motif> {
     private static final byte LOWERCASE_T = 't';
     private static final byte LOWERCASE_N = 'n';
 
-    private final Deque<Match> positiveMatches = new LinkedList<>();
-    private final Deque<Match> negativeMatches = new LinkedList<>();
+
+    private final Deque<Match> positiveMatches;
+    private final Deque<Match> negativeMatches;
     private final String contig;
-    private final StrandSerializable strand;
     private final byte[] sequence;
-    private final String regex;
+    private final int offset;
+    private final boolean includeSequence;
+    private final int maxSizeResultLimit;
 
 
     public MotifSearchIterator(final byte[] seq, final String iupacRegex,
-                               final StrandSerializable strand, final String contig) {
+                               final StrandSerializable strand, final String contig,
+                               final int start, final boolean includeSequence, final int searchResultSizeLimit) {
         if (strand != null && strand != StrandSerializable.POSITIVE && strand != StrandSerializable.NEGATIVE) {
             throw new IllegalStateException("Not supported strand: " + strand);
         }
-        this.strand = strand;
         this.contig = contig;
         this.sequence = seq;
-        this.regex = MotifSearcher.convertIupacToRegex(iupacRegex);
-        init();
-    }
+        this.offset = start;
+        this.includeSequence = includeSequence;
+        maxSizeResultLimit = searchResultSizeLimit;
 
-    private void init() {
-        if(strand == null) {
-            populateMatches(new String(sequence), true);
-            populateMatches(reverseAndComplement(sequence), false);
+        final Pattern pattern =
+                Pattern.compile(IupacRegexConverter.convertIupacToRegex(iupacRegex), Pattern.CASE_INSENSITIVE);
+        if (strand == null) {
+            this.positiveMatches = populateMatches(pattern.matcher(new String(seq)), true);
+            this.negativeMatches = populateMatches(pattern.matcher(reverseAndComplement(seq)), false);
         } else if (strand == StrandSerializable.POSITIVE) {
-            populateMatches(new String(sequence), true);
+            this.positiveMatches = populateMatches(pattern.matcher(new String(seq)), true);
+            this.negativeMatches = new LinkedList<>();
         } else {
-            populateMatches(reverseAndComplement(sequence), false);
+            this.positiveMatches = new LinkedList<>();
+            this.negativeMatches = populateMatches(pattern.matcher(reverseAndComplement(seq)), false);
         }
     }
 
-    private void populateMatches(final String seq, final boolean positive) {
-        final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        final Matcher matcher = pattern.matcher(seq);
+    private Deque<Match> populateMatches(final Matcher matcher, final boolean positive) {
         int position = 0;
+        LinkedList<Match> matches = new LinkedList<>();
         while (matcher.find(position)) {
-            if (positive) {
-                positiveMatches.add(new Match(matcher.start(), matcher.end()));
-            } else {
-                negativeMatches.add(new Match(seq.length() - matcher.end(), seq.length() - matcher.start()));
-            }
+            matches.add(createMatch(matcher.start(), matcher.end(), positive));
             position = matcher.start() + 1;
+            Assert.isTrue(matches.size() <= maxSizeResultLimit,
+                    "Too many result, specify more concrete query. Configured max result size: " + maxSizeResultLimit);
         }
+        return matches;
+    }
+
+    private Match createMatch(final int start, final int end, final boolean positive) {
+        return positive ? new Match(start, end - 1) : new Match(sequence.length - end, sequence.length - start - 1);
     }
 
     @Override
@@ -110,17 +118,18 @@ public class MotifSearchIterator implements Iterator<Motif> {
             match = positiveMatches.removeFirst();
             currentStrand = StrandSerializable.POSITIVE;
         }
-        return getMotif(contig, match.start, match.end, currentStrand);
+        if (includeSequence) {
+            return getMotif(contig, match.start, match.end, currentStrand);
+        }
+        return new Motif(contig, match.start + offset, match.end + offset, currentStrand, null);
     }
 
     private Motif getMotif(final String contig, final int start, final int end,  StrandSerializable strand) {
         final StringBuilder result = new StringBuilder();
-        for (int i = start; i < end; i++) {
+        for (int i = start; i <= end; i++) {
             result.append((char) sequence[i]);
         }
-        return Motif.builder().contig(contig).start(start)
-                .end(end).strand(strand)
-                .value(result.toString()).build();
+        return new Motif(contig, start + offset, end + offset, strand, result.toString());
     }
 
     /**
@@ -161,7 +170,7 @@ public class MotifSearchIterator implements Iterator<Motif> {
             case LOWERCASE_N:
                 return CAPITAL_N;
             default:
-                throw new IllegalStateException("Not supported nucleotide: " + nucleotide);
+                throw new IllegalStateException("Not supported nucleotide: " + (char)nucleotide);
         }
     }
 

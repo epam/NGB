@@ -452,6 +452,29 @@ export default class ngbTrackEvents {
             }],
             title: 'BLASTn Search',
         };
+        const openMotifsSearchMenuItem = {
+            events: [{
+                data: {
+                    getSequence: async function () {
+                        const payload = {
+                            id: track.id,
+                            projectId: track.projectIdNumber || undefined,
+                            chromosomeId: data.chromosome.id,
+                            startIndex: data.read.startIndex,
+                            endIndex: data.read.endIndex,
+                            name: data.read.name,
+                            openByUrl: track.openByUrl,
+                            file: track.openByUrl ? track.id : null,
+                            index: track.openByUrl ? track.indexPath : null
+                        };
+                        const read = await self._bamDataService.loadRead(payload);
+                        return read.sequence || null;
+                    }
+                },
+                name: 'search:motifs:open',
+            }],
+            title: 'Motifs Search'
+        };
 
         const menuData = [];
         menuData.push(showInfo);
@@ -459,6 +482,7 @@ export default class ngbTrackEvents {
             menuData.push(goToMateMenuItem);
             menuData.push(openMateMenuItem);
         }
+        menuData.push(openMotifsSearchMenuItem);
         menuData.push(openBlatSearchMenuItem);
         menuData.push(openBlastnSearchMenuItem);
         menuData.push(copyToClipboard);

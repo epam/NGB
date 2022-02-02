@@ -28,7 +28,8 @@ export default class ngbGoldenLayout {
         if (!root)return root;
 
         const defComponentsObjs = Object.values(this.layout.Panels);
-        const defComponentsPnls = defComponentsObjs.map(m => m.panel);
+        const defComponentsPnls = defComponentsObjs.map(m => m.panel)
+            .filter(panel => panel !== 'ngbMotifsPanel');
 
         //1 - check module name is exist in appLayout
         //panel
