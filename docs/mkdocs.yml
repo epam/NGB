@@ -40,6 +40,7 @@ nav:
         - Genes: user-guide/genes.md
         - BLAST search: user-guide/blast-search.md
         - Homologs search: user-guide/homologs-search.md
+        - Motifs search: user-guide/motifs-search.md
         - Strain lineage: user-guide/strain-lineage.md
     - Administrator guide:
         - Overview: user-guide/um-overview.md
