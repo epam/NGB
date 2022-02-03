@@ -173,7 +173,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
-        delete request.motifTracksNumber;
+        delete request.searchRequestNumber;
         await this.loadData(request, false);
         this.searchRequestsHistory.push(request);
         this.gridOptions.infiniteScrollUp = true;
@@ -194,7 +194,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
-        delete request.motifTracksNumber;
+        delete request.searchRequestNumber;
         await this.loadData(request, true);
     }
 
@@ -329,11 +329,11 @@ export default class ngbMotifsResultsTableController  extends baseController {
             referenceId,
             name,
             motif,
-            motifTracksNumber
+            searchRequestNumber
         } = this.currentParams;
 
         const strand = this.ngbMotifsPanelService.getStrand(rowStrand);
-        const searchId = motifTracksNumber / 2;
+        const searchId = searchRequestNumber;
         const getName = strand => `${name || motif}_${strand}[${searchId}]`;
         const reference = this.projectContext.reference;
 

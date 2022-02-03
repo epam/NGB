@@ -16,7 +16,7 @@ export default class ngbMotifsPanelService {
     _searchStopOn = {};
     _currentParams = {};
     searchRequestsHistory = [];
-    motifTracksNumber = 0;
+    searchRequestNumber = 0;
     _searchMotifFilter = null;
     _blockFilterResults = null;
 
@@ -154,7 +154,7 @@ export default class ngbMotifsPanelService {
 
     panelCloseMotifsPanel () {
         this.resetData();
-        this.motifTracksNumber = 0;
+        this.searchRequestNumber = 0;
         const layoutChange = this.appLayout.Panels.motifs;
         layoutChange.displayed = false;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
@@ -168,9 +168,9 @@ export default class ngbMotifsPanelService {
 
     setSearchMotifsParams (params) {
         const {id, name} = this.projectContext.currentChromosome;
-        this.motifTracksNumber += 2;
+        this.searchRequestNumber += 1;
         const searchParams = {
-            motifTracksNumber: this.motifTracksNumber, 
+            searchRequestNumber: this.searchRequestNumber,
             currentChromosomeId: id,
             name: params.title,
             motif: params.pattern,
@@ -195,7 +195,7 @@ export default class ngbMotifsPanelService {
         const searchType = params['search type'].split(' ')[0];
         const referenceType = searchType === this.referenceType;
         const currentParams = {
-            motifTracksNumber: params.motifTracksNumber,
+            searchRequestNumber: params.searchRequestNumber,
             referenceId: this.projectContext.reference.id,
             motif: params.motif,
             searchType: referenceType ?
@@ -208,7 +208,7 @@ export default class ngbMotifsPanelService {
         const request = referenceType ?
             {...currentParams} : {chromosomeId, ...currentParams};
         request.filter = this.getRequestFilter();
-        delete request.motifTracksNumber;
+        delete request.searchRequestNumber;
         return request;
     }
 
@@ -361,7 +361,7 @@ export default class ngbMotifsPanelService {
     async filterResults () {
         const currentParams = {...this.currentParams};
         delete currentParams.name;
-        delete currentParams.motifTracksNumber;
+        delete currentParams.searchRequestNumber;
         this.searchRequestsHistory = [];
         const wholeGenomeType = currentParams.searchType === this.wholeGenomeType;
         const chromosomeId = this.projectContext.currentChromosome.id;
