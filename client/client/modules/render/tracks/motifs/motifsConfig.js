@@ -27,5 +27,12 @@ export default {
                 thickness: 2
             },
         }
+    },
+    scroll:{
+        alpha: 0.5,
+        fill: 0x92AEE7,
+        hoveredAlpha: 1,
+        margin: 2,
+        width: 13
     }
 };

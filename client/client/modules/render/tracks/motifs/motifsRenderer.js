@@ -1,10 +1,19 @@
 import * as PIXI from 'pixi.js-legacy';
-import {CachedTrackRenderer} from '../../core';
-import drawStrandDirection from '../gene/internal/renderer/features/drawing/strandDrawing';
+import {CachedTrackRendererWithVerticalScroll} from '../../core';
+import {PlaceholderRenderer} from '../../utilities';
+import {MotifsMatchesRenderer} from './motifsMatchesRenderer';
 
-const WHITE = 0xFFFFFF;
+const MAXIMUM_RANGE = 500000;
 
-export default class MotifsMatchesRenderer extends CachedTrackRenderer {
+export class MotifsRenderer extends CachedTrackRendererWithVerticalScroll {
+
+    matchesGraphics = null;
+    zoomInContainer = null;
+
+    get maximumRange () {
+        return MAXIMUM_RANGE;
+    }
+
     constructor(track, config, options, strand) {
         super(track);
         this.track = track;
@@ -12,8 +21,16 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         this._height = config.height;
         this.options = options;
         this.strand = strand;
-        this.graphics = new PIXI.Graphics();
-        this.dataContainer.addChild(this.graphics);
+        this.container.addChild(this._verticalScroll);
+
+        this.matchesGraphics = new MotifsMatchesRenderer(config, strand, track);
+        this.dataContainer.addChild(this.matchesGraphics.graphics);
+
+        this.zoomInContainer = new PIXI.Container();
+        this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this);
+        this.zoomInContainer.addChild(this._zoomInPlaceholderRenderer.container);
+        this.initZoomInPlaceholder();
+
         this.initializeCentralLine();
     }
 
@@ -21,98 +38,46 @@ export default class MotifsMatchesRenderer extends CachedTrackRenderer {
         return this._config;
     }
 
-    get height() {
-        return this._height;
+    scroll(viewport, yDelta) {
+        super.scroll(viewport, yDelta);
     }
 
-    set height(value) {
-        this._height = value;
-    }
-
-    getMatchColor(strand, state) {
-        if (state && state.color && state.color[strand]) {
-            return state.color[strand];
-        }
-        return this.config.matches.defaultColor[strand];
+    translateContainer(viewport, cache) {
+        super.translateContainer(viewport, cache);
     }
 
     rebuildContainer(viewport, cache) {
         super.rebuildContainer(viewport, cache);
-        this.initializeMatches(viewport, cache);
+        this.matchesGraphics.initializeMatches(viewport, cache);
+        this._actualHeight = this.matchesGraphics.actualHeight;
+        this.scroll(viewport, null);
     }
 
-    initializeMatches(viewport, cache) {
-        this.graphics.clear();
-        if (cache.data && cache.data.length > 0) {
-            cache.data.forEach(match => {
-                this.initializeMatch(viewport, match);
-            });
+    initZoomInPlaceholder() {
+        const zoomInPlaceholderText = () => {
+            const unitThreshold = 1000;
+            const noReadText = {
+                unit: this.maximumRange < unitThreshold ? 'BP' : 'kBP',
+                value: this.maximumRange < unitThreshold
+                    ? this.maximumRange : Math.ceil(this.maximumRange / unitThreshold)
+            };
+            return `Zoom in to see motifs.
+Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
+        };
+        this._zoomInPlaceholderRenderer.init(zoomInPlaceholderText(), {
+            height: this.pixiRenderer.height,
+            width: this.pixiRenderer.width
+        });
+    }
+
+    render(flags, viewport, cache, showCenterLine) {
+        if (flags.widthChanged || flags.heightChanged) {
+            this.initZoomInPlaceholder();
         }
-    }
-
-    initializeMatch (viewport, match) {
-        if (this.strand === match.strand) {
-            const pixelsInBp = viewport.factor;
-            const {startIndex, endIndex, levelY} = match;
-            const correct = x => Math.max(
-                -viewport.canvasSize,
-                Math.min(
-                    x,
-                    2 * viewport.canvasSize
-                )
-            );
-            const startX = correct(viewport.project.brushBP2pixel(startIndex) - (pixelsInBp / 2));
-            const endX = correct(viewport.project.brushBP2pixel(endIndex) + (pixelsInBp / 2));
-            const height = this.config.matches.height;
-            const color = this.getMatchColor(this.strand, this.track ? this.track.state : undefined);
-            const centerY = levelY * (this.config.matches.margin + height) - height / 2.0;
-            const width = endX - startX;
-            if (width <= this.config.matches.detailsThresholdPx) {
-                const arrowWidth = 2.0 * height;
-                drawStrandDirection(
-                    this.strand,
-                    {
-                        x: startX + width / 2.0 - arrowWidth / 2.0,
-                        width: arrowWidth,
-                        height,
-                        centerY
-                    },
-                    this.graphics,
-                    color,
-                    {
-                        ...this.config.matches.strand.arrow,
-                        mode: 'fill',
-                        margin: 0,
-                        height
-                    }
-                );
-            } else {
-                this.graphics
-                    .beginFill(color, 1)
-                    .drawRect(
-                        startX,
-                        Math.round(centerY - height / 2.0),
-                        width,
-                        height
-                    )
-                    .endFill();
-                drawStrandDirection(
-                    this.strand,
-                    {
-                        x: startX,
-                        width,
-                        height,
-                        centerY
-                    },
-                    this.graphics,
-                    WHITE,
-                    this.config.matches.strand.arrow
-                );
-            }
+        const reDraw = flags.heightChanged || flags.dataChanged;
+        if (!reDraw) {
+            this.scroll(viewport, 0, cache);
         }
-    }
-
-    render (viewport, cache, isRedraw, showCenterLine) {
-        super.render(viewport, cache, isRedraw, showCenterLine);
+        super.render(viewport, cache, reDraw, showCenterLine);
     }
 }
