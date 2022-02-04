@@ -16,7 +16,6 @@ export default class ngbMotifsPanelService {
     _searchStopOn = {};
     _currentParams = {};
     searchRequestsHistory = [];
-    searchRequestNumber = 0;
     _searchMotifFilter = null;
     _blockFilterResults = null;
 
@@ -154,7 +153,6 @@ export default class ngbMotifsPanelService {
 
     panelCloseMotifsPanel () {
         this.resetData();
-        this.searchRequestNumber = 0;
         const layoutChange = this.appLayout.Panels.motifs;
         layoutChange.displayed = false;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
@@ -168,15 +166,17 @@ export default class ngbMotifsPanelService {
 
     setSearchMotifsParams (params) {
         const {id, name} = this.projectContext.currentChromosome;
-        this.searchRequestNumber += 1;
         const searchParams = {
-            searchRequestNumber: this.searchRequestNumber,
+            id: this._searchMotifsParams.length + 1,
             currentChromosomeId: id,
             name: params.title,
             motif: params.pattern,
             'search type': params.inReference ?
                 this.referenceType : `${this.chromosomeType} [${name}]`,
         };
+        const getDisplayName = o => o.name || o.motif;
+        const sameDisplayNameFilter = track => getDisplayName(track) === getDisplayName(searchParams);
+        searchParams.duplicateIndex = this._searchMotifsParams.filter(sameDisplayNameFilter).length;
         this._searchMotifsParams.push(searchParams);
         return searchParams;
     }
@@ -195,7 +195,8 @@ export default class ngbMotifsPanelService {
         const searchType = params['search type'].split(' ')[0];
         const referenceType = searchType === this.referenceType;
         const currentParams = {
-            searchRequestNumber: params.searchRequestNumber,
+            id: params.id,
+            duplicateIndex: params.duplicateIndex,
             referenceId: this.projectContext.reference.id,
             motif: params.motif,
             searchType: referenceType ?
@@ -208,7 +209,8 @@ export default class ngbMotifsPanelService {
         const request = referenceType ?
             {...currentParams} : {chromosomeId, ...currentParams};
         request.filter = this.getRequestFilter();
-        delete request.searchRequestNumber;
+        delete request.id;
+        delete request.duplicateIndex;
         return request;
     }
 
@@ -329,12 +331,12 @@ export default class ngbMotifsPanelService {
         }
         this.dispatcher.emitSimpleEvent('initialize:motif:filters');
     }
-        
+
 
     setFilter (key, value) {
         const filter = {...this.searchMotifFilter};
         filter[key] = [...value];
-        
+
         this._searchMotifFilter = filter;
     }
 
@@ -361,7 +363,8 @@ export default class ngbMotifsPanelService {
     async filterResults () {
         const currentParams = {...this.currentParams};
         delete currentParams.name;
-        delete currentParams.searchRequestNumber;
+        delete currentParams.id;
+        delete currentParams.duplicateIndex;
         this.searchRequestsHistory = [];
         const wholeGenomeType = currentParams.searchType === this.wholeGenomeType;
         const chromosomeId = this.projectContext.currentChromosome.id;

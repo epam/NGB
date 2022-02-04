@@ -173,7 +173,8 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
-        delete request.searchRequestNumber;
+        delete request.id;
+        delete request.duplicateIndex;
         await this.loadData(request, false);
         this.searchRequestsHistory.push(request);
         this.gridOptions.infiniteScrollUp = true;
@@ -194,7 +195,8 @@ export default class ngbMotifsResultsTableController  extends baseController {
             ...this.currentParams
         };
         delete request.name;
-        delete request.searchRequestNumber;
+        delete request.id;
+        delete request.duplicateIndex;
         await this.loadData(request, true);
     }
 
@@ -329,12 +331,13 @@ export default class ngbMotifsResultsTableController  extends baseController {
             referenceId,
             name,
             motif,
-            searchRequestNumber
+            id,
+            duplicateIndex
         } = this.currentParams;
 
         const strand = this.ngbMotifsPanelService.getStrand(rowStrand);
-        const searchId = searchRequestNumber;
-        const getName = strand => `${name || motif}_${strand}[${searchId}]`;
+        const duplicateIndicator = duplicateIndex ? `[${duplicateIndex}]` : '';
+        const getName = strand => `${name || motif}_${strand}${duplicateIndicator}`;
         const reference = this.projectContext.reference;
 
         const motifsTrackPattern = strand => ({
@@ -343,7 +346,7 @@ export default class ngbMotifsResultsTableController  extends baseController {
             isLocal: true,
             projectId: '',
             bioDataItemId: getName(strand),
-            id: searchId,
+            id,
             reference,
             referenceId
         });
