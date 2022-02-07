@@ -2,8 +2,8 @@ const positive = 'POSITIVE';
 const negative = 'NEGATIVE';
 
 export default {
-    height: 100,
-    minHeight: 20,
+    height: 31,
+    minHeight: 14,
     centerLine:{
         dash: {
             fill: 0x000000,
@@ -17,7 +17,7 @@ export default {
             [negative]: 0xDD4C46
         },
         height: 10,
-        margin: 5,
+        margin: 2,
         detailsThresholdPx: 5,
         strand: {
             arrow: {
