@@ -121,6 +121,7 @@ export default class ngbCytoscapePathwayController {
                     style: sbgnStyle,
                     layout: {name: 'preset'},
                     elements: elements,
+                    ...this.settings.options
                 });
                 const layout = this.viewer.layout(this.settings.loadedLayout);
                 layout.on('layoutready', () => {
@@ -152,7 +153,7 @@ export default class ngbCytoscapePathwayController {
                 layout.run();
                 const viewerContext = this;
                 this.actionsManager = {
-                    ZOOM_STEP: 0.125,
+                    ZOOM_STEP: viewerContext.settings.externalOptions.zoomStep,
                     duration: 250,
                     zoom: () => viewerContext.viewer.zoom(),
                     zoomIn() {

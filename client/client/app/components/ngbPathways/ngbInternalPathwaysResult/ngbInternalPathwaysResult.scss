@@ -38,8 +38,8 @@ $ngb-color-blue: #4285F4;
     max-width: 300px;
     position: absolute;
     top: 0;
-    right: 15px;
-    z-index: 100;
+    right: 50px;
+    z-index: 1;
 
     .md-content {
       display: flex;
@@ -60,14 +60,19 @@ $ngb-color-blue: #4285F4;
           display: flex;
           flex-wrap: wrap;
           align-items: baseline;
-          border-spacing: 5px;
           word-break: break-all;
           padding: 5px 0;
+          form {
+            width: 100%;
+          }
         }
-
+        .pathway-search-panel-add-annotation span {
+          font-weight: bold;
+        }
         .pathway-search-panel-annotation {
           .pathway-search-panel-annotation-checkbox {
             margin: 0;
+            line-height: 32px;
 
             &:after {
               display: block;
@@ -84,16 +89,20 @@ $ngb-color-blue: #4285F4;
             color: $ngb-color-blue;
           }
 
-          .pathway-search-panel-annotation-delete ng-md-icon {
-            fill: $ngb-color-blue;
-            cursor: pointer;
-            align-self: center;
+          .pathway-search-panel-annotation-delete {
+            line-height: 32px;
+            margin-right: 6px;
+            ng-md-icon {
+              fill: $ngb-color-blue;
+              cursor: pointer;
+              align-self: center;
+            }
           }
         }
 
         .pathway-tree-search-input {
           font-size: 14px;
-          margin: 5px 0 10px 6px;
+          margin: 5px 0 10px 0;
         }
 
         .pathway-tree-search-input .md-errors-spacer {
@@ -104,6 +113,8 @@ $ngb-color-blue: #4285F4;
           line-height: 32px;
           min-height: 32px;
           height: 32px;
+          width: 32px;
+          min-width: 32px;
         }
       }
     }
