@@ -48,3 +48,22 @@
 .pathways-search-input .md-errors-spacer {
   min-height: 0;
 }
+
+.add-annotation-dlb-content {
+  min-width:600px;
+  max-width: 800px;
+  margin: 10px 30px;
+  .md-errors-spacer {
+    min-height: 0;
+  }
+  .add-annotation-divider {
+    border-top: 2px solid rgba(0,0,0,0.12);
+  }
+  .add-annotation-dlb-input {
+    width: 100%;
+    box-sizing:border-box;
+    label {
+      box-sizing:border-box
+    }
+  }
+}

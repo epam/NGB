@@ -8,7 +8,7 @@ const DEFAULT_ORDERBY_INTERNAL_PATHWAYS_COLUMNS = {
     'description': 'description'
 };
 const INTERNAL_PATHWAYS_COLUMN_TITLES = {
-    name: 'Name',
+    name: 'Map',
     description: 'Description'
 };
 const FIRST_PAGE = 1;
@@ -67,7 +67,7 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
             },
-            sortInfos: this.orderBy,
+            sortInfo: this.orderBy ? this.orderBy[0] : null,
             term: currentSearch
         };
         const data = await this.genomeDataService.getInternalPathwaysLoad(filter);

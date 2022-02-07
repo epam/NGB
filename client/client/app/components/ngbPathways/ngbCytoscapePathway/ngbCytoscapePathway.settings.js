@@ -7,7 +7,8 @@ export default {
             'text-halign': 'center',
             'shape': 'rectangle',
             'color': '#000',
-            'border-width': 1
+            'border-width': 1,
+            'font-weight': 'normal'
         }
     },
     defaultLayout: {
@@ -20,7 +21,10 @@ export default {
     },
     options: {
         wheelSensitivity: 0.25,
-        minZoom: 0.25,
+        minZoom: 0.05,
         maxZoom: 4
+    },
+    externalOptions: {
+        zoomStep: 0.05
     }
 };

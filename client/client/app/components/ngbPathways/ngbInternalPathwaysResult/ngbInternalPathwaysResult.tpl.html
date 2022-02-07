@@ -32,6 +32,30 @@
                             </md-button>
                         </form>
                     </div>
+                    <div class="pathway-search-panel-row pathway-search-panel-add-annotation">
+                        <span>Annotations:</span>
+                        <span flex></span>
+                        <md-button aria-label="add annotation"
+                                   class="md-raised pathway-tree-search-button"
+                                   ng-click="$ctrl.addAnnotation()">
+                            <ng-md-icon icon="add"></ng-md-icon>
+                        </md-button>
+                    </div>
+                    <div class="pathway-search-panel-row pathway-search-panel-annotation"
+                         ng-repeat="annotation in $ctrl.annotationList track by $index"
+                    >
+                        <md-input-container class="pathway-search-panel-annotation-checkbox">
+                            <md-checkbox aria-label="annotation {{$index}}" class="md-primary"
+                                         ng-change="$ctrl.applyAnnotations()"
+                                         ng-model="annotation.isActive">
+                            </md-checkbox>
+                        </md-input-container>
+                        <div class="pathway-search-panel-annotation-edit"><a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a></div>
+                        <div flex></div>
+                        <div class="pathway-search-panel-annotation-delete" ng-click="$ctrl.deleteAnnotation(annotation.id)">
+                            <ng-md-icon icon="delete_forever"></ng-md-icon>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -42,6 +66,7 @@
                 </div>
                 <ngb-cytoscape-pathway
                         elements="$ctrl.selectedTree"
+                        elements-options="$ctrl.selectedTreeOptions"
                         ng-if="!$ctrl.treeError"
                         storage-name="{{$ctrl.ngbInternalPathwaysResultService.localStorageKey}}"
                         tag="ngb-internal-pathway-node"
