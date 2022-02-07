@@ -14,7 +14,7 @@ const globals = {
 const devPlugins = [
     new webpack.NoErrorsPlugin()
 ];
-export const extractTextPlugin = new ExtractTextPlugin('[name].css');
+export const extractTextPlugin = new ExtractTextPlugin('[name].[hash].css');
 
 const prodPlugins = [
     extractTextPlugin,
