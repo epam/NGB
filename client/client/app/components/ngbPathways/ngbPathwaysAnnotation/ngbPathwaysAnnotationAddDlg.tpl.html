@@ -1,0 +1,51 @@
+<md-dialog aria-label="Settings">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Add annotation</h2>
+            <span flex></span>
+            <md-button aria-label="Close" class="md-icon-button" ng-click="$ctrl.close()">
+                <ng-md-icon icon="clear" style="fill: #fff;"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <form name="addAnnotationForm">
+        <md-dialog-content class="add-annotation-dlb-content">
+            <div class="row">
+                <md-input-container>
+                    <label for="annotationName">Annotation name</label>
+                    <input id="annotationName" name="annotation_name"
+                           ng-model="$ctrl.annotation.name" type="text">
+                </md-input-container>
+            </div>
+            <md-divider class="add-annotation-divider"></md-divider>
+            <div class="row">
+                <md-input-container class="add-annotation-dlb-manual-container">
+                    <md-checkbox aria-label="manual colors config" class="md-primary" ng-false-value="undefined"
+                                 ng-model="$ctrl.annotation.type"
+                                 ng-true-value="{{$ctrl.annotationTypeList.MANUAL}}">
+                        Manual colors config
+                    </md-checkbox>
+                    <textarea id="manualConfig" name="manualConfig" ng-model="$ctrl.configStr"
+                              ng-required="$ctrl.annotation.type === $ctrl.annotationTypeList.MANUAL"
+                              rows="2"></textarea>
+                </md-input-container>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-primary"
+                       ng-click="$ctrl.annotation.type && !$ctrl.isLoading && addAnnotationForm.$valid && $ctrl.save($event)"
+                       ng-disabled="!$ctrl.annotation.type || $ctrl.isLoading || addAnnotationForm.$invalid">
+                <span ng-hide="$ctrl.isLoading">Apply</span>
+                <md-progress-circular
+                        md-diameter="16"
+                        md-mode="indeterminate"
+                        ng-show="$ctrl.isLoading">
+                </md-progress-circular>
+            </md-button>
+            <md-button ng-click="$ctrl.close()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

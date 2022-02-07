@@ -1,3 +1,5 @@
+$ngb-color-blue: #4285F4;
+
 .ngb-pathway-cytoscape-container {
   flex: 1;
   position: relative;
@@ -37,7 +39,7 @@
     position: absolute;
     top: 0;
     right: 15px;
-    z-index: 1;
+    z-index: 100;
 
     .md-content {
       display: flex;
@@ -52,7 +54,6 @@
       box-shadow: 2px 2px 8px 2px #aaa;
 
       .pathway-search-panel-body {
-        display: table;
         padding-right: 16px;
 
         .pathway-search-panel-row {
@@ -62,6 +63,32 @@
           border-spacing: 5px;
           word-break: break-all;
           padding: 5px 0;
+        }
+
+        .pathway-search-panel-annotation {
+          .pathway-search-panel-annotation-checkbox {
+            margin: 0;
+
+            &:after {
+              display: block;
+              height: 0;
+              width: 0;
+            }
+
+            md-checkbox {
+              margin: 0;
+            }
+          }
+
+          .pathway-search-panel-annotation-edit {
+            color: $ngb-color-blue;
+          }
+
+          .pathway-search-panel-annotation-delete ng-md-icon {
+            fill: $ngb-color-blue;
+            cursor: pointer;
+            align-self: center;
+          }
         }
 
         .pathway-tree-search-input {

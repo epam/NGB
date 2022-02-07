@@ -9,6 +9,24 @@ const SCALE = 0.3;
 const searchedColor = '#00cc00';
 let defaultNodeStyle = {};
 
+function deepSearch(obj, term) {
+    let result = false;
+    for (const key in obj) {
+        if (!obj.hasOwnProperty(key) || !obj[key]) continue;
+        if (obj[key] instanceof Object || obj[key] instanceof Array) {
+            result = deepSearch(obj[key], term);
+        } else {
+            result = obj[key].toString().toLocaleLowerCase()
+                .includes(term.toLocaleLowerCase());
+        }
+        if (result) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 export default class ngbCytoscapePathwayController {
     constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings) {
         this.$scope = $scope;
@@ -62,23 +80,12 @@ export default class ngbCytoscapePathwayController {
         if (!!changes.searchParams &&
             !!changes.searchParams.previousValue &&
             !!changes.searchParams.currentValue) {
-            if (changes.searchParams.currentValue.search
+            if (changes.searchParams.currentValue.search !== null
                 && changes.searchParams.previousValue.search !== changes.searchParams.currentValue.search) {
-                this.searchNode(
-                    changes.searchParams.currentValue.search,
-                    node => {
-                        node.style({
-                            'color': searchedColor,
-                            'border-color': searchedColor
-                        });
-                    },
-                    node => {
-                        node.style({
-                            'color': defaultNodeStyle.color,
-                            'border-color': defaultNodeStyle['border-color']
-                        });
-                    }
-                );
+                this.searchTree(changes.searchParams.currentValue.search);
+            }
+            if (changes.searchParams.currentValue.annotations && changes.searchParams.currentValue.annotations.length) {
+                this.annotateTree(changes.searchParams.currentValue.annotations);
             }
         }
     }
@@ -120,6 +127,9 @@ export default class ngbCytoscapePathwayController {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
                     this.resizeCytoscape();
+                    if(this.searchParams.annotations && this.searchParams.annotations.length) {
+                        this.annotateTree(this.searchParams.annotations);
+                    }
                 });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
@@ -218,6 +228,8 @@ export default class ngbCytoscapePathwayController {
     getPlainNodes(nodes) {
         return nodes.reduce((r, cv) => {
             delete cv.data.dom;
+            cv.data.isFound = false;
+            cv.data.isAnnotated = false;
             r.push({
                 data: cv.data,
                 position: cv.position,
@@ -239,38 +251,82 @@ export default class ngbCytoscapePathwayController {
         return nodes;
     }
 
-    searchNode(term, onSatisfy, onDeny) {
+
+    searchTree(term) {
         if (!this.viewer) {
             return;
         }
-        const roots = this.viewer.nodes().roots();
-        this.viewer.nodes().dfs({
-            root: roots,
-            visit: node => {
-                if (this.deepSearch(node.data(), term)) {
-                    onSatisfy(node);
-                } else {
-                    onDeny(node);
-                }
-            }
+        this.viewer.nodes().forEach(node => {
+            this.searchNode(node, term);
         });
     }
 
-    deepSearch(obj, term) {
-        let result = false;
-        for (const key in obj) {
-            if (!obj.hasOwnProperty(key) || !obj[key]) continue;
-            if (obj[key] instanceof Object || obj[key] instanceof Array) {
-                result = this.deepSearch(obj[key], term);
-            } else {
-                result = obj[key].toString().toLocaleLowerCase()
-                    .includes(term.toLocaleLowerCase());
+    searchNode(node, term) {
+        if (term === '' || !deepSearch(node.data(), term)) {
+            node.style({
+                'color': defaultNodeStyle.color,
+                'border-color': defaultNodeStyle['border-color'],
+                'font-weight': defaultNodeStyle['font-weight']
+            });
+            node.data('isFound', false);
+            if (node.data('isAnnotated') && this.searchParams.annotations) {
+                this.annotateNode(node, this.searchParams.annotations);
             }
-            if (result) {
-                return true;
+        } else {
+            node.style({
+                'color': searchedColor,
+                'border-color': searchedColor,
+                'background-color': defaultNodeStyle['background-color'],
+                'font-weight': 'bold'
+            });
+            node.data('isFound', true);
+        }
+    }
+
+    annotateTree(annotationList) {
+        if (!this.viewer) {
+            return;
+        }
+        // TODO: figure out why dfs() ignores half of a tree (roots?)
+        // const roots = this.viewer.nodes().roots();
+        // this.viewer.nodes().dfs({
+        //     root: roots,
+        //     visit: node => {
+        this.viewer.nodes().forEach(node => {
+            this.annotateNode(node, annotationList);
+        });
+    }
+
+    annotateNode(node, annotationList) {
+        let style = {};
+        if (node.data('isAnnotated')) {
+            node.data('isAnnotated', false);
+            if (!node.data('isFound')) {
+                style = {
+                    'background-color': defaultNodeStyle['background-color'],
+                    color: defaultNodeStyle.color,
+                    'border-color': defaultNodeStyle['border-color']
+                };
+                node.style(style);
             }
         }
-        return false;
+        for (const annotation of annotationList) {
+            for (const termsList of annotation.value) {
+                if (deepSearch(node.data(), termsList.term) && !node.data('isAnnotated')) {
+                    node.data('isAnnotated', true);
+                    if (!node.data('isFound')) {
+                        style = {
+                            'background-color': termsList.backgroundColor
+                        };
+                        if (termsList.foregroundColor) {
+                            style.color = termsList.foregroundColor;
+                            style['border-color'] = termsList.foregroundColor;
+                        }
+                        node.style(style);
+                    }
+                }
+            }
+        }
     }
 
     getNodeStyle(style) {
