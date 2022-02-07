@@ -32,6 +32,6 @@ export const output = {
     filename: '[name].bundle.[hash].js',
     chunkFilename: '[id].[name].js'
 };
-export const devtool = DEV ? 'source-map' : undeined;
+export const devtool = DEV ? 'source-map' : undefined;
 export const module = {loaders};
 export const cache = DEV;
