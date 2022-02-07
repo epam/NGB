@@ -29,9 +29,9 @@ export const output = {
     path: path.resolve(context, 'dist'),
     publicPath: global.buildOptions.publicPath || '/',
     desktopBuild: !!global.buildOptions.desktop,
-    filename: '[name].bundle.js',
+    filename: '[name].bundle.[hash].js',
     chunkFilename: '[id].[name].js'
 };
-export const devtool = DEV ? 'source-map' : undefined;
+export const devtool = DEV ? 'source-map' : undeined;
 export const module = {loaders};
 export const cache = DEV;
