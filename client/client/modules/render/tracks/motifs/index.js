@@ -1,21 +1,26 @@
-import {CachedTrack} from '../../core';
+import {CachedTrackWithVerticalScroll} from '../../core';
 import Menu from '../../core/menu';
 import {MotifsDataService} from '../../../../dataServices';
-import {linearDimensionsConflict, PlaceholderRenderer} from '../../utilities';
+import {linearDimensionsConflict} from '../../utilities';
 import MotifsConfig from './motifsConfig';
+import MotifsRenderer from './motifsRenderer';
 import motifsMenuConfig from './exterior/motifsMenuConfig';
-import MotifsMatchesRenderer from './motifsRenderer';
 
-const MAXIMUM_RANGE = 500000;
+export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
 
-export class MOTIFSTrack extends CachedTrack {
-
-    renderer;
+    renderer = null;
     motifStrand = null;
-    _zoomInPlaceholderRenderer = null;
 
-    get maximumRange () {
-        return MAXIMUM_RANGE;
+    static getTrackDefaultConfig() {
+        return MotifsConfig;
+    }
+
+    get trackIsResizable() {
+        return true;
+    }
+
+    get verticalScrollRenderer() {
+        return this.renderer;
     }
 
     constructor(opts) {
@@ -25,13 +30,12 @@ export class MOTIFSTrack extends CachedTrack {
         this.motifStrand = opts.state.motifStrand;
         this.motif = opts.state.motif || '';
         this._dataService = new MotifsDataService();
-        this.renderer = new MotifsMatchesRenderer(
+        this.renderer = new MotifsRenderer(
             this,
             Object.assign({}, this.trackConfig, this.config),
             opts,
             this.motifStrand
         );
-        this._zoomInPlaceholderRenderer = new PlaceholderRenderer(this);
         this._actions = [
             {
                 enabled: function () {
@@ -59,8 +63,8 @@ export class MOTIFSTrack extends CachedTrack {
         ];
     }
 
-    get trackIsResizable() {
-        return true;
+    get maximumRange() {
+        return this.renderer.maximumRange;
     }
 
     get dataService() {
@@ -78,10 +82,6 @@ export class MOTIFSTrack extends CachedTrack {
         }
     );
 
-    static getTrackDefaultConfig() {
-        return MotifsConfig;
-    }
-
     getSettings() {
         if (this._menu) {
             return this._menu;
@@ -91,7 +91,7 @@ export class MOTIFSTrack extends CachedTrack {
     }
 
     async updateCache () {
-        if (MAXIMUM_RANGE <= this.viewport.actualBrushSize) {
+        if (this.maximumRange <= this.viewport.actualBrushSize) {
             return false;
         }
         const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
@@ -141,12 +141,21 @@ export class MOTIFSTrack extends CachedTrack {
             })
             .sort((a, b) => b.length - a.length)
             .sort((a, b) => a.startIndex - b.startIndex);
-        const margin = this.viewport.convert.pixel2brushBP(MotifsConfig.matches.margin);
+        const margin = Math.max(
+            1,
+            Math.ceil(this.viewport.convert.pixel2brushBP(MotifsConfig.matches.margin))
+        );
         for (let i = 0; i < matches.length; i++) {
             const match = matches[i];
             const conflicts = matches
                 .slice(0, i)
-                .filter(concurrent => linearDimensionsConflict(match.startIndex, match.endIndex, concurrent.startIndex, concurrent.endIndex, margin));
+                .filter(concurrent => linearDimensionsConflict(
+                    match.startIndex,
+                    match.endIndex,
+                    concurrent.startIndex,
+                    concurrent.endIndex,
+                    margin + 1
+                ));
             match.levelY = Math.max(0, ...conflicts.map(conflict => conflict.levelY)) + 1;
         }
         return matches;
@@ -158,40 +167,15 @@ export class MOTIFSTrack extends CachedTrack {
         this.requestRenderRefresh();
     }
 
-    _getZoomInPlaceholderText() {
-        const unitThreshold = 1000;
-        const noReadText = {
-            unit: this.maximumRange < unitThreshold ? 'BP' : 'kBP',
-            value: this.maximumRange < unitThreshold
-                ? this.maximumRange : Math.ceil(this.maximumRange / unitThreshold)
-        };
-        return `Zoom in to see motifs.
-            Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
-    }
-
     render(flags) {
+        let somethingChanged = super.render(flags);
         if (flags.renderReset) {
             this.container.removeChildren();
-            this.container.addChild(this._zoomInPlaceholderRenderer.container);
-            this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
-                height: this._pixiRenderer.height,
-                width: this._pixiRenderer.width
-            });
-        } else if (flags.widthChanged || flags.heightChanged) {
-            this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
-                height: this._pixiRenderer.height,
-                width: this._pixiRenderer.width
-            });
-        }
-        this._zoomInPlaceholderRenderer.container.visible = this.maximumRange < this.viewport.actualBrushSize;
-        this.renderer.container.visible = this.maximumRange >= this.viewport.actualBrushSize;
-
-        let somethingChanged = super.render(flags);
-
-        if (flags.renderReset) {
             this.container.addChild(this.renderer.container);
-            somethingChanged = true;
+            this.container.addChild(this.renderer.zoomInContainer);
         }
+        this.renderer.zoomInContainer.visible = this.maximumRange < this.viewport.actualBrushSize;
+        this.renderer.container.visible = this.maximumRange >= this.viewport.actualBrushSize;
         if (
             flags.brushChanged ||
             flags.widthChanged ||
@@ -199,14 +183,9 @@ export class MOTIFSTrack extends CachedTrack {
             flags.renderReset ||
             flags.dataChanged
         ) {
-            this.renderer.height = this.height;
-            this.renderer.render(
-                this.viewport,
-                this.cache,
-                flags.heightChanged || flags.dataChanged,
-                this._showCenterLine
-            );
             somethingChanged = true;
+            this.renderer.height = this.height;
+            this.renderer.render(flags, this.viewport, this.cache, this._showCenterLine);
         }
         return somethingChanged;
     }
