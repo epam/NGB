@@ -59,15 +59,11 @@
   .add-annotation-divider {
     border-top: 2px solid rgba(0,0,0,0.12);
   }
-  .add-annotation-dlb-name-container {
-    width: 98%;
-    padding: 2px 0;
-  }
-  .add-annotation-dlb-manual-container {
-    width: 98%;
-    padding: 2px 0;
-    textarea {
-      padding: 0;
+  .add-annotation-dlb-input {
+    width: 100%;
+    box-sizing:border-box;
+    label {
+      box-sizing:border-box
     }
   }
 }

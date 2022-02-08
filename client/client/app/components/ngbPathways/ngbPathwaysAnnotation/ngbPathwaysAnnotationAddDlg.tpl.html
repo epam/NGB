@@ -12,7 +12,7 @@
     <form name="addAnnotationForm">
         <md-dialog-content class="add-annotation-dlb-content">
             <div class="row">
-                <md-input-container class="add-annotation-dlb-name-container">
+                <md-input-container class="add-annotation-dlb-input">
                     <label for="annotationName">Annotation name</label>
                     <input id="annotationName" name="annotation_name"
                            ng-model="$ctrl.annotation.name" type="text">
@@ -20,9 +20,10 @@
             </div>
             <md-divider class="add-annotation-divider"></md-divider>
             <div class="row">
-                <md-input-container class="add-annotation-dlb-manual-container">
-                    <md-checkbox aria-label="manual colors config" class="md-primary" ng-false-value="undefined"
+                <md-input-container class="add-annotation-dlb-input">
+                    <md-checkbox aria-label="manual colors config" class="md-primary"
                                  ng-model="$ctrl.annotation.type"
+                                 ng-false-value="undefined"
                                  ng-true-value="{{$ctrl.annotationTypeList.MANUAL}}">
                         Manual colors config
                     </md-checkbox>

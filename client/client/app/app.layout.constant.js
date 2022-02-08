@@ -89,6 +89,7 @@ export default {
         pathways: {
             displayed: false,
             icon: 'device_hub',
+            iconColor: 'grey-500',
             panel: 'ngbPathwaysPanel',
             position: 'right',
             title: 'Pathways',

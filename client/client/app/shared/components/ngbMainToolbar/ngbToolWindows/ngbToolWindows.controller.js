@@ -39,7 +39,7 @@ export default class ngbToolWindowsController {
             const panel = Object.assign({}, this.appLayout.Panels[key], {key});
             const hotkeys = this.projectContext.hotkeys || this.localDataService.getSettings().hotkeys;
             panel.displayed = panelsInDispatcher && panelsInDispatcher[panel.panel] === true;
-            panel.iconColor = this.colors[index++];
+            panel.iconColor = panel.iconColor || this.colors[index++];
 
             const objHotkey = hotkeys[panel.name];
             if (objHotkey && objHotkey.hotkey) {
