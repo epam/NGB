@@ -10,11 +10,11 @@ const searchedColor = '#00cc00';
 let defaultNodeStyle = {};
 
 export default class ngbCytoscapePathwayController {
-    constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapeSettings) {
+    constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapePathwaySettings) {
         this.$scope = $scope;
         this.$compile = $compile;
         this.cytoscapeContainer = $element.find('.cytoscape-container')[0];
-        this.settings = cytoscapeSettings;
+        this.settings = cytoscapePathwaySettings;
         this.dispatcher = dispatcher;
         this.$timeout = $timeout;
         this.actionsManager = {
