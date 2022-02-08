@@ -2,7 +2,15 @@ export default {
     bindings: {
         menuData: '='
     },
-    controller(dispatcher, projectContext){  
+    controller(dispatcher, projectContext, $scope) {
+        const rightClickHandler = (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        };
+        document.body.addEventListener('contextmenu', rightClickHandler);
+        $scope.$on('$mdMenuClose', () => {
+            document.body.removeEventListener('contextmenu', rightClickHandler);
+        });
         this.menuData.forEach(item => {
             if(item.clipboard && item.fn){
                 item.fn(item);

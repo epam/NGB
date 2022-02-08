@@ -131,13 +131,17 @@ export default class InteractiveTrack extends Track {
     }
 
     _onClick(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
         const x = event.offsetX;
         const y = event.offsetY;
         if (!this._isDoubleClick && !this._dragged) {
             const self = this;
             const handler = function () {
-                if (!self._isDoubleClick)
+                if (!self._isDoubleClick) {
                     self.onClick({x, y});
+                }
             };
             setTimeout(handler, DOUBLE_CLICK_TIMEOUT);
         }
@@ -249,7 +253,7 @@ export default class InteractiveTrack extends Track {
             .on('mouseleave', _onMouseOut)
             .on('mousedown', _onTouchBegan)
             .on('touchstart', _onTouchBegan)
-            .on('click', _onClick)
+            .on('contextmenu', _onClick)
             .on('dblclick', _onDoubleClick);
         window.jQuery(window)
             .on('mousemove', _onTouchMoved)
@@ -268,7 +272,7 @@ export default class InteractiveTrack extends Track {
                 .off('mouseleave', _onMouseOut)
                 .off('mousedown', _onTouchBegan)
                 .off('touchstart', _onTouchBegan)
-                .off('click', _onClick)
+                .off('contextmenu', _onClick)
                 .off('dblclick', _onDoubleClick);
             window.jQuery(window)
                 .off('mousemove', _onTouchMoved)
