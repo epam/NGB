@@ -9,7 +9,7 @@ import './ngbCytoscapePathway.scss';
 import cytoscapeSettings from './ngbCytoscapePathway.settings';
 
 export default angular.module('ngbCytoscapePathway', [])
-    .constant('cytoscapeSettings', cytoscapeSettings)
+    .constant('cytoscapePathwaySettings', cytoscapeSettings)
     .controller(cytoscapeController.UID, cytoscapeController)
     .component('ngbCytoscapePathway', cytoscapeComponent)
     .name;
