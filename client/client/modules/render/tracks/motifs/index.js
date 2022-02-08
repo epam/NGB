@@ -3,8 +3,8 @@ import Menu from '../../core/menu';
 import {MotifsDataService} from '../../../../dataServices';
 import {linearDimensionsConflict} from '../../utilities';
 import MotifsConfig from './motifsConfig';
+import MotifsRenderer from './motifsRenderer';
 import motifsMenuConfig from './exterior/motifsMenuConfig';
-import {MotifsRenderer} from './motifsRenderer';
 
 export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
 
@@ -141,7 +141,10 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
             })
             .sort((a, b) => b.length - a.length)
             .sort((a, b) => a.startIndex - b.startIndex);
-        const margin = this.viewport.convert.pixel2brushBP(MotifsConfig.matches.margin);
+        const margin = Math.max(
+            1,
+            Math.ceil(this.viewport.convert.pixel2brushBP(MotifsConfig.matches.margin))
+        );
         for (let i = 0; i < matches.length; i++) {
             const match = matches[i];
             const conflicts = matches
@@ -151,7 +154,7 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
                     match.endIndex,
                     concurrent.startIndex,
                     concurrent.endIndex,
-                    margin
+                    margin + 1
                 ));
             match.levelY = Math.max(0, ...conflicts.map(conflict => conflict.levelY)) + 1;
         }

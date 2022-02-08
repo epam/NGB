@@ -5,7 +5,7 @@ import {MotifsMatchesRenderer} from './motifsMatchesRenderer';
 
 const MAXIMUM_RANGE = 500000;
 
-export class MotifsRenderer extends CachedTrackRendererWithVerticalScroll {
+export default class MotifsRenderer extends CachedTrackRendererWithVerticalScroll {
 
     matchesGraphics = null;
     zoomInContainer = null;
@@ -61,8 +61,12 @@ export class MotifsRenderer extends CachedTrackRendererWithVerticalScroll {
                 value: this.maximumRange < unitThreshold
                     ? this.maximumRange : Math.ceil(this.maximumRange / unitThreshold)
             };
-            return `Zoom in to see motifs.
+            if (this.pixiRenderer.height <= this.config.zoomInPlaceholderMultiLinesThreshold) {
+                return `Zoom in to see motifs. Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
+            } else {
+                return `Zoom in to see motifs.
 Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
+            }
         };
         this._zoomInPlaceholderRenderer.init(zoomInPlaceholderText(), {
             height: this.pixiRenderer.height,

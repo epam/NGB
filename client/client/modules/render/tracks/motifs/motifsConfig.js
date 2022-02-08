@@ -4,6 +4,7 @@ const negative = 'NEGATIVE';
 export default {
     height: 31,
     minHeight: 14,
+    zoomInPlaceholderMultiLinesThreshold: 100,
     centerLine:{
         dash: {
             fill: 0x000000,
