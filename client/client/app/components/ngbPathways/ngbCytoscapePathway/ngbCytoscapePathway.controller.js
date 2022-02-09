@@ -84,7 +84,7 @@ export default class ngbCytoscapePathwayController {
                 && changes.searchParams.previousValue.search !== changes.searchParams.currentValue.search) {
                 this.searchTree(changes.searchParams.currentValue.search);
             }
-            if (changes.searchParams.currentValue.annotations && changes.searchParams.currentValue.annotations.length) {
+            if (changes.searchParams.currentValue.annotations) {
                 this.annotateTree(changes.searchParams.currentValue.annotations);
             }
         }
