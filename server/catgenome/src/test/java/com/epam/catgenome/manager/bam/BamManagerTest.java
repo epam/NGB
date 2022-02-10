@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.bam;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -44,10 +43,14 @@ import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationReques
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
 import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.CoverageInterval;
+import com.epam.catgenome.entity.bam.CoverageQueryParams;
+import com.epam.catgenome.entity.bam.Interval;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.bucket.Bucket;
@@ -58,12 +61,14 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.util.db.Page;
+import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -80,6 +85,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Source:      BamManagerTest.java
  * Created:     12/3/2015
@@ -93,7 +104,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BamManagerTest extends AbstractManagerTest {
 
-    private Logger logger = LoggerFactory.getLogger(BamManagerTest.class);
+    private final Logger logger = LoggerFactory.getLogger(BamManagerTest.class);
 
     @Autowired
     ApplicationContext context;
@@ -109,6 +120,9 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
+
+    @Autowired
+    private BamCoverageManager coverageManager;
 
     @Autowired
     @InjectMocks
@@ -138,8 +152,12 @@ public class BamManagerTest extends AbstractManagerTest {
     private static final String PRETTY_NAME = "pretty";
     private static final long WRONG_FILE_ID = 123L;
 
+    private static final int STEP = 100000;
+    private static final int TO = 5000;
+    private static final int FROM = 0;
+
     private Resource resource;
-    private String chromosomeName = "X";
+    private final String chromosomeName = "X";
     private Reference testReference;
     private Chromosome testChromosome;
 
@@ -208,16 +226,16 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.assertNotNull(bamFile);
+        assertNotNull(bamFile);
         final BamFile loadBamFile = bamFileManager.load(bamFile.getId());
-        Assert.assertNotNull(loadBamFile);
-        Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
-        Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
-        Assert.assertEquals(PRETTY_NAME, bamFile.getPrettyName());
-        Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
-        Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
-        Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));
-        Assert.assertTrue(bamFile.getIndex().getPath().equals(loadBamFile.getIndex().getPath()));
+        assertNotNull(loadBamFile);
+        assertEquals(bamFile.getId(), loadBamFile.getId());
+        assertEquals(bamFile.getName(), loadBamFile.getName());
+        assertEquals(PRETTY_NAME, bamFile.getPrettyName());
+        assertEquals(bamFile.getCreatedDate(), loadBamFile.getCreatedDate());
+        assertEquals(bamFile.getReferenceId(), loadBamFile.getReferenceId());
+        assertEquals(bamFile.getPath(), loadBamFile.getPath());
+        assertEquals(bamFile.getIndex().getPath(), loadBamFile.getIndex().getPath());
 
         assertTrackLoading(bamFile,
             (option) -> {},
@@ -263,32 +281,32 @@ public class BamManagerTest extends AbstractManagerTest {
             option.setFilterSupplementaryAlignment(false);
             option.setFrame(0);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setFrame(-TEST_FRAME_SIZE);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setCount(LARGE_TEST_COUNT);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setFrame(LARGE_FRAME_SIZE);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setCount(null);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setCount(null);
             option.setDownSampling(false);
-        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+        }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
             option.setTrackDirection(TrackDirectionType.MIDDLE);
@@ -304,7 +322,7 @@ public class BamManagerTest extends AbstractManagerTest {
             option.setShowClipping(false);
             option.setShowSpliceJunction(true);
         }, (track) -> {
-                Assert.assertTrue(!track.getBlocks().isEmpty());
+                assertFalse(track.getBlocks().isEmpty());
                 Read testRead = track.getBlocks().get(0);
                 testRead(testRead);
             }
@@ -315,7 +333,7 @@ public class BamManagerTest extends AbstractManagerTest {
             option.setShowClipping(true);
             option.setShowSpliceJunction(false);
         }, (track) -> {
-                Assert.assertTrue(!track.getBlocks().isEmpty());
+                assertFalse(track.getBlocks().isEmpty());
                 Read testRead = track.getBlocks().get(0);
                 testRead(testRead);
             }
@@ -335,8 +353,8 @@ public class BamManagerTest extends AbstractManagerTest {
         ResponseEmitterMock emitterMock = new ResponseEmitterMock();
         bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
 
-        Assert.assertEquals(emitterMock.getResultStatus(), ResultReference.ResultStatus.ERROR.toString());
-        Assert.assertTrue(!emitterMock.getMessage().isEmpty());
+        assertEquals(emitterMock.getResultStatus(), ResultReference.ResultStatus.ERROR.toString());
+        assertFalse(emitterMock.getMessage().isEmpty());
     }
 
     @NotNull
@@ -362,7 +380,7 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.assertNotNull(bamFile);
+        assertNotNull(bamFile);
 
         Track<Read> fullTrackQ = getBaseReadTrack(bamFile);
 
@@ -372,7 +390,7 @@ public class BamManagerTest extends AbstractManagerTest {
         bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
         BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
-        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
+        assertFalse(fullTrack.getBlocks().isEmpty());
         Read read = fullTrack.getBlocks().get(0);
 
         ReadQuery query = new ReadQuery();
@@ -383,11 +401,11 @@ public class BamManagerTest extends AbstractManagerTest {
         query.setId(bamFile.getId());
 
         Read loadedRead = bamManager.loadRead(query, null, null);
-        Assert.assertNotNull(loadedRead);
-        Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
-        Assert.assertTrue(!loadedRead.getTags().isEmpty());
-        Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
-        Assert.assertEquals(read.getName(), loadedRead.getName());
+        assertNotNull(loadedRead);
+        assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
+        assertFalse(loadedRead.getTags().isEmpty());
+        assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
+        assertEquals(read.getName(), loadedRead.getName());
     }
 
     @NotNull
@@ -480,11 +498,11 @@ public class BamManagerTest extends AbstractManagerTest {
             query.setEndIndex(testRead.getEndIndex());
 
             Read loadedRead = bamManager.loadRead(query, bamUrl, indexUrl);
-            Assert.assertNotNull(loadedRead);
-            Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
-            Assert.assertTrue(!loadedRead.getTags().isEmpty());
-            Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
-            Assert.assertEquals(testRead.getName(), loadedRead.getName());
+            assertNotNull(loadedRead);
+            assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
+            assertFalse(loadedRead.getTags().isEmpty());
+            assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
+            assertEquals(testRead.getName(), loadedRead.getName());
         } finally {
             server.stop();
         }
@@ -511,17 +529,17 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setIndexS3BucketId(bucket.getId());
         request.setIndexType(BiologicalDataItemResourceType.S3);
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.assertNotNull(bamFile);
+        assertNotNull(bamFile);
         BamFile loadBamFile = bamFileManager.load(bamFile.getId());
-        Assert.assertNotNull(loadBamFile);
+        assertNotNull(loadBamFile);
 
         bamManager.unregisterBamFile(loadBamFile.getId());
         loadBamFile = bamFileManager.load(bamFile.getId());
-        Assert.assertNull(loadBamFile);
+        assertNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
                 bamFile.getBioDataItemId(), bamFile.getIndex().getId()));
-        Assert.assertTrue(items.isEmpty());
+        assertTrue(items.isEmpty());
     }
 
     @Ignore
@@ -537,16 +555,16 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.HDFS);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.assertNotNull(bamFile);
+        assertNotNull(bamFile);
         BamFile loadBamFile = bamFileManager.load(bamFile.getId());
-        Assert.assertNotNull(loadBamFile);
+        assertNotNull(loadBamFile);
         bamManager.unregisterBamFile(loadBamFile.getId());
         loadBamFile = bamFileManager.load(bamFile.getId());
-        Assert.assertNotNull(loadBamFile);
+        assertNotNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
                 bamFile.getBioDataItemId(), bamFile.getIndex().getId()));
-        Assert.assertTrue(items.isEmpty());
+        assertTrue(items.isEmpty());
     }
 
     @Test
@@ -573,7 +591,7 @@ public class BamManagerTest extends AbstractManagerTest {
             long start = System.currentTimeMillis();
             Track<Sequence> seq = bamManager.calculateConsensusSequence(track);
             long end = System.currentTimeMillis();
-            Assert.assertNotNull(seq);
+            assertNotNull(seq);
             avTime1 += (end - start);
 
             // Large range.
@@ -584,7 +602,7 @@ public class BamManagerTest extends AbstractManagerTest {
             start = System.currentTimeMillis();
             seq = bamManager.calculateConsensusSequence(track);
             end = System.currentTimeMillis();
-            Assert.assertNotNull(seq);
+            assertNotNull(seq);
             avTime2 += (end - start);
 
             // Medium range.
@@ -595,7 +613,7 @@ public class BamManagerTest extends AbstractManagerTest {
             start = System.currentTimeMillis();
             seq = bamManager.calculateConsensusSequence(track);
             end = System.currentTimeMillis();
-            Assert.assertNotNull(seq);
+            assertNotNull(seq);
             avTime3 += (end - start);
 
             i++;
@@ -638,7 +656,7 @@ public class BamManagerTest extends AbstractManagerTest {
         bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
         BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
-        Assert.assertFalse(fullTrack.getRegions().isEmpty());
+        assertFalse(fullTrack.getRegions().isEmpty());
     }
 
     @Test
@@ -673,14 +691,14 @@ public class BamManagerTest extends AbstractManagerTest {
         bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
         BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
-        Assert.assertFalse(fullTrack.getBaseCoverage().isEmpty());
-        Assert.assertTrue(StringUtils.isBlank(fullTrack.getReferenceBuffer()));
-        Assert.assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getValue() != 0));
-        Assert.assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getaCov() == null
+        assertFalse(fullTrack.getBaseCoverage().isEmpty());
+        assertTrue(StringUtils.isBlank(fullTrack.getReferenceBuffer()));
+        assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getValue() != 0));
+        assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getaCov() == null
                 && c.getaCov() == null && c.gettCov() == null && c.getgCov() == null && c.getnCov() == null
                 && c.getDelCov() == null && c.getInsCov() == null));
-        Assert.assertTrue(fullTrack.getBlocks().isEmpty());
-        Assert.assertTrue(fullTrack.getDownsampleCoverage() == null);
+        assertTrue(fullTrack.getBlocks().isEmpty());
+        assertNull(fullTrack.getDownsampleCoverage());
     }
 
     private BamFile setUpTestFile() throws IOException {
@@ -693,36 +711,35 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.assertNotNull(bamFile);
+        assertNotNull(bamFile);
         return bamFile;
     }
 
     private void testRead(Read read) {
-        Assert.assertNotNull(read);
-        Assert.assertNotNull(read.getName());
-        Assert.assertNotNull(read.getEndIndex());
-        Assert.assertNotNull(read.getStartIndex());
-        Assert.assertNotNull(read.getStand());
-        Assert.assertNotNull(read.getCigarString());
-        Assert.assertTrue(!read.getCigarString().isEmpty());
-        Assert.assertNotNull(read.getFlagMask());
-        Assert.assertNotNull(read.getMappingQuality());
-        Assert.assertNotNull(read.getReadGroup());
-        Assert.assertNotNull(read.getTLen());
-        Assert.assertNotNull(read.getPNext());
-        Assert.assertNotNull(read.getRNext());
-        Assert.assertTrue(!read.getRNext().isEmpty());
+        assertNotNull(read);
+        assertNotNull(read.getName());
+        assertNotNull(read.getEndIndex());
+        assertNotNull(read.getStartIndex());
+        assertNotNull(read.getStand());
+        assertNotNull(read.getCigarString());
+        assertFalse(read.getCigarString().isEmpty());
+        assertNotNull(read.getFlagMask());
+        assertNotNull(read.getMappingQuality());
+        assertNotNull(read.getReadGroup());
+        assertNotNull(read.getTLen());
+        assertNotNull(read.getPNext());
+        assertNotNull(read.getRNext());
+        assertFalse(read.getRNext().isEmpty());
     }
 
     private void testBamTrack(BamTrack<Read> fullTrack) {
-
-        Assert.assertTrue(null != fullTrack.getBlocks());
-        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
-        Assert.assertTrue(null != fullTrack.getBaseCoverage());
-        Assert.assertTrue(!fullTrack.getBaseCoverage().isEmpty());
-        Assert.assertTrue(null != fullTrack.getDownsampleCoverage());
-        Assert.assertTrue(!fullTrack.getDownsampleCoverage().isEmpty());
-        Assert.assertTrue(null == fullTrack.getSpliceJunctions());
+        assertNotNull(fullTrack.getBlocks());
+        assertFalse(fullTrack.getBlocks().isEmpty());
+        assertNotNull(fullTrack.getBaseCoverage());
+        assertFalse(fullTrack.getBaseCoverage().isEmpty());
+        assertNotNull(fullTrack.getDownsampleCoverage());
+        assertFalse(fullTrack.getDownsampleCoverage().isEmpty());
+        assertNull(fullTrack.getSpliceJunctions());
 
     }
 
@@ -732,7 +749,42 @@ public class BamManagerTest extends AbstractManagerTest {
         String bamWithHeaderWithoutSO = "header_without_SO.bam";
         registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
         List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
-        Assert.assertFalse(biologicalDataItems.isEmpty());
+        assertFalse(biologicalDataItems.isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testCreateCoverage() throws IOException {
+        final BamCoverage coverage = registerBamCoverage();
+        assertNotNull(coverage);
+        coverageManager.deleteCoverageDocument(coverage.getCoverageId());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testSearchCoverage() throws IOException, ParseException {
+        final BamCoverage coverage = registerBamCoverage();
+        final CoverageQueryParams params = CoverageQueryParams.builder()
+                .coverageId(coverage.getCoverageId())
+                .start(new Interval(FROM, TO))
+                .build();
+        final PagingInfo pagingInfo = PagingInfo.builder()
+                .pageSize(10)
+                .pageNum(1)
+                .build();
+        params.setPagingInfo(pagingInfo);
+        Page<CoverageInterval> intervalPage = coverageManager.search(params);
+        assertEquals(7, intervalPage.getItems().size());
+        coverageManager.deleteCoverageDocument(coverage.getCoverageId());
+    }
+
+    private BamCoverage registerBamCoverage() throws IOException {
+        final BamFile bamFile = setUpTestFile();
+        final BamCoverage coverage = BamCoverage.builder()
+                .bamId(bamFile.getId())
+                .step(STEP)
+                .build();
+        return coverageManager.create(coverage);
     }
 
     private void registerFileWithoutSOTag(String path) throws IOException {

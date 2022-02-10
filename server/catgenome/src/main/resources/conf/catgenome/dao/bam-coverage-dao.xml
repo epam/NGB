@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.bam.BamCoverageDao" id="bamCoverageDao" autowire="byName">
+        <property name="sequenceName" value="catgenome.s_bam_coverage"/>
+        <property name="insertQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.bam_coverage (
+                        coverage_id,
+                        bam_id,
+                        step
+                    ) VALUES (
+                        :COVERAGE_ID,
+                        :BAM_ID,
+                        :STEP
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.bam_coverage
+                ]]>
+            </value>
+        </property>
+        <property name="deleteByIdsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.bam_coverage
+                    WHERE coverage_id IN (@in@)
+                ]]>
+            </value>
+        </property>
+        <property name="loadByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        coverage_id,
+                        bam_id,
+                        step
+                    FROM catgenome.bam_coverage
+                    WHERE coverage_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadByBamIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        coverage_id,
+                        bam_id,
+                        step
+                    FROM catgenome.bam_coverage
+                    WHERE bam_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        coverage_id,
+                        bam_id,
+                        step
+                    FROM catgenome.bam_coverage
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

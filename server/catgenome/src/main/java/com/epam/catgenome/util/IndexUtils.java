@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,6 +52,12 @@ import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -475,6 +482,16 @@ public final class IndexUtils {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
         } catch (final Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static void deleteIndexDocument(final String field, final long value, final String indexDirectory)
+            throws IOException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            final Term term = new Term(field, String.valueOf(value));
+            writer.deleteDocuments(term);
         }
     }
 
