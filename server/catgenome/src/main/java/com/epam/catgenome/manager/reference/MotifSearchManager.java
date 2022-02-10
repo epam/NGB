@@ -42,11 +42,15 @@ import com.epam.catgenome.entity.reference.motif.MotifSearchResult;
 import com.epam.catgenome.entity.reference.motif.MotifSearchType;
 import com.epam.catgenome.entity.reference.motif.Region;
 import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.GeneInfo;
+import com.epam.catgenome.manager.gene.GeneFileManager;
+import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.motif.MotifSearcher;
+import htsjdk.samtools.util.Interval;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +73,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.util.IndexUtils.fetchGeneIdsFromBatch;
 
 @Service
 @Slf4j
@@ -98,6 +101,12 @@ public class MotifSearchManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Autowired
+    private GeneFileManager geneFileManager;
+
+    @Autowired
+    private GffManager gffManager;
 
     public Track<StrandedSequence> fillTrackWithMotifSearch(final Track<StrandedSequence> track,
                                                             final String motif,
@@ -128,7 +137,7 @@ public class MotifSearchManager {
         final Reference reference = loadReferenceWithChromosomes(request);
         final List<GeneIndexEntry> filterGenes = fetchGenes(request, reference);
         if (CollectionUtils.isNotEmpty(filterGenes)) {
-            return searchGeneMotifs(request, reference, loadGenes, filterGenes);
+            return searchGeneMotifs(request, reference, filterGenes);
         }
         switch (request.getSearchType()) {
             case WHOLE_GENOME:
@@ -136,7 +145,7 @@ public class MotifSearchManager {
             case CHROMOSOME:
                 return searchChromosomeMotifs(request, reference, loadGenes);
             case REGION:
-                return searchRegionMotifs(request, reference, loadGenes);
+                return searchRegionMotifs(request, reference);
             default:
                 throw new IllegalStateException("Unexpected search type: " + request.getSearchType());
         }
@@ -252,7 +261,6 @@ public class MotifSearchManager {
 
     private MotifSearchResult searchGeneMotifs(final MotifSearchRequest request,
                                                final Reference reference,
-                                               final boolean loadGenes,
                                                final List<GeneIndexEntry> filterGenes) {
         final int pageSize = Optional.ofNullable(request.getPageSize()).orElse(defaultPageSize);
         final List<Motif> motifs = new ArrayList<>();
@@ -267,7 +275,7 @@ public class MotifSearchManager {
                     .includeSequence(request.getIncludeSequence())
                     .strand(request.getStrandFilter())
                     .slidingWindow(request.getSlidingWindow())
-                    .build(), reference, loadGenes)
+                    .build(), reference)
                     .getResult());
 
             if (motifs.size() >= pageSize) {
@@ -294,8 +302,7 @@ public class MotifSearchManager {
     }
 
     private MotifSearchResult searchRegionMotifs(final MotifSearchRequest request,
-                                                 final Reference reference,
-                                                 final boolean loadGenes) {
+                                                 final Reference reference) {
         final Chromosome chromosome = fetchChromosomeById(reference, request.getChromosomeId());
         Assert.isTrue(request.getEndPosition() <= chromosome.getSize(),
                 getMessage(MessagesConstants.ERROR_POSITION_OUT_OF_RANGE, request.getEndPosition()));
@@ -325,21 +332,6 @@ public class MotifSearchManager {
             }
             searchResult.add(next);
             checkSizeOfMotifSearchResult(searchResult);
-        }
-
-        if (loadGenes && CollectionUtils.isNotEmpty(searchResult) && reference.getGeneFile() != null) {
-            final List<GeneFile> geneFiles = Collections.singletonList(reference.getGeneFile());
-            final int start = searchResult.get(0).getStart();
-            final int end = searchResult.get(searchResult.size() - 1).getEnd();
-
-            final NggbIntervalTreeMap<List<Gene>> intervalMap = featureIndexManager.loadGenesIntervalMap(geneFiles,
-                    start, end, chromosome);
-            for (Motif motif : searchResult) {
-                final Set<GeneInfo> geneInfos = fetchGeneIdsFromBatch(intervalMap,
-                        motif.getStart(), motif.getEnd(), chromosome);
-                motif.setGeneIds(geneInfos.stream().map(GeneInfo::getGeneId).collect(Collectors.toList()));
-                motif.setGeneNames(geneInfos.stream().map(GeneInfo::getGeneName).collect(Collectors.toList()));
-            }
         }
 
         final int lastStart = searchResult.isEmpty()
@@ -404,8 +396,8 @@ public class MotifSearchManager {
                             .strand(request.getStrandFilter())
                             .slidingWindow(request.getSlidingWindow())
                             .build(),
-                    reference,
-                    loadGenes).getResult());
+                    reference
+            ).getResult());
             checkSizeOfMotifSearchResult(result);
             currentStart = currentStart + bufferSize;
             currentEnd = Math.min(currentEnd + bufferSize, end);
@@ -413,6 +405,11 @@ public class MotifSearchManager {
         final List<Motif> pageSizedResult = result.stream()
                 .limit(Math.min(result.size(), pageSize))
                 .collect(Collectors.toList());
+
+        if (loadGenes && CollectionUtils.isNotEmpty(pageSizedResult) && reference.getGeneFile() != null) {
+            attachGenesFromFile(pageSizedResult, reference, chromosome);
+        }
+
         final Integer lastStartMotifPosition = pageSizedResult.isEmpty() ||
                 (end == chromosome.getSize() && pageSizedResult.size() < pageSize)
                 ? null
@@ -425,6 +422,34 @@ public class MotifSearchManager {
                         ? null
                         : lastStartMotifPosition + 1)
                 .build();
+    }
+
+    private void attachGenesFromFile(final List<Motif> motifs,
+                                     final Reference reference,
+                                     final Chromosome chromosome) {
+        final int startQuery = motifs.get(0).getStart();
+        final int endQuery = motifs.get(motifs.size() - 1).getEnd();
+        final GeneFile geneFile = geneFileManager.load(reference.getGeneFile().getId());
+        try {
+            final NggbIntervalTreeMap<Gene> intervalMap = gffManager.loadGenesIntervalMap(
+                    geneFile, startQuery, endQuery, chromosome);
+            if (!intervalMap.isEmpty()) {
+                motifs.forEach(motif -> {
+                    motif.setGeneIds(new ArrayList<>());
+                    motif.setGeneNames(new ArrayList<>());
+                    final Collection<Gene> genes = intervalMap.getOverlapping(
+                            new Interval(motif.getContig(), motif.getStart(), motif.getEnd()));
+                    genes.stream()
+                            .filter(GeneUtils::isGene)
+                            .forEach(g -> {
+                                motif.getGeneIds().add(g.getFeatureId());
+                                motif.getGeneNames().add(g.getFeatureName());
+                            });
+                });
+            }
+        } catch (GeneReadingException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     private int validateAndAdjustOverlap(final MotifSearchRequest request) {
