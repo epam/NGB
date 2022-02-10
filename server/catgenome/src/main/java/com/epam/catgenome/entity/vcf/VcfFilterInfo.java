@@ -44,7 +44,7 @@ public class VcfFilterInfo {
 
     private Collection<InfoItem> infoItems;
     private Set<String> availableFilters;
-    private List<VcfSample> samples;
+    private Map<Long, List<VcfSample>> samples;
 
     public void setInfoItemMap(Map<String, InfoItem> infoItemMap) {
         this.infoItemMap = infoItemMap;

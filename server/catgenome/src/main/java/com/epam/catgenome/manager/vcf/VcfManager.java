@@ -417,7 +417,7 @@ public class VcfManager {
         final VcfFilterInfo filterInfo = new VcfFilterInfo();
         Map<String, InfoItem> infoItems = new HashMap<>();
         final Set<String> availableFilters = new HashSet<>();
-        final List<VcfSample> samples = new LinkedList<>();
+        final Map<Long, List<VcfSample>> samplesMap = new HashMap<>();
 
         for (Long fileId : vcfFileIds) {
             VcfFile vcfFile = vcfFileManager.load(fileId);
@@ -437,11 +437,13 @@ public class VcfManager {
 
             }
 
+            List<VcfSample> samples = new LinkedList<>();
             for (VcfSample vcfFileSample : vcfFile.getSamples()) {
                 VcfSample sample = new VcfSample(vcfFileSample.getName(), vcfFileSample.getIndex());
                 sample.setPrettyName(vcfFileSample.getPrettyName());
                 samples.add(sample);
             }
+            samplesMap.put(vcfFile.getId(), samples);
         }
 
         List<String> filtersWhiteList = getFilterWhiteList();
@@ -454,7 +456,7 @@ public class VcfManager {
                 "variation is located in exon region"));
         filterInfo.setInfoItemMap(infoItems);
         filterInfo.setAvailableFilters(availableFilters);
-        filterInfo.setSamples(samples);
+        filterInfo.setSamples(samplesMap);
 
         return filterInfo;
     }
