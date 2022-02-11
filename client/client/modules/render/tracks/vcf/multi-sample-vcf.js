@@ -88,6 +88,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     constructor(opts) {
         super(opts);
         this.samples = [];
+        this.samplesInfo = {};
         this.renderers = [];
         this.collapsedSamplesRenderer = new VCFCollapsedRenderer(VcfConfig, this);
         this.coverageCoordinateSystemRenderer = new CoordinateSystem(this);
@@ -99,25 +100,42 @@ export class MultiSampleVCFTrack extends VCFTrack {
         this.coverageMask = new PIXI.Graphics();
         this.transformer.collapseSamples = this.state.collapseSamples;
         (this.initializeSamples)();
+        this.dispatcher.on('vcf:refresh:track', this.initializeSamples.bind(this));
     }
 
-    async initializeSamples () {
+    async getProjectsFilterVcfInfo () {
         const {
             id,
             projectId
         } = this.dataConfig;
-        let samples = [];
+        let [sampleNames, samplesInfo] = [[], {}];
         if (id && projectId) {
             try {
-                const {sampleNames = []} = await projectDataService
+                const {samples = {}} = await projectDataService
                     .getProjectsFilterVcfInfo({value: {[projectId]: [id]}}) || {};
-                samples = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
+                ({sampleNames, samplesInfo} = (samples[id] || [])
+                    .reduce((acc, sample) => {
+                        if (!/^nosm$/i.test(sample.name)) {
+                            acc.sampleNames.push(sample.prettyName || sample.name);
+                            acc.samplesInfo[sample.name] = sample.prettyName || '';
+                        }
+                        return acc;
+                    }, {
+                        sampleNames: [],
+                        samplesInfo: {}
+                    })
+                );
             } catch (e) {
                 // eslint-disable-next-line
                 console.warn(`Error fetching vcf info: ${e.message}`);
             }
         }
-        this.samples = samples.slice();
+        this.samples = sampleNames.slice();
+        Object.assign(this.samplesInfo, samplesInfo);
+    }
+
+    async initializeSamples () {
+        await this.getProjectsFilterVcfInfo();
         this.renderers = this.samples.map((sample) => ({
             sample,
             collapsed: new VCFSampleRenderer(VcfConfig, this),
@@ -133,8 +151,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
 
     extendSamples (samples) {
         let hasNewSamples = false;
+        const samplesNames = Object.keys(this.samplesInfo);
         for (const sample of samples) {
-            if (!this.samples.includes(sample)) {
+            if (!this.samples.includes(sample) && !samplesNames.includes(sample)) {
                 hasNewSamples = true;
                 this.samples.push(sample);
                 this.renderers.push({

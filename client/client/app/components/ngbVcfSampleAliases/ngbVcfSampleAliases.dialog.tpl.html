@@ -1,0 +1,68 @@
+<md-dialog aria-label="rename samples" class="sample-aliases">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Rename samples</h2>
+            <span flex></span>
+            <md-button class="md-icon-button"
+                       ng-click="$ctrl.onClickCloseBtn()"
+                       aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content class="content">
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Sample</td>
+                    <td>Alias</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="(name, prettyName) in $ctrl.samplesModel track by $index">
+                    <td class="sample">{{name}}</td>
+                    <td>
+                        <input type="string"
+                               class="alias"
+                               ng-change="$ctrl.onChangeInput()"
+                               ng-model="$ctrl.samplesModel[name]"
+                               ng-class="{'isDouble': $ctrl.isDuplicate(prettyName)}"
+                        />
+                        <div class="alias-error">
+                            <p class="alias-error-message"
+                               ng-if="$ctrl.isDuplicate(prettyName)">
+                                Duplicate alias
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="container">
+            <div class="buttons">
+                <md-button
+                    aria-label="save aliases"
+                    class="md-primary"
+                    ng-disabled="$ctrl.isDisable || $ctrl.saveInProgress"
+                    ng-click="$ctrl.onClickSaveBtn()">
+                    <md-progress-circular
+                        md-mode="indeterminate"
+                        md-diameter="12"
+                        ng-if="$ctrl.saveInProgress">
+                    </md-progress-circular>
+                    <span ng-if="!$ctrl.saveInProgress">Save</span>
+                </md-button>
+                <md-button
+                    aria-label="cancel changes"
+                    ng-click="$ctrl.onClickCancelBtn()"
+                    ng-disabled="$ctrl.saveInProgress">
+                    Cancel
+                </md-button>
+            </div>
+            <div class="error-container"
+                ng-if="$ctrl.errorMessage">
+                <ngb-panel-error-list message-list="[$ctrl.errorMessage]"></ngb-panel-error-list>
+            </div>
+        </div>
+    </md-dialog-content>
+</md-dialog>

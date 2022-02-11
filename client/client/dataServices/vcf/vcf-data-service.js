@@ -143,4 +143,16 @@ export class VcfDataService extends DataService {
         });
     }
 
+    putSamplesAliases({aliases, vcfFileId}) {
+        return new Promise((resolve, reject) => {
+            const message = 'Vcf Data Service: error saving changes';
+            this.put(`vcf/${vcfFileId}/aliases`, aliases)
+                .catch(() => reject(new Error(message)))
+                .then(response => resolve(response))
+                .catch(error => {
+                    reject(new Error(error.message || message));
+                });
+        });
+    }
+
 }

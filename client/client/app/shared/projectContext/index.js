@@ -99,6 +99,8 @@ export default class projectContext {
     _infoFields = [];
     _vcfInfo = [];
     _vcfSampleNames = [];
+    _vcfSampleAliases = {};
+    _vcfSampleInfo = {};
     _filteredVariants = [];
     _variantsDataByChromosomes = [];
     _variantsDataByType = [];
@@ -1836,6 +1838,8 @@ export default class projectContext {
             this._containsVcfFiles = false;
             this._vcfInfo = [];
             this._vcfSampleNames = [];
+            this._vcfSampleAliases = {};
+            this._vcfSampleInfo = {};
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
             this._variationsPointer = null;
@@ -1885,15 +1889,47 @@ export default class projectContext {
         return vcfFileIdsByProject;
     }
 
+    setSampleInfo(samples) {
+        const samplesInfo = {};
+        const sampleAliases = {};
+        const names = {};
+        const sampleNames = [];
+
+        for (const id in samples) {
+            if( samples.hasOwnProperty(id) ) {
+                samplesInfo[id] = samples[id].reduce((acc, sample) => {
+                    const {name, prettyName = ''} = sample;
+                    if (!/^nosm$/i.test(name)) {
+                        acc[name] = acc[name] || prettyName;
+                        names[name] = acc[name];
+                        if (prettyName) {
+                            sampleAliases[prettyName] = sampleAliases[prettyName] ?
+                                sampleAliases[prettyName].push(name) : [name];
+                        }
+                    }
+                    return acc;
+                }, {});
+            }
+        }
+        for (const name in names) {
+            if ( names.hasOwnProperty(name) ) {
+                sampleNames.push(names[name] || name);
+            }
+        }
+        this._vcfSampleNames = sampleNames.slice();
+        Object.assign(this._vcfSampleInfo, samplesInfo);
+        Object.assign(this._vcfSampleAliases, sampleAliases);
+    }
+
     async _initializeVariants(onInit) {
         if (!this._isVariantsInitialized) {
             const vcfFileIdsByProject = this.getVcfFileIdsByProject();
             const {
                 infoItems,
-                sampleNames = []
+                samples = {}
             } = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
             this._vcfInfo = infoItems || [];
-            this._vcfSampleNames = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
+            this.setSampleInfo(samples);
             this._vcfFilter = {
                 additionalFilters: {},
                 chromosomeIds: [],
@@ -2148,6 +2184,14 @@ export default class projectContext {
         }
     }
 
+    getVcfSampleNames () {
+        const names = this._vcfFilter ? this._vcfFilter.sampleNames : [];
+        const sampleNames = names.map(name => (
+            [this._vcfSampleAliases[name]].join(', ') || name
+        ));
+        return sampleNames;
+    }
+
     loadVariationsGroupData(callbacks) {
         const {groupByChromosome, groupByType, groupByQuality} = callbacks;
         this._variantsGroupByQualityError = null;
@@ -2183,7 +2227,7 @@ export default class projectContext {
         };
         const sampleNames = {
             conjunction: false,
-            field: this._vcfFilter ? this._vcfFilter.sampleNames : []
+            field: this.getVcfSampleNames()
         };
         const variationTypes = {
             conjunction: false,
@@ -2280,7 +2324,7 @@ export default class projectContext {
         };
         const sampleNames = {
             conjunction: false,
-            field: this._vcfFilter ? this._vcfFilter.sampleNames : []
+            field: this.getVcfSampleNames()
         };
         const variationTypes = {
             conjunction: false,
@@ -2404,6 +2448,9 @@ export default class projectContext {
                     item.highlightColor = `#${profile.highlightColor}`;
                 }
             });
+            const sampleNames = (item.sampleNames || []).map(name => (
+                this._vcfSampleInfo[item.featureFileId][name] || name
+            ));
             return Object.assign({},
                 {
                     chrId: item.chromosome.id,
@@ -2422,7 +2469,7 @@ export default class projectContext {
                     variantId: item.featureId,
                     variationType: item.variationType,
                     vcfFileId: item.featureFileId,
-                    sampleNames: item.sampleNames
+                    sampleNames: sampleNames
                 },
                 {...infoFieldsObj, ...item.info},
             );
