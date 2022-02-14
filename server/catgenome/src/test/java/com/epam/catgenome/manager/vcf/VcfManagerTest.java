@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -116,16 +117,29 @@ import com.epam.catgenome.util.Utils;
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 public class VcfManagerTest extends AbstractManagerTest {
 
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
+    private static final String CLASSPATH_TEMPLATES_SAMPLES_VCF = "classpath:templates/samples.vcf";
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED = "classpath:templates/Felis_catus.vcf" +
             ".gz";
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_GOOGLE = "classpath:templates/1000-genomes.chrMT" +
             ".vcf";
     private static final String HTTP_VCF = "http://localhost/vcf/BK0010_S12.vcf";
     private static final String NA_19238 = "NA19238";
-    public static final String PRETTY_NAME = "pretty";
+    private static final String PRETTY_NAME = "pretty";
+    private static final String SAMPLE_PRETTY_NAME = "Sample1";
+    private static final int TEST_END_INDEX = 187708306;
+
+    private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;
+
+    private static final int TEST_CHROMOSOME_SIZE = 239107476;
+    private static final int GENE_POSTION = 35471;
+    private static final String SAMPLE_NAME = "HG00702";
+    private static final int NUMBER_OF_FILTERS = 2;
+    private static final int NUMBER_OF_TRIVIAL_INFO = 18;
+    private static final int INDEX_BUFFER_SIZE = 32;
 
     @Mock
     private HttpDataManager httpDataManager;
@@ -181,16 +195,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
-    private static final int TEST_END_INDEX = 187708306;
-
-    private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;
-
-    private static final int TEST_CHROMOSOME_SIZE = 239107476;
-    private static final int GENE_POSTION = 35471;
-    private static final String SAMPLE_NAME = "HG00702";
-    private static final int NUMBER_OF_FILTERS = 2;
-    private static final int NUMBER_OF_TRIVIAL_INFO = 18;
-    private static final int INDEX_BUFFER_SIZE = 32;
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
     @Value("${ga4gh.google.startPosition}")
@@ -242,11 +246,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadVcfFile() throws IOException, InterruptedException {
-        VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
+    public void testSaveLoadVcfFile() throws IOException {
+        final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        VcfFile file = vcfFileManager.load(vcfFile.getId());
+        final VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
         Assert.assertEquals(PRETTY_NAME, file.getPrettyName());
 
@@ -254,19 +257,28 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadVcfCompressedFile() throws IOException, InterruptedException {
-        VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
+    public void testSaveLoadMultiSampleVcfFile() throws IOException {
+        final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_SAMPLES_VCF);
 
-        VcfFile file = vcfFileManager.load(vcfFile.getId());
+        final Map<String, String> aliases = new HashMap<>();
+        aliases.put("NA19239", "Sample1");
+        aliases.put("NA19238", "Sample2");
+        aliases.put("NA19240", "Sample3");
+        vcfFileManager.setVcfAliases(aliases, vcfFile.getId());
+
+        final VcfFile file = vcfFileManager.load(vcfFile.getId());
+        Assert.assertNotNull(file);
+        Assert.assertEquals(SAMPLE_PRETTY_NAME, file.getSamples().get(0).getPrettyName());
+    }
+
+    @Test
+    public void testSaveLoadVcfCompressedFile() throws IOException {
+        final VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
+
+        final VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         testLoad(vcfFile, 1D, true);
-
-        /*String featureId = "rs44098047";
-        List<FeatureIndexEntry> entries2 = fileManager.searchLuceneIndex(vcfFile, featureId);
-        Assert.assertFalse(entries2.isEmpty());
-        entries2.forEach(e -> Assert.assertTrue(e.getFeatureId().startsWith(featureId)));*/
     }
 
     /**
@@ -274,8 +286,7 @@ public class VcfManagerTest extends AbstractManagerTest {
      * Should return a number of variations having type STATISTIC and variationsCount > 1
      */
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException {
+    public void testLoadSmallScaleVcfFile() throws IOException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -297,7 +308,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadSmallScaleVcfFileGa4GH() throws IOException, ExternalDbUnavailableException {
 
         String fetchRes1 = readFile("GA4GH_id10473.json");
@@ -313,7 +323,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                 .thenReturn(fetchRes3);
 
 
-        VcfFile vcfFileGA4GH = regesterVcfGA4GH();
+        VcfFile vcfFileGA4GH = registerVcfGA4GH();
         vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
         List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
         Track<Variation> trackResult;
@@ -331,9 +341,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadExtendedSummary()
-            throws IOException, InterruptedException {
+    public void testLoadExtendedSummary() throws IOException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -353,7 +361,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
         Assert.assertFalse(filterInfo.getInfoItems().isEmpty());
         Assert.assertFalse(filterInfo.getAvailableFilters().isEmpty());
-        Assert.assertFalse(filterInfo.getSampleNames().isEmpty());
+        Assert.assertFalse(filterInfo.getSamples().isEmpty());
 
         // now add a project and try to fetch genes affected
         vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
@@ -378,7 +386,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertFalse(variation.getGeneNames().isEmpty());
     }
 
-    public VcfFile regesterVcfGA4GH() {
+    public VcfFile registerVcfGA4GH() {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceIdGA4GH);
         request.setType(BiologicalDataItemResourceType.GA4GH);
@@ -390,9 +398,8 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Ignore
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testAllTrackGa4GH() throws IOException {
-        VcfFile vcfFileGA4GH = regesterVcfGA4GH();
+        VcfFile vcfFileGA4GH = registerVcfGA4GH();
         vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
         List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
         for (VcfSample sample : vcfSamples) {
@@ -402,7 +409,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testGetVariantsGA4GH() throws IOException, ExternalDbUnavailableException,
             Ga4ghResourceUnavailableException {
         String fetchRes1 = readFile("GA4GH_id10473_variant_2.json");
@@ -422,7 +428,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Ignore
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterDownloadFile() {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
@@ -432,11 +437,9 @@ public class VcfManagerTest extends AbstractManagerTest {
         VcfFile vcfFile = vcfManager.registerVcfFile(request);
         Assert.assertNotNull(vcfFile);
         Assert.assertNotNull(vcfFile.getId());
-
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterFile() throws IOException{
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -456,7 +459,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadStructuralVariations() throws IOException {
         Resource refResource = context.getResource("classpath:templates/A3.fa");
 
@@ -500,7 +502,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testUnregisterVcfFile() throws IOException {
         // Register vcf file.
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
@@ -551,11 +552,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testGetNextFeature() throws IOException, InterruptedException, NoSuchAlgorithmException,
-                                            ExternalDbUnavailableException, VcfReadingException {
-
-
+    public void testGetNextFeature() throws IOException, ExternalDbUnavailableException {
         String fetchRes1 = readFile("GA4GH_id10473.json");
         String fetchRes2 = readFile("GA4GH_id10473_variant.json");
         String fetchRes3 = readFile("GA4GH_id10473_variant_2.json");
@@ -572,14 +569,12 @@ public class VcfManagerTest extends AbstractManagerTest {
                 httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes5);
 
-
         getNextFeature(referenceId, BiologicalDataItemResourceType.FILE);
         logger.info("success, next feature variation for file");
     }
 
     @Test
     @Ignore
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testSaveLoadUrl() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
@@ -634,7 +629,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Ignore
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadUrlNoRegistration() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
@@ -667,9 +661,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadExtendedSummaryUrl()
-        throws Exception {
+    public void testLoadExtendedSummaryUrl() throws Exception {
         final String path = "/Felis_catus.vcf";
         String vcfUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
         String indexUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + "/Felis_catus.idx";
@@ -704,8 +696,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadExtendedInfo() throws IOException, InterruptedException {
+    public void testLoadExtendedInfo() throws IOException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -718,7 +709,32 @@ public class VcfManagerTest extends AbstractManagerTest {
                                                                                     // item which is added externally
     }
 
-    private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException {
+    @Test
+    public void testSaveUnsorted() throws IOException {
+        String invalidVcf = "unsorted.vcf";
+        testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
+                .getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
+
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(invalidVcf).isEmpty());
+    }
+
+    @Test
+    public void testRegisterFileExtraChr() throws IOException {
+        VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
+        Assert.assertTrue(vcfFile != null);
+    }
+
+    public static VcfFile registerVcf(final Resource vcfFile, final Long referenceId, final VcfManager vcfManager,
+                                      final String prettyName) throws IOException {
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(vcfFile.getFile().getAbsolutePath());
+        request.setPrettyName(prettyName);
+        return vcfManager.registerVcfFile(request);
+    }
+
+    private void getNextFeature(final Long reference, final BiologicalDataItemResourceType type) throws IOException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
 
         switch (type) {
@@ -801,17 +817,18 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertEquals(var1.getEndIndex(), loadedPrevVar.getEndIndex());
     }
 
-    private VcfFile testSave(String filePath) throws IOException, InterruptedException {
+    private VcfFile testSave(final String filePath) throws IOException {
         Resource resource = context.getResource(filePath);
         return registerVcf(resource, referenceId, vcfManager, PRETTY_NAME);
     }
 
-    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks) throws IOException {
+    private Track<Variation> testLoad(final VcfFile vcfFile, final Double scaleFactor, final boolean checkBlocks)
+            throws IOException {
         return testLoad(vcfFile, scaleFactor, checkBlocks, true);
     }
 
-    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, boolean collapse)
-        throws IOException {
+    private Track<Variation> testLoad(final VcfFile vcfFile, final Double scaleFactor, final boolean checkBlocks,
+                                      final boolean collapse) throws IOException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChromosome.getId());
         vcfTrackQuery.setStartIndex(1);
@@ -833,8 +850,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         return trackResult;
     }
 
-    private Track<Variation> testLoadGA4GH(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, Long sampleIndex)
-        throws VcfReadingException {
+    private Track<Variation> testLoadGA4GH(final VcfFile vcfFile, final Double scaleFactor, final boolean checkBlocks,
+                                           final Long sampleIndex) throws VcfReadingException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChrGA4GH.getId());
         vcfTrackQuery.setEndIndex(end);
@@ -856,41 +873,13 @@ public class VcfManagerTest extends AbstractManagerTest {
         return trackResult;
     }
 
-    /*@After
-    public void clear() throws IOException {
-        String contentsDir = fileManager.getBaseDirPath();
-        File file = new File(contentsDir);
-        if (file.exists() && file.isDirectory()) {
-            FileUtils.deleteDirectory(file);
-        }
-    }*/
-
-    private String readFile(String filename) throws IOException {
+    private String readFile(final String filename) throws IOException {
         Resource resource = context.getResource("classpath:externaldb//data//" + filename);
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveUnsorted() throws IOException {
-        String invalidVcf = "unsorted.vcf";
-        testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
-                .getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
-
-        Assert.assertTrue(biologicalDataItemDao
-                .loadFilesByNameStrict(invalidVcf).isEmpty());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterFileExtraChr() throws IOException, InterruptedException {
-        VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
-        Assert.assertTrue(vcfFile != null);
-    }
-
-
-    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
+    private void testRegisterInvalidFile(final String path, final String expectedMessage) throws IOException {
         String errorMessage = "";
         try {
             Resource resource = context.getResource(path);
@@ -903,14 +892,5 @@ public class VcfManagerTest extends AbstractManagerTest {
         }
         //check that we received an appropriate message
         Assert.assertTrue(errorMessage.contains(expectedMessage));
-    }
-
-    public static VcfFile registerVcf(Resource vcfFile, Long referenceId, VcfManager vcfManager,
-            String prettyName) throws IOException {
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(vcfFile.getFile().getAbsolutePath());
-        request.setPrettyName(prettyName);
-        return vcfManager.registerVcfFile(request);
     }
 }

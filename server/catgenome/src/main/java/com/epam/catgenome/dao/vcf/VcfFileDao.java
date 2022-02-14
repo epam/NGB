@@ -24,12 +24,17 @@
 
 package com.epam.catgenome.dao.vcf;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -47,6 +52,7 @@ import com.epam.catgenome.entity.vcf.VcfSample;
  * {@code VcfFileDao} is a DAO component, that handles database interaction with VCF file metadata.
  * </p>
  */
+@Setter
 public class VcfFileDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
@@ -56,6 +62,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
     private String vcfSampleSequenceName;
 
     private String createSamplesForFileQuery;
+    private String updateSamplesForFileQuery;
     private String loadSamplesForFileQuery;
     private String loadSamplesByFileIdsQuery;
 
@@ -72,7 +79,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param vcfFile a {@code VcfFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void createVcfFile(VcfFile vcfFile, final Long realId) {
+    public void createVcfFile(final VcfFile vcfFile, final Long realId) {
         vcfFile.setBioDataItemId(vcfFile.getId());
         vcfFile.setId(realId);
 
@@ -86,7 +93,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param vcfFile a {@code VcfFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void createVcfFile(VcfFile vcfFile) {
+    public void createVcfFile(final VcfFile vcfFile) {
         getNamedParameterJdbcTemplate().update(createVcfFileQuery, BiologicalDataItemDao.FeatureFileParameters
                 .getLinkedTableParameters(VcfParameters.VCF_ID.name(), vcfFile));
     }
@@ -109,21 +116,21 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @return {@code VcfFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public VcfFile loadVcfFile(long id) {
-        List<BiologicalDataItem> files = getJdbcTemplate().query(loadVcfFileQuery, BiologicalDataItemDao
+    public VcfFile loadVcfFile(final long id) {
+        final List<BiologicalDataItem> files = getJdbcTemplate().query(loadVcfFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
 
         return !files.isEmpty() ? (VcfFile) files.get(0) : null;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<VcfFile> loadVcfFiles(List<Long> ids) {
+    public List<VcfFile> loadVcfFiles(final List<Long> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
 
-        String query = DaoHelper.getQueryFilledWithIdArray(loadVcfFilesQuery, ids);
-        List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
+        final String query = DaoHelper.getQueryFilledWithIdArray(loadVcfFilesQuery, ids);
+        final List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
             .BiologicalDataItemParameters.getRowMapper());
 
         return files.stream().map(i -> (VcfFile) i).collect(Collectors.toList());
@@ -146,25 +153,42 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param vcfFileId {@code long} file ID to save samples for
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void createSamples(List<VcfSample> samples, long vcfFileId) {
-        List<Long> sampleIds = daoHelper.createIds(vcfSampleSequenceName, samples.size());
+    public void createSamples(final List<VcfSample> samples, final long vcfFileId) {
+        final List<Long> sampleIds = daoHelper.createIds(vcfSampleSequenceName, samples.size());
+        final MapSqlParameterSource[] params = new MapSqlParameterSource[samples.size()];
         for (int i = 0; i < samples.size(); i++) {
-            samples.get(i).setId(sampleIds.get(i));
-        }
-
-        final List<MapSqlParameterSource> params = new ArrayList<>();
-        for (VcfSample sample : samples) {
-
+            VcfSample sample = samples.get(i);
+            sample.setId(sampleIds.get(i));
             MapSqlParameterSource param = new MapSqlParameterSource();
             param.addValue(SampleParameters.VCF_SAMPLE_ID.name(), sample.getId());
             param.addValue(SampleParameters.VCF_ID.name(), vcfFileId);
             param.addValue(SampleParameters.SAMPLE_NAME.name(), sample.getName());
             param.addValue(SampleParameters.ORDER_INDEX.name(), sample.getIndex());
-            params.add(param);
+            params[i] = param;
         }
 
-        getNamedParameterJdbcTemplate().batchUpdate(createSamplesForFileQuery, params.toArray(new
-                MapSqlParameterSource[params.size()]));
+        getNamedParameterJdbcTemplate().batchUpdate(createSamplesForFileQuery, params);
+    }
+
+    /**
+     * Update samples pretty name.
+     *
+     * @param samples   {@code Map&lt;String, String&gt;} samples to update
+     * @param vcfFileId {@code long} file ID to save samples for
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateSamples(final Map<String, String> samples, final long vcfFileId) {
+        final MapSqlParameterSource[] params = new MapSqlParameterSource[samples.size()];
+        int i = 0;
+        for (Map.Entry<String, String> sample: samples.entrySet()) {
+            MapSqlParameterSource param = new MapSqlParameterSource();
+            param.addValue(SampleParameters.VCF_ID.name(), vcfFileId);
+            param.addValue(SampleParameters.SAMPLE_NAME.name(), sample.getKey());
+            param.addValue(SampleParameters.PRETTY_NAME.name(), sample.getValue());
+            params[i] = (param);
+            i++;
+        }
+        getNamedParameterJdbcTemplate().batchUpdate(updateSamplesForFileQuery, params);
     }
 
     /**
@@ -174,7 +198,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @return {@code List&lt;Sample&gt;} of samples for given file ID.
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<VcfSample> loadSamplesForFile(long vcfFileId) {
+    public List<VcfSample> loadSamplesForFile(final long vcfFileId) {
         return getJdbcTemplate().query(loadSamplesForFileQuery, SampleParameters.getVcfSampleMapper(), vcfFileId);
     }
 
@@ -185,14 +209,14 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @return a map of {@code VcfFile} IDs to lists of their samples
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, List<VcfSample>> loadSamplesByFileIds(Collection<Long> fileIds) {
+    public Map<Long, List<VcfSample>> loadSamplesByFileIds(final Collection<Long> fileIds) {
         if (fileIds == null || fileIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        Map<Long, List<VcfSample>> map = new HashMap<>();
+        final Map<Long, List<VcfSample>> map = new HashMap<>();
 
-        String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
+        final String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
         getJdbcTemplate().query(query, rs -> {
             VcfSample sample = SampleParameters.getVcfSampleMapper().mapRow(rs, 0);
             long vcfId = rs.getLong(VcfParameters.VCF_ID.name());
@@ -221,6 +245,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
         VCF_SAMPLE_ID,
         VCF_ID,
         SAMPLE_NAME,
+        PRETTY_NAME,
         ORDER_INDEX;
 
         static RowMapper<VcfSample> getVcfSampleMapper() {
@@ -229,61 +254,11 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
 
                 sample.setId(rs.getLong(VCF_SAMPLE_ID.name()));
                 sample.setName(rs.getString(SAMPLE_NAME.name()));
+                sample.setPrettyName(rs.getString(PRETTY_NAME.name()));
                 sample.setIndex(rs.getInt(ORDER_INDEX.name()));
 
                 return sample;
             };
         }
     }
-
-    @Required
-    public void setVcfFileSequenceName(String vcfFileSequenceName) {
-        this.vcfFileSequenceName = vcfFileSequenceName;
-    }
-
-    @Required
-    public void setVcfSampleSequenceName(String vcfSampleSequenceName) {
-        this.vcfSampleSequenceName = vcfSampleSequenceName;
-    }
-
-    @Required
-    public void setCreateSamplesForFileQuery(String createSamplesForFileQuery) {
-        this.createSamplesForFileQuery = createSamplesForFileQuery;
-    }
-
-    @Required
-    public void setLoadSamplesForFileQuery(String loadSamplesForFileQuery) {
-        this.loadSamplesForFileQuery = loadSamplesForFileQuery;
-    }
-
-    @Required
-    public void setCreateVcfFileQuery(String createVcfFileQuery) {
-        this.createVcfFileQuery = createVcfFileQuery;
-    }
-
-    @Required
-    public void setLoadVcfFileQuery(String loadVcfFileQuery) {
-        this.loadVcfFileQuery = loadVcfFileQuery;
-    }
-
-    @Required
-    public void setLoadSamplesByFileIdsQuery(String loadSamplesByFileIdsQuery) {
-        this.loadSamplesByFileIdsQuery = loadSamplesByFileIdsQuery;
-    }
-
-    @Required
-    public void setDeleteVcfFileQuery(final String deleteVcfFileQuery) {
-        this.deleteVcfFileQuery = deleteVcfFileQuery;
-    }
-
-    @Required
-    public void setDeleteVcfSampleQuery(final String deleteVcfSampleQuery) {
-        this.deleteVcfSampleQuery = deleteVcfSampleQuery;
-    }
-
-    @Required
-    public void setLoadVcfFilesQuery(String loadVcfFilesQuery) {
-        this.loadVcfFilesQuery = loadVcfFilesQuery;
-    }
 }
-

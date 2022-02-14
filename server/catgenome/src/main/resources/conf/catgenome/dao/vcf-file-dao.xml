@@ -109,12 +109,24 @@
                 ]]>
             </value>
         </property>
+        <property name="updateSamplesForFileQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.vcf_sample SET
+                        pretty_name = :PRETTY_NAME
+                    WHERE
+                        vcf_id = :VCF_ID AND
+                        sample_name = :SAMPLE_NAME
+                ]]>
+            </value>
+        </property>
         <property name="loadSamplesForFileQuery">
             <value>
                 <![CDATA[
                     SELECT
                         vcf_sample_id,
                         sample_name,
+                        pretty_name,
                         order_index
                     FROM catgenome.vcf_sample
                     WHERE vcf_id = ?
@@ -128,6 +140,7 @@
                     SELECT
                         s.vcf_sample_id,
                         s.sample_name,
+                        s.pretty_name,
                         s.order_index,
                         s.vcf_id
                     FROM catgenome.vcf_sample s

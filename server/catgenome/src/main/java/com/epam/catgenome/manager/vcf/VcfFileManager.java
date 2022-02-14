@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,12 @@ package com.epam.catgenome.manager.vcf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.metadata.MetadataManager;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +51,6 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 
-
 /**
  * Source:      VcfFileManager.java
  * Created:     12.11.15, 13:54
@@ -63,19 +63,13 @@ import com.epam.catgenome.security.acl.aspect.AclSync;
  */
 @AclSync
 @Service
+@RequiredArgsConstructor
 public class VcfFileManager implements SecuredEntityManager {
 
-    @Autowired
-    private VcfFileDao vcfFileDao;
-
-    @Autowired
-    private BiologicalDataItemDao biologicalDataItemDao;
-
-    @Autowired
-    private ProjectDao projectDao;
-
-    @Autowired
-    private MetadataManager metadataManager;
+    private final VcfFileDao vcfFileDao;
+    private final BiologicalDataItemDao biologicalDataItemDao;
+    private final ProjectDao projectDao;
+    private final MetadataManager metadataManager;
 
     /**
      * Persists {@code VcfFile} record to the database
@@ -100,7 +94,7 @@ public class VcfFileManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public VcfFile load(final Long vcfFileId) {
-        VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
+        final VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
@@ -110,7 +104,7 @@ public class VcfFileManager implements SecuredEntityManager {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(final Long id, final String owner) {
-        VcfFile vcfFile = load(id);
+        final VcfFile vcfFile = load(id);
         biologicalDataItemDao.updateOwner(vcfFile.getBioDataItemId(), owner);
         vcfFile.setOwner(owner);
         return vcfFile;
@@ -158,6 +152,13 @@ public class VcfFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
         metadataManager.delete(vcfFile);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void setVcfAliases(final Map<String, String> aliases, final long vcfFileId) {
+        final VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
+        Assert.notNull(vcfFile, MessagesConstants.ERROR_INVALID_PARAM);
+        vcfFileDao.updateSamples(aliases, vcfFileId);
     }
 
     /**

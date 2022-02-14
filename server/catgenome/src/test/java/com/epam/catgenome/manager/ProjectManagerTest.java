@@ -26,7 +26,6 @@ package com.epam.catgenome.manager;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -249,7 +248,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertFalse(loadedProject.getItems().isEmpty());
     }
 
-
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testDeleteProjectWithNested() throws IOException {
@@ -301,8 +299,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testAddRemoveHideItems()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, FeatureIndexException {
+    public void testAddRemoveHideItems() throws IOException, FeatureIndexException {
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
         project.setItems(Collections.singletonList(
@@ -334,9 +331,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testMoveProjectToParent()
-        throws InterruptedException,
-            NoSuchAlgorithmException, IOException {
+    public void testMoveProjectToParent() throws IOException {
         Project parent = new Project();
         parent.setName(TEST_PARENT_NAME);
         parent.setItems(Collections.singletonList(
@@ -479,8 +474,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testAllFileTypesLoading()
-        throws IOException, InterruptedException, NoSuchAlgorithmException {
+    public void testAllFileTypesLoading() throws IOException {
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
         project.setItems(Collections.singletonList(
@@ -638,7 +632,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
     }
 
-    private void assertNullLoadProjectWithNested(Project root) {
+    private void assertNullLoadProjectWithNested(final Project root) {
         try {
             // check that we handle exception as expected
             Assert.assertNull(projectManager.load(root.getId()));
@@ -650,12 +644,12 @@ public class ProjectManagerTest extends AbstractManagerTest {
         }
     }
 
-    private void addVcfFileToProject(long projectId, String name, String path) throws IOException {
+    private void addVcfFileToProject(final long projectId, final String name, final String path) throws IOException {
         VcfFile vcfFile = addVcfFile(name, path);
         projectManager.addProjectItem(projectId, vcfFile.getBioDataItemId());
     }
 
-    private VcfFile addVcfFile(String name, String path) throws IOException {
+    private VcfFile addVcfFile(final String name, final String path) throws IOException {
         Resource resource = context.getResource(path);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
