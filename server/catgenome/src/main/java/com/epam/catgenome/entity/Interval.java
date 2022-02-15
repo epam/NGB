@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.bam;
+package com.epam.catgenome.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,7 +30,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
-public class Interval {
-    private Integer from;
-    private Integer to;
+public class Interval<T> {
+    private T from;
+    private T to;
 }

@@ -30,7 +30,7 @@ import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.CoverageInterval;
 import com.epam.catgenome.entity.bam.CoverageQueryParams;
-import com.epam.catgenome.entity.bam.Interval;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
@@ -42,12 +42,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
@@ -64,7 +59,6 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
-import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -86,6 +80,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IndexUtils.addFloatIntervalFilter;
+import static com.epam.catgenome.util.IndexUtils.addIntIntervalFilter;
 import static com.epam.catgenome.util.IndexUtils.deleteIndexDocument;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 
@@ -100,27 +96,31 @@ public class BamCoverageManager {
     @Value("${coverage.top.hits:10000}")
     private int coverageTopHits;
 
+    @Value("${coverage.batch.size:500}")
+    private int batchSize;
+
     private final BamCoverageDao bamCoverageDao;
     private final BamFileManager bamFileManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public BamCoverage create(BamCoverage coverage) throws IOException {
+    public BamCoverage create(final BamCoverage coverage) throws IOException {
+        Assert.notNull(coverage.getStep(), getMessage("Coverage step value should be defined"));
+        Assert.isTrue(coverage.getStep() > 0, getMessage("Coverage step value should be > 0"));
         final BamFile bamFile = bamFileManager.load(coverage.getBamId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND, coverage.getBamId()));
         Assert.isTrue(bamCoverageDao.load(coverage.getBamId(), coverage.getStep()).isEmpty(),
-                getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND, coverage.getBamId()));
+                getMessage(MessagesConstants.ERROR_BAM_COVERAGE_NOT_UNIQUE, coverage.getStep(), coverage.getBamId()));
         final String path = bamFile.getPath();
         final File file = getFile(path);
         coverage.setCoverageId(bamCoverageDao.createId());
+        writeCoverageIntervals(coverage, file);
         bamCoverageDao.save(coverage);
-        final List<CoverageInterval> coverageAreas = getCoverageAreas(coverage, file);
-        write(coverageAreas);
         return coverage;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(final long bamId, final int step) throws IOException {
-        List<BamCoverage> coverages = bamCoverageDao.load(bamId, step);
+    public void delete(final Long bamId, final Integer step) throws IOException {
+        final List<BamCoverage> coverages = bamCoverageDao.load(bamId, step);
         if (!CollectionUtils.isEmpty(coverages)) {
             final Set<Long> coverageIds = coverages.stream()
                     .map(BamCoverage::getCoverageId)
@@ -137,12 +137,12 @@ public class BamCoverageManager {
         return bamCoverageDao.loadAll();
     }
 
-    public List<BamCoverage> loadByBamId(final long bamId) {
-        return bamCoverageDao.loadByBamId(bamId);
+    public List<BamCoverage> loadByBamId(final Set<Long> bamIds) {
+        return bamCoverageDao.loadByBamId(bamIds);
     }
 
     public Page<CoverageInterval> search(final CoverageQueryParams params) throws ParseException, IOException {
-        final Sort sort = getSort(params.getSortInfo());
+        Assert.notNull(params.getCoverageId(), getMessage("Coverage id should be defined"));
         final Query query = buildCoverageQuery(params);
         final PagingInfo pagingInfo = params.getPagingInfo();
 
@@ -162,6 +162,7 @@ public class BamCoverageManager {
                         pagingInfo.getPageSize() > 0 ? pagingInfo.getPageSize() : totalCount;
                 final int numDocs = pagingInfo == null ? totalCount : pageNum * pageSize;
 
+                final Sort sort = getSort(params.getSortInfo());
                 topDocs = searcher.search(query, numDocs, sort);
 
                 final int from = (pageNum - 1) * pageSize;
@@ -176,7 +177,8 @@ public class BamCoverageManager {
                             .chr(doc.getField(IndexField.CHR.getFieldName()).stringValue())
                             .start(Integer.parseInt(doc.getField(IndexField.START.getFieldName()).stringValue()))
                             .end(Integer.parseInt(doc.getField(IndexField.END.getFieldName()).stringValue()))
-                            .coverage(Integer.parseInt(doc.getField(IndexField.COVERAGE.getFieldName()).stringValue()))
+                            .coverage(Float.parseFloat(doc.getField(IndexField.COVERAGE.getFieldName())
+                                    .stringValue()))
                             .build();
                     items.add(interval);
                 }
@@ -191,21 +193,24 @@ public class BamCoverageManager {
 
     @NotNull
     private Sort getSort(final List<SortInfo> sortInfos) {
-        if (sortInfos == null) {
-            return new Sort(new SortField(IndexField.COVERAGE.getFieldName(), SortField.Type.STRING, false));
-        }
         final ArrayList<SortField> sortFields = new ArrayList<>();
-        for (SortInfo sortInfo: sortInfos) {
-            final IndexField sortField = IndexField.getByName(sortInfo.getField());
-            if (sortField != null) {
-                SortField sf;
-                sf = new SortField(sortInfo.getField(), sortField.getType(), !sortInfo.isAscending());
-                sortFields.add(sf);
+        if (sortInfos != null) {
+            for (SortInfo sortInfo: sortInfos) {
+                final IndexField sortField = IndexField.getByName(sortInfo.getField());
+                if (sortField != null) {
+                    SortField sf;
+                    sf = new SortField(sortInfo.getField(), sortField.getType(), !sortInfo.isAscending());
+                    sortFields.add(sf);
+                }
             }
         }
         return CollectionUtils.isEmpty(sortFields) ?
-                new Sort(new SortField(IndexField.COVERAGE.getFieldName(), SortField.Type.STRING, false)):
+                getDefaultSort() :
                 new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+    }
+
+    private Sort getDefaultSort() {
+        return new Sort(new SortField(IndexField.COVERAGE.getFieldName(), SortField.Type.INT, true));
     }
 
     private void write(final List<CoverageInterval> intervals) throws IOException {
@@ -217,31 +222,28 @@ public class BamCoverageManager {
                 doc.add(new StringField(IndexField.COVERAGE_ID.getFieldName(),
                         String.valueOf(interval.getCoverageId()), Field.Store.YES));
 
-                doc.add(new StringField(IndexField.CHR.getFieldName(), interval.getChr(), Field.Store.YES));
+                doc.add(new TextField(IndexField.CHR.getFieldName(), interval.getChr(), Field.Store.YES));
                 doc.add(new SortedStringField(IndexField.CHR.getFieldName(), interval.getChr(), true));
                 doc.add(new StoredField(IndexField.CHR.getFieldName(), interval.getChr()));
 
                 doc.add(new IntPoint(IndexField.START.getFieldName(), interval.getStart()));
                 doc.add(new StoredField(IndexField.START.getFieldName(), interval.getStart()));
-                doc.add(new SortedDocValuesField(IndexField.START.getFieldName(),
-                        new BytesRef(interval.getStart())));
+                doc.add(new NumericDocValuesField(IndexField.START.getFieldName(), interval.getStart()));
 
                 doc.add(new IntPoint(IndexField.END.getFieldName(), interval.getEnd()));
                 doc.add(new StoredField(IndexField.END.getFieldName(), interval.getEnd()));
-                doc.add(new SortedDocValuesField(IndexField.END.getFieldName(),
-                        new BytesRef(interval.getEnd())));
+                doc.add(new NumericDocValuesField(IndexField.END.getFieldName(), interval.getEnd()));
 
-                doc.add(new IntPoint(IndexField.COVERAGE.getFieldName(), interval.getCoverage()));
+                doc.add(new FloatPoint(IndexField.COVERAGE.getFieldName(), interval.getCoverage()));
                 doc.add(new StoredField(IndexField.COVERAGE.getFieldName(), interval.getCoverage()));
-                doc.add(new SortedDocValuesField(IndexField.COVERAGE.getFieldName(),
-                        new BytesRef(interval.getCoverage())));
+                doc.add(new FloatDocValuesField(IndexField.COVERAGE.getFieldName(), interval.getCoverage()));
 
                 writer.addDocument(doc);
             }
         }
     }
 
-    private List<CoverageInterval> getCoverageAreas(final BamCoverage bamCoverage, final File file) throws IOException {
+    private void writeCoverageIntervals(final BamCoverage bamCoverage, final File file) throws IOException {
         List<CoverageInterval> coverageAreas = new ArrayList<>();
         try (SamReader reader = SamReaderFactory.makeDefault().referenceSequence(null)
                 .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(file)) {
@@ -249,7 +251,9 @@ public class BamCoverageManager {
             final Iterator<SamLocusIterator.LocusInfo> iterator = samLocusIterator.iterator();
             int from = 1;
             int to = bamCoverage.getStep();
-            int coverage = 0;
+            float coverage = 0;
+            float totalCoverage = 0;
+            int intervals = 0;
 
             while (iterator.hasNext()) {
                 SamLocusIterator.LocusInfo locus = iterator.next();
@@ -260,9 +264,11 @@ public class BamCoverageManager {
                             .chr(locus.getSequenceName())
                             .start(from)
                             .end(to)
-                            .coverage(coverage)
+                            .coverage(coverage / (to - from + 1))
                             .build();
                     coverageAreas.add(area);
+                    intervals++;
+                    totalCoverage += coverage / (to - from + 1);
                     coverage = 0;
                     if (locus.getPosition() == locus.getSequenceLength()) {
                         from = 1;
@@ -272,9 +278,13 @@ public class BamCoverageManager {
                         to = Math.min(locus.getPosition() + bamCoverage.getStep(), locus.getSequenceLength());
                     }
                 }
+                if (coverageAreas.size() == batchSize) {
+                    write(coverageAreas);
+                    coverageAreas = new ArrayList<>();
+                }
             }
+            bamCoverage.setCoverage(totalCoverage / intervals);
         }
-        return coverageAreas;
     }
 
     private Query buildCoverageQuery(final CoverageQueryParams params) throws ParseException {
@@ -287,13 +297,16 @@ public class BamCoverageManager {
                     BooleanClause.Occur.MUST);
         }
         if (params.getStart() != null) {
-            addIntervalFilter(params.getStart(), IndexField.START.getFieldName(), builder);
+            final Interval<Integer> startInterval = params.getStart();
+            addIntIntervalFilter(IndexField.START.getFieldName(), startInterval, builder);
         }
         if (params.getEnd() != null) {
-            addIntervalFilter(params.getEnd(), IndexField.END.getFieldName(), builder);
+            final Interval<Integer> endInterval = params.getEnd();
+            addIntIntervalFilter(IndexField.END.getFieldName(), endInterval, builder);
         }
         if (params.getCoverage() != null) {
-            addIntervalFilter(params.getCoverage(), IndexField.COVERAGE.getFieldName(), builder);
+            final Interval<Float> coverageInterval = params.getCoverage();
+            addFloatIntervalFilter(IndexField.COVERAGE.getFieldName(), coverageInterval, builder);
         }
         return builder.build();
     }
@@ -302,30 +315,13 @@ public class BamCoverageManager {
         deleteIndexDocument(IndexField.COVERAGE_ID.getFieldName(), coverageId, bamCoverageIndexDirectory);
     }
 
-    private static void addIntervalFilter(final Interval interval,
-                                         final String fieldName,
-                                         final BooleanQuery.Builder builder) {
-        if (interval.getFrom() != null && interval.getTo() != null) {
-            builder.add(IntPoint.newRangeQuery(fieldName, interval.getFrom(), interval.getTo()),
-                    BooleanClause.Occur.MUST);
-        } else {
-            if (interval.getFrom() != null) {
-                builder.add(IntPoint.newRangeQuery(fieldName, interval.getFrom(), Integer.MAX_VALUE),
-                        BooleanClause.Occur.MUST);
-            } else if (interval.getTo() != null) {
-                builder.add(IntPoint.newRangeQuery(fieldName, Integer.MIN_VALUE, interval.getTo()),
-                        BooleanClause.Occur.MUST);
-            }
-        }
-    }
-
     @Getter
     private enum IndexField {
         COVERAGE_ID("coverageId", SortField.Type.INT),
         CHR("chr", SortField.Type.STRING),
         START("start", SortField.Type.INT),
         END("end", SortField.Type.INT),
-        COVERAGE("coverage", SortField.Type.INT);
+        COVERAGE("coverage", SortField.Type.FLOAT);
 
         private final String fieldName;
         private final SortField.Type type;
@@ -338,10 +334,10 @@ public class BamCoverageManager {
         private static final Map<String, IndexField> MAP = new HashMap<>();
 
         static {
-            MAP.put(CHR.name(), CHR);
-            MAP.put(START.name(), START);
-            MAP.put(END.name(), END);
-            MAP.put(COVERAGE.name(), COVERAGE);
+            MAP.put(CHR.getFieldName(), CHR);
+            MAP.put(START.getFieldName(), START);
+            MAP.put(END.getFieldName(), END);
+            MAP.put(COVERAGE.getFieldName(), COVERAGE);
         }
 
         private static IndexField getByName(String name) {

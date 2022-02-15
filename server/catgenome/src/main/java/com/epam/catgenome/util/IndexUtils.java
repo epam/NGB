@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.manager.bam.BamHelper;
 import htsjdk.samtools.Defaults;
@@ -53,9 +54,13 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
@@ -494,6 +499,29 @@ public final class IndexUtils {
             writer.deleteDocuments(term);
         }
     }
+
+    public static void addIntIntervalFilter(final String fieldName,
+                                             final Interval<Integer> interval,
+                                             final BooleanQuery.Builder builder) {
+        if (interval.getFrom() != null || interval.getTo() != null) {
+            builder.add(IntPoint.newRangeQuery(fieldName,
+                            interval.getFrom() == null ? Integer.MIN_VALUE : interval.getFrom(),
+                            interval.getTo() == null ? Integer.MAX_VALUE : interval.getTo()),
+                    BooleanClause.Occur.MUST);
+        }
+    }
+
+    public static void addFloatIntervalFilter(final String fieldName,
+                                               final Interval<Float> interval,
+                                               final BooleanQuery.Builder builder) {
+        if (interval.getFrom() != null || interval.getTo() != null) {
+            builder.add(FloatPoint.newRangeQuery(fieldName,
+                            interval.getFrom() == null ? Float.MIN_VALUE : interval.getFrom(),
+                            interval.getTo() == null ? Float.MAX_VALUE : interval.getTo()),
+                    BooleanClause.Occur.MUST);
+        }
+    }
+
 
     private static InputStream indexFileInputStream(final InputStream indexStream, String extension)
             throws IOException {

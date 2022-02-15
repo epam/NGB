@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
@@ -221,21 +222,20 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<Boolean> createCoverage(@RequestBody final BamCoverage coverage) throws IOException {
-        bamSecurityService.createCoverage(coverage);
-        return Result.success(true);
+    public Result<BamCoverage> createCoverage(@RequestBody final BamCoverage coverage) throws IOException {
+        return Result.success(bamSecurityService.createCoverage(coverage));
     }
 
     @ResponseBody
     @DeleteMapping(value = "/bam/coverage")
     @ApiOperation(
-        value = "Deletes BAM coverage by Id",
-        notes = "Deletes BAM coverage by Id",
+        value = "Deletes BAM coverage by Bam file Id and step",
+        notes = "Deletes BAM coverage by Bam file Id and step",
         produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<Boolean> deleteCoverage(@RequestParam final long bamId,
+    public Result<Boolean> deleteCoverage(@RequestParam final Long bamId,
                                           @RequestParam(required = false) final Integer step)
             throws IOException, InterruptedException, ParseException {
         bamSecurityService.deleteCoverage(bamId, step);
@@ -257,6 +257,19 @@ public class BamController extends AbstractRESTController {
     }
 
     @ResponseBody
+    @GetMapping(value = "/bam/coverage")
+    @ApiOperation(
+        value = "Returns all registered coverages for bam files",
+        notes = "Returns all registered coverages for bam files",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<List<BamCoverage>> loadByBamId(@RequestParam final Set<Long> bamIds) throws IOException {
+        return Result.success(bamSecurityService.loadByBamId(bamIds));
+    }
+
+    @ResponseBody
     @GetMapping(value = "/bam/coverage/all")
     @ApiOperation(
         value = "Returns all registered coverages",
@@ -265,7 +278,7 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<BamCoverage>> loadCoverage() throws IOException {
+    public Result<List<BamCoverage>> loadAll() throws IOException {
         return Result.success(bamSecurityService.loadAll());
     }
 }

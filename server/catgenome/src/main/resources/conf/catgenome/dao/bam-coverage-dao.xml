@@ -10,19 +10,14 @@
                     INSERT INTO catgenome.bam_coverage (
                         coverage_id,
                         bam_id,
-                        step
+                        step,
+                        coverage
                     ) VALUES (
                         :COVERAGE_ID,
                         :BAM_ID,
-                        :STEP
+                        :STEP,
+                        :COVERAGE
                     )
-                ]]>
-            </value>
-        </property>
-        <property name="deleteQuery">
-            <value>
-                <![CDATA[
-                    DELETE FROM catgenome.bam_coverage
                 ]]>
             </value>
         </property>
@@ -34,27 +29,16 @@
                 ]]>
             </value>
         </property>
-        <property name="loadByIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        coverage_id,
-                        bam_id,
-                        step
-                    FROM catgenome.bam_coverage
-                    WHERE coverage_id = ?
-                ]]>
-            </value>
-        </property>
         <property name="loadByBamIdQuery">
             <value>
                 <![CDATA[
                     SELECT
                         coverage_id,
                         bam_id,
-                        step
+                        step,
+                        coverage
                     FROM catgenome.bam_coverage
-                    WHERE bam_id = ?
+                    WHERE bam_id IN (@in@)
                 ]]>
             </value>
         </property>
@@ -64,7 +48,8 @@
                     SELECT
                         coverage_id,
                         bam_id,
-                        step
+                        step,
+                        coverage
                     FROM catgenome.bam_coverage
                 ]]>
             </value>

@@ -170,7 +170,7 @@ public final class MessagesConstants {
     public static final String WRONG_HEADER_BAM_FILE = "error.header.bam.file";
     public static final String WRONG_HEADER_BAM_FILE_EMPTY_FILE = "error.header.bam.file.empty";
     public static final String ERROR_BAM_FILE_NOT_FOUND = "error.bam.file.not.found";
-    public static final String ERROR_BAM_COVERAGE_NOT_FOUND = "error.bam.coverage.not.found";
+    public static final String ERROR_BAM_COVERAGE_NOT_UNIQUE = "error.bam.coverage.not.unique";
 
     //BLAT SEARCH
     public static final String NULL_SPECIES_FOR_GENOME = "error.reference.species.empty";

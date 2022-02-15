@@ -90,9 +90,14 @@ public class Application {
             + "rl\treg_lineage\t: registers a lineage tree\t{rl \"nodes_path\" \"edges_path\"}\n"
             + "dl\tdel_lineage\t: deletes a lineage tree \t{dl 2}\n"
             + "ll\tlist_lineage\t: lists all lineage trees, registered on the server\t{ll}\n\n"
+            + "METABOLIC PATHWAY commands:\n"
             + "rp\treg_pathway\t: registers a metabolic pathway\t{rp \"path\"}\n"
             + "dp\tdel_pathway\t: deletes a metabolic pathway \t{dp 2}\n"
             + "lp\tlist_pathway\t: lists all metabolic pathways, registered on the server\t{lp}\n\n"
+            + "COVERAGE commands:\n"
+            + "ac\tadd_coverage\t: adds a coverage for a Bam file\t{ac 2 100}\n"
+            + "rc\tremove_coverage\t: deletes a coverage \t{rc 2 100}\n"
+            + "lc\tlist_coverages\t: lists all coverages, registered on the server\t{lc}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -251,6 +256,9 @@ public class Application {
     @Option(name = "--taxid", usage = "specifies taxonomy id")
     private Long taxId;
 
+    @Option(name = "--step", usage = "specifies Bam file coverage interval size")
+    private Integer step;
+
     @Argument
     private List<String> arguments;
 
@@ -360,6 +368,7 @@ public class Application {
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
         options.setTaxId(taxId);
+        options.setStep(step);
         return options;
     }
 

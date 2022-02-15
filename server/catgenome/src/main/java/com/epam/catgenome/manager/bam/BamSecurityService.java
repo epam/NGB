@@ -43,6 +43,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -94,8 +95,8 @@ public class BamSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
-    public void createCoverage(final BamCoverage coverage) throws IOException {
-        coverageManager.create(coverage);
+    public BamCoverage createCoverage(final BamCoverage coverage) throws IOException {
+        return coverageManager.create(coverage);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -104,12 +105,17 @@ public class BamSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public List<BamCoverage> loadByBamId(final Set<Long> bamIds) throws IOException {
+        return coverageManager.loadByBamId(bamIds);
+    }
+
+    @PreAuthorize(ROLE_USER)
     public Page<CoverageInterval> loadCoverage(final CoverageQueryParams params) throws ParseException, IOException {
         return coverageManager.search(params);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
-    public void deleteCoverage(final long bamId, final Integer step) throws IOException, ParseException {
+    public void deleteCoverage(final Long bamId, final Integer step) throws IOException, ParseException {
         coverageManager.delete(bamId, step);
     }
 }

@@ -29,7 +29,6 @@ import com.epam.catgenome.util.db.Filter;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -54,9 +53,7 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
     private DaoHelper daoHelper;
     private String sequenceName;
     private String insertQuery;
-    private String deleteQuery;
     private String deleteByIdsQuery;
-    private String loadByIdQuery;
     private String loadQuery;
     private String loadByBamIdQuery;
 
@@ -68,30 +65,6 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
     public void save(final BamCoverage coverage) {
         final MapSqlParameterSource params = Parameters.getParameters(coverage);
         getNamedParameterJdbcTemplate().update(insertQuery, params);
-    }
-
-    /**
-     * Deletes BamCoverages from the database
-     */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(final long bamId, final int step) {
-        final List<Filter> filters = new ArrayList<>();
-        final Filter bamIdFilter = Filter.builder()
-                .field("bam_id")
-                .operator("=")
-                .value(String.valueOf(bamId))
-                .build();
-        filters.add(bamIdFilter);
-        if (step > 0) {
-            final Filter stepFilter = Filter.builder()
-                    .field("step")
-                    .operator("=")
-                    .value(String.valueOf(step))
-                    .build();
-            filters.add(stepFilter);
-        }
-        final String query = addFiltersToQuery(deleteQuery, filters);
-        getJdbcTemplate().update(query);
     }
 
     /**
@@ -112,24 +85,16 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code BamCoverage} from a database
      * @return a {@code BamCoverage} from the database
      */
-    public BamCoverage loadById(final long id) {
-        List<BamCoverage> coverages = getJdbcTemplate().query(loadByIdQuery, Parameters.getRowMapper(), id);
-        return CollectionUtils.isEmpty(coverages) ? null : coverages.get(0);
-    }
-
-    /**
-     * Loads {@code BamCoverage} from a database
-     * @return a {@code BamCoverage} from the database
-     */
-    public List<BamCoverage> loadByBamId(final long bamId) {
-        return getJdbcTemplate().query(loadByBamIdQuery, Parameters.getRowMapper(), bamId);
+    public List<BamCoverage> loadByBamId(final Set<Long> bamIds) {
+        final String query = DaoHelper.replaceInClause(loadByBamIdQuery, bamIds.size());
+        return getJdbcTemplate().query(query, Parameters.getRowMapper(), bamIds.toArray());
     }
 
     /**
      * Loads {@code BamCoverages} from a database
      * @return a {@code List<BamCoverage>} from the database
      */
-    public List<BamCoverage> load(final long bamId, final int step) {
+    public List<BamCoverage> load(final Long bamId, final Integer step) {
         final List<Filter> filters = new ArrayList<>();
         final Filter bamIdFilter = Filter.builder()
                 .field("bam_id")
@@ -137,7 +102,7 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
                 .value(String.valueOf(bamId))
                 .build();
         filters.add(bamIdFilter);
-        if (step > 0) {
+        if (step != null) {
             final Filter stepFilter = Filter.builder()
                     .field("step")
                     .operator("=")
@@ -160,13 +125,15 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
     enum Parameters {
         COVERAGE_ID,
         BAM_ID,
-        STEP;
+        STEP,
+        COVERAGE;
 
         static MapSqlParameterSource getParameters(final BamCoverage coverage) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(COVERAGE_ID.name(), coverage.getCoverageId());
             params.addValue(BAM_ID.name(), coverage.getBamId());
             params.addValue(STEP.name(), coverage.getStep());
+            params.addValue(COVERAGE.name(), coverage.getCoverage());
 
             return params;
         }
@@ -180,6 +147,7 @@ public class BamCoverageDao extends NamedParameterJdbcDaoSupport {
                     .coverageId(rs.getLong(COVERAGE_ID.name()))
                     .bamId(rs.getLong(BAM_ID.name()))
                     .step(rs.getInt(STEP.name()))
+                    .coverage(rs.getFloat(COVERAGE.name()))
                     .build();
         }
     }

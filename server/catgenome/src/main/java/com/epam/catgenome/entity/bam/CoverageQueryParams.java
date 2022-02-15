@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.bam;
 
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.Builder;
@@ -37,9 +38,9 @@ import java.util.List;
 public class CoverageQueryParams {
     private PagingInfo pagingInfo;
     private List<SortInfo> sortInfo;
-    private long coverageId;
+    private Long coverageId;
     private String chr;
-    private Interval start;
-    private Interval end;
-    private Interval coverage;
+    private Interval<Integer> start;
+    private Interval<Integer> end;
+    private Interval<Float> coverage;
 }

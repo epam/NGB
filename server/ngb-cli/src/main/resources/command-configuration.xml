@@ -280,4 +280,19 @@
         <type>GET</type>
         <url>/restapi/pathway/all</url>
     </list_pathway>
+    <add_coverage>
+        <name>add_coverage</name>
+        <type>POST</type>
+        <url>/restapi/bam/coverage</url>
+    </add_coverage>
+    <remove_coverage>
+        <name>remove_coverage</name>
+        <type>DELETE</type>
+        <url>/restapi/bam/coverage</url>
+    </remove_coverage>
+    <list_coverage>
+        <name>list_coverage</name>
+        <type>GET</type>
+        <url>/restapi/bam/coverage/all</url>
+    </list_coverage>
 </config>

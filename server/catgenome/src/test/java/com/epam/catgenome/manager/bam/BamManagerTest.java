@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.bam;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.servlet.ServletException;
@@ -50,7 +51,7 @@ import com.epam.catgenome.entity.bam.BamTrack;
 import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.CoverageInterval;
 import com.epam.catgenome.entity.bam.CoverageQueryParams;
-import com.epam.catgenome.entity.bam.Interval;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.bucket.Bucket;
@@ -63,6 +64,7 @@ import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.SortInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.eclipse.jetty.server.Request;
@@ -153,8 +155,8 @@ public class BamManagerTest extends AbstractManagerTest {
     private static final long WRONG_FILE_ID = 123L;
 
     private static final int STEP = 100000;
-    private static final int TO = 5000;
-    private static final int FROM = 0;
+    private static final float COVERAGE_FROM = 0.002f;
+    private static final float COVERAGE_TO = 0.01f;
 
     private Resource resource;
     private final String chromosomeName = "X";
@@ -215,7 +217,7 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void saveBamTest() throws IOException, InterruptedException {
+    public void saveBamTest() throws IOException {
         final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
@@ -745,7 +747,7 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterBamWithHeaderWithoutSOTag() throws IOException, InterruptedException {
+    public void testRegisterBamWithHeaderWithoutSOTag() throws IOException {
         String bamWithHeaderWithoutSO = "header_without_SO.bam";
         registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
         List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
@@ -766,16 +768,21 @@ public class BamManagerTest extends AbstractManagerTest {
         final BamCoverage coverage = registerBamCoverage();
         final CoverageQueryParams params = CoverageQueryParams.builder()
                 .coverageId(coverage.getCoverageId())
-                .start(new Interval(FROM, TO))
+                .coverage(new Interval<>(COVERAGE_FROM, COVERAGE_TO))
                 .build();
         final PagingInfo pagingInfo = PagingInfo.builder()
                 .pageSize(10)
                 .pageNum(1)
                 .build();
+        final SortInfo sortInfo = SortInfo.builder()
+                .field("coverage")
+                .ascending(true)
+                .build();
         params.setPagingInfo(pagingInfo);
+        params.setSortInfo(Collections.singletonList(sortInfo));
         Page<CoverageInterval> intervalPage = coverageManager.search(params);
-        assertEquals(7, intervalPage.getItems().size());
         coverageManager.deleteCoverageDocument(coverage.getCoverageId());
+        assertEquals(8, intervalPage.getItems().size());
     }
 
     private BamCoverage registerBamCoverage() throws IOException {

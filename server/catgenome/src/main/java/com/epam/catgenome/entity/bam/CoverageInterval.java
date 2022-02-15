@@ -35,5 +35,5 @@ public class CoverageInterval {
     private String chr;
     private Integer start;
     private Integer end;
-    private Integer coverage;
+    private Float coverage;
 }

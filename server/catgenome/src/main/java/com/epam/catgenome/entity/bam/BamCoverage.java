@@ -34,4 +34,5 @@ public class BamCoverage {
     private Long coverageId;
     private Long bamId;
     private Integer step;
+    private Float coverage;
 }
