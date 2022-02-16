@@ -283,6 +283,7 @@ public class BamCoverageManager {
                     coverageAreas = new ArrayList<>();
                 }
             }
+            write(coverageAreas);
             bamCoverage.setCoverage(totalCoverage / intervals);
         }
     }

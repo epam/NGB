@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.bam;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.servlet.ServletException;
@@ -44,14 +43,10 @@ import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationReques
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
 import com.epam.catgenome.entity.bam.BamTrackMode;
-import com.epam.catgenome.entity.bam.CoverageInterval;
-import com.epam.catgenome.entity.bam.CoverageQueryParams;
-import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.bucket.Bucket;
@@ -62,11 +57,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.util.db.Page;
-import com.epam.catgenome.util.db.PagingInfo;
-import com.epam.catgenome.util.db.SortInfo;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -124,9 +115,6 @@ public class BamManagerTest extends AbstractManagerTest {
     private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
-    private BamCoverageManager coverageManager;
-
-    @Autowired
     @InjectMocks
     private BamManager bamManager;
 
@@ -153,13 +141,9 @@ public class BamManagerTest extends AbstractManagerTest {
 
     private static final String PRETTY_NAME = "pretty";
     private static final long WRONG_FILE_ID = 123L;
-
-    private static final int STEP = 100000;
-    private static final float COVERAGE_FROM = 0.002f;
-    private static final float COVERAGE_TO = 0.01f;
+    private static final String CHROMOSOME_NAME = "X";
 
     private Resource resource;
-    private final String chromosomeName = "X";
     private Reference testReference;
     private Chromosome testChromosome;
 
@@ -193,7 +177,7 @@ public class BamManagerTest extends AbstractManagerTest {
         testReference = referenceManager.registerGenome(request);
         List<Chromosome> chromosomeList = testReference.getChromosomes();
         for (Chromosome chromosome : chromosomeList) {
-            if (chromosome.getName().equals(chromosomeName)) {
+            if (chromosome.getName().equals(CHROMOSOME_NAME)) {
                 testChromosome = chromosome;
                 break;
             }
@@ -752,46 +736,6 @@ public class BamManagerTest extends AbstractManagerTest {
         registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
         List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
         assertFalse(biologicalDataItems.isEmpty());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testCreateCoverage() throws IOException {
-        final BamCoverage coverage = registerBamCoverage();
-        assertNotNull(coverage);
-        coverageManager.deleteCoverageDocument(coverage.getCoverageId());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSearchCoverage() throws IOException, ParseException {
-        final BamCoverage coverage = registerBamCoverage();
-        final CoverageQueryParams params = CoverageQueryParams.builder()
-                .coverageId(coverage.getCoverageId())
-                .coverage(new Interval<>(COVERAGE_FROM, COVERAGE_TO))
-                .build();
-        final PagingInfo pagingInfo = PagingInfo.builder()
-                .pageSize(10)
-                .pageNum(1)
-                .build();
-        final SortInfo sortInfo = SortInfo.builder()
-                .field("coverage")
-                .ascending(true)
-                .build();
-        params.setPagingInfo(pagingInfo);
-        params.setSortInfo(Collections.singletonList(sortInfo));
-        Page<CoverageInterval> intervalPage = coverageManager.search(params);
-        coverageManager.deleteCoverageDocument(coverage.getCoverageId());
-        assertEquals(8, intervalPage.getItems().size());
-    }
-
-    private BamCoverage registerBamCoverage() throws IOException {
-        final BamFile bamFile = setUpTestFile();
-        final BamCoverage coverage = BamCoverage.builder()
-                .bamId(bamFile.getId())
-                .step(STEP)
-                .build();
-        return coverageManager.create(coverage);
     }
 
     private void registerFileWithoutSOTag(String path) throws IOException {

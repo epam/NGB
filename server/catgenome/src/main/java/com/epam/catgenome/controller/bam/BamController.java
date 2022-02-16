@@ -28,17 +28,9 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.CoverageInterval;
-import com.epam.catgenome.entity.bam.CoverageQueryParams;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.manager.bam.BamSecurityService;
-import com.epam.catgenome.util.db.Page;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -59,7 +51,6 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -211,74 +202,5 @@ public class BamController extends AbstractRESTController {
                                  @RequestParam(required = false) final String fileUrl,
                                  @RequestParam(required = false) final String indexUrl) throws IOException {
         return Result.success(bamSecurityService.loadRead(query, fileUrl, indexUrl));
-    }
-
-    @ResponseBody
-    @PostMapping(value = "/bam/coverage")
-    @ApiOperation(
-        value = "Creates coverage with given step for the BAM file",
-        notes = "Creates coverage with given step for the BAM file",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public Result<BamCoverage> createCoverage(@RequestBody final BamCoverage coverage) throws IOException {
-        return Result.success(bamSecurityService.createCoverage(coverage));
-    }
-
-    @ResponseBody
-    @DeleteMapping(value = "/bam/coverage")
-    @ApiOperation(
-        value = "Deletes BAM coverage by Bam file Id and step",
-        notes = "Deletes BAM coverage by Bam file Id and step",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public Result<Boolean> deleteCoverage(@RequestParam final Long bamId,
-                                          @RequestParam(required = false) final Integer step)
-            throws IOException, InterruptedException, ParseException {
-        bamSecurityService.deleteCoverage(bamId, step);
-        return Result.success(true);
-    }
-
-    @ResponseBody
-    @PostMapping(value = "/bam/coverage/search")
-    @ApiOperation(
-        value = "Returns coverage intervals for a BAM file",
-        notes = "Returns coverage intervals for a BAM file",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public Result<Page<CoverageInterval>> loadCoverage(@RequestBody final CoverageQueryParams params)
-            throws ParseException, IOException {
-        return Result.success(bamSecurityService.loadCoverage(params));
-    }
-
-    @ResponseBody
-    @GetMapping(value = "/bam/coverage")
-    @ApiOperation(
-        value = "Returns all registered coverages for bam files",
-        notes = "Returns all registered coverages for bam files",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public Result<List<BamCoverage>> loadByBamId(@RequestParam final Set<Long> bamIds) throws IOException {
-        return Result.success(bamSecurityService.loadByBamId(bamIds));
-    }
-
-    @ResponseBody
-    @GetMapping(value = "/bam/coverage/all")
-    @ApiOperation(
-        value = "Returns all registered coverages",
-        notes = "Returns all registered coverages",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public Result<List<BamCoverage>> loadAll() throws IOException {
-        return Result.success(bamSecurityService.loadAll());
     }
 }
