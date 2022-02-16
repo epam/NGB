@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2018-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
@@ -41,6 +41,7 @@ import java.io.IOException;
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
+@RequiredArgsConstructor
 public class BamSecurityService {
 
     private static final String READ_BAM_BY_TRACK_ID =
@@ -51,8 +52,7 @@ public class BamSecurityService {
             "hasPermissionOnFileOrParentProject(#query.id, 'com.epam.catgenome.entity.bam.BamFile', " +
                     "#query.projectId, 'READ')";
 
-    @Autowired
-    private BamManager bamManager;
+    private final BamManager bamManager;
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
     public BamFile registerBam(IndexedFileRegistrationRequest request) throws IOException {
@@ -85,5 +85,4 @@ public class BamSecurityService {
                                              ResponseBodyEmitter emitter) throws IOException {
         bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
     }
-
 }

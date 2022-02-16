@@ -949,6 +949,54 @@ Deletes a specified pathway from NGB server.
 $ ngb del_pathway 2
 ```
 
+## Bam coverage commands
+### Register coverage
+```
+ngb add_coverage|ac [<BAM_ID>] [<STEP>]
+```
+*Description*
+
+Registers a Bam coverage. Two arguments have to be specified:
+* Bam file id or name
+* Step
+
+*Example*
+```bash
+# Create new coverage for Bam file with id 2, step 100
+$ ngb add_coverage 2 100
+```
+
+### List coverages
+```
+ngb list_coverage|lc
+```
+
+*Description*
+
+List all coverages registered on NGB server.
+
+*Example*
+```bash
+# List all coverages registered on NGB server
+$ ngb list_coverage
+```
+
+### Delete Bam file coverage
+```
+ngb remove_coverage|rc [<BAM_ID>] [options]
+//Options:
+//--step                   Step
+```
+*Description*
+
+Deletes coverages for specified Bam file from NGB server.
+
+*Example*
+```bash
+# Delete coverage with step 100 for Bam file with id 2
+$ ngb remove_coverage 2 --step 100
+```
+
 ## Utility commands
 ### Sort feature file
 ```

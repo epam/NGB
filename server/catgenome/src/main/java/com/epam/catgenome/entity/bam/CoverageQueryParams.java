@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021-2022 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.util.db;
+package com.epam.catgenome.entity.bam;
 
-import lombok.AllArgsConstructor;
+import com.epam.catgenome.entity.Interval;
+import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.SortInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Setter
 @Getter
 @Builder
-@AllArgsConstructor
-public class PagingInfo {
-    private int pageSize;
-    private int pageNum;
+public class CoverageQueryParams {
+    private PagingInfo pagingInfo;
+    private List<SortInfo> sortInfo;
+    private Long coverageId;
+    private String chr;
+    private Interval<Integer> start;
+    private Interval<Integer> end;
+    private Interval<Float> coverage;
 }

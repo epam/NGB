@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.manager.bam.BamSecurityService;
@@ -38,11 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -56,6 +50,11 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
@@ -98,7 +97,7 @@ public class BamController extends AbstractRESTController {
     private BamSecurityService bamSecurityService;
 
     @ResponseBody
-    @RequestMapping(value = "/bam/register", method = RequestMethod.POST)
+    @PostMapping(value = "/bam/register")
     @ApiOperation(
             value = "Registers a BAM file in the system.",
             notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
@@ -117,7 +116,7 @@ public class BamController extends AbstractRESTController {
         return Result.success(bamSecurityService.registerBam(request));
     }
 
-    @RequestMapping(value = "/bam/track/get", method = RequestMethod.POST)
+    @PostMapping(value = "/bam/track/get")
     @ApiOperation(
             value = "Returns data (chunked) matching the given query to fill in a bam track. Returns all information " +
                     "about reads.",
@@ -160,14 +159,14 @@ public class BamController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/secure/bam/register", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/secure/bam/register")
     public Result<Boolean> unregisterBamFile(@RequestParam final long bamFileId) throws IOException {
         BamFile deletedFile = bamSecurityService.unregisterBamFile(bamFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
     @ResponseBody
-    @RequestMapping(value = "/bam/consensus/get", method = RequestMethod.POST)
+    @PostMapping(value = "/bam/consensus/get")
     @ApiOperation(
             value = "Returns consensus sequence for specified BAM file range.",
             notes = "It provides data about consensus sequence for specified BAM file range " +
@@ -191,7 +190,7 @@ public class BamController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/bam/read/load", method = RequestMethod.POST)
+    @PostMapping(value = "/bam/read/load")
     @ApiOperation(
         value = "Returns extended data for a read",
         notes = "Provides extended data about the particular read",

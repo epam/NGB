@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import java.util.zip.GZIPInputStream;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.bam.BamHelper;
@@ -83,6 +85,26 @@ import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -507,6 +529,38 @@ public final class IndexUtils {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
         } catch (final Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static void deleteIndexDocument(final String field, final long value, final String indexDirectory)
+            throws IOException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            final Term term = new Term(field, String.valueOf(value));
+            writer.deleteDocuments(term);
+        }
+    }
+
+    public static void addIntIntervalFilter(final String fieldName,
+                                            final Interval<Integer> interval,
+                                            final BooleanQuery.Builder builder) {
+        if (interval.getFrom() != null || interval.getTo() != null) {
+            builder.add(IntPoint.newRangeQuery(fieldName,
+                    interval.getFrom() == null ? Integer.MIN_VALUE : interval.getFrom(),
+                    interval.getTo() == null ? Integer.MAX_VALUE : interval.getTo()),
+                    BooleanClause.Occur.MUST);
+        }
+    }
+
+    public static void addFloatIntervalFilter(final String fieldName,
+                                              final Interval<Float> interval,
+                                              final BooleanQuery.Builder builder) {
+        if (interval.getFrom() != null || interval.getTo() != null) {
+            builder.add(FloatPoint.newRangeQuery(fieldName,
+                    interval.getFrom() == null ? Float.MIN_VALUE : interval.getFrom(),
+                    interval.getTo() == null ? Float.MAX_VALUE : interval.getTo()),
+                    BooleanClause.Occur.MUST);
         }
     }
 
