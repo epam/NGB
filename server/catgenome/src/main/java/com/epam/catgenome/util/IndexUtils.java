@@ -58,7 +58,6 @@ import htsjdk.samtools.util.AbstractIterator;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
 import htsjdk.samtools.util.CloserUtil;
-import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.LocationAware;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.Tuple;
@@ -85,16 +84,6 @@ import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.FloatPoint;
-import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
@@ -588,7 +577,8 @@ public final class IndexUtils {
                                            final Chromosome chromosome,
                                            final int start,
                                            final int end) {
-        final Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end))
+        final Collection<Gene> genes = intervalMap.getOverlapping(
+                new htsjdk.samtools.util.Interval(chromosome.getName(), start, end))
                 .stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
