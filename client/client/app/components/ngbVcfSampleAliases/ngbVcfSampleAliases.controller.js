@@ -90,15 +90,22 @@ export default class ngbVcfSampleAliasesController {
         });
     }
 
-    setVariantsTable() {
-        this.projectContext.setVcfInfo(false);
-        if (this.projectContext.vcfFilter &&
-            this.projectContext.vcfFilter.sampleNames.length
-        ) {
-            this.projectContext.clearVcfFilter();
-        } else {
-            this.projectContext.filterVariants(true);
+    async setVariantsTable() {
+        const sampleNamesFilter = (this.projectContext.vcfFilter || {}).sampleNames || [];
+        let prevSampleNames;
+        if (sampleNamesFilter.length) {
+            prevSampleNames = sampleNamesFilter.map(sampleName => (
+                this.projectContext.vcfSampleAliases[sampleName]
+            ));
         }
+        await this.projectContext.setVcfInfo(false);
+        if (prevSampleNames) {
+            const newSampleAliases = prevSampleNames.map(name => (
+                this.projectContext.vcfSampleInfo[this.config.id][name]
+            ));
+            this.projectContext.vcfFilter.sampleNames = newSampleAliases;
+        }
+        this.projectContext.filterVariants(true);
     }
 
     onClickCancelBtn () {

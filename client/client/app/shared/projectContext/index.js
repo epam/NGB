@@ -319,6 +319,10 @@ export default class projectContext {
         return this._vcfSampleAliases;
     }
 
+    get vcfSampleInfo() {
+        return this._vcfSampleInfo;
+    }
+
     get vcfInfoColumns() {
         return this._infoFields;
     }
