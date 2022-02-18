@@ -113,6 +113,15 @@ export default {
             title: 'Motifs',
             name: 'layout>motifs'
         },
+        coverage: {
+            isHidden: true,
+            displayed: false,
+            icon: '',
+            panel: 'ngbCoveragePanel',
+            position: 'right',
+            title: 'Coverage',
+            name: 'layout>coverage'
+        },
         ...(() => {
             const devPanels = {
                 DevLog: {
