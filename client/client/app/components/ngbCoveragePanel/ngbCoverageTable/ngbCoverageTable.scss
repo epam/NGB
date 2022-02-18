@@ -1,0 +1,28 @@
+ngb-coverage-table {
+    .ui-grid-container {
+        height: calc(100% - 80px);
+    }
+
+    .coverage-table-loading-indicator-container {
+        height: 6px;
+    }
+
+    .ui-grid-header-cell-label {
+        text-transform: capitalize;
+    }
+
+    .coverage-table {
+        overflow: hidden;
+    }
+
+    .coverage-empty-results-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 1000;
+    }
+    
+    .coverage-no-records-warning {
+        color: #999;
+    }
+}

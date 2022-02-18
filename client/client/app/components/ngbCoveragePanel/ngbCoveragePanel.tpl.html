@@ -1,0 +1,32 @@
+<div class="u-height__full">
+    <md-input-container class="coverage-select">
+        <label>Source</label>
+        <md-select aria-label="coverage indexes list"
+                    value="$ctrl.currentCoverageIndex"
+                    ng-if="$ctrl.coverageIndexes.length"
+                    ng-model="$ctrl.currentCoverageIndex"
+                    ng-change="$ctrl.selectCoverageIndex($ctrl.currentCoverageIndex)">
+            <md-option ng-repeat="index in $ctrl.coverageIndexes"
+                        ng-value="index">
+                {{index.name}} [interval {{index.interval}}]
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <div ng-if="$ctrl.isSearchInProgress">
+        <div class="progress"
+                layout-align="center center">
+            <span>Loading results...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="md-padding"
+            ng-if="$ctrl.isSearchFailure && !$ctrl.isSearchInProgress">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList">
+        </ngb-panel-error-list>
+    </div>
+    <ngb-coverage-table
+        ng-if="!$ctrl.isSearchFailure &&
+                !$ctrl.isSearchInProgress &&
+                $ctrl.coverageSearchResults"
+    ></ngb-coverage-table>
+</div>

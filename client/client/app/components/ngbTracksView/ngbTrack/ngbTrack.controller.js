@@ -1,7 +1,7 @@
 import ngbTrackEvents from './ngbTrack.events';
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
 import BLASTContext from '../../../shared/blastContext';
-import MotifsContext from '../../../shared/motifsContext'
+import MotifsContext from '../../../shared/motifsContext';
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -69,7 +69,8 @@ export default class ngbTrackController {
         groupAutoScaleManager,
         fcSourcesManager,
         blastContext,
-        motifsContext
+        motifsContext,
+        bamCoverageContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
@@ -78,11 +79,16 @@ export default class ngbTrackController {
         this.selectionContext = selectionContext;
         this.blastContext = blastContext;
         this.motifsContext = motifsContext;
+        this.bamCoverageContext = bamCoverageContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
         this.fcSourcesManager = fcSourcesManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
+        if (this.track.format === 'BAM') {
+            const [bamId, bamName] = [this.track.id, this.track.name];
+            this.bamCoverageContext.setBamCoverage({bamId, bamName});
+        }
         this.trackRendererElement = $element.find('.md-track-renderer')[0];
         if (this.projectContext.collapsedTrackHeaders !== undefined) {
             this.showTracksHeaders = !this.projectContext.collapsedTrackHeaders;
@@ -432,6 +438,7 @@ export default class ngbTrackController {
             projectContext: this.projectContext,
             blastContext: this.blastContext,
             motifsContext: this.motifsContext,
+            bamCoverageContext: this.bamCoverageContext,
             reloadScope: () => this.scope.$apply(),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,

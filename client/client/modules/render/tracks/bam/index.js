@@ -214,9 +214,15 @@ export class BAMTrack extends ScrollableTrack {
         return this._menu;
     }
 
+    get isCoverageStatistics () {
+        return this.bamCoverageContext.isCoverageStatistics;
+    }
+
     constructor(opts) {
         super(opts);
         const cacheServiceInitialized = !!opts.cacheService;
+
+        this.bamCoverageContext = opts.bamCoverageContext;
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
         this.state.spliceJunctionsFiltering = opts.spliceJunctionsFiltering
             ? opts.spliceJunctionsCoverageThreshold

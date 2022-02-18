@@ -28,6 +28,16 @@ const coverageStateMutators = generateStateMutatorFunctions({
     }
 });
 
+function showCoverageStatistics(tracks) {
+    const [dispatcher] = (tracks || [])
+        .map(track => track.config.dispatcher)
+        .filter(Boolean);
+    tracks[0].bamCoverageContext.currentBamId = tracks[0].config.id;
+    if (dispatcher) {
+        dispatcher.emitSimpleEvent('coverage:show:statistics');
+    }
+}
+
 export {coverageStateMutators};
 export default {
     displayName: state => {
@@ -69,6 +79,14 @@ export default {
             name: 'coverage>color',
             perform: coverageColorPerform,
             type: 'button'
+        },
+        {
+            label: 'Show coverage statistics',
+            name: 'coverage>statistics',
+            type: 'button',
+            perform: showCoverageStatistics,
+            isVisible: (state, tracks, track) => (tracks.length === 1 &&
+                track.isCoverageStatistics[track.config.id])
         }
     ],
     label: 'Coverage',

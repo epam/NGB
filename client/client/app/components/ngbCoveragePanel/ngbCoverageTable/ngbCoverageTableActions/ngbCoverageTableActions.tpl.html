@@ -1,0 +1,15 @@
+<md-menu md-position-mode="target-right target" >
+    <md-button aria-label="Open demo menu"
+               class="md-icon-button"
+               ng-click="$mdOpenMenu($event)">
+        <ng-md-icon icon="menu"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4">
+        <md-menu-item>
+            <div class="for-md-tooltip-work restore-view-button"
+                 ng-click="$ctrl.onClickRestoreView()">
+                Restore view
+            </div>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>
