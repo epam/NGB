@@ -108,30 +108,26 @@ export class MultiSampleVCFTrack extends VCFTrack {
             id,
             projectId
         } = this.dataConfig;
-        let [sampleNames, samplesInfo] = [[], {}];
+        const [sampleNames, samplesInfo] = [[], {}];
         if (id && projectId) {
             try {
                 const {samples = {}} = await projectDataService
                     .getProjectsFilterVcfInfo({value: {[projectId]: [id]}}) || {};
-                ({sampleNames, samplesInfo} = (samples[id] || [])
-                    .reduce((acc, sample) => {
-                        if (!/^nosm$/i.test(sample.name)) {
-                            acc.sampleNames.push(sample.prettyName || sample.name);
-                            acc.samplesInfo[sample.name] = sample.prettyName || '';
-                        }
-                        return acc;
-                    }, {
-                        sampleNames: [],
-                        samplesInfo: {}
-                    })
-                );
+
+                for (let i = 0; i < samples[id].length; i++) {
+                    const sample = samples[id][i];
+                    if (!/^nosm$/i.test(sample.name)) {
+                        sampleNames.push(sample.name);
+                        samplesInfo[sample.name] = sample.prettyName || '';
+                    }
+                }
             } catch (e) {
                 // eslint-disable-next-line
                 console.warn(`Error fetching vcf info: ${e.message}`);
             }
         }
         this.samples = sampleNames.slice();
-        Object.assign(this.samplesInfo, samplesInfo);
+        this.samplesInfo = Object.assign({}, samplesInfo);
     }
 
     async initializeSamples () {
@@ -151,9 +147,8 @@ export class MultiSampleVCFTrack extends VCFTrack {
 
     extendSamples (samples) {
         let hasNewSamples = false;
-        const samplesNames = Object.keys(this.samplesInfo);
         for (const sample of samples) {
-            if (!this.samples.includes(sample) && !samplesNames.includes(sample)) {
+            if (!this.samples.includes(sample)) {
                 hasNewSamples = true;
                 this.samples.push(sample);
                 this.renderers.push({
@@ -429,8 +424,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
         }
         this.samples.forEach((sample, index) => {
             const y = this.getRendererY(index, true);
+            const prettyName = this.samplesInfo[sample] || sample;
             const title = this.labelsManager.getLabel(
-                sample,
+                prettyName,
                 VcfConfig.sample.label.font
             );
             title.x = VcfConfig.sample.label.margin;

@@ -40,10 +40,10 @@ export default class ngbVcfSampleAliasesController {
         return false;
     }
 
-    constructor($scope, $mdDialog, dispatcher, config, samplesInfo, vcfDataService) {
-        Object.assign(this, {$scope, $mdDialog, dispatcher, config, vcfDataService});
-        this.currentSamples = Object.assign(this.currentSamples, samplesInfo);
-        this.samplesModel = Object.assign(this.samplesModel, samplesInfo);
+    constructor($scope, $mdDialog, dispatcher, projectContext, config, samplesInfo, vcfDataService) {
+        Object.assign(this, {$scope, $mdDialog, dispatcher, projectContext, config, vcfDataService});
+        this.currentSamples = Object.assign({}, samplesInfo);
+        this.samplesModel = Object.assign({}, samplesInfo);
     }
 
     onChangeInput () {
@@ -65,7 +65,7 @@ export default class ngbVcfSampleAliasesController {
             .then(result => {
                 if (result) {
                     this.dispatcher.emitSimpleEvent('vcf:refresh:track', true);
-                    this.dispatcher.emitSimpleEvent('variants:reset:filter');
+                    this.setVariantsTable();
                     this.$mdDialog.hide();
                 } else {
                     return;
@@ -88,6 +88,17 @@ export default class ngbVcfSampleAliasesController {
                 resolve(false);
             });
         });
+    }
+
+    setVariantsTable() {
+        this.projectContext.setVcfInfo(false);
+        if (this.projectContext.vcfFilter &&
+            this.projectContext.vcfFilter.sampleNames.length
+        ) {
+            this.projectContext.clearVcfFilter();
+        } else {
+            this.projectContext.filterVariants(true);
+        }
     }
 
     onClickCancelBtn () {

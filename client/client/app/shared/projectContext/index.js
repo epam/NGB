@@ -98,7 +98,6 @@ export default class projectContext {
     _vcfFilterIsDefault = true;
     _infoFields = [];
     _vcfInfo = [];
-    _vcfSampleNames = [];
     _vcfSampleAliases = {};
     _vcfSampleInfo = {};
     _filteredVariants = [];
@@ -316,8 +315,8 @@ export default class projectContext {
         return this._vcfInfo;
     }
 
-    get vcfSampleNames() {
-        return this._vcfSampleNames;
+    get vcfSampleAliases() {
+        return this._vcfSampleAliases;
     }
 
     get vcfInfoColumns() {
@@ -1837,7 +1836,6 @@ export default class projectContext {
             referenceDidChange = await this._changeReference(null);
             this._containsVcfFiles = false;
             this._vcfInfo = [];
-            this._vcfSampleNames = [];
             this._vcfSampleAliases = {};
             this._vcfSampleInfo = {};
             this._infoFields = [];
@@ -1889,47 +1887,40 @@ export default class projectContext {
         return vcfFileIdsByProject;
     }
 
-    setSampleInfo(samples) {
+    async setVcfInfo(needInfo) {
+        const vcfFileIdsByProject = this.getVcfFileIdsByProject();
+        const {
+            infoItems = [],
+            samples = {}
+        } = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
+
         const samplesInfo = {};
         const sampleAliases = {};
-        const names = {};
-        const sampleNames = [];
 
         for (const id in samples) {
-            if( samples.hasOwnProperty(id) ) {
-                samplesInfo[id] = samples[id].reduce((acc, sample) => {
-                    const {name, prettyName = ''} = sample;
+            if ( samples.hasOwnProperty(id) ) {
+                samplesInfo[id] = {};
+                for (let i = 0; i < samples[id].length; i++) {
+                    const name = samples[id][i].name;
+                    const prettyName = samples[id][i].prettyName || name;
                     if (!/^nosm$/i.test(name)) {
-                        acc[name] = acc[name] || prettyName;
-                        names[name] = acc[name];
-                        if (prettyName) {
-                            sampleAliases[prettyName] = sampleAliases[prettyName] ?
-                                sampleAliases[prettyName].push(name) : [name];
-                        }
+                        samplesInfo[id][name] = prettyName;
+                        sampleAliases[prettyName] = name;
                     }
-                    return acc;
-                }, {});
+                }
             }
         }
-        for (const name in names) {
-            if ( names.hasOwnProperty(name) ) {
-                sampleNames.push(names[name] || name);
-            }
+        this._vcfSampleInfo = samplesInfo;
+        this._vcfSampleAliases = sampleAliases;
+        if (needInfo) {
+            return infoItems;
         }
-        this._vcfSampleNames = sampleNames.slice();
-        Object.assign(this._vcfSampleInfo, samplesInfo);
-        Object.assign(this._vcfSampleAliases, sampleAliases);
     }
 
     async _initializeVariants(onInit) {
         if (!this._isVariantsInitialized) {
             const vcfFileIdsByProject = this.getVcfFileIdsByProject();
-            const {
-                infoItems,
-                samples = {}
-            } = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
-            this._vcfInfo = infoItems || [];
-            this.setSampleInfo(samples);
+            this._vcfInfo = await this.setVcfInfo(true);
             this._vcfFilter = {
                 additionalFilters: {},
                 chromosomeIds: [],
@@ -2187,7 +2178,7 @@ export default class projectContext {
     getVcfSampleNames () {
         const names = this._vcfFilter ? this._vcfFilter.sampleNames : [];
         const sampleNames = names.map(name => (
-            [this._vcfSampleAliases[name]].join(', ') || name
+            this._vcfSampleAliases[name] ? this._vcfSampleAliases[name].toString() : name
         ));
         return sampleNames;
     }

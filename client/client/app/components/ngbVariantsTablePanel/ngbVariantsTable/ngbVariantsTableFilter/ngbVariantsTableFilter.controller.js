@@ -39,8 +39,8 @@ export default class ngbVariantsTableFilterController {
             case 'sampleNames': {
                 this.isList = true;
                 this.list = (searchText) => {
-                    const sampleNames = projectContext.vcfSampleNames || [];
-                    const filtered = sampleNames.filter(s => !searchText ||
+                    const sampleAliases = Object.keys(projectContext.vcfSampleAliases) || [];
+                    const filtered = sampleAliases.filter(s => !searchText ||
                         s.toLowerCase().startsWith(searchText.toLowerCase())
                     );
                     return Promise.resolve(filtered);
