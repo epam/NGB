@@ -26,7 +26,7 @@ export default class ngbVcfSampleAliasesController {
     }
 
     someDuplicate () {
-        const prettyNamesArray = Object.values(this.samplesModel);
+        const prettyNamesArray = Object.values(this.samplesModel).filter(name => name);
         const prettyNamesSet = new Set(prettyNamesArray);
         return prettyNamesArray.length !== prettyNamesSet.size;
     }
