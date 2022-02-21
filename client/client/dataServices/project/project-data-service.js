@@ -35,7 +35,7 @@ export class ProjectDataService extends DataService {
                 if (data !== null && data !== undefined) {
                     resolve(data);
                 } else {
-                    resolve(null);
+                    resolve({});
                 }
             });
         });

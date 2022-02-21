@@ -88,6 +88,7 @@ export class MultiSampleVCFTrack extends VCFTrack {
     constructor(opts) {
         super(opts);
         this.samples = [];
+        this.samplesInfo = {};
         this.renderers = [];
         this.collapsedSamplesRenderer = new VCFCollapsedRenderer(VcfConfig, this);
         this.coverageCoordinateSystemRenderer = new CoordinateSystem(this);
@@ -99,25 +100,38 @@ export class MultiSampleVCFTrack extends VCFTrack {
         this.coverageMask = new PIXI.Graphics();
         this.transformer.collapseSamples = this.state.collapseSamples;
         (this.initializeSamples)();
+        this.dispatcher.on('vcf:refresh:track', this.initializeSamples.bind(this));
     }
 
-    async initializeSamples () {
+    async getProjectsFilterVcfInfo () {
         const {
             id,
             projectId
         } = this.dataConfig;
-        let samples = [];
+        const [sampleNames, samplesInfo] = [[], {}];
         if (id && projectId) {
             try {
-                const {sampleNames = []} = await projectDataService
+                const {samples = {}} = await projectDataService
                     .getProjectsFilterVcfInfo({value: {[projectId]: [id]}}) || {};
-                samples = sampleNames.slice().filter(o => !/^nosm$/i.test(o));
+
+                for (let i = 0; i < samples[id].length; i++) {
+                    const sample = samples[id][i];
+                    if (!/^nosm$/i.test(sample.name)) {
+                        sampleNames.push(sample.name);
+                        samplesInfo[sample.name] = sample.prettyName || '';
+                    }
+                }
             } catch (e) {
                 // eslint-disable-next-line
                 console.warn(`Error fetching vcf info: ${e.message}`);
             }
         }
-        this.samples = samples.slice();
+        this.samples = sampleNames.slice();
+        this.samplesInfo = Object.assign({}, samplesInfo);
+    }
+
+    async initializeSamples () {
+        await this.getProjectsFilterVcfInfo();
         this.renderers = this.samples.map((sample) => ({
             sample,
             collapsed: new VCFSampleRenderer(VcfConfig, this),
@@ -410,8 +424,9 @@ export class MultiSampleVCFTrack extends VCFTrack {
         }
         this.samples.forEach((sample, index) => {
             const y = this.getRendererY(index, true);
+            const prettyName = this.samplesInfo[sample] || sample;
             const title = this.labelsManager.getLabel(
-                sample,
+                prettyName,
                 VcfConfig.sample.label.font
             );
             title.x = VcfConfig.sample.label.margin;
