@@ -5,7 +5,7 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
-    <strong>Nothing found. Try to search another gene.</strong>
+    <strong>Nothing found. Try to search by another keywords.</strong>
 </div>
 <div class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length" ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults">
     <div class="variants-load-error-container" ng-if="$ctrl.historyLoadError">

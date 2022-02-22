@@ -1,0 +1,155 @@
+<div class="color-scheme-preferences" ng-class="$ctrl.scheme.type">
+    <div layout="row">
+        <md-input-container flex>
+            <label for="color-scheme-name">
+                Type
+            </label>
+            <md-select id="color-scheme-name"
+                       ng-model="$ctrl.scheme.type"
+                       required>
+                <md-option ng-repeat="colorScheme in $ctrl.constants.schemes"
+                           ng-value="colorScheme">
+                    {{$ctrl.constants.schemeName(colorScheme)}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+    <div class="heatmap-color-pickers heatmap-config-section"
+         ng-if="$ctrl.scheme.type === $ctrl.constants.HeatmapColorSchemes.continuous">
+        <div class="heatmap-color-picker">
+            <ngb-color-picker color="$ctrl.scheme.highColor"
+                              ng-cloak
+                              options="$ctrl.constants.colorPickerOptionsRight"></ngb-color-picker>
+            <span class="heatmap-color-legend">High</span>
+        </div>
+        <div class="heatmap-color-picker">
+            <ngb-color-picker color="$ctrl.scheme.mediumColor"
+                              ng-cloak
+                              options="$ctrl.constants.colorPickerOptionsRight"></ngb-color-picker>
+            <span class="heatmap-color-legend">Medium</span>
+        </div>
+        <div class="heatmap-color-picker">
+            <ngb-color-picker color="$ctrl.scheme.lowColor"
+                              ng-cloak
+                              options="$ctrl.constants.colorPickerOptionsLeft"></ngb-color-picker>
+            <span class="heatmap-color-legend">Low</span>
+        </div>
+    </div>
+    <div class="heatmap-config-section"
+         ng-if="$ctrl.scheme.type === $ctrl.constants.HeatmapColorSchemes.discrete">
+        <div class="heatmap-gradient-stop-configuration"
+             ng-repeat="configuration in $ctrl.scheme.colorConfigurations track by configuration.uid">
+            <div>
+                <div class="heatmap-color-picker"
+                     ng-if="$ctrl.scheme.colorConfigurations.length === 1">
+                    <ngb-color-picker color="configuration.color"
+                                      ng-cloak
+                                      options="$ctrl.constants.colorPickerOptionsRight"></ngb-color-picker>
+                    <span class="heatmap-color-legend">Data color</span>
+                </div>
+                <div class="heatmap-color-picker color-configuration"
+                     ng-if="$ctrl.scheme.colorConfigurations.length > 1">
+                    <ngb-color-picker color="configuration.color"
+                                      ng-cloak
+                                      options="$ctrl.constants.colorPickerOptionsRight"></ngb-color-picker>
+                    <div class="color-configuration-value"
+                         ng-if="$ctrl.scheme.dataType === $ctrl.constants.dataTypes.number && !configuration.singleValue">
+                        <md-input-container class="heatmap-color-value-input-container">
+                            <label for="from-value-{{configuration.uid}}">
+                                From
+                            </label>
+                            <input
+                                    id="from-value-{{configuration.uid}}"
+                                    max="{{configuration.to}}"
+                                    ng-model="configuration.from"
+                                    placeholder="From"
+                                    required
+                                    type="number"
+                            />
+                        </md-input-container>
+                        <md-input-container class="heatmap-color-value-input-container">
+                            <label for="to-value-{{configuration.uid}}">
+                                To
+                            </label>
+                            <input
+                                    id="to-value-{{configuration.uid}}"
+                                    min="{{configuration.from}}"
+                                    ng-model="configuration.to"
+                                    placeholder="To"
+                                    required
+                                    type="number"
+                            />
+                        </md-input-container>
+                    </div>
+                    <div class="color-configuration-value"
+                         ng-if="$ctrl.scheme.dataType === $ctrl.constants.dataTypes.string || configuration.singleValue">
+                        <md-input-container class="heatmap-color-value-input-container"
+                                            ng-if="$ctrl.scheme.values.length === 0">
+                            <label for="value-{{configuration.uid}}">
+                                Value
+                            </label>
+                            <input
+                                    id="value-{{configuration.uid}}"
+                                    ng-model="configuration.value"
+                                    placeholder="Value"
+                                    required
+                            />
+                        </md-input-container>
+                        <md-input-container class="heatmap-color-value-input-container"
+                                            ng-if="$ctrl.scheme.values.length > 0">
+                            <label for="selector-{{configuration.uid}}">
+                                Value
+                            </label>
+                            <md-select
+                                    id="selector-{{configuration.uid}}"
+                                    ng-model="configuration.value"
+                                    placeholder="Value"
+                                    required
+                            >
+                                <md-option ng-repeat="value in $ctrl.scheme.values"
+                                           ng-value="value">
+                                    {{value}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <md-checkbox
+                            aria-label="Range"
+                            flex
+                            ng-if="$ctrl.scheme.dataType === $ctrl.constants.dataTypes.number && $ctrl.scheme.singleValueModeAvailable"
+                            ng-model="configuration.rangeValue"
+                            style="flex: 0 0 auto">
+                        Range
+                    </md-checkbox>
+                    <md-button class="md-icon-button"
+                               ng-click="$ctrl.scheme.removeColorConfiguration(configuration)">
+                        <ng-md-icon
+                                aria-label="remove attribute"
+                                icon="clear"
+                                size="16"
+                                style="fill: #999999">
+                        </ng-md-icon>
+                    </md-button>
+                </div>
+            </div>
+            <div class="heatmap-gradient-stop-configuration-error"
+                 ng-if="configuration.error">
+                {{configuration.error}}
+            </div>
+        </div>
+        <md-button aria-label="add color"
+                   class="md-raised heatmap-add-color-button"
+                   ng-click="$ctrl.scheme.addColorConfiguration()"
+        >
+            ADD COLOR
+        </md-button>
+    </div>
+    <div class="heatmap-config-section">
+        <div class="heatmap-color-picker">
+            <ngb-color-picker color="$ctrl.scheme.missingColor"
+                              ng-cloak
+                              options="$ctrl.constants.colorPickerOptionsRight"></ngb-color-picker>
+            <span class="heatmap-color-legend">Missing data</span>
+        </div>
+    </div>
+</div>
