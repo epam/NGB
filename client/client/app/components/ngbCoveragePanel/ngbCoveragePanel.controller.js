@@ -93,9 +93,10 @@ export default class ngbCoveragePanelController {
         if (!index) {
             return;
         }
+        this.ngbCoveragePanelService.resetCurrentPages();
+        this.ngbCoveragePanelService.resetCurrentInfo();
         const {coverageId, bamId} = index;
         this.currentBamId = bamId;
-        this.ngbCoveragePanelService.resetCurrentPages();
         this.isSearchInProgress = true;
         const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(coverageId, false);
         await this.ngbCoveragePanelService.searchBamCoverage(request)

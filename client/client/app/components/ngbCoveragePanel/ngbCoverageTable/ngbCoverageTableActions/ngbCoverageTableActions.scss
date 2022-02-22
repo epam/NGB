@@ -1,0 +1,32 @@
+ngb-coverage-table-actions {
+    display: block;
+
+    md-menu {
+        padding: 0;
+
+        .md-button.md-icon-button {
+            padding: 0;
+            margin: 0;
+            width: 24px;
+            min-width: 24px;
+            height: 24px;
+            min-height: 24px;
+
+            ng-md-icon {
+                fill: #FFF;
+            }
+        }
+    }
+
+    md-menu-content {
+        max-height: 20vh;
+    } 
+}
+
+.restore-view-button {
+    font-size: 14px;
+    padding-left: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+    color: rgb(51,103,214);
+}

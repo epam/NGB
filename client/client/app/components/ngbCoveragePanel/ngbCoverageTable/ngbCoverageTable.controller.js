@@ -1,13 +1,9 @@
-const COVERAGE_TABLE_COLUMNS = ['chr', 'start', 'end', 'coverage'];
 const ROW_HEIGHT = 30;
 
 export default class ngbCoverageTableController {
 
     loadingData = false;
 
-    get coverageTableColumns() {
-        return COVERAGE_TABLE_COLUMNS;
-    }
     get rowHeight() {
         return ROW_HEIGHT;
     }
@@ -47,10 +43,25 @@ export default class ngbCoverageTableController {
         return 'ngbCoverageTableController';
     }
 
-    constructor($scope, $timeout, projectContext, ngbCoveragePanelService) {
-        Object.assign(this, {$scope, $timeout, projectContext, ngbCoveragePanelService});
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        projectContext,
+        ngbCoveragePanelService,
+        ngbCoverageTableService
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            projectContext,
+            ngbCoveragePanelService,
+            ngbCoverageTableService
+        });
         this.gridOptions.rowHeight = this.rowHeight;
         this.gridOptions.infiniteScrollDown = this.totalCount > this.pageSize;
+        this.dispatcher.on('coverage:table:restore', this.restoreState.bind(this));
     }
 
     get isLastPage() {
@@ -72,6 +83,12 @@ export default class ngbCoverageTableController {
     get currentCoverageId() {
         return this.ngbCoveragePanelService.currentCoverageIndex.coverageId;
     }
+    get sortInfo() {
+        return this.ngbCoveragePanelService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbCoveragePanelService.sortInfo = value;
+    }
 
     $onInit() {
         this.initialize();
@@ -79,7 +96,7 @@ export default class ngbCoverageTableController {
 
     async initialize() {
         Object.assign(this.gridOptions, {
-            columnDefs: this.getMotifsResultsGridColumns(),
+            columnDefs: this.ngbCoverageTableService.getMotifsResultsGridColumns(),
             data: this.ngbCoveragePanelService.coverageSearchResults,
             appScopeProvider: this.$scope,
             onRegisterApi: (gridApi) => {
@@ -88,34 +105,9 @@ export default class ngbCoverageTableController {
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                 this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getDataDown);
                 this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getDataUp);
+                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
-    }
-
-    getMotifsResultsGridColumns() {
-        const headerCells = require('./ngbCoverageTable_header.tpl.html');
-
-        const result = [];
-        const columnsList = this.coverageTableColumns;
-        for (let i = 0; i < columnsList.length; i++) {
-            let columnSettings = null;
-            const column = columnsList[i];
-            columnSettings = {
-                enableHiding: false,
-                enableFiltering: false,
-                enableSorting: false,
-                field: column,
-                headerCellTemplate: headerCells,
-                headerTooltip: column,
-                minWidth: 40,
-                displayName: column,
-                width: '*'
-            };
-            if (columnSettings) {
-                result.push(columnSettings);
-            }
-        }
-        return result;
     }
 
     rowClick(row) {
@@ -175,7 +167,7 @@ export default class ngbCoverageTableController {
             });
         this.loadingData = false;
         if (results) {
-            this.gridOptions.columnDefs = this.getMotifsResultsGridColumns();
+            this.gridOptions.columnDefs = this.ngbCoverageTableService.getMotifsResultsGridColumns();
             const data = isScrollTop ?
                 results.concat(this.gridOptions.data) :
                 this.gridOptions.data.concat(results);
@@ -218,5 +210,50 @@ export default class ngbCoverageTableController {
             }
             this.$timeout(() => this.$scope.$apply());
         }
+    }
+
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
+        this.ngbCoveragePanelService.resetCurrentPages();
+        this.gridOptions.data = [];
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        this.loadData(request);
+    }
+
+    async restoreState() {
+        this.loadingData = true;
+        this.ngbCoveragePanelService.resetCurrentPages();
+        this.ngbCoveragePanelService.resetCurrentInfo();
+        this.gridOptions.data = [];
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        this.loadData(request);
     }
 }

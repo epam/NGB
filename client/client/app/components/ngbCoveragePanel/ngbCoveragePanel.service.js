@@ -30,6 +30,12 @@ export default class ngbCoveragePanelService {
     get currentPages() {
         return this._currentPages;
     }
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
+    }
 
     get currentCoverageIndex() {
         return this._currentCoverageIndex;
@@ -110,14 +116,18 @@ export default class ngbCoveragePanelService {
         };
     }
 
-    resetInfo() {
-        this._errorMessageList = null;
-        this._emptyResults = false;
-        this._totalCount = 0;
+    resetCurrentInfo() {
         this._sortInfo = null;
         this._filterInfo = null;
-        this.coverageSearchResults = null;
+    }
+
+    resetInfo() {
+        this._errorMessageList = null;
+        this._totalCount = 0;
+        this._emptyResults = false;
         this._currentCoverageIndex = null;
+        this.coverageSearchResults = null;
+        this.resetCurrentInfo();
         this.resetCurrentPages();
     }
 }

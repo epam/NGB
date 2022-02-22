@@ -126,6 +126,12 @@ const bookmarksResetFilterActions = {
     isVisible: (context) => !context.bookmarksFilterIsDefault
 };
 
+const coverageTableActions = {
+    name: 'coverageTableActions',
+    isDefault: true,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.coverageActions
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
@@ -143,12 +149,14 @@ export default {
         genesTableColumn: genesTableColumnAction,
         genesResetFilter: genesResetFilterActions,
         bookmarksTablePagination: bookmarksTablePaginationAction,
-        bookmarksResetFilter: bookmarksResetFilterActions
+        bookmarksResetFilter: bookmarksResetFilterActions,
+        coverageTableActions: coverageTableActions
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
-        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions]
+        ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
+        ngbCoveragePanel: [coverageTableActions]
     }
 };

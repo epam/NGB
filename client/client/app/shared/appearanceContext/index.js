@@ -145,6 +145,17 @@ class AppearanceContext {
         }
     }
 
+    get coverageActions () {
+        return this._coverageActions;
+    }
+
+    set coverageActions (value) {
+        if (value !== this._coverageActions) {
+            this._coverageActions = value;
+            this.reportStateChange();
+        }
+    }
+
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
         this._embedded = false;
@@ -160,6 +171,7 @@ class AppearanceContext {
         this._vcfDownload = true;
         this._genesColumns = true;
         this._genesDownload = true;
+        this._coverageActions = true;
     }
 
     reportStateChange () {
@@ -182,7 +194,8 @@ class AppearanceContext {
                 vcfcolumns = !this.embedded && this.vcfColumns,
                 vcfdownload = !this.embedded && this.vcfDownload,
                 genescolumns = !this.embedded && this.genesColumns,
-                genesdownload = !this.embedded && this.genesDownload
+                genesdownload = !this.embedded && this.genesDownload,
+                coverageactions = !this.embedded && this.coverageActions
             } = visibilityPayload;
             this._embedded = false;
             this._closeTracks = clear;
@@ -195,6 +208,7 @@ class AppearanceContext {
             this._vcfDownload = vcfdownload;
             this._genesColumns = genescolumns;
             this._genesDownload = genesdownload;
+            this._coverageActions = coverageactions;
             this._close = close;
             this._maximise = maximize;
             this.reportStateChange();
