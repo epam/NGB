@@ -69,8 +69,8 @@ export default class ngbCoverageTableController {
     get currentPages() {
         return this.ngbCoveragePanelService.currentPages;
     }
-    get currentCoverageIndex() {
-        return this.ngbCoveragePanelService.currentCoverageIndex;
+    get currentCoverageId() {
+        return this.ngbCoveragePanelService.currentCoverageIndex.coverageId;
     }
 
     $onInit() {
@@ -151,7 +151,7 @@ export default class ngbCoverageTableController {
         }
         this.loadingData = true;
         this.$scope.$apply();
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, false);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
         this.loadData(request, false);
     }
 
@@ -161,7 +161,7 @@ export default class ngbCoverageTableController {
         }
         this.loadingData = true;
         this.$scope.$apply();
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, true);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, true);
         this.loadData(request, true);
     }
 
