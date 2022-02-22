@@ -1,0 +1,27 @@
+<md-dialog aria-label="Settings">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Add annotation</h2>
+            <span flex></span>
+            <md-button aria-label="Close" class="md-icon-button" ng-click="$ctrl.close()">
+                <ng-md-icon icon="clear" style="fill: #fff;"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <form name="addAnnotationForm">
+        <md-dialog-content>
+            <ngb-pathways-annotation annotation="$ctrl.annotation"></ngb-pathways-annotation>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-primary"
+                       ng-click="$ctrl.isStateValid && addAnnotationForm.$valid && $ctrl.save($event)"
+                       ng-disabled="!$ctrl.isStateValid || addAnnotationForm.$invalid">
+                Apply
+            </md-button>
+            <md-button ng-click="$ctrl.close()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

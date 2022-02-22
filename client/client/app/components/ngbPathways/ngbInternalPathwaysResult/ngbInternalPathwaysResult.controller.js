@@ -1,6 +1,6 @@
 import angular from 'angular';
 import baseController from '../../../shared/baseController';
-import ngbPathwaysAnnotationAddDlgController from '../ngbPathwaysAnnotation/ngbPathwaysAnnotationAddDlg.controller';
+import ngbPathwaysAnnotationAddDlgController from '../ngbPathwaysAnnotationDlg/ngbPathwaysAnnotationAddDlg.controller';
 
 export default class ngbInternalPathwaysResultController extends baseController {
     selectedTree = null;
@@ -24,9 +24,8 @@ export default class ngbInternalPathwaysResultController extends baseController 
         dispatcher,
         ngbInternalPathwaysResultService,
         ngbPathwaysService,
+        ngbPathwaysAnnotationService,
         appLayout,
-        projectContext,
-        localDataService,
         $mdDialog
     ) {
         super();
@@ -39,13 +38,12 @@ export default class ngbInternalPathwaysResultController extends baseController 
                 dispatcher,
                 ngbInternalPathwaysResultService,
                 ngbPathwaysService,
+                ngbPathwaysAnnotationService,
                 appLayout,
-                projectContext,
-                localDataService,
                 $mdDialog
             }
         );
-
+        this.annotationTypeList = this.ngbPathwaysAnnotationService.annotationTypeList;
         this.initialize();
         this.initEvents();
     }
@@ -82,19 +80,19 @@ export default class ngbInternalPathwaysResultController extends baseController 
             ...this.treeSearchParams,
             annotations: this.annotationList.filter(a => a.isActive)
         };
-        this.ngbPathwaysService.saveAnnotationList(this.annotationList);
+        this.ngbPathwaysAnnotationService.saveAnnotationList(this.annotationList);
     }
 
-    // FIXME: separate annotation component
     addAnnotation() {
         this.$mdDialog.show({
             clickOutsideToClose: true,
             controller: ngbPathwaysAnnotationAddDlgController,
             controllerAs: '$ctrl',
             parent: angular.element(document.body),
-            template: require('../ngbPathwaysAnnotation/ngbPathwaysAnnotationAddDlg.tpl.html'),
+            template: require('../ngbPathwaysAnnotationDlg/ngbPathwaysAnnotationAddDlg.tpl.html'),
             locals: {
-                annotation: null
+                annotation: null,
+                pathwayId: this.ngbPathwaysService.currentInternalPathway.id
             }
         });
     }
@@ -105,20 +103,23 @@ export default class ngbInternalPathwaysResultController extends baseController 
             controller: ngbPathwaysAnnotationAddDlgController,
             controllerAs: '$ctrl',
             parent: angular.element(document.body),
-            template: require('../ngbPathwaysAnnotation/ngbPathwaysAnnotationAddDlg.tpl.html'),
+            template: require('../ngbPathwaysAnnotationDlg/ngbPathwaysAnnotationAddDlg.tpl.html'),
             locals: {
-                annotation: this.ngbPathwaysService.getAnnotationById(id)
+                annotation: this.ngbPathwaysAnnotationService.getAnnotationById(id),
+                pathwayId: this.ngbPathwaysService.currentInternalPathway.id
             }
         });
     }
 
     deleteAnnotation(id) {
-        this.ngbPathwaysService.deleteAnnotationById(id);
+        this.ngbPathwaysAnnotationService.deleteAnnotationById(id);
     }
 
     refreshAnnotationList() {
-        this.annotationList = this.ngbPathwaysService.getAnnotationList();
-        this.applyAnnotations();
+        if (this.ngbPathwaysService.currentInternalPathway) {
+            this.annotationList = this.ngbPathwaysAnnotationService.getPathwayAnnotationList(this.ngbPathwaysService.currentInternalPathway.id);
+            this.applyAnnotations();
+        }
     }
 
     activePanelChanged(o) {

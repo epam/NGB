@@ -1,5 +1,4 @@
 <div class="blast-search-flex-column">
-
     <form class="md-inline-form pathways-search-container" name="pathwaysSearchForm" ng-submit="$ctrl.searchPathway()">
         <md-input-container class="pathways-search-input" flex>
             <label class="pathways-search-input-label" for="searchKeyword">Search keyword</label>
@@ -33,7 +32,7 @@
     <md-content class="md-padding _md blast-search-result blast-search-flex-column">
         <div class="u-height__full pathways-no-feature" layout="row" layout-align="center center"
              ng-if="!$ctrl.currentPathwaysState">
-            Type gene or feature to start search.
+            Type keyword to start search.
         </div>
         <ngb-kegg change-state="$ctrl.changeState(state)"
                   class="blast-search-flex-column"

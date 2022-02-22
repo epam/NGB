@@ -1,4 +1,5 @@
 import angular from 'angular';
+import {formatColor} from '../../../../modules/render/heatmap/color-scheme/helpers';
 
 const Cytoscape = require('cytoscape');
 const graphml = require('cytoscape-graphml');
@@ -8,16 +9,44 @@ const $ = require('jquery');
 const SCALE = 0.3;
 const searchedColor = '#00cc00';
 let defaultNodeStyle = {};
+const annotationTypeList = {
+    HEATMAP: 0,
+    CSV: 1,
+    MANUAL: 2
+};
+const configurationType = {
+    STRING: 0,
+    NUMBER: 1,
+    RANGE: 2
+};
 
-function deepSearch(obj, term) {
+function deepSearch(obj, term, type = configurationType.STRING) {
     let result = false;
     for (const key in obj) {
         if (!obj.hasOwnProperty(key) || !obj[key]) continue;
         if (obj[key] instanceof Object || obj[key] instanceof Array) {
             result = deepSearch(obj[key], term);
         } else {
-            result = obj[key].toString().toLocaleLowerCase()
-                .includes(term.toLocaleLowerCase());
+            switch (type) {
+                case configurationType.STRING: {
+                    result = obj[key].toString().toLocaleLowerCase()
+                        .includes(term.toLocaleLowerCase());
+                    break;
+                }
+                case configurationType.NUMBER: {
+                    result = Number(obj[key]) === Number(term);
+                    break;
+                }
+                case configurationType.RANGE: {
+                    const numericValue = Number(obj[key]);
+                    if (isNaN(numericValue)) {
+                        result = false;
+                    } else {
+                        result = numericValue >= term[0] && numericValue <= term[1];
+                    }
+                    break;
+                }
+            }
         }
         if (result) {
             return true;
@@ -128,7 +157,7 @@ export default class ngbCytoscapePathwayController {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
                     this.viewer.on('dragfree', this.saveLayout.bind(this));
                     this.resizeCytoscape();
-                    if(this.searchParams.annotations && this.searchParams.annotations.length) {
+                    if (this.searchParams.annotations && this.searchParams.annotations.length) {
                         this.annotateTree(this.searchParams.annotations);
                     }
                 });
@@ -299,32 +328,72 @@ export default class ngbCytoscapePathwayController {
     }
 
     annotateNode(node, annotationList) {
-        let style = {};
         if (node.data('isAnnotated')) {
-            node.data('isAnnotated', false);
-            if (!node.data('isFound')) {
-                style = {
-                    'background-color': defaultNodeStyle['background-color'],
-                    color: defaultNodeStyle.color,
-                    'border-color': defaultNodeStyle['border-color']
-                };
-                node.style(style);
-            }
+            this.clearAnnotation(node);
         }
         for (const annotation of annotationList) {
-            for (const termsList of annotation.value) {
-                if (deepSearch(node.data(), termsList.term) && !node.data('isAnnotated')) {
-                    node.data('isAnnotated', true);
-                    if (!node.data('isFound')) {
-                        style = {
-                            'background-color': termsList.backgroundColor
-                        };
-                        if (termsList.foregroundColor) {
-                            style.color = termsList.foregroundColor;
-                            style['border-color'] = termsList.foregroundColor;
-                        }
-                        node.style(style);
+            if (!node.data('isAnnotated')) {
+                if (annotation.type === annotationTypeList.MANUAL) {
+                    this.manualAnnotation(node, annotation);
+                } else {
+                    this.fileAnnotation(node, annotation);
+                }
+            }
+        }
+    }
+
+    clearAnnotation(node) {
+        node.data('isAnnotated', false);
+        if (!node.data('isFound')) {
+            const style = {
+                'background-color': defaultNodeStyle['background-color'],
+                color: defaultNodeStyle.color,
+                'border-color': defaultNodeStyle['border-color']
+            };
+            node.style(style);
+        }
+    }
+
+    manualAnnotation(node, annotation) {
+        let style;
+        for (const terms of annotation.value) {
+            if (deepSearch(node.data(), terms.term)) {
+                node.data('isAnnotated', true);
+                if (!node.data('isFound')) {
+                    style = {
+                        'background-color': terms.backgroundColor
+                    };
+                    if (terms.foregroundColor) {
+                        style.color = terms.foregroundColor;
+                        style['border-color'] = terms.foregroundColor;
                     }
+                    node.style(style);
+                }
+            }
+        }
+    }
+
+    fileAnnotation(node, annotation) {
+        let termsList = [];
+        let style = {};
+        const terms = annotation.value;
+
+        for (let labelIndex = 0; labelIndex < terms.labels.length; labelIndex++) {
+            if (deepSearch(node.data(), terms.labels[labelIndex])) {
+                termsList = termsList.concat(terms.values[labelIndex]);
+            }
+            const colorList = [];
+            termsList.forEach(term => {
+                colorList.push(formatColor(annotation.colorScheme.getColorForValue(term), annotation.colorScheme.colorFormat));
+            });
+            if (colorList.length) {
+                node.data('isAnnotated', true);
+                if (!node.data('isFound')) {
+                    // TODO: colorify to every color after dom_node integration
+                    style = {
+                        'background-color': colorList[0]
+                    };
+                    node.style(style);
                 }
             }
         }

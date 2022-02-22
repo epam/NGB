@@ -34,8 +34,9 @@ $ngb-color-blue: #4285F4;
   position: relative;
 
   .pathway-search-panel {
-    width: 50%;
-    max-width: 300px;
+    width: 30%;
+    max-width: 250px;
+    min-width: 180px;
     position: absolute;
     top: 0;
     right: 50px;
@@ -83,6 +84,14 @@ $ngb-color-blue: #4285F4;
             md-checkbox {
               margin: 0;
             }
+          }
+
+          .pathway-search-panel-annotation-name {
+            flex: 1;
+            min-width: 70px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
 
           .pathway-search-panel-annotation-edit {

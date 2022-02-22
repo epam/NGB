@@ -24,6 +24,7 @@ export default class ngbPathwaysPanelController extends baseController {
         });
         this.pathwaysStates = this.ngbPathwaysService.pathwaysStates;
         this.initEvents();
+        this.changeState(this.ngbPathwaysService.currentState);
     }
 
     static get UID() {
@@ -41,6 +42,7 @@ export default class ngbPathwaysPanelController extends baseController {
                     break;
                 }
             }
+            this.ngbPathwaysService.currentState = state;
         }
         this.$timeout(() => this.$scope.$apply());
     }

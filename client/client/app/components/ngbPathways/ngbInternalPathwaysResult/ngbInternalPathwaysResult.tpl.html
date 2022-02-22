@@ -50,8 +50,14 @@
                                          ng-model="annotation.isActive">
                             </md-checkbox>
                         </md-input-container>
-                        <div class="pathway-search-panel-annotation-edit"><a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a></div>
-                        <div flex></div>
+                        <div class="pathway-search-panel-annotation-edit pathway-search-panel-annotation-name" ng-if="annotation.type !== $ctrl.annotationTypeList.CSV">
+                            <a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a>
+                            <md-tooltip>{{annotation.name}}</md-tooltip>
+                        </div>
+                        <div class="pathway-search-panel-annotation-name" ng-if="annotation.type === $ctrl.annotationTypeList.CSV">
+                            <span>{{annotation.name}}</span>
+                            <md-tooltip>{{annotation.name}}</md-tooltip>
+                        </div>
                         <div class="pathway-search-panel-annotation-delete" ng-click="$ctrl.deleteAnnotation(annotation.id)">
                             <ng-md-icon icon="delete_forever"></ng-md-icon>
                         </div>
