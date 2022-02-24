@@ -48,10 +48,10 @@ function prepareConfigCSV(config, header) {
 }
 
 function parseConfigHeatmap(config, header) {
-    const labels = config[header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? 'columns' : 'rows'].map(item => item.name);
+    const labels = config[header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? 'rows' : 'columns'].map(item => item.name);
     return {
         labels,
-        blockLength: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.rows.length : config.columns.length,
+        blockLength: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.columns.length : config.rows.length,
         values: config.values
     };
 }
