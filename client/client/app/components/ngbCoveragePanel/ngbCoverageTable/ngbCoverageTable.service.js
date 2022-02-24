@@ -10,12 +10,6 @@ export default class ngbCoverageTableService {
         return new ngbCoverageTableService(ngbCoveragePanelService);
     }
 
-    columnTypes = {
-        flag: 'Flag',
-        integer: 'Integer',
-        string: 'String'
-    };
-
     constructor(ngbCoveragePanelService) {
         Object.assign(this, {ngbCoveragePanelService});
     }
@@ -59,7 +53,7 @@ export default class ngbCoverageTableService {
             if (columnSettings) {
                 if (sortDirection) {
                     columnSettings.sort = {
-                        direction: 'asc',
+                        direction: sortDirection,
                         priority: sortingPriority
                     };
                 }
