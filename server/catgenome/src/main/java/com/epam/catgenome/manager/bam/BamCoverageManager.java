@@ -26,11 +26,15 @@ package com.epam.catgenome.manager.bam;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.bam.BamCoverageDao;
 import com.epam.catgenome.dao.index.field.SortedStringField;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.CoverageInterval;
 import com.epam.catgenome.entity.bam.CoverageQueryParams;
 import com.epam.catgenome.entity.Interval;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
@@ -101,19 +105,22 @@ public class BamCoverageManager {
 
     private final BamCoverageDao bamCoverageDao;
     private final BamFileManager bamFileManager;
+    private final ReferenceGenomeManager referenceGenomeManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BamCoverage create(final BamCoverage coverage) throws IOException {
         Assert.notNull(coverage.getStep(), getMessage("Coverage step value should be defined"));
         Assert.isTrue(coverage.getStep() > 0, getMessage("Coverage step value should be > 0"));
         final BamFile bamFile = bamFileManager.load(coverage.getBamId());
+        final Map<String, Chromosome> chromosomeMap = referenceGenomeManager.loadChromosomes(bamFile.getReferenceId())
+                .stream().collect(Collectors.toMap(BaseEntity::getName, c -> c));
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND, coverage.getBamId()));
         Assert.isTrue(bamCoverageDao.load(coverage.getBamId(), coverage.getStep()).isEmpty(),
                 getMessage(MessagesConstants.ERROR_BAM_COVERAGE_NOT_UNIQUE, coverage.getStep(), coverage.getBamId()));
         final String path = bamFile.getPath();
         final File file = getFile(path);
         coverage.setCoverageId(bamCoverageDao.createId());
-        writeCoverageIntervals(coverage, file);
+        writeCoverageIntervals(coverage, file, chromosomeMap);
         bamCoverageDao.save(coverage);
         return coverage;
     }
@@ -243,7 +250,9 @@ public class BamCoverageManager {
         }
     }
 
-    private void writeCoverageIntervals(final BamCoverage bamCoverage, final File file) throws IOException {
+    private void writeCoverageIntervals(final BamCoverage bamCoverage,
+                                        final File file,
+                                        final Map<String, Chromosome> chromosomeMap) throws IOException {
         List<CoverageInterval> coverageAreas = new ArrayList<>();
         try (SamReader reader = SamReaderFactory.makeDefault().referenceSequence(null)
                 .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(file)) {
@@ -259,9 +268,11 @@ public class BamCoverageManager {
                 SamLocusIterator.LocusInfo locus = iterator.next();
                 coverage = coverage + locus.getRecordAndPositions().size();
                 if (locus.getPosition() >= to) {
+                    final String chrName = Utils.getFromChromosomeMap(chromosomeMap,
+                            locus.getSequenceName()).getName();
                     CoverageInterval area = CoverageInterval.builder()
                             .coverageId(bamCoverage.getCoverageId())
-                            .chr(locus.getSequenceName())
+                            .chr(chrName)
                             .start(from)
                             .end(to)
                             .coverage(coverage / (to - from + 1))
