@@ -28,13 +28,15 @@ function parseConfigStr(rawStr) {
     const result = [];
     const strList = rawStr.split('\n');
     strList.forEach(str => {
-        const [term, ...colors] = str.split(/\s+/);
-        const colorList = colors.join().split(',');
-        result.push({
-            term: term,
-            backgroundColor: colorList[0] ? colorList[0].trim() : undefined,
-            foregroundColor: colorList[1] ? colorList[1].trim() : undefined
-        });
+        if (str) {
+            const [term, ...colors] = str.split(/\s+/);
+            const colorList = colors.join().split(',');
+            result.push({
+                term: term,
+                backgroundColor: colorList[0] ? colorList[0].trim() : undefined,
+                foregroundColor: colorList[1] ? colorList[1].trim() : undefined
+            });
+        }
     });
     return result;
 }
@@ -42,7 +44,6 @@ function parseConfigStr(rawStr) {
 function prepareConfigCSV(config, header) {
     return {
         labels: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.columnLabels : config.rowLabels,
-        blockLength: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.rowLabels.length : config.columnLabels.length,
         values: config.cellValues
     };
 }
@@ -51,8 +52,8 @@ function parseConfigHeatmap(config, header) {
     const labels = config[header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? 'rows' : 'columns'].map(item => item.name);
     return {
         labels,
-        blockLength: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.columns.length : config.rows.length,
-        values: config.values
+        values: config.values,
+        heatmapId: config.heatmapId
     };
 }
 

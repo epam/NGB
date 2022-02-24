@@ -26,17 +26,19 @@ function parseConfigCSV(config) {
     const rowLabels = lines[0].split(',');
     const columnLabels = [];
     for (let i = 1; i < lines.length; i++) {
+        if (!lines[i]) {
+            continue;
+        }
         splitLine = lines[i].split(',');
         columnLabels.push(splitLine.shift());
+        cellValues.push(splitLine);
         for (const val of splitLine) {
             const numericValue = Number(val);
             if (isNaN(numericValue)) {
-                cellValues.push(val);
                 dataType = HeatmapDataType.string;
                 minimum = undefined;
                 maximum = undefined;
             } else {
-                cellValues.push(numericValue);
                 if (numericValue < minimum) {
                     minimum = numericValue;
                 }
@@ -113,9 +115,26 @@ export default class ngbPathwaysAnnotationController {
         this.heatmap = heatmap;
         const projectId = this.heatmap.project ? this.heatmap.project.id : this.heatmap.projectIdNumber;
         const options = HeatmapViewOptions.parse(readHeatmapState(id));
-        options.data.onMetadataLoaded(() => {
-            this.annotation.colorScheme = options.colorScheme.copy({colorFormat: ColorFormats.hex});
-            this.annotation.config = options.data.metadata;
+        options.data.onDataLoaded(payload => {
+            const values = [];
+            for (const heatmapDataItem of payload.data.entries()) {
+                if (!values[heatmapDataItem.row]) {
+                    values[heatmapDataItem.row] = [];
+                }
+                values[heatmapDataItem.row][heatmapDataItem.column] = heatmapDataItem.value;
+            }
+            this.annotation.config = {
+                rows: payload.metadata.rows,
+                columns: payload.metadata.columns,
+                heatmapId: id,
+                values
+            };
+            if (!this.annotation.colorScheme) {
+                const colorSchemeParams = {colorFormat: ColorFormats.hex};
+                colorSchemeParams.minimum = this.annotation.config.minCellValue;
+                colorSchemeParams.maximum = this.annotation.config.maxCellValue;
+                this.annotation.colorScheme = options.colorScheme.copy(colorSchemeParams);
+            }
         });
         options.data.options = {id, projectId};
         this.annotation.name = this.annotation.name || this.heatmap.prettyName || this.heatmap.name;
@@ -132,6 +151,9 @@ export default class ngbPathwaysAnnotationController {
         if (this.annotation) {
             if (this.annotation.type === this.annotationTypeList.MANUAL) {
                 this.annotation.config = initializeManualConfig(this.annotation.value);
+            }
+            if (this.annotation.type === this.annotationTypeList.HEATMAP) {
+                this.heatmapId = this.annotation.value.heatmapId;
             }
         }
     }

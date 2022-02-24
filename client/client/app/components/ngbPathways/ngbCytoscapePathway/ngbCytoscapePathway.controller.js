@@ -380,10 +380,7 @@ export default class ngbCytoscapePathwayController {
 
         for (let labelIndex = 0; labelIndex < terms.labels.length; labelIndex++) {
             if (deepSearch(node.data(), terms.labels[labelIndex])) {
-                termsList = termsList.concat(terms.values.slice(
-                    labelIndex * terms.blockLength,
-                    (labelIndex + 1) * terms.blockLength
-                ));
+                termsList = termsList.concat(terms.values[labelIndex]);
             }
             const colorList = [];
             termsList.forEach(term => {
