@@ -19,7 +19,9 @@ export default class ngbPathwaysAnnotationAddDlgController {
     }
 
     get isStateValid() {
-        return this.annotation.type !== undefined && this.annotation.header !== undefined;
+        return this.annotation.type !== undefined
+            && (this.annotation.type === this.ngbPathwaysAnnotationService.annotationTypeList.MANUAL
+                || this.annotation.header !== undefined);
     }
 
 

@@ -65,7 +65,8 @@ export default class ngbBookmarksTableController extends baseController {
         $mdDialog,
         trackNamingService,
         appLayout,
-        ngbStrainLineageService
+        ngbStrainLineageService,
+        ngbPathwaysService
     ) {
         super();
         Object.assign(
@@ -81,7 +82,8 @@ export default class ngbBookmarksTableController extends baseController {
                 trackNamingService,
                 miewContext,
                 appLayout,
-                ngbStrainLineageService
+                ngbStrainLineageService,
+                ngbPathwaysService
             });
         this.displayBookmarksFilter = this.ngbBookmarksTableService.displayBookmarksFilter;
         if (this.projectContext.references.length) {
@@ -170,6 +172,7 @@ export default class ngbBookmarksTableController extends baseController {
         this.miewContext.routeInfo = entity.miew;
         this.heatmapContext.routeInfo = entity.heatmap;
         this.ngbStrainLineageService.recoverLocalState(entity.lineage);
+        this.ngbPathwaysService.recoverLocalState(entity.pathways);
         this.projectContext.changeState({
             chromosome: chromosomeName ? {name: chromosomeName} : undefined,
             viewport: position,

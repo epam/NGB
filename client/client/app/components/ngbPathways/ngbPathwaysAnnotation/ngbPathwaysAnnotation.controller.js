@@ -118,7 +118,7 @@ export default class ngbPathwaysAnnotationController {
             this.annotation.config = options.data.metadata;
         });
         options.data.options = {id, projectId};
-        this.annotation.name = this.heatmap.prettyName || this.heatmap.name;
+        this.annotation.name = this.annotation.name || this.heatmap.prettyName || this.heatmap.name;
     }
 
     $onChanges(changes) {

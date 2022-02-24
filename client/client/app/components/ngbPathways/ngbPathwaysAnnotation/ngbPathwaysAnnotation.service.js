@@ -56,6 +56,21 @@ function parseConfigHeatmap(config, header) {
     };
 }
 
+function prepareAnnotationList(list) {
+    const result = [];
+    list.forEach(annotation => {
+        const annotationClone = {
+            ...annotation
+        };
+        if (annotationClone.colorScheme) {
+            annotationClone.serializedColorScheme = annotationClone.colorScheme.serialize();
+            delete annotationClone.colorScheme;
+        }
+        result.push(annotationClone);
+    });
+    return result;
+}
+
 export default class ngbPathwaysAnnotationService {
     annotationList = [];
     _maxAnnotationId = 1;
@@ -68,18 +83,7 @@ export default class ngbPathwaysAnnotationService {
                 dispatcher
             }
         );
-
-        const rawAnnotationList = JSON.parse(localStorage.getItem(ANNOTATION_STORAGE_NAME)) || [];
-        for (const annotation of rawAnnotationList) {
-            if (annotation.serializedColorScheme) {
-                annotation.colorScheme = ColorScheme.parse(annotation.serializedColorScheme).copy({
-                    colorFormat: ColorFormats.hex
-                });
-                delete annotation.serializedColorScheme;
-            }
-            this.annotationList.push(annotation);
-        }
-        this._maxAnnotationId = findMaxId(this.annotationList);
+        this.initState([]);
     }
 
     get annotationFileHeaderList() {
@@ -90,23 +94,21 @@ export default class ngbPathwaysAnnotationService {
         return ANNOTATION_TYPE_LIST;
     }
 
-    getAnnotationList(pathwayId) {
+    getSessionAnnotationList() {
+        return prepareAnnotationList(this.annotationList.filter(item => item.type !== this.annotationTypeList.CSV));
+    }
+
+    getPathwayAnnotationList(pathwayId) {
         return this.annotationList.filter(item => item.pathwayId === pathwayId);
     }
 
     saveAnnotationList(list) {
-        const formattedList = [];
-        list.filter(item => item.type !== this.annotationTypeList.CSV).forEach(annotation => {
-            const annotationClone = {
-                ...annotation
-            };
-            if (annotationClone.colorScheme) {
-                annotationClone.serializedColorScheme = annotationClone.colorScheme.serialize();
-                delete annotationClone.colorScheme;
-            }
-            formattedList.push(annotationClone);
-        });
-        localStorage.setItem(ANNOTATION_STORAGE_NAME, JSON.stringify(formattedList));
+        localStorage.setItem(
+            ANNOTATION_STORAGE_NAME,
+            JSON.stringify(prepareAnnotationList(
+                list.filter(item => item.type !== this.annotationTypeList.CSV)
+            ))
+        );
     }
 
     getAnnotationById(id) {
@@ -176,5 +178,22 @@ export default class ngbPathwaysAnnotationService {
         };
         delete savedAnnotation.config;
         this.setAnnotation(savedAnnotation);
+    }
+
+    initState(annotationList) {
+        const rawAnnotationList = annotationList && annotationList.length
+            ? annotationList
+            : JSON.parse(localStorage.getItem(ANNOTATION_STORAGE_NAME)) || [];
+        this.annotationList = [];
+        for (const annotation of rawAnnotationList) {
+            if (annotation.serializedColorScheme) {
+                annotation.colorScheme = ColorScheme.parse(annotation.serializedColorScheme).copy({
+                    colorFormat: ColorFormats.hex
+                });
+                delete annotation.serializedColorScheme;
+            }
+            this.annotationList.push(annotation);
+        }
+        this._maxAnnotationId = findMaxId(this.annotationList);
     }
 }

@@ -43,7 +43,7 @@ export default class ngbInternalPathwaysResultController extends baseController 
                 $mdDialog
             }
         );
-
+        this.annotationTypeList = this.ngbPathwaysAnnotationService.annotationTypeList;
         this.initialize();
         this.initEvents();
     }
@@ -117,7 +117,7 @@ export default class ngbInternalPathwaysResultController extends baseController 
 
     refreshAnnotationList() {
         if (this.ngbPathwaysService.currentInternalPathway) {
-            this.annotationList = this.ngbPathwaysAnnotationService.getAnnotationList(this.ngbPathwaysService.currentInternalPathway.id);
+            this.annotationList = this.ngbPathwaysAnnotationService.getPathwayAnnotationList(this.ngbPathwaysService.currentInternalPathway.id);
             this.applyAnnotations();
         }
     }
