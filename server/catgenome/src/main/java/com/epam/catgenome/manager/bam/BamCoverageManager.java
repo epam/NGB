@@ -80,6 +80,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -268,8 +269,10 @@ public class BamCoverageManager {
                 SamLocusIterator.LocusInfo locus = iterator.next();
                 coverage = coverage + locus.getRecordAndPositions().size();
                 if (locus.getPosition() >= to) {
-                    final String chrName = Utils.getFromChromosomeMap(chromosomeMap,
-                            locus.getSequenceName()).getName();
+                    final String chrName = Optional.ofNullable(Utils.getFromChromosomeMap(chromosomeMap,
+                            locus.getSequenceName()))
+                            .map(BaseEntity::getName)
+                            .orElse(locus.getSequenceName());
                     CoverageInterval area = CoverageInterval.builder()
                             .coverageId(bamCoverage.getCoverageId())
                             .chr(chrName)
