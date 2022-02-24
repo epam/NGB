@@ -26,8 +26,9 @@ package com.epam.catgenome.controller.pathway;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.registration.BioPAXRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
-import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.manager.pathway.PathwaySecurityService;
@@ -65,8 +66,8 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Pathway> loadPathway(@PathVariable final Long pathwayId,
-                                       @RequestParam(required = false) final Long projectId) {
+    public Result<NGBPathway> loadPathway(@PathVariable final Long pathwayId,
+                                          @RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathway(pathwayId, projectId));
     }
 
@@ -78,7 +79,7 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<Pathway>> loadPathways(@RequestParam(required = false) final Long projectId) {
+    public Result<List<NGBPathway>> loadPathways(@RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathways(projectId));
     }
 
@@ -106,7 +107,7 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Page<Pathway>> loadPathways(@RequestBody final PathwayQueryParams params)
+    public Result<Page<NGBPathway>> loadPathways(@RequestBody final PathwayQueryParams params)
             throws IOException, ParseException {
         return Result.success(pathwaySecurityService.loadPathways(params));
     }
@@ -119,8 +120,22 @@ public class PathwayController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Pathway> createPathway(@RequestBody final PathwayRegistrationRequest request) throws IOException {
-        return Result.success(pathwaySecurityService.createPathway(request));
+    public Result<NGBPathway> registerPathway(@RequestBody final PathwayRegistrationRequest request)
+            throws IOException {
+        return Result.success(pathwaySecurityService.registerPathway(request));
+    }
+
+    @PostMapping(value = "/biopax")
+    @ApiOperation(
+            value = "Registers new BioPAX file",
+            notes = "Registers new BioPAX file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> registerBioPAX(@RequestBody final BioPAXRegistrationRequest request) throws IOException {
+        pathwaySecurityService.registerBioPAX(request);
+        return Result.success(null);
     }
 
     @DeleteMapping(value = "/pathway/{pathwayId}")

@@ -116,6 +116,7 @@
 
                         pw.pathway_id,
                         pw.pathway_desc,
+                        pw.database_source,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -235,6 +236,7 @@
 
                         pw.pathway_id,
                         pw.pathway_desc,
+                        pw.database_source,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -347,6 +349,7 @@
 
                         pw.pathway_id,
                         pw.pathway_desc,
+                        pw.database_source,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -459,6 +462,7 @@
 
                         pw.pathway_id,
                         pw.pathway_desc,
+                        pw.database_source,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -571,6 +575,7 @@
 
                         pw.pathway_id,
                         pw.pathway_desc,
+                        pw.database_source,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,

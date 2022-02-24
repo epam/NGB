@@ -81,6 +81,9 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
+    maven {
+        url "http://www.biopax.org/m2repo/releases/"
+    }
     flatDir {
         dirs 'lib'
     }
@@ -193,7 +196,12 @@ dependencies {
     compile group: "com.github.qurben", name: "libnewicktree", version: "1.0"
 
     // sbgn format
-    compile group: "com.github.sbgn", name: "libsbgn", version: "b619268"
+    compile group: "org.sbgn", name: "libsbgn", version: "0.2"
+
+    //  BioPAX
+    compile group: "org.biopax.paxtools", name: "paxtools-core", version: "5.1.0"
+    compile group: "org.biopax.paxtools", name: "sbgn-converter", version: "5.0.0"
+    compile group: "pathwaycommons", name: "chilay-sbgn", version: "3.0.0"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")

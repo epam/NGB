@@ -256,6 +256,9 @@ public class Application {
     @Option(name = "--taxid", usage = "specifies taxonomy id")
     private Long taxId;
 
+    @Option(name = "-o", usage = "specifies species, separated by comma",  aliases = {"--organisms"})
+    private String species;
+
     @Option(name = "--step", usage = "specifies Bam file coverage interval size")
     private Integer step;
 
@@ -368,6 +371,7 @@ public class Application {
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
         options.setTaxId(taxId);
+        options.setSpecies(species);
         options.setStep(step);
         return options;
     }

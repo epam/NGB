@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.controller.vo.registration;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,10 +30,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-public class PathwayRegistrationRequest extends DefaultFileRegistrationRequest {
-    private String name;
-    private String prettyName;
+public class BioPAXRegistrationRequest extends DefaultFileRegistrationRequest {
     private String path;
     private String pathwayDesc;
     private List<String> species;

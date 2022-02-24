@@ -21,8 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.vo.registration;
+package com.epam.catgenome.entity.pathway;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +35,15 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class PathwayRegistrationRequest extends DefaultFileRegistrationRequest {
-    private String name;
-    private String prettyName;
-    private String path;
+public class NGBPathway extends BiologicalDataItem {
+    private Long pathwayId;
     private String pathwayDesc;
-    private List<String> species;
+    private Long bioDataItemId;
+    private PathwayDatabaseSource databaseSource;
+    private List<Taxonomy> species;
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.PATHWAY;
+    }
 }

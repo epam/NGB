@@ -25,7 +25,7 @@ package com.epam.catgenome.manager.pathway;
 
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
@@ -61,7 +61,7 @@ public class PathwayManagerTest extends TestCase {
 
     @Test
     public void createPathwayTest() throws IOException {
-        final Pathway pathway = registerPathway("createPathwayTest", fileName);
+        final NGBPathway pathway = registerPathway("createPathwayTest", fileName);
         assertNotNull(pathway);
         assertEquals("createPathwayTest", pathway.getName());
         assertEquals("pathway", pathway.getPrettyName());
@@ -71,21 +71,21 @@ public class PathwayManagerTest extends TestCase {
 
     @Test
     public void loadPathway() throws IOException {
-        final Pathway pathway = registerPathway("loadPathway", fileName);
-        final Pathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
+        final NGBPathway pathway = registerPathway("loadPathway", fileName);
+        final NGBPathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
         pathwayManager.deletePathway(pathway.getPathwayId());
     }
 
     @Test
     public void loadPathways() throws IOException, ParseException {
-        final Pathway pathway = registerPathway("loadPathways", fileName);
-        final Pathway pathway1 = registerPathway("loadPathways1", fileName);
-        final Pathway pathway2 = registerPathway("loadPathways2", fileName);
+        final NGBPathway pathway = registerPathway("loadPathways", fileName);
+        final NGBPathway pathway1 = registerPathway("loadPathways1", fileName);
+        final NGBPathway pathway2 = registerPathway("loadPathways2", fileName);
         final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
-        final Page<Pathway> pathways = pathwayManager.loadPathways(parameters);
+        final Page<NGBPathway> pathways = pathwayManager.loadPathways(parameters);
         assertEquals(2, pathways.getItems().size());
         assertEquals(3, pathways.getTotalCount());
         pathwayManager.deletePathway(pathway.getPathwayId());
@@ -95,8 +95,8 @@ public class PathwayManagerTest extends TestCase {
 
     @Test
     public void deletePathwayTest() throws IOException {
-        final Pathway pathway = registerPathway("deletePathwayTest", fileName);
-        Pathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
+        final NGBPathway pathway = registerPathway("deletePathwayTest", fileName);
+        NGBPathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
         pathwayManager.deletePathway(createdPathway.getPathwayId());
         createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
@@ -104,12 +104,13 @@ public class PathwayManagerTest extends TestCase {
     }
 
     @NotNull
-    private Pathway registerPathway(final String name, final String fileName) throws IOException {
-        final PathwayRegistrationRequest request = new PathwayRegistrationRequest();
-        request.setName(name);
-        request.setPrettyName("pathway");
-        request.setPath(fileName);
-        request.setPathwayDesc("description");
-        return pathwayManager.createPathway(request);
+    private NGBPathway registerPathway(final String name, final String fileName) throws IOException {
+        final PathwayRegistrationRequest request = PathwayRegistrationRequest.builder()
+                .name(name)
+                .prettyName("pathway")
+                .path(fileName)
+                .pathwayDesc("description")
+                .build();
+        return pathwayManager.registerPathway(request);
     }
 }

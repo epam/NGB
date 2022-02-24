@@ -33,5 +33,7 @@ import lombok.Setter;
 public class PathwayQueryParams {
     private PagingInfo pagingInfo;
     private String term;
+    private PathwayDatabaseSource databaseSource;
+    private String species;
     private SortInfo sortInfo;
 }

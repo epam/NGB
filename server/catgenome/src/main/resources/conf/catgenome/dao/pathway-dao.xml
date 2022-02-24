@@ -10,11 +10,13 @@
                     INSERT INTO catgenome.pathway (
                         pathway_id,
                         bio_data_item_id,
-                        pathway_desc
+                        pathway_desc,
+                        database_source
                     ) VALUES (
                         :PATHWAY_ID,
                         :BIO_DATA_ITEM_ID,
-                        :PATHWAY_DESC
+                        :PATHWAY_DESC,
+                        :DATABASE_SOURCE
                     )
                 ]]>
             </value>
@@ -42,7 +44,8 @@
                         b.owner,
 
                         t.pathway_id,
-                        t.pathway_desc
+                        t.pathway_desc,
+                        t.database_source
                     FROM catgenome.pathway t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
                         WHERE pathway_id = ?
                 ]]>
@@ -64,7 +67,8 @@
                         b.owner,
 
                         t.pathway_id,
-                        t.pathway_desc
+                        t.pathway_desc,
+                        t.database_source
                     FROM catgenome.pathway t join catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
                 ]]>
             </value>

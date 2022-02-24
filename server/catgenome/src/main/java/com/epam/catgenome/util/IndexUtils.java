@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -98,6 +99,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * An utility class for creating Tabix (tbi) indexes for tab delimited BGZIP-compressed files (VCF,
@@ -109,6 +111,8 @@ public final class IndexUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
     private static final String FIRST_PART_PATH_REGEX = "(.*?)\\?";
     private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
+    private static final String LINE_DELIMITER = "|";
+    private static final String LINE_DELIMITER_PATTERN = "\\|";
 
     private IndexUtils() {
         //no operations
@@ -587,6 +591,14 @@ public final class IndexUtils {
                 .filter(GeneUtils::isGene)
                 .map(g -> new GeneInfo(g.getGroupId(), g.getFeatureName(), isExon))
                 .collect(Collectors.toSet());
+    }
+
+    public static String serialize(final List<String> tokens) {
+        return join(tokens, LINE_DELIMITER);
+    }
+
+    public static List<String> deserialize(final String encoded) {
+        return Arrays.asList(encoded.split(LINE_DELIMITER_PATTERN));
     }
 
     private static InputStream indexFileInputStream(final InputStream indexStream, String extension)

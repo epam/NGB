@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Builder
-public class Pathway implements Printable<Pathway> {
+public class NGBPathway implements Printable<NGBPathway> {
 
     private Long pathwayId;
     private String pathwayDesc;
@@ -45,18 +45,19 @@ public class Pathway implements Printable<Pathway> {
     private String name;
     private String prettyName;
     private String path;
+    private PathwayDatabaseSource databaseSource;
 
     /**
-     * Calculates a formatting string for a {@code List} of {@code Pathway} objects
-     * for table output. Method calculates the width of columns for {@code Pathway}'s fields
+     * Calculates a formatting string for a {@code List} of {@code NGBPathway} objects
+     * for table output. Method calculates the width of columns for {@code NGBPathway}'s fields
      * from the length of all items' fields in the list. Printed columns are defined by
      * {@code FieldFormat}, width of each column will be equal to the width of the field with
      * the longest string value.
-     * @param table {@code List} of {@code Pathway} for formatting
+     * @param table {@code List} of {@code NGBPathway} for formatting
      * @return format String to be applied to the {@param table} printing
      */
     @Override
-    public String getFormatString(List<Pathway> table) {
+    public String getFormatString(List<NGBPathway> table) {
         Map<FieldFormat, Integer> formatMap = new EnumMap<>(FieldFormat.class);
         for (FieldFormat field : FieldFormat.values()) {
             formatMap.put(field, field.name().length());
@@ -66,9 +67,9 @@ public class Pathway implements Printable<Pathway> {
     }
 
     /**
-     * Creates a String representation of {@code Pathway} according to the {@param formatString}
-     * @param formatString to apply to {@code Pathway} formatting
-     * @return a String representation of {@code Pathway}
+     * Creates a String representation of {@code NGBPathway} according to the {@param formatString}
+     * @param formatString to apply to {@code NGBPathway} formatting
+     * @return a String representation of {@code NGBPathway}
      */
     @Override
     public String formatItem(String formatString) {
@@ -78,7 +79,8 @@ public class Pathway implements Printable<Pathway> {
                 bioDataItemId,
                 name,
                 prettyName,
-                path
+                path,
+                databaseSource
         );
     }
 
@@ -88,14 +90,15 @@ public class Pathway implements Printable<Pathway> {
         return String.format(formatString, (Object[]) names);
     }
 
-    private void getItemFormat(List<Pathway> table, Map<FieldFormat, Integer> formatMap) {
-        for (Pathway dbs : table) {
+    private void getItemFormat(List<NGBPathway> table, Map<FieldFormat, Integer> formatMap) {
+        for (NGBPathway dbs : table) {
             calculateFieldWidth(formatMap, FieldFormat.PATHWAY_ID, String.valueOf(dbs.getPathwayId()));
             calculateFieldWidth(formatMap, FieldFormat.BIO_DATA_ITEM_ID, String.valueOf(dbs.getBioDataItemId()));
             calculateFieldWidth(formatMap, FieldFormat.NAME, dbs.getName());
             calculateFieldWidth(formatMap, FieldFormat.PRETTY_NAME, dbs.getPrettyName());
             calculateFieldWidth(formatMap, FieldFormat.PATHWAY_DESC, dbs.getPathwayDesc());
             calculateFieldWidth(formatMap, FieldFormat.PATH, dbs.getPath());
+            calculateFieldWidth(formatMap, FieldFormat.DATABASE_SOURCE, dbs.getDatabaseSource().name());
         }
     }
 
@@ -109,7 +112,7 @@ public class Pathway implements Printable<Pathway> {
     }
 
     /**
-     * Represent the fields of the {@code Pathway}, that will be included in the table for printing
+     * Represent the fields of the {@code NGBPathway}, that will be included in the table for printing
      */
     private enum FieldFormat {
         PATHWAY_ID,
@@ -117,6 +120,7 @@ public class Pathway implements Printable<Pathway> {
         PATHWAY_DESC,
         NAME,
         PRETTY_NAME,
-        PATH;
+        PATH,
+        DATABASE_SOURCE;
     }
 }

@@ -270,6 +270,11 @@
         <type>POST</type>
         <url>/restapi/pathway</url>
     </reg_pathway>
+    <reg_biopax>
+        <name>reg_biopax</name>
+        <type>POST</type>
+        <url>/restapi/biopax</url>
+    </reg_biopax>
     <del_pathway>
         <name>del_pathway</name>
         <type>DELETE</type>

@@ -27,16 +27,19 @@ package com.epam.ngb.cli.manager.command.handler.http.pathway;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
-import com.epam.ngb.cli.entity.pathway.Pathway;
+import com.epam.ngb.cli.entity.pathway.NGBPathway;
 import com.epam.ngb.cli.entity.pathway.PathwayRegistrationRequest;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.util.TextUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
@@ -62,15 +65,19 @@ public class PathwayRegistrationHandler extends AbstractHTTPCommandHandler {
                 .build();
         registrationRequest.setName(options.getName());
         registrationRequest.setPrettyName(options.getPrettyName());
+        if (!TextUtils.isBlank(options.getSpecies())) {
+            registrationRequest.setSpecies(Arrays.stream(options.getSpecies().split(","))
+                    .collect(Collectors.toList()));
+        }
     }
 
     @Override public int runCommand() {
         final HttpPost request = (HttpPost) getRequest(getRequestUrl());
-        final String result = getPostResult(registrationRequest, request);
+        final String result = getPostResult(this.registrationRequest, request);
         try {
-            ResponseResult<Pathway> responseResult = getMapper().readValue(result,
+            ResponseResult<NGBPathway> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                            Pathway.class));
+                            NGBPathway.class));
             if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             }

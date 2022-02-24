@@ -21,21 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.controller.vo.registration;
+package com.epam.catgenome.entity.pathway;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
 
 @Getter
-@Setter
-@Builder
-public class PathwayRegistrationRequest extends DefaultFileRegistrationRequest {
-    private String name;
-    private String prettyName;
-    private String path;
-    private String pathwayDesc;
-    private List<String> species;
+@AllArgsConstructor
+public enum PathwayDatabaseSource {
+    CUSTOM(1L, ".sbgn"),
+    BIOCYC(2L, ".owl");
+
+    private Long sourceId;
+    private String extension;
+
+    /**
+     * @param sourceId
+     * @return a {@code PathwayDatabaseSource} instance corresponding to the input ID
+     */
+    public static PathwayDatabaseSource getById(final Long sourceId) {
+        for (PathwayDatabaseSource source : PathwayDatabaseSource.values()) {
+            if (source.getSourceId().equals(sourceId)) {
+                return source;
+            }
+        }
+        return null;
+    }
+
+    public static PathwayDatabaseSource getByExtension(final String extension) {
+        for (PathwayDatabaseSource source : PathwayDatabaseSource.values()) {
+            if (source.getExtension().equals(extension)) {
+                return source;
+            }
+        }
+        return null;
+    }
 }

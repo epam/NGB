@@ -64,6 +64,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.deserialize;
+import static com.epam.catgenome.util.IndexUtils.serialize;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -72,7 +74,6 @@ public class TaxonomyManager {
 
     private static final String COMMON_NAME = "common name";
     private static final String SCIENTIFIC_NAME = "scientific name";
-    private static final String TAXONOMY_LINE_DELIMITER = "|";
     private static final String TAXONOMY_TOKEN_DELIMITER_PATTERN = "\\|";
     private static final List<String> RECORDS_TO_BE_EXCLUDED = Arrays.asList("type material", "in-part");
     private static final String TAXONOMY_TERM_SPLIT_TOKEN = " ";
@@ -286,15 +287,7 @@ public class TaxonomyManager {
         writer.addDocument(doc);
     }
 
-    private static List<String> deserialize(final String encoded) {
-        return Arrays.asList(encoded.split(TAXONOMY_TOKEN_DELIMITER_PATTERN));
-    }
-
     private static boolean excludeLine(final String line) {
         return RECORDS_TO_BE_EXCLUDED.stream().anyMatch(line::contains);
-    }
-
-    private static String serialize(final List<String> tokens) {
-        return join(tokens, TAXONOMY_LINE_DELIMITER);
     }
 }

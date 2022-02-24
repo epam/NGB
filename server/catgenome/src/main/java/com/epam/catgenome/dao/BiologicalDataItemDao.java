@@ -47,7 +47,8 @@ import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.entity.maf.MafFile;
-import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.NGBPathway;
+import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
@@ -290,6 +291,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
         PATHWAY_ID,
         PATHWAY_DESC,
+        DATABASE_SOURCE,
 
         INDEX_ID,
         INDEX_NAME,
@@ -421,10 +423,14 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         }
 
         private static BiologicalDataItem mapPathway(final ResultSet rs) throws SQLException {
-            final Pathway pathway = Pathway.builder().build();
+            final NGBPathway pathway = NGBPathway.builder().build();
             pathway.setId(rs.getLong(PATHWAY_ID.name()));
             pathway.setPathwayId(rs.getLong(PATHWAY_ID.name()));
             pathway.setPathwayDesc(rs.getString(PATHWAY_DESC.name()));
+            final long databaseSource = rs.getLong(DATABASE_SOURCE.name());
+            if (!rs.wasNull()) {
+                pathway.setDatabaseSource(PathwayDatabaseSource.getById(databaseSource));
+            }
             pathway.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             return pathway;
         }
