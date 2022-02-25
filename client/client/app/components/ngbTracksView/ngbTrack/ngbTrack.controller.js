@@ -70,7 +70,8 @@ export default class ngbTrackController {
         fcSourcesManager,
         blastContext,
         motifsContext,
-        bamCoverageContext
+        bamCoverageContext,
+        appearanceContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
@@ -81,6 +82,7 @@ export default class ngbTrackController {
         this.motifsContext = motifsContext;
         this.bamCoverageContext = bamCoverageContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
+        this.appearanceContext = appearanceContext;
         this.fcSourcesManager = fcSourcesManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
@@ -302,6 +304,20 @@ export default class ngbTrackController {
 
     get showFileNameHint() {
         return this.trackNamingService.nameChanged(this.track) && this.showTrackOriginalName;
+    }
+
+    get trackClosable() {
+        if (this.projectContext && this.appearanceContext) {
+            const nonReferenceTracksCount = (this.projectContext.tracks || [])
+                .filter(o => !/^reference$/i.test(o.format))
+                .length;
+            const preventClose = (
+                this.appearanceContext.embedded ||
+                this.appearanceContext.preventCloseLastTrack
+            ) && nonReferenceTracksCount === 1;
+            return !preventClose;
+        }
+        return true;
     }
 
     setCustomName(newName) {
