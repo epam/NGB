@@ -90,7 +90,7 @@ ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-contai
 }
 
 .ngb-track-header-floating {
-  position: absolute; 
+  position: absolute;
   top: 0;
   right: 0;
   z-index: 1;
@@ -187,6 +187,16 @@ ngb-track-menu {
 
 .link-action{
   margin-left: 4px;
+}
+
+.link-container.disabled {
+  cursor: default;
+}
+
+.link-container.disabled .link-action {
+  pointer-events: none;
+  color: #777;
+  text-decoration: none;
 }
 
 .ngb-track-header-action-group-links {

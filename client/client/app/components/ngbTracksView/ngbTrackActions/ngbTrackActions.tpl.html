@@ -25,8 +25,14 @@
                  layout="row"
                  layout-align="start center">
                 {{action.label}}:
-                <div ng-repeat="link in action.links">
-                    <a class="link-action" href="" ng-click="ctrl.handle(link);">{{link.label}}</a>
+                <div ng-repeat="link in action.links"
+                     class="link-container"
+                     ng-class="{'disabled': !ctrl.linkEnabled(link)}">
+                    <a class="link-action"
+                       href=""
+                       ng-click="ctrl.handle(link);">
+                        {{link.label}}
+                    </a>
                 </div>
             </div>
         </div>
