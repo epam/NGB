@@ -106,6 +106,7 @@
     <div class="row">
         <md-input-container class="add-annotation-dlb-input">
             <md-checkbox aria-label="manual colors config" class="md-primary"
+                         ng-change="$ctrl.onAnnotationTypeChange()"
                          ng-false-value="undefined"
                          ng-model="$ctrl.annotation.type"
                          ng-true-value="{{$ctrl.annotationTypeList.MANUAL}}">

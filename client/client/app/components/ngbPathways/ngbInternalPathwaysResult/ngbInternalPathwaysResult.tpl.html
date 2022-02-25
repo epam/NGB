@@ -13,7 +13,13 @@
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
-        <span class="blast-search-result-title">{{$ctrl.selectedTree.name}}</span>
+        <div class="internal-pathway-result-title">{{$ctrl.selectedTree.name}}</div>
+        <div class="internal-pathway-result-title-icon">
+            <ng-md-icon icon="info" size="20"></ng-md-icon>
+            <md-tooltip class="md-tooltip__full-height">
+                {{$ctrl.selectedTree.description}}
+            </md-tooltip>
+        </div>
     </div>
     <div class="u-height__full tree-container" flex layout="column">
         <div class="pathway-search-panel">
@@ -50,12 +56,8 @@
                                          ng-model="annotation.isActive">
                             </md-checkbox>
                         </md-input-container>
-                        <div class="pathway-search-panel-annotation-edit pathway-search-panel-annotation-name" ng-if="annotation.type !== $ctrl.annotationTypeList.CSV">
+                        <div class="pathway-search-panel-annotation-edit pathway-search-panel-annotation-name">
                             <a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a>
-                            <md-tooltip>{{annotation.name}}</md-tooltip>
-                        </div>
-                        <div class="pathway-search-panel-annotation-name" ng-if="annotation.type === $ctrl.annotationTypeList.CSV">
-                            <span>{{annotation.name}}</span>
                             <md-tooltip>{{annotation.name}}</md-tooltip>
                         </div>
                         <div class="pathway-search-panel-annotation-delete" ng-click="$ctrl.deleteAnnotation(annotation.id)">

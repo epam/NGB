@@ -16,6 +16,15 @@ function initializeManualConfig(config) {
     return result;
 }
 
+function initializeCSVConfig(config, isRow) {
+    return {
+        columnLabels: isRow ? config.otherLabels : config.labels,
+        rowLabels: isRow ? config.labels : config.otherLabels,
+        cellValues: config.values,
+        fileName: config.fileName
+    };
+}
+
 function parseConfigCSV(config) {
     let maximum = -Infinity, minimum = Infinity;
     let dataType = HeatmapDataType.number;
@@ -149,11 +158,25 @@ export default class ngbPathwaysAnnotationController {
 
     initialize() {
         if (this.annotation) {
-            if (this.annotation.type === this.annotationTypeList.MANUAL) {
-                this.annotation.config = initializeManualConfig(this.annotation.value);
-            }
-            if (this.annotation.type === this.annotationTypeList.HEATMAP) {
-                this.heatmapId = this.annotation.value.heatmapId;
+            switch (this.annotation.type) {
+                case this.annotationTypeList.MANUAL: {
+                    this.annotation.config = initializeManualConfig(this.annotation.value);
+                    break;
+                }
+                case this.annotationTypeList.HEATMAP: {
+                    this.heatmapId = this.annotation.value.heatmapId;
+                    break;
+                }
+                case this.annotationTypeList.CSV: {
+                    this.annotation.config = initializeCSVConfig(
+                        this.annotation.value,
+                        this.annotation.header === this.annotationFileHeaderList.ROW
+                    );
+                    this.csvFile = {
+                        name: this.annotation.value.fileName
+                    };
+                    break;
+                }
             }
         }
     }
@@ -168,6 +191,7 @@ export default class ngbPathwaysAnnotationController {
     onFileUpload() {
         this.annotation.name = this.csvFile.name;
         this.annotation.config = parseConfigCSV(this.csvFile.value);
+        this.annotation.config.fileName = this.csvFile.name;
         if (!this.annotation.colorScheme) {
             this.annotation.colorScheme = new ColorScheme({
                 colorFormat: ColorFormats.hex,

@@ -16,6 +16,19 @@ $ngb-color-blue: #4285F4;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+
+  .internal-pathway-result-title {
+    font-weight: bold;
+    display: inline-block;
+    line-height: 28px;
+    font-size: 18px;
+  }
+  .internal-pathway-result-title-icon {
+    fill: $ngb-color-blue;
+    align-self: center;
+    line-height: 30px;
+    cursor: pointer;
+  }
 }
 
 .tree-list-divider {

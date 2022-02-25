@@ -44,7 +44,9 @@ function parseConfigStr(rawStr) {
 function prepareConfigCSV(config, header) {
     return {
         labels: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.columnLabels : config.rowLabels,
-        values: config.cellValues
+        values: config.cellValues,
+        fileName: config.fileName,
+        otherLabels: header === ANNOTATION_FILE_HEADER_LIST.COLUMN ? config.rowLabels : config.columnLabels
     };
 }
 
@@ -130,6 +132,9 @@ export default class ngbPathwaysAnnotationService {
     }
 
     setAnnotation(annotation) {
+        if (!annotation.name) {
+            annotation.name = ANNOTATION_PREFIX + (this._maxAnnotationId + 1);
+        }
         if (annotation.id) {
             const index = this.annotationList.findIndex(a => a.id === annotation.id);
             if (index > -1) {
@@ -145,9 +150,6 @@ export default class ngbPathwaysAnnotationService {
                 });
             }
         } else {
-            if (!annotation.name) {
-                annotation.name = ANNOTATION_PREFIX + (this._maxAnnotationId + 1);
-            }
             this.annotationList.push({
                 ...annotation,
                 id: ++this._maxAnnotationId,
