@@ -30,6 +30,10 @@ export default class ngbCoveragePanelController {
         });
     }
 
+    $onDestroy() {
+        this.ngbCoveragePanelService.resetInfo();
+    }
+
     $onInit() {
         this.initialize();
     }
