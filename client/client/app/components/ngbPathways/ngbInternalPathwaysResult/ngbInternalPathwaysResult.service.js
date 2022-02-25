@@ -21,6 +21,7 @@ export default class ngbInternalPathwaysResultService {
             const data = convert(xml);
             data.id = treeConfig.id;
             data.name = treeConfig.name;
+            data.description = treeConfig.description;
             if (data) {
                 return {
                     data: data,

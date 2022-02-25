@@ -3,7 +3,9 @@ export default class ngbPathwaysAnnotationAddDlgController {
         this.ngbPathwaysAnnotationService = ngbPathwaysAnnotationService;
         this.$mdDialog = $mdDialog;
         if (annotation) {
-            this.annotation = annotation;
+            this.annotation = {
+                ...annotation
+            };
         } else {
             this.annotation = {
                 name: undefined,
