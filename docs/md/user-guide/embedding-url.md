@@ -58,7 +58,7 @@ http://...?screenshot=${screenshotVisibility}&toolbar=${toolbarVisibility}&layou
     * `vcfcolumns` (lowercased!): **Specify VCF columns to display** button. Accepted values: `On`, `Off`
     * `vcfdownload` (lowercased!): **Download variants table** button. Accepted values: `On`, `Off`
     * `genesdownload` (lowercased!): **Download genes table** button. Accepted values: `On`, `Off`
-    * `closelasttrack` or `closeLastTrack`: hide close button for the single non-reference track. Accepted values: `On`, `Off`
+    * `closelasttrack` or `closeLastTrack`: hide **Close** button for the single non-reference track. Accepted values: `On`, `Off`
 
 ## Examples
 
