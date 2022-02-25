@@ -532,6 +532,7 @@ ngb add_description [<DATASET_NAME>|<DATASET_ID>] <DESCRIPTION_FILE_PATH>  [opti
 
 //Options:
 //-n (--name)           Use specified value for description name. If not specified - fasta file name will be used. Should be unique and mustn't be a number (it will be recognized as ID).
+//--send-content        Use to read description file and send as binary data. Otherwise only the file path will be sent.
 ```
 *Description*
 
