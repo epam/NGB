@@ -372,6 +372,7 @@ Possible keys:
 * `vcfcolumns` (lowercased!): **Specify VCF columns to display** button
 * `vcfdownload` (lowercased!): **Download variants table** button
 * `genesdownload` (lowercased!): **Download genes table** button
+* `closelasttrack` (lowercased!) or `closeLastTrack`: hide close button for the single non-reference track
 
 The object to be passed to NGB window:
 
@@ -385,7 +386,8 @@ The object to be passed to NGB window:
     params: {
         close: false,
         maximize: true,
-        fit: false
+        fit: false,
+        closeLastTrack: false
     }
 }
 ```
