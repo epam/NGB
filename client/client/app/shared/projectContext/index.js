@@ -652,6 +652,17 @@ export default class projectContext {
         return null;
     }
 
+    get resourceDownloadAvailable() {
+        if (
+            this.ngbDefaultSettings &&
+            this.ngbDefaultSettings.ui_settings &&
+            this.ngbDefaultSettings.ui_settings.download_resource !== undefined
+        ) {
+            return /^true$/i.test(`${this.ngbDefaultSettings.ui_settings.download_resource}`);
+        }
+        return true;
+    }
+
     get datasetsLoaded() {
         return this._datasetsLoaded;
     }
