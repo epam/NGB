@@ -13,6 +13,18 @@ class AppearanceContext {
             this.reportStateChange();
         }
     }
+
+    get preventCloseLastTrack () {
+        return this._preventCloseLastTrack;
+    }
+
+    set preventCloseLastTrack (value) {
+        if (value !== this._preventCloseLastTrack) {
+            this._preventCloseLastTrack = value;
+            this.reportStateChange();
+        }
+    }
+
     get closeTracks () {
         return this._closeTracks;
     }
@@ -148,6 +160,7 @@ class AppearanceContext {
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
         this._embedded = false;
+        this._preventCloseLastTrack = false;
         this._closeTracks = true;
         this._fitTracks = true;
         this._organizeTracks = true;
@@ -182,9 +195,12 @@ class AppearanceContext {
                 vcfcolumns = !this.embedded && this.vcfColumns,
                 vcfdownload = !this.embedded && this.vcfDownload,
                 genescolumns = !this.embedded && this.genesColumns,
-                genesdownload = !this.embedded && this.genesDownload
+                genesdownload = !this.embedded && this.genesDownload,
+                closelasttrack = !(this.embedded && this.preventCloseLastTrack),
+                closeLastTrack = closelasttrack
             } = visibilityPayload;
             this._embedded = false;
+            this._preventCloseLastTrack = !closeLastTrack;
             this._closeTracks = clear;
             this._fitTracks = fit;
             this._organizeTracks = organize;
