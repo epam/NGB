@@ -388,8 +388,14 @@ export default class ngbMotifsResultsTableController  extends baseController {
         const tracksOptions = {};
         tracksOptions.tracks = (this.projectContext.tracks || []);
         tracksOptions.tracksState = (this.projectContext.tracksState || []);
-        const [existingReferenceTrackState] = tracksOptions.tracksState
+        let [existingReferenceTrackState] = tracksOptions.tracksState
             .filter(track => track.format === 'REFERENCE');
+        const [referenceTrack] = (this.projectContext.tracks || [])
+            .filter(o => /^reference$/i.test(o.format));
+        if (!existingReferenceTrackState && referenceTrack) {
+            [existingReferenceTrackState] = tracksOptions.tracksState
+                .filter(track => (track.bioDataItemId || '').toLowerCase() === (referenceTrack.name || '').toLowerCase());
+        }
         if (existingReferenceTrackState) {
             existingReferenceTrackState.state = {
                 ...(existingReferenceTrackState.state || {}),
