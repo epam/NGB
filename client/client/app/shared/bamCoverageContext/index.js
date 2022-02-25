@@ -41,6 +41,9 @@ export default class BamCoverageContext {
     }
 
     async setBamCoverage({bamId, bamName}) {
+        if (this._coverageStatistics[bamId]) {
+            return;
+        }
         await this.bamDataService.getBamCoverage(bamId)
             .then((result) => {
                 if (result.length) {

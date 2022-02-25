@@ -61,7 +61,15 @@ export default class ngbCoverageTableController {
         });
         this.gridOptions.rowHeight = this.rowHeight;
         this.gridOptions.infiniteScrollDown = this.totalCount > this.pageSize;
-        this.dispatcher.on('coverage:table:restore', this.restoreState.bind(this));
+
+        const restoreState = this.restoreState.bind(this);
+        const panelChanged = this.panelChanged.bind(this);
+        dispatcher.on('coverage:table:restore', restoreState);
+        dispatcher.on('layout:active:panel:change', panelChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('coverage:table:restore', restoreState);
+            dispatcher.removeListener('layout:active:panel:change', panelChanged);
+        });
     }
 
     get isLastPage() {
@@ -111,7 +119,7 @@ export default class ngbCoverageTableController {
     }
 
     rowClick(row) {
-        const chromosome = row.entity.chr.replace(/chr/, '');
+        const chromosome = row.entity.chr;
         const currentChromosome = this.projectContext.currentChromosome ?
             this.projectContext.currentChromosome.name : null;
         const start = row.entity.start;
@@ -255,5 +263,18 @@ export default class ngbCoverageTableController {
         this.gridOptions.data = [];
         const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
         this.loadData(request);
+    }
+
+    panelChanged(panel) {
+        if (this.gridApi && panel === 'ngbCoveragePanel') {
+            this.gridApi.infiniteScroll.setScrollDirections(false, false);
+            this.gridApi.infiniteScroll.saveScrollPercentage();
+            this.gridApi.core.handleWindowResize();
+            this.$timeout(() => {
+                this.gridApi.infiniteScroll.dataLoaded(
+                    this.currentPages.first > 1,
+                    !this.isLastPage);
+            });
+        }
     }
 }
