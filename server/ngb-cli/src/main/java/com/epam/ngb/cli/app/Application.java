@@ -256,6 +256,9 @@ public class Application {
     @Option(name = "--taxid", usage = "specifies taxonomy id")
     private Long taxId;
 
+    @Option(name = "--send-content", usage = "defines if file content should be sent directly to server")
+    private boolean sendContent;
+
     @Option(name = "--step", usage = "specifies Bam file coverage interval size")
     private Integer step;
 
@@ -368,6 +371,7 @@ public class Application {
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
         options.setTaxId(taxId);
+        options.setSendContent(sendContent);
         options.setStep(step);
         return options;
     }

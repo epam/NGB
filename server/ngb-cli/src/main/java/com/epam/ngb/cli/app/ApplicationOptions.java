@@ -124,6 +124,7 @@ public class ApplicationOptions {
     private HeatmapAnnotationType heatmapColumnAnnotationType;
     private String reference;
     private Long taxId;
+    private boolean sendContent;
 
     /**
      * Option for BAM file coverage registration, specifies a coverage interval size.

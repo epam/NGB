@@ -34,6 +34,7 @@ import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
@@ -52,29 +53,37 @@ public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandle
     private Long projectId;
     private String path;
     private String name;
+    private boolean sendContent;
 
     @Override
     public void parseAndVerifyArguments(final List<String> arguments, final ApplicationOptions options) {
-        if (arguments.isEmpty() || arguments.size() != 2) {
+        if (arguments.size() != 2) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 2, arguments.size()));
         }
         projectId = parseProjectId(arguments.get(0));
         path = Utils.getNormalizeAndAbsolutePath(arguments.get(1));
         name = options.getName();
+        sendContent = options.isSendContent();
     }
 
     @Override
     public int runCommand() {
         try {
             final String url = String.format(serverParameters.getServerUrl() + getRequestUrl(), projectId);
-            final URIBuilder uri = new URIBuilder(url);
+            final URIBuilder uriBuilder = new URIBuilder(url);
 
             if (StringUtils.isNotBlank(name)) {
-                uri.addParameter("name", name);
+                uriBuilder.addParameter("name", name);
+            }
+            if (!sendContent) {
+                uriBuilder.addParameter("path", path);
             }
 
-            final HttpPost request = buildMultipartRequest(uri.build().toString(), path);
+            final HttpRequestBase request = sendContent ?
+                    buildMultipartRequest(uriBuilder.build().toString(), path) :
+                    getRequestFromURLByType(HttpPost.METHOD_NAME, uriBuilder.build().toString());
+            System.out.println(request);
             final String result = RequestManager.executeRequest(request);
             checkAndPrintResult(result, false, false, ProjectDescription.class);
 

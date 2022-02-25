@@ -33,12 +33,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.epam.catgenome.util.NgbFileUtils.getFile;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +52,20 @@ public class ProjectDescriptionService {
     private final ProjectDescriptionDao projectDescriptionDao;
 
     @Transactional
-    public ProjectDescription upsert(final Long projectId, final String name, final MultipartFile file)
-            throws IOException {
+    public ProjectDescription upsert(final Long projectId, final String name, final String path,
+                                     final MultipartFile multipartFile) throws IOException {
         projectManager.load(projectId);
-        final String descriptionName = StringUtils.isBlank(name) ? file.getOriginalFilename() : name;
+
+        String descriptionName;
+        byte[] content;
+        if (multipartFile == null) {
+            final File file = getFile(path);
+            descriptionName = StringUtils.isBlank(name) ? file.getName() : name;
+            content = Files.readAllBytes(file.toPath());
+        } else {
+            descriptionName = StringUtils.isBlank(name) ? multipartFile.getOriginalFilename() : name;
+            content = multipartFile.getBytes();
+        }
 
         final Optional<ProjectDescription> loadedDescription = loadDescriptions(projectId).stream()
                 .filter(existingDescription -> Objects.equals(existingDescription.getName(), descriptionName))
@@ -59,7 +73,7 @@ public class ProjectDescriptionService {
 
         if (loadedDescription.isPresent()) {
             final ProjectDescription description = loadedDescription.get();
-            projectDescriptionDao.update(description, file.getBytes());
+            projectDescriptionDao.update(description, content);
             return description;
         }
 
@@ -67,7 +81,7 @@ public class ProjectDescriptionService {
                 .projectId(projectId)
                 .name(descriptionName)
                 .build();
-        projectDescriptionDao.save(description, file.getBytes());
+        projectDescriptionDao.save(description, content);
         return description;
     }
 
