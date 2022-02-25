@@ -54,6 +54,7 @@ public class ProjectDescriptionService {
     @Transactional
     public ProjectDescription upsert(final Long projectId, final String name, final String path,
                                      final MultipartFile multipartFile) throws IOException {
+        Assert.isTrue(path != null || multipartFile != null, "Description file path or content should be defined");
         projectManager.load(projectId);
 
         String descriptionName;
