@@ -958,8 +958,9 @@ ngb add_coverage|ac [<BAM_ID>] [<STEP>]
 *Description*
 
 Registers a Bam coverage. Two arguments have to be specified:
+
 * Bam file id or name
-* Step
+* Step - length of the interval in base pairs. Coverage index will be calculated according to chromosome breakdown by this intervals
 
 *Example*
 ```bash
