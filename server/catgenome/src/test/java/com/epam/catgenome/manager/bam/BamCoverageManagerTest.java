@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
@@ -120,6 +121,7 @@ public class BamCoverageManagerTest extends AbstractManagerTest {
         final BamCoverage coverage = registerBamCoverage();
         final CoverageQueryParams params = CoverageQueryParams.builder()
                 .coverageId(coverage.getCoverageId())
+                .chromosomes(Arrays.asList("2R", "3R"))
                 .coverage(new Interval<>(COVERAGE_FROM, COVERAGE_TO))
                 .build();
         final PagingInfo pagingInfo = PagingInfo.builder()
@@ -134,7 +136,7 @@ public class BamCoverageManagerTest extends AbstractManagerTest {
         params.setSortInfo(Collections.singletonList(sortInfo));
         Page<CoverageInterval> intervalPage = coverageManager.search(params);
         coverageManager.deleteCoverageDocument(coverage.getCoverageId());
-        assertEquals(9, intervalPage.getItems().size());
+        assertEquals(2, intervalPage.getItems().size());
     }
 
     private BamFile setUpTestFile() throws IOException {
