@@ -44,9 +44,16 @@ import htsjdk.samtools.util.SamLocusIterator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FloatDocValuesField;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.NumericDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
@@ -307,10 +314,7 @@ public class BamCoverageManager {
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.add(new QueryParser(IndexField.COVERAGE_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(params.getCoverageId())), BooleanClause.Occur.MUST);
-        if (!TextUtils.isBlank(params.getChr())) {
-            builder.add(new QueryParser(IndexField.CHR.getFieldName(), analyzer).parse(params.getChr()),
-                    BooleanClause.Occur.MUST);
-        }
+        addChromosomesFilter(params.getChromosomes(), analyzer, builder);
         if (params.getStart() != null) {
             final Interval<Integer> startInterval = params.getStart();
             addIntIntervalFilter(IndexField.START.getFieldName(), startInterval, builder);
@@ -328,6 +332,19 @@ public class BamCoverageManager {
 
     public void deleteCoverageDocument(final long coverageId) throws IOException {
         deleteIndexDocument(IndexField.COVERAGE_ID.getFieldName(), coverageId, bamCoverageIndexDirectory);
+    }
+
+    private void addChromosomesFilter(final List<String> chromosomes,
+                                      final StandardAnalyzer analyzer,
+                                      final BooleanQuery.Builder builder) throws ParseException {
+        if (!CollectionUtils.isEmpty(chromosomes)) {
+            final BooleanQuery.Builder chrQueryBuilder = new BooleanQuery.Builder();
+            for (String chr : chromosomes) {
+                chrQueryBuilder.add(new QueryParser(IndexField.CHR.getFieldName(), analyzer).parse(chr),
+                        BooleanClause.Occur.SHOULD);
+            }
+            builder.add(chrQueryBuilder.build(), BooleanClause.Occur.MUST);
+        }
     }
 
     @Getter
