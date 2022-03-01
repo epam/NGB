@@ -3,6 +3,7 @@ $ngb-color-blue: #4285F4;
 .ngb-pathway-cytoscape-container {
   flex: 1;
   position: relative;
+  padding: 6px;
 }
 
 .internal-pathway-container-error {
@@ -21,7 +22,6 @@ $ngb-color-blue: #4285F4;
     font-weight: bold;
     display: inline-block;
     line-height: 28px;
-    font-size: 18px;
   }
   .internal-pathway-result-title-icon {
     fill: $ngb-color-blue;
@@ -43,16 +43,45 @@ $ngb-color-blue: #4285F4;
   }
 }
 
+.pathway-search-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  word-break: break-all;
+  margin: 0;
+  form {
+    width: 100%;
+  }
+
+  .pathway-tree-search-input {
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .pathway-tree-search-input .md-errors-spacer {
+    min-height: 0;
+  }
+}
+
+.pathway-annotation-button,
+.pathway-tree-search-button {
+  line-height: 30px;
+  min-height: 30px;
+  height: 30px;
+  min-width: 32px;
+  margin: 0 5px;
+}
+
 .tree-container {
   position: relative;
 
   .pathway-search-panel {
-    width: 30%;
+    width: 50%;
     max-width: 250px;
     min-width: 180px;
     position: absolute;
     top: 0;
-    right: 50px;
+    right: 5px;
     z-index: 1;
 
     .md-content {
@@ -64,22 +93,10 @@ $ngb-color-blue: #4285F4;
       font-size: 13px;
       border-radius: 5px;
       border: 1px solid #aaa;
-      padding: 10px;
+      padding: 5px;
       box-shadow: 2px 2px 8px 2px #aaa;
 
       .pathway-search-panel-body {
-        padding-right: 16px;
-
-        .pathway-search-panel-row {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: baseline;
-          word-break: break-all;
-          padding: 5px 0;
-          form {
-            width: 100%;
-          }
-        }
         .pathway-search-panel-add-annotation span {
           font-weight: bold;
         }
@@ -120,23 +137,6 @@ $ngb-color-blue: #4285F4;
               align-self: center;
             }
           }
-        }
-
-        .pathway-tree-search-input {
-          font-size: 14px;
-          margin: 5px 0 10px 0;
-        }
-
-        .pathway-tree-search-input .md-errors-spacer {
-          min-height: 0;
-        }
-
-        .pathway-tree-search-button {
-          line-height: 32px;
-          min-height: 32px;
-          height: 32px;
-          width: 32px;
-          min-width: 32px;
         }
       }
     }

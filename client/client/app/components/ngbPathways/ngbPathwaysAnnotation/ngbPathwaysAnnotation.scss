@@ -20,6 +20,11 @@
     margin-top: 0;
     margin-bottom: 0;
 
+    &.annotation-name {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
     .md-label {
       padding: 0;
     }

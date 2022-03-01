@@ -10,6 +10,7 @@ export default class ngbInternalPathwaysResultController extends baseController 
     treeSearch = null;
     loading = true;
     treeError = false;
+    annotationsPanelVisible = false;
 
     events = {
         'layout:active:panel:change': this.activePanelChanged.bind(this),
@@ -75,6 +76,16 @@ export default class ngbInternalPathwaysResultController extends baseController 
         };
     }
 
+    toggleAnnotationsPanel() {
+        if (
+            !this.annotationsPanelVisible &&
+            (!this.annotationList || this.annotationList.length === 0)) {
+            this.addAnnotation();
+        } else {
+            this.annotationsPanelVisible = !this.annotationsPanelVisible;
+        }
+    }
+
     applyAnnotations() {
         this.treeSearchParams = {
             ...this.treeSearchParams,
@@ -113,6 +124,9 @@ export default class ngbInternalPathwaysResultController extends baseController 
 
     deleteAnnotation(id) {
         this.ngbPathwaysAnnotationService.deleteAnnotationById(id);
+        if (!this.annotationList || this.annotationList.length === 0) {
+            this.annotationsPanelVisible = false;
+        }
     }
 
     refreshAnnotationList() {
