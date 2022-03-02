@@ -32,18 +32,20 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
-import com.epam.catgenome.exception.SbgnFileParsingException;
+import com.epam.catgenome.exception.FileParsingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -113,14 +115,15 @@ import static com.epam.catgenome.util.IndexUtils.deserialize;
 import static com.epam.catgenome.util.IndexUtils.serialize;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PathwayManager {
 
-    private static final String SBGN = "sbgn";
     private static final String PATHWAY = "Pathway";
+    public static final String BIO_PAX = "BioPAX";
 
     private final PathwayDao pathwayDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
@@ -137,18 +140,19 @@ public class PathwayManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public NGBPathway registerPathway(final PathwayRegistrationRequest request) throws IOException {
         final String extension = Utils.getFileExtension(request.getPath());
-        Assert.isTrue(extension.equals(PathwayDatabaseSource.CUSTOM.getExtension()),
-                getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, "pathway",
-                        PathwayDatabaseSource.CUSTOM.getExtension()));
-        return createPathway(request, PathwayDatabaseSource.CUSTOM, request.getPath());
+        final PathwayDatabaseSource databaseSource = PathwayDatabaseSource.getByExtension(extension);
+        Assert.isTrue(PathwayDatabaseSource.PATHWAY_EXTENSIONS.contains(extension),
+                getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, PATHWAY,
+                join(PathwayDatabaseSource.PATHWAY_EXTENSIONS, " or ")));
+        return createPathway(request, databaseSource, request.getPath());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void registerBioPAX(final BioPAXRegistrationRequest request) throws IOException {
         final String extension = Utils.getFileExtension(request.getPath());
-        Assert.isTrue(extension.equals(PathwayDatabaseSource.BIOCYC.getExtension()),
-                getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, "pathway",
-                        PathwayDatabaseSource.BIOCYC.getExtension()));
+        Assert.isTrue(PathwayDatabaseSource.BIO_PAX_EXTENSIONS.contains(extension),
+                getMessage(MessagesConstants.ERROR_UNSUPPORTED_FILE_EXTENSION, BIO_PAX,
+                        join(PathwayDatabaseSource.BIO_PAX_EXTENSIONS, " or ")));
         createBioPAX(request);
     }
 
@@ -162,11 +166,7 @@ public class PathwayManager {
         final long pathwayId = pathwayDao.createPathwayId();
         pathway.setPathwayId(pathwayId);
         pathway.setDatabaseSource(databaseSource);
-        try {
-            writeLucenePathwayIndex(pathway, request.getSpecies(), readPathway(pathwayFile));
-        } catch (JAXBException e) {
-            throw new SbgnFileParsingException(getMessage(MessagesConstants.ERROR_FILE_PARSING, SBGN), e);
-        }
+        writeLucenePathwayIndex(pathway, request.getSpecies(), readPathway(pathwayFile, databaseSource));
         try {
             biologicalDataItemManager.createBiologicalDataItem(pathway);
             pathway.setBioDataItemId(pathway.getId());
@@ -308,21 +308,52 @@ public class PathwayManager {
         }
     }
 
-    private String readPathway(final File pathwayFile) throws JAXBException {
-        final Sbgn sbgn = readFromFile(pathwayFile);
-        final Map map = sbgn.getMap();
+    private String readPathway(final File pathwayFile, final PathwayDatabaseSource databaseSource)
+            throws IOException {
+        return databaseSource.equals(PathwayDatabaseSource.COLLAGE) ?
+                readCollage(pathwayFile) :
+                readSBGN(pathwayFile);
+    }
+
+    @NotNull
+    private String readSBGN(final File pathwayFile) {
         final List<String> entries = new ArrayList<>();
-        for (Glyph glyph : map.getGlyph()) {
-            if (glyph.getLabel() != null) {
-                entries.add(glyph.getLabel().getText());
-            }
-            glyph.getGlyph().forEach(g -> {
-                if (g.getLabel() != null) {
-                    entries.add(g.getLabel().getText());
+        try {
+            final Sbgn sbgn = readFromFile(pathwayFile);
+            final Map map = sbgn.getMap();
+            for (Glyph glyph : map.getGlyph()) {
+                if (glyph.getLabel() != null) {
+                    entries.add(glyph.getLabel().getText());
                 }
-            });
+                glyph.getGlyph().forEach(g -> {
+                    if (g.getLabel() != null) {
+                        entries.add(g.getLabel().getText());
+                    }
+                });
+            }
+        } catch (JAXBException e) {
+            throw new FileParsingException(getMessage(MessagesConstants.ERROR_FILE_PARSING,
+                    PathwayDatabaseSource.CUSTOM.getExtension()), e);
         }
-        return StringUtils.join(entries, ",");
+        return join(entries, ",");
+    }
+
+    @NotNull
+    private String readCollage(final File pathwayFile) throws IOException {
+        final String data = FileUtils.readFileToString(pathwayFile, "UTF-8");
+        final List<String> entries = new ArrayList<>();
+        try {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final JsonNode jsonNodes;
+            jsonNodes = objectMapper.readTree(data);
+            for (JsonNode node : jsonNodes.at("/elements/nodes")) {
+                entries.add(node.at("/data/label").asText());
+            }
+        } catch (JsonProcessingException e) {
+            throw new FileParsingException(getMessage(MessagesConstants.ERROR_FILE_PARSING,
+                    PathwayDatabaseSource.COLLAGE.getExtension()), e);
+        }
+        return join(entries, ",");
     }
 
     private static Sbgn readFromFile(final File f) throws JAXBException {

@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.pathway;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.NGBPathway;
+import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
@@ -52,50 +53,68 @@ public class PathwayManagerTest extends TestCase {
     @Autowired
     private ApplicationContext context;
 
-    private String fileName;
+    private String sbgnFileName;
+    private String jsonFileName;
 
     @Before
     public void setUp() throws IOException {
-        this.fileName = context.getResource("classpath:pathway//Glycolysis.sbgn").getFile().getPath();
+        this.sbgnFileName = context.getResource("classpath:pathway//Glycolysis.sbgn").getFile().getPath();
+        this.jsonFileName = context.getResource("classpath:pathway//pwycollage.graph.json").getFile().getPath();
     }
 
     @Test
-    public void createPathwayTest() throws IOException {
-        final NGBPathway pathway = registerPathway("createPathwayTest", fileName);
+    public void createSBGNPathwayTest() throws IOException {
+        final NGBPathway pathway = registerPathway("createSBGNPathwayTest", sbgnFileName);
+        pathwayManager.deletePathway(pathway.getPathwayId());
         assertNotNull(pathway);
-        assertEquals("createPathwayTest", pathway.getName());
+        assertEquals("createSBGNPathwayTest", pathway.getName());
         assertEquals("pathway", pathway.getPrettyName());
         assertEquals(BiologicalDataItemResourceType.FILE, pathway.getType());
+        assertEquals(sbgnFileName, pathway.getPath());
+        assertEquals(sbgnFileName, pathway.getSource());
+        assertEquals(PathwayDatabaseSource.CUSTOM, pathway.getDatabaseSource());
+    }
+
+    @Test
+    public void createCollagePathwayTest() throws IOException {
+        final NGBPathway pathway = registerPathway("createCollagePathwayTest", jsonFileName);
         pathwayManager.deletePathway(pathway.getPathwayId());
+        assertNotNull(pathway);
+        assertEquals("createCollagePathwayTest", pathway.getName());
+        assertEquals("pathway", pathway.getPrettyName());
+        assertEquals(BiologicalDataItemResourceType.FILE, pathway.getType());
+        assertEquals(jsonFileName, pathway.getPath());
+        assertEquals(jsonFileName, pathway.getSource());
+        assertEquals(PathwayDatabaseSource.COLLAGE, pathway.getDatabaseSource());
     }
 
     @Test
     public void loadPathway() throws IOException {
-        final NGBPathway pathway = registerPathway("loadPathway", fileName);
+        final NGBPathway pathway = registerPathway("loadPathway", sbgnFileName);
         final NGBPathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
-        assertNotNull(createdPathway);
         pathwayManager.deletePathway(pathway.getPathwayId());
+        assertNotNull(createdPathway);
     }
 
     @Test
     public void loadPathways() throws IOException, ParseException {
-        final NGBPathway pathway = registerPathway("loadPathways", fileName);
-        final NGBPathway pathway1 = registerPathway("loadPathways1", fileName);
-        final NGBPathway pathway2 = registerPathway("loadPathways2", fileName);
+        final NGBPathway pathway = registerPathway("loadPathways", sbgnFileName);
+        final NGBPathway pathway1 = registerPathway("loadPathways1", sbgnFileName);
+        final NGBPathway pathway2 = registerPathway("loadPathways2", sbgnFileName);
         final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
         final Page<NGBPathway> pathways = pathwayManager.loadPathways(parameters);
-        assertEquals(2, pathways.getItems().size());
-        assertEquals(3, pathways.getTotalCount());
         pathwayManager.deletePathway(pathway.getPathwayId());
         pathwayManager.deletePathway(pathway1.getPathwayId());
         pathwayManager.deletePathway(pathway2.getPathwayId());
+        assertEquals(2, pathways.getItems().size());
+        assertEquals(3, pathways.getTotalCount());
     }
 
     @Test
     public void deletePathwayTest() throws IOException {
-        final NGBPathway pathway = registerPathway("deletePathwayTest", fileName);
+        final NGBPathway pathway = registerPathway("deletePathwayTest", sbgnFileName);
         NGBPathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
         pathwayManager.deletePathway(createdPathway.getPathwayId());

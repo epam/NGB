@@ -26,14 +26,22 @@ package com.epam.catgenome.entity.pathway;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 public enum PathwayDatabaseSource {
     CUSTOM(1L, ".sbgn"),
-    BIOCYC(2L, ".owl");
+    BIOCYC(2L, ".owl"),
+    COLLAGE(3L, ".json");
 
     private Long sourceId;
     private String extension;
+
+    public static final List<String> BIO_PAX_EXTENSIONS = Collections.singletonList(BIOCYC.getExtension());
+    public static final List<String> PATHWAY_EXTENSIONS = Arrays.asList(CUSTOM.getExtension(), COLLAGE.getExtension());
 
     /**
      * @param sourceId
