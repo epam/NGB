@@ -3,6 +3,7 @@ export default class ngbCoveragePanelController {
     isSearchInProgress = false;
     isSearchFailure = false;
     _coverageIndexes = [];
+    _coverageIds = {};
 
     get coverageIndexes() {
         return this._coverageIndexes;
@@ -49,10 +50,6 @@ export default class ngbCoveragePanelController {
         if (isCurrentBamClosed) {
             this.currentCoverageIndex = undefined;
             this.ngbCoveragePanelService.coverageSearchResults = null;
-        } else {
-            this.currentCoverageIndex = (this._coverageIndexes.filter(index => (
-                index.coverageId === this.currentCoverageIndex.coverageId)
-            ))[0];
         }
     }
 
@@ -83,7 +80,8 @@ export default class ngbCoveragePanelController {
                 for (const item of coverageStatistics[bamId]) {
                     if (item) {
                         const {name, interval, coverageId, bamId} = item;
-                        indexes.push({name, interval, coverageId, bamId});
+                        indexes.push({name, interval, coverageId});
+                        this._coverageIds[coverageId] = bamId;
                     }                    
                 }
             }
@@ -105,8 +103,8 @@ export default class ngbCoveragePanelController {
         this.ngbCoveragePanelService.sortInfo = null;
         this.ngbCoveragePanelService.displayFilters = false;
         this.ngbCoveragePanelService.clearFilters();
-        const {coverageId, bamId} = this.currentCoverageIndex;
-        this.currentBamId = bamId;
+        const coverageId = this.currentCoverageIndex;
+        this.currentBamId = this._coverageIds[coverageId];
         this.isSearchInProgress = true;
         const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(coverageId, false);
         await this.ngbCoveragePanelService.searchBamCoverage(request)
@@ -123,8 +121,10 @@ export default class ngbCoveragePanelController {
             return;
         }
         for (let i = 0; i < indexes.length; i++) {
-            if (!this.currentCoverageIndex && indexes[i].bamId === this.currentBamId) {
-                this.currentCoverageIndex = indexes[i];
+            if (!this.currentCoverageIndex &&
+                this._coverageIds[indexes[i].coverageId] === this.currentBamId
+            ) {
+                this.currentCoverageIndex = indexes[i].coverageId;
             }
         }
     }
