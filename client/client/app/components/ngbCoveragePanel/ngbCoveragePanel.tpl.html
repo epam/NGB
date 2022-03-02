@@ -5,9 +5,9 @@
                     value="$ctrl.currentCoverageIndex"
                     ng-if="$ctrl.coverageIndexes.length"
                     ng-model="$ctrl.currentCoverageIndex"
-                    ng-change="$ctrl.selectCoverageIndex($ctrl.currentCoverageIndex)">
-            <md-option ng-repeat="index in $ctrl.coverageIndexes"
-                        ng-value="index">
+                    ng-change="$ctrl.selectCoverageIndex()">
+            <md-option ng-repeat="index in $ctrl.coverageIndexes track by index.coverageId"
+                       ng-value="index.coverageId">
                 {{index.name}} [interval {{index.interval}}]
             </md-option>
         </md-select>

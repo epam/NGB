@@ -1,7 +1,7 @@
 <div layout="column">
     <div flex
          role="columnheader"
-         ng-class="{'sortable': sortable}"
+         ng-class="{'sortable': sortable, 'filtered': col.colDef.filterApplied()}"
          ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
          aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ?
             'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
@@ -34,7 +34,6 @@
             </md-button>
             <div aria-haspopup="true"
                  class="ui-grid-column-menu-button"
-                 ng-class="{'ui-grid-column-menu-button-last-col': isLastCol}"
                  ng-click="toggleMenu($event)"
                  ng-if="grid.options.enableColumnMenus &&
                     !col.isRowHeader &&
@@ -50,4 +49,7 @@
             </div>
         </div>
     </div>
+    <ngb-coverage-table-filters column="col"
+                                ng-if="grid.appScope.$ctrl.displayFilters && col.enableFiltering">
+    </ngb-genes-table-filters>
 </div>

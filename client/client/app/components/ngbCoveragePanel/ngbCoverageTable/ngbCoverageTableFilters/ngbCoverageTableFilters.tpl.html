@@ -1,0 +1,11 @@
+<div flex>
+    <ngb-coverage-filter-list field="$ctrl.column"
+                              list="$ctrl.list"
+                              ng-if="$ctrl.isList">
+    </ngb-coverage-filter-list>
+    <div flex
+         ng-if="$ctrl.isRange">
+        <ngb-coverage-filter-range field="$ctrl.column">
+        </ngb-coverage-filter-range>
+    </div>
+</div>

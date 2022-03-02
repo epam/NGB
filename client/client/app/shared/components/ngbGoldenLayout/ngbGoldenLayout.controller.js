@@ -29,7 +29,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, appearanceContext, ngbViewActionsConstant, appLayout) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, appearanceContext, ngbViewActionsConstant, appLayout, bamCoverageContext) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -40,7 +40,8 @@ export default class ngbGoldenLayoutController extends baseController {
             projectContext,
             appearanceContext,
             appLayout,
-            ngbViewActions: ngbViewActionsConstant
+            ngbViewActions: ngbViewActionsConstant,
+            bamCoverageContext
         });
         this.$element = $element.find('[ngb-golden-layout-container]');
         this.service = ngbGoldenLayoutService;
@@ -143,6 +144,7 @@ export default class ngbGoldenLayoutController extends baseController {
             childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
             childScope.projectContext = this.projectContext;
             childScope.appearanceContext = this.appearanceContext;
+            childScope.bamCoverageContext = this.bamCoverageContext;
 
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 

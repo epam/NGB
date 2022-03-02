@@ -25,4 +25,18 @@ ngb-coverage-table {
     .coverage-no-records-warning {
         color: #999;
     }
+
+    .filters-not-displayed {
+        .filtered {
+          background-color: #dcffe7;
+        }
+    }
+
+    .coverage-filter-error {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+    }
 }

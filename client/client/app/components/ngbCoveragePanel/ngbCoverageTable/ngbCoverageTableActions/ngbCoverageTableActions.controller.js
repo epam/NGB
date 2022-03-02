@@ -1,12 +1,18 @@
 export default class ngbCoverageTableActionsController {
 
-
-    constructor($scope, dispatcher) {
-        Object.assign(this, {$scope, dispatcher});
-    }
-
     static get UID() {
         return 'ngbCoverageTableActionsController';
+    }
+
+    get displayFilters() {
+        return this.ngbCoveragePanelService.displayFilters;
+    }
+    set displayFilters(value) {
+        this.ngbCoveragePanelService.displayFilters = value;
+    }
+
+    constructor($scope, dispatcher, ngbCoveragePanelService) {
+        Object.assign(this, {$scope, dispatcher, ngbCoveragePanelService});
     }
 
     onClickRestoreView() {

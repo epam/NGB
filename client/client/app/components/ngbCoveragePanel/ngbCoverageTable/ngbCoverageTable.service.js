@@ -41,7 +41,8 @@ export default class ngbCoverageTableService {
             }
             columnSettings = {
                 enableHiding: false,
-                enableFiltering: false,
+                enableFiltering: true,
+                filterApplied: () => this.fieldIsFiltered(column),
                 enableSorting: true,
                 field: column,
                 headerCellTemplate: headerCells,
@@ -61,5 +62,14 @@ export default class ngbCoverageTableService {
             }
         }
         return result;
+    }
+
+    fieldIsFiltered(fieldName) {
+        const [chr] = this.coverageTableColumns;
+        fieldName = fieldName === chr ? 'chromosomes' : fieldName;
+        const filterInfo = this.ngbCoveragePanelService.filterInfo;
+        if (filterInfo && filterInfo[fieldName]) {
+            return Boolean(filterInfo[fieldName]);
+        }
     }
 }

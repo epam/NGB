@@ -3,6 +3,7 @@ export default class BamCoverageContext {
     _isCoverageStatistics = {};
     _coverageStatistics = {};
     _currentBamId = null;
+    _isFiltersDefault = true;
 
     get coverageStatistics () {
         return this._coverageStatistics;
@@ -17,6 +18,13 @@ export default class BamCoverageContext {
     }
     set currentBamId(value) {
         this._currentBamId = value;
+    }
+    _isFiltersDefault = true;
+    get isFiltersDefault() {
+        return this._isFiltersDefault;
+    }
+    set isFiltersDefault(value) {
+        this._isFiltersDefault = value;
     }
 
     static instance(dispatcher, projectContext, bamDataService) {

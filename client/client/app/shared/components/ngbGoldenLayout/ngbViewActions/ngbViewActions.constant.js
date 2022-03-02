@@ -131,6 +131,16 @@ const coverageTableActions = {
     isDefault: true,
     isVisible: (context, appearance) => !appearance.embedded && appearance.coverageActions
 };
+const coverageResetFilters = {
+    name: 'coverageResetFilters',
+    isDefault: true,
+    event: 'coverage:filters:reset',
+    icon: 'delete_sweep',
+    label: 'Reset coverage filters',
+    isVisible: (context, appearance, bamCoverageContext) => (
+        bamCoverageContext && !bamCoverageContext.isFiltersDefault
+    )
+};
 
 export default {
     actions: {
@@ -150,13 +160,14 @@ export default {
         genesResetFilter: genesResetFilterActions,
         bookmarksTablePagination: bookmarksTablePaginationAction,
         bookmarksResetFilter: bookmarksResetFilterActions,
-        coverageTableActions: coverageTableActions
+        coverageTableActions: coverageTableActions,
+        coverageResetFilters: coverageResetFilters
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
         ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
-        ngbCoveragePanel: [coverageTableActions]
+        ngbCoveragePanel: [coverageResetFilters, coverageTableActions]
     }
 };

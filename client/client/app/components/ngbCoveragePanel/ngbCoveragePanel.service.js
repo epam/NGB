@@ -12,6 +12,9 @@ export default class ngbCoveragePanelService {
     _sortInfo = null;
     _filterInfo = null;
     _currentCoverageIndex;
+    _isFilteredSearchFailure = false;
+    _filteredErrorMessageList = null;
+    _displayFilters = false;
 
     coverageSearchResults = null;
 
@@ -36,6 +39,9 @@ export default class ngbCoveragePanelService {
     set sortInfo(value) {
         this._sortInfo = value;
     }
+    get filterInfo() {
+        return this._filterInfo;
+    }
 
     get currentCoverageIndex() {
         return this._currentCoverageIndex;
@@ -43,15 +49,41 @@ export default class ngbCoveragePanelService {
     set currentCoverageIndex(value) {
         this._currentCoverageIndex = value;
     }
-
-    static instance (appLayout, dispatcher, bamDataService) {
-        return new ngbCoveragePanelService(appLayout, dispatcher, bamDataService);
+    get isFilteredSearchFailure() {
+        return this._isFilteredSearchFailure;
+    }
+    get filteredErrorMessageList() {
+        return this._filteredErrorMessageList;
     }
 
-    constructor(appLayout, dispatcher, bamDataService) {
-        Object.assign(this, {appLayout, dispatcher, bamDataService});
+    get displayFilters() {
+        return this._displayFilters;
+    }
+    set displayFilters(value) {
+        this._displayFilters = value;
+    }
+
+    static instance (
+        appLayout,
+        dispatcher,
+        bamDataService,
+        bamCoverageContext,
+        projectContext
+    ) {
+        return new ngbCoveragePanelService(
+            appLayout,
+            dispatcher,
+            bamDataService,
+            bamCoverageContext,
+            projectContext
+        );
+    }
+
+    constructor(appLayout, dispatcher, bamDataService, bamCoverageContext, projectContext) {
+        Object.assign(this, {appLayout, dispatcher, bamDataService, bamCoverageContext, projectContext});
         this.dispatcher.on('reference:change', this.panelCloseCoveragePanel.bind(this));
         this.dispatcher.on('bam:coverage:empty', this.panelCloseCoveragePanel.bind(this));
+        this.dispatcher.on('coverage:filters:reset', this.resetFilters.bind(this));
     }
 
     panelCloseCoveragePanel () {
@@ -90,23 +122,49 @@ export default class ngbCoveragePanelService {
     }
 
     searchBamCoverage(request) {
+        const isFiltered = JSON.stringify(this.filterInfo) !== '{}';
         return new Promise(resolve => {
             this.bamDataService.searchBamCoverage(request)
                 .then(([data, totalCount]) => {
                     this._errorMessageList = null;
                     this._totalCount = totalCount;
-                    this._emptyResults = totalCount === 0;
+                    this._emptyResults = totalCount === 0 ? (isFiltered ? false : true) : false;
+                    this._isFilteredSearchFailure = false;
+                    this._filteredErrorMessageList = null;
                     this.coverageSearchResults = data;
                     resolve(true);
                 })
                 .catch(err => {
-                    this._errorMessageList = [err.message];
                     this._totalCount = 0;
-                    this._emptyResults = false;
                     this.coverageSearchResults = null;
-                    resolve(false);
+                    if (isFiltered) {
+                        this._errorMessageList = null;
+                        this._emptyResults = true;
+                        this._isFilteredSearchFailure = true;
+                        this._filteredErrorMessageList = [err.message];
+                        resolve(true);
+                    } else {
+                        this._errorMessageList = [err.message];
+                        this._emptyResults = false;
+                        this._isFilteredSearchFailure = false;
+                        this._filteredErrorMessageList = null;
+                        resolve(false);
+                    }
                 });
         });
+    }
+
+    setFilter (key, value) {
+        const filter = {...(this._filterInfo || {})};
+        filter[key] = value;
+        if (key === 'chromosomes' && !value.length) {
+            delete filter[key];
+        }
+        if (value.from === null && value.to === null) {
+            delete filter[key];
+        }
+        this._filterInfo = filter;
+        this.bamCoverageContext.isFiltersDefault = JSON.stringify(filter) === '{}';
     }
 
     resetCurrentPages() {
@@ -116,9 +174,14 @@ export default class ngbCoveragePanelService {
         };
     }
 
-    resetCurrentInfo() {
-        this._sortInfo = null;
+    resetFilters() {
+        this.clearFilters();
+        this.dispatcher.emitSimpleEvent('coverage:filter:changed');
+    }
+
+    clearFilters() {
         this._filterInfo = null;
+        this.bamCoverageContext.isFiltersDefault = true;
     }
 
     resetInfo() {
@@ -127,7 +190,11 @@ export default class ngbCoveragePanelService {
         this._emptyResults = false;
         this._currentCoverageIndex = null;
         this.coverageSearchResults = null;
-        this.resetCurrentInfo();
+        this._isFilteredSearchFailure = false;
+        this._filteredErrorMessageList = null;
         this.resetCurrentPages();
+        this._sortInfo = null;
+        this.clearFilters();
+        this._displayFilters = false;
     }
 }

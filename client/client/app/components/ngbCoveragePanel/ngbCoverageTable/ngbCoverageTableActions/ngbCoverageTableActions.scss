@@ -20,7 +20,7 @@ ngb-coverage-table-actions {
 
     md-menu-content {
         max-height: 20vh;
-    } 
+    }
 }
 
 .restore-view-button {
@@ -29,4 +29,8 @@ ngb-coverage-table-actions {
     cursor: pointer;
     text-decoration: underline;
     color: rgb(51,103,214);
+}
+
+.show-filters-checkbox {
+    margin-bottom: auto;
 }
