@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -36,4 +38,5 @@ public class PathwayRegistrationRequest implements RequestPayload {
     private String prettyName;
     private String path;
     private String pathwayDesc;
+    private List<String> species;
 }

@@ -26,7 +26,8 @@ package com.epam.catgenome.dao.pathway;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.NGBPathway;
+import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -64,7 +65,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      * @param pathway {@code Pathway} a Pathway to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void savePathway(final Pathway pathway) {
+    public void savePathway(final NGBPathway pathway) {
         final MapSqlParameterSource params = PathwayParameters.getParameters(pathway);
         getNamedParameterJdbcTemplate().update(insertPathwayQuery, params);
     }
@@ -87,8 +88,8 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      * @param pathwayId {@code long} query parameters
      * @return a {@code Pathway} from the database
      */
-    public Pathway loadPathway(final long pathwayId) {
-        List<Pathway> pathways = getJdbcTemplate().query(loadPathwayQuery,
+    public NGBPathway loadPathway(final long pathwayId) {
+        List<NGBPathway> pathways = getJdbcTemplate().query(loadPathwayQuery,
                 PathwayParameters.getRowMapper(), pathwayId);
         return CollectionUtils.isEmpty(pathways) ? null : pathways.get(0);
     }
@@ -97,7 +98,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code Pathways} from a database.
      * @return a {@code List<Pathway>} from the database
      */
-    public List<Pathway> loadAllPathways(final QueryParameters queryParameters) {
+    public List<NGBPathway> loadAllPathways(final QueryParameters queryParameters) {
         final String query = addParametersToQuery(loadPathwaysQuery, queryParameters);
         return getJdbcTemplate().query(query, PathwayParameters.getRowMapper());
     }
@@ -119,26 +120,32 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
         OWNER,
 
         PATHWAY_ID,
-        PATHWAY_DESC;
+        PATHWAY_DESC,
+        DATABASE_SOURCE;
 
-        static MapSqlParameterSource getParameters(final Pathway pathway) {
+        static MapSqlParameterSource getParameters(final NGBPathway pathway) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(PATHWAY_ID.name(), pathway.getPathwayId());
             params.addValue(BIO_DATA_ITEM_ID.name(), pathway.getBioDataItemId());
             params.addValue(PATHWAY_DESC.name(), pathway.getPathwayDesc());
+            params.addValue(DATABASE_SOURCE.name(), pathway.getDatabaseSource().getSourceId());
 
             return params;
         }
 
-        static RowMapper<Pathway> getRowMapper() {
+        static RowMapper<NGBPathway> getRowMapper() {
             return (rs, rowNum) -> parsePathway(rs);
         }
 
-        static Pathway parsePathway(final ResultSet rs) throws SQLException {
-            Pathway pathway = Pathway.builder()
+        static NGBPathway parsePathway(final ResultSet rs) throws SQLException {
+            final NGBPathway pathway = NGBPathway.builder()
                     .pathwayId(rs.getLong(PATHWAY_ID.name()))
                     .pathwayDesc(rs.getString(PATHWAY_DESC.name()))
                     .build();
+            final long databaseSource = rs.getLong(DATABASE_SOURCE.name());
+            if (!rs.wasNull()) {
+                pathway.setDatabaseSource(PathwayDatabaseSource.getById(databaseSource));
+            }
             pathway.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             pathway.setName(rs.getString(NAME.name()));
             pathway.setType(BiologicalDataItemResourceType.getById(rs.getLong(TYPE.name())));

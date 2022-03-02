@@ -21,24 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.pathway;
+package com.epam.ngb.cli.entity.pathway;
 
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.security.AclClass;
+import com.epam.ngb.cli.entity.RequestPayload;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
-public class Pathway extends BiologicalDataItem {
-    private Long pathwayId;
+public class BioPAXRegistrationRequest implements RequestPayload {
+    private String path;
     private String pathwayDesc;
-    private Long bioDataItemId;
-
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.PATHWAY;
-    }
+    private List<String> species;
 }

@@ -26,16 +26,16 @@ package com.epam.catgenome.exception;
 
 /**
  * <p>
- * This exception is thrown on errors in Bed files parsing
+ * This exception is thrown on errors in files parsing
  * </p>
  */
-public class SbgnFileParsingException extends RuntimeException {
+public class FileParsingException extends RuntimeException {
 
-    public SbgnFileParsingException(String s) {
+    public FileParsingException(String s) {
         super(s);
     }
 
-    public SbgnFileParsingException(String message, Throwable cause) {
+    public FileParsingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

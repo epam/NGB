@@ -27,64 +27,63 @@ package com.epam.ngb.cli.manager.command.handler.http.pathway;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.entity.pathway.BioPAXRegistrationRequest;
 import com.epam.ngb.cli.entity.pathway.NGBPathway;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
-import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
-import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.util.TextUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
-@Command(type = Command.Type.REQUEST, command = {"list_pathway"})
 @Slf4j
-public class PathwayListHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"reg_biopax"})
+public class BioPAXRegistrationHandler extends AbstractHTTPCommandHandler {
+
+    private BioPAXRegistrationRequest registrationRequest;
 
     /**
-     * If true command will output registered metabolic pathways in a table format, otherwise
-     * json format will be used
+     * Verifies input arguments
+     * @param arguments command line arguments for 'reg_biopax' command
+     * @param options
      */
-    private boolean printTable;
-
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() > 0) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 0, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
-        this.printTable = options.isPrintTable();
+        registrationRequest = BioPAXRegistrationRequest.builder()
+                .path(arguments.get(0))
+                .build();
+        if (!TextUtils.isBlank(options.getSpecies())) {
+            final List<String> species = Arrays.stream(options.getSpecies().split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+            registrationRequest.setSpecies(species);
+        }
     }
 
     @Override public int runCommand() {
-        final HttpRequestBase request = getRequest(getRequestUrl());
-        final String result = RequestManager.executeRequest(request);
-        final ResponseResult<List<NGBPathway>> responseResult;
+        final HttpPost request = (HttpPost) getRequest(getRequestUrl());
+        final String result = getPostResult(registrationRequest, request);
         try {
-            responseResult = getMapper().readValue(result,
-                    getMapper().getTypeFactory().constructParametrizedType(
-                            ResponseResult.class, ResponseResult.class,
-                            getMapper().getTypeFactory()
-                                    .constructParametrizedType(List.class, List.class, NGBPathway.class)));
+            ResponseResult<Boolean> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            NGBPathway.class));
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+            log.info("BioPAX file was successfully registered.");
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
-        }
-        if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
-            throw new ApplicationException(responseResult.getMessage());
-        }
-        if (responseResult.getPayload() == null ||
-                responseResult.getPayload().isEmpty()) {
-            log.info("No metabolic pathways registered on the server.");
-        } else {
-            List<NGBPathway> pathways = responseResult.getPayload();
-            AbstractResultPrinter printer = AbstractResultPrinter
-                    .getPrinter(printTable, pathways.get(0).getFormatString(pathways));
-            printer.printHeader(pathways.get(0));
-            pathways.forEach(printer::printItem);
         }
         return 0;
     }

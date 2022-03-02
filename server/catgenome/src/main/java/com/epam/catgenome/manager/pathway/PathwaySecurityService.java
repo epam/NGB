@@ -23,8 +23,9 @@
  */
 package com.epam.catgenome.manager.pathway;
 
+import com.epam.catgenome.controller.vo.registration.BioPAXRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
-import com.epam.catgenome.entity.pathway.Pathway;
+import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
@@ -44,23 +45,28 @@ public class PathwaySecurityService {
     private final PathwayManager pathwayManager;
 
     @PreAuthorize(ROLE_USER)
-    public Pathway loadPathway(final long pathwayId, final Long projectId) {
+    public NGBPathway loadPathway(final long pathwayId, final Long projectId) {
         return pathwayManager.loadPathway(pathwayId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Page<Pathway> loadPathways(final PathwayQueryParams params) throws IOException, ParseException {
+    public Page<NGBPathway> loadPathways(final PathwayQueryParams params) throws IOException, ParseException {
         return pathwayManager.loadPathways(params);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<Pathway> loadPathways(final Long projectId) {
+    public List<NGBPathway> loadPathways(final Long projectId) {
         return pathwayManager.loadPathways();
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
-    public Pathway createPathway(final PathwayRegistrationRequest request) throws IOException {
-        return pathwayManager.createPathway(request);
+    public NGBPathway registerPathway(final PathwayRegistrationRequest request) throws IOException {
+        return pathwayManager.registerPathway(request);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
+    public void registerBioPAX(final BioPAXRegistrationRequest request) throws IOException {
+        pathwayManager.registerBioPAX(request);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)

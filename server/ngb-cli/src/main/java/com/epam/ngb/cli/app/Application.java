@@ -92,6 +92,7 @@ public class Application {
             + "ll\tlist_lineage\t: lists all lineage trees, registered on the server\t{ll}\n\n"
             + "METABOLIC PATHWAY commands:\n"
             + "rp\treg_pathway\t: registers a metabolic pathway\t{rp \"path\"}\n"
+            + "rb\treg_biopax\t: registers metabolic pathways from bioPAX file\t{rb \"path\"}\n"
             + "dp\tdel_pathway\t: deletes a metabolic pathway \t{dp 2}\n"
             + "lp\tlist_pathway\t: lists all metabolic pathways, registered on the server\t{lp}\n\n"
             + "COVERAGE commands:\n"
@@ -256,6 +257,9 @@ public class Application {
     @Option(name = "--taxid", usage = "specifies taxonomy id")
     private Long taxId;
 
+    @Option(name = "-o", usage = "specifies species, separated by comma",  aliases = {"--organisms"})
+    private String species;
+
     @Option(name = "--send-content", usage = "defines if file content should be sent directly to server")
     private boolean sendContent;
 
@@ -371,6 +375,7 @@ public class Application {
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
         options.setTaxId(taxId);
+        options.setSpecies(species);
         options.setSendContent(sendContent);
         options.setStep(step);
         return options;

@@ -124,6 +124,7 @@ public class ApplicationOptions {
     private HeatmapAnnotationType heatmapColumnAnnotationType;
     private String reference;
     private Long taxId;
+    private String species;
     private boolean sendContent;
 
     /**
