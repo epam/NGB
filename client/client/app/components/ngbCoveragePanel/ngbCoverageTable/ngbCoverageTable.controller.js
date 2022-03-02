@@ -64,11 +64,14 @@ export default class ngbCoverageTableController {
 
         const restoreState = this.restoreState.bind(this);
         const panelChanged = this.panelChanged.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
         dispatcher.on('coverage:table:restore', restoreState);
         dispatcher.on('layout:active:panel:change', panelChanged);
+        dispatcher.on('coverage:filter:changed', filterChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('coverage:table:restore', restoreState);
             dispatcher.removeListener('layout:active:panel:change', panelChanged);
+            dispatcher.removeListener('coverage:filter:changed', filterChanged);
         });
     }
 
@@ -96,6 +99,18 @@ export default class ngbCoverageTableController {
     }
     set sortInfo(value) {
         this.ngbCoveragePanelService.sortInfo = value;
+    }
+    get displayFilters() {
+        return this.ngbCoveragePanelService.displayFilters;
+    }
+    set displayFilters(value) {
+        this.ngbCoveragePanelService.displayFilters = value;
+    }
+    get isFilteredSearchFailure() {
+        return this.ngbCoveragePanelService.isFilteredSearchFailure;
+    }
+    get filteredErrorMessageList() {
+        return this.ngbCoveragePanelService.filteredErrorMessageList;
     }
 
     $onInit() {
@@ -259,7 +274,9 @@ export default class ngbCoverageTableController {
     async restoreState() {
         this.loadingData = true;
         this.ngbCoveragePanelService.resetCurrentPages();
-        this.ngbCoveragePanelService.resetCurrentInfo();
+        this.ngbCoveragePanelService.sortInfo = null;
+        this.ngbCoveragePanelService.displayFilters = false;
+        this.ngbCoveragePanelService.clearFilters();
         this.gridOptions.data = [];
         const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
         this.loadData(request);
@@ -276,5 +293,23 @@ export default class ngbCoverageTableController {
                     !this.isLastPage);
             });
         }
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        this.ngbCoveragePanelService.resetCurrentPages();
+        this.gridOptions.data = [];
+        this.gridApi.infiniteScroll.setScrollDirections(false, false);
+        this.gridApi.infiniteScroll.saveScrollPercentage();
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        await this.loadData(request);
+        this.$timeout(() => {
+            this.gridApi.infiniteScroll.dataLoaded(
+                this.currentPages.first > 1,
+                !this.isLastPage);
+        });
     }
 }

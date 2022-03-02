@@ -4,6 +4,13 @@
                             ng-if="$ctrl.loadingData">
         </md-progress-linear>
     </div>
+    <div class="md-padding"
+         ng-if="$ctrl.isFilteredSearchFailure && !$ctrl.loadingData">
+        <ngb-panel-error-list
+            class="coverage-filter-error"
+            message-list="$ctrl.filteredErrorMessageList"
+        ></ngb-panel-error-list>
+    </div>
     <div ui-grid="$ctrl.gridOptions"
         ui-grid-resize-columns
         ui-grid-move-columns
@@ -13,6 +20,7 @@
         ui-grid-save-state
         ui-grid-pinning
         class="coverage-table"
+        ng-class="{'filters-not-displayed': !$ctrl.displayFilters}"
         ng-hide="$ctrl.emptyResults">
     </div>
     <div class="coverage-empty-results-container"

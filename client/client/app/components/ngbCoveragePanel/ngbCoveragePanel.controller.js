@@ -41,7 +41,7 @@ export default class ngbCoveragePanelController {
     async initialize() {
         await this.setCoverageIndexes();
         this.setCurrentCoverageIndex();
-        this.selectCoverageIndex(this.currentCoverageIndex);
+        this.selectCoverageIndex();
     }
 
     async updateCoverageIndexes(isCurrentBamClosed) {
@@ -49,6 +49,10 @@ export default class ngbCoveragePanelController {
         if (isCurrentBamClosed) {
             this.currentCoverageIndex = undefined;
             this.ngbCoveragePanelService.coverageSearchResults = null;
+        } else {
+            this.currentCoverageIndex = (this._coverageIndexes.filter(index => (
+                index.coverageId === this.currentCoverageIndex.coverageId)
+            ))[0];
         }
     }
 
@@ -79,7 +83,7 @@ export default class ngbCoveragePanelController {
                 for (const item of coverageStatistics[bamId]) {
                     if (item) {
                         const {name, interval, coverageId, bamId} = item;
-                        item && indexes.push({name, interval, coverageId, bamId});
+                        indexes.push({name, interval, coverageId, bamId});
                     }                    
                 }
             }
@@ -93,13 +97,15 @@ export default class ngbCoveragePanelController {
         });
     }
 
-    async selectCoverageIndex(index) {
-        if (!index) {
+    async selectCoverageIndex() {
+        if (!this.currentCoverageIndex) {
             return;
         }
         this.ngbCoveragePanelService.resetCurrentPages();
-        this.ngbCoveragePanelService.resetCurrentInfo();
-        const {coverageId, bamId} = index;
+        this.ngbCoveragePanelService.sortInfo = null;
+        this.ngbCoveragePanelService.displayFilters = false;
+        this.ngbCoveragePanelService.clearFilters();
+        const {coverageId, bamId} = this.currentCoverageIndex;
         this.currentBamId = bamId;
         this.isSearchInProgress = true;
         const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(coverageId, false);
