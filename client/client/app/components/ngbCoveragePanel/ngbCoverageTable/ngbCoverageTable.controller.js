@@ -91,8 +91,8 @@ export default class ngbCoverageTableController {
     get currentPages() {
         return this.ngbCoveragePanelService.currentPages;
     }
-    get currentCoverageId() {
-        return this.ngbCoveragePanelService.currentCoverageIndex.coverageId;
+    get currentCoverageIndex() {
+        return this.ngbCoveragePanelService.currentCoverageIndex;
     }
     get sortInfo() {
         return this.ngbCoveragePanelService.sortInfo;
@@ -166,7 +166,7 @@ export default class ngbCoverageTableController {
         }
         this.loadingData = true;
         this.$scope.$apply();
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, false);
         this.loadData(request, false);
     }
 
@@ -176,7 +176,7 @@ export default class ngbCoverageTableController {
         }
         this.loadingData = true;
         this.$scope.$apply();
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, true);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, true);
         this.loadData(request, true);
     }
 
@@ -267,7 +267,7 @@ export default class ngbCoverageTableController {
         });
         this.ngbCoveragePanelService.resetCurrentPages();
         this.gridOptions.data = [];
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, false);
         this.loadData(request);
     }
 
@@ -278,7 +278,7 @@ export default class ngbCoverageTableController {
         this.ngbCoveragePanelService.displayFilters = false;
         this.ngbCoveragePanelService.clearFilters();
         this.gridOptions.data = [];
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, false);
         this.loadData(request);
     }
 
@@ -304,7 +304,7 @@ export default class ngbCoverageTableController {
         this.gridOptions.data = [];
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridApi.infiniteScroll.saveScrollPercentage();
-        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageId, false);
+        const request = await this.ngbCoveragePanelService.setSearchCoverageRequest(this.currentCoverageIndex, false);
         await this.loadData(request);
         this.$timeout(() => {
             this.gridApi.infiniteScroll.dataLoaded(

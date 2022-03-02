@@ -65,6 +65,8 @@ export default class ngbCoverageTableService {
     }
 
     fieldIsFiltered(fieldName) {
+        const [chr] = this.coverageTableColumns;
+        fieldName = fieldName === chr ? 'chromosomes' : fieldName;
         const filterInfo = this.ngbCoveragePanelService.filterInfo;
         if (filterInfo && filterInfo[fieldName]) {
             return Boolean(filterInfo[fieldName]);
