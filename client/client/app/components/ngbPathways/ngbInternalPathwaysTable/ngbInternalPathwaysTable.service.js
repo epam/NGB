@@ -1,15 +1,17 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
 
 const DEFAULT_INTERNAL_PATHWAYS_COLUMNS = [
-    'name', 'description'
+    'name', 'description', 'source'
 ];
 const DEFAULT_ORDERBY_INTERNAL_PATHWAYS_COLUMNS = {
     'name': 'name',
-    'description': 'description'
+    'description': 'description',
+    'source': 'source'
 };
 const INTERNAL_PATHWAYS_COLUMN_TITLES = {
     name: 'Map',
-    description: 'Description'
+    description: 'Description',
+    source: 'Source'
 };
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 11;
@@ -42,14 +44,14 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     get internalPathwaysColumns() {
-        if (!localStorage.getItem('internalPathwaysColumns')) {
-            localStorage.setItem('internalPathwaysColumns', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
+        if (!localStorage.getItem('internalPathwaysColumnNames')) {
+            localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
         }
-        return JSON.parse(localStorage.getItem('internalPathwaysColumns'));
+        return JSON.parse(localStorage.getItem('internalPathwaysColumnNames'));
     }
 
     set internalPathwaysColumns(columns) {
-        localStorage.setItem('internalPathwaysColumns', JSON.stringify(columns || []));
+        localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(columns || []));
     }
 
     static instance(dispatcher, genomeDataService) {
@@ -147,7 +149,8 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         return {
             id: internalPathways.pathwayId,
             name: internalPathways.prettyName || internalPathways.name,
-            description: internalPathways.pathwayDesc
+            description: internalPathways.pathwayDesc,
+            source: internalPathways.dbSource
         };
     }
 }

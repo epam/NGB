@@ -19,6 +19,7 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbBlatSearchPanel: 'ngbBlatSearchPanel',
         ngbBlastSearchPanel: 'ngbBlastSearchPanel',
         ngbStrainLineagePanel: 'ngbStrainLineage',
+        ngbCoveragePanel: 'ngbCoveragePanel',
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -65,7 +66,8 @@ export default class ngbGoldenLayoutController extends baseController {
         'tracks:state:change:blat': this.panelRemoveBlatSearchPanel.bind(this),
         'tracks:state:change:blast': this.panelRemoveBlastSearchPanel.bind(this),
         'variant:show:pair': this.panelAddBrowserWithVariation.bind(this),
-        'browser:open:split:view': this.panelOpenSplitView.bind(this)
+        'browser:open:split:view': this.panelOpenSplitView.bind(this),
+        'coverage:show:statistics': this.panelAddCoveragePanel.bind(this),
     };
 
     $onDestroy() {
@@ -564,6 +566,24 @@ export default class ngbGoldenLayoutController extends baseController {
             const parent = strainLineageItem.parent;
             if (parent && parent.type === 'stack') {
                 parent.setActiveContentItem(strainLineageItem);
+            }
+        }
+    }
+
+    panelAddCoveragePanel() {
+        const layoutChange = this.appLayout.Panels.coverage;
+        layoutChange.displayed = true;
+
+        const [coverageItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbCoveragePanel);
+
+        if (!coverageItem) {
+            this.panelAdd(layoutChange);
+        } else {
+            const parent = coverageItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(coverageItem);
             }
         }
     }

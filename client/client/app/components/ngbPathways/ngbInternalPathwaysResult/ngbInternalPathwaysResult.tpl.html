@@ -13,25 +13,46 @@
                 type="button">
             <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
         </md-button>
-        <span class="blast-search-result-title">{{$ctrl.selectedTree.name}}</span>
+        <div class="internal-pathway-result-title">{{$ctrl.selectedTree.name}}</div>
+        <div class="internal-pathway-result-title-icon"
+             ng-if="$ctrl.selectedTree.description">
+            <ng-md-icon icon="info" size="20"></ng-md-icon>
+            <md-tooltip class="md-tooltip__full-height">
+                {{$ctrl.selectedTree.description}}
+            </md-tooltip>
+        </div>
+    </div>
+    <div layout="row" style="margin-top: 5px">
+        <div class="pathway-search-panel-row" flex>
+            <form layout="row" ng-submit="$ctrl.searchInTree()" flex>
+                <md-input-container class="pathway-tree-search-input" flex>
+                    <label class="pathways-search-input-label"
+                           for="pathwayTreeSearchKeyword">
+                        Search
+                    </label>
+                    <input id="pathwayTreeSearchKeyword"
+                           name="pathway_tree_search_keyword"
+                           ng-model="$ctrl.treeSearch"
+                           type="text">
+                </md-input-container>
+                <md-button aria-label="search node"
+                           class="md-raised pathway-tree-search-button"
+                           ng-click="$ctrl.searchInTree()">
+                    <ng-md-icon icon="search"></ng-md-icon>
+                </md-button>
+                <md-button aria-label="annotations"
+                           class="md-raised pathway-annotation-button"
+                           ng-click="$ctrl.toggleAnnotationsPanel()">
+                    <ng-md-icon icon="text_format"></ng-md-icon>
+                </md-button>
+            </form>
+        </div>
     </div>
     <div class="u-height__full tree-container" flex layout="column">
-        <div class="pathway-search-panel">
+        <div class="pathway-search-panel"
+             ng-if="$ctrl.annotationsPanelVisible">
             <div class="md-content">
                 <div class="pathway-search-panel-body" layout="column">
-                    <div class="pathway-search-panel-row">
-                        <form layout="row" ng-submit="$ctrl.searchInTree()">
-                            <md-input-container class="pathway-tree-search-input" flex>
-                                <input id="pathwayTreeSearchKeyword" name="pathway_tree_search_keyword"
-                                       ng-model="$ctrl.treeSearch" type="text">
-                            </md-input-container>
-                            <md-button aria-label="search node"
-                                       class="md-raised pathway-tree-search-button"
-                                       ng-click="$ctrl.searchInTree()">
-                                <ng-md-icon icon="search"></ng-md-icon>
-                            </md-button>
-                        </form>
-                    </div>
                     <div class="pathway-search-panel-row pathway-search-panel-add-annotation">
                         <span>Annotations:</span>
                         <span flex></span>
@@ -50,8 +71,10 @@
                                          ng-model="annotation.isActive">
                             </md-checkbox>
                         </md-input-container>
-                        <div class="pathway-search-panel-annotation-edit"><a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a></div>
-                        <div flex></div>
+                        <div class="pathway-search-panel-annotation-edit pathway-search-panel-annotation-name">
+                            <a ng-click="$ctrl.editAnnotation(annotation.id)">{{annotation.name}}</a>
+                            <md-tooltip>{{annotation.name}}</md-tooltip>
+                        </div>
                         <div class="pathway-search-panel-annotation-delete" ng-click="$ctrl.deleteAnnotation(annotation.id)">
                             <ng-md-icon icon="delete_forever"></ng-md-icon>
                         </div>

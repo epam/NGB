@@ -23,6 +23,20 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
         return this.renderer;
     }
 
+    get nextNavigationAvailable() {
+        const {
+            next
+        } = this.prevNextInfo || {};
+        return !this.fetchingPrevNext && next && Math.abs(next) !== Infinity;
+    }
+
+    get prevNavigationAvailable() {
+        const {
+            previous
+        } = this.prevNextInfo || {};
+        return !this.fetchingPrevNext && previous && Math.abs(previous) !== Infinity;
+    }
+
     constructor(opts) {
         super(opts);
         this.dispatcher = opts.dispatcher;
@@ -45,10 +59,12 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
                 type: 'groupLinks',
                 links: [{
                     label: 'Prev',
-                    handleClick: ::this.prevMotif
+                    enabled: () => this.prevNavigationAvailable,
+                    handleClick: this.prevMotif.bind(this)
                 }, {
                     label: 'Next',
-                    handleClick: ::this.nextMotif
+                    enabled: () => this.nextNavigationAvailable,
+                    handleClick: this.nextMotif.bind(this)
                 }]
             }
         ];
@@ -94,6 +110,7 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
         if (this.maximumRange <= this.viewport.actualBrushSize) {
             return false;
         }
+        await this.updatePrevNextInfo();
         const data = await this.motifTrack(this.cacheUpdateParameters(this.viewport));
         if (this.cache) {
             this.cache.data = this.transformData(data);
@@ -190,24 +207,59 @@ export class MOTIFSTrack extends CachedTrackWithVerticalScroll {
         return somethingChanged;
     }
 
-    nextMotif() {
+    async updatePrevNextInfo() {
+        if (!this.viewport) {
+            return;
+        }
+        const {
+            center: centerCache
+        } = this.prevNextInfo || {};
         const request = this.setRequestToMotif();
-        this.dataService.getNextMotifs(request)
-            .then(data => {
-                if (data && data.startIndex) {
-                    this.viewport.selectPosition(data.startIndex);
-                }
-            });
+        const {startPosition: center} = request;
+        if (centerCache && centerCache === center) {
+            return;
+        }
+        this.fetchingPrevNext = true;
+        const process = (data, direction = 1) => data && data.startIndex
+            ? data.startIndex
+            : direction * Infinity;
+        const [prevPositionData, nextPositionData] = await Promise.all(
+            [
+                this.dataService.getPrevMotifs(request),
+                this.dataService.getNextMotifs(request)
+            ]
+        );
+        this.prevNextInfo = {
+            previous: process(prevPositionData, -1),
+            next: process(nextPositionData, 1),
+            center
+        };
+        this.fetchingPrevNext = false;
+        if (typeof this.config.reloadScope === 'function') {
+            this.config.reloadScope();
+        }
     }
 
-    prevMotif() {
-        const request = this.setRequestToMotif();
-        this.dataService.getPrevMotifs(request)
-            .then(data => {
-                if (data && data.startIndex) {
-                    this.viewport.selectPosition(data.startIndex);
-                }
-            });
+    async nextMotif() {
+        const {
+            next
+        } = this.prevNextInfo || {};
+        if (this.fetchingPrevNext || !next || Math.abs(next) === Infinity) {
+            return;
+        }
+        await this.updatePrevNextInfo();
+        this.viewport.selectPosition(next);
+    }
+
+    async prevMotif() {
+        const {
+            previous
+        } = this.prevNextInfo || {};
+        if (this.fetchingPrevNext || !previous || Math.abs(previous) === Infinity) {
+            return;
+        }
+        await this.updatePrevNextInfo();
+        this.viewport.selectPosition(previous);
     }
 
     setRequestToMotif () {

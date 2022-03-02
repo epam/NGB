@@ -75,7 +75,7 @@
                        ng-show="ctrl.showHideTrackButton"
                        class="md-icon-button track-button close"
                        ng-click="ctrl.hideTrack($event)"
-                       ng-if="!ctrl.silentInteractions"
+                       ng-if="!ctrl.silentInteractions && ctrl.trackClosable"
                        aria-label="Hide Track">
                 <ng-md-icon class="button-icon" icon="clear" size="16"></ng-md-icon>
             </md-button>
@@ -157,7 +157,7 @@
                        ng-show="ctrl.showHideTrackButton"
                        class="md-icon-button track-button close mini"
                        ng-click="ctrl.hideTrack($event)"
-                       ng-if="!ctrl.silentInteractions"
+                       ng-if="!ctrl.silentInteractions && ctrl.trackClosable"
                        aria-label="Hide Track">
                 <ng-md-icon class="button-icon" icon="clear" size="16"></ng-md-icon>
             </md-button>

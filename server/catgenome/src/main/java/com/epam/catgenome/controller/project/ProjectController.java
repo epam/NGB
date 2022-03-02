@@ -498,9 +498,10 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<ProjectDescription> upsertProjectDescription(@PathVariable final Long projectId,
+            @RequestParam(value = "path", required = false) final String path,
             @RequestParam(value = "name", required = false) final String name,
-            @RequestParam("file") final MultipartFile multipart) throws IOException {
-        return Result.success(projectSecurityService.upsertProjectDescription(projectId, name, multipart));
+            @RequestParam(value = "file", required = false) final MultipartFile multipart) throws IOException {
+        return Result.success(projectSecurityService.upsertProjectDescription(projectId, name, path, multipart));
     }
 
     @GetMapping("/project/description/{id}")

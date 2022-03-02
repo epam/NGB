@@ -15,15 +15,16 @@
                 Edit attributes
             </md-button>
         </md-list-item>
-        <md-divider></md-divider>
-        <md-list-item ng-if="!ctrl.node.isProject">
+        <md-divider ng-if="ctrl.resourceDownloadAvailable"></md-divider>
+        <md-list-item ng-if="!ctrl.node.isProject && ctrl.resourceDownloadAvailable">
             <md-button>
                 <ngb-dataset-item-download-url id="ctrl.node.bioDataItemId"
                                                show-icon="true">
                 </ngb-dataset-item-download-url>
             </md-button>
         </md-list-item>
-        <md-list-item ng-if="ctrl.node.isProject" ng-repeat="item in ctrl.projectElements">
+        <md-list-item ng-if="ctrl.node.isProject && ctrl.resourceDownloadAvailable"
+                      ng-repeat="item in ctrl.projectElements">
             <md-button>
                 <ngb-dataset-item-download-url id="item.bioDataItemId"
                                                name="item.filename"

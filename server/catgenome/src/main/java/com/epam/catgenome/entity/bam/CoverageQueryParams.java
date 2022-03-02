@@ -39,7 +39,7 @@ public class CoverageQueryParams {
     private PagingInfo pagingInfo;
     private List<SortInfo> sortInfo;
     private Long coverageId;
-    private String chr;
+    private List<String> chromosomes;
     private Interval<Integer> start;
     private Interval<Integer> end;
     private Interval<Float> coverage;

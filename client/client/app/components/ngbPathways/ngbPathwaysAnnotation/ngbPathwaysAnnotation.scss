@@ -1,0 +1,69 @@
+.add-annotation-dlb-content {
+  min-width: 600px;
+  max-width: 800px;
+  min-height: 350px;
+  margin: 10px 30px;
+
+  .md-errors-spacer {
+    min-height: 0;
+  }
+
+  .add-annotation-divider {
+    border-top: 2px solid rgba(0, 0, 0, 0.12);
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  .add-annotation-dlb-input {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+    margin-bottom: 0;
+
+    &.annotation-name {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    .md-label {
+      padding: 0;
+    }
+
+    label {
+      box-sizing: border-box
+    }
+
+    md-checkbox {
+      margin-bottom: 0;
+
+      .md-label {
+        line-height: 20px;
+      }
+    }
+  }
+
+  .add-annotation-dlb-file-header {
+    margin-top: 5px;
+
+    & * {
+      display: inline-block;
+    }
+
+    .add-annotation-dlb-file-header-label {
+      font-size: 12px;
+    }
+  }
+
+  .add-annotation-dlb-file {
+    display: inline-flex;
+  }
+
+  .add-annotation-dlb-file-checkbox {
+    line-height: 40px;
+  }
+
+  .add-annotation-dlb-heatmap {
+    width: 50%;
+    min-width: 300px;
+  }
+}

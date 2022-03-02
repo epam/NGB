@@ -296,4 +296,35 @@ export class BamDataService extends DataService {
         };
         return this.post(`externaldb/blat/search?referenceId=${encodeURIComponent(referenceId)}`, payload);
     }
+
+    getBamCoverage(bamIds) {
+        return new Promise((resolve) => {
+            this.get(`bam/coverage?bamIds=${bamIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(() => resolve([]));
+        });
+    }
+
+    searchBamCoverage(request) {
+        return new Promise((resolve, reject) => {
+            this.post('bam/coverage/search', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Bam Data Servise: error getting search coverage statistics';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

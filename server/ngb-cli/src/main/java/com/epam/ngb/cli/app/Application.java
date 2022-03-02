@@ -260,6 +260,9 @@ public class Application {
     @Option(name = "-o", usage = "specifies species, separated by comma",  aliases = {"--organisms"})
     private String species;
 
+    @Option(name = "--send-content", usage = "defines if file content should be sent directly to server")
+    private boolean sendContent;
+
     @Option(name = "--step", usage = "specifies Bam file coverage interval size")
     private Integer step;
 
@@ -373,6 +376,7 @@ public class Application {
         options.setReference(reference);
         options.setTaxId(taxId);
         options.setSpecies(species);
+        options.setSendContent(sendContent);
         options.setStep(step);
         return options;
     }

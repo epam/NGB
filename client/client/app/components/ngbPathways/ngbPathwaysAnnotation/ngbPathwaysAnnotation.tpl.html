@@ -1,0 +1,123 @@
+<div class="add-annotation-dlb-content">
+    <div class="row">
+        <md-input-container class="add-annotation-dlb-input annotation-name">
+            <label for="annotationName">Annotation name</label>
+            <input id="annotationName" name="annotation_name"
+                   ng-model="$ctrl.annotation.name" type="text">
+        </md-input-container>
+    </div>
+    <div class="row">
+        <md-input-container class="add-annotation-dlb-input">
+            <md-checkbox aria-label="select heatmap" class="md-primary"
+                         ng-change="$ctrl.onAnnotationTypeChange()"
+                         ng-false-value="undefined"
+                         ng-model="$ctrl.annotation.type"
+                         ng-true-value="{{$ctrl.annotationTypeList.HEATMAP}}">
+                Select heatmap file
+            </md-checkbox>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.HEATMAP">
+        <md-input-container class="add-annotation-dlb-input add-annotation-dlb-heatmap">
+            <md-select aria-label="heatmap"
+                       id="heatmap"
+                       multiple="false"
+                       ng-model="$ctrl.heatmapId">
+                <md-option ng-repeat="heatmapItem in $ctrl.heatmapsFromTrack track by heatmapItem.id"
+                           ng-value="heatmapItem.id">
+                    {{heatmapItem.prettyName || heatmapItem.name}}
+                </md-option>
+                <md-divider class="heatmaps-divider"/>
+                <md-option ng-repeat="heatmapItem in $ctrl.heatmapsFromAnnotations track by heatmapItem.id"
+                           ng-value="heatmapItem.id">
+                    {{heatmapItem.prettyName || heatmapItem.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.HEATMAP">
+        <md-input-container class="add-annotation-dlb-input add-annotation-dlb-file-header">
+            <div class="add-annotation-dlb-file-header-label">Pathway objects in</div>
+            <md-checkbox aria-label="first column header"
+                         class="md-primary" id="heatmapHeader"
+                         ng-false-value="-1"
+                         ng-model="$ctrl.annotation.header"
+                         ng-true-value="{{$ctrl.annotationFileHeaderList.COLUMN}}">
+                first column
+            </md-checkbox>
+            <md-checkbox aria-label="first row header"
+                         class="md-primary" id="heatmapHeader2"
+                         ng-false-value="-1"
+                         ng-model="$ctrl.annotation.header"
+                         ng-true-value="{{$ctrl.annotationFileHeaderList.ROW}}">
+                first row
+            </md-checkbox>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.HEATMAP && $ctrl.heatmap">
+        <ngb-pathways-color-scheme-preference
+                scheme="$ctrl.annotation.colorScheme"></ngb-pathways-color-scheme-preference>
+    </div>
+    <div class="row add-annotation-dlb-file">
+        <md-input-container class="add-annotation-dlb-input add-annotation-dlb-file-checkbox">
+            <md-checkbox aria-label="upload TSV\CSV" class="md-primary"
+                         ng-change="$ctrl.onAnnotationTypeChange()"
+                         ng-false-value="undefined"
+                         ng-model="$ctrl.annotation.type"
+                         ng-true-value="{{$ctrl.annotationTypeList.CSV}}">
+                Upload TSV/CSV
+            </md-checkbox>
+        </md-input-container>
+        <div ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.CSV">
+            <label class="md-button md-raised md-primary"
+                   for="csv-file-id">{{$ctrl.csvFile.name || 'Choose CSV/TSV file'}}</label>
+            <input accept=".csv,.tsv" class="ng-hide" file-model
+                   id="csv-file-id"
+                   ng-change="$ctrl.onFileUpload()"
+                   ng-model="$ctrl.csvFile"
+                   type="file">
+        </div>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.CSV">
+        <md-input-container class="add-annotation-dlb-input add-annotation-dlb-file-header">
+            <div class="add-annotation-dlb-file-header-label">Pathway objects in</div>
+            <md-checkbox aria-label="first column header"
+                         class="md-primary" id="fileHeader"
+                         ng-false-value="-1"
+                         ng-model="$ctrl.annotation.header"
+                         ng-true-value="{{$ctrl.annotationFileHeaderList.COLUMN}}">
+                first column
+            </md-checkbox>
+            <md-checkbox aria-label="first row header"
+                         class="md-primary" id="fileHeader2"
+                         ng-false-value="-1"
+                         ng-model="$ctrl.annotation.header"
+                         ng-true-value="{{$ctrl.annotationFileHeaderList.ROW}}">
+                first row
+            </md-checkbox>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.CSV && $ctrl.annotation.config">
+        <ngb-pathways-color-scheme-preference
+                scheme="$ctrl.annotation.colorScheme"></ngb-pathways-color-scheme-preference>
+    </div>
+    <md-divider class="add-annotation-divider"></md-divider>
+    <div class="row">
+        <md-input-container class="add-annotation-dlb-input">
+            <md-checkbox aria-label="manual colors config" class="md-primary"
+                         ng-change="$ctrl.onAnnotationTypeChange()"
+                         ng-false-value="undefined"
+                         ng-model="$ctrl.annotation.type"
+                         ng-true-value="{{$ctrl.annotationTypeList.MANUAL}}">
+                Manual colors config
+            </md-checkbox>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.MANUAL">
+        <md-input-container class="add-annotation-dlb-input">
+        <textarea id="manualConfig" name="manualConfig" ng-model="$ctrl.annotation.config"
+                  ng-required="$ctrl.annotation.type === $ctrl.annotationTypeList.MANUAL"
+                  rows="2"></textarea>
+        </md-input-container>
+    </div>
+</div>

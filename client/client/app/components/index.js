@@ -21,6 +21,8 @@ import ngbTracksView from './ngbTracksView';
 import ngbVariantPanel from './ngbVariantPanel';
 import ngbVariantsTablePanel from './ngbVariantsTablePanel';
 import ngbMotifsPanel from './ngbMotifsPanel';
+import ngbVcfSampleAliases from './ngbVcfSampleAliases';
+import ngbCoveragePanel from './ngbCoveragePanel';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -44,5 +46,7 @@ export default angular.module('NGB_Panels', [
     ngbHeatmapPanel,
     ngbStrainLineage,
     ngbPathways,
-    ngbMotifsPanel
+    ngbMotifsPanel,
+    ngbVcfSampleAliases,
+    ngbCoveragePanel
 ]).name;

@@ -23,6 +23,10 @@ export default class NgbDataSetContextMenuController {
         }
     }
 
+    get resourceDownloadAvailable () {
+        return !this.projectContext || this.projectContext.resourceDownloadAvailable;
+    }
+
     checkUserRole() {
         this.utilsDataService.isRoleModelEnabled().then(utilsDataService => {
             if (utilsDataService) {

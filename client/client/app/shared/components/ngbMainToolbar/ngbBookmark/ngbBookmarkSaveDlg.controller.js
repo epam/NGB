@@ -14,6 +14,7 @@ export default class ngbBookmarkSaveDlgController {
         $scope,
         trackNamingService,
         ngbStrainLineageService,
+        ngbPathwaysService,
         bookmarkDataService
     ) {
         Object.assign(this, {
@@ -25,7 +26,8 @@ export default class ngbBookmarkSaveDlgController {
             heatmapContext,
             trackNamingService,
             bookmarkDataService,
-            ngbStrainLineageService
+            ngbStrainLineageService,
+            ngbPathwaysService
         });
     }
 
@@ -64,6 +66,13 @@ export default class ngbBookmarkSaveDlgController {
         return undefined;
     }
 
+    getPathwaysState() {
+        if (this.ngbPathwaysService) {
+            return this.ngbPathwaysService.getSessionState();
+        }
+        return undefined;
+    }
+
     save(event) {
         this.isLoading = true;
         const ruler = this.projectContext.viewport
@@ -93,7 +102,8 @@ export default class ngbBookmarkSaveDlgController {
             customNames,
             this.miewContext.routeInfo,
             this.heatmapContext.routeInfo,
-            this.getLineageState()
+            this.getLineageState(),
+            this.getPathwaysState()
         );
         const params = {
             owner: '',
@@ -137,7 +147,8 @@ function Bookmark(
     customNames,
     miew,
     heatmap,
-    lineage
+    lineage,
+    pathways
 ) {
     this.name = name;
     this.description = description;
@@ -174,4 +185,5 @@ function Bookmark(
     this.miew = miew;
     this.heatmap = heatmap;
     this.lineage = lineage;
+    this.pathways = pathways;
 }

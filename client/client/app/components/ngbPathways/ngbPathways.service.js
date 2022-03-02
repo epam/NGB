@@ -4,39 +4,29 @@ const PATHWAYS_STATES = {
     INTERNAL_PATHWAYS_RESULT: 'INTERNAL_PATHWAYS_RESULT'
 };
 
-function findMaxId(array) {
-    let result = 0;
-    array.forEach(a => {
-        if (a.id > result) {
-            result = a.id;
-        }
-    });
-    return result;
-}
+const PATHWAYS_STORAGE_NAME = 'pathwaysState';
 
 export default class ngbPathwaysService {
     pathwaysServiceMap = {};
-    currentInternalPathway;
-    annotationList = [];
-    maxAnnotationId = 1;
 
     constructor(dispatcher, projectContext,
-        ngbInternalPathwaysTableService, ngbInternalPathwaysResultService
+        ngbInternalPathwaysTableService, ngbInternalPathwaysResultService,
+        ngbPathwaysAnnotationService
     ) {
         Object.assign(
             this,
             {
                 dispatcher,
-                projectContext
+                projectContext,
+                ngbPathwaysAnnotationService
             }
         );
         this.pathwaysServiceMap = {
             [PATHWAYS_STATES.INTERNAL_PATHWAYS]: ngbInternalPathwaysTableService,
             [PATHWAYS_STATES.INTERNAL_PATHWAYS_RESULT]: ngbInternalPathwaysResultService,
         };
-        this.annotationList = JSON.parse(localStorage.getItem('pathwaysAnnotations')) || [];
-        this.maxAnnotationId = findMaxId(this.annotationList);
         this.initEvents();
+        this.initState({});
     }
 
     _currentSearch;
@@ -53,10 +43,42 @@ export default class ngbPathwaysService {
         return PATHWAYS_STATES;
     }
 
+    _currentInternalPathway;
+
+    get currentInternalPathway() {
+        return this._currentInternalPathway;
+    }
+
+    set currentInternalPathway(value) {
+        this._currentInternalPathway = value;
+        const loadedState = JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)) || {};
+        localStorage.setItem(PATHWAYS_STORAGE_NAME, JSON.stringify({
+            ...loadedState,
+            internalPathway: this._currentInternalPathway
+        }));
+    }
+
+    _currentState;
+
+    get currentState() {
+        return this._currentState;
+    }
+
+    set currentState(value) {
+        this._currentState = value;
+        const loadedState = JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)) || {};
+        localStorage.setItem(PATHWAYS_STORAGE_NAME, JSON.stringify({
+            ...loadedState,
+            state: this._currentState
+        }));
+    }
+
     static instance(dispatcher, projectContext,
-        ngbInternalPathwaysTableService, ngbInternalPathwaysResultService) {
+        ngbInternalPathwaysTableService, ngbInternalPathwaysResultService,
+        ngbPathwaysAnnotationService) {
         return new ngbPathwaysService(dispatcher, projectContext,
-            ngbInternalPathwaysTableService, ngbInternalPathwaysResultService);
+            ngbInternalPathwaysTableService, ngbInternalPathwaysResultService,
+            ngbPathwaysAnnotationService);
     }
 
     initEvents() {
@@ -65,54 +87,28 @@ export default class ngbPathwaysService {
         });
     }
 
-    getAnnotationList() {
-        return this.annotationList;
+    initState(loadedState) {
+        loadedState = {
+            // TODO: (TBD) do we need to load panel state
+            // ...JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)),
+            ...loadedState
+        };
+        this._currentState = loadedState.state;
+        this._currentInternalPathway = loadedState.internalPathway;
     }
 
-    saveAnnotationList(list) {
-        localStorage.setItem('pathwaysAnnotations', JSON.stringify(list));
-    }
-
-    getAnnotationById(id) {
-        const [result] = this.annotationList.filter(a => a.id === id);
-        return result;
-    }
-
-    deleteAnnotationById(id) {
-        const index = this.annotationList.findIndex(a => a.id === id);
-        if (index > -1) {
-            this.annotationList.splice(index, 1);
-            if (this.maxAnnotationId === id) {
-                this.maxAnnotationId = findMaxId(this.annotationList);
-            }
+    recoverLocalState(state) {
+        if (state) {
+            this.initState(state.layout);
+            this.ngbPathwaysAnnotationService.initState(state.annotations);
         }
-        this.saveAnnotationList(this.annotationList);
-        this.dispatcher.emitSimpleEvent('pathways:internalPathways:annotations:change');
     }
 
-    setAnnotation(annotation) {
-        if (annotation.id) {
-            const index = this.annotationList.findIndex(a => a.id === annotation.id);
-            if (index > -1) {
-                this.annotationList[index] = {
-                    ...annotation,
-                    isActive: true
-                };
-            } else {
-                this.annotationList.push({
-                    ...annotation,
-                    id: ++this.maxAnnotationId,
-                    isActive: true
-                });
-            }
-        } else {
-            this.annotationList.push({
-                ...annotation,
-                id: ++this.maxAnnotationId,
-                isActive: true
-            });
-        }
-        this.saveAnnotationList(this.annotationList);
-        this.dispatcher.emitSimpleEvent('pathways:internalPathways:annotations:change');
+    getSessionState() {
+        return {
+            layout: JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)),
+            annotations: this.ngbPathwaysAnnotationService.getSessionAnnotationList()
+        };
     }
+
 }

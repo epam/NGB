@@ -115,9 +115,9 @@ public class ProjectSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
-    public ProjectDescription upsertProjectDescription(final Long projectId, final String name,
+    public ProjectDescription upsertProjectDescription(final Long projectId, final String name, final String path,
                                                        final MultipartFile file) throws IOException {
-        return projectDescriptionService.upsert(projectId, name, file);
+        return projectDescriptionService.upsert(projectId, name, path, file);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER +  OR + "hasPermissionOnProject(#projectId, 'READ')")

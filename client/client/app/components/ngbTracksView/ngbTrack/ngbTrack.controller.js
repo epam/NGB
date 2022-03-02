@@ -1,7 +1,7 @@
 import ngbTrackEvents from './ngbTrack.events';
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
 import BLASTContext from '../../../shared/blastContext';
-import MotifsContext from '../../../shared/motifsContext'
+import MotifsContext from '../../../shared/motifsContext';
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -69,7 +69,9 @@ export default class ngbTrackController {
         groupAutoScaleManager,
         fcSourcesManager,
         blastContext,
-        motifsContext
+        motifsContext,
+        bamCoverageContext,
+        appearanceContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
@@ -78,11 +80,17 @@ export default class ngbTrackController {
         this.selectionContext = selectionContext;
         this.blastContext = blastContext;
         this.motifsContext = motifsContext;
+        this.bamCoverageContext = bamCoverageContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
+        this.appearanceContext = appearanceContext;
         this.fcSourcesManager = fcSourcesManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
+        if (this.track.format === 'BAM') {
+            const [bamId, bamName] = [this.track.id, this.track.name];
+            this.bamCoverageContext.setBamCoverage({bamId, bamName});
+        }
         this.trackRendererElement = $element.find('.md-track-renderer')[0];
         if (this.projectContext.collapsedTrackHeaders !== undefined) {
             this.showTracksHeaders = !this.projectContext.collapsedTrackHeaders;
@@ -298,6 +306,20 @@ export default class ngbTrackController {
         return this.trackNamingService.nameChanged(this.track) && this.showTrackOriginalName;
     }
 
+    get trackClosable() {
+        if (this.projectContext && this.appearanceContext) {
+            const nonReferenceTracksCount = (this.projectContext.tracks || [])
+                .filter(o => !/^reference$/i.test(o.format))
+                .length;
+            const preventClose = (
+                this.appearanceContext.embedded ||
+                this.appearanceContext.preventCloseLastTrack
+            ) && nonReferenceTracksCount === 1;
+            return !preventClose;
+        }
+        return true;
+    }
+
     setCustomName(newName) {
         this.showFileName = this.trackNamingService.nameChanged(this.track);
         this.trackNamingService.setCustomName(this.track, newName);
@@ -432,6 +454,7 @@ export default class ngbTrackController {
             projectContext: this.projectContext,
             blastContext: this.blastContext,
             motifsContext: this.motifsContext,
+            bamCoverageContext: this.bamCoverageContext,
             reloadScope: () => this.scope.$apply(),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,
