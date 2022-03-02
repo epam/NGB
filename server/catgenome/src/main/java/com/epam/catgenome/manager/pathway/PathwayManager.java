@@ -46,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -54,12 +55,7 @@ import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexNotFoundException;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
@@ -103,12 +99,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.IndexUtils.deserialize;
@@ -421,8 +412,14 @@ public class PathwayManager {
     }
 
     private PathwayDatabaseSource getDatabaseSource(final Document doc) {
-        final long id = Long.parseLong(doc.getField(PathwayIndexFields.DATABASE_SOURCE.getFieldName()).stringValue());
-        return PathwayDatabaseSource.getById(id);
+        return Optional.ofNullable(doc.getField(PathwayIndexFields.DATABASE_SOURCE.getFieldName()))
+                .map(field -> {
+                    final String value = field.stringValue();
+                    if (NumberUtils.isNumber(value)) {
+                        return PathwayDatabaseSource.getById(Long.parseLong(value));
+                    }
+                    return PathwayDatabaseSource.CUSTOM;
+                }).orElse(PathwayDatabaseSource.CUSTOM);
     }
 
     @Nullable
