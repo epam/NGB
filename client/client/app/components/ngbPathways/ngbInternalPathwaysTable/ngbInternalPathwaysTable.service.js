@@ -13,6 +13,11 @@ const INTERNAL_PATHWAYS_COLUMN_TITLES = {
     description: 'Description',
     source: 'Source'
 };
+const DATABASE_SOURCES = {
+    CUSTOM: 'Custom',
+    BIOCYC: 'BioCyc',
+    COLLAGE: 'Collage'
+};
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 11;
 
@@ -150,7 +155,8 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
             id: internalPathways.pathwayId,
             name: internalPathways.prettyName || internalPathways.name,
             description: internalPathways.pathwayDesc,
-            source: internalPathways.dbSource
+            databaseSource: internalPathways.databaseSource,
+            source: DATABASE_SOURCES[internalPathways.databaseSource] || internalPathways.databaseSource
         };
     }
 }
