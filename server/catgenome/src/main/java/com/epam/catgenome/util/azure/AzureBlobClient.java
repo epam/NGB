@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.util.azure;
 
+import com.azure.identity.ClientSecretCredentialBuilder;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
@@ -34,16 +36,88 @@ import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import lombok.Data;
-import lombok.SneakyThrows;
+import lombok.*;
 import org.apache.commons.lang3.StringUtils;
-
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
+
+abstract class AbstractCredentialConfigurer implements AzureCredentialConfig {
+    abstract BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder);
+}
+
+@Getter
+@Builder
+class AccessKeyCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+
+    @NonNull
+    private final String storageAccount;
+
+    @NonNull
+    private final String storageKey;
+
+    @Override
+    BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder) {
+        return builder.credential(new StorageSharedKeyCredential(storageAccount, storageKey));
+    }
+}
+
+@Getter
+@Builder
+class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+
+    @NonNull
+    private final String storageAccount;
+
+    @NonNull
+    private final String clientId;
+
+    @NonNull
+    private final String clientSecret;
+
+    @NonNull
+    private final String tenantId;
+
+    @Override
+    BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder) {
+        return builder.credential( new ClientSecretCredentialBuilder()
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .tenantId(tenantId)
+                .build());
+    }
+}
+
+@Getter
+@Builder
+class DefaultCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+
+    @NonNull
+    private final String storageAccount;
+
+    private final String managedIdentityId;
+
+    private final String tenantId;
+
+    @Override
+    BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder) {
+
+        DefaultAzureCredentialBuilder cb = new DefaultAzureCredentialBuilder();
+
+        if(StringUtils.isNotEmpty(managedIdentityId)) {
+            cb = cb.managedIdentityClientId(managedIdentityId);
+        }
+
+        if(StringUtils.isNotEmpty(tenantId)) {
+            cb = cb.tenantId(tenantId);
+        }
+
+        return builder.credential(cb.build());
+    }
+}
 
 public class AzureBlobClient {
 
@@ -52,8 +126,8 @@ public class AzureBlobClient {
     private static final String AZ_BLOB_DELIMITER = "/";
     private static final Long URL_EXPIRATION = 24 * 60 * 60 * 1000L;
 
+    private AzureCredentialConfig credentialConfig;
     private BlobServiceClient blobService;
-    private StorageSharedKeyCredential credentials;
 
     private static AzureBlobClient instance;
 
@@ -61,12 +135,10 @@ public class AzureBlobClient {
         //just to make test context work
     }
 
-    public AzureBlobClient(final String storageAccount,
-                           final String storageKey) {
-        this.credentials = new StorageSharedKeyCredential(storageAccount, storageKey);
-        this.blobService = new BlobServiceClientBuilder()
-                .endpoint(String.format(BLOB_URL_FORMAT, storageAccount))
-                .credential(credentials)
+    public AzureBlobClient(@NonNull AbstractCredentialConfigurer credentialConfigurer) {
+        this.credentialConfig = credentialConfigurer;
+        this.blobService = credentialConfigurer.configureCredential(new BlobServiceClientBuilder()
+                        .endpoint(String.format(BLOB_URL_FORMAT, credentialConfigurer.getStorageAccount())))
                 .buildClient();
     }
 
@@ -169,7 +241,7 @@ public class AzureBlobClient {
         final BlobServiceSasSignatureValues blobServiceSasSignatureValues =
                 new BlobServiceSasSignatureValues(OffsetDateTime.now().plus(Duration.ofDays(1)), permissions);
         final String sasToken = getBlobURL(blobPath).generateSas(blobServiceSasSignatureValues);
-        return String.format(BLOB_URL_FORMAT + "/%s/%s?%s", credentials.getAccountName(),
+        return String.format(BLOB_URL_FORMAT + "/%s/%s?%s", credentialConfig.getStorageAccount(),
                 azureBlobItem.getContainer(), azureBlobItem.getBlobPath(), sasToken);
     }
 }
