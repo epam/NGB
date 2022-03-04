@@ -56,6 +56,17 @@
                 {{ctrl.trackName}}
             </md-tooltip>
         </div>
+        <div class="ngb-track-error"
+             ng-class="{'displayed': ctrl.trackInstance && ctrl.trackInstance.error}"
+             dnd-nodrag>
+            <ng-md-icon icon="error"
+                        size="16"
+                        class="ngb-track-error-icon"
+            ></ng-md-icon>
+            <md-tooltip md-direction="top">
+                {{ctrl.trackInstance ? ctrl.trackInstance.error : ''}}
+            </md-tooltip>
+        </div>
         <ngb-track-settings
                 style="flex: 1; overflow: hidden;"
                 ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"

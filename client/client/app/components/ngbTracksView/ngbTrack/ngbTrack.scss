@@ -207,3 +207,17 @@ ngb-track-menu {
   margin-left: 6px;
   margin-right: 6px;
 }
+
+.ngb-track-error {
+  display: inline;
+  cursor: default;
+  visibility: hidden;
+}
+
+.ngb-track-error.displayed {
+  visibility: visible;
+}
+
+.ngb-track-error-icon {
+  fill: #aa0000;
+}

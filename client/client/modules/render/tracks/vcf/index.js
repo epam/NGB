@@ -125,7 +125,12 @@ export class VCFTrack extends GENETrack {
         Promise.resolve().then(async () => {
             if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
                 this.transformer.highlightProfileConditions = this._highlightProfileConditions;
-                await this.updateCache();
+                try {
+                    this.unsetError();
+                    await this.updateCache();
+                } catch (e) {
+                    this.reportError(e.message);
+                }
             }
             if (changed) {
                 this._flags.renderReset = true;

@@ -103,14 +103,15 @@ export default class GeneRenderer extends CachedTrackRendererWithVerticalScroll 
         this._dockableElementsContainer.x = this.dataContainer.x;
         this._dockableElementsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.scale = this.dataContainer.scale;
-
-        if (this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
+        const isHistogram = this._transformer.isHistogramDrawingModeForViewport(viewport, cache);
+        if (isHistogram) {
             this.geneHistogram.totalHeight = this.height;
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;
-        }
-        else if (cache.data !== null && cache.data !== undefined) {
+        } else {
             this.geneHistogram.clear();
+        }
+        if (!isHistogram && cache.data !== null && cache.data !== undefined) {
             this.featureRenderer._opts = {
                 gffColorByFeatureType: this._gffColorByFeatureType,
                 gffShowNumbersAminoacid: this._gffShowNumbersAminoacid,

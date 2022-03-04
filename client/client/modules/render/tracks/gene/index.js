@@ -178,9 +178,15 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
     }
 
     async updateAndRefresh(forceUpdate = false) {
-        await this.updateCache(forceUpdate);
-        this._flags.dataChanged = true;
-        await this.requestRenderRefresh();
+        try {
+            this.unsetError();
+            await this.updateCache(forceUpdate);
+        } catch (e) {
+            this.reportError(e.message);
+        } finally {
+            this._flags.dataChanged = true;
+            await this.requestRenderRefresh();
+        }
     }
 
     getSettings() {

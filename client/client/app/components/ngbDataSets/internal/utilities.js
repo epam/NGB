@@ -443,3 +443,22 @@ export function toPlainList(items, namingService, indent = 0) {
     }
     return result;
 }
+
+export function findSelectedItems (datasets) {
+    const items = [];
+    function findSelectedTracksFn(item: Node) {
+        const datasetItems = item._lazyItems || item.items;
+        if (datasetItems) {
+            for (let i = 0; i < datasetItems.length; i++) {
+                if (datasetItems[i] && datasetItems[i].__selected && datasetItems[i].isTrack) {
+                    items.push(datasetItems[i]);
+                }
+                findSelectedTracksFn(datasetItems[i]);
+            }
+        }
+    }
+    for (let i = 0; i < datasets.length; i++) {
+        findSelectedTracksFn(datasets[i]);
+    }
+    return items;
+}
