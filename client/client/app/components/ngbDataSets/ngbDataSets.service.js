@@ -43,21 +43,7 @@ export default class ngbDataSetsService {
     }
 
     getSelectedTracks(datasets, forceReference) {
-        const items = [];
-        const findSelectedTracksFn = function (item: Node) {
-            if (item.items) {
-                for (let i = 0; i < item.items.length; i++) {
-                    if (item.items[i] && item.items[i].__selected && item.items[i].isTrack) {
-                        items.push(item.items[i]);
-                    }
-                    findSelectedTracksFn(item.items[i]);
-                }
-            }
-        };
-        for (let i = 0; i < datasets.length; i++) {
-            findSelectedTracksFn(datasets[i]);
-        }
-
+        const items = utilities.findSelectedItems(datasets);
         const trackIsDisplayedInTreeFn = (track, _datasets) => {
             for (let i = 0; i < _datasets.length; i ++) {
                 const dataset = _datasets[i];
@@ -291,11 +277,17 @@ export default class ngbDataSetsService {
             const currentDataset = item.isProject ? item : item.project;
             const otherSelectedDatasets = this.getSelectedDatasets(datasets)
                 .filter(d => !currentDataset || currentDataset.id !== d.id);
+            const currentDatasetHasNoSelectedTracks = (currentDataset.items || [])
+                .filter(i => i.format !== 'REFERENCE' && i.__selected)
+                .length === 0;
+            const otherDatasetsHasSelectedTracks = utilities
+                .findSelectedItems(otherSelectedDatasets)
+                .filter(o => o.format !== 'REFERENCE')
+                .length > 0;
             if (
-                (currentDataset.items || [])
-                    .filter(i => i.format !== 'REFERENCE' && i.__selected)
-                    .length === 0 &&
-                otherSelectedDatasets.length > 0
+                currentDatasetHasNoSelectedTracks &&
+                otherSelectedDatasets.length > 0 &&
+                otherDatasetsHasSelectedTracks
             ) {
                 this.deselectItem(currentDataset);
                 [forceReference] = otherSelectedDatasets.map(utilities.findProjectReference);
