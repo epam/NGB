@@ -120,9 +120,15 @@ export class REFERENCETrack extends CachedTrack {
     }
 
     async updateAndRefresh() {
-        await this.updateCache();
-        this._flags.dataChanged = true;
-        await this.requestRenderRefresh();
+        try {
+            this.unsetError();
+            await this.updateCache();
+        } catch (e) {
+            this.reportError(e.message);
+        } finally {
+            this._flags.dataChanged = true;
+            await this.requestRenderRefresh();
+        }
     }
 
     updateHeight() {
