@@ -59,6 +59,7 @@ http://...?screenshot=${screenshotVisibility}&toolbar=${toolbarVisibility}&layou
     * `vcfdownload` (lowercased!): **Download variants table** button. Accepted values: `On`, `Off`
     * `genesdownload` (lowercased!): **Download genes table** button. Accepted values: `On`, `Off`
     * `closelasttrack` or `closeLastTrack`: hide **Close** button for the single non-reference track. Accepted values: `On`, `Off`
+    * `closelasttrackignoreformats` or `closeLastTrackIgnoreFormats` (array of strings, default: `['MOTIFS, 'BLAST']`): if `closeLastTrack` is set to `Off`, specified track formats will be ignored, i.e. if there are 3 tracks - MOTIFS positive, MOTIFS negative, BAM - BAM track won't be closable
 
 ## Examples
 
