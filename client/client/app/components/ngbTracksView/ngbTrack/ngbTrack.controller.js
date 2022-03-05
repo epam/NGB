@@ -302,14 +302,22 @@ export default class ngbTrackController {
 
     get trackClosable() {
         if (this.projectContext && this.appearanceContext) {
-            const nonReferenceTracksCount = (this.projectContext.tracks || [])
-                .filter(o => !/^reference$/i.test(o.format))
+            const nonReferenceTracks = (this.projectContext.tracks || [])
+                .filter(o => !/^reference$/i.test(o.format));
+            const ignoreFormats = new Set([
+                'REFERENCE',
+                ...(this.appearanceContext.closeLastTrackIgnoreFormats || [])
+            ]);
+            const currentTrackClosable = this.track && ignoreFormats.has(this.track.format);
+            const nonReferenceResourceTracksCount = nonReferenceTracks
+                .filter(o => !ignoreFormats.has(o.format))
                 .length;
-            const preventClose = (
+            if (
                 this.appearanceContext.embedded ||
                 this.appearanceContext.preventCloseLastTrack
-            ) && nonReferenceTracksCount === 1;
-            return !preventClose;
+            ) {
+                return currentTrackClosable || nonReferenceResourceTracksCount > 1;
+            }
         }
         return true;
     }

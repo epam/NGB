@@ -25,6 +25,19 @@ class AppearanceContext {
         }
     }
 
+    get closeLastTrackIgnoreFormats () {
+        return this._closeLastTrackIgnoreFormats || ['MOTIFS', 'BLAST'];
+    }
+
+    set closeLastTrackIgnoreFormats (value) {
+        if (value !== this._closeLastTrackIgnoreFormats) {
+            this._closeLastTrackIgnoreFormats = /^none$/i.test(value)
+                ? []
+                : value;
+            this.reportStateChange();
+        }
+    }
+
     get closeTracks () {
         return this._closeTracks;
     }
@@ -197,10 +210,13 @@ class AppearanceContext {
                 genescolumns = !this.embedded && this.genesColumns,
                 genesdownload = !this.embedded && this.genesDownload,
                 closelasttrack = !(this.embedded && this.preventCloseLastTrack),
-                closeLastTrack = closelasttrack
+                closeLastTrack = closelasttrack,
+                closelasttrackignoreformats,
+                closeLastTrackIgnoreFormats = closelasttrackignoreformats
             } = visibilityPayload;
             this._embedded = false;
             this._preventCloseLastTrack = !closeLastTrack;
+            this._closeLastTrackIgnoreFormats = closeLastTrackIgnoreFormats;
             this._closeTracks = clear;
             this._fitTracks = fit;
             this._organizeTracks = organize;
