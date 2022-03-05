@@ -379,9 +379,11 @@ export class GENETrack extends CachedTrackWithVerticalScroll {
                 } else {
                     info.push([`${feature.name} #${feature.index}`]);
                 }
-                for (const attr in feature.attributes) {
-                    if (feature.attributes.hasOwnProperty(attr)) {
-                        info.push([attr, feature.attributes[attr]]);
+                if (feature.attributes) {
+                    for (const attr in feature.attributes) {
+                        if (feature.attributes.hasOwnProperty(attr)) {
+                            info.push([attr, feature.attributes[attr]]);
+                        }
                     }
                 }
             }

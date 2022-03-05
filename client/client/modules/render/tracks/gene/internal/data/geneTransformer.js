@@ -140,25 +140,27 @@ export class GeneTransformer {
         } else {
             gene.transcripts = [];
         }
-        if (gene.attributes.hasOwnProperty('gene_name')) {
-            gene.name = gene.attributes.gene_name;
-        } else if (gene.attributes.hasOwnProperty('gene_symbol')) {
-            gene.name = gene.attributes.gene_symbol;
-        } else if (gene.attributes.hasOwnProperty('gene_id')) {
-            gene.name = gene.attributes.gene_id;
-        } else {
-            gene.name = null;
+        gene.name = null;
+        if (gene.attributes) {
+            if (gene.attributes.hasOwnProperty('gene_name')) {
+                gene.name = gene.attributes.gene_name;
+            } else if (gene.attributes.hasOwnProperty('gene_symbol')) {
+                gene.name = gene.attributes.gene_symbol;
+            } else if (gene.attributes.hasOwnProperty('gene_id')) {
+                gene.name = gene.attributes.gene_id;
+            }
         }
         return gene;
     }
 
     static analyzeTranscript(transcript) {
-        if (transcript.attributes.hasOwnProperty('transcript_name')) {
-            transcript.name = transcript.attributes.transcript_name;
-        } else if (transcript.attributes.hasOwnProperty('transcript_symbol')) {
-            transcript.name = transcript.attributes.transcript_symbol;
-        } else {
-            transcript.name = null;
+        transcript.name = null;
+        if (transcript.attributes) {
+            if (transcript.attributes.hasOwnProperty('transcript_name')) {
+                transcript.name = transcript.attributes.transcript_name;
+            } else if (transcript.attributes.hasOwnProperty('transcript_symbol')) {
+                transcript.name = transcript.attributes.transcript_symbol;
+            }
         }
         if (transcript.items === null || transcript.items === undefined) {
             transcript.items = [];
