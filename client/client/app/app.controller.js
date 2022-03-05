@@ -250,9 +250,20 @@ export default class ngbAppController extends baseController {
         } else if (controls) {
             try {
                 const controlsVisibility = JSON.parse(controls);
+                const getValue = value => {
+                    if (
+                        [
+                            this.dictionaryState.on.toLowerCase(),
+                            this.dictionaryState.off.toLowerCase()
+                        ].includes((value || '').toLowerCase())
+                    ) {
+                        return this.dictionaryState.on.toLowerCase() === value.toLowerCase();
+                    }
+                    return value;
+                };
                 this.appearanceContext.parse(
                     Object.entries(controlsVisibility || {})
-                        .map(([key, value]) => ({[key]: this.dictionaryState.on.toLowerCase() === value.toLowerCase()}))
+                        .map(([key, value]) => ({[key]: getValue(value)}))
                         .reduce((r, c) => ({...r, ...c}), {})
                 );
             } catch (e) {
