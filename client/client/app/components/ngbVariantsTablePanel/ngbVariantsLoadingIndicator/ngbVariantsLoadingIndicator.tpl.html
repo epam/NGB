@@ -1,4 +1,4 @@
-<div class="indicator">
+<div class="indicator" ng-class="{'indicator-shown': $ctrl.isProgressShown}">
     <md-progress-circular
             md-mode="indeterminate"
             ng-show="$ctrl.isProgressShown"

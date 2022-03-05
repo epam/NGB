@@ -149,9 +149,20 @@ export default class ngbGoldenLayoutController extends baseController {
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 
             const html = this.$compile(viewActionsTemplate)(childScope);
+            const tabDropdown = stack.header.controlsContainer.find('.lm_tabdropdown');
 
-            stack.header.controlsContainer.prepend(html);
+            html.insertBefore(tabDropdown[0].nextSibling);
             this.dispatcher.on('appearance:changed', () => this.updateHeaderView(stack));
+
+            const isBrowser = stack.contentItems.some(component => component.config.componentState.panel === this.panels.ngbBrowser);
+            if (isBrowser) {
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (const entry of entries) {
+                        this.projectContext.isBrowserNarrow = entry.target.clientWidth < MIN_BROWSER_WIDTH;
+                    }
+                });
+                resizeObserver.observe(stack.element[0]);
+            }
 
             stack.on('activeContentItemChanged', (contentItem) => {
                 childScope.viewName = contentItem.config.componentState.panel;
@@ -172,7 +183,7 @@ export default class ngbGoldenLayoutController extends baseController {
                 context.close ? this.showCloseIcon() : this.hideCloseIcon();
             }
         });
-        
+
         this.goldenLayout.on('tabCreated', (tab) => {
             const context = this.appearanceContext;
             if (context.embedded || !context.close) {
@@ -362,8 +373,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
                 rowItem.addChild(newItem, index + 1);
             }
-        }
-        else {
+        } else {
             this.addGLItemByPosition(newItem);
         }
     }
@@ -476,7 +486,7 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blatSearchRequest');
         localStorage.removeItem('blatColumns');
 
-        this.projectContext.changeState({ blatRegion: { forceReset: true } });
+        this.projectContext.changeState({blatRegion: {forceReset: true}});
     }
 
     blastSearchPanelRemoved() {
@@ -484,7 +494,7 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blastSearchResultColumns');
         localStorage.removeItem('blastHistoryColumns');
 
-        this.projectContext.changeState({ blastRegion: { forceReset: true } });
+        this.projectContext.changeState({blastRegion: {forceReset: true}});
     }
 
     panelAddBlatSearchPanel(event) {
@@ -519,6 +529,7 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
+
     panelAddBlastSearchPanel(event) {
         const layoutChange = this.appLayout.Panels.blast;
         layoutChange.displayed = true;
@@ -619,11 +630,9 @@ export default class ngbGoldenLayoutController extends baseController {
 
             if (newItem.componentState.position === 'left') {
                 index = 0;
-            }
-            else if (newItem.componentState.position === 'right') {
+            } else if (newItem.componentState.position === 'right') {
                 index = itemStacksArr.length;
-            }
-            else if (newItem.componentState.position === 'center') {
+            } else if (newItem.componentState.position === 'center') {
 
                 if (itemStacksArr.length > 0) {
                     index = itemStacksArr.filter(
