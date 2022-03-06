@@ -37,7 +37,7 @@
     "cytoscape-graphml": "^1.0.6",
     "cytoscape-sbgn-stylesheet": "^4.0.2",
     "deep-extend": "^0.4.1",
-    "golden-layout": "1.5.5",
+    "golden-layout": "1.5.9",
     "jquery": "3.3.1",
     "jquery-mousewheel": "3.1.13",
     "jquery-ui": "1.12.1",

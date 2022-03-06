@@ -373,6 +373,7 @@ Possible keys:
 * `vcfdownload` (lowercased!): **Download variants table** button
 * `genesdownload` (lowercased!): **Download genes table** button
 * `closelasttrack` or `closeLastTrack`: hide **Close** button for the single non-reference track
+* `closelasttrackignoreformats` or `closeLastTrackIgnoreFormats` (array of strings, default: `['MOTIFS, 'BLAST']`): if `closeLastTrack` is set to `false`, specified track formats will be ignored, i.e. if there are 3 tracks - MOTIFS positive, MOTIFS negative, BAM - BAM track won't be closable
 
 The object to be passed to NGB window:
 
