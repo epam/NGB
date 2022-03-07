@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import com.epam.catgenome.util.NgbSeekableStreamFactory;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
-import com.epam.catgenome.util.azure.AzureCredentialConfig;
+import com.epam.catgenome.util.azure.AzureCredentialConfiguration;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +99,7 @@ public class Application extends SpringBootServletInitializer {
 
         if(StringUtils.isNotEmpty(storageKey)) {
             log.debug("Creating AzureBlobClient using storage account access key credentials.");
-            return new AzureBlobClient(AzureCredentialConfig.byAccessKey()
+            return new AzureBlobClient(AzureCredentialConfiguration.byAccessKey()
                     .storageAccount(storageAccount)
                     .storageKey(storageKey)
                     .build());
@@ -107,7 +107,7 @@ public class Application extends SpringBootServletInitializer {
 
         if(StringUtils.isNotEmpty(clientId) && StringUtils.isNotEmpty(clientSecret) && StringUtils.isNotEmpty(tenantId)) {
             log.debug("Creating AzureBlobClient using service principal id: {}.", clientId);
-            return new AzureBlobClient(AzureCredentialConfig.byServicePrincipal()
+            return new AzureBlobClient(AzureCredentialConfiguration.byServicePrincipal()
                     .storageAccount(storageAccount)
                     .clientId(clientId)
                     .clientSecret(clientSecret)
@@ -116,7 +116,7 @@ public class Application extends SpringBootServletInitializer {
         }
 
         log.debug("Creating AzureBlobClient with token credentials.");
-        return new AzureBlobClient(AzureCredentialConfig.byDefault()
+        return new AzureBlobClient(AzureCredentialConfiguration.byDefault()
                 .storageAccount(storageAccount)
                 .managedIdentityId(managedIdentityId)
                 .tenantId(tenantId)

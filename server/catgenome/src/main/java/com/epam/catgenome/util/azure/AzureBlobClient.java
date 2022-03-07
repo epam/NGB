@@ -45,18 +45,15 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 
-abstract class AbstractCredentialConfigurer implements AzureCredentialConfig {
+abstract class AbstractCredentialConfigurer implements AzureCredentialConfiguration {
     abstract BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder);
 }
 
 @Getter
 @Builder
-class AccessKeyCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+class AccessKeyCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfiguration {
 
-    @NonNull
     private final String storageAccount;
-
-    @NonNull
     private final String storageKey;
 
     @Override
@@ -67,18 +64,11 @@ class AccessKeyCredentialConfigurer extends AbstractCredentialConfigurer impleme
 
 @Getter
 @Builder
-class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfiguration {
 
-    @NonNull
     private final String storageAccount;
-
-    @NonNull
     private final String clientId;
-
-    @NonNull
     private final String clientSecret;
-
-    @NonNull
     private final String tenantId;
 
     @Override
@@ -93,13 +83,10 @@ class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer 
 
 @Getter
 @Builder
-class DefaultCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfig {
+class DefaultCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfiguration {
 
-    @NonNull
     private final String storageAccount;
-
     private final String managedIdentityId;
-
     private final String tenantId;
 
     @Override
@@ -126,7 +113,7 @@ public class AzureBlobClient {
     private static final String AZ_BLOB_DELIMITER = "/";
     private static final Long URL_EXPIRATION = 24 * 60 * 60 * 1000L;
 
-    private AzureCredentialConfig credentialConfig;
+    private AzureCredentialConfiguration credentialConfig;
     private BlobServiceClient blobService;
 
     private static AzureBlobClient instance;
@@ -144,7 +131,7 @@ public class AzureBlobClient {
 
     @PostConstruct
     public void init() {
-        this.instance = this;
+        instance = this;
     }
 
     public InputStream loadFromTo(final String uri, final long offset, final long end) {
