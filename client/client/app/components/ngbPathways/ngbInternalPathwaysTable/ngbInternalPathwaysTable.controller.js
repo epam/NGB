@@ -121,7 +121,8 @@ export default class ngbInternalPathwaysTableController extends baseController {
             this.ngbPathwaysService.currentInternalPathway = {
                 id: row.entity.id,
                 name: row.entity.name,
-                description: row.entity.description
+                description: row.entity.description,
+                source: row.entity.databaseSource
             };
             this.changeState({state: 'INTERNAL_PATHWAYS_RESULT'});
         } else {

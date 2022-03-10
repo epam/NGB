@@ -1,0 +1,128 @@
+$element-link-color: #2c4f9e;
+$element-border-color: #b6b6b6;
+$element-hover-border-color: #CFE0FC;
+$element-selected-border-color: #4285F4;
+$element-background-color: #ffffff;
+$element-hover-background-color: #F0F6FF;
+$element-selected-background-color: #E1EBFD;
+$element-shadow-color: rgba(0, 0, 0, 0.4);
+$element-selected-shadow-color: rgba(44, 79, 158, 0.4);
+
+$knot-background-color: transparent;
+$edge-description-background-color: transparent;
+
+.internal-pathway-node-container {
+  width: 100%;
+  height: 100%;
+  min-width: 100px;
+  background-color: $edge-description-background-color;
+  font-size: 10px;
+  line-height: 10px;
+  text-align: left;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+
+  .internal-pathway-node-title {
+    font-weight: bold;
+    display: inline-block;
+    max-height: 2em;
+    text-align: center;
+  }
+}
+
+.knot {
+  .internal-pathway-node-container {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    background-color: $knot-background-color;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: left;
+    position: relative;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+  }
+}
+
+.cpd {
+  .internal-pathway-node-container {
+    width: 20px;
+    height: 20px;
+    min-width: 0;
+    background-color: $element-background-color;
+    border: 1px solid $element-border-color;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    padding: 5px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+
+    .internal-pathway-node-title {
+      font-weight: bold;
+      display: inline-block;
+      max-height: 2em;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .internal-pathway-node-link {
+      color: $element-link-color;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .internal-pathway-node-dataset {
+      font-weight: bold;
+      display: inline-block;
+      max-height: 2em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      margin: 3px 0;
+    }
+
+    &.selected {
+      background-color: $element-selected-background-color;
+      border: 1px solid $element-selected-border-color;
+      box-shadow: 0px 2px 10px $element-selected-shadow-color;
+    }
+
+    &:hover {
+      background-color: $element-hover-background-color;
+      box-shadow: 0px 2px 10px $element-shadow-color;
+      border: 1px solid $element-hover-border-color;
+    }
+
+    &.selected:hover {
+      background-color: darken($element-selected-background-color, 2%);
+      box-shadow: 0px 2px 10px $element-shadow-color;
+      border: 1px solid lighten($element-selected-border-color, 10%);
+    }
+
+    .internal-pathway-node-desc {
+      font-size: smaller;
+    }
+  }
+
+  &.circle .internal-pathway-node-container {
+    border-radius: 16px;
+  }
+}

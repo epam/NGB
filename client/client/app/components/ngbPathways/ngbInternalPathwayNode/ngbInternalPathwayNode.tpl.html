@@ -1,0 +1,12 @@
+<div class="internal-pathway-node-container"
+     ng-class="{'selected': $ctrl.selected}"
+     ng-mousedown="$ctrl.onMouseDown($event)"
+     ng-mousemove="$ctrl.onMouseMove($event)"
+     ng-mouseup="$ctrl.onMouseUp($event)"
+     ng-style="$ctrl.highlightStyle">
+    <div class="internal-pathway-node-title"
+         ng-class="{'internal-pathway-node-link': $ctrl.nodeData.referenceId || $ctrl.nodeData.projectId}"
+         ng-mouseup="$ctrl.navigate($event, $ctrl.nodeData)">
+        {{$ctrl.nodeData.label}}
+    </div>
+</div>

@@ -40,14 +40,14 @@
             <div class="add-annotation-dlb-file-header-label">Pathway objects in</div>
             <md-checkbox aria-label="first column header"
                          class="md-primary" id="heatmapHeader"
-                         ng-false-value="-1"
+                         ng-false-value="{{$ctrl.annotationFileHeaderList.ROW}}"
                          ng-model="$ctrl.annotation.header"
                          ng-true-value="{{$ctrl.annotationFileHeaderList.COLUMN}}">
                 first column
             </md-checkbox>
             <md-checkbox aria-label="first row header"
                          class="md-primary" id="heatmapHeader2"
-                         ng-false-value="-1"
+                         ng-false-value="{{$ctrl.annotationFileHeaderList.COLUMN}}"
                          ng-model="$ctrl.annotation.header"
                          ng-true-value="{{$ctrl.annotationFileHeaderList.ROW}}">
                 first row
@@ -83,14 +83,14 @@
             <div class="add-annotation-dlb-file-header-label">Pathway objects in</div>
             <md-checkbox aria-label="first column header"
                          class="md-primary" id="fileHeader"
-                         ng-false-value="-1"
+                         ng-false-value="{{$ctrl.annotationFileHeaderList.ROW}}"
                          ng-model="$ctrl.annotation.header"
                          ng-true-value="{{$ctrl.annotationFileHeaderList.COLUMN}}">
                 first column
             </md-checkbox>
             <md-checkbox aria-label="first row header"
                          class="md-primary" id="fileHeader2"
-                         ng-false-value="-1"
+                         ng-false-value="{{$ctrl.annotationFileHeaderList.COLUMN}}"
                          ng-model="$ctrl.annotation.header"
                          ng-true-value="{{$ctrl.annotationFileHeaderList.ROW}}">
                 first row

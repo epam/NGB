@@ -185,7 +185,10 @@ export default class ngbPathwaysAnnotationController {
         this.heatmap = null;
         this.csvFile = {};
         const {id, name, type, pathwayId} = this.annotation;
-        this.annotation = {id, name, type, pathwayId, config: null};
+        this.annotation = {id, name, type, pathwayId,
+            config: null,
+            header: this.annotationFileHeaderList.COLUMN
+        };
     }
 
     onFileUpload() {
