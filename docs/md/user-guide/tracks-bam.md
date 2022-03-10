@@ -134,12 +134,43 @@ The following track settings are available:
     - color scheme for the coverage:  
     ![NGB GUI](images/tracks-bam-30.png)  
     For details how to configure colors see examples in [WIG tracks](tracks-wig.md#track-colors) as well
+    - open the coverage statistics panel. See details [below](#coverage-statistics). **_Note_**: this item is visible only for BAM tracks for which the coverage statistics index was [calculated](../cli/command-reference.md#bam-coverage-commands).
 - **Show splice junctions**: toggles splice junctions track (disabled by default)  
   ![NGB GUI](images/tracks-bam-18.png)
 - **Sashimi plot**: open the separate popup that contains:
     - GENE reference
     - BAM track itself with the visualization of coverage and splice junctions. At this plot, splice junctions are visualized only by curved lines (not by filled arches). The placement of these curved lines relatively the axis is not linked with the junction strands. Near each junction, its depth value is displayed  
     ![NGB GUI](images/tracks-bam-23.png)
+
+#### Coverage statistics
+
+NGB allows to [register](../cli/command-reference.md#bam-coverage-commands) and view BAM coverage statistics for different bp intervals.  
+To open the coverage statistics, user shall click the corresponding item in the **Coverage** context menu of the BAM track, e.g.:  
+  ![NGB GUI](images/tracks-bam-31.png)
+
+This will open the **Coverage** panel:  
+  ![NGB GUI](images/tracks-bam-32.png)
+
+Panel contains:
+
+- dropdown with list of all registered coverage indexes of the current BAM file (from which the statistics was opened). By default, the coverage with the minimal interval will be opened
+- table with the selected coverage statistics. Table includes the following columns:  
+    - **Chr** - the chromosome name
+    - **Start** - the start position of the interval
+    - **End** - the end position of the interval
+    - **Coverage** - the average coverage value at the interval
+
+Table supports sorting by any column. By default, the table is sorted descending by the **Coverage** column.
+
+User can select another coverage interval from the dropdown list:  
+  ![NGB GUI](images/tracks-bam-33.png)  
+The corresponding statistics should appear in the table instead of the previous one, e.g.:  
+  ![NGB GUI](images/tracks-bam-34.png)
+
+User can click any row in the **Coverage** panel - the corresponding interval will be opened in the **Browser** panel - the **REFERENCE** track will be auto zoomed so that the selected interval appears at full size, e.g.:  
+  ![NGB GUI](images/tracks-bam-35.png)
+
+**_Note_**: coverage statistics panel is available to open only from BAM track. This panel will be auto closed if user will open a file from a dataset with the reference differing from the current.
 
 ## Working with BAM settings
 
