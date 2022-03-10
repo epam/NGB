@@ -3,6 +3,7 @@ import baseController from '../../../shared/baseController';
 
 import {PairReadInfo} from '../../utils/events';
 
+const MIN_BROWSER_WIDTH = 640;
 
 export default class ngbGoldenLayoutController extends baseController {
     static get UID() {
@@ -143,6 +144,7 @@ export default class ngbGoldenLayoutController extends baseController {
             Object.assign(childScope, this.ngbViewActions);
             childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
             childScope.projectContext = this.projectContext;
+            childScope.panels = this.panels;
             childScope.appearanceContext = this.appearanceContext;
             childScope.bamCoverageContext = this.bamCoverageContext;
 

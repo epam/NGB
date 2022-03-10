@@ -463,7 +463,7 @@ export default class ngbTrackController {
             blastContext: this.blastContext,
             motifsContext: this.motifsContext,
             bamCoverageContext: this.bamCoverageContext,
-            reloadScope: () => this.scope.$apply(),
+            reloadScope: () => this.$timeout(() => this.scope.$apply()),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,
             state: state,
