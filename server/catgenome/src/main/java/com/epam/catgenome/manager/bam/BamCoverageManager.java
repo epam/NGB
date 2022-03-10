@@ -40,6 +40,7 @@ import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.util.SamLocusIterator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -262,7 +263,9 @@ public class BamCoverageManager {
                                         final File file,
                                         final Map<String, Chromosome> chromosomeMap) throws IOException {
         List<CoverageInterval> coverageAreas = new ArrayList<>();
-        try (SamReader reader = SamReaderFactory.makeDefault().referenceSequence(null)
+        try (SamReader reader = SamReaderFactory.makeDefault()
+                .validationStringency(ValidationStringency.LENIENT)
+                .referenceSequence(null)
                 .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(file)) {
             final SamLocusIterator samLocusIterator = new SamLocusIterator(reader);
             final Iterator<SamLocusIterator.LocusInfo> iterator = samLocusIterator.iterator();
