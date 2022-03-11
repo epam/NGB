@@ -63,6 +63,7 @@ public class UserContext implements UserDetails {
         this.userId = claims.getUserId();
         this.userName = claims.getUserName();
         this.orgUnitId = claims.getOrgUnitId();
+        this.groups = ListUtils.emptyIfNull(claims.getGroups());
         this.roles = ListUtils.emptyIfNull(claims.getRoles()).stream().map(Role::new).collect(Collectors.toList());
     }
 
