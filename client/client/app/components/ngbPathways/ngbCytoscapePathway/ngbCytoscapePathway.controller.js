@@ -1,4 +1,5 @@
 import angular from 'angular';
+import dom_node from 'cytoscape-dom-node';
 import {formatColor} from '../../../../modules/render/heatmap/color-scheme/helpers';
 
 const Cytoscape = require('cytoscape');
@@ -20,12 +21,19 @@ const configurationType = {
     RANGE: 2
 };
 
-function deepSearch(obj, term, type = configurationType.STRING) {
+const DATABASE_SOURCES = {
+    CUSTOM: 'CUSTOM',
+    BIOCYC: 'BIOCYC',
+    COLLAGE: 'COLLAGE'
+};
+
+function deepSearch(obj, term, type = configurationType.STRING, fieldsToIgnore = []) {
     let result = false;
     for (const key in obj) {
+        if (fieldsToIgnore.indexOf(key) > -1) continue;
         if (!obj.hasOwnProperty(key) || !obj[key]) continue;
         if (obj[key] instanceof Object || obj[key] instanceof Array) {
-            result = deepSearch(obj[key], term);
+            result = deepSearch(obj[key], term, type, fieldsToIgnore);
         } else {
             switch (type) {
                 case configurationType.STRING: {
@@ -55,7 +63,6 @@ function deepSearch(obj, term, type = configurationType.STRING) {
     return false;
 }
 
-
 export default class ngbCytoscapePathwayController {
     constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapePathwaySettings) {
         this.$scope = $scope;
@@ -74,6 +81,7 @@ export default class ngbCytoscapePathwayController {
             }
         };
         graphml(Cytoscape, $);
+        Cytoscape.use(dom_node);
         angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
         this.dispatcher.on('cytoscape:panel:active', cytoscapeActiveEventHandler);
@@ -119,6 +127,38 @@ export default class ngbCytoscapePathwayController {
         }
     }
 
+    wrapNodes(nodes, nodeTag, nodeStyle, isDom) {
+        const wrappedNodes = [];
+
+        function decorateData(data) {
+            if (data.label) {
+                data.label = data.label.replace('-', '\u2011');
+            }
+            return data;
+        }
+
+        function wrapNode(node) {
+            node.data = decorateData(node.data);
+            if (isDom) {
+                const div = document.createElement(nodeTag);
+                div.setAttribute('data-node-data-json', JSON.stringify(node.data));
+                div.setAttribute('data-on-element-click', '$ctrl.onElementClick({data: data})');
+                div.setAttribute('id', node.data.id);
+                div.classList = `${node.classes || node.class || ''} internal-pathway-cytoscape-node`;
+                div.style.width = `${nodeStyle.width}px`;
+                div.style.height = `${nodeStyle.height}px`;
+                node.data.dom = div;
+            }
+
+            return node;
+        }
+
+        for (const node of nodes) {
+            wrappedNodes.push(wrapNode(node));
+        }
+        return wrappedNodes;
+    }
+
     reloadCytoscape(active) {
         if (active) {
             if (this.viewer) {
@@ -126,32 +166,55 @@ export default class ngbCytoscapePathwayController {
                 this.viewer = null;
             }
             this.$timeout(() => {
-                const sbgnStyle = sbgnStylesheet(Cytoscape);
-                defaultNodeStyle = {
-                    ...this.settings.style.node,
-                    ...this.getNodeStyle(sbgnStyle)
-                };
+                let cytoscapeStyle;
+                if (this.isDom()) {
+                    cytoscapeStyle = [
+                        {
+                            selector: 'node',
+                            style: this.settings.style.node
+                        }
+                    ];
+                    defaultNodeStyle = {
+                        ...this.settings.style.node
+                    };
+                } else {
+                    cytoscapeStyle = sbgnStylesheet(Cytoscape);
+                    defaultNodeStyle = {
+                        ...this.getSbgnNodeStyle(cytoscapeStyle)
+                    };
+                }
                 const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
                 const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
                 let elements;
                 if (savedLayout) {
                     elements = {
-                        nodes: this.getPlainNodes(savedLayout.nodes),
+                        nodes: this.wrapNodes(
+                            this.getPlainNodes(savedLayout.nodes),
+                            this.tag,
+                            defaultNodeStyle,
+                            this.isDom()
+                        ),
                         edges: savedLayout.edges
                     };
                 } else {
                     elements = {
-                        nodes: this.positionedNodes(this.elements.nodes),
+                        nodes: this.wrapNodes(
+                            this.getPlainNodes(this.positionedNodes(this.elements.nodes)),
+                            this.tag,
+                            defaultNodeStyle,
+                            this.isDom()
+                        ),
                         edges: this.elements.edges
                     };
                 }
                 this.viewer = Cytoscape({
                     container: this.cytoscapeContainer,
-                    style: sbgnStyle,
+                    style: cytoscapeStyle,
                     layout: {name: 'preset'},
                     elements: elements,
                     ...this.settings.options
                 });
+                this.viewer.domNode();
                 const layout = this.viewer.layout(this.settings.loadedLayout);
                 layout.on('layoutready', () => {
                     this.$compile(this.cytoscapeContainer)(this.$scope);
@@ -261,6 +324,8 @@ export default class ngbCytoscapePathwayController {
             cv.data.isFound = false;
             cv.data.isAnnotated = false;
             r.push({
+                classes: cv.classes,
+                class: cv.data.class,
                 data: cv.data,
                 position: cv.position,
                 selected: cv.selected
@@ -291,24 +356,40 @@ export default class ngbCytoscapePathwayController {
         });
     }
 
+    // TODO: apply dome_node to sbgn-styled pathways
+    isDom() {
+        return this.elements.source === DATABASE_SOURCES.COLLAGE;
+    }
+
     searchNode(node, term) {
-        if (term === '' || !deepSearch(node.data(), term)) {
-            node.style({
-                'color': defaultNodeStyle.color,
-                'border-color': defaultNodeStyle['border-color'],
-                'font-weight': defaultNodeStyle['font-weight']
-            });
+        const defaultStyle = node.data('default-style') || defaultNodeStyle;
+        let style;
+        if (term === '' || !deepSearch(node.data(), term, undefined, ['dom'])) {
+            style = {
+                'color': defaultStyle.color,
+                'border-color': defaultStyle['border-color'],
+                'font-weight': defaultStyle['font-weight']
+            };
+            this.setStyleToNode(node, style);
             node.data('isFound', false);
             if (node.data('isAnnotated') && this.searchParams.annotations) {
                 this.annotateNode(node, this.searchParams.annotations);
             }
         } else {
-            node.style({
-                'color': searchedColor,
+            style = {
+                color: searchedColor,
                 'border-color': searchedColor,
-                'background-color': defaultNodeStyle['background-color'],
                 'font-weight': 'bold'
-            });
+            };
+            if (this.isDom()) {
+                style.background = defaultStyle.background;
+            } else {
+                style['background-color'] = defaultStyle['background-color'];
+            }
+            if (!node.data('isAnnotated')) {
+                this.backupNodeStyle(node, style);
+            }
+            this.setStyleToNode(node, style);
             node.data('isFound', true);
         }
     }
@@ -345,41 +426,55 @@ export default class ngbCytoscapePathwayController {
     clearAnnotation(node) {
         node.data('isAnnotated', false);
         if (!node.data('isFound')) {
+            const defaultStyle = node.data('default-style') || defaultNodeStyle;
             const style = {
-                'background-color': defaultNodeStyle['background-color'],
-                color: defaultNodeStyle.color,
-                'border-color': defaultNodeStyle['border-color']
+                color: defaultStyle.color,
+                'border-color': defaultStyle['border-color']
             };
-            node.style(style);
+            if (this.isDom()) {
+                style.background = defaultStyle.background;
+            } else {
+                style['background-color'] = defaultStyle['background-color'];
+            }
+            this.setStyleToNode(node, style);
         }
     }
 
     manualAnnotation(node, annotation) {
         let style;
         for (const terms of annotation.value) {
-            if (deepSearch(node.data(), terms.term)) {
-                node.data('isAnnotated', true);
+            if (deepSearch(node.data(), terms.term, undefined, ['dom'])) {
                 if (!node.data('isFound')) {
-                    style = {
-                        'background-color': terms.backgroundColor
-                    };
+                    if (this.isDom()) {
+                        style = {
+                            background: terms.backgroundColor
+                        };
+                    } else {
+                        style = {
+                            'background-color': terms.backgroundColor
+                        };
+                    }
                     if (terms.foregroundColor) {
                         style.color = terms.foregroundColor;
                         style['border-color'] = terms.foregroundColor;
                     }
-                    node.style(style);
+                    if (!node.data('isAnnotated')) {
+                        this.backupNodeStyle(node, style);
+                    }
+                    this.setStyleToNode(node, style);
                 }
+                node.data('isAnnotated', true);
             }
         }
     }
 
     fileAnnotation(node, annotation) {
         let termsList = [];
-        let style = {};
+        const style = {};
         const terms = annotation.value;
 
         for (let labelIndex = 0; labelIndex < terms.labels.length; labelIndex++) {
-            if (deepSearch(node.data(), terms.labels[labelIndex])) {
+            if (deepSearch(node.data(), terms.labels[labelIndex], annotation.colorScheme.dataType, ['dom'])) {
                 termsList = termsList.concat(terms.values[labelIndex]);
             }
             const colorList = [];
@@ -387,19 +482,69 @@ export default class ngbCytoscapePathwayController {
                 colorList.push(formatColor(annotation.colorScheme.getColorForValue(term), annotation.colorScheme.colorFormat));
             });
             if (colorList.length) {
-                node.data('isAnnotated', true);
                 if (!node.data('isFound')) {
-                    // TODO: colorify to every color after dom_node integration
-                    style = {
-                        'background-color': colorList[0]
-                    };
-                    node.style(style);
+                    if (this.isDom()) {
+                        style.background = this.buildGradientBackground(colorList);
+                    } else {
+                        style['background-color'] = colorList[0];
+                    }
+                    if (!node.data('isAnnotated')) {
+                        this.backupNodeStyle(node, style);
+                    }
+                    this.setStyleToNode(node, style);
                 }
+                node.data('isAnnotated', true);
             }
         }
     }
 
-    getNodeStyle(style) {
+    buildGradientBackground(colorList) {
+        const percentage = Math.ceil(100 / colorList.length);
+        let background = 'linear-gradient(to right';
+        for (let i = 0; i < colorList.length; i++) {
+            background += `, ${colorList[i]} ${percentage * i}%, ${colorList[i]} ${percentage * (i + 1)}%`;
+        }
+        background += ')';
+        return background;
+    }
+
+    backupNodeStyle(node, style) {
+        let backedStyle = {};
+        if (this.isDom()) {
+            const domElem = $(document).find(`#${node.data('id')} .internal-pathway-node-container`);
+            if (domElem) {
+                Object.keys(style).forEach(key => {
+                    backedStyle[key] = domElem.css(key);
+                });
+            }
+        } else {
+            backedStyle = node.style();
+        }
+        const oldBackedStyle = node.data('default-style');
+        node.data('default-style', {
+            ...oldBackedStyle,
+            ...backedStyle
+        });
+    }
+
+    setStyleToNode(node, style) {
+        if (this.isDom()) {
+            this.setStyleToDomNode(node.data('id'), style);
+        } else {
+            node.style(style);
+        }
+    }
+
+    setStyleToDomNode(domId, style) {
+        const domElem = $(document).find(`#${domId} .internal-pathway-node-container`);
+        if (domElem) {
+            Object.keys(style).forEach(key => {
+                domElem.css(key, style[key]);
+            });
+        }
+    }
+
+    getSbgnNodeStyle(style) {
         const result = {};
         Object.keys(style).forEach(key => {
             if (style[key].selector === 'node') {

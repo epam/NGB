@@ -21,10 +21,6 @@
              ng-if="!$ctrl.currentPathwaysState">
             Type keyword to start search.
         </div>
-        <ngb-kegg change-state="$ctrl.changeState(state)"
-                  class="blast-search-flex-column"
-                  flex
-                  ng-if="$ctrl.currentPathwaysState === $ctrl.pathwaysStates.KEGG"></ngb-kegg>
 
         <ngb-internal-pathways-table change-state="$ctrl.changeState(state)"
                                      class="blast-search-flex-column"

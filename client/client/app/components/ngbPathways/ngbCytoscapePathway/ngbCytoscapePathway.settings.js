@@ -2,14 +2,19 @@ export default {
     viewer: {},
     style: {
         node: {
-            'text-opacity': 1,
+            'content': 'data(id)',
+            'text-opacity': 0,
             'text-valign': 'center',
             'text-halign': 'center',
-            'shape': 'rectangle',
+            'label': 'data(id)',
+            'background-opacity': 0,
+            'background-image-opacity': 0,
+            'background-repeat': 'no-repeat',
             'color': '#000',
-            'border-width': 1,
-            'font-weight': 'normal'
-        }
+            'border-color': '#000',
+            'opacity': 0,
+            'border-width': 0
+        },
     },
     defaultLayout: {
         name: 'dagre',
