@@ -1,5 +1,16 @@
 # VCF track
 
+- [Regular VCF](#regular-vcf)
+- [Multi-strains VCF](#multi-strains-vcf)
+    - [Collapsed](#collapsed)
+    - [Expanded](#expanded)
+    - [Merge samples](#merge-samples)
+    - [Show density](#show-density)
+    - [Additional details](#additional-details)
+        - [Sample aliases](#sample-aliases)
+
+## Regular VCF
+
 VCF track can show variations in two possible ways:
 
 - If at a specific zoom level the variations are located at the same pixel, they are shown as bubbles. The number on a bubble depicts the number of variations grouped under it:  
@@ -105,3 +116,34 @@ You can see the details of a specific sample variation similar to single-sample 
     ![NGB GUI](images/tracks-vcf-22.png)
 - When you click a variation, menu appears that contains the **Show Info** option - click it to display a pop-up with detailed information and a visualization of the variation's results (refer to [**Working with Annotations**](variants.md#viewing-variation-annotation) for the details):  
     ![NGB GUI](images/tracks-vcf-23.png)
+
+#### Sample aliases
+
+By default, sample names for multi-strain VCFs are being read from the original file during registration and being displayed on the GUI as-is.  
+Users have the ability to set own aliases for sample names (e.g. they could be more "user-friendly" or more understandable).
+
+To rename samples, click the corresponding item in the **General** menu of the multi-samples VCF-track:  
+    ![NGB GUI](images/tracks-vcf-24.png)
+
+The pop-up will appear:  
+    ![NGB GUI](images/tracks-vcf-25.png)
+
+This pop-up contains table with all sample names from the current multi-sample VCF:
+
+- column **Sample** contains origin sample names (as they were obtained during the file registration)
+- column **Alias** contains fields for samples' aliases - a single alias for each sample. By default, an alias field is empty (if the alias was not specified previously)
+
+User can specify alias(es) for any sample(s) and click the **Save** button to confirm changes, e.g.:  
+    ![NGB GUI](images/tracks-vcf-26.png)
+
+After, changes will be displayed at the track by rules:
+
+- if a sample has an alias - this alias is displayed
+- if a sample doesn't have an alias - for that sample, its origin sample name is displayed  
+    ![NGB GUI](images/tracks-vcf-27.png)  
+    ![NGB GUI](images/tracks-vcf-28.png)
+
+> Additionally, these rules are being applied to sample names/aliases that are shown in the "Samples" column of the **Variants** panel:  
+> ![NGB GUI](images/tracks-vcf-29.png)
+
+**_Note_**: the changing of samples' aliases is being applied globally, i.e. if the user has set the aliases for some multi-sample VCF track - any other user, that has access to this VCF, will see these new sample aliases at the track and **Variants** panel.
