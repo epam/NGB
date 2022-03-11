@@ -113,6 +113,10 @@ export class Track extends BaseTrack {
         return this._trackIsHidden;
     }
 
+    get error() {
+        return this._error;
+    }
+
     getImageData() {
         if (this._pixiRenderer && this.container) {
             // this._pixiRenderer.render(this.container);
@@ -337,15 +341,53 @@ export class Track extends BaseTrack {
         }
     }
 
+    unsetError() {
+        this._error = undefined;
+        this.refreshScope();
+    }
+
+    reportError(error) {
+        this._error = error ? (error.message || error) : undefined;
+        this.refreshScope();
+    }
+
     _refreshCache() {
-        Promise.resolve().then(() => this.getNewCache())
+        this._refreshCacheToken = (this._refreshCacheToken || 0) + 1;
+        const currentToken = this._refreshCacheToken;
+        Promise.resolve()
+            .then(() => {
+                if (this.trackDataLoadingStatusChanged) {
+                    this.trackDataLoadingStatusChanged(true);
+                }
+                return this.getNewCache();
+            })
             .then((somethingChanged) => {
+                if (currentToken === this._refreshCacheToken) {
+                    this.unsetError();
+                }
                 if (somethingChanged) {
                     this._flags.dataChanged = true;
                     requestAnimationFrame(::this.tick);
                 }
-
+            })
+            .catch((error) => {
+                if (currentToken === this._refreshCacheToken) {
+                    this.reportError(error);
+                }
+                this._flags.dataChanged = true;
+                requestAnimationFrame(this.tick.bind(this));
+            })
+            .then(() => {
+                if (currentToken === this._refreshCacheToken && this.trackDataLoadingStatusChanged) {
+                    this.trackDataLoadingStatusChanged(false);
+                }
             });
+    }
+
+    refreshScope() {
+        if (this.config && typeof this.config.reloadScope === 'function') {
+            this.config.reloadScope();
+        }
     }
 
     //noinspection JSDuplicatedDeclaration I know it, you stupid IDE
