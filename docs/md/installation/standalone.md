@@ -210,3 +210,64 @@ Where:
 > **Note**: Do not forget to replace values of *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* variables with your own AWS access key and AWS secret key. And replace value of *AWS_DEFAULT_REGION* variable, if needed.
 
 After that you may run **catgenome.jar** file to start NGB instance as usually.
+
+### Configure access to Blob Containers in a Microsoft Azure storage account
+
+In addition to files and AWS S3, an NGB instance can access [blobs](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blobs) in  [containers](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#containers) within one [Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview). This includes [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) with the hierarchical structure. Azure Data Lake (Gen1) is not supported.
+
+> If NGB is running in Azure hosted virtual machines or containers that have an appropriate  [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) assigned, access configuration can be as simple as specifying the storage account name only.
+
+Available authentication methods listed in NGB's order of precedence: 
+
+1. [Access Key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal) (ordinary blob containers only).
+2. [Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) using Service Principal Id/client id and -secret.
+3. Credentials acquired by the Azure Identity Platform Library:
+   - [Environmental credetials](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet)
+   - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
+   - other authentication methods, see [DefaultAzureCredential Class](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet) for details.
+
+#### NGB configuration
+Configuration properties can be specified either as 
+- an entry in `catgenome.conf`, e. g 
+  ```
+  azure.storage.account=mystorageaccountname
+  ``` 
+- a JVM system property in the `java` command line, e. g. 
+  ``` 
+  java -Dazure.storage.account=mystorageaccountname -jar catgenome.jar
+  ``` 
+- as a process environment variable for supported properties. See [Environment Credential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet) for details.
+
+Find the relevant sets of properties and their description below. 
+
+> **Note:** The presence of properties triggers a single way of authentication, e.g. trying an access key for a storage account. Upon failure, no fall-through attempt is made using any other properties.  
+
+> **Note:** The `azure.storage.account` property is mandatory to connect to Azure. If left blank, other Azure related properties and environment variables are ignored and no connection attempt is made at all.
+> 
+> The value of `azure.storage.account` is the short name, **not the URL**.
+
+##### Access Key authentication
+```
+azure.storage.account=mystorageaccountname
+azure.storage.key=IyXn/qBiqNS7uvIEi...
+```
+All properties are _mandatory_. Access key credentials are not available for Azure Data Lake Gen2 containers.
+#### Service Principal authentication
+```
+azure.storage.account=mystorageaccountname
+azure.storage.tenant_id=13babfaa-a14c-11ec-b909-0242ac120002
+azure.storage.client_id=2db7cd12-345d-sdf6-b454-0242ac163820
+azure.storage.client_secret=k.yjs-fhgk-sj;sfg-zudu
+```
+All properties are _mandatory_. (Here, the tenant id _cannot_ be set as an environment variable for service principal authentication.)
+#### Identity platform
+```
+azure.storage.account=mystorageaccountname
+azure.storage.tenant_id=13babfaa-a14c-11ec-b909-0242ac120002
+azure.storage.managed_identity_id=73a340aa-a150-11ec-b909-0242ac179836
+```
+- `azure.storage.account`: Mandatory
+- `azure.storage.tenant_id`: Optional. Required if authentication is attempted through an account (e.g. during software development) that has access to more than one tenant. Can alternatively be specified via environment variable. 
+- `azure.storage.managed_identity_id`: Optional. NGB is required to run in an Azure resource that supports Managed identities and has at least one managed identity with suitable access to the storage account assigned. Required if more than one Managed Identity is assigned.
+
+See [Environment Credential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet) as an alternative option to specify Azure connectivity information. 
