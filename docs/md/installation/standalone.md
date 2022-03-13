@@ -213,18 +213,25 @@ After that you may run **catgenome.jar** file to start NGB instance as usually.
 
 ### Configure access to Blob Containers in a Microsoft Azure storage account
 
-In addition to files and AWS S3, an NGB instance can access [blobs](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blobs) in  [containers](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#containers) within one [Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview). This includes [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) with the hierarchical structure. Azure Data Lake (Gen1) is not supported.
+An NGB instance can access [blobs](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blobs) in  [containers](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#containers) within one [Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview). This includes [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) with the hierarchical structure. Azure Data Lake (Gen1) is not supported.
 
-> If NGB is running in Azure hosted virtual machines or containers that have an appropriate  [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) assigned, access configuration can be as simple as specifying the storage account name only.
+> If NGB is running in Azure hosted virtual machines or containers that have an appropriate  [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) assigned, configuring access can be as simple as specifying the storage account name only.
 
 Available authentication methods listed in NGB's order of precedence: 
 
 1. [Access Key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal) (ordinary blob containers only).
 2. [Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) using Service Principal Id/client id and -secret.
 3. Credentials acquired by the Azure Identity Platform Library:
-   - [Environmental credetials](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet)
+   - [Environmental credentials](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet)
    - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
    - other authentication methods, see [DefaultAzureCredential Class](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet) for details.
+
+#### Specifying sesources
+Example URL:
+```
+az://mycontainer/mydirectory/my_bam_file.bam
+```
+URLs need to prefixed with pseudo-schema `az://`, following the container name (`mycontainer`). The remainder is the optional directory structure like path and resource specification. Internally, an Azure storage URL similar to `` is built from this URL and used.
 
 #### NGB configuration
 Configuration properties can be specified either as 
