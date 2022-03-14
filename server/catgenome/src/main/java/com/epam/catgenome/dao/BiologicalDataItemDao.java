@@ -28,6 +28,7 @@ import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemPar
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -79,8 +80,10 @@ import org.springframework.util.Assert;
 public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String biologicalDataItemSequenceName;
     private String insertBiologicalDataItemQuery;
+    private String updateBiologicalDataItemQuery;
     private String updateOwnerQuery;
     private String loadBiologicalDataItemsByIdsQuery;
+    private String loadBiologicalDataItemsQuery;
     private String deleteBiologicalDataItemQuery;
     private String loadBiologicalDataItemsByNameStrictQuery;
     private String loadBiologicalDataItemsByNamesStrictQuery;
@@ -126,6 +129,21 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(insertBiologicalDataItemQuery, params);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateBiologicalDataItemPath(final List<BiologicalDataItem> items) {
+        if (!CollectionUtils.isEmpty(items)) {
+            final List<MapSqlParameterSource> params = new ArrayList<>(items.size());
+            for (BiologicalDataItem item : items) {
+                MapSqlParameterSource param = new MapSqlParameterSource();
+                param.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), item.getId());
+                param.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(updateBiologicalDataItemQuery,
+                    params.toArray(new MapSqlParameterSource[items.size()]));
+        }
+    }
+
     /**
      * Loads a List of BiologicalDataItem from the database by their IDs
      * @param ids List of IDs of BiologicalDataItem instances
@@ -139,6 +157,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
         String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByIdsQuery, ids);
         return getNamedParameterJdbcTemplate().query(query, getRowMapper());
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<BiologicalDataItem> loadBiologicalDataItems() {
+        return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsQuery, getRowMapper());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -623,6 +646,16 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBiologicalDataItemsByIdsQuery(String loadBiologicalDataItemsByIdsQuery) {
         this.loadBiologicalDataItemsByIdsQuery = loadBiologicalDataItemsByIdsQuery;
+    }
+
+    @Required
+    public void setLoadBiologicalDataItemsQuery(String loadBiologicalDataItemsQuery) {
+        this.loadBiologicalDataItemsQuery = loadBiologicalDataItemsQuery;
+    }
+
+    @Required
+    public void setUpdateBiologicalDataItemQuery(String updateBiologicalDataItemQuery) {
+        this.updateBiologicalDataItemQuery = updateBiologicalDataItemQuery;
     }
 
     @Required

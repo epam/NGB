@@ -78,6 +78,17 @@
                 ]]>
             </value>
         </property>
+        <property name="updateLineageTreePathsQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.lineage_tree SET
+                        nodes_path = :NODES_PATH,
+                        edges_path = :EDGES_PATH
+                    WHERE
+                        lineage_tree_id = :LINEAGE_TREE_ID
+                ]]>
+            </value>
+        </property>
         <property name="loadAllLineageTreesQuery">
             <value>
                 <![CDATA[

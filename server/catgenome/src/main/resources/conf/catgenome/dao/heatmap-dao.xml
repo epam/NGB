@@ -213,6 +213,19 @@
                 ]]>
             </value>
         </property>
+        <property name="updateHeatmapPathsQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.heatmap SET
+                        cell_annotation_path = :CELL_ANNOTATION_PATH,
+                        label_annotation_path = :LABEL_ANNOTATION_PATH,
+                        row_tree_path = :ROW_TREE_PATH,
+                        column_tree_path = :COLUMN_TREE_PATH
+                    WHERE
+                        heatmap_id = :HEATMAP_ID
+                ]]>
+            </value>
+        </property>
         <property name="loadHeatmapColumnTreeQuery">
             <value>
                 <![CDATA[

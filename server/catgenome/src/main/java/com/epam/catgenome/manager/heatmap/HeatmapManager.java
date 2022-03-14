@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -173,6 +173,11 @@ public class HeatmapManager {
             checkTree(getLabelSet(heatmap.getColumnLabels()), path);
         }
         heatmapDao.updateHeatmapColumnTree(heatmapId, file == null ? null : FileUtils.readFileToByteArray(file), path);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateHeatmapPaths(List<Heatmap> heatmaps) {
+        heatmapDao.updateHeatmapPaths(heatmaps);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
