@@ -213,7 +213,7 @@ After that you may run **catgenome.jar** file to start NGB instance as usually.
 
 ### Configure access to Blob Containers in a Microsoft Azure storage account
 
-An NGB instance can access [blobs](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blobs) in  [containers](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#containers) within one [Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview). This includes [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) with the hierarchical structure. Azure Data Lake (Gen1) is not supported.
+An NGB instance can access [blobs](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blobs) in  [containers](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#containers) within one [Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview). This includes [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) with hierarchical structure. Azure Data Lake (Gen1) is not supported.
 
 > If NGB is running in Azure hosted virtual machines or containers that have an appropriate  [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) assigned, configuring access can be as simple as specifying the storage account name only.
 
@@ -231,7 +231,7 @@ Example URL:
 ```
 az://mycontainer/mydirectory/my_bam_file.bam
 ```
-URLs need to prefixed with pseudo-schema `az://`, following the container name (`mycontainer`). The remainder is the optional directory structure like path and resource specification. Internally, an Azure storage URL similar to `` is built from this URL and used.
+URLs are prefixed with pseudo-schema `az://`, following the container name (`mycontainer`). The remainder is the blob hierarchy structure with the path (`mydirectory`) and blob (`my_bam_file.bam`) specification. Internally, an Azure storage URL similar to `https://mycontainer.blob.core.windows.net/neo-cancerscout-test/mydirectory/my_bam_file.bam` is built from this URL and used.
 
 #### NGB configuration
 Configuration properties can be specified either as 
