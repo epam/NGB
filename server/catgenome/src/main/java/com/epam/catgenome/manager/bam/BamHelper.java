@@ -476,6 +476,29 @@ public class BamHelper {
         return openSamReaderResource(loadIndex(loadFile(bamFile), bamFile.getIndex()), chromosomes, referenceId);
     }
 
+    public SamInputResource loadFile(final BamFile bamFile)
+            throws IOException {
+        SamInputResource resource;
+        switch (bamFile.getType()) {
+            case FILE:
+            case URL:
+                resource = SamInputResource.of(bamFile.getPath());
+                break;
+            case S3:
+                resource = getS3SamInputResource(bamFile);
+                break;
+            case AZ:
+                resource = getAZSamInputResource(bamFile);
+                break;
+            case HDFS:
+                resource= getHDFSSamInputResource(bamFile);
+                break;
+            default:
+                throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+        }
+        return resource;
+    }
+
     private SamInputResource loadIndex(final SamInputResource samInputResource, final BiologicalDataItem indexFile)
             throws IOException {
         SamInputResource resource;
@@ -567,30 +590,8 @@ public class BamHelper {
         return indexBuffer;
     }
 
-    private SamInputResource loadFile(final BamFile bamFile)
-            throws IOException {
-        SamInputResource resource;
-        switch (bamFile.getType()) {
-            case FILE:
-            case URL:
-                resource = SamInputResource.of(bamFile.getPath());
-                break;
-            case S3:
-                resource = getS3SamInputResource(bamFile);
-                break;
-            case AZ:
-                resource = getAZSamInputResource(bamFile);
-                break;
-            case HDFS:
-                resource= getHDFSSamInputResource(bamFile);
-                break;
-            default:
-                throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
-        }
-        return resource;
-    }
-
-    @NotNull private SamInputResource getHDFSSamInputResource(BamFile bamFile) throws IOException {
+    @NotNull
+    private SamInputResource getHDFSSamInputResource(BamFile bamFile) throws IOException {
         final URI uriBam = URI.create(bamFile.getPath());
         final Configuration conf = new Configuration();
         final FileSystem fileBam = FileSystem.get(uriBam, conf);
