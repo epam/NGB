@@ -13,7 +13,8 @@ export default {
             'color': '#000',
             'border-color': '#000',
             'opacity': 0,
-            'border-width': 0
+            'border-width': 0,
+            'padding': 0
         },
     },
     defaultLayout: {

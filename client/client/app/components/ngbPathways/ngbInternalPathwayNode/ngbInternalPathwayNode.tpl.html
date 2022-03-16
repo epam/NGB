@@ -6,7 +6,12 @@
      ng-style="$ctrl.highlightStyle">
     <div class="internal-pathway-node-title"
          ng-class="{'internal-pathway-node-link': $ctrl.nodeData.referenceId || $ctrl.nodeData.projectId}"
+         ng-bind-html="$ctrl.nodeData.label"
          ng-mouseup="$ctrl.navigate($event, $ctrl.nodeData)">
-        {{$ctrl.nodeData.label}}
+    </div>
+    <div class="internal-pathway-units-of-information" ng-if="$ctrl.unitOfInformation">
+        <hr class="middle-line middle-line-left"/>
+        <span class="unit-of-information-label">{{$ctrl.unitOfInformation}}</span>
+        <hr class="middle-line middle-line-right"/>
     </div>
 </div>

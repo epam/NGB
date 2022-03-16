@@ -8,10 +8,14 @@ export default class ngbInternalPathwayNodeController {
     navigationInProcess = false;
     highlightStyle;
 
-    constructor(projectContext) {
+    constructor(projectContext, $sce) {
         this.projectContext = projectContext;
         this.nodeData = JSON.parse(this.nodeDataJson);
         this.highlightNode();
+        this.nodeData.label = $sce.trustAsHtml(this.nodeData.label);
+        if (this.nodeData.unitsOfInformation && this.nodeData.unitsOfInformation.length) {
+            this.unitOfInformation = this.nodeData.unitsOfInformation[0].label.text;
+        }
     }
 
     static get UID() {
