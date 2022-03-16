@@ -10,13 +10,13 @@ import java.lang.reflect.Field;
 
 public class ApplicationTest {
 
-    static Field CREDENTIAL_CONFIG_FIELD;
+    static Field credentialConfigField;
 
     @BeforeClass
     public static void prepareClass() {
-        CREDENTIAL_CONFIG_FIELD = ReflectionUtils.findField(AzureBlobClient.class,"credentialConfig", AzureCredentialConfiguration.class);
-        Assert.assertNotNull(CREDENTIAL_CONFIG_FIELD);
-        ReflectionUtils.makeAccessible(CREDENTIAL_CONFIG_FIELD);
+        credentialConfigField = ReflectionUtils.findField(AzureBlobClient.class,"credentialConfig", AzureCredentialConfiguration.class);
+        Assert.assertNotNull(credentialConfigField);
+        ReflectionUtils.makeAccessible(credentialConfigField);
     }
 
     @Test
@@ -25,7 +25,7 @@ public class ApplicationTest {
 
         AzureBlobClient client = app.azureBlobClient("", "", "", "", "", "");
         Assert.assertNotNull(client);
-        Assert.assertNull(ReflectionUtils.getField(CREDENTIAL_CONFIG_FIELD, client));
+        Assert.assertNull(ReflectionUtils.getField(credentialConfigField, client));
     }
 
     @Test
@@ -34,7 +34,7 @@ public class ApplicationTest {
 
         AzureBlobClient client = app.azureBlobClient("storageAccount", "storageKey", "managedIdentity", "tenantId", "clientId", "clientSecret");
         Assert.assertNotNull(client);
-        Object credentialConfig = ReflectionUtils.getField(CREDENTIAL_CONFIG_FIELD, client);
+        Object credentialConfig = ReflectionUtils.getField(credentialConfigField, client);
         Assert.assertNotNull(credentialConfig);
         Assert.assertEquals(AccessKeyCredentialConfigurer.class, credentialConfig.getClass());
     }
@@ -45,7 +45,7 @@ public class ApplicationTest {
 
         AzureBlobClient client = app.azureBlobClient("storageAccount", "", "", "tenantId", "clientId", "clientSecret");
         Assert.assertNotNull(client);
-        Object credentialConfig = ReflectionUtils.getField(CREDENTIAL_CONFIG_FIELD, client);
+        Object credentialConfig = ReflectionUtils.getField(credentialConfigField, client);
         Assert.assertNotNull(credentialConfig);
         Assert.assertEquals(ServicePrincipalCredentialConfigurer.class, credentialConfig.getClass());
     }
@@ -56,7 +56,7 @@ public class ApplicationTest {
 
         AzureBlobClient client = app.azureBlobClient("storageAccount", "", "managedIdentity", "tenantId", "", "");
         Assert.assertNotNull(client);
-        Object credentialConfig = ReflectionUtils.getField(CREDENTIAL_CONFIG_FIELD, client);
+        Object credentialConfig = ReflectionUtils.getField(credentialConfigField, client);
         Assert.assertNotNull(credentialConfig);
         Assert.assertEquals(DefaultCredentialConfigurer.class, credentialConfig.getClass());
     }
