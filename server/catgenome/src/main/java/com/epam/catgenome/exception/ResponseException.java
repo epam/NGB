@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+package com.epam.catgenome.exception;
 
-import java.io.IOException;
+public class ResponseException extends RuntimeException {
 
-@Service
-@RequiredArgsConstructor
-public class UpdateItemPathScheduledService {
+    public ResponseException(String message) {
+        super(message);
+    }
 
-    @Value("${item.path.update.pattern.curr:/Projects/}")
-    private String currentPathPattern;
-
-    @Value("${item.path.update.pattern.new:.BLOB}")
-    private String newPathPattern;
-
-    private final UpdateItemPathManager updateItemPathManager;
-
-    @Scheduled(cron = "${item.path.update.schedule:0 0 * * * *}")
-    public void updateItemPath() throws IOException {
-        updateItemPathManager.updateItemPath(currentPathPattern, newPathPattern);
+    public ResponseException(Throwable cause) {
+        super(cause);
     }
 }

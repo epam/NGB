@@ -26,21 +26,45 @@ package com.epam.catgenome.manager;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.lineage.LineageTree;
+import com.epam.catgenome.entity.notification.NotificationMessageVO;
+import com.epam.catgenome.exception.CloudPipelineUnavailableException;
+import com.epam.catgenome.manager.cloud.pipeline.CloudPipelineManager;
 import com.epam.catgenome.manager.heatmap.HeatmapManager;
 import com.epam.catgenome.manager.lineage.LineageTreeManager;
-import org.apache.http.util.TextUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static com.epam.catgenome.util.IOHelper.resourceExists;
+import static org.apache.commons.lang3.StringUtils.join;
+
 @Service
+@Slf4j
 public class UpdateItemPathManager {
+
+    private static final String UPDATED_FILES = "Missing file was found '%s'. " +
+            "File path was replaced with a new path '%s'.";
+    private static final String NOT_UPDATED_FILES = "Missing file was found '%s'. Unable to find a new path, " +
+            "please check and fix file location manually.";
+    private final List<String> files = new ArrayList<>();
+
+    @Value("${item.path.update.notification.subject}")
+    private String subject;
+
+    @Value("${item.path.update.notification.to}")
+    private String toUser;
+
+    @Value("${item.path.update.notification.cc}")
+    private String ccUser;
 
     @Autowired
     private BiologicalDataItemManager biologicalDataItemManager;
@@ -51,7 +75,10 @@ public class UpdateItemPathManager {
     @Autowired
     private LineageTreeManager lineageTreeManager;
 
-    public void updateItemPath(final String currPathPattern, final String newPathPattern) {
+    @Autowired
+    private CloudPipelineManager cloudPipelineManager;
+
+    public void updateItemPath(final String currPathPattern, final String newPathPattern) throws IOException {
         final List<BiologicalDataItem> items = biologicalDataItemManager.loadAllItems();
         final List<BiologicalDataItem> itemsToBeUpdated = new ArrayList<>();
         final List<Heatmap> heatmaps = new ArrayList<>();
@@ -60,7 +87,7 @@ public class UpdateItemPathManager {
         String newFilePath;
         boolean updateItem = false;
         for (BiologicalDataItem item : items) {
-            if (BiologicalDataItemResourceType.FILE.equals(item.getType()) && !item.getFormat().isIndex()) {
+            if (!item.getFormat().isIndex()) {
                 if (BiologicalDataItemFormat.HEATMAP.equals(item.getFormat())) {
                     Heatmap heatmap = (Heatmap) item;
                     path = heatmap.getColumnTreePath();
@@ -123,20 +150,18 @@ public class UpdateItemPathManager {
         heatmapManager.updateHeatmapPaths(heatmaps);
         lineageTreeManager.updateLineageTreePaths(lineageTrees);
         biologicalDataItemManager.updateBiologicalDataItemPath(itemsToBeUpdated);
+        sendNotification();
     }
 
-    private String getNewPath(final String path, final String currPathPattern, final String newPathPattern) {
-        if (!TextUtils.isBlank(path)) {
-            final File file = new File(path);
-            if (!file.exists()) {
-                final String newFilePath = modifyPath(path, currPathPattern, newPathPattern);
-                if (newFilePath != null) {
-                    final File newFile = new File(newFilePath);
-                    if (newFile.exists()) {
-                        return newFilePath;
-                    }
-                }
+    private String getNewPath(final String path, final String currPathPattern, final String newPathPattern)
+            throws IOException {
+        if (StringUtils.isNotBlank(path) && !resourceExists(path)) {
+            final String newFilePath = modifyPath(path, currPathPattern, newPathPattern);
+            if (newFilePath != null && resourceExists(newFilePath)) {
+                files.add(String.format(UPDATED_FILES, path, newFilePath));
+                return newFilePath;
             }
+            files.add(String.format(NOT_UPDATED_FILES, path));
         }
         return null;
     }
@@ -148,5 +173,21 @@ public class UpdateItemPathManager {
             return path.replace(newPathPattern, currPathPattern);
         }
         return null;
+    }
+
+    private void sendNotification() {
+        final List<String> copyUsers = Arrays.asList(ccUser.split(";"));
+        final String subject = join(files, System.lineSeparator());
+        final NotificationMessageVO message = NotificationMessageVO.builder()
+                .subject(subject)
+                .toUser(toUser)
+                .copyUsers(copyUsers)
+                .subject(subject)
+                .build();
+        try {
+            cloudPipelineManager.sendNotification(message);
+        } catch (CloudPipelineUnavailableException e) {
+            log.error(e.getMessage());
+        }
     }
 }

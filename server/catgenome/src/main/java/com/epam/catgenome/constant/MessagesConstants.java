@@ -308,6 +308,8 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_SEQUENCE_READING = "error.reference.sequence.reading";
     public static final String ERROR_WRONG_CHROMOSOME_ID = "error.wrong.chromosome.id";
 
+    public static final String ERROR_CLOUD_PIPELINE_NOT_AVAILABLE = "error.cloud.pipeline.not.available";
+
     private MessagesConstants() {
         // No-op
     }

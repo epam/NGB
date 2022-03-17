@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,13 @@
 
 package com.epam.catgenome.exception;
 
-public class RSCBResponseException extends RuntimeException{
+public class CloudPipelineUnavailableException extends RuntimeException {
 
-    public RSCBResponseException(String message) {
+    public CloudPipelineUnavailableException(final String message) {
         super(message);
     }
 
-    public RSCBResponseException(Throwable cause) {
+    public CloudPipelineUnavailableException(final Throwable cause) {
         super(cause);
     }
 }

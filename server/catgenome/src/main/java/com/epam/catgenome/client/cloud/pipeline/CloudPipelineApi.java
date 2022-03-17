@@ -21,29 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+package com.epam.catgenome.client.cloud.pipeline;
 
-import java.io.IOException;
+import com.epam.catgenome.entity.notification.NotificationMessageVO;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
 
-@Service
-@RequiredArgsConstructor
-public class UpdateItemPathScheduledService {
-
-    @Value("${item.path.update.pattern.curr:/Projects/}")
-    private String currentPathPattern;
-
-    @Value("${item.path.update.pattern.new:.BLOB}")
-    private String newPathPattern;
-
-    private final UpdateItemPathManager updateItemPathManager;
-
-    @Scheduled(cron = "${item.path.update.schedule:0 0 * * * *}")
-    public void updateItemPath() throws IOException {
-        updateItemPathManager.updateItemPath(currentPathPattern, newPathPattern);
-    }
+public interface CloudPipelineApi {
+    @Headers("Content-type: application/json")
+    @POST("notification/message")
+    Call<Void> sendNotification(@Body NotificationMessageVO notificationMessage);
 }

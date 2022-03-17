@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,24 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.exception;
+package com.epam.catgenome.entity.notification;
 
-public class BlastResponseException extends RuntimeException{
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    public BlastResponseException(final String message) {
-        super(message);
-    }
-    public BlastResponseException(final Throwable cause) {
-        super(cause);
-    }
+import java.util.List;
+import java.util.Map;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class NotificationMessageVO {
+    private String subject;
+    private String body;
+    private Map<String, Object> parameters;
+    private String toUser;
+    private List<String> copyUsers;
 }
