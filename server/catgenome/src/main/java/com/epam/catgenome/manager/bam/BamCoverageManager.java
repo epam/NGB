@@ -79,7 +79,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -96,7 +95,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.IndexUtils.addFloatIntervalFilter;
 import static com.epam.catgenome.util.IndexUtils.addIntIntervalFilter;
 import static com.epam.catgenome.util.IndexUtils.deleteIndexDocument;
-import static com.epam.catgenome.util.NgbFileUtils.getFile;
 
 @Service
 @Slf4j
@@ -115,6 +113,8 @@ public class BamCoverageManager {
     private final BamCoverageDao bamCoverageDao;
     private final BamFileManager bamFileManager;
     private final ReferenceGenomeManager referenceGenomeManager;
+    private final BamHelper bamHelper;
+
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BamCoverage create(final BamCoverage coverage) throws IOException {
@@ -126,10 +126,8 @@ public class BamCoverageManager {
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND, coverage.getBamId()));
         Assert.isTrue(bamCoverageDao.load(coverage.getBamId(), coverage.getStep()).isEmpty(),
                 getMessage(MessagesConstants.ERROR_BAM_COVERAGE_NOT_UNIQUE, coverage.getStep(), coverage.getBamId()));
-        final String path = bamFile.getPath();
-        final File file = getFile(path);
         coverage.setCoverageId(bamCoverageDao.createId());
-        writeCoverageIntervals(coverage, file, chromosomeMap);
+        writeCoverageIntervals(coverage, bamFile, chromosomeMap);
         bamCoverageDao.save(coverage);
         return coverage;
     }
@@ -260,13 +258,14 @@ public class BamCoverageManager {
     }
 
     private void writeCoverageIntervals(final BamCoverage bamCoverage,
-                                        final File file,
+                                        final BamFile file,
                                         final Map<String, Chromosome> chromosomeMap) throws IOException {
         List<CoverageInterval> coverageAreas = new ArrayList<>();
         try (SamReader reader = SamReaderFactory.makeDefault()
                 .validationStringency(ValidationStringency.LENIENT)
                 .referenceSequence(null)
-                .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(file)) {
+                .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS)
+                .open(bamHelper.loadFile(file))) {
             final SamLocusIterator samLocusIterator = new SamLocusIterator(reader);
             final Iterator<SamLocusIterator.LocusInfo> iterator = samLocusIterator.iterator();
             int from = 1;
