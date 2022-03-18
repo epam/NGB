@@ -34,8 +34,25 @@ const defaultNodeStyle = {
     'font-weight': 'normal'
 };
 
+const selectedEdgeStyle = {
+    'underlay-opacity': 0.1
+};
+
 const INTERNAL_PATHWAY_FEATURE_CLASS_LIST = ['nucleic acid feature', 'macromolecule', 'simple chemical'];
 const INTERNAL_PATHWAY_EXCLUDED_CLASS_LIST = ['noIcon'];
+
+
+const clearEdgesSelectionStyle = (cy, edgeSettings) => {
+    if (cy && edgeSettings) {
+        cy.edges().css('line-color', edgeSettings['line-color']);
+        cy.edges().css('target-arrow-color', edgeSettings['target-arrow-color']);
+        cy.edges().css('underlay-opacity', edgeSettings['underlay-opacity']);
+    }
+};
+
+const setEdgeSelectionStyle = edge => {
+    edge.css('underlay-opacity', selectedEdgeStyle['underlay-opacity']);
+};
 
 function deepSearch(obj, term, type = configurationType.STRING, fieldsToIgnore = []) {
     let result = false;
@@ -96,19 +113,20 @@ export default class ngbCytoscapePathwayController {
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
         this.dispatcher.on('cytoscape:panel:active', cytoscapeActiveEventHandler);
         const handleSelectionChange = (e) => {
+            clearEdgesSelectionStyle(this.viewer, this.settings);
             if (this.viewer && e && e.id) {
                 this.viewer.edges().forEach((edge) => {
                     const data = edge.data();
                     if (data.id === e.id) {
-                        // deselect logic
+                        setEdgeSelectionStyle(edge);
                     }
                 });
             }
         };
-        this.dispatcher.on('cytoscape:selection:change', handleSelectionChange);
+        this.dispatcher.on('cytoscape:pathways:selection:change', handleSelectionChange);
         $scope.$on('$destroy', () => {
             this.dispatcher.removeListener('cytoscape:panel:active', cytoscapeActiveEventHandler);
-            this.dispatcher.removeListener('cytoscape:selection:change', handleSelectionChange);
+            this.dispatcher.removeListener('cytoscape:pathways:selection:change', handleSelectionChange);
             angular.element($window).off('resize', resizeHandler);
         });
     }
@@ -142,14 +160,17 @@ export default class ngbCytoscapePathwayController {
 
         function decorateData(data) {
             if (data.label) {
-                data.label = data.label.replace('-', '\u2011');
+                data.label = data.label
+                    .replace(new RegExp('-', 'g'), '\u2011')
+                    .replace(new RegExp(' ', 'g'), '\u00A0');
             }
             return data;
         }
 
         function wrapNode(node) {
             node.data = decorateData(node.data);
-            const classList = `${node.classes || node.class || ''} internal-pathway-cytoscape-node`;
+            let classList = `${node.classes || node.class || ''} internal-pathway-cytoscape-node`;
+            classList += isCollage ? ' internal-pathway-collage' : ' internal-pathway-sbgn';
             let isFeature = false;
             for (const featureClass of INTERNAL_PATHWAY_FEATURE_CLASS_LIST) {
                 if (classList.includes(featureClass)) {
@@ -188,6 +209,14 @@ export default class ngbCytoscapePathwayController {
                         {
                             selector: 'node',
                             style: this.settings.style.node
+                        },
+                        {
+                            selector: 'edge',
+                            style: this.settings.style.collageEdge
+                        },
+                        {
+                            selector: ':selected',
+                            style: this.settings.style.collageSelected
                         }
                     ];
                 } else {
@@ -235,6 +264,12 @@ export default class ngbCytoscapePathwayController {
                         this.annotateTree(this.searchParams.annotations);
                     }
                 });
+                this.viewer.nodes().on('click', e => {
+                    const nodeData = e.target.data();
+                    if (!nodeData.dom) {
+                        this.onElementClick(null);
+                    }
+                });
                 this.viewer.edges().on('click', e => {
                     const edgeData = e.target.data();
                     const {
@@ -274,6 +309,8 @@ export default class ngbCytoscapePathwayController {
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     restoreDefault: () => {
+                        // viewerContext.viewer.layout(this.settings.defaultLayout).run();
+                        // viewerContext.saveLayout();
                         this.viewer.batch(() => {
                             this.viewer.remove(this.viewer.nodes());
                             this.viewer.remove(this.viewer.edges());

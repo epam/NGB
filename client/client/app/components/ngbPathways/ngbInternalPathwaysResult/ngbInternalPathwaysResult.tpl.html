@@ -93,6 +93,7 @@
                         storage-name="{{$ctrl.ngbInternalPathwaysResultService.localStorageKey}}"
                         tag="ngb-internal-pathway-node"
                         search-params="$ctrl.treeSearchParams"
+                        on-element-click="$ctrl.onElementClick(data)"
                 ></ngb-cytoscape-pathway>
             </div>
         </md-content>

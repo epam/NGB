@@ -62,6 +62,7 @@ export default class ngbInternalPathwaysResultController extends baseController 
             this.treeError = error;
         } else {
             this.treeError = false;
+            this.ngbInternalPathwaysResultService.selectedElementId = null;
             this.selectedTree = data;
         }
         this.refreshAnnotationList();
@@ -139,6 +140,14 @@ export default class ngbInternalPathwaysResultController extends baseController 
     activePanelChanged(o) {
         const isActive = o === this.appLayout.Panels.pathways.panel;
         this.dispatcher.emit('cytoscape:panel:active', isActive);
+    }
+
+    onElementClick(data) {
+        const {id} = data || {};
+        this.ngbInternalPathwaysResultService.selectedElementId = id;
+        this.elementDescription = data;
+        this.dispatcher.emitSimpleEvent('cytoscape:pathways:selection:change', data);
+        this.$timeout(() => this.$scope.$apply());
     }
 
 }

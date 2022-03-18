@@ -11,6 +11,7 @@ $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
 $knot-background-color: transparent;
 $edge-description-background-color: transparent;
 
+$sbgn-background-color-selected: #d67614;
 $sbgn-color: #000;
 $sbgn-border-color: #555;
 $sbgn-background-color: #F6F6F6;
@@ -144,7 +145,7 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
-.nucleic.acid.feature {
+.internal-pathway-sbgn.nucleic.acid.feature {
   border-radius: 0 0 10% 10%;
   border: 2px solid $sbgn-border-color;
   background-color: $sbgn-background-color;
@@ -152,6 +153,10 @@ $sbgn-background-color: #F6F6F6;
   width: 96px;
   padding: 8px;
 
+  .internal-pathway-node-container.selected {
+    border-radius: 0 0 1% 1%;
+  }
+
   .internal-pathway-node-title {
     font-family: Helvetica Neue, Helvetica, sans-serif;
     font-size: 20px;
@@ -160,13 +165,16 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
-.macromolecule {
+.internal-pathway-sbgn.macromolecule {
   border-radius: 10%;
   border: 2px solid $sbgn-border-color;
   background-color: $sbgn-background-color;
   height: 48px;
   width: 96px;
   padding: 8px;
+  .internal-pathway-node-container.selected {
+    border-radius: 1%;
+  }
 
   .internal-pathway-node-title {
     font-family: Helvetica Neue, Helvetica, sans-serif;
@@ -176,7 +184,7 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
-.simple.chemical {
+.internal-pathway-sbgn.simple.chemical {
   border-radius: 50%;
   border: 2px solid $sbgn-border-color;
   background-color: $sbgn-background-color;
@@ -184,10 +192,29 @@ $sbgn-background-color: #F6F6F6;
   width: 48px;
   padding: 8px;
 
+  .internal-pathway-node-container.selected {
+    border-radius: 50%;
+  }
+
   .internal-pathway-node-title {
     font-family: Helvetica Neue, Helvetica, sans-serif;
     font-size: 20px;
     font-style: normal;
     font-weight: normal;
+  }
+}
+
+.internal-pathway-collage {
+  .internal-pathway-node-container.selected {
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10%;
+  }
+}
+
+.internal-pathway-sbgn {
+  .internal-pathway-node-container.selected {
+    background-color: $sbgn-background-color-selected;
+    box-shadow: 0 0 0 8px $sbgn-background-color-selected;
   }
 }

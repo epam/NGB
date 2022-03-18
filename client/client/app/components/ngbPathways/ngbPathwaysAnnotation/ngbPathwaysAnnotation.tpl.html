@@ -22,7 +22,8 @@
             <md-select aria-label="heatmap"
                        id="heatmap"
                        multiple="false"
-                       ng-model="$ctrl.heatmapId">
+                       ng-model="$ctrl.heatmapId"
+                       required>
                 <md-option ng-repeat="heatmapItem in $ctrl.heatmapsFromTrack track by heatmapItem.id"
                            ng-value="heatmapItem.id">
                     {{heatmapItem.prettyName || heatmapItem.name}}
@@ -75,6 +76,7 @@
                    id="csv-file-id"
                    ng-change="$ctrl.onFileUpload()"
                    ng-model="$ctrl.csvFile"
+                   required
                    type="file">
         </div>
     </div>

@@ -8,8 +8,9 @@ export default class ngbInternalPathwayNodeController {
     navigationInProcess = false;
     highlightStyle;
 
-    constructor(projectContext, $sce) {
+    constructor(projectContext, $sce, ngbInternalPathwaysResultService) {
         this.projectContext = projectContext;
+        this.ngbInternalPathwaysResultService = ngbInternalPathwaysResultService;
         this.nodeData = JSON.parse(this.nodeDataJson);
         this.highlightNode();
         this.nodeData.label = $sce.trustAsHtml(this.nodeData.label);
@@ -23,9 +24,8 @@ export default class ngbInternalPathwayNodeController {
     }
 
     get selected() {
-        return false;
-        // return this.nodeData &&
-        //     this.ngbInternalPathwayService.selectedElementId === this.nodeData.id;
+        return this.nodeData &&
+            this.ngbInternalPathwaysResultService.selectedElementId === this.nodeData.id;
     }
 
     onMouseDown(event) {
