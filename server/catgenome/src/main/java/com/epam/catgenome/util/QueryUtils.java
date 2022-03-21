@@ -24,7 +24,7 @@
 
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.exception.RSCBResponseException;
+import com.epam.catgenome.exception.ResponseException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
@@ -47,13 +47,13 @@ public interface QueryUtils {
 
             return response.body();
         } catch (IOException e) {
-            throw new RSCBResponseException(e);
+            throw new ResponseException(e);
         }
     }
 
     static <T> void validateResponseStatus(final Response<T> response) throws IOException {
         if (!response.isSuccessful()) {
-            throw new RSCBResponseException(String.format("Unexpected status code: %d, %s", response.code(),
+            throw new ResponseException(String.format("Unexpected status code: %d, %s", response.code(),
                     response.errorBody() != null ? response.errorBody().string() : ""));
         }
     }

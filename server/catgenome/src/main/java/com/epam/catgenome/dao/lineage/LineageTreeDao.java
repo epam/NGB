@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,6 +59,7 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
     private String loadLineageTreeQuery;
     private String loadLineageTreesQuery;
     private String loadAllLineageTreesQuery;
+    private String updateLineageTreePathsQuery;
 
     /**
      * Persists new LineageTree record.
@@ -76,6 +78,22 @@ public class LineageTreeDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteLineageTree(final Long lineageTreeId) {
         getJdbcTemplate().update(deleteLineageTreeQuery, lineageTreeId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateLineageTreePaths(final List<LineageTree> lineageTrees) {
+        if (!CollectionUtils.isEmpty(lineageTrees)) {
+            List<MapSqlParameterSource> params = new ArrayList<>(lineageTrees.size());
+            for (LineageTree lineageTree : lineageTrees) {
+                MapSqlParameterSource param = new MapSqlParameterSource();
+                param.addValue(LineageTreeParameters.LINEAGE_TREE_ID.name(), lineageTree.getLineageTreeId());
+                param.addValue(LineageTreeParameters.EDGES_PATH.name(), lineageTree.getEdgesPath());
+                param.addValue(LineageTreeParameters.NODES_PATH.name(), lineageTree.getNodesPath());
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(updateLineageTreePathsQuery,
+                    params.toArray(new MapSqlParameterSource[lineageTrees.size()]));
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,13 @@
 
 package com.epam.catgenome.exception;
 
-public class BlastResponseException extends RuntimeException{
+public class CloudPipelineUnavailableException extends RuntimeException {
 
-    public BlastResponseException(final String message) {
+    public CloudPipelineUnavailableException(final String message) {
         super(message);
     }
-    public BlastResponseException(final Throwable cause) {
+
+    public CloudPipelineUnavailableException(final Throwable cause) {
         super(cause);
     }
 }

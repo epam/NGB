@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
+import com.epam.catgenome.entity.heatmap.Heatmap;
+import com.epam.catgenome.entity.lineage.LineageTree;
+import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
@@ -145,15 +148,22 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
      * @param item an {@link BiologicalDataItem} ancestor
      * @return {@link BiologicalDataItem} ancestor's biological data item ID
      */
-    public static Long getBioDataItemId(BiologicalDataItem item) {
+    public static Long getBioDataItemId(final BiologicalDataItem item) {
         if (item instanceof FeatureFile) {
             return ((FeatureFile) item).getBioDataItemId();
-        } else {
-            if (item instanceof Reference) {
-                return ((Reference) item).getBioDataItemId();
-            } else {
-                return item.getId();
-            }
         }
+        if (item instanceof Reference) {
+            return ((Reference) item).getBioDataItemId();
+        }
+        if (item instanceof Heatmap) {
+            return ((Heatmap) item).getBioDataItemId();
+        }
+        if (item instanceof LineageTree) {
+            return ((LineageTree) item).getBioDataItemId();
+        }
+        if (item instanceof NGBPathway) {
+            return ((NGBPathway) item).getBioDataItemId();
+        }
+        return item.getId();
     }
 }

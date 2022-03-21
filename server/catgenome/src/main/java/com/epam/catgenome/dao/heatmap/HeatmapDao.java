@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -51,6 +52,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -79,6 +81,7 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
     private String updateHeatmapRowTreeQuery;
     private String loadHeatmapRowTreeQuery;
     private String updateHeatmapColumnTreeQuery;
+    private String updateHeatmapPathsQuery;
     private String loadHeatmapColumnTreeQuery;
 
     /**
@@ -184,6 +187,24 @@ public class HeatmapDao extends NamedParameterJdbcDaoSupport {
         params.addValue(HeatmapParameters.COLUMN_TREE_PATH.name(), path);
 
         getNamedParameterJdbcTemplate().update(updateHeatmapColumnTreeQuery, params);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateHeatmapPaths(final List<Heatmap> heatmaps) {
+        if (!CollectionUtils.isEmpty(heatmaps)) {
+            List<MapSqlParameterSource> params = new ArrayList<>(heatmaps.size());
+            for (Heatmap heatmap : heatmaps) {
+                MapSqlParameterSource param = new MapSqlParameterSource();
+                param.addValue(HeatmapParameters.HEATMAP_ID.name(), heatmap.getHeatmapId());
+                param.addValue(HeatmapParameters.COLUMN_TREE_PATH.name(), heatmap.getColumnTreePath());
+                param.addValue(HeatmapParameters.ROW_TREE_PATH.name(), heatmap.getRowTreePath());
+                param.addValue(HeatmapParameters.CELL_ANNOTATION_PATH.name(), heatmap.getCellAnnotationPath());
+                param.addValue(HeatmapParameters.LABEL_ANNOTATION_PATH.name(), heatmap.getLabelAnnotationPath());
+                params.add(param);
+            }
+            getNamedParameterJdbcTemplate().batchUpdate(updateHeatmapPathsQuery,
+                    params.toArray(new MapSqlParameterSource[heatmaps.size()]));
+        }
     }
 
     public InputStream loadHeatmapContent(final Long heatmapId) {

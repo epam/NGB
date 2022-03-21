@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,11 @@ public class BiologicalDataItemManager {
         biologicalDataItemDao.createBiologicalDataItem(item);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateBiologicalDataItemPath(final List<BiologicalDataItem> items) {
+        biologicalDataItemDao.updateBiologicalDataItemPath(items);
+    }
+
     /**
      * Deletes a BiologicalDataItem entity from the database
      * @param id a BiologicalDataItem ID to delete
@@ -100,6 +105,11 @@ public class BiologicalDataItemManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteBiologicalDataItem(long id) {
         biologicalDataItemDao.deleteBiologicalDataItem(id);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<BiologicalDataItem> loadAllItems() {
+        return biologicalDataItemDao.loadBiologicalDataItems();
     }
 
     /**

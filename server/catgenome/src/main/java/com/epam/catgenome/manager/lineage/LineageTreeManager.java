@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,6 +100,11 @@ public class LineageTreeManager {
         lineageTree.setNodes(nodes);
         lineageTree.setEdges(edges);
         return lineageTree;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateLineageTreePaths(List<LineageTree> lineageTrees) {
+        lineageTreeDao.updateLineageTreePaths(lineageTrees);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

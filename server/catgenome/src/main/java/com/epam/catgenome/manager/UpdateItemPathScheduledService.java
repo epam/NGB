@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.manager;
 
-package com.epam.catgenome.exception;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-public class RSCBResponseException extends RuntimeException{
+import java.io.IOException;
 
-    public RSCBResponseException(String message) {
-        super(message);
-    }
+@Service
+@RequiredArgsConstructor
+@ConditionalOnProperty(value = "item.path.update", havingValue = "true")
+public class UpdateItemPathScheduledService {
 
-    public RSCBResponseException(Throwable cause) {
-        super(cause);
+    @Value("${item.path.update.pattern.curr:/Projects/}")
+    private String currentPathPattern;
+
+    @Value("${item.path.update.pattern.new:.BLOB}")
+    private String newPathPattern;
+
+    private final UpdateItemPathManager updateItemPathManager;
+
+    @Scheduled(cron = "${item.path.update.schedule:0 0 * * * *}")
+    public void updateItemPath() throws IOException {
+        updateItemPathManager.updateItemPath(currentPathPattern, newPathPattern, true);
     }
 }
