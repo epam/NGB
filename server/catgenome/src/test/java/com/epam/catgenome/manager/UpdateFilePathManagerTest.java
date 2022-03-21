@@ -158,7 +158,7 @@ public class UpdateFilePathManagerTest extends AbstractManagerTest {
         Assert.assertTrue(deleted);
 
         updateItemPathManager.updateItemPath(temporaryFolder.getRoot().getAbsolutePath(),
-                newTemporaryFolder.getRoot().getAbsolutePath());
+                newTemporaryFolder.getRoot().getAbsolutePath(), false);
 
         final Heatmap updatedHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         Assert.assertEquals(newHeatmapFile.getAbsolutePath(), updatedHeatmap.getPath());
@@ -188,9 +188,8 @@ public class UpdateFilePathManagerTest extends AbstractManagerTest {
         deleted = edgesFile.delete();
         Assert.assertTrue(deleted);
 
-
         updateItemPathManager.updateItemPath(temporaryFolder.getRoot().getAbsolutePath(),
-                newTemporaryFolder.getRoot().getAbsolutePath());
+                newTemporaryFolder.getRoot().getAbsolutePath(), false);
 
         final LineageTree updatedLineageTree = lineageTreeManager.loadLineageTree(lineageTree.getLineageTreeId());
         Assert.assertEquals(newEdgesFile.getAbsolutePath(), updatedLineageTree.getEdgesPath());
@@ -214,7 +213,7 @@ public class UpdateFilePathManagerTest extends AbstractManagerTest {
         Assert.assertTrue(deleted);
 
         updateItemPathManager.updateItemPath(temporaryFolder.getRoot().getAbsolutePath(),
-                newTemporaryFolder.getRoot().getAbsolutePath());
+                newTemporaryFolder.getRoot().getAbsolutePath(), false);
 
         final NGBPathway updatedPathway = pathwayManager.loadPathway(pathway.getPathwayId());
         Assert.assertEquals(newPathwayFile.getAbsolutePath(), updatedPathway.getPath());
@@ -246,7 +245,7 @@ public class UpdateFilePathManagerTest extends AbstractManagerTest {
         Assert.assertTrue(deleted);
 
         updateItemPathManager.updateItemPath(temporaryFolder.getRoot().getAbsolutePath(),
-                newTemporaryFolder.getRoot().getAbsolutePath());
+                newTemporaryFolder.getRoot().getAbsolutePath(), false);
 
         final BiologicalDataItem item = dataItemManager.findFileByBioItemId(geneFile.getBioDataItemId());
         Assert.assertEquals(newGene.getAbsolutePath(), item.getPath());

@@ -25,6 +25,7 @@ package com.epam.catgenome.manager;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "item.path.update", havingValue = "true")
 public class UpdateItemPathScheduledService {
 
     @Value("${item.path.update.pattern.curr:/Projects/}")
@@ -44,6 +46,6 @@ public class UpdateItemPathScheduledService {
 
     @Scheduled(cron = "${item.path.update.schedule:0 0 * * * *}")
     public void updateItemPath() throws IOException {
-        updateItemPathManager.updateItemPath(currentPathPattern, newPathPattern);
+        updateItemPathManager.updateItemPath(currentPathPattern, newPathPattern, true);
     }
 }

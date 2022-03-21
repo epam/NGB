@@ -34,6 +34,7 @@ import com.epam.catgenome.manager.cloud.pipeline.CloudPipelineManager;
 import com.epam.catgenome.manager.heatmap.HeatmapManager;
 import com.epam.catgenome.manager.lineage.LineageTreeManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +56,6 @@ public class UpdateItemPathManager {
             "File path was replaced with a new path '%s'.";
     private static final String NOT_UPDATED_FILES = "Missing file was found '%s'. Unable to find a new path, " +
             "please check and fix file location manually.";
-    private final List<String> files = new ArrayList<>();
 
     @Value("${item.path.update.notification.subject}")
     private String subject;
@@ -78,83 +78,113 @@ public class UpdateItemPathManager {
     @Autowired
     private CloudPipelineManager cloudPipelineManager;
 
-    public void updateItemPath(final String currPathPattern, final String newPathPattern) throws IOException {
+    public void updateItemPath(final String currPathPattern,
+                               final String newPathPattern,
+                               final boolean sendNotification) throws IOException {
         final List<BiologicalDataItem> items = biologicalDataItemManager.loadAllItems();
         final List<BiologicalDataItem> itemsToBeUpdated = new ArrayList<>();
         final List<Heatmap> heatmaps = new ArrayList<>();
         final List<LineageTree> lineageTrees = new ArrayList<>();
-        String path;
-        String newFilePath;
-        boolean updateItem = false;
+        final List<String> files = new ArrayList<>();
         for (BiologicalDataItem item : items) {
             if (!item.getFormat().isIndex()) {
                 if (BiologicalDataItemFormat.HEATMAP.equals(item.getFormat())) {
-                    Heatmap heatmap = (Heatmap) item;
-                    path = heatmap.getColumnTreePath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        heatmap.setColumnTreePath(newFilePath);
-                        updateItem = true;
-                    }
-                    path = heatmap.getRowTreePath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        heatmap.setRowTreePath(newFilePath);
-                        updateItem = true;
-                    }
-                    path = heatmap.getCellAnnotationPath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        heatmap.setCellAnnotationPath(newFilePath);
-                        updateItem = true;
-                    }
-                    path = heatmap.getLabelAnnotationPath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        heatmap.setLabelAnnotationPath(newFilePath);
-                        updateItem = true;
-                    }
-                    if (updateItem) {
-                        heatmaps.add(heatmap);
-                        updateItem = false;
-                    }
+                    processHeatmap(currPathPattern, newPathPattern, heatmaps, files, item);
                 }
                 if (BiologicalDataItemFormat.LINEAGE_TREE.equals(item.getFormat())) {
-                    LineageTree lineageTree = (LineageTree) item;
-                    path = lineageTree.getEdgesPath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        lineageTree.setEdgesPath(newFilePath);
-                        updateItem = true;
-                    }
-                    path = lineageTree.getNodesPath();
-                    newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                    if (newFilePath != null) {
-                        lineageTree.setNodesPath(newFilePath);
-                        updateItem = true;
-                    }
-                    if (updateItem) {
-                        lineageTrees.add(lineageTree);
-                        updateItem = false;
-                    }
+                    processLineageTree(currPathPattern, newPathPattern, lineageTrees, files, item);
                 }
-                path = item.getPath();
-                newFilePath = getNewPath(path, currPathPattern,  newPathPattern);
-                if (newFilePath != null) {
-                    item.setId(BiologicalDataItem.getBioDataItemId(item));
-                    item.setPath(newFilePath);
-                    itemsToBeUpdated.add(item);
-                }
+                processBiologicalDataItem(currPathPattern, newPathPattern, itemsToBeUpdated, files, item);
             }
         }
         heatmapManager.updateHeatmapPaths(heatmaps);
         lineageTreeManager.updateLineageTreePaths(lineageTrees);
         biologicalDataItemManager.updateBiologicalDataItemPath(itemsToBeUpdated);
-        sendNotification();
+        if (sendNotification && CollectionUtils.isNotEmpty(files)) {
+            sendNotification(getSubject(files));
+        }
     }
 
-    private String getNewPath(final String path, final String currPathPattern, final String newPathPattern)
-            throws IOException {
+    private void processBiologicalDataItem(final String currPathPattern,
+                                           final String newPathPattern,
+                                           final List<BiologicalDataItem> itemsToBeUpdated,
+                                           final List<String> files,
+                                           final BiologicalDataItem item) throws IOException {
+        final String path = item.getPath();
+        final String newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            item.setId(BiologicalDataItem.getBioDataItemId(item));
+            item.setPath(newFilePath);
+            itemsToBeUpdated.add(item);
+        }
+    }
+
+    private void processLineageTree(final String currPathPattern,
+                                    final String newPathPattern,
+                                    final List<LineageTree> lineageTrees,
+                                    final List<String> files,
+                                    final BiologicalDataItem item) throws IOException {
+        String newFilePath;
+        String path;
+        final LineageTree lineageTree = (LineageTree) item;
+        boolean updateItem = false;
+        path = lineageTree.getEdgesPath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            lineageTree.setEdgesPath(newFilePath);
+            updateItem = true;
+        }
+        path = lineageTree.getNodesPath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, new ArrayList<>());
+        if (newFilePath != null) {
+            lineageTree.setNodesPath(newFilePath);
+            updateItem = true;
+        }
+        if (updateItem) {
+            lineageTrees.add(lineageTree);
+        }
+    }
+
+    private void processHeatmap(final String currPathPattern,
+                                final String newPathPattern,
+                                final List<Heatmap> heatmaps,
+                                final List<String> files,
+                                final BiologicalDataItem item) throws IOException {
+        String newFilePath;
+        String path;
+        final Heatmap heatmap = (Heatmap) item;
+        boolean updateItem = false;
+        path = heatmap.getColumnTreePath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            heatmap.setColumnTreePath(newFilePath);
+            updateItem = true;
+        }
+        path = heatmap.getRowTreePath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            heatmap.setRowTreePath(newFilePath);
+            updateItem = true;
+        }
+        path = heatmap.getCellAnnotationPath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            heatmap.setCellAnnotationPath(newFilePath);
+            updateItem = true;
+        }
+        path = heatmap.getLabelAnnotationPath();
+        newFilePath = getNewPath(path, currPathPattern, newPathPattern, files);
+        if (newFilePath != null) {
+            heatmap.setLabelAnnotationPath(newFilePath);
+            updateItem = true;
+        }
+        if (updateItem) {
+            heatmaps.add(heatmap);
+        }
+    }
+
+    private String getNewPath(final String path, final String currPathPattern, final String newPathPattern,
+                              final List<String> files) throws IOException {
         if (StringUtils.isNotBlank(path) && !resourceExists(path)) {
             final String newFilePath = modifyPath(path, currPathPattern, newPathPattern);
             if (newFilePath != null && resourceExists(newFilePath)) {
@@ -175,9 +205,8 @@ public class UpdateItemPathManager {
         return null;
     }
 
-    private void sendNotification() {
+    private void sendNotification(final String subject) {
         final List<String> copyUsers = Arrays.asList(ccUser.split(";"));
-        final String subject = join(files, System.lineSeparator());
         final NotificationMessageVO message = NotificationMessageVO.builder()
                 .subject(subject)
                 .toUser(toUser)
@@ -189,5 +218,9 @@ public class UpdateItemPathManager {
         } catch (CloudPipelineUnavailableException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String getSubject(final List<String> files) {
+        return join(files, System.lineSeparator());
     }
 }
