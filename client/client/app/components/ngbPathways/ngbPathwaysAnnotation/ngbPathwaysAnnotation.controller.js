@@ -111,7 +111,7 @@ export default class ngbPathwaysAnnotationController {
     }
 
     static get UID() {
-        return 'ngbGenesTableDownloadDlgController';
+        return 'ngbPathwaysAnnotationController';
     }
 
     get heatmapsFromTrack() {

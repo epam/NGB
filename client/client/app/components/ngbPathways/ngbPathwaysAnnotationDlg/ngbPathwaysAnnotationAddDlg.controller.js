@@ -17,7 +17,7 @@ export default class ngbPathwaysAnnotationAddDlgController {
     }
 
     static get UID() {
-        return 'ngbGenesTableDownloadDlgController';
+        return 'ngbPathwaysAnnotationAddDlgController';
     }
 
     get isStateValid() {
