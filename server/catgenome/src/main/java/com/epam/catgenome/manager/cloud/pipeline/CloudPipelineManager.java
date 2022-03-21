@@ -33,11 +33,13 @@ import com.epam.catgenome.exception.ResponseException;
 import com.epam.catgenome.util.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 
 @Service
+@ConditionalOnProperty(value = "item.path.update", havingValue = "true")
 public class CloudPipelineManager {
 
     private CloudPipelineApi cloudPipelineApi;

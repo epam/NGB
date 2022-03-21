@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -50,6 +51,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(value = "item.path.update", havingValue = "true")
 public class UpdateItemPathManager {
 
     private static final String UPDATED_FILES = "Missing file was found '%s'. " +
