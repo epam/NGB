@@ -83,6 +83,14 @@ function heatmapNameSorter(a, b) {
     return 0;
 }
 
+function getAllValuesList(cellValues) {
+    let result = [];
+    for (const row of cellValues) {
+        result = new Set([...result, ...row]);
+    }
+    return Array.from(result);
+}
+
 export default class ngbPathwaysAnnotationController {
     configurationType = {
         STRING: 0,
@@ -91,10 +99,12 @@ export default class ngbPathwaysAnnotationController {
     };
     annotationFileHeaderList = null;
     heatmap = null;
-    csvFile = {};
+    csvFile = null;
 
-    constructor(ngbPathwaysService, ngbPathwaysAnnotationService, heatmapContext) {
+    constructor(ngbPathwaysService, ngbPathwaysAnnotationService, heatmapContext, $timeout, $scope) {
         this.heatmapContext = heatmapContext;
+        this.$timeout = $timeout;
+        this.$scope = $scope;
         this.annotationTypeList = ngbPathwaysAnnotationService.annotationTypeList;
         this.annotationFileHeaderList = ngbPathwaysAnnotationService.annotationFileHeaderList;
         this.initialize();
@@ -147,6 +157,7 @@ export default class ngbPathwaysAnnotationController {
         });
         options.data.options = {id, projectId};
         this.annotation.name = this.annotation.name || this.heatmap.prettyName || this.heatmap.name;
+        this.$timeout(() => this.$scope.$apply());
     }
 
     $onChanges(changes) {
@@ -183,9 +194,10 @@ export default class ngbPathwaysAnnotationController {
 
     onAnnotationTypeChange() {
         this.heatmap = null;
-        this.csvFile = {};
-        const {id, name, type, pathwayId} = this.annotation;
-        this.annotation = {id, name, type, pathwayId,
+        this.csvFile = null;
+        const {id, type, pathwayId} = this.annotation;
+        this.annotation = {
+            id, type, pathwayId,
             config: null,
             header: this.annotationFileHeaderList.COLUMN
         };
@@ -200,7 +212,8 @@ export default class ngbPathwaysAnnotationController {
                 colorFormat: ColorFormats.hex,
                 minimum: this.annotation.config.minimum,
                 maximum: this.annotation.config.maximum,
-                dataType: this.annotation.config.dataType
+                dataType: this.annotation.config.dataType,
+                values: getAllValuesList(this.annotation.config.cellValues)
             });
         }
     }
