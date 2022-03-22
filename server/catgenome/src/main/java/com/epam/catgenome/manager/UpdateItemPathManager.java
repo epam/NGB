@@ -188,6 +188,7 @@ public class UpdateItemPathManager {
     private String getNewPath(final String path, final String currPathPattern, final String newPathPattern,
                               final List<String> files) throws IOException {
         if (StringUtils.isNotBlank(path) && !resourceExists(path)) {
+            log.debug("Found missing path: {}", path);
             final String newFilePath = modifyPath(path, currPathPattern, newPathPattern);
             if (newFilePath != null && resourceExists(newFilePath)) {
                 files.add(String.format(UPDATED_FILES, path, newFilePath));

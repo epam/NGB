@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.notification.NotificationMessageVO;
 import com.epam.catgenome.exception.CloudPipelineUnavailableException;
 import com.epam.catgenome.exception.ResponseException;
 import com.epam.catgenome.util.QueryUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 @Service
+@Slf4j
 @ConditionalOnProperty(value = "item.path.update", havingValue = "true")
 public class CloudPipelineManager {
 
@@ -65,6 +67,7 @@ public class CloudPipelineManager {
         try {
             QueryUtils.execute(cloudPipelineApi.sendNotification(notificationMessage));
         } catch (ResponseException e) {
+            log.debug("Pipeline error: {}", e.getMessage());
             throw new CloudPipelineUnavailableException(MessageHelper
                     .getMessage(MessagesConstants.ERROR_CLOUD_PIPELINE_NOT_AVAILABLE));
         }
