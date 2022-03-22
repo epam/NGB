@@ -6,7 +6,7 @@
      ng-style="$ctrl.highlightStyle">
     <div class="internal-pathway-node-title"
          ng-class="{'internal-pathway-node-link': $ctrl.nodeData.referenceId || $ctrl.nodeData.projectId}"
-         ng-bind-html="$ctrl.nodeData.label"
+         ng-bind-html="$ctrl.label"
          ng-mouseup="$ctrl.navigate($event, $ctrl.nodeData)">
     </div>
     <div class="internal-pathway-units-of-information" ng-if="$ctrl.unitOfInformation">

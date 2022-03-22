@@ -11,7 +11,10 @@
 
     <form name="addAnnotationForm">
         <md-dialog-content>
-            <ngb-pathways-annotation annotation="$ctrl.annotation"></ngb-pathways-annotation>
+            <ngb-pathways-annotation
+                    annotation="$ctrl.annotation"
+                    color-scheme="$ctrl.colorScheme"
+            ></ngb-pathways-annotation>
         </md-dialog-content>
         <md-dialog-actions layout="row">
             <md-button class="md-primary"

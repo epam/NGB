@@ -2,7 +2,8 @@ import controller from './ngbPathwaysAnnotation.controller';
 
 export default {
     bindings: {
-        annotation: '='
+        annotation: '=',
+        colorScheme: '='
     },
     controller: controller.UID,
     restrict: 'E',

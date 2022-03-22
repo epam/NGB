@@ -13,7 +13,11 @@ export default class ngbInternalPathwayNodeController {
         this.ngbInternalPathwaysResultService = ngbInternalPathwaysResultService;
         this.nodeData = JSON.parse(this.nodeDataJson);
         this.highlightNode();
-        this.nodeData.label = $sce.trustAsHtml(this.nodeData.label);
+        if (this.nodeData.label) {
+            this.label = $sce.trustAsHtml(this.nodeData.label
+                .replace(new RegExp('-', 'g'), '\u2011')
+                .replace(new RegExp(' ', 'g'), '\u00A0'));
+        }
         if (this.nodeData.unitsOfInformation && this.nodeData.unitsOfInformation.length) {
             this.unitOfInformation = this.nodeData.unitsOfInformation[0].label.text;
         }

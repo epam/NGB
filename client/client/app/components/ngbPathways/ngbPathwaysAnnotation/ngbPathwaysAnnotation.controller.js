@@ -130,6 +130,7 @@ export default class ngbPathwaysAnnotationController {
     }
 
     set heatmapId(id) {
+        const isHeatmapChange = this.heatmap && this.heatmap.id !== id;
         const [heatmap] = this.heatmapContext.heatmaps.filter(h => h.id === id);
         this.heatmap = heatmap;
         const projectId = this.heatmap.project ? this.heatmap.project.id : this.heatmap.projectIdNumber;
@@ -148,11 +149,11 @@ export default class ngbPathwaysAnnotationController {
                 heatmapId: id,
                 values
             };
-            if (!this.annotation.colorScheme) {
+            if (isHeatmapChange || !this.colorScheme) {
                 const colorSchemeParams = {colorFormat: ColorFormats.hex};
                 colorSchemeParams.minimum = this.annotation.config.minCellValue;
                 colorSchemeParams.maximum = this.annotation.config.maxCellValue;
-                this.annotation.colorScheme = options.colorScheme.copy(colorSchemeParams);
+                this.colorScheme = options.colorScheme.copy(colorSchemeParams);
             }
         });
         options.data.options = {id, projectId};
@@ -195,6 +196,7 @@ export default class ngbPathwaysAnnotationController {
     onAnnotationTypeChange() {
         this.heatmap = null;
         this.csvFile = null;
+        this.colorScheme = null;
         const {id, type, pathwayId} = this.annotation;
         this.annotation = {
             id, type, pathwayId,
@@ -207,8 +209,8 @@ export default class ngbPathwaysAnnotationController {
         this.annotation.name = this.csvFile.name;
         this.annotation.config = parseConfigCSV(this.csvFile.value);
         this.annotation.config.fileName = this.csvFile.name;
-        if (!this.annotation.colorScheme) {
-            this.annotation.colorScheme = new ColorScheme({
+        if (!this.colorScheme) {
+            this.colorScheme = new ColorScheme({
                 colorFormat: ColorFormats.hex,
                 minimum: this.annotation.config.minimum,
                 maximum: this.annotation.config.maximum,

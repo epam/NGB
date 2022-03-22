@@ -7,7 +7,6 @@ const graphml = require('cytoscape-graphml');
 const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
 const $ = require('jquery');
 
-const SCALE = 0.3;
 const searchedColor = '#00cc00';
 const annotationTypeList = {
     HEATMAP: 0,
@@ -27,10 +26,11 @@ const DATABASE_SOURCES = {
 };
 
 // TODO: make export from SCSS to JS
+const COLLAGE_NODE_BACKGROUND = 'transparent';
+const SBGN_NODE_BACKGROUND = '#F6F6F6';
 const defaultNodeStyle = {
     'color': '#000',
     'border-color': '#555',
-    'background': '#F6F6F6',
     'font-weight': 'normal'
 };
 
@@ -54,6 +54,10 @@ const setEdgeSelectionStyle = edge => {
     edge.css('underlay-opacity', selectedEdgeStyle['underlay-opacity']);
 };
 
+function removeLineBreaks(str) {
+    return str.replace(new RegExp('\n', 'g'), ' ');
+}
+
 function deepSearch(obj, term, type = configurationType.STRING, fieldsToIgnore = []) {
     let result = false;
     for (const key in obj) {
@@ -64,7 +68,7 @@ function deepSearch(obj, term, type = configurationType.STRING, fieldsToIgnore =
         } else {
             switch (type) {
                 case configurationType.STRING: {
-                    result = obj[key].toString().toLocaleLowerCase()
+                    result = removeLineBreaks(obj[key].toString().toLocaleLowerCase())
                         .includes(term.toLocaleLowerCase());
                     break;
                 }
@@ -158,17 +162,7 @@ export default class ngbCytoscapePathwayController {
     wrapNodes(nodes, nodeTag, isCollage) {
         const wrappedNodes = [];
 
-        function decorateData(data) {
-            if (data.label) {
-                data.label = data.label
-                    .replace(new RegExp('-', 'g'), '\u2011')
-                    .replace(new RegExp(' ', 'g'), '\u00A0');
-            }
-            return data;
-        }
-
         function wrapNode(node) {
-            node.data = decorateData(node.data);
             let classList = `${node.classes || node.class || ''} internal-pathway-cytoscape-node`;
             classList += isCollage ? ' internal-pathway-collage' : ' internal-pathway-sbgn';
             let isFeature = false;
@@ -204,7 +198,9 @@ export default class ngbCytoscapePathwayController {
             }
             this.$timeout(() => {
                 let cytoscapeStyle;
-                if (this.elements.source === DATABASE_SOURCES.COLLAGE) {
+                if (this.isCollage()) {
+                    this.scale = 1;
+                    defaultNodeStyle.background = COLLAGE_NODE_BACKGROUND;
                     cytoscapeStyle = [
                         {
                             selector: 'node',
@@ -220,6 +216,8 @@ export default class ngbCytoscapePathwayController {
                         }
                     ];
                 } else {
+                    this.scale = 0.3;
+                    defaultNodeStyle.background = SBGN_NODE_BACKGROUND;
                     cytoscapeStyle = this.applyDomStylesToSbgn(
                         sbgnStylesheet(Cytoscape),
                         this.settings.style.node
@@ -238,6 +236,7 @@ export default class ngbCytoscapePathwayController {
                         edges: savedLayout.edges
                     };
                 } else {
+                    this.elements.nodes = this.saveDefaultPositions(this.elements.nodes, this.isCollage());
                     elements = {
                         nodes: this.wrapNodes(
                             this.getPlainNodes(this.positionedNodes(this.elements.nodes)),
@@ -297,27 +296,25 @@ export default class ngbCytoscapePathwayController {
                     zoomIn() {
                         const zoom = this.zoom() + this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        viewerContext.centerCytoscape();
+                        // viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     zoomOut() {
                         const zoom = this.zoom() - this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        viewerContext.centerCytoscape();
+                        // viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     restoreDefault: () => {
-                        // viewerContext.viewer.layout(this.settings.defaultLayout).run();
-                        // viewerContext.saveLayout();
                         this.viewer.batch(() => {
                             this.viewer.remove(this.viewer.nodes());
                             this.viewer.remove(this.viewer.edges());
                             this.viewer.add(this.positionedNodes(this.elements.nodes));
                             this.viewer.add(this.elements.edges);
+                            viewerContext.viewer.layout(this.settings.loadedLayout).run();
                         });
-                        // viewerContext.viewer.layout(this.settings.defaultLayout).run();
                         viewerContext.saveLayout();
                     },
                     canZoomIn: true,
@@ -384,16 +381,32 @@ export default class ngbCytoscapePathwayController {
 
     positionedNodes(nodes) {
         nodes.forEach(node => {
-            if (node.data.bbox) {
+            if (node.data.defaultPosition) {
                 node.position = {
-                    x: node.data.bbox.x / SCALE,
-                    y: node.data.bbox.y / SCALE
+                    x: node.data.defaultPosition.x / this.scale,
+                    y: node.data.defaultPosition.y / this.scale
                 };
             }
         });
         return nodes;
     }
 
+    isCollage() {
+        return this.elements.source === DATABASE_SOURCES.COLLAGE;
+    }
+
+    saveDefaultPositions(nodes, isCollage) {
+        nodes.forEach(node => {
+            if (!node.data.defaultPosition) {
+                if (isCollage) {
+                    node.data.defaultPosition = node.position;
+                } else {
+                    node.data.defaultPosition = node.data.bbox;
+                }
+            }
+        });
+        return nodes;
+    }
 
     searchTree(term) {
         if (!this.viewer) {
@@ -404,13 +417,9 @@ export default class ngbCytoscapePathwayController {
         });
     }
 
-    isCollage() {
-        return this.elements.source === DATABASE_SOURCES.COLLAGE;
-    }
-
     searchNode(node, term) {
         let style;
-        if (term === '' || !deepSearch(node.data(), term, undefined, ['dom'])) {
+        if (term === '' || !deepSearch(node.data(), term, undefined, ['dom', 'defaultPosition'])) {
             style = {
                 'color': defaultNodeStyle.color,
                 'border-color': defaultNodeStyle['border-color'],
@@ -475,7 +484,7 @@ export default class ngbCytoscapePathwayController {
         let style;
         for (const terms of annotation.value) {
             if (node.data('isAnnotated')) break;
-            if (deepSearch(node.data(), terms.term, undefined, ['dom'])) {
+            if (deepSearch(node.data(), terms.term, undefined, ['dom', 'defaultPosition'])) {
                 if (!node.data('isFound')) {
                     style = {
                         background: terms.backgroundColor
@@ -497,7 +506,7 @@ export default class ngbCytoscapePathwayController {
         const terms = annotation.value;
 
         for (let labelIndex = 0; labelIndex < terms.labels.length; labelIndex++) {
-            if (deepSearch(node.data(), terms.labels[labelIndex], annotation.colorScheme.dataType, ['dom'])) {
+            if (deepSearch(node.data(), terms.labels[labelIndex], annotation.colorScheme.dataType, ['dom', 'defaultPosition'])) {
                 termsList = termsList.concat(terms.values[labelIndex]);
             }
             const colorList = [];
@@ -535,18 +544,6 @@ export default class ngbCytoscapePathwayController {
                 domElem.css(key, style[key]);
             });
         }
-    }
-
-    getSbgnNodeStyle(style) {
-        const result = {};
-        Object.keys(style).forEach(key => {
-            if (style[key].selector === 'node') {
-                Object.keys(style[key].properties).forEach(propKey => {
-                    result[style[key].properties[propKey].name] = style[key].properties[propKey].value;
-                });
-            }
-        });
-        return result;
     }
 
     applyDomStylesToSbgn(style, placeholderStyle) {
