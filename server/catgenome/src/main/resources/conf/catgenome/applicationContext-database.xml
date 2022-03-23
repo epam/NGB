@@ -69,5 +69,6 @@
     <import resource="classpath:conf/catgenome/dao/lineage-tree-node-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/lineage-tree-edge-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/pathway-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/pathway-organism-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bam-coverage-dao.xml" />
 </beans>

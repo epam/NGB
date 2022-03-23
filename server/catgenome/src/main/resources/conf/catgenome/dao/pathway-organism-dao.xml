@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.pathway.PathwayOrganismDao" id="pathwayOrganismDao" autowire="byName">
+        <property name="pathwayOrganismSequenceName" value="catgenome.s_pathway_organism"/>
+        <property name="insertPathwayOrganismQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.pathway_organism (
+                        pathway_organism_id,
+                        pathway_id,
+                        tax_id
+                    ) VALUES (
+                        :PATHWAY_ORGANISM_ID,
+                        :PATHWAY_ID,
+                        :TAX_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deletePathwayOrganismQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.pathway_organism WHERE pathway_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPathwayOrganismQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        pathway_organism_id,
+                        pathway_id,
+                        tax_id
+                    FROM catgenome.pathway_organism
+                        WHERE pathway_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

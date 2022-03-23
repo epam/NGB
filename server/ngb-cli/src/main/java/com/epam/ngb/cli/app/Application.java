@@ -257,8 +257,8 @@ public class Application {
     @Option(name = "--taxid", usage = "specifies taxonomy id")
     private Long taxId;
 
-    @Option(name = "-o", usage = "specifies species, separated by comma",  aliases = {"--organisms"})
-    private String species;
+    @Option(name = "--taxids", usage = "specifies taxonomy ids, separated by comma")
+    private String taxIds;
 
     @Option(name = "--send-content", usage = "defines if file content should be sent directly to server")
     private boolean sendContent;
@@ -375,7 +375,7 @@ public class Application {
         options.setHeatmapColumnAnnotationType(HeatmapAnnotationType.from(heatmapColumnAnnotationType));
         options.setReference(reference);
         options.setTaxId(taxId);
-        options.setSpecies(species);
+        options.setTaxIds(taxIds);
         options.setSendContent(sendContent);
         options.setStep(step);
         return options;

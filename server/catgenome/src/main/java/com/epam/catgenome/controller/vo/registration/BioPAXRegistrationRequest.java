@@ -26,12 +26,12 @@ package com.epam.catgenome.controller.vo.registration;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 public class BioPAXRegistrationRequest extends DefaultFileRegistrationRequest {
     private String path;
     private String pathwayDesc;
-    private List<String> species;
+    private Set<Long> taxIds;
 }

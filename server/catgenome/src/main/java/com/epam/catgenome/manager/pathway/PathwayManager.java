@@ -27,14 +27,15 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.BioPAXRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.dao.pathway.PathwayDao;
+import com.epam.catgenome.dao.pathway.PathwayOrganismDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
+import com.epam.catgenome.entity.pathway.PathwayOrganism;
 import com.epam.catgenome.exception.FileParsingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -99,7 +100,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.IndexUtils.deserialize;
@@ -117,6 +125,7 @@ public class PathwayManager {
     public static final String BIO_PAX = "BioPAX";
 
     private final PathwayDao pathwayDao;
+    private final PathwayOrganismDao pathwayOrganismDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
 
     @Value("${biopax.directory}")
@@ -157,11 +166,14 @@ public class PathwayManager {
         final long pathwayId = pathwayDao.createPathwayId();
         pathway.setPathwayId(pathwayId);
         pathway.setDatabaseSource(databaseSource);
-        writeLucenePathwayIndex(pathway, request.getSpecies(), readPathway(pathwayFile, databaseSource));
+        writeLucenePathwayIndex(pathway, request.getTaxIds(), readPathway(pathwayFile, databaseSource));
         try {
             biologicalDataItemManager.createBiologicalDataItem(pathway);
             pathway.setBioDataItemId(pathway.getId());
             pathwayDao.savePathway(pathway);
+            final List<PathwayOrganism> organisms = pathwayOrganismDao.savePathwayOrganisms(request.getTaxIds(),
+                    pathwayId);
+            pathway.setOrganisms(organisms);
         } finally {
             if (pathway.getBioDataItemId() == null) {
                 deleteDocument(pathway.getPathwayId());
@@ -173,6 +185,7 @@ public class PathwayManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deletePathway(final long pathwayId) throws IOException {
         final NGBPathway pathway = getPathway(pathwayId);
+        pathwayOrganismDao.deletePathwayOrganisms(pathwayId);
         pathwayDao.deletePathway(pathwayId);
         biologicalDataItemManager.deleteBiologicalDataItem(pathway.getBioDataItemId());
         deleteDocument(pathwayId);
@@ -222,7 +235,7 @@ public class PathwayManager {
                     pathway.setPrettyName(getDocValue(doc, PathwayIndexFields.PRETTY_NAME));
                     pathway.setPathwayDesc(getDocValue(doc, PathwayIndexFields.DESCRIPTION));
                     pathway.setDatabaseSource(getDatabaseSource(doc));
-                    pathway.setSpecies(getSpecies(doc));
+                    pathway.setOrganisms(getOrganisms(doc));
                     items.add(pathway);
                 }
             }
@@ -257,7 +270,7 @@ public class PathwayManager {
                     .path(sbgnFile)
                     .prettyName(pathway.getStandardName())
                     .pathwayDesc(request.getPathwayDesc())
-                    .species(request.getSpecies())
+                    .taxIds(request.getTaxIds())
                     .build();
             createPathway(pathwayRegistrationRequest, PathwayDatabaseSource.BIOCYC, request.getPath());
         }
@@ -281,12 +294,12 @@ public class PathwayManager {
     }
 
     private void writeLucenePathwayIndex(final NGBPathway pathway,
-                                         final List<String> species,
+                                         final Set<Long> taxIds,
                                          final String content) throws IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
              IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
-            addDoc(writer, pathway, species, content);
+            addDoc(writer, pathway, taxIds, content);
         }
     }
 
@@ -353,7 +366,7 @@ public class PathwayManager {
         return (Sbgn)unmarshaller.unmarshal(f);
     }
 
-    private static void addDoc(final IndexWriter writer, final NGBPathway pathway, final List<String> species,
+    private static void addDoc(final IndexWriter writer, final NGBPathway pathway, final Set<Long> taxIds,
                                final String content) throws IOException {
         final Document doc = new Document();
         doc.add(new StringField(PathwayIndexFields.PATHWAY_ID.getFieldName(),
@@ -377,9 +390,9 @@ public class PathwayManager {
                     pathway.getPathwayDesc(), Field.Store.YES));
         }
 
-        if (!CollectionUtils.isEmpty(species)) {
+        if (!CollectionUtils.isEmpty(taxIds)) {
             doc.add(new TextField(PathwayIndexFields.SPECIES.getFieldName(),
-                    serialize(species), Field.Store.YES));
+                    serialize(taxIds.stream().map(String::valueOf).collect(Collectors.toList())), Field.Store.YES));
         }
 
         doc.add(new TextField(PathwayIndexFields.CONTENT.getFieldName(), content, Field.Store.YES));
@@ -423,16 +436,21 @@ public class PathwayManager {
     }
 
     @Nullable
-    private List<Taxonomy> getSpecies(final Document doc) {
+    private List<PathwayOrganism> getOrganisms(final Document doc) {
         if (doc.getField(PathwayIndexFields.SPECIES.getFieldName()) == null) {
             return null;
         }
-        final List<Taxonomy> taxonomies = new ArrayList<>();
         final List<String> species = deserialize(doc.getField(PathwayIndexFields.SPECIES.getFieldName()).stringValue());
-        for (String s: species) {
-            taxonomies.add(Taxonomy.builder().commonName(s).build());
+        final List<PathwayOrganism> organisms = new ArrayList<>();
+        for (String s : species) {
+            if (NumberUtils.isDigits(s)) {
+                PathwayOrganism build = PathwayOrganism.builder()
+                        .taxId(Long.parseLong(s))
+                        .build();
+                organisms.add(build);
+            }
         }
-        return taxonomies;
+        return organisms;
     }
 
     private Query buildPathwaySearchQuery(final PathwayQueryParams params) throws ParseException {

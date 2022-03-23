@@ -37,6 +37,7 @@ public final class MessageConstants {
             ", received [%s].";
     public static final String ILLEGAL_DATABASE_SOURCE = "BLAST Data Base source should be 'NCBI' or 'CUSTOM'" +
             ", received [%s].";
+    public static final String ILLEGAL_TAX_ID = "Taxonomy ID should be numeric, received [%s].";
     public static final String MINIMUM_COMMAND_ARGUMENTS = ILLEGAL_ARGUMENTS
             + " Expected at least [%d] argument(s), received [%d] argument(s).";
     public static final String NOT_ALPHANUMERIC_ARGUMENTS = "Arguments for a [%s] command should be alphanumeric.";

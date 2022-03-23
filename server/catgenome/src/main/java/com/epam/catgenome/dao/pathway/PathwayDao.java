@@ -28,12 +28,14 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
+import com.epam.catgenome.entity.pathway.PathwayOrganism;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -42,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
@@ -90,7 +93,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      */
     public NGBPathway loadPathway(final long pathwayId) {
         List<NGBPathway> pathways = getJdbcTemplate().query(loadPathwayQuery,
-                PathwayParameters.getRowMapper(), pathwayId);
+                PathwayParameters.getExtendedRowExtractor(), pathwayId);
         return CollectionUtils.isEmpty(pathways) ? null : pathways.get(0);
     }
 
@@ -100,7 +103,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
      */
     public List<NGBPathway> loadAllPathways(final QueryParameters queryParameters) {
         final String query = addParametersToQuery(loadPathwaysQuery, queryParameters);
-        return getJdbcTemplate().query(query, PathwayParameters.getRowMapper());
+        return getJdbcTemplate().query(query, PathwayParameters.getExtendedRowExtractor());
     }
 
     public long getTotalCount() {
@@ -157,6 +160,30 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
             pathway.setCreatedDate(rs.getDate(CREATED_DATE.name()));
             pathway.setBucketId(rs.getLong(BUCKET_ID.name()));
             return pathway;
+        }
+
+        static ResultSetExtractor<List<NGBPathway>> getExtendedRowExtractor() {
+            return (rs) -> {
+                long pathwayId = 0;
+                NGBPathway pathway;
+                PathwayOrganism organism;
+                List<NGBPathway> pathways = new ArrayList<>();
+                List<PathwayOrganism> organisms = new ArrayList<>();
+                while (rs.next()) {
+                    if (pathwayId != rs.getLong(PATHWAY_ID.name())) {
+                        organisms = new ArrayList<>();
+                        pathway = PathwayParameters.parsePathway(rs);
+                        pathway.setOrganisms(organisms);
+                        pathways.add(pathway);
+                        pathwayId = rs.getLong(PATHWAY_ID.name());
+                    }
+                    organism = PathwayOrganismDao.PathwayOrganismParameters.parsePathwayOrganism(rs);
+                    if (organism.getPathwayOrganismId() != 0) {
+                        organisms.add(organism);
+                    }
+                }
+                return pathways;
+            };
         }
     }
 }

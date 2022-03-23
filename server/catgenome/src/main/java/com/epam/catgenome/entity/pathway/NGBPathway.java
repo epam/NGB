@@ -25,7 +25,6 @@ package com.epam.catgenome.entity.pathway;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.security.AclClass;
-import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +39,7 @@ public class NGBPathway extends BiologicalDataItem {
     private String pathwayDesc;
     private Long bioDataItemId;
     private PathwayDatabaseSource databaseSource;
-    private List<Taxonomy> species;
+    private List<PathwayOrganism> organisms;
 
     @Override
     public AclClass getAclClass() {

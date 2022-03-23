@@ -30,6 +30,7 @@ import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
+import com.google.common.collect.ImmutableSet;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +74,7 @@ public class PathwayManagerTest extends TestCase {
         assertEquals(sbgnFileName, pathway.getPath());
         assertEquals(sbgnFileName, pathway.getSource());
         assertEquals(PathwayDatabaseSource.CUSTOM, pathway.getDatabaseSource());
+        assertEquals(3, pathway.getOrganisms().size());
     }
 
     @Test
@@ -92,6 +94,8 @@ public class PathwayManagerTest extends TestCase {
     public void loadPathway() throws IOException {
         final NGBPathway pathway = registerPathway("loadPathway", sbgnFileName);
         final NGBPathway createdPathway = pathwayManager.loadPathway(pathway.getPathwayId());
+        assertNotNull(createdPathway);
+        assertEquals(3, createdPathway.getOrganisms().size());
         pathwayManager.deletePathway(pathway.getPathwayId());
         assertNotNull(createdPathway);
     }
@@ -129,6 +133,7 @@ public class PathwayManagerTest extends TestCase {
                 .prettyName("pathway")
                 .path(fileName)
                 .pathwayDesc("description")
+                .taxIds(ImmutableSet.of(1L, 2L, 3L))
                 .build();
         return pathwayManager.registerPathway(request);
     }
