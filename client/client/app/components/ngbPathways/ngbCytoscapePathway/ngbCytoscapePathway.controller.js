@@ -26,12 +26,18 @@ const DATABASE_SOURCES = {
 };
 
 // TODO: make export from SCSS to JS
-const COLLAGE_NODE_BACKGROUND = 'transparent';
-const SBGN_NODE_BACKGROUND = '#F6F6F6';
 const defaultNodeStyle = {
     'color': '#000',
     'border-color': '#555',
     'font-weight': 'normal'
+};
+
+const defaultSBGNNodeStyle = {
+    'background': '#F6F6F6'
+};
+const defaultCollageNodeStyle = {
+    'background': 'transparent',
+    'border-width': '0'
 };
 
 const selectedEdgeStyle = {
@@ -105,6 +111,7 @@ export default class ngbCytoscapePathwayController {
         this.actionsManager = {
             ready: false
         };
+        this.defaultNodeStyle = defaultNodeStyle;
 
         const resizeHandler = () => {
             if (this.resizeCytoscape()) {
@@ -159,7 +166,7 @@ export default class ngbCytoscapePathwayController {
         }
     }
 
-    wrapNodes(nodes, nodeTag, isCollage) {
+    wrapNodes(nodes, nodeTag, commonAttrs, isCollage) {
         const wrappedNodes = [];
 
         function wrapNode(node) {
@@ -174,6 +181,10 @@ export default class ngbCytoscapePathwayController {
             }
             if (isCollage || isFeature) {
                 const div = document.createElement(nodeTag);
+                const nodeData = node.data;
+                if (isCollage && commonAttrs && commonAttrs.taxId) {
+                    nodeData.taxId = commonAttrs.taxId;
+                }
                 div.setAttribute('data-node-data-json', JSON.stringify(node.data));
                 div.setAttribute('data-on-element-click', '$ctrl.onElementClick({data: data})');
                 div.setAttribute('id', node.data.id);
@@ -200,7 +211,10 @@ export default class ngbCytoscapePathwayController {
                 let cytoscapeStyle;
                 if (this.isCollage()) {
                     this.scale = 1;
-                    defaultNodeStyle.background = COLLAGE_NODE_BACKGROUND;
+                    this.defaultNodeStyle = {
+                        ...defaultNodeStyle,
+                        ...defaultCollageNodeStyle
+                    };
                     cytoscapeStyle = [
                         {
                             selector: 'node',
@@ -217,7 +231,10 @@ export default class ngbCytoscapePathwayController {
                     ];
                 } else {
                     this.scale = 0.3;
-                    defaultNodeStyle.background = SBGN_NODE_BACKGROUND;
+                    this.defaultNodeStyle = {
+                        ...defaultNodeStyle,
+                        ...defaultSBGNNodeStyle
+                    };
                     cytoscapeStyle = this.applyDomStylesToSbgn(
                         sbgnStylesheet(Cytoscape),
                         this.settings.style.node
@@ -231,6 +248,7 @@ export default class ngbCytoscapePathwayController {
                         nodes: this.wrapNodes(
                             this.getPlainNodes(savedLayout.nodes),
                             this.tag,
+                            this.elements.attrs,
                             this.isCollage()
                         ),
                         edges: savedLayout.edges
@@ -241,6 +259,7 @@ export default class ngbCytoscapePathwayController {
                         nodes: this.wrapNodes(
                             this.getPlainNodes(this.positionedNodes(this.elements.nodes)),
                             this.tag,
+                            this.elements.attrs,
                             this.isCollage()
                         ),
                         edges: this.elements.edges
@@ -421,9 +440,9 @@ export default class ngbCytoscapePathwayController {
         let style;
         if (term === '' || !deepSearch(node.data(), term, undefined, ['dom', 'defaultPosition'])) {
             style = {
-                'color': defaultNodeStyle.color,
-                'border-color': defaultNodeStyle['border-color'],
-                'font-weight': defaultNodeStyle['font-weight']
+                'color': this.defaultNodeStyle.color,
+                'border': '',
+                'font-weight': this.defaultNodeStyle['font-weight'],
             };
             this.setStyleToNode(node, style);
             node.data('isFound', false);
@@ -433,10 +452,10 @@ export default class ngbCytoscapePathwayController {
         } else {
             style = {
                 color: searchedColor,
-                'border-color': searchedColor,
-                'font-weight': 'bold'
+                'font-weight': 'bold',
+                'border': `1px solid ${searchedColor}`,
+                background: this.defaultNodeStyle.background
             };
-            style.background = defaultNodeStyle.background;
             this.setStyleToNode(node, style);
             node.data('isFound', true);
         }
@@ -472,10 +491,10 @@ export default class ngbCytoscapePathwayController {
         node.data('isAnnotated', false);
         if (!node.data('isFound')) {
             const style = {
-                color: defaultNodeStyle.color,
-                'border-color': defaultNodeStyle['border-color']
+                color: this.defaultNodeStyle.color,
+                'border-color': this.defaultNodeStyle['border-color']
             };
-            style.background = defaultNodeStyle.background;
+            style.background = this.defaultNodeStyle.background;
             this.setStyleToNode(node, style);
         }
     }

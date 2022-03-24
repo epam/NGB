@@ -1,6 +1,9 @@
 const LEFT_CLICK = 1;
-
 const MOUSE_DRAG_THRESHOLD_PX = 2;
+
+const hdrTypeList = {
+    GENE: 'Gene'
+};
 
 export default class ngbInternalPathwayNodeController {
 
@@ -20,6 +23,13 @@ export default class ngbInternalPathwayNodeController {
         }
         if (this.nodeData.unitsOfInformation && this.nodeData.unitsOfInformation.length) {
             this.unitOfInformation = this.nodeData.unitsOfInformation[0].label.text;
+        }
+        if (this.nodeData.ttipData) {
+            this.nodeData.ttipData.forEach(data => {
+                if (data.hdr === hdrTypeList.GENE) {
+                    this.geneId = data.data[0].id;
+                }
+            });
         }
     }
 
@@ -66,35 +76,40 @@ export default class ngbInternalPathwayNodeController {
         }
     }
 
-    navigate(event, element) {
-        if (element.referenceId) {
-            this.navigateToReference(event, element.referenceId);
-        } else if (element.projectId) {
-            this.navigateToDataset(event, element.projectId);
+    navigate() {
+        if (this.nodeData.taxId && this.geneId) {
+            this.navigateToGene();
         }
     }
 
-    navigateToReference(event, referenceId) {
-        this.navigationInProcess = true;
-        if (!referenceId || !this.projectContext || !this.projectContext.references || !this.projectContext.references.length) {
+    async navigateToGene() {
+        if (this.navigationInProcess) {
             return;
         }
-        // const referenceObj = this.projectContext.references.filter(reference => reference.id === referenceId).pop();
-        // const payload = this.ngbInternalPathwayService.getOpenReferencePayload(this.projectContext, referenceObj);
-        // if (payload) {
-        //     this.projectContext.changeState(payload);
-        // }
-    }
+        this.navigationInProcess = true;
+        const [referenceObj] = (this.projectContext.references || [])
+            .filter(reference => reference.species && Number(reference.species.taxId) === Number(this.nodeData.taxId));
 
-    navigateToDataset(event, projectId) {
-        this.navigationInProcess = true;
-        if (!projectId || !this.projectContext || !this.projectContext.datasets || !this.projectContext.datasets.length) {
+        const gene = await this.ngbInternalPathwaysResultService.searchGenes(referenceObj.id, this.geneId);
+        if (!gene) {
             return;
         }
-        // const payload = this.ngbInternalPathwayService.getOpenDatasetPayload(this.projectContext.datasets, projectId);
-        // if (payload) {
-        //     this.projectContext.changeState(payload);
-        // }
+        const chromosomeObj = gene.chromosome,
+            endIndex = gene.endIndex,
+            startIndex = gene.startIndex;
+        if (chromosomeObj && chromosomeObj.id && startIndex && endIndex) {
+            const range = Math.abs(endIndex - startIndex);
+            const start = Math.min(startIndex, endIndex) - range / 10.0;
+            const end = Math.max(startIndex, endIndex) + range / 10.0;
+            this.projectContext.changeState({
+                chromosome: chromosomeObj,
+                viewport: {
+                    start,
+                    end
+                }
+            });
+        }
+        this.navigationInProcess = false;
     }
 
     highlightNode() {

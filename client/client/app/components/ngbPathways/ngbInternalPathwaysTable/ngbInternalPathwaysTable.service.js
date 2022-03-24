@@ -156,7 +156,8 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
             name: internalPathways.prettyName || internalPathways.name,
             description: internalPathways.pathwayDesc,
             databaseSource: internalPathways.databaseSource,
-            source: DATABASE_SOURCES[internalPathways.databaseSource] || internalPathways.databaseSource
+            source: DATABASE_SOURCES[internalPathways.databaseSource] || internalPathways.databaseSource,
+            organisms: internalPathways.organisms
         };
     }
 }

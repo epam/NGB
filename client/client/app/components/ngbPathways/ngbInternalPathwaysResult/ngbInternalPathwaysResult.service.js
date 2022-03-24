@@ -7,13 +7,14 @@ const DATABASE_SOURCES = {
 const LOCAL_STORAGE_KEY = 'internal-pathways-state';
 
 export default class ngbInternalPathwaysResultService {
-    constructor(genomeDataService, dispatcher) {
+    constructor(genomeDataService, projectDataService, dispatcher) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
+        this.projectDataService = projectDataService;
     }
 
-    static instance(genomeDataService, dispatcher) {
-        return new ngbInternalPathwaysResultService(genomeDataService, dispatcher);
+    static instance(genomeDataService, projectDataService, dispatcher) {
+        return new ngbInternalPathwaysResultService(genomeDataService, projectDataService, dispatcher);
     }
 
     get localStorageKey() {
@@ -41,6 +42,9 @@ export default class ngbInternalPathwaysResultService {
             data.name = treeConfig.name;
             data.description = treeConfig.description;
             data.source = treeConfig.source;
+            if (treeConfig.taxId) {
+                data.attrs = {taxId: treeConfig.taxId};
+            }
             if (data) {
                 return {
                     data: data,
@@ -58,5 +62,27 @@ export default class ngbInternalPathwaysResultService {
                 error: e.message
             };
         }
+    }
+
+    async getNavigationToChromosomeInfo(context, taxId) {
+        const [reference] = (context.references || [])
+            .filter(reference.species && Number(reference.species.taxId) === Number(taxId));
+        const referenceId = reference ? reference.id : undefined;
+        if (!referenceId) {
+            return null;
+        }
+
+        return {
+            referenceId
+        };
+    }
+
+
+    async searchGenes(referenceId, geneId) {
+        const data = await this.projectDataService.searchGenes(
+            referenceId,
+            geneId
+        );
+        return data ? data.entries ? data.entries[0] : null : null;
     }
 }
