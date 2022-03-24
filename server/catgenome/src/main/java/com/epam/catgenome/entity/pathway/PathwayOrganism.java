@@ -21,22 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.ngb.cli.entity.pathway;
+package com.epam.catgenome.entity.pathway;
 
-import com.epam.ngb.cli.entity.RequestPayload;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
-
 @Getter
 @Setter
 @Builder
-public class PathwayRegistrationRequest implements RequestPayload {
-    private String name;
-    private String prettyName;
-    private String path;
-    private String pathwayDesc;
-    private Set<Long> taxIds;
+public class PathwayOrganism {
+    private Long pathwayOrganismId;
+    private Long pathwayId;
+    private Long taxId;
 }

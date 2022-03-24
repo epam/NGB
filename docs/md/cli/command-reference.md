@@ -908,7 +908,7 @@ ngb reg_pathway|rp [<PATH>] [options]
 //Options:
 //-n (--name)                   Pathway name
 //-pt (--pretty)                Pathway pretty name
-//-o (--organisms)              List of pathway species, separated by comma
+//--taxids                      List of taxonomy IDs, separated by comma
 
 ```
 *Description*
@@ -918,15 +918,15 @@ Registers a Pathway. One argument has to be specified:
 
 *Example*
 ```bash
-# Create new pathway with path "pathway.sbml"
-$ ngb reg_pathway "pathway.sbml"
+# Create new pathway with path "pathway.sbgn"
+$ ngb reg_pathway "pathway.sbgn"
 ```
 
 ### Register BioPAX 
 ```
 ngb reg_biopax|rb [<PATH>] [options]
 //Options:
-//-o (--organisms)              List of species, separated by comma
+//--taxids                      List of taxonomy IDs, separated by comma
 
 ```
 *Description*

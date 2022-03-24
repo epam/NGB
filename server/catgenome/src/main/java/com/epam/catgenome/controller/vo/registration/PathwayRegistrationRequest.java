@@ -27,7 +27,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -37,5 +37,5 @@ public class PathwayRegistrationRequest extends DefaultFileRegistrationRequest {
     private String prettyName;
     private String path;
     private String pathwayDesc;
-    private List<String> species;
+    private Set<Long> taxIds;
 }

@@ -33,15 +33,17 @@ import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.TextUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_TAX_ID;
 
 @Slf4j
 @Command(type = Command.Type.REQUEST, command = {"reg_pathway"})
@@ -65,10 +67,22 @@ public class PathwayRegistrationHandler extends AbstractHTTPCommandHandler {
                 .build();
         registrationRequest.setName(options.getName());
         registrationRequest.setPrettyName(options.getPrettyName());
-        if (!TextUtils.isBlank(options.getSpecies())) {
-            registrationRequest.setSpecies(Arrays.stream(options.getSpecies().split(","))
-                    .collect(Collectors.toList()));
+        if (!TextUtils.isBlank(options.getTaxIds())) {
+            final Set<Long> taxIds = getTaxIds(options.getTaxIds());
+            registrationRequest.setTaxIds(taxIds);
         }
+    }
+
+    public static Set<Long> getTaxIds(final String taxIdsString) {
+        final String[] organisms = taxIdsString.split(",");
+        final Set<Long> taxIds = new HashSet<>();
+        for (String organism : organisms) {
+            if (!NumberUtils.isDigits(organism.trim())) {
+                throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_TAX_ID, organism.trim()));
+            }
+            taxIds.add(Long.valueOf(organism.trim()));
+        }
+        return taxIds;
     }
 
     @Override public int runCommand() {

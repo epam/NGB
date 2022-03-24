@@ -37,11 +37,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.TextUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.manager.command.handler.http.pathway.PathwayRegistrationHandler.getTaxIds;
 
 @Slf4j
 @Command(type = Command.Type.REQUEST, command = {"reg_biopax"})
@@ -63,11 +63,9 @@ public class BioPAXRegistrationHandler extends AbstractHTTPCommandHandler {
         registrationRequest = BioPAXRegistrationRequest.builder()
                 .path(arguments.get(0))
                 .build();
-        if (!TextUtils.isBlank(options.getSpecies())) {
-            final List<String> species = Arrays.stream(options.getSpecies().split(","))
-                    .map(String::trim)
-                    .collect(Collectors.toList());
-            registrationRequest.setSpecies(species);
+        if (!TextUtils.isBlank(options.getTaxIds())) {
+            final Set<Long> taxIds = getTaxIds(options.getTaxIds());
+            registrationRequest.setTaxIds(taxIds);
         }
     }
 
