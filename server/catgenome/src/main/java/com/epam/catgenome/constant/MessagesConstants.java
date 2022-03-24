@@ -82,7 +82,8 @@ public final class MessagesConstants {
     public static final String ERROR_FINISHPOSITION_NOT_SPECIFIED = "error.no.finishposition";
 
     public static final String ERROR_PROJECT_NAME_EXISTS = "error.project.name.already.exists";
-    public static final String ERROR_PROJECT_NOT_FOUND = "error.project.not.found";
+    public static final String ERROR_PROJECT_ID_NOT_FOUND = "error.project.id.not.found";
+    public static final String ERROR_PROJECT_NAME_NOT_FOUND = "error.project.name.not.found";
 
     public static final String ERROR_UNSUPPORTED_FEATURE_FILE_TYPE = "error.unsupported.featurefiletype";
     public static final String ERROR_UNSUPPORTED_FEATURE_FILE_SORT_TYPE = "error.unsupported.featurefilesorttype";

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +25,9 @@
 package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.manager.command.handler.Command;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * {@code {@link AnnotationReferenceAddingHandler }} represents a tool for handling 'add_ann' command and
- * adding a annotation files to a reference, registered on NGB server. This command requires strictly two arguments:
- * - reference ID or name
- * - annotation file IDs, names or paths to files (only for registration as a new file)
- */
-@Command(type = Command.Type.REQUEST, command = {"add_annotation"})
-public class AnnotationReferenceAddingHandler extends AbstractAnnotationReferenceHandler {
-
-    private static final boolean REMOVING_FLAG = false;
-
-    @Override
-    protected boolean isRemoving() {
-        return REMOVING_FLAG;
-    }
+@Slf4j
+@Command(type = Command.Type.REQUEST, command = {"rename_file"})
+public class FileRenameHandler extends AbstractEntityRenameHandler {
 }

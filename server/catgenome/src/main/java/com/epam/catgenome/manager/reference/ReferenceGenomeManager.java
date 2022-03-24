@@ -492,5 +492,4 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
     public AclClass getSupportedClass() {
         return AclClass.REFERENCE;
     }
-
 }

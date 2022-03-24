@@ -31,6 +31,7 @@ import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.manager.command.ServerParameters;
+import com.epam.ngb.cli.manager.command.handler.http.reference.ReferenceListHandler;
 import org.junit.*;
 
 import java.util.Collections;

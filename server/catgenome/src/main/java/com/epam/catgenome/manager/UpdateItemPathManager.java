@@ -101,7 +101,7 @@ public class UpdateItemPathManager {
         }
         heatmapManager.updateHeatmapPaths(heatmaps);
         lineageTreeManager.updateLineageTreePaths(lineageTrees);
-        biologicalDataItemManager.updateBiologicalDataItemPath(itemsToBeUpdated);
+        biologicalDataItemManager.updateBiologicalDataItems(itemsToBeUpdated);
         if (sendNotification && CollectionUtils.isNotEmpty(files)) {
             sendNotification(getSubject(files));
         }

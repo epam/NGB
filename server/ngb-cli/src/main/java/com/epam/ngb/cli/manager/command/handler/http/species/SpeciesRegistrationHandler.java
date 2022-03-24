@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
@@ -30,6 +30,8 @@ import com.epam.ngb.cli.entity.RegistrationRequest;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import java.util.List;
+
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;

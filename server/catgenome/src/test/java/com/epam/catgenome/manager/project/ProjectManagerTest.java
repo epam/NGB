@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager;
+package com.epam.catgenome.manager.project;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +71,6 @@ import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.maf.MafManager;
-import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.seg.SegManager;
@@ -165,7 +164,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         // load my projects
         List<Project> myProjects = projectManager.loadTopLevelProjects();
-        Assert.assertTrue(myProjects.stream().allMatch(p -> !p.getItems().isEmpty()));
+        Assert.assertTrue(myProjects.stream().noneMatch(p -> p.getItems().isEmpty()));
 
         VcfFile file2 = addVcfFile(TEST_VCF_FILE_NAME2, TEST_VCF_FILE_PATH);
         BiologicalDataItem item2 = new BiologicalDataItem();
@@ -630,6 +629,21 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getId());
         Assert.assertNotNull(projectReference.getGeneFile().getName());
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testRenameProject() {
+        final Project project = new Project();
+        project.setName(TEST_PROJECT_NAME);
+        project.setPrettyName("pretty");
+        final Project createdProject = projectManager.create(project);
+        projectManager.renameProject(createdProject.getName(), "newProjectName",
+                "newProjectPrettyName");
+
+        final Project loadedProject = projectManager.load(createdProject.getId());
+        Assert.assertEquals("newProjectName", loadedProject.getName());
+        Assert.assertEquals("newProjectPrettyName", loadedProject.getPrettyName());
     }
 
     private void assertNullLoadProjectWithNested(final Project root) {

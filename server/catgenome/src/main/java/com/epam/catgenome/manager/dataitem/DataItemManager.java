@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,9 @@ package com.epam.catgenome.manager.dataitem;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOUND;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_NAME_NOT_FOUND;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_LOCAL_DOWNLOAD;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_NAME_EXISTS;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
@@ -132,6 +134,27 @@ public class DataItemManager {
         return items.get(0);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void renameFile(final String name, final String newName, final String newPrettyName) {
+        Assert.isTrue(StringUtils.isNotBlank(newName) || StringUtils.isNotBlank(newPrettyName),
+                "Either new name or new pretty name should be defined.");
+        if (StringUtils.isNotBlank(newName)) {
+            Assert.isTrue(!name.trim().equals(newName.trim()),
+                    "New file name should not be equal to old name.");
+        }
+        final List<BiologicalDataItem> items = biologicalDataItemDao.loadFilesByNameStrict(name.trim());
+        Assert.isTrue(!items.isEmpty(), getMessage(ERROR_BIO_NAME_NOT_FOUND, name.trim()));
+        final BiologicalDataItem item = items.get(0);
+        if (StringUtils.isNotBlank(newName)) {
+            checkItemName(newName.trim());
+            item.setName(newName.trim());
+        }
+        if (StringUtils.isNotBlank(newPrettyName)) {
+            item.setPrettyName(newPrettyName.trim());
+        }
+        biologicalDataItemDao.updateBiologicalDataItems(Collections.singletonList(item));
+    }
+
     /**
      * Method defines the format of a file, specified by biological data item ID, and uses the
      * corresponding to the format manager to delete it. Reference file must be deleted using
@@ -197,16 +220,6 @@ public class DataItemManager {
         throw new UnsupportedOperationException("Download available for local data only");
     }
 
-    private BiologicalDataItemFile loadLocalFileItem(final BiologicalDataItem biologicalDataItem,
-                                                     final String dataItemPath) throws IOException {
-        Assert.state(Files.exists(Paths.get(dataItemPath)),
-                getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
-        return BiologicalDataItemFile.builder()
-                .content(Files.newInputStream(Paths.get(dataItemPath)))
-                .fileName(FilenameUtils.getName(dataItemPath))
-                .build();
-    }
-
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
                                                              final BiologicalDataItem biologicalDataItem) {
         final BiologicalDataItemResourceType type = determineType(biologicalDataItem);
@@ -248,5 +261,20 @@ public class DataItemManager {
         } catch (IOException e) {
             throw new IllegalStateException(getMessage(ERROR_FILE_LOCAL_DOWNLOAD, id), e);
         }
+    }
+
+    private BiologicalDataItemFile loadLocalFileItem(final BiologicalDataItem biologicalDataItem,
+                                                     final String dataItemPath) throws IOException {
+        Assert.state(Files.exists(Paths.get(dataItemPath)),
+                getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
+        return BiologicalDataItemFile.builder()
+                .content(Files.newInputStream(Paths.get(dataItemPath)))
+                .fileName(FilenameUtils.getName(dataItemPath))
+                .build();
+    }
+
+    private void checkItemName(final String name) {
+        final List<BiologicalDataItem> items = biologicalDataItemDao.loadFilesByNameStrict(name);
+        Assert.isTrue(items.isEmpty(), getMessage(ERROR_FILE_NAME_EXISTS, name));
     }
 }

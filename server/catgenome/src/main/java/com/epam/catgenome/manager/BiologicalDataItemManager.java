@@ -94,8 +94,8 @@ public class BiologicalDataItemManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateBiologicalDataItemPath(final List<BiologicalDataItem> items) {
-        biologicalDataItemDao.updateBiologicalDataItemPath(items);
+    public void updateBiologicalDataItems(final List<BiologicalDataItem> items) {
+        biologicalDataItemDao.updateBiologicalDataItems(items);
     }
 
     /**
@@ -136,7 +136,7 @@ public class BiologicalDataItemManager {
             project = projectManager.load(dataset);
         }
 
-        Assert.notNull(project, getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, dataset));
+        Assert.notNull(project, getMessage(MessagesConstants.ERROR_PROJECT_ID_NOT_FOUND, dataset));
         List<String> bioItemNames = new ArrayList<>();
         List<Long> bioItemIds = new ArrayList<>();
         for (String id : ids) {

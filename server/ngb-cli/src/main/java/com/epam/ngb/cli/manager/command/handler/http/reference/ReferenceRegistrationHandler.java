@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.reference;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.getTypeFromPath;
@@ -32,6 +32,7 @@ import com.epam.ngb.cli.entity.SpeciesEntity;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;

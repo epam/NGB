@@ -22,47 +22,43 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
-
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.List;
+
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+
 /**
- * {@code {@link DatasetDeletionHandler}} represents a tool for handling 'delete_dataset' command and
- * deleting a dataset(ex-projects) from NGB server. This command requires strictly one argument:
- * dataset ID or name.
+ * {@code {@link SpeciesDeletionHandler}} represents a tool for handling 'delete_species' command and
+ * deleting a species from NGB server. This command requires strictly one argument:
+ * species version.
  */
-@Command(type = Command.Type.REQUEST, command = {"delete_dataset"})
-public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"delete_species"})
+public class SpeciesDeletionHandler extends AbstractHTTPCommandHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetDeletionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpeciesDeletionHandler.class);
 
     /**
-     * ID of dataset to delete
+     * Version of the species to delete
      */
-    private Long projectId;
-
-    private boolean force;
+    private String speciesVersion;
 
     /**
-     * Verifies that input arguments contain the required parameter:
-     * the first and the only one argument must be dataset ID or name.
-     * If dataset's name is provided, it's ID will be loaded from the NGB server.
-     * @param arguments command line arguments for 'delete_dataset' command
+     * Verifies that input arguments contain the required parameters:
+     * first and the only argument must be species version.
+     * @param arguments command line arguments for 'delete_species' command
      * @param options aren't used in this command
      */
     @Override
@@ -71,32 +67,21 @@ public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        projectId = parseProjectId(arguments.get(0));
-        force = options.isForceDeletion();
+        speciesVersion = arguments.get(0);
     }
 
-    /**
-     * Performs a dataset deletion request to NGB server
-     * @return 0 if request completed successfully
-     */
-    @Override public int runCommand() {
-        runDeletion(projectId);
-        return 0;
-    }
-
-    @Override protected void runDeletion(Long id) {
-        String url = String.format(getRequestUrl(), id);
+    @Override
+    public int runCommand() {
+        String url = String.format(getRequestUrl(), speciesVersion);
+        HttpRequestBase request = getRequest(url);
+        String result = RequestManager.executeRequest(request);
         try {
-            URIBuilder requestBuilder = new URIBuilder(String.format(url, projectId));
-            requestBuilder.setParameter("force", String.valueOf(force));
-            HttpRequestBase request = getRequest(requestBuilder.build().toString());
-
-            String result = RequestManager.executeRequest(request);
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
             LOGGER.info(response.getStatus() + "\t" + response.getMessage());
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
+        return 0;
     }
 }

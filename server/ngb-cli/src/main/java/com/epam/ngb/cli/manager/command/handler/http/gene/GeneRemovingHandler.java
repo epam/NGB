@@ -22,51 +22,53 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
-
+package com.epam.ngb.cli.manager.command.handler.http.gene;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 import java.util.List;
 
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import org.apache.http.client.methods.HttpRequestBase;
+
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.request.RequestManager;
 
 /**
- * {@code {@link ReferenceRegistrationHandler}} represents a tool handling "delete_reference" command and
- * sending request to NGB server for reference deletion. This command requires strictly one argument:
- * ID or name of the reference.
+ * {@code {@link GeneRemovingHandler}} represents a tool for handling 'remove_genes' command and
+ * removing any gene file from a reference, registered on NGB server. This command requires strictly one argument:
+ * - reference ID or name
  */
-@Command(type = Command.Type.REQUEST, command = {"delete_reference"})
-public class ReferenceDeletionHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"remove_genes"})
+public class GeneRemovingHandler extends AbstractHTTPCommandHandler {
 
-    /**
-     * ID of the reference to delete
-     */
     private Long referenceId;
-
     /**
-     * Verifies that input arguments contain the required parameters:
-     * first and the only argument must be ID or name of the reference file.
-     * @param arguments command line arguments for 'delete_reference' command
-     * @param options aren't used in this command
+     * If true command will output result of reference registration in a json format
      */
+    private boolean printJson;
+    /**
+     * If true command will output result of reference registration in a table format
+     */
+    private boolean printTable;
+
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.isEmpty() || arguments.size() != 1) {
+        if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
         referenceId = loadReferenceId(arguments.get(0));
+        printJson = options.isPrintJson();
+        printTable = options.isPrintTable();
     }
 
-    /**
-     * Performs a reference deletion request to NGB server
-     * @return 0 if request completed successfully
-     */
     @Override public int runCommand() {
-        runDeletion(referenceId);
+        HttpRequestBase request = getRequest(String.format(getRequestUrl(), referenceId));
+        String result = RequestManager.executeRequest(request);
+        checkAndPrintRegistrationResult(result, printJson, printTable);
         return 0;
     }
 }

@@ -300,4 +300,19 @@
         <type>GET</type>
         <url>/restapi/bam/coverage/all</url>
     </list_coverage>
+    <rename_ref>
+        <name>rename_ref</name>
+        <type>PUT</type>
+        <url>/restapi/dataitem/%s/rename</url>
+    </rename_ref>
+    <rename_file>
+        <name>rename_file</name>
+        <type>PUT</type>
+        <url>/restapi/dataitem/%s/rename</url>
+    </rename_file>
+    <rename_dataset>
+        <name>rename_dataset</name>
+        <type>PUT</type>
+        <url>/restapi/project/%s/rename</url>
+    </rename_dataset>
 </config>

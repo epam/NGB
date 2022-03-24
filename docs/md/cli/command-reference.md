@@ -142,6 +142,24 @@ $ ngb del_ref grch38
 $ ngb dr 1
 ```
 
+### Rename reference
+```
+ngb rename_ref|rnr [<REFERENCE_NAME>] [options]
+
+//Options:
+//-n (--name)           Use specified value for new reference name.
+//-pt (--pretty)        Use specified value for new reference pretty name.
+```
+*Description*
+
+Renames specified reference sequence file.
+
+*Example*
+```bash
+# Rename reference with name "grch38" and change pretty name
+$ ngb rename_ref grch38 -n new_name -pt new_pretty_name
+```
+
 ### Add gene file to the reference
 ```
 ngb add_genes|ag [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAME|FILE_ID|FILE_PATH>] [options]
@@ -331,6 +349,24 @@ $ ngb del_file my_sample
 
 # Delete file with id 18
 $ ngb df 18
+```
+
+### Rename file
+```
+ngb rename_file|rnf [<FILE_NAME>] [options]
+
+//Options:
+//-n (--name)           Use specified value for new file name.
+//-pt (--pretty)        Use specified value for new file pretty name.
+```
+*Description*
+
+Renames specified file.
+
+*Example*
+```bash
+# Rename file with name "my_sample" and change pretty name
+$ ngb rename_file my_sample -n new_name -pt new_pretty_name
 ```
 
 ### Build feature index for a file
@@ -524,6 +560,24 @@ $ ngb del_dataset new_dataset
 
 # Delete dataset with id "1"
 $ ngb dd 1
+```
+
+### Rename dataset
+```
+ngb rename_dataset|rnd [<DATASET_NAME>] [options]
+
+//Options:
+//-n (--name)           Use specified value for new dataset name.
+//-pt (--pretty)        Use specified value for new dataset pretty name.
+```
+*Description*
+
+Renames specified dataset.
+
+*Example*
+```bash
+# Rename dataset with name "dataset" and change pretty name
+$ ngb rename_dataset dataset -n new_dataset -pt new_pretty_name
 ```
 
 ### Add dataset description

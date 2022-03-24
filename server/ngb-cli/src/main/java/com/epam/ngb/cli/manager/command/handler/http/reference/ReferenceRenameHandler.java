@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,13 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.reference;
 
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractEntityRenameHandler;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * {@code {@link AnnotationReferenceRemovingHandler }} represents a tool for handling 'remove_ann' command and
- * removing a annotation file from a reference, registered on NGB server. This command requires strictly two arguments:
- * - reference ID or name
- * - annotation file IDs or file names
- */
-@Command(type = Command.Type.REQUEST, command = {"remove_annotation"})
-public class AnnotationReferenceRemovingHandler extends AbstractAnnotationReferenceHandler {
-
-    private static final boolean REMOVING_FLAG = true;
-
-    @Override
-    protected boolean isRemoving() {
-        return REMOVING_FLAG;
-    }
+@Slf4j
+@Command(type = Command.Type.REQUEST, command = {"rename_ref"})
+public class ReferenceRenameHandler extends AbstractEntityRenameHandler {
 }

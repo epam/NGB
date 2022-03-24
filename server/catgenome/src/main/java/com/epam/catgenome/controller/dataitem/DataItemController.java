@@ -47,12 +47,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -132,6 +127,23 @@ public class DataItemController extends AbstractRESTController {
     public final Result<BiologicalDataItem> findFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
         return Result.success(dataItemSecurityService.findFileByBioItemId(id));
+    }
+
+    @ResponseBody
+    @PutMapping(value = "/dataitem/{name}/rename")
+    @ApiOperation(
+            value = "Updates file name and/or pretty name.",
+            notes = "Updates file name and/or pretty name.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public final Result<Boolean> rename(
+            @PathVariable(value = "name") final String name,
+            @RequestParam(value = "newName", required = false) final String newName,
+            @RequestParam(value = "newPrettyName", required = false) final String newPrettyName) {
+        dataItemSecurityService.renameFile(name, newName, newPrettyName);
+        return Result.success(null);
     }
 
     @GetMapping("/dataitem/{id}/download")

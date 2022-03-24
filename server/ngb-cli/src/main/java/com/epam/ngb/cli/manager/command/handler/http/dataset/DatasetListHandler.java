@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
@@ -32,6 +32,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.epam.ngb.cli.entity.AclClass;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import com.epam.ngb.cli.manager.command.handler.http.PrintPermissionsHelper;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;

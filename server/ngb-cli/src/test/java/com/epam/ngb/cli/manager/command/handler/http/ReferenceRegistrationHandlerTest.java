@@ -28,6 +28,7 @@ import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.manager.command.ServerParameters;
+import com.epam.ngb.cli.manager.command.handler.http.reference.ReferenceRegistrationHandler;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;

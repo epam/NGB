@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,35 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
-
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-
-import java.util.List;
-
-import org.apache.http.client.methods.HttpRequestBase;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.http.client.methods.HttpRequestBase;
+
+import java.util.List;
+
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
- * {@code {@link GeneRemovingHandler}} represents a tool for handling 'remove_genes' command and
- * removing any gene file from a reference, registered on NGB server. This command requires strictly one argument:
+ * {@code {@link SpeciesRemovingHandler}} represents a tool for handling 'remove_species' command and
+ * removing species from a reference, registered on NGB server. This command requires strictly one argument:
  * - reference ID or name
  */
-@Command(type = Command.Type.REQUEST, command = {"remove_genes"})
-public class GeneRemovingHandler extends AbstractHTTPCommandHandler{
+@Command(type = Command.Type.REQUEST, command = {"remove_species"})
+public class SpeciesRemovingHandler extends AbstractHTTPCommandHandler {
 
     private Long referenceId;
+
     /**
-     * If true command will output result of reference registration in a json format
+     * If true command will output result of species removing in json format
      */
     private boolean printJson;
     /**
-     * If true command will output result of reference registration in a table format
+     * If true command will output result of species removing in table format
      */
     private boolean printTable;
 
@@ -64,7 +65,8 @@ public class GeneRemovingHandler extends AbstractHTTPCommandHandler{
         printTable = options.isPrintTable();
     }
 
-    @Override public int runCommand() {
+    @Override
+    public int runCommand() {
         HttpRequestBase request = getRequest(String.format(getRequestUrl(), referenceId));
         String result = RequestManager.executeRequest(request);
         checkAndPrintRegistrationResult(result, printJson, printTable);

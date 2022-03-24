@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,18 +51,16 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import com.epam.catgenome.util.db.Filter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.seg.SegFileDao;
@@ -78,11 +76,12 @@ import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegSample;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
-import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
 import org.springframework.util.CollectionUtils;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.constant.MessagesConstants.*;
 import static org.apache.commons.lang3.StringUtils.join;
 
 /**
@@ -96,33 +95,17 @@ import static org.apache.commons.lang3.StringUtils.join;
  */
 @AclSync
 @Service
+@RequiredArgsConstructor
 public class ProjectManager implements SecuredEntityManager {
-    @Autowired
-    private ProjectDao projectDao;
-
-    @Autowired
-    private VcfFileDao vcfFileDao;
-
-    @Autowired
-    private SegFileDao segFileDao;
-
-    @Autowired
-    private ReferenceGenomeDao referenceGenomeDao;
-
-    @Autowired
-    private BiologicalDataItemDao biologicalDataItemDao;
-
-    @Autowired
-    private FileManager fileManager;
-
-    @Autowired
-    private AuthManager authManager;
-
-    @Autowired
-    private MetadataManager metadataManager;
-
-    @Autowired
-    private ProjectDescriptionDao projectDescriptionDao;
+    private final ProjectDao projectDao;
+    private final VcfFileDao vcfFileDao;
+    private final SegFileDao segFileDao;
+    private final ReferenceGenomeDao referenceGenomeDao;
+    private final BiologicalDataItemDao biologicalDataItemDao;
+    private final FileManager fileManager;
+    private final AuthManager authManager;
+    private final MetadataManager metadataManager;
+    private final ProjectDescriptionDao projectDescriptionDao;
 
     /**
      * Loads all top-level projects for current user from the database.
@@ -160,15 +143,13 @@ public class ProjectManager implements SecuredEntityManager {
      * @return all project hierarchy for current user, with all items
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadProjectTree(final Long parentId, String referenceName) {
+    public List<Project> loadProjectTree(final Long parentId, final String referenceName) {
         List<Project> allProjects;
         if (StringUtils.isEmpty(referenceName)) {
             allProjects = projectDao.loadAllProjects();
         } else {
-            Reference reference =
-                    referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
-            Assert.notNull(reference,
-                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
+            Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            Assert.notNull(reference, getMessage(ERROR_BIO_NAME_NOT_FOUND, referenceName));
             allProjects = projectDao.loadProjectsByBioDataItemId(reference.getBioDataItemId());
         }
 
@@ -211,8 +192,7 @@ public class ProjectManager implements SecuredEntityManager {
 
         if (parentId != null) {
             Project topProject = this.load(parentId);
-            Assert.notNull(topProject,
-                    MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, parentId));
+            Assert.notNull(topProject, getMessage(ERROR_PROJECT_ID_NOT_FOUND, parentId));
             topProject.setNestedProjects(hierarchyMap.get(parentId));
             attachMetadataToTopProject(parentId, topProject);
             return Collections.singletonList(topProject);
@@ -228,19 +208,17 @@ public class ProjectManager implements SecuredEntityManager {
      * @return a {@code Project} from the database
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Project load(Long projectId) {
-        Project project = projectDao.loadProject(projectId);
-        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
-
+    public Project load(final Long projectId) {
+        final Project project = projectDao.loadProject(projectId);
+        Assert.notNull(project, getMessage(ERROR_PROJECT_ID_NOT_FOUND, projectId));
         loadProjectStuff(project);
-
         return project;
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        Project project = load(id);
+    public AbstractSecuredEntity changeOwner(final Long id, final String owner) {
+        final Project project = load(id);
         project.setOwner(owner);
         projectDao.updateOwner(id, owner);
         return project;
@@ -258,24 +236,12 @@ public class ProjectManager implements SecuredEntityManager {
      * @return a {@code Project} from the database
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Project load(String projectName) {
-        Project project = projectDao.loadProject(projectName);
-        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectName));
-
+    public Project load(final String projectName) {
+        final Project project = projectDao.loadProject(projectName);
+        Assert.notNull(project, getMessage(ERROR_PROJECT_NAME_NOT_FOUND, projectName));
         loadProjectStuff(project);
         updateLastOpenedDate(project);
-
         return project;
-    }
-
-    private void loadProjectStuff(Project project) {
-        loadProjectItems(project);
-        project.setNestedProjects(projectDao.loadNestedProjects(project.getId()));
-        project.setNotes(projectDao.loadProjectNotes(project.getId()));
-    }
-
-    private void updateLastOpenedDate(Project project) {
-        projectDao.updateLastOpenedDate(project.getId());
     }
 
     /**
@@ -284,44 +250,12 @@ public class ProjectManager implements SecuredEntityManager {
      * @param parentId an ID of a parent project to move to
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void moveProjectToParent(long projectId, Long parentId) {
-        Assert.notNull(projectDao.loadProject(projectId), MessageHelper.getMessage(
-            MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
-
+    public void moveProjectToParent(final long projectId, final Long parentId) {
+        Assert.notNull(projectDao.loadProject(projectId), getMessage(ERROR_PROJECT_ID_NOT_FOUND, projectId));
         if (parentId != null) {
-            Assert.notNull(projectDao.loadProject(parentId), MessageHelper.getMessage(
-                MessagesConstants.ERROR_PROJECT_NOT_FOUND, parentId));
+            Assert.notNull(projectDao.loadProject(parentId), getMessage(ERROR_PROJECT_ID_NOT_FOUND, parentId));
         }
-
         projectDao.moveProjectToParent(projectId, parentId);
-    }
-
-    private void loadProjectItems(Project project) {
-        project.setItems(projectDao.loadProjectItemsByProjectId(project.getId()));
-
-        // Set Vcf files samples
-        Set<Long> vcfIds = new HashSet<>();
-        Set<Long> segIds = new HashSet<>();
-        project.getItems().stream().forEach(item -> {
-            if (item.getBioDataItem() != null) {
-                switch (item.getBioDataItem().getFormat()) {
-                    case VCF:
-                        VcfFile vcfFile = (VcfFile) item.getBioDataItem();
-                        vcfIds.add(vcfFile.getId());
-                        break;
-                    case SEG:
-                        SegFile segFile = (SegFile) item.getBioDataItem();
-                        segIds.add(segFile.getId());
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
-
-        loadSamples(project, vcfIds, segIds);
-
-        project.setItemsCount(project.getItems().size());
     }
 
     /**
@@ -346,7 +280,7 @@ public class ProjectManager implements SecuredEntityManager {
      * @return saved {@code Project} from the database
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project create(final Project project, Long parentId) {
+    public Project create(final Project project, final Long parentId) {
         project.setOwner(authManager.getAuthorizedUser());
 
         Project helpProject = project;
@@ -396,7 +330,7 @@ public class ProjectManager implements SecuredEntityManager {
 
                 Assert.isTrue(itemsToAdd.stream().noneMatch(
                     item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
-                        MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+                        getMessage(ERROR_PROJECT_INVALID_REFERENCE));
                 checkReference(reference, itemsAdded);
 
                 projectDao.addProjectItems(helpProject.getId(), itemsToAdd);
@@ -446,23 +380,38 @@ public class ProjectManager implements SecuredEntityManager {
      *                             with nested projects
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project deleteProject(Long projectId, Boolean force) throws IOException {
+    public Project deleteProject(final Long projectId, final Boolean force) throws IOException {
         // Throws an error if there is no such project
-        Project projectToDelete = this.load(projectId);
+        final Project projectToDelete = this.load(projectId);
         //if force flag is disabled that we can't delete parent project
         if (!force) {
-            List<Project> nestedProjects = projectDao.loadNestedProjects(projectId);
-            Assert.isTrue(
-                    nestedProjects.isEmpty(),
-                    MessageHelper.getMessage(
-                            MessagesConstants.ERROR_PROJECT_DELETE_HAS_NESTED,
-                            projectToDelete.getName()
-                    )
+            final List<Project> nestedProjects = projectDao.loadNestedProjects(projectId);
+            Assert.isTrue(nestedProjects.isEmpty(), getMessage(ERROR_PROJECT_DELETE_HAS_NESTED,
+                    projectToDelete.getName())
             );
         }
-
         deleteProjectWithNested(projectToDelete);
         return projectToDelete;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void renameProject(final String name, final String newName, final String newPrettyName) {
+        Assert.isTrue(StringUtils.isNotBlank(newName) || StringUtils.isNotBlank(newPrettyName),
+                "Either new name or new pretty name should be defined.");
+        if (StringUtils.isNotBlank(newName)) {
+            Assert.isTrue(!name.trim().equals(newName.trim()),
+                    "New project name should not be equal to old name.");
+        }
+        final Project project = projectDao.loadProject(name);
+        Assert.notNull(project, getMessage(ERROR_PROJECT_NAME_NOT_FOUND, name));
+        if (StringUtils.isNotBlank(newName)) {
+            checkProjectName(newName.trim());
+            project.setName(newName.trim());
+        }
+        if (StringUtils.isNotBlank(newPrettyName)) {
+            project.setPrettyName(newPrettyName.trim());
+        }
+        projectDao.saveProject(project, null);
     }
 
     /**
@@ -479,7 +428,7 @@ public class ProjectManager implements SecuredEntityManager {
                 .loadBiologicalDataItemsByIds(Collections.singletonList(biologicalItemId));
         Assert.isTrue(itemsToAdd.stream().noneMatch(
             item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+                getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         Set<Long> existingBioIds = loadedProject.getItems().stream()
                 .map(item -> BiologicalDataItem.getBioDataItemId(item.getBioDataItem()))
                 .collect(Collectors.toSet());
@@ -497,10 +446,8 @@ public class ProjectManager implements SecuredEntityManager {
      * @param biologicalItemId {@code Long} ID of an item to remove
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project removeProjectItem(long projectId, long biologicalItemId)
-            throws FeatureIndexException {
+    public Project removeProjectItem(long projectId, long biologicalItemId) {
         projectDao.deleteProjectItem(projectId, biologicalItemId);
-
         return load(projectId);
     }
 
@@ -516,9 +463,47 @@ public class ProjectManager implements SecuredEntityManager {
         projectDao.hideProjectItem(projectId, biologicalItemId, !isHidden);
     }
 
-    private void countProjectItem(ProjectItem projectItem, List<ProjectItem> referenceItems,
-                                  Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
-        BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
+    private void loadProjectStuff(final Project project) {
+        loadProjectItems(project);
+        project.setNestedProjects(projectDao.loadNestedProjects(project.getId()));
+        project.setNotes(projectDao.loadProjectNotes(project.getId()));
+    }
+
+    private void updateLastOpenedDate(Project project) {
+        projectDao.updateLastOpenedDate(project.getId());
+    }
+
+    private void loadProjectItems(final Project project) {
+        project.setItems(projectDao.loadProjectItemsByProjectId(project.getId()));
+
+        // Set Vcf files samples
+        Set<Long> vcfIds = new HashSet<>();
+        Set<Long> segIds = new HashSet<>();
+        project.getItems().stream().forEach(item -> {
+            if (item.getBioDataItem() != null) {
+                switch (item.getBioDataItem().getFormat()) {
+                    case VCF:
+                        VcfFile vcfFile = (VcfFile) item.getBioDataItem();
+                        vcfIds.add(vcfFile.getId());
+                        break;
+                    case SEG:
+                        SegFile segFile = (SegFile) item.getBioDataItem();
+                        segIds.add(segFile.getId());
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        loadSamples(project, vcfIds, segIds);
+
+        project.setItemsCount(project.getItems().size());
+    }
+
+    private void countProjectItem(final ProjectItem projectItem, final List<ProjectItem> referenceItems,
+                                  final Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
+        final BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
         if (format == BiologicalDataItemFormat.REFERENCE) {
             referenceItems.add(projectItem);
         } else {
@@ -530,7 +515,7 @@ public class ProjectManager implements SecuredEntityManager {
         }
     }
 
-    private void deleteProjectWithNested(Project projectToDelete) throws IOException {
+    private void deleteProjectWithNested(final Project projectToDelete) throws IOException {
         deleteNestedProjects(projectToDelete.getId());
         projectDescriptionDao.deleteByProjectId(projectToDelete.getId());
         projectDao.deleteAllProjectNotes(projectToDelete.getId());
@@ -540,14 +525,14 @@ public class ProjectManager implements SecuredEntityManager {
         metadataManager.delete(projectToDelete.getId(), AclClass.PROJECT.name());
     }
 
-    private void deleteNestedProjects(Long projectId) throws IOException {
-        List<Project> nestedProjects = projectDao.loadNestedProjects(projectId);
+    private void deleteNestedProjects(final Long projectId) throws IOException {
+        final List<Project> nestedProjects = projectDao.loadNestedProjects(projectId);
         for (Project nestedProject : nestedProjects) {
             deleteProjectWithNested(nestedProject);
         }
     }
 
-    private void loadSamples(Project project, Set<Long> vcfIds, Set<Long> segIds) {
+    private void loadSamples(final Project project, final Set<Long> vcfIds, final Set<Long> segIds) {
         if (!vcfIds.isEmpty() || !segIds.isEmpty()) {
             Map<Long, List<VcfSample>> vcfSampleMap = vcfFileDao.loadSamplesByFileIds(vcfIds);
             Map<Long, List<SegSample>> segSampleMap = segFileDao.loadSamplesByFileIds(segIds);
@@ -573,8 +558,9 @@ public class ProjectManager implements SecuredEntityManager {
         }
     }
 
-    private void fillFileTypeLists(BiologicalDataItem biologicalDataItem, List<GeneFile> geneFileList,
-                                   List<VcfFile> vcfFileList) {
+    private void fillFileTypeLists(final BiologicalDataItem biologicalDataItem,
+                                   final List<GeneFile> geneFileList,
+                                   final List<VcfFile> vcfFileList) {
         if (biologicalDataItem instanceof GeneFile) {
             geneFileList.add((GeneFile) biologicalDataItem);
         } else if (biologicalDataItem instanceof VcfFile) {
@@ -582,7 +568,7 @@ public class ProjectManager implements SecuredEntityManager {
         }
     }
 
-    private boolean checkNewProject(Project helpProject) {
+    private boolean checkNewProject(final Project helpProject) {
         Project existingProject = projectDao.loadProject(helpProject.getName());
 
         boolean newProject = false;
@@ -590,14 +576,14 @@ public class ProjectManager implements SecuredEntityManager {
             helpProject.setCreatedDate(new Date());
 
             // for new project ensure that there is no project with this name
-            Assert.isNull(existingProject, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NAME_EXISTS,
+            Assert.isNull(existingProject, getMessage(ERROR_PROJECT_NAME_EXISTS,
                                                                     helpProject.getName()));
             newProject = true;
         } else {
             // for updated one - ensure that if there is a project with that name,
             // its ID is equal to this project's id
             Assert.isTrue(existingProject == null || existingProject.getId().equals(helpProject.getId()),
-                          MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
+                          getMessage(ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
         }
         return newProject;
     }
@@ -607,7 +593,7 @@ public class ProjectManager implements SecuredEntityManager {
         attachMetadataToItems(itemMap);
     }
 
-    private void attachMetadataToProjects(List<Project> allProjects) {
+    private void attachMetadataToProjects(final List<Project> allProjects) {
         final Map<EntityVO, MetadataVO> projectsMetadata = metadataManager.getItems(allProjects.stream()
                 .map(project -> EntityVO.builder()
                         .entityId(project.getId())
@@ -720,38 +706,38 @@ public class ProjectManager implements SecuredEntityManager {
         helpProject.setNotes(notes);
     }
 
-    private void checkReference(Reference reference, List<BiologicalDataItem> projectItems) {
+    private void checkReference(final Reference reference, final List<BiologicalDataItem> projectItems) {
         for (BiologicalDataItem item : projectItems) {
             if (FeatureFile.class.isAssignableFrom(item.getClass())) {
                 FeatureFile file = (FeatureFile) item;
                 Assert.isTrue(reference.getId().equals(file.getReferenceId()),
-                        MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NON_MATCHING_REFERENCE,
-                                file.getName()));
+                        getMessage(ERROR_PROJECT_NON_MATCHING_REFERENCE, file.getName()));
             }
         }
     }
 
-    private Reference findReference(List<ProjectItem> projectItems) {
+    private Reference findReference(final List<ProjectItem> projectItems) {
         List<Reference> references = projectItems.stream()
-                .filter(item -> item.getBioDataItem().getFormat()
-                        == BiologicalDataItemFormat.REFERENCE)
-                .map(item -> (Reference) item.getBioDataItem()).collect(Collectors.toList());
-        Assert.isTrue(!references.isEmpty(),
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        Assert.isTrue(references.size() == 1,
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+                .filter(item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
+                .map(item -> (Reference) item.getBioDataItem())
+                .collect(Collectors.toList());
+        Assert.isTrue(!references.isEmpty(), getMessage(ERROR_PROJECT_INVALID_REFERENCE));
+        Assert.isTrue(references.size() == 1, getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         return references.get(0);
     }
 
-    private Reference findReferenceFromBioItems(List<BiologicalDataItem> projectItems) {
+    private Reference findReferenceFromBioItems(final List<BiologicalDataItem> projectItems) {
         List<Reference> references = projectItems.stream()
-                .filter(item -> item.getFormat()
-                        == BiologicalDataItemFormat.REFERENCE)
-                .map(item -> (Reference) item).collect(Collectors.toList());
-        Assert.isTrue(!references.isEmpty(),
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
-        Assert.isTrue(references.size() == 1,
-                MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_INVALID_REFERENCE));
+                .filter(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE)
+                .map(item -> (Reference) item)
+                .collect(Collectors.toList());
+        Assert.isTrue(!references.isEmpty(), getMessage(ERROR_PROJECT_INVALID_REFERENCE));
+        Assert.isTrue(references.size() == 1, getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         return references.get(0);
+    }
+
+    private void checkProjectName(final String name) {
+        final Project project = projectDao.loadProject(name);
+        Assert.isNull(project, getMessage(ERROR_PROJECT_NAME_EXISTS, name));
     }
 }

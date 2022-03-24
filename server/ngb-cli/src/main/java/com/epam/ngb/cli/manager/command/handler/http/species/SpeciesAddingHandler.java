@@ -22,53 +22,71 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
 
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
- * {@code {@link SpeciesRemovingHandler}} represents a tool for handling 'remove_species' command and
- * removing species from a reference, registered on NGB server. This command requires strictly one argument:
+ * {@code {@link SpeciesAddingHandler}} represents a tool for handling 'add_species' command and
+ * adding a species to a reference, registered on NGB server. This command requires strictly two arguments:
  * - reference ID or name
+ * - species version (should be registered on NGB server before)
  */
-@Command(type = Command.Type.REQUEST, command = {"remove_species"})
-public class SpeciesRemovingHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"add_species"})
+public class SpeciesAddingHandler extends AbstractHTTPCommandHandler {
 
     private Long referenceId;
+    private String speciesVersion;
 
     /**
-     * If true command will output result of species removing in json format
+     * If true command will output result of species addition in json format
      */
     private boolean printJson;
     /**
-     * If true command will output result of species removing in table format
+     * If true command will output result of species addition in table format
      */
     private boolean printTable;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 1) {
+        if (arguments.size() != 2) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
-                    getCommand(), 1, arguments.size()));
+                    getCommand(), 2, arguments.size()));
         }
         referenceId = loadReferenceId(arguments.get(0));
+        speciesVersion = StringUtils.trim(arguments.get(1));
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();
     }
 
     @Override
     public int runCommand() {
-        HttpRequestBase request = getRequest(String.format(getRequestUrl(), referenceId));
-        String result = RequestManager.executeRequest(request);
-        checkAndPrintRegistrationResult(result, printJson, printTable);
+        try {
+            String url = serverParameters.getServerUrl() + getRequestUrl();
+            URIBuilder builder = new URIBuilder(String.format(url, referenceId));
+            if (speciesVersion != null) {
+                builder.addParameter("speciesVersion", speciesVersion);
+            }
+            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+            String result = RequestManager.executeRequest(request);
+            checkAndPrintRegistrationResult(result, printJson, printTable);
+        } catch (URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
         return 0;
     }
 }

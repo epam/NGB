@@ -35,6 +35,7 @@ import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.UserContext;
 import com.epam.ngb.cli.manager.command.ServerParameters;
+import com.epam.ngb.cli.manager.command.handler.http.dataset.DatasetListHandler;
 import org.junit.*;
 
 import java.util.Arrays;

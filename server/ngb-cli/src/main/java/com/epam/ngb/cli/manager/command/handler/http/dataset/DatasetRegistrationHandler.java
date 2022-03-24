@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset;
 
 import static com.epam.ngb.cli.constants.MessageConstants.MINIMUM_COMMAND_ARGUMENTS;
 
@@ -30,6 +30,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import com.epam.ngb.cli.manager.command.handler.http.FileRegistrationHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
@@ -51,7 +53,7 @@ import com.epam.ngb.cli.manager.command.handler.Command;
  * reference ID or name and dataset name. The command also supports creating a dataset with files, that can
  * be either already registered in the server (addressed by name or ID) or new files (path to files
  * must be provided in this case). New files at first will be registered with help of
- * {@code {@link FileRegistrationHandler}} and then added to a dataset.
+ * {@code {@link FileRegistrationHandler }} and then added to a dataset.
  * Command supports hierarchical datasets, parent dataset is specified by 'parent' option.
  */
 @Command(type = Command.Type.REQUEST, command = {"register_dataset"})

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,57 +24,65 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-
-import java.net.URISyntaxException;
-import java.util.List;
-
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
-import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 
-/**
- * {@code {@link DatasetMovingHandler}} represents a tool for handling 'move_dataset' command and
- * changing the hierarchy of a dataset. This command requires strictly one argument:
- * - dataset ID or name (data set to apply changes)
- * Option "parentId" is used to determine command result, if it is not specified, the dataset will be
- * moved to dataset top level (no parent at all), if option is set, its value will be set
- * as parentID to the processed dataset.
- */
-@Command(type = Command.Type.REQUEST, command = {"move_dataset"})
-public class DatasetMovingHandler extends AbstractHTTPCommandHandler {
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 
-    private Long datasetId;
-    private Long parentId;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.constants.MessageConstants.getMessage;
 
+@Slf4j
+public abstract class AbstractEntityRenameHandler extends AbstractHTTPCommandHandler {
+
+    private String name;
+    private String newName;
+    private String newPrettyName;
+
+    /**
+     * Verifies input arguments
+     * @param arguments command line arguments
+     * @param options
+     */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
         if (arguments.size() != 1) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
+            throw new IllegalArgumentException(getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        datasetId = parseProjectId(arguments.get(0));
-        if (options.getParent() != null) {
-            parentId = parseProjectId(options.getParent());
-        }
+        name = arguments.get(0);
+        newName = options.getName();
+        newPrettyName = options.getPrettyName();
     }
 
     @Override
     public int runCommand() {
         try {
             String url = serverParameters.getServerUrl() + getRequestUrl();
-            URIBuilder builder = new URIBuilder(String.format(url, datasetId));
-            if (parentId != null) {
-                builder.addParameter("parentId", String.valueOf(parentId));
+            URIBuilder builder = new URIBuilder(String.format(url, name));
+            if (StringUtils.isNotBlank(newName)) {
+                builder.addParameter("newName", newName);
+            }
+            if (StringUtils.isNotBlank(newPrettyName)) {
+                builder.addParameter("newPrettyName", newPrettyName);
             }
             HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
-            RequestManager.executeRequest(request);
-        } catch (URISyntaxException e) {
+            String result = RequestManager.executeRequest(request);
+            ResponseResult response = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            if (!SUCCESS_STATUS.equals(response.getStatus())) {
+                log.info(response.getStatus() + "\t" + response.getMessage());
+            }
+        } catch (IOException | URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
         return 0;

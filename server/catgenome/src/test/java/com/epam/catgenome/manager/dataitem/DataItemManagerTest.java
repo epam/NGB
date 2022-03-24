@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ package com.epam.catgenome.manager.dataitem;
 
 import java.io.File;
 import java.io.IOException;
-
+import com.epam.catgenome.entity.BiologicalDataItem;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,10 +51,11 @@ import com.epam.catgenome.manager.vcf.VcfManager;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 public class DataItemManagerTest extends AbstractManagerTest {
 
     @Autowired
-    DataItemManager dataItemManager;
+    private DataItemManager dataItemManager;
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -74,8 +75,7 @@ public class DataItemManagerTest extends AbstractManagerTest {
     private static final String TMP_FILE_NAME = "tmp";
 
     @Test(expected = IllegalArgumentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void deleteReferenceTest() throws IOException {
+    public void testDeleteReference() throws IOException {
         Chromosome testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         Reference testReference = EntityHelper.createNewReference(testChromosome,
@@ -87,8 +87,7 @@ public class DataItemManagerTest extends AbstractManagerTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void deleteTest() throws IOException {
+    public void testDelete() throws IOException {
         Chromosome testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         Reference testReference = EntityHelper.createNewReference(testChromosome,
@@ -105,5 +104,32 @@ public class DataItemManagerTest extends AbstractManagerTest {
         dataItemManager.deleteFileByBioItemId(vcfFile.getBioDataItemId());
         VcfFile loadedVcfFile = vcfFileManager.load(vcfFile.getId());
         Assert.assertNull(loadedVcfFile);
+    }
+
+    @Test
+    public void testRename() throws IOException {
+        final Chromosome testChromosome = EntityHelper.createNewChromosome();
+        testChromosome.setSize(TEST_CHROMOSOME_SIZE);
+        final Reference testReference = EntityHelper.createNewReference(testChromosome,
+                referenceGenomeManager.createReferenceId());
+        final File tmp = File.createTempFile(TMP_FILE_NAME, TMP_FILE_NAME);
+        testReference.setPath(tmp.getAbsolutePath());
+        referenceGenomeManager.create(testReference);
+
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(testReference.getId());
+        request.setPath(resource.getFile().getAbsolutePath());
+        final VcfFile vcfFile = vcfManager.registerVcfFile(request);
+
+        dataItemManager.renameFile(testReference.getName(), "newRefName", "newRefPrettyName");
+        final BiologicalDataItem refItem = dataItemManager.findFileByBioItemId(testReference.getBioDataItemId());
+        Assert.assertEquals("newRefName", refItem.getName());
+        Assert.assertEquals("newRefPrettyName", refItem.getPrettyName());
+
+        dataItemManager.renameFile(vcfFile.getName(), "newVCFName", "newVCFPrettyName");
+        final BiologicalDataItem vcfItem = dataItemManager.findFileByBioItemId(vcfFile.getBioDataItemId());
+        Assert.assertEquals("newVCFName", vcfItem.getName());
+        Assert.assertEquals("newVCFPrettyName", vcfItem.getPrettyName());
     }
 }

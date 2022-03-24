@@ -10,6 +10,7 @@ import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
+import com.epam.ngb.cli.manager.command.handler.http.dataset.DatasetMovingHandler;
 import org.junit.*;
 
 public class DatasetMovingHandlerTest extends AbstractCliTest {
