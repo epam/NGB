@@ -105,12 +105,8 @@ $sbgn-background-color: #F6F6F6;
 
 .internal-pathway-node-link {
   color: $element-link-color;
-  text-decoration: none;
+  text-decoration: underline;
   cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .internal-pathway-units-of-information {
