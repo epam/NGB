@@ -30,7 +30,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PathwayDatabaseSource {
     CUSTOM(1L, ".sbgn"),
-    BIOCYC(2L, ".owl");
+    BIOCYC(2L, ".owl"),
+    COLLAGE(3L, ".json");
 
     private Long sourceId;
     private String extension;
