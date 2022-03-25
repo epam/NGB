@@ -27,7 +27,7 @@ export default class ngbInternalPathwayNodeController {
         if (this.nodeData.ttipData) {
             this.nodeData.ttipData.forEach(data => {
                 if (data.hdr === hdrTypeList.GENE) {
-                    this.geneId = data.data[0].id;
+                    this.geneId = data.data[0].text;
                 }
             });
         }
@@ -89,7 +89,9 @@ export default class ngbInternalPathwayNodeController {
         this.navigationInProcess = true;
         const [referenceObj] = (this.projectContext.references || [])
             .filter(reference => reference.species && Number(reference.species.taxId) === Number(this.nodeData.taxId));
-
+        if (!referenceObj) {
+            return;
+        }
         const gene = await this.ngbInternalPathwaysResultService.searchGenes(referenceObj.id, this.geneId);
         if (!gene) {
             return;
@@ -101,13 +103,17 @@ export default class ngbInternalPathwayNodeController {
             const range = Math.abs(endIndex - startIndex);
             const start = Math.min(startIndex, endIndex) - range / 10.0;
             const end = Math.max(startIndex, endIndex) + range / 10.0;
-            this.projectContext.changeState({
-                chromosome: chromosomeObj,
-                viewport: {
-                    start,
-                    end
-                }
-            });
+            const referenceChanged = !this.projectContext.reference ||
+                this.projectContext.reference.id !== referenceObj.id;
+            const payload = referenceChanged
+                ? this.ngbInternalPathwaysResultService.getOpenReferencePayload(this.projectContext, referenceObj)
+                : {};
+            payload.chromosome = chromosomeObj;
+            payload.viewport = {
+                start,
+                end
+            };
+            this.projectContext.changeState(payload);
         }
         this.navigationInProcess = false;
     }

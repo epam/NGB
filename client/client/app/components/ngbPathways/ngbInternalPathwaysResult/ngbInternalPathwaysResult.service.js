@@ -1,3 +1,5 @@
+import {mapTrackFn} from '../../ngbDataSets/internal/utilities';
+
 const DATABASE_SOURCES = {
     CUSTOM: 'CUSTOM',
     BIOCYC: 'BIOCYC',
@@ -77,7 +79,6 @@ export default class ngbInternalPathwaysResultService {
         };
     }
 
-
     async searchGenes(referenceId, geneId) {
         const data = await this.projectDataService.searchGenes(
             referenceId,
@@ -85,4 +86,38 @@ export default class ngbInternalPathwaysResultService {
         );
         return data ? data.entries ? data.entries[0] : null : null;
     }
+
+    getOpenReferencePayload(context, referenceObj) {
+        if (referenceObj && context.datasets) {
+            // we'll open first dataset of this reference
+            const tree = context.datasets || [];
+            const find = (items = []) => {
+                const projects = items.filter(item => item.isProject);
+                const [dataset] = projects.filter(item => item.reference && item.reference.id === referenceObj.id);
+                if (dataset) {
+                    return dataset;
+                }
+                for (const project of projects) {
+                    const nested = find(project.nestedProjects);
+                    if (nested) {
+                        return nested;
+                    }
+                }
+                return null;
+            };
+            const dataset = find(tree);
+            if (dataset) {
+                const tracks = [dataset.reference];
+                const tracksState = [mapTrackFn(dataset.reference)];
+                return {
+                    tracks,
+                    tracksState,
+                    reference: dataset.reference,
+                    shouldAddAnnotationTracks: true
+                };
+            }
+        }
+        return null;
+    }
+
 }
