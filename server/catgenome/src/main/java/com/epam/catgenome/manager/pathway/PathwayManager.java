@@ -455,9 +455,9 @@ public class PathwayManager {
 
     private Query buildPathwaySearchQuery(final PathwayQueryParams params) throws ParseException {
         final String term = params.getTerm();
-        final String species = params.getSpecies();
+        final Long taxId = params.getTaxId();
         final PathwayDatabaseSource source = params.getDatabaseSource();
-        if (TextUtils.isBlank(term) && TextUtils.isBlank(species) && source == null) {
+        if (TextUtils.isBlank(term) && taxId == null && source == null) {
             return new MatchAllDocsQuery();
         }
 
@@ -478,8 +478,8 @@ public class PathwayManager {
             builder.add(termBuilder.build(), BooleanClause.Occur.MUST);
         }
 
-        if (!TextUtils.isBlank(species)) {
-            builder.add(buildQuery(PathwayIndexFields.SPECIES.getFieldName(), species, analyzer),
+        if (taxId != null) {
+            builder.add(buildQuery(PathwayIndexFields.SPECIES.getFieldName(), String.valueOf(taxId), analyzer),
                     BooleanClause.Occur.MUST);
         }
 
