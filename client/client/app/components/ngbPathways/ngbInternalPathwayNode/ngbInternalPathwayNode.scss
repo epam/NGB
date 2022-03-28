@@ -41,7 +41,6 @@ $sbgn-background-color: #F6F6F6;
   .internal-pathway-node-title {
     font-weight: bold;
     display: inline-block;
-    max-height: 2em;
     text-align: center;
   }
 }
@@ -94,18 +93,8 @@ $sbgn-background-color: #F6F6F6;
     .internal-pathway-node-title {
       font-weight: bold;
       display: inline-block;
-      max-height: 2em;
       white-space: nowrap;
       text-align: center;
-    }
-
-    .internal-pathway-node-link {
-      color: $element-link-color;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
     }
 
     .internal-pathway-node-desc {
@@ -114,9 +103,14 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
+.internal-pathway-node-link {
+  color: $element-link-color;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .internal-pathway-units-of-information {
   display: inline-flex;
-  max-height: 2em;
   flex-direction: row;
   width: 100%;
   position: absolute;

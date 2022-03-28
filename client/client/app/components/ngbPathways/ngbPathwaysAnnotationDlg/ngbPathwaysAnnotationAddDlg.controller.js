@@ -6,6 +6,7 @@ export default class ngbPathwaysAnnotationAddDlgController {
             this.annotation = {
                 ...annotation
             };
+            this.colorScheme = this.annotation.colorScheme.copy();
         } else {
             this.annotation = {
                 name: undefined,
@@ -13,6 +14,7 @@ export default class ngbPathwaysAnnotationAddDlgController {
                 config: null,
                 pathwayId: pathwayId
             };
+            this.colorScheme = null;
         }
     }
 
@@ -28,6 +30,10 @@ export default class ngbPathwaysAnnotationAddDlgController {
 
 
     save() {
+        this.annotation = {
+            ...this.annotation,
+            colorScheme: this.colorScheme
+        };
         this.ngbPathwaysAnnotationService.save(this.annotation);
         this.close();
     }

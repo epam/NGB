@@ -118,12 +118,16 @@ export default class ngbInternalPathwaysTableController extends baseController {
     rowClick(row, event) {
         const entity = row.entity;
         if (entity) {
-            this.ngbPathwaysService.currentInternalPathway = {
+            const currentInternalPathway = {
                 id: row.entity.id,
                 name: row.entity.name,
                 description: row.entity.description,
                 source: row.entity.databaseSource
             };
+            if (row.entity.organisms && row.entity.organisms.length) {
+                currentInternalPathway.taxId = row.entity.organisms[0].taxId;
+            }
+            this.ngbPathwaysService.currentInternalPathway = currentInternalPathway;
             this.changeState({state: 'INTERNAL_PATHWAYS_RESULT'});
         } else {
             event.stopImmediatePropagation();
