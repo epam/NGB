@@ -217,9 +217,7 @@ export default class ngbTrackEvents {
                             : undefined,
                     });
                 }
-                if (data.feature.feature
-                    && data.feature.feature.toLowerCase() === 'gene'
-                    && data.feature.name) {
+                if (data.feature.feature && data.feature.name) {
                     const layoutChange = this.appLayout.Panels.pathways;
                     layoutChange.displayed = true;
                     menuData.push({
@@ -235,8 +233,8 @@ export default class ngbTrackEvents {
                                 name: 'read:show:pathways'
                             }],
                         title: 'Show pathways',
-                        disabled: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name,
-                        warning: (data.feature.feature || '').toLowerCase() !== 'gene' || !data.feature.name
+                        disabled: !data.feature.name,
+                        warning: !data.feature.name
                             ? 'Feature type is not Gene or Name is missing'
                             : undefined,
                     });
