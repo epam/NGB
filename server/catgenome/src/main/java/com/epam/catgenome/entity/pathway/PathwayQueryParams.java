@@ -34,6 +34,6 @@ public class PathwayQueryParams {
     private PagingInfo pagingInfo;
     private String term;
     private PathwayDatabaseSource databaseSource;
-    private String species;
+    private Long taxId;
     private SortInfo sortInfo;
 }

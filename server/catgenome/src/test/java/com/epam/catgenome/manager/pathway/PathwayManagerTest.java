@@ -108,6 +108,7 @@ public class PathwayManagerTest extends TestCase {
         final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
+        parameters.setTaxId(1L);
         final Page<NGBPathway> pathways = pathwayManager.loadPathways(parameters);
         pathwayManager.deletePathway(pathway.getPathwayId());
         pathwayManager.deletePathway(pathway1.getPathwayId());
