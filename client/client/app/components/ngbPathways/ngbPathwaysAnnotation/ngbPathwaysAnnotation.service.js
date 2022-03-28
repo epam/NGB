@@ -55,7 +55,9 @@ function parseConfigHeatmap(config, header) {
     return {
         labels,
         values: config.values,
-        heatmapId: config.heatmapId
+        heatmapId: config.heatmapId,
+        minCellValue: config.minCellValue,
+        maxCellValue: config.maxCellValue
     };
 }
 
@@ -191,7 +193,9 @@ export default class ngbPathwaysAnnotationService {
         for (const annotation of rawAnnotationList) {
             if (annotation.serializedColorScheme) {
                 annotation.colorScheme = ColorScheme.parse(annotation.serializedColorScheme).copy({
-                    colorFormat: ColorFormats.hex
+                    colorFormat: ColorFormats.hex,
+                    minimum: annotation.value.minCellValue,
+                    maximum: annotation.value.maxCellValue
                 });
                 delete annotation.serializedColorScheme;
             }

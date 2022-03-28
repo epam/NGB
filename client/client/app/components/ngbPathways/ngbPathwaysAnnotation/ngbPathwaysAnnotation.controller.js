@@ -151,10 +151,16 @@ export default class ngbPathwaysAnnotationController {
             };
             if (isHeatmapChange || !this.colorScheme) {
                 const colorSchemeParams = {colorFormat: ColorFormats.hex};
-                colorSchemeParams.minimum = this.annotation.config.minCellValue;
-                colorSchemeParams.maximum = this.annotation.config.maxCellValue;
+                if (this.annotation.config.minCellValue) {
+                    colorSchemeParams.minimum = this.annotation.config.minCellValue;
+                }
+                if (this.annotation.config.maxCellValue) {
+                    colorSchemeParams.maximum = this.annotation.config.maxCellValue;
+                }
                 this.colorScheme = options.colorScheme.copy(colorSchemeParams);
             }
+            this.annotation.config.minCellValue = this.colorScheme.minimum;
+            this.annotation.config.maxCellValue = this.colorScheme.maximum;
         });
         options.data.options = {id, projectId};
         this.annotation.name = this.annotation.name || this.heatmap.prettyName || this.heatmap.name;
