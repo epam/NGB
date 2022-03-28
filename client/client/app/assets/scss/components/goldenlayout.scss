@@ -101,8 +101,13 @@ ngb-golden-layout {
     filter: alpha(opacity=100);
   }
 
+  .lm_header .lm_tabs {
+    z-index: 1;
+  }
+
   .lm_header .lm_controls {
     padding-top: 0;
+    display: flex;
 
     .lm_tabdropdown {
       &:before {
