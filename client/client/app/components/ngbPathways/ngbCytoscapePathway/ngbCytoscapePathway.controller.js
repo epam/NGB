@@ -235,6 +235,7 @@ export default class ngbCytoscapePathwayController {
                 const savedState = JSON.parse(localStorage.getItem(this.storageName) || '{}');
                 const savedLayout = savedState.layout ? savedState.layout[this.elements.id] : undefined;
                 let elements;
+                this.elements.nodes = this.saveDefaultPositions(this.elements.nodes, this.isCollage());
                 if (savedLayout) {
                     elements = {
                         nodes: this.wrapNodes(
@@ -246,7 +247,6 @@ export default class ngbCytoscapePathwayController {
                         edges: savedLayout.edges
                     };
                 } else {
-                    this.elements.nodes = this.saveDefaultPositions(this.elements.nodes, this.isCollage());
                     elements = {
                         nodes: this.wrapNodes(
                             this.getPlainNodes(this.positionedNodes(this.elements.nodes)),
@@ -307,14 +307,14 @@ export default class ngbCytoscapePathwayController {
                     zoomIn() {
                         const zoom = this.zoom() + this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        // viewerContext.centerCytoscape();
+                        viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     zoomOut() {
                         const zoom = this.zoom() - this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        // viewerContext.centerCytoscape();
+                        viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
@@ -327,6 +327,8 @@ export default class ngbCytoscapePathwayController {
                             viewerContext.viewer.layout(this.settings.loadedLayout).run();
                         });
                         viewerContext.saveLayout();
+                        this.actionsManager.canZoomIn = this.actionsManager.zoom() < viewerContext.viewer.maxZoom();
+                        this.actionsManager.canZoomOut = this.actionsManager.zoom() > viewerContext.viewer.minZoom();
                     },
                     canZoomIn: true,
                     canZoomOut: true,
