@@ -459,8 +459,9 @@ public class PathwayManager {
         }
         final List<String> taxIds = deserialize(doc.getField(
                 PathwayIndexFields.SPECIES.getFieldName()).stringValue());
-        final List<String> speciesNames = deserialize(doc.getField(
-                PathwayIndexFields.SPECIES_NAME.getFieldName()).stringValue());
+        final List<String> speciesNames = Optional.ofNullable(doc.getField(
+                PathwayIndexFields.SPECIES_NAME.getFieldName())).map(f -> deserialize(f.stringValue()))
+                .orElse(Collections.emptyList());
         final List<PathwayOrganism> organisms = new ArrayList<>();
         for (int i = 0; i < taxIds.size(); i++) {
             final String taxId = taxIds.get(i);
