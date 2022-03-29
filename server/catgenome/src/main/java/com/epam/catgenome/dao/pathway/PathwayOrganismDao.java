@@ -40,7 +40,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Setter
 @NoArgsConstructor
@@ -56,24 +55,18 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Persists new PathwayOrganism records.
-     * @param taxIds {@code Set<Long>} taxonomy IDs to persist.
+     * @param species {@code Set<Long>} taxonomy IDs to persist.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<PathwayOrganism> savePathwayOrganisms(final Set<Long> taxIds, final long pathwayId) {
+    public List<PathwayOrganism> savePathwayOrganisms(final List<PathwayOrganism> species, final long pathwayId) {
         final List<PathwayOrganism> organisms = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(taxIds)) {
-            int i = 0;
-            final List<Long> newIds = daoHelper.createIds(pathwayOrganismSequenceName, taxIds.size());
-            final MapSqlParameterSource[] params = new MapSqlParameterSource[taxIds.size()];
-            for (Long taxId: taxIds) {
-                PathwayOrganism organism = PathwayOrganism.builder()
-                        .pathwayOrganismId(newIds.get(i))
-                        .pathwayId(pathwayId)
-                        .taxId(taxId)
-                        .build();
-                organisms.add(organism);
+        if (!CollectionUtils.isEmpty(species)) {
+            final List<Long> newIds = daoHelper.createIds(pathwayOrganismSequenceName, species.size());
+            final MapSqlParameterSource[] params = new MapSqlParameterSource[species.size()];
+            for (int i = 0; i < newIds.size(); i++) {
+                final PathwayOrganism organism = species.get(i);
+                organism.setPathwayOrganismId(newIds.get(i));
                 params[i] = PathwayOrganismParameters.getParameters(organism);
-                i++;
             }
             getNamedParameterJdbcTemplate().batchUpdate(insertPathwayOrganismQuery, params);
         }
@@ -101,13 +94,15 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
     enum PathwayOrganismParameters {
         PATHWAY_ORGANISM_ID,
         PATHWAY_ID,
-        TAX_ID;
+        TAX_ID,
+        SPECIES_NAME;
 
         static MapSqlParameterSource getParameters(final PathwayOrganism species) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(PATHWAY_ORGANISM_ID.name(), species.getPathwayOrganismId());
             params.addValue(PATHWAY_ID.name(), species.getPathwayId());
             params.addValue(TAX_ID.name(), species.getTaxId());
+            params.addValue(SPECIES_NAME.name(), species.getSpeciesName());
 
             return params;
         }
@@ -121,6 +116,7 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
                     .pathwayOrganismId(rs.getLong(PATHWAY_ORGANISM_ID.name()))
                     .pathwayId(rs.getLong(PATHWAY_ID.name()))
                     .taxId(rs.getLong(TAX_ID.name()))
+                    .speciesName(rs.getString(SPECIES_NAME.name()))
                     .build();
         }
     }

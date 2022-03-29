@@ -48,7 +48,8 @@
                         t.database_source,
 
                         s.pathway_organism_id,
-                        s.tax_id
+                        s.tax_id,
+                        s.species_name
                     FROM catgenome.pathway t join
                     catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id left join
                     catgenome.pathway_organism s ON s.pathway_id = t.pathway_id
@@ -76,7 +77,8 @@
                         t.database_source,
 
                         s.pathway_organism_id,
-                        s.tax_id
+                        s.tax_id,
+                        s.species_name
                     FROM catgenome.pathway t join
                     catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id left join
                     catgenome.pathway_organism s ON s.pathway_id = t.pathway_id

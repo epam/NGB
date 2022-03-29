@@ -10,11 +10,13 @@
                     INSERT INTO catgenome.pathway_organism (
                         pathway_organism_id,
                         pathway_id,
-                        tax_id
+                        tax_id,
+                        species_name
                     ) VALUES (
                         :PATHWAY_ORGANISM_ID,
                         :PATHWAY_ID,
-                        :TAX_ID
+                        :TAX_ID,
+                        :SPECIES_NAME
                     )
                 ]]>
             </value>
@@ -32,7 +34,8 @@
                     SELECT
                         pathway_organism_id,
                         pathway_id,
-                        tax_id
+                        tax_id,
+                        species_name
                     FROM catgenome.pathway_organism
                         WHERE pathway_id = ?
                 ]]>

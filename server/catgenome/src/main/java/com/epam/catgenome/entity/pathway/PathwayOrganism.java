@@ -34,4 +34,5 @@ public class PathwayOrganism {
     private Long pathwayOrganismId;
     private Long pathwayId;
     private Long taxId;
+    private String speciesName;
 }

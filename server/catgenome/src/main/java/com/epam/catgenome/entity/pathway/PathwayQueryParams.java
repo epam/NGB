@@ -28,12 +28,14 @@ import com.epam.catgenome.util.db.SortInfo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Setter
 @Getter
 public class PathwayQueryParams {
     private PagingInfo pagingInfo;
     private String term;
     private PathwayDatabaseSource databaseSource;
-    private Long taxId;
+    private List<Long> taxIds;
     private SortInfo sortInfo;
 }
