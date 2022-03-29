@@ -14,7 +14,7 @@ export default   {
     dimensions: {
         borderWidth: 3,
         minItemHeight: 50,
-        minItemWidth: 665,
+        minItemWidth: 100,
         headerHeight: 30,
         dragProxyWidth: 300,
         dragProxyHeight: 200

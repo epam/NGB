@@ -1,4 +1,5 @@
 import angular from 'angular';
+import { indexOf } from 'lodash';
 import baseController from '../../../shared/baseController';
 
 import {PairReadInfo} from '../../utils/events';
@@ -160,7 +161,13 @@ export default class ngbGoldenLayoutController extends baseController {
             if (isBrowser) {
                 const resizeObserver = new ResizeObserver(entries => {
                     for (const entry of entries) {
-                        this.projectContext.isBrowserNarrow = entry.target.clientWidth < MIN_BROWSER_WIDTH;
+                        if (entry.target.clientWidth < MIN_BROWSER_WIDTH) {
+                            const elementStyle = stack.element[0].style;
+                            const contentItems = stack.contentItems[0];
+                            const elementWidth = +elementStyle.width.replace('px', '');
+                            const width = MIN_BROWSER_WIDTH + contentItems.container.width - elementWidth;
+                            contentItems.container.setSize(width, elementStyle.height);
+                        }
                     }
                 });
                 resizeObserver.observe(stack.element[0]);
