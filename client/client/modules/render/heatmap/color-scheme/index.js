@@ -378,10 +378,14 @@ class ColorScheme extends HeatmapEventDispatcher {
         } else if (this.colorConfigurations.length < 2) {
             const [configuration = {}] = this.colorConfigurations;
             const {color = this.colors.missing} = configuration;
+            let colorValue = configuration.colorValue;
+            if (colorValue === undefined) {
+                colorValue = color;
+            }
             /**
              * @type {GradientCollection}
              */
-            this.gradientCollection = GradientCollection.singleColorCollection(color);
+            this.gradientCollection = GradientCollection.singleColorCollection(colorValue);
         } else {
             /**
              * @type {GradientCollection}
@@ -528,10 +532,12 @@ class ColorScheme extends HeatmapEventDispatcher {
                     ))
                         .length > 0;
                     if (conflicts) {
+                        console.log(2, {other, configuration});
                         configuration.error = 'This configuration conflicts with another one';
                         this.error = true;
                     }
                 } else if (other.filter(o => o.value === configuration.value).length > 0) {
+                    console.log(other, configuration);
                     configuration.error = 'This configuration conflicts with another one';
                     this.error = true;
                 }

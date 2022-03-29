@@ -1,5 +1,6 @@
 import {HeatmapDataType} from '../../../../modules/render/heatmap';
 import ColorScheme, {ColorFormats} from '../../../../modules/render/heatmap/color-scheme';
+import HeatmapMetadata from '../../../../modules/render/heatmap/heatmap-data/heatmap-metadata';
 import HeatmapViewOptions from '../../../../modules/render/heatmap/heatmap-view-options';
 import {readHeatmapState} from '../../../../modules/render/heatmap/heatmap-view-options/manager';
 
@@ -99,10 +100,26 @@ export default class ngbPathwaysAnnotationController {
     };
     annotationFileHeaderList = null;
     heatmap = null;
+    vcfFile = null;
+    _vcfFileInfoItem = null;
+    vcfFileError = null;
+    vcfFileInfoError = null;
     csvFile = null;
 
-    constructor(ngbPathwaysService, ngbPathwaysAnnotationService, heatmapContext, $timeout, $scope) {
+    constructor(
+        ngbPathwaysService,
+        ngbPathwaysAnnotationService,
+        heatmapContext,
+        projectContext,
+        projectDataService,
+        vcfDataService,
+        $timeout,
+        $scope
+    ) {
         this.heatmapContext = heatmapContext;
+        this.projectContext = projectContext;
+        this.projectDataService = projectDataService;
+        this.vcfDataService = vcfDataService;
         this.$timeout = $timeout;
         this.$scope = $scope;
         this.annotationTypeList = ngbPathwaysAnnotationService.annotationTypeList;
@@ -112,6 +129,61 @@ export default class ngbPathwaysAnnotationController {
 
     static get UID() {
         return 'ngbPathwaysAnnotationController';
+    }
+
+    get vcfFiles() {
+        if (this.projectContext) {
+            return (this.projectContext.vcfTracks || []).slice();
+        }
+        return [];
+    }
+
+    get vcfFileId() {
+        if (this.vcfFile) {
+            return this.vcfFile.id;
+        }
+        return undefined;
+    }
+
+    get vcfFileInfoItem() {
+        return this._vcfFileInfoItem;
+    }
+
+    set vcfFileInfoItem(infoItem) {
+        if (this._vcfFileInfoItem !== infoItem) {
+            this._vcfFileInfoItem = infoItem;
+            this.$timeout(() => {
+                this.$scope.$apply();
+                this.fetchVCFAnnotation();
+            });
+        }
+    }
+
+    set vcfFileId(id) {
+        const isVcfFileChanged = this.vcfFile
+            ? this.vcfFile.id !== id
+            : !!id;
+        if (isVcfFileChanged) {
+            this.vcfFileInfoItem = null;
+            if (this.vcfFile) {
+                this.annotation.config = undefined;
+                this.annotation.header = undefined;
+            }
+            const [vcfFile] = this.vcfFiles.filter(h => h.id === id);
+            this.vcfFile = vcfFile;
+            this.$timeout(() => {
+                this.$scope.$apply();
+                this.fetchVCFInfoFields();
+            });
+        }
+    }
+
+    get vcfPending() {
+        return this.vcfFileInfoPending || this.vcfAnnotationPending;
+    }
+
+    get vcfError() {
+        return this.vcfFileError || this.vcfFileInfoError;
     }
 
     get heatmapsFromTrack() {
@@ -195,6 +267,18 @@ export default class ngbPathwaysAnnotationController {
                     };
                     break;
                 }
+                case this.annotationTypeList.VCF: {
+                    this.annotation.config = initializeCSVConfig(
+                        this.annotation.value,
+                        false
+                    );
+                    this.annotation.header = this.annotationFileHeaderList.COLUMN;
+                    this.vcfFileId = this.annotation.value.vcfFile
+                        ? this.annotation.value.vcfFile.id
+                        : undefined;
+                    this._vcfFileInfoItem = this.annotation.value.infoItem;
+                    break;
+                }
             }
         }
     }
@@ -203,12 +287,24 @@ export default class ngbPathwaysAnnotationController {
         this.heatmap = null;
         this.csvFile = null;
         this.colorScheme = null;
+        this.vcfFile = null;
+        this.vcfFileInfoItem = null;
+        this.vcfFileError = null;
+        this.vcfFileInfoError = null;
         const {id, type, pathwayId} = this.annotation;
         this.annotation = {
             id, type, pathwayId,
             config: null,
             header: this.annotationFileHeaderList.COLUMN
         };
+        switch (type) {
+            case this.annotationTypeList.VCF: {
+                if (this.vcfFiles.length > 0) {
+                    this.vcfFileId = this.vcfFiles[0].id;
+                }
+                break;
+            }
+        }
     }
 
     onFileUpload() {
@@ -224,5 +320,127 @@ export default class ngbPathwaysAnnotationController {
                 values: getAllValuesList(this.annotation.config.cellValues)
             });
         }
+    }
+
+    fetchVCFInfoFields() {
+        const token = (this._vcfFileInfoFetchToken || 0);
+        this._vcfFileInfoFetchToken = token;
+        const outdated = () => token !== this._vcfFileInfoFetchToken;
+        if (this.vcfFile && this.projectDataService) {
+            const projectId = this.vcfFile.project ? this.vcfFile.project.id : this.vcfFile.projectIdNumber;
+            if (projectId) {
+                const fetch = async () => {
+                    this.vcfFileError = undefined;
+                    this.vcfFileInfoPending = true;
+                    const payload = {
+                        value: {
+                            [projectId]: [this.vcfFile.id]
+                        }
+                    };
+                    try {
+                        const {infoItems = []} = await this.projectDataService.getProjectsFilterVcfInfo(payload);
+                        if (!outdated()) {
+                            this.vcfFileInfoItems = infoItems.slice();
+                            const exists = this.vcfFileInfoItems
+                                .filter((item) => item.name === this._vcfFileInfoItem)
+                                .length > 0;
+                            if (!exists) {
+                                this.vcfFileInfoItem = null;
+                            }
+                        }
+                    } catch (e) {
+                        if (!outdated()) {
+                            this.vcfFileError = e.message;
+                        }
+                    } finally {
+                        if (!outdated()) {
+                            this.vcfFileInfoPending = false;
+                        }
+                        this.$scope.$apply();
+                    }
+                };
+                (fetch)();
+                return;
+            }
+        }
+        this.vcfFileInfoPending = false;
+    }
+
+    fetchVCFAnnotation() {
+        const token = (this._vcfAnnotationToken || 0);
+        this._vcfAnnotationToken = token;
+        const outdated = () => token !== this._vcfAnnotationToken;
+        if (this.vcfFileInfoItem && this.vcfFile && this.vcfDataService) {
+            const fetch = async () => {
+                this.vcfFileInfoError = undefined;
+                this.annotation.name = `${this.vcfFile.name} - ${this.vcfFileInfoItem}`;
+                this.annotation.config = undefined;
+                this.annotation.header = undefined;
+                this.colorScheme = undefined;
+                this.vcfAnnotationPending = true;
+                try {
+                    const matrix = await this.vcfDataService.getVcfFieldValues(this.vcfFileId, this.vcfFileInfoItem);
+                    if (!matrix) {
+                        throw new Error(`Error fetching values for ${this.vcfFileInfoItem}`);
+                    }
+                    if (!outdated()) {
+                        this.annotation.name = `${this.vcfFile.name} - ${this.vcfFileInfoItem}`;
+                        const {
+                            values: rawValues = []
+                        } = matrix;
+                        const reducedValues = rawValues.reduce((r, c) => ({...r, ...c}), {});
+                        const columnLabels = Object.keys(reducedValues);
+                        const rowLabels = [''];
+                        const wrapNull = (value) => /^null$/i.test(value) ? undefined : value;
+                        const {
+                            minimum,
+                            maximum,
+                            type: dataType
+                        } = HeatmapMetadata.fromResponse(matrix);
+                        const format = (value) => {
+                            if (dataType === HeatmapDataType.number && !Number.isNaN(Number(value))) {
+                                return Number(value);
+                            }
+                            return value;
+                        };
+                        const prepare = (value) => format(wrapNull(value));
+                        const cellValues = columnLabels
+                            .map((column) => [prepare(reducedValues[column])]);
+                        const values = [...new Set(columnLabels.map((column) => prepare(reducedValues[column])))]
+                            .filter(Boolean);
+                        this.annotation.config = {
+                            minimum,
+                            maximum,
+                            cellValues,
+                            dataType,
+                            columnLabels,
+                            rowLabels
+                        };
+                        this.annotation.header = this.annotationFileHeaderList.COLUMN;
+                        this.annotation.config.vcfFile = this.vcfFile;
+                        this.annotation.config.infoItem = this.vcfFileInfoItem;
+                        this.colorScheme = new ColorScheme({
+                            colorFormat: ColorFormats.hex,
+                            minimum,
+                            maximum,
+                            dataType,
+                            values
+                        });
+                    }
+                } catch (e) {
+                    if (!outdated()) {
+                        this.vcfFileInfoError = e.message;
+                    }
+                } finally {
+                    if (!outdated()) {
+                        this.vcfAnnotationPending = false;
+                    }
+                    this.$scope.$apply();
+                }
+            };
+            (fetch)();
+            return;
+        }
+        this.vcfAnnotationPending = false;
     }
 }

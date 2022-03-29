@@ -6,7 +6,7 @@
                    ng-model="$ctrl.annotation.name" type="text">
         </md-input-container>
     </div>
-    <div class="row">
+    <div class="row" style="margin-top: 10px">
         <md-input-container class="add-annotation-dlb-input">
             <md-checkbox aria-label="select heatmap" class="md-primary"
                          ng-change="$ctrl.onAnnotationTypeChange()"
@@ -59,6 +59,62 @@
         <ngb-pathways-color-scheme-preference
                 scheme="$ctrl.colorScheme"></ngb-pathways-color-scheme-preference>
     </div>
+    <div class="row" style="margin-top: 10px">
+        <md-input-container class="add-annotation-dlb-input">
+            <md-checkbox aria-label="select vcf" class="md-primary"
+                         ng-disabled="$ctrl.vcfFiles.length === 0"
+                         ng-change="$ctrl.onAnnotationTypeChange()"
+                         ng-false-value="null"
+                         ng-model="$ctrl.annotation.type"
+                         ng-true-value="{{$ctrl.annotationTypeList.VCF}}">
+                Select VCF file
+            </md-checkbox>
+            <div style="display: inline; margin-left: 5px" ng-if="$ctrl.vcfFiles.length === 0">
+                <ng-md-icon icon="info" size="20" style="fill: #666666"></ng-md-icon>
+                <md-tooltip class="md-tooltip__full-height">
+                    Select VCF files from <b>Datasets</b> panel
+                </md-tooltip>
+            </div>
+        </md-input-container>
+    </div>
+    <div class="row" ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.VCF">
+        <md-input-container class="add-annotation-dlb-input add-annotation-dlb-vcf">
+            <md-select aria-label="vcf file"
+                       ng-disabled="$ctrl.vcfPending"
+                       id="vcfFile"
+                       multiple="false"
+                       ng-model="$ctrl.vcfFileId"
+                       required>
+                <md-option ng-repeat="vcfFileItem in $ctrl.vcfFiles track by vcfFileItem.id"
+                           ng-value="vcfFileItem.id">
+                    {{vcfFileItem.prettyName || vcfFileItem.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <md-input-container ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.VCF && $ctrl.vcfFile"
+                            class="add-annotation-dlb-input add-annotation-dlb-vcf-items">
+            <md-select aria-label="vcf file item"
+                       ng-disabled="$ctrl.vcfPending"
+                       id="vcfFileInfoItem"
+                       multiple="false"
+                       ng-model="$ctrl.vcfFileInfoItem"
+                       required>
+                <md-option ng-repeat="vcfFileInfoItem in $ctrl.vcfFileInfoItems track by vcfFileInfoItem.name"
+                           ng-value="vcfFileInfoItem.name">
+                    {{vcfFileInfoItem.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+    <div class="row add-annotation-dlb-error"
+         ng-if="$ctrl.annotation.type === $ctrl.annotationTypeList.VCF && $ctrl.vcfError">
+        {{$ctrl.vcfError}}
+    </div>
+    <div class="row"
+         ng-if="$ctrl.annotation && $ctrl.annotation.type === $ctrl.annotationTypeList.VCF && $ctrl.annotation.config">
+        <ngb-pathways-color-scheme-preference
+                scheme="$ctrl.colorScheme"></ngb-pathways-color-scheme-preference>
+    </div>
     <div class="row add-annotation-dlb-file">
         <md-input-container class="add-annotation-dlb-input add-annotation-dlb-file-checkbox">
             <md-checkbox aria-label="upload TSV\CSV" class="md-primary"
@@ -104,7 +160,7 @@
                 scheme="$ctrl.colorScheme"></ngb-pathways-color-scheme-preference>
     </div>
     <md-divider class="add-annotation-divider"></md-divider>
-    <div class="row">
+    <div class="row" style="margin-top: 10px">
         <md-input-container class="add-annotation-dlb-input">
             <md-checkbox aria-label="manual colors config" class="md-primary"
                          ng-change="$ctrl.onAnnotationTypeChange()"

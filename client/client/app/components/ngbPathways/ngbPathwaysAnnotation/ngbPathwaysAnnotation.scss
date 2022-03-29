@@ -62,8 +62,20 @@
     line-height: 40px;
   }
 
-  .add-annotation-dlb-heatmap {
+  .add-annotation-dlb-heatmap,
+  .add-annotation-dlb-vcf {
     width: 50%;
     min-width: 300px;
+  }
+
+  .add-annotation-dlb-vcf-items {
+    width: 40%;
+    min-width: 200px;
+    margin-left: 5px;
+  }
+
+  .add-annotation-dlb-error {
+    color: red;
+    font-size: smaller;
   }
 }

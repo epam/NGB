@@ -8,7 +8,8 @@ const ANNOTATION_FILE_HEADER_LIST = {
 const ANNOTATION_TYPE_LIST = {
     HEATMAP: 0,
     CSV: 1,
-    MANUAL: 2
+    MANUAL: 2,
+    VCF: 3
 };
 
 const ANNOTATION_PREFIX = 'Annotation #';
@@ -58,6 +59,37 @@ function parseConfigHeatmap(config, header) {
         heatmapId: config.heatmapId,
         minCellValue: config.minCellValue,
         maxCellValue: config.maxCellValue
+    };
+}
+
+function prepareConfigVCF(config) {
+    let vcfFile;
+    if (config.vcfFile) {
+        let project;
+        if (config.vcfFile.project) {
+            project = {
+                id: config.vcfFile.project.id
+            };
+        } else if (config.vcfFile.projectIdNumber) {
+            project = {
+                id: config.vcfFile.projectIdNumber
+            };
+        }
+        vcfFile = {
+            id: config.vcfFile.id,
+            name: config.vcfFile.name,
+            displayName: config.vcfFile.displayName,
+            project
+        };
+    }
+    return {
+        labels: config.columnLabels,
+        values: config.cellValues,
+        vcfFile,
+        infoItem: config.infoItem,
+        otherLabels: config.rowLabels,
+        minCellValue: config.minimum,
+        maxCellValue: config.maximum
     };
 }
 
@@ -172,6 +204,9 @@ export default class ngbPathwaysAnnotationService {
         }
         if (annotation.type === this.annotationTypeList.HEATMAP) {
             config = parseConfigHeatmap(annotation.config, annotation.header);
+        }
+        if (annotation.type === this.annotationTypeList.VCF) {
+            config = prepareConfigVCF(annotation.config);
         }
 
         if (annotation.colorScheme) {

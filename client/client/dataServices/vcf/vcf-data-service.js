@@ -155,4 +155,7 @@ export class VcfDataService extends DataService {
         });
     }
 
+    getVcfFieldValues(vcfFieldId, vcfFieldName) {
+        return this.get(`vcf/${vcfFieldId}/fieldValues?fieldName=${vcfFieldName}`);
+    }
 }
