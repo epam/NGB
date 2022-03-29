@@ -41,5 +41,16 @@
                 ]]>
             </value>
         </property>
+        <property name="loadPathwaySpeciesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        tax_id,
+                        MAX(species_name) as species_name
+                    FROM catgenome.pathway_organism
+                    GROUP BY tax_id
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

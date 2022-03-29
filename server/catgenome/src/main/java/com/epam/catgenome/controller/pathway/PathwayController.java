@@ -30,6 +30,7 @@ import com.epam.catgenome.controller.vo.registration.BioPAXRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
+import com.epam.catgenome.entity.pathway.SpeciesDescription;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.manager.pathway.PathwaySecurityService;
 import com.wordnik.swagger.annotations.Api;
@@ -150,4 +151,17 @@ public class PathwayController extends AbstractRESTController {
         pathwaySecurityService.deletePathway(pathwayId);
         return Result.success(null);
     }
+
+    @GetMapping(value = "/pathway/species")
+    @ApiOperation(
+            value = "Returns list of unique species associated with pathways",
+            notes = "Returns list of unique species associated with pathways",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<SpeciesDescription>> loadSpecies() {
+        return Result.success(pathwaySecurityService.loadSpecies());
+    }
+
 }

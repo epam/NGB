@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.vo.registration.BioPAXRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.PathwayRegistrationRequest;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
+import com.epam.catgenome.entity.pathway.SpeciesDescription;
 import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -77,5 +78,10 @@ public class PathwaySecurityService {
     @PreAuthorize(ROLE_USER)
     public byte[] loadPathwayContent(final Long pathwayId, final Long projectId) throws IOException {
         return pathwayManager.loadPathwayContent(pathwayId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<SpeciesDescription> loadSpecies() {
+        return pathwayManager.loadPathwaySpecies();
     }
 }

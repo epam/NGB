@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.entity.pathway.PathwayOrganism;
+import com.epam.catgenome.entity.pathway.SpeciesDescription;
 import com.epam.catgenome.exception.FileParsingException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
@@ -254,6 +255,10 @@ public class PathwayManager {
 
     public List<NGBPathway> loadPathways() {
         return pathwayDao.loadAllPathways(null);
+    }
+
+    public List<SpeciesDescription> loadPathwaySpecies() {
+        return pathwayOrganismDao.loadPathwaySpecies();
     }
 
     private void createBioPAX(final BioPAXRegistrationRequest request) throws IOException {
@@ -558,7 +563,7 @@ public class PathwayManager {
         return species.stream()
                 .filter(s -> taxId.equals(s.getTaxId()))
                 .findFirst()
-                .map(s -> Optional.ofNullable(s.getCommonName()).orElse(s.getScientificName()))
+                .map(s -> Optional.ofNullable(s.getScientificName()).orElse(s.getCommonName()))
                 .orElse(null);
     }
 }

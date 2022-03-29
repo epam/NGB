@@ -25,6 +25,7 @@ package com.epam.catgenome.dao.pathway;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.pathway.PathwayOrganism;
+import com.epam.catgenome.entity.pathway.SpeciesDescription;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -52,6 +53,7 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
     private String insertPathwayOrganismQuery;
     private String deletePathwayOrganismQuery;
     private String loadPathwayOrganismQuery;
+    private String loadPathwaySpeciesQuery;
 
     /**
      * Persists new PathwayOrganism records.
@@ -91,6 +93,10 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
                 PathwayOrganismParameters.getRowMapper(), pathwayId);
     }
 
+    public List<SpeciesDescription> loadPathwaySpecies() {
+        return getJdbcTemplate().query(loadPathwaySpeciesQuery, PathwayOrganismParameters.getSpeciesMapper());
+    }
+
     enum PathwayOrganismParameters {
         PATHWAY_ORGANISM_ID,
         PATHWAY_ID,
@@ -115,6 +121,14 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
             return PathwayOrganism.builder()
                     .pathwayOrganismId(rs.getLong(PATHWAY_ORGANISM_ID.name()))
                     .pathwayId(rs.getLong(PATHWAY_ID.name()))
+                    .taxId(rs.getLong(TAX_ID.name()))
+                    .speciesName(rs.getString(SPECIES_NAME.name()))
+                    .build();
+        }
+
+        static RowMapper<SpeciesDescription> getSpeciesMapper() {
+            return (rs, rowNum) -> SpeciesDescription
+                    .builder()
                     .taxId(rs.getLong(TAX_ID.name()))
                     .speciesName(rs.getString(SPECIES_NAME.name()))
                     .build();

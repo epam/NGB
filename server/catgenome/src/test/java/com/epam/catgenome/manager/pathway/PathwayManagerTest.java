@@ -128,6 +128,13 @@ public class PathwayManagerTest extends TestCase {
         assertNull(createdPathway);
     }
 
+    @Test
+    public void shouldLoadSpecies() throws IOException {
+        registerPathway("loadPathways1", sbgnFileName);
+        registerPathway("loadPathways2", sbgnFileName);
+        assertEquals(3, pathwayManager.loadPathwaySpecies().size());
+    }
+
     @NotNull
     private NGBPathway registerPathway(final String name, final String fileName) throws IOException {
         final PathwayRegistrationRequest request = PathwayRegistrationRequest.builder()
