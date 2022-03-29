@@ -43,6 +43,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,11 @@ import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
+import com.epam.catgenome.entity.heatmap.HeatmapDataType;
+import com.epam.catgenome.entity.index.IndexSearchResult;
+import com.epam.catgenome.entity.index.VcfIndexEntry;
+import com.epam.catgenome.entity.vcf.VcfFieldValues;
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
@@ -167,6 +174,9 @@ public class VcfManager {
 
     @Value("${vcf.extended.info.patterns}")
     private String extendedInfoTemplates;
+
+    @Value("${vcf.max.annotation.size:1000}")
+    private Integer maxAnnotationSize;
 
     private InfoFieldParser infoFieldParser;
 
@@ -506,6 +516,46 @@ public class VcfManager {
 
     public void setIndexBufferSize(int indexBufferSize) {
         this.indexBufferSize = indexBufferSize;
+    }
+
+    public VcfFieldValues loadFieldValues(final Long vcfFileId,
+                                          final String fieldName,
+                                          final Integer maxSize) throws IOException {
+        final VcfFilterForm filterForm = new VcfFilterForm();
+        final Integer limit = Optional.ofNullable(maxSize).orElse(maxAnnotationSize);
+        filterForm.setPage(1);
+        filterForm.setPageSize(limit);
+        filterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFileId)));
+        filterForm.setHasGene(true);
+        filterForm.setInfoFields(Collections.singletonList(fieldName));
+        final IndexSearchResult<VcfIndexEntry> searchResult = featureIndexManager.filterVariations(filterForm);
+        final Set<String> values = new HashSet<>();
+        final Set<Integer> types = new HashSet<>();
+        final List<Pair<String, String>> pairs = searchResult.getEntries()
+                .stream()
+                .filter(entry -> StringUtils.isNotBlank(entry.getGeneNames()))
+                .map(entry -> Arrays.stream(StringUtils.split(entry.getGeneNames()))
+                        .map(gene -> {
+                            final Object value = entry.getInfo().get(fieldName);
+                            final String stringValue = String.valueOf(value);
+                            if (Objects.nonNull(value)) {
+                                values.add(stringValue);
+                                types.add(Utils.guessType(stringValue).getId());
+                            }
+                            return new ImmutablePair<>(gene, stringValue);
+                        })
+                        .collect(Collectors.toList()))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        final HeatmapDataType cellType = HeatmapDataType.getById(Collections.max(types));
+        return VcfFieldValues
+                .builder()
+                .values(pairs)
+                .cellValues(Utils.getCellValues(values, cellType, limit))
+                .cellValueType(cellType)
+                .minCellValue(Utils.getMinValue(values, cellType))
+                .maxCellValue(Utils.getMaxValue(values, cellType))
+                .build();
     }
 
     @NotNull

@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import com.epam.catgenome.entity.heatmap.HeatmapTreeNode;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -312,17 +313,7 @@ public class HeatmapManager {
                 for (int i = 1; i < cells.length - skipColumns; i++) {
                     String value = getCellValue(cells[i]);
                     if (value != null) {
-                        try {
-                            Integer.parseInt(value);
-                            types.add(HeatmapDataType.INTEGER.getId());
-                        } catch (NumberFormatException e) {
-                            try {
-                                Double.parseDouble(value);
-                                types.add(HeatmapDataType.DOUBLE.getId());
-                            } catch (NumberFormatException e1) {
-                                types.add(HeatmapDataType.STRING.getId());
-                            }
-                        }
+                        types.add(Utils.guessType(value).getId());
                         values.add(value);
                     }
                     row.add(value);
@@ -333,35 +324,9 @@ public class HeatmapManager {
             heatmap.setRowLabels(rowLabels);
             HeatmapDataType cellValueType = HeatmapDataType.getById(Collections.max(types));
             heatmap.setCellValueType(cellValueType);
-            switch (cellValueType) {
-                case INTEGER:
-                    heatmap.setCellValues(values.stream()
-                            .map(Integer::parseInt)
-                            .sorted()
-                            .limit(valuesMaxSize)
-                            .collect(Collectors.toSet()));
-                    break;
-                case DOUBLE:
-                    heatmap.setCellValues(values.stream()
-                            .map(Double::parseDouble)
-                            .sorted()
-                            .limit(valuesMaxSize)
-                            .collect(Collectors.toSet()));
-                    break;
-                default:
-                    heatmap.setCellValues(values.stream().limit(valuesMaxSize).collect(Collectors.toSet()));
-                    break;
-            }
-            if (cellValueType != HeatmapDataType.STRING) {
-                heatmap.setMaxCellValue(Collections.max(values
-                        .stream()
-                        .map(Double::parseDouble)
-                        .collect(Collectors.toList())));
-                heatmap.setMinCellValue(Collections.min(values
-                        .stream()
-                        .map(Double::parseDouble)
-                        .collect(Collectors.toList())));
-            }
+            heatmap.setCellValues(Utils.getCellValues(values, cellValueType, valuesMaxSize));
+            heatmap.setMaxCellValue(Utils.getMaxValue(values, cellValueType));
+            heatmap.setMinCellValue(Utils.getMinValue(values, cellValueType));
         }
     }
 

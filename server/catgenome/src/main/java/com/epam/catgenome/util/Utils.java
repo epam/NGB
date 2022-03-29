@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
@@ -502,4 +503,62 @@ public final class Utils {
                 .map(key -> key + "=" + attributes.get(key))
                 .collect(Collectors.joining(","));
     }
+
+    public static HeatmapDataType guessType(final String value) {
+        try {
+            Integer.parseInt(value);
+            return HeatmapDataType.INTEGER;
+        } catch (NumberFormatException e) {
+            try {
+                Double.parseDouble(value);
+                return HeatmapDataType.DOUBLE;
+            } catch (NumberFormatException e1) {
+                return HeatmapDataType.STRING;
+            }
+        }
+    }
+
+    public static Set<?> getCellValues(final Set<String> values,
+                                       final HeatmapDataType cellType,
+                                       final long maxSize) {
+        switch (cellType) {
+            case INTEGER:
+                return values.stream()
+                        .map(Integer::parseInt)
+                        .sorted()
+                        .limit(maxSize)
+                        .collect(Collectors.toSet());
+            case DOUBLE:
+                return values.stream()
+                        .map(Double::parseDouble)
+                        .sorted()
+                        .limit(maxSize)
+                        .collect(Collectors.toSet());
+            default:
+                return values.stream().limit(maxSize).collect(Collectors.toSet());
+        }
+    }
+
+    public static Double getMinValue(final Set<String> values,
+                                     final HeatmapDataType cellType) {
+        if (CollectionUtils.isEmpty(values) || HeatmapDataType.STRING.equals(cellType)) {
+            return null;
+        }
+        return Collections.min(values
+                .stream()
+                .map(Double::parseDouble)
+                .collect(Collectors.toList()));
+    }
+
+    public static Double getMaxValue(final Set<String> values,
+                                     final HeatmapDataType cellType) {
+        if (cellType != HeatmapDataType.STRING) {
+            return Collections.max(values
+                    .stream()
+                    .map(Double::parseDouble)
+                    .collect(Collectors.toList()));
+        }
+        return null;
+    }
+
 }

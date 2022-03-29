@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrat
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VariationQuery;
+import com.epam.catgenome.entity.vcf.VcfFieldValues;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureFileReadingException;
@@ -118,5 +119,12 @@ public class VcfSecurityService {
     @PreAuthorize(ROLE_USER)
     public void setVcfAliases(final Map<String, String> aliases, final long vcfFileId) {
         vcfFileManager.setVcfAliases(aliases, vcfFileId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public VcfFieldValues loadFieldValues(final Long vcfFileId,
+                                          final String fieldName,
+                                          final Integer maxSize) throws IOException {
+        return vcfManager.loadFieldValues(vcfFileId, fieldName, maxSize);
     }
 }

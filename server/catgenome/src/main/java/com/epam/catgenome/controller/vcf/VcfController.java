@@ -36,6 +36,7 @@ import java.util.concurrent.Callable;
 
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VariationQuery;
+import com.epam.catgenome.entity.vcf.VcfFieldValues;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
@@ -250,10 +251,25 @@ public class VcfController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<VcfFilterInfo> erg(@PathVariable(value = "vcfFileId") final Long vcfFileId,
+    public Result<VcfFilterInfo> getFiltersInfo(@PathVariable(value = "vcfFileId") final Long vcfFileId,
                                      @RequestParam(required = false) final Long projectId) throws IOException {
         return Result.success(vcfSecurityService.getFiltersInfo(
                 //here we need to create new HashMap to be able to filter this map in SecurityServices classes
                 new HashMap<>(singletonMap(projectId, singletonList(vcfFileId)))));
+    }
+
+    @GetMapping(value = "/vcf/{vcfFileId}/fieldValues")
+    @ApiOperation(
+            value = "Returns VCF INFO field values in a table view for annotation",
+            notes = "Returns VCF INFO field values in a table view for annotation",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<VcfFieldValues> loadFieldValues(
+            @PathVariable final Long vcfFileId,
+            @RequestParam final String fieldName,
+            @RequestParam(required = false) final Integer maxSize) throws IOException {
+        return Result.success(vcfSecurityService.loadFieldValues(vcfFileId, fieldName, maxSize));
     }
 }

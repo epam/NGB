@@ -27,6 +27,7 @@ package com.epam.catgenome.entity.vcf;
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureType;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.FieldValueQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.TermQuery;
 import org.springframework.util.Assert;
@@ -49,6 +51,7 @@ import java.util.stream.Collectors;
  * that allow finding and filtering variations saved in the lucene index
  */
 
+@Setter
 public class VcfFilterForm extends AbstractFilterForm {
     private String failedFilter;
     private FilterSection<List<VariationType>> variationTypes;
@@ -58,6 +61,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private Map<String, Object> additionalFilters;
     private List<Float> quality;
     private Boolean isExon;
+    private Boolean hasGene;
     private Integer startIndex;
     private Integer endIndex;
     private FilterSection<List<String>> sampleNames;
@@ -228,6 +232,9 @@ public class VcfFilterForm extends AbstractFilterForm {
             }
 
             builder.add(genesBuilder.build(), BooleanClause.Occur.MUST);
+        }
+        if (Boolean.TRUE.equals(hasGene)) {
+            builder.add(new FieldValueQuery(FeatureIndexFields.GENE_NAMES.getFieldName()), BooleanClause.Occur.MUST);
         }
     }
 
