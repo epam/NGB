@@ -28,6 +28,7 @@ export default class ngbInternalPathwayNodeController {
             this.nodeData.ttipData.forEach(data => {
                 if (data.hdr === hdrTypeList.GENE) {
                     this.geneId = data.data[0].text;
+                    this.geneName = $sce.trustAsHtml(this.geneId);
                 }
             });
         }

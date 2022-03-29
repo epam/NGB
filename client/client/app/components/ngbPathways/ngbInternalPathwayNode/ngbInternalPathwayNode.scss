@@ -7,6 +7,7 @@ $element-hover-background-color: #F0F6FF;
 $element-selected-background-color: #E1EBFD;
 $element-shadow-color: rgba(0, 0, 0, 0.4);
 $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
+$element-annotation-shadow-color: rgba(0, 0, 0, 0.75);
 
 $knot-background-color: transparent;
 $edge-description-background-color: transparent;
@@ -40,7 +41,9 @@ $sbgn-background-color: #F6F6F6;
 
   .internal-pathway-node-title {
     font-weight: bold;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
   }
 }
@@ -92,9 +95,11 @@ $sbgn-background-color: #F6F6F6;
 
     .internal-pathway-node-title {
       font-weight: bold;
-      display: inline-block;
+      display: inline-flex;
       white-space: nowrap;
       text-align: center;
+      align-items: center;
+      justify-content: center;
     }
 
     .internal-pathway-node-desc {
@@ -211,4 +216,36 @@ $sbgn-background-color: #F6F6F6;
     background-color: $sbgn-background-color-selected;
     box-shadow: 0 0 0 8px $sbgn-background-color-selected;
   }
+}
+
+.internal-pathway-annotation {
+  display: block;
+  filter: drop-shadow(0 0 2px $element-annotation-shadow-color);
+  background-position: left;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.internal-pathway-node-label-container {
+  position: relative;
+  flex: 1;
+  .internal-pathway-gene-name {
+    position: absolute;
+    top: calc(50% - 0.5em);
+    left: 0;
+    display: none;
+  }
+}
+
+.cytoscape-container.annotated {
+  .internal-pathway-gene-name {
+    display: initial;
+  }
+  .internal-pathway-node-label {
+    visibility: hidden;
+  }
+}
+
+.noIcon .internal-pathway-annotation {
+  margin-left: 0 !important;
 }

@@ -6,8 +6,21 @@
      ng-style="$ctrl.highlightStyle">
     <div class="internal-pathway-node-title"
          ng-class="{'internal-pathway-node-link': $ctrl.nodeData.taxId && $ctrl.geneId}"
-         ng-bind-html="$ctrl.label"
          ng-mouseup="$ctrl.navigate()">
+        <div class="internal-pathway-annotation"></div>
+        <div ng-if="$ctrl.geneName"
+             class="internal-pathway-node-label-container">
+            <div class="internal-pathway-node-label"
+                 ng-bind-html="$ctrl.label">
+            </div>
+            <div class="internal-pathway-gene-name"
+                 ng-bind-html="$ctrl.geneName">
+            </div>
+        </div>
+        <div ng-if="!$ctrl.geneName"
+             class="internal-pathway-node-label-container"
+             ng-bind-html="$ctrl.label">
+        </div>
     </div>
     <div class="internal-pathway-units-of-information" ng-if="$ctrl.unitOfInformation">
         <hr class="middle-line middle-line-left"/>

@@ -38,8 +38,10 @@ const selectedEdgeStyle = {
 };
 
 const INTERNAL_PATHWAY_FEATURE_CLASS_LIST = ['nucleic acid feature', 'macromolecule', 'simple chemical'];
-const INTERNAL_PATHWAY_EXCLUDED_CLASS_LIST = ['noIcon'];
 const TEXT_STYLE = ['color', 'font-weight'];
+const EMPTY_ANNOTATION_STYLE = {
+    display: 'none'
+};
 
 
 const clearEdgesSelectionStyle = (cy, edgeSettings) => {
@@ -138,6 +140,12 @@ export default class ngbCytoscapePathwayController {
 
     static get UID() {
         return 'ngbCytoscapePathwayController';
+    }
+
+    get annotated() {
+        return this.searchParams &&
+            this.searchParams.annotations &&
+            this.searchParams.annotations.length;
     }
 
     $onChanges(changes) {
@@ -457,9 +465,7 @@ export default class ngbCytoscapePathwayController {
         if (!this.viewer) {
             return;
         }
-        const excludedClasses = `.${INTERNAL_PATHWAY_EXCLUDED_CLASS_LIST.join(', .')}`;
-        const negators = this.viewer.$(excludedClasses);
-        this.viewer.nodes().not(negators).forEach(node => {
+        this.viewer.nodes().forEach(node => {
             this.annotateNode(node, annotationList);
         });
     }
@@ -513,7 +519,6 @@ export default class ngbCytoscapePathwayController {
 
     fileAnnotation(node, annotation) {
         let termsList = [];
-        const style = {};
         const terms = annotation.value;
 
         for (let labelIndex = 0; labelIndex < terms.labels.length; labelIndex++) {
@@ -526,31 +531,68 @@ export default class ngbCytoscapePathwayController {
             });
             if (colorList.length) {
                 if (!node.data('isFound')) {
-                    style.background = this.buildGradientBackground(colorList);
-                    this.setStyleToNode(node, style);
+                    this.setStyleToNode(node, {}, this.buildAnnotationStyle(colorList));
+                } else {
+                    this.setStyleToNode(node);
                 }
                 node.data('isAnnotated', true);
+            } else {
+                this.setStyleToNode(node);
             }
         }
     }
 
-    buildGradientBackground(colorList) {
-        const percentage = Math.ceil(100 / colorList.length);
-        let background = 'linear-gradient(to right';
-        for (let i = 0; i < colorList.length; i++) {
-            background += `, ${colorList[i]} ${percentage * i}%, ${colorList[i]} ${percentage * (i + 1)}%`;
+    buildAnnotationStyle(colorList) {
+        if (!colorList || colorList.length === 0) {
+            return EMPTY_ANNOTATION_STYLE;
         }
-        background += ')';
-        return background;
+        const MAX_COLUMNS = 5;
+        const columns = Math.min(colorList.length, MAX_COLUMNS);
+        const rows = Math.ceil(colorList.length / columns);
+        const cellSize = rows >= 2 ? 0.75 : 1;
+        const getCoordinate = (index) => ({
+            column: index % columns,
+            row: Math.floor(index / columns)
+        });
+        let svg = `<svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="${columns * 16}" height="${rows * 16}"
+ stroke="rgb(120, 120, 120)"
+>`;
+        for (let i = 0; i < colorList.length; i++) {
+            const {column, row} = getCoordinate(i);
+            svg = svg.concat(`
+<rect
+ x="${column * 16}"
+ y="${row * 16}"
+ width="16"
+ height="16"
+ fill="${colorList[i]}"
+/>`);
+        }
+        svg = svg.concat('</svg>');
+        svg = `url(data:image/svg+xml;base64,${window.btoa(svg)})`;
+        return {
+            display: 'initial',
+            backgroundImage: svg,
+            width: `${columns * cellSize}em`,
+            marginLeft: `-${columns + 0.5}em`,
+            marginRight: '0.5em',
+            height: `${rows * cellSize}em`
+        };
     }
 
-    setStyleToNode(node, style) {
-        this.setStyleToDomNode(node.data('id'), style);
+    setStyleToNode(node, style = {}, annotationStyle = EMPTY_ANNOTATION_STYLE) {
+        this.setStyleToDomNode(node.data('id'), style, annotationStyle);
     }
 
-    setStyleToDomNode(domId, style) {
+    setStyleToDomNode(domId, style, annotationStyle) {
         const domElem = $(document).find(`#${domId}`);
         const textElem = domElem.find('.internal-pathway-node-title');
+        const backgroundElement = domElem.find('.internal-pathway-node-title .internal-pathway-annotation');
+        if (backgroundElement) {
+            backgroundElement.css(annotationStyle || {});
+        }
         if (domElem) {
             Object.keys(style).forEach(key => {
                 domElem.css(key, style[key]);
