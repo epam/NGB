@@ -6,7 +6,10 @@ export default class ngbPathwaysAnnotationAddDlgController {
             this.annotation = {
                 ...annotation
             };
-            this.colorScheme = this.annotation.colorScheme.copy();
+            if (this.annotation.type === this.ngbPathwaysAnnotationService.annotationTypeList.HEATMAP
+                || this.annotation.type === this.ngbPathwaysAnnotationService.annotationTypeList.CSV) {
+                this.colorScheme = this.annotation.colorScheme.copy();
+            }
         } else {
             this.annotation = {
                 name: undefined,

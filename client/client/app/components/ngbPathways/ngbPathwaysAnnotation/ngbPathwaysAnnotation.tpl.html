@@ -10,7 +10,7 @@
         <md-input-container class="add-annotation-dlb-input">
             <md-checkbox aria-label="select heatmap" class="md-primary"
                          ng-change="$ctrl.onAnnotationTypeChange()"
-                         ng-false-value="undefined"
+                         ng-false-value="null"
                          ng-model="$ctrl.annotation.type"
                          ng-true-value="{{$ctrl.annotationTypeList.HEATMAP}}">
                 Select heatmap file
@@ -119,7 +119,7 @@
         <md-input-container class="add-annotation-dlb-input add-annotation-dlb-file-checkbox">
             <md-checkbox aria-label="upload TSV\CSV" class="md-primary"
                          ng-change="$ctrl.onAnnotationTypeChange()"
-                         ng-false-value="undefined"
+                         ng-false-value="null"
                          ng-model="$ctrl.annotation.type"
                          ng-true-value="{{$ctrl.annotationTypeList.CSV}}">
                 Upload TSV/CSV
@@ -164,7 +164,7 @@
         <md-input-container class="add-annotation-dlb-input">
             <md-checkbox aria-label="manual colors config" class="md-primary"
                          ng-change="$ctrl.onAnnotationTypeChange()"
-                         ng-false-value="undefined"
+                         ng-false-value="null"
                          ng-model="$ctrl.annotation.type"
                          ng-true-value="{{$ctrl.annotationTypeList.MANUAL}}">
                 Manual colors config
