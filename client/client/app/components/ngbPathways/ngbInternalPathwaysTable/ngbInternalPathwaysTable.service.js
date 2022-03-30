@@ -67,14 +67,14 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     get internalPathwaysColumns() {
-        if (!localStorage.getItem('internalPathwaysColumnNames')) {
-            localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
+        if (!localStorage.getItem('internalPathwaysColumns')) {
+            localStorage.setItem('internalPathwaysColumns', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
         }
-        return JSON.parse(localStorage.getItem('internalPathwaysColumnNames'));
+        return JSON.parse(localStorage.getItem('internalPathwaysColumns'));
     }
 
     set internalPathwaysColumns(columns) {
-        localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(columns || []));
+        localStorage.setItem('internalPathwaysColumns', JSON.stringify(columns || []));
     }
 
     _displayInternalPathwaysFilter = true;
@@ -91,11 +91,11 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     _speciesList;
 
     get speciesList() {
-        return this._speciesList;
+        return this._speciesList || [];
     }
 
     set speciesList(value) {
-        this._speciesList = value;
+        this._speciesList = (value || []);
     }
 
     static instance(dispatcher, genomeDataService) {

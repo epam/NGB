@@ -25,6 +25,7 @@ export default class ngbPathwaysPanelController extends baseController {
         this.pathwaysStates = this.ngbPathwaysService.pathwaysStates;
         this.initEvents();
         this.changeState(this.ngbPathwaysService.currentState);
+        this.searchPathway();
     }
 
     static get UID() {
