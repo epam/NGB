@@ -7,6 +7,7 @@ const RESIZE_DELAY = 300;
 export default class ngbInternalPathwaysTableController extends baseController {
     dispatcher;
     isProgressShown = true;
+    displayInternalPathwaysFilter = true;
     errorMessageList = [];
     debounce = (new Debounce()).debounce;
     gridOptions = {
@@ -39,7 +40,9 @@ export default class ngbInternalPathwaysTableController extends baseController {
     events = {
         'pathways:internalPathways:page:change': this.loadData.bind(this),
         'pathways:internalPathways:search': this.initialize.bind(this),
-        'read:show:pathways': this.loadData.bind(this)
+        'pathways:internalPathways:species:loaded': this.initialize.bind(this),
+        'read:show:pathways': this.loadData.bind(this),
+        'pathways:internalPathways:refresh': this.loadData.bind(this),
     };
 
     constructor($scope, $timeout, dispatcher,
@@ -55,6 +58,7 @@ export default class ngbInternalPathwaysTableController extends baseController {
             uiGridConstants,
         });
 
+        this.displayInternalPathwaysFilter = this.ngbInternalPathwaysTableService.displayInternalPathwaysFilter;
         this.initEvents();
     }
 
@@ -85,7 +89,9 @@ export default class ngbInternalPathwaysTableController extends baseController {
                 });
             }
         });
-        await this.loadData();
+        if (this.ngbInternalPathwaysTableService.isInitialized) {
+            await this.loadData();
+        }
         this.isProgressShown = false;
     }
 

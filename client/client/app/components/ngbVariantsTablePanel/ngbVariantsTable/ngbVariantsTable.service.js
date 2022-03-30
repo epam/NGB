@@ -1,5 +1,3 @@
-import headerCells from './ngbVariantsTable_header.tpl.html';
-
 export default class ngbVariantsTableService {
 
     static instance(projectContext, genomeDataService, projectDataService, variantsTableMessages, uiGridConstants) {
@@ -115,7 +113,7 @@ export default class ngbVariantsTableService {
                     break;
                 case 'sampleNames': {
                     columnSettings = {
-                        cellTemplate: `<div class="ui-grid-cell-contents" ng-class="COL_FIELD CUSTOM_FILTERS" >{{COL_FIELD | array}}</div>`,
+                        cellTemplate: '<div class="ui-grid-cell-contents" ng-class="COL_FIELD CUSTOM_FILTERS" >{{COL_FIELD | array}}</div>',
                         enableHiding: false,
                         field: 'sampleNames',
                         headerCellTemplate: headerCells,
