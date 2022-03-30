@@ -73,6 +73,7 @@ import static com.epam.catgenome.util.Utils.parseAttributes;
 public class LineageTreeManager {
 
     private static final int NODES_FILE_COLUMNS = 6;
+    private static final int ALT_NODES_FILE_COLUMNS = 5;
     private static final int EDGES_FILE_COLUMNS = 4;
     private final LineageTreeDao lineageTreeDao;
     private final LineageTreeNodeDao lineageTreeNodeDao;
@@ -152,8 +153,11 @@ public class LineageTreeManager {
                     break;
                 }
                 cells = line.split(separator);
-                Assert.isTrue(cells.length == NODES_FILE_COLUMNS,
+                Assert.isTrue(cells.length == NODES_FILE_COLUMNS || cells.length == ALT_NODES_FILE_COLUMNS,
                         getMessage(MessagesConstants.ERROR_LINEAGE_INCORRECT_COLUMN_NUM, NODES_FILE_COLUMNS));
+                //support for previous 5 column format
+                boolean isOldFormat = cells.length == ALT_NODES_FILE_COLUMNS;
+                int indexShift = isOldFormat ? 0 : 1;
                 nodeName = getCellValue(cells[0]);
                 Assert.notNull(nodeName, getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NAME_REQUIRED));
                 Assert.isTrue(!nodeNames.contains(nodeName),
@@ -163,10 +167,10 @@ public class LineageTreeManager {
                         .name(nodeName)
                         .description(getCellValue(cells[1]))
                         .referenceId(getCellValue(cells[2]) == null ? null : Long.valueOf(getCellValue(cells[2])))
-                        .projectId(getProjectId(getCellValue(cells[3])))
-                        .creationDate(getCellValue(cells[4]) == null ? null :
-                                LocalDate.parse(getCellValue(cells[4]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
-                        .attributes(parseAttributes(getCellValue(cells[5])))
+                        .projectId(getProjectId(isOldFormat ? null : getCellValue(cells[3])))
+                        .creationDate(getCellValue(cells[3 + indexShift]) == null ? null :
+                                LocalDate.parse(getCellValue(cells[3 + indexShift]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
+                        .attributes(parseAttributes(getCellValue(cells[4 + indexShift])))
                         .build();
                 nodes.add(node);
                 nodeNames.add(nodeName);
