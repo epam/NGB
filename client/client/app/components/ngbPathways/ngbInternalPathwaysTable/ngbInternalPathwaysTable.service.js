@@ -1,17 +1,19 @@
 import ClientPaginationService from '../../../shared/services/clientPaginationService';
 
 const DEFAULT_INTERNAL_PATHWAYS_COLUMNS = [
-    'name', 'description', 'source'
+    'name', 'description', 'source', 'organisms'
 ];
 const DEFAULT_ORDERBY_INTERNAL_PATHWAYS_COLUMNS = {
     'name': 'name',
     'description': 'description',
-    'source': 'source'
+    'source': 'source',
+    'organisms': 'organisms'
 };
 const INTERNAL_PATHWAYS_COLUMN_TITLES = {
     name: 'Map',
     description: 'Description',
-    source: 'Source'
+    source: 'Source',
+    organisms: 'Species'
 };
 const DATABASE_SOURCES = {
     CUSTOM: 'Custom',
@@ -20,12 +22,16 @@ const DATABASE_SOURCES = {
 };
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 11;
+const blockFilterInternalPathwaysTimeout = 500;
 
 export default class ngbInternalPathwaysTableService extends ClientPaginationService {
+    _blockFilterInternalPathways;
+
     constructor(dispatcher, genomeDataService) {
         super(dispatcher, FIRST_PAGE, PAGE_SIZE, 'pathways:internalPathways:page:change');
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
+        this.loadSpeciesList();
     }
 
     _internalPathways;
@@ -40,6 +46,12 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         return this._pageError;
     }
 
+    _isInitialized = false;
+
+    get isInitialized() {
+        return this._isInitialized;
+    }
+
     get columnTitleMap() {
         return INTERNAL_PATHWAYS_COLUMN_TITLES;
     }
@@ -48,19 +60,52 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         return DEFAULT_ORDERBY_INTERNAL_PATHWAYS_COLUMNS;
     }
 
+    _internalPathwaysFilter = {};
+
+    get internalPathwaysFilter() {
+        return this._internalPathwaysFilter;
+    }
+
     get internalPathwaysColumns() {
-        if (!localStorage.getItem('internalPathwaysColumnNames')) {
-            localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
+        if (!localStorage.getItem('internalPathwaysColumns')) {
+            localStorage.setItem('internalPathwaysColumns', JSON.stringify(DEFAULT_INTERNAL_PATHWAYS_COLUMNS));
         }
-        return JSON.parse(localStorage.getItem('internalPathwaysColumnNames'));
+        return JSON.parse(localStorage.getItem('internalPathwaysColumns'));
     }
 
     set internalPathwaysColumns(columns) {
-        localStorage.setItem('internalPathwaysColumnNames', JSON.stringify(columns || []));
+        localStorage.setItem('internalPathwaysColumns', JSON.stringify(columns || []));
+    }
+
+    _displayInternalPathwaysFilter = true;
+
+    get displayInternalPathwaysFilter() {
+        if (this._displayInternalPathwaysFilter !== undefined) {
+            return this._displayInternalPathwaysFilter;
+        } else {
+            this._displayInternalPathwaysFilter = JSON.parse(localStorage.getItem('displayInternalPathwaysFilter')) || false;
+            return this._displayInternalPathwaysFilter;
+        }
+    }
+
+    _speciesList;
+
+    get speciesList() {
+        return this._speciesList || [];
+    }
+
+    set speciesList(value) {
+        this._speciesList = (value || []);
     }
 
     static instance(dispatcher, genomeDataService) {
         return new ngbInternalPathwaysTableService(dispatcher, genomeDataService);
+    }
+
+    async loadSpeciesList() {
+        this.speciesList = await this.genomeDataService.getSpeciesList();
+        this._isInitialized = true;
+        this.dispatcher.emitSimpleEvent('pathways:internalPathways:species:loaded');
     }
 
     async searchInternalPathways(currentSearch) {
@@ -69,14 +114,21 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     async loadInternalPathways(currentSearch) {
+        if (currentSearch.rewriteSpecies) {
+            this.internalPathwaysFilter.organisms = currentSearch.speciesList;
+            currentSearch.speciesList = [];
+            currentSearch.rewriteSpecies = false;
+        }
         const filter = {
             pagingInfo: {
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
             },
             sortInfo: this.orderBy ? this.orderBy[0] : null,
-            term: currentSearch
+            term: currentSearch.search || '',
+            taxIds: this.internalPathwaysFilter.organisms || []
         };
+
         const data = await this.genomeDataService.getInternalPathwaysLoad(filter);
         if (data.error) {
             this.totalPages = 0;
@@ -125,6 +177,27 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                     };
                     break;
                 }
+                case 'organisms': {
+                    columnSettings = {
+                        cellTemplate: `<div class="ui-grid-cell-contents"
+                                       >{{row.entity.organismsViewValue}}</div>`,
+                        enableHiding: false,
+                        enableSorting: true,
+                        enableFiltering: true,
+                        field: 'organisms',
+                        headerCellTemplate: headerCells,
+                        name: this.columnTitleMap[column],
+                        filterApplied: () => this.internalPathwaysFieldIsFiltered(column),
+                        menuItems: [
+                            {
+                                title: 'Clear column filter',
+                                action: () => this.clearInternalPathwaysFieldFilter(column),
+                                shown: () => this.internalPathwaysFieldIsFiltered(column)
+                            }
+                        ],
+                    };
+                    break;
+                }
                 default: {
                     columnSettings = {
                         enableHiding: false,
@@ -150,8 +223,40 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         return result;
     }
 
+    clearInternalPathwaysFilter() {
+        if (this._blockFilterInternalPathways) {
+            clearTimeout(this._blockFilterInternalPathways);
+            this._blockFilterInternalPathways = null;
+        }
+        this._internalPathwaysFilter = {};
+        this.dispatcher.emit('pathways:internalPathways:refresh');
+        this._blockFilterInternalPathways = setTimeout(() => {
+            this._blockFilterInternalPathways = null;
+        }, blockFilterInternalPathwaysTimeout);
+    }
+
+    internalPathwaysFieldIsFiltered(fieldName) {
+        return this.internalPathwaysFilter[fieldName] !== undefined;
+    }
+
+    clearInternalPathwaysFieldFilter(fieldName) {
+        this.internalPathwaysFilter[fieldName] = undefined;
+        this.dispatcher.emit('pathways:internalPathways:refresh');
+    }
+
+    canScheduleFilterInternalPathways() {
+        return !this._blockFilterInternalPathways;
+    }
+
+    scheduleFilterInternalPathways() {
+        if (this._blockFilterInternalPathways) {
+            return;
+        }
+        this.dispatcher.emit('pathways:internalPathways:refresh');
+    }
+
     _formatServerToClient(internalPathways) {
-        return {
+        const result = {
             id: internalPathways.pathwayId,
             name: internalPathways.prettyName || internalPathways.name,
             description: internalPathways.pathwayDesc,
@@ -159,5 +264,11 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
             source: DATABASE_SOURCES[internalPathways.databaseSource] || internalPathways.databaseSource,
             organisms: internalPathways.organisms
         };
+        if (internalPathways.organisms) {
+            result.organismsViewValue = internalPathways.organisms
+                .map(organism => organism.speciesName || organism.taxId)
+                .join(', ');
+        }
+        return result;
     }
 }

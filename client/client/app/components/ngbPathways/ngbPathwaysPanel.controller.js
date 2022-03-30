@@ -25,6 +25,7 @@ export default class ngbPathwaysPanelController extends baseController {
         this.pathwaysStates = this.ngbPathwaysService.pathwaysStates;
         this.initEvents();
         this.changeState(this.ngbPathwaysService.currentState);
+        this.searchPathway();
     }
 
     static get UID() {
@@ -48,7 +49,11 @@ export default class ngbPathwaysPanelController extends baseController {
     }
 
     searchPathway() {
-        this.ngbPathwaysService.currentSearch = this.searchRequest;
+        this.ngbPathwaysService.currentSearch = {
+            search: this.searchRequest,
+            speciesList: [],
+            rewriteSpecies: true
+        };
         this.dispatcher.emitSimpleEvent('pathways:internalPathways:search');
         this.changeState('INTERNAL_PATHWAYS');
     }

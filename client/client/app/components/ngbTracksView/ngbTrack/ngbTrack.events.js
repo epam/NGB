@@ -220,6 +220,10 @@ export default class ngbTrackEvents {
                 if (data.feature.feature && data.feature.name) {
                     const layoutChange = this.appLayout.Panels.pathways;
                     layoutChange.displayed = true;
+                    const [reference] = this.projectContext.references.filter(ref => ref.id === track.referenceId);
+                    const speciesList = reference && reference.species
+                        ? [reference.species.taxId]
+                        : null;
                     menuData.push({
                         events: [
                             {
@@ -228,7 +232,9 @@ export default class ngbTrackEvents {
                             },
                             {
                                 data: {
-                                    search: data.feature.name
+                                    speciesList,
+                                    search: data.feature.name,
+                                    rewriteSpecies: true
                                 },
                                 name: 'read:show:pathways'
                             }],

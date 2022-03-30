@@ -82,7 +82,7 @@ export default class ngbPathwaysService {
 
     initEvents() {
         this.dispatcher.on('read:show:pathways', data => {
-            this.currentSearch = data ? data.search : null;
+            this.currentSearch = data || null;
         });
     }
 

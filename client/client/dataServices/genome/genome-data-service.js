@@ -237,6 +237,20 @@ export class GenomeDataService extends DataService {
         });
     }
 
+    getSpeciesList() {
+        return new Promise((resolve, reject) => {
+            this.get('pathway/species')
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
     getInternalPathwaysLoad(filter) {
         // return this._internalPathways;
         return new Promise((resolve, reject) => {
