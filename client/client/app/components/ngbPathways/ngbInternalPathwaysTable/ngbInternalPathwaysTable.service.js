@@ -33,6 +33,7 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
         this.genomeDataService = genomeDataService;
         this.loadSpeciesList();
     }
+
     _internalPathways;
 
     get internalPathways() {
@@ -113,13 +114,18 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     async loadInternalPathways(currentSearch) {
+        if (currentSearch.rewriteSpecies) {
+            this.internalPathwaysFilter.organisms = currentSearch.speciesList;
+            currentSearch.speciesList = [];
+            currentSearch.rewriteSpecies = false;
+        }
         const filter = {
             pagingInfo: {
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
             },
             sortInfo: this.orderBy ? this.orderBy[0] : null,
-            term: currentSearch || '',
+            term: currentSearch.search || '',
             taxIds: this.internalPathwaysFilter.organisms || []
         };
 

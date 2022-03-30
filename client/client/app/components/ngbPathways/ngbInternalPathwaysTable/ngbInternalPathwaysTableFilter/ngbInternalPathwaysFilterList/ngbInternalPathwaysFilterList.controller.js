@@ -27,7 +27,7 @@ export default class ngbInternalPathwaysFilterListController {
                 if (this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms) {
                     this.selectedItems = this.ngbInternalPathwaysTableService.speciesList
                         .filter(organism => this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms.indexOf(organism.taxId) >= 0)
-                        .map(organism => organism.speciesName);
+                        .map(organism => organism.taxId);
                     this.displayText = [...this.selectedItems].join(', ');
                 }
                 break;
@@ -146,10 +146,7 @@ export default class ngbInternalPathwaysFilterListController {
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
                 const currValue = this.ngbInternalPathwaysTableService.speciesList
-                    .filter(organism => organism.speciesName
-                        ? selectedItemsLowerCase.indexOf(organism.speciesName.toLowerCase()) >= 0
-                        : selectedItemsLowerCase.indexOf(organism.taxId.toString()) >= 0
-                    )
+                    .filter(organism => selectedItemsLowerCase.indexOf(organism.taxId.toString()) >= 0)
                     .map(organism => organism.taxId);
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
