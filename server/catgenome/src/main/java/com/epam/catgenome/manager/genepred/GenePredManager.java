@@ -28,7 +28,8 @@ import com.epam.catgenome.manager.genbank.GeneType;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
-import com.epam.catgenome.util.feature.reader.TribbleIndexedFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.samtools.util.CloseableIterator;
 import lombok.SneakyThrows;
 import org.broad.igv.feature.BasicFeature;
 import org.broad.igv.feature.tribble.UCSCGeneTableCodec;
@@ -54,15 +55,16 @@ public class GenePredManager {
     public void genePredToGTF(final String genePredFile, final Path gffFilePath) {
         Assert.notNull(genePredFile, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         final UCSCGeneTableCodec codec = new UCSCGeneTableCodec(UCSCGeneTableCodec.Type.GENEPRED, null);
-        final TribbleIndexedFeatureReader<BasicFeature, ?> reader = new TribbleIndexedFeatureReader<>(genePredFile,
-                null,
-                codec,
-                false,
-                null);
-        final Iterable<BasicFeature> iterator = reader.iterator();
-        Assert.isTrue(iterator.iterator().hasNext(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        List<BasicFeature> basicFeatures;
+        try (AbstractFeatureReader<BasicFeature, ?> reader = AbstractFeatureReader.getFeatureReader(genePredFile,
+                codec, false, null)) {
+            final CloseableIterator<BasicFeature> iterator = reader.iterator();
+            Assert.isTrue(iterator.hasNext(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+            basicFeatures = iterator.toList();
+            iterator.close();
+        }
         try (Gff3Writer gff3Writer = new Gff3Writer(gffFilePath)) {
-            for (BasicFeature f : iterator) {
+            for (BasicFeature f : basicFeatures) {
                 Gff3FeatureImpl feature = convertFeature(f);
                 gff3Writer.addFeature(feature);
             }
