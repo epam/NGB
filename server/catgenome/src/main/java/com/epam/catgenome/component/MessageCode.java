@@ -53,6 +53,7 @@ public enum MessageCode {
     WRONG_NAME("name.already.exists"),
 
     ERROR_GENBANK_FILE_READING("error.genbank.file.reading"),
+    ERROR_GENE_PRED_FILE_READING("error.genepred.file.reading"),
     ERROR_NO_QUALIFIERS("error.no.qualifiers");
 
     private final String code;

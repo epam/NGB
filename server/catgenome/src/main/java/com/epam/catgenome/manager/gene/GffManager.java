@@ -68,10 +68,10 @@ import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
+import com.epam.catgenome.manager.genepred.GenePredManager;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.genbank.GenbankUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -115,6 +115,8 @@ import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
+import static com.epam.catgenome.manager.genbank.GenbankUtils.isGenbank;
+import static com.epam.catgenome.manager.genepred.GenePredUtils.isGenePred;
 
 /**
  * Source:      GeneManager
@@ -163,6 +165,9 @@ public class GffManager {
 
     @Autowired
     private GenbankManager genbankManager;
+
+    @Autowired
+    private GenePredManager genePredManager;
 
     @Autowired
     private ActivityService activityService;
@@ -288,12 +293,17 @@ public class GffManager {
 
         fileManager.makeGeneDir(geneFile.getId());
 
-        if (GenbankUtils.isGenbank(path)) {
+        if (isGenbank(path) || isGenePred(path)) {
             String geneDir = fileManager.getGeneDir(geneFile.getId());
             Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
             Path gffFilePath = Paths.get(geneDir,
                     FilenameUtils.removeExtension(geneFile.getName()) + GffCodec.GFF_EXTENSION);
-            genbankManager.genbankToGff(path, gffFilePath);
+            if (isGenbank(path)) {
+                genbankManager.genbankToGff(path, gffFilePath);
+            }
+            if (isGenePred(path)) {
+                genePredManager.genePredToGTF(path, gffFilePath);
+            }
             path = gffFilePath.toString();
             geneFile.setPath(path);
             request.setPath(path);

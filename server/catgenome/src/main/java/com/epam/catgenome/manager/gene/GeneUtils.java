@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,6 +69,12 @@ public final class GeneUtils {
     public static final String MRNA_SYMBOL_KEY = "mRNA_symbol";
     public static final String TRANSCRIPT_NAME_KEY = "transcript_name";
     public static final String TRANSCRIPT_SYMBOL_KEY = "transcript_symbol";
+
+    //attributes
+    public static final String ID_ATTR = "ID";
+    public static final String NAME_ATTR = "Name";
+    public static final String DBXREF_ATTR = "Dbxref";
+    public static final String NOTE_ATTR = "Note";
 
     private GeneUtils() {
         // no-op

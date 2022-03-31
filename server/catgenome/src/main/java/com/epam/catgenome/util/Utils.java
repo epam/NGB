@@ -90,6 +90,7 @@ public final class Utils {
     public static final int DEFAULT_PAGE_SIZE = 20;
     private static final int DEFAULT_PAGE_NUM = 0;
     public static final String NEW_LINE = "\n";
+    public static final String DOT = ".";
 
     private Utils() {
         // no operations by default
