@@ -116,6 +116,9 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("gb", GENE);
         EXTENSIONS_MAP.put("gbk", GENE);
         EXTENSIONS_MAP.put("gbf", GENE);
+        EXTENSIONS_MAP.put("gp", GENE);
+        EXTENSIONS_MAP.put("genepred", GENE);
+        EXTENSIONS_MAP.put("genePred", GENE);
         EXTENSIONS_MAP.put("featureCounts", GENE);
         EXTENSIONS_MAP.put("txt", GENE);
     }
