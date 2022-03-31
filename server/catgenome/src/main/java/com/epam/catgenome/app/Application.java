@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import com.epam.catgenome.util.NgbSeekableStreamFactory;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
+import com.epam.catgenome.util.azure.AzureCredentialConfiguration;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -84,13 +85,42 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
-    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account:}") final String storageAccount,
-                                           @Value("${azure.storage.key:}") final String storageKey) {
-        if (StringUtils.isEmpty(storageAccount) || StringUtils.isEmpty(storageKey)) {
-            log.debug("Azure authentication is not configured");
+    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account:}")  String storageAccount,
+                                           @Value("${azure.storage.key:}") String storageKey,
+                                           @Value("${azure.storage.managed_identity_id:}") String managedIdentityId,
+                                           @Value("${azure.storage.tenant_id:}") String tenantId,
+                                           @Value("${azure.storage.client_id:}") String clientId,
+                                           @Value("${azure.storage.client_secret:}") String clientSecret) {
+
+        if (StringUtils.isEmpty(storageAccount)) {
+            log.debug("Azure connectivity is not configured.");
             return new AzureBlobClient();
         }
-        return new AzureBlobClient(storageAccount, storageKey);
+
+        if(StringUtils.isNotEmpty(storageKey)) {
+            log.debug("Creating AzureBlobClient using storage account access key credentials.");
+            return new AzureBlobClient(AzureCredentialConfiguration.byAccessKey()
+                    .storageAccount(storageAccount)
+                    .storageKey(storageKey)
+                    .build());
+        }
+
+        if(StringUtils.isNotEmpty(clientId) && StringUtils.isNotEmpty(clientSecret) && StringUtils.isNotEmpty(tenantId)) {
+            log.debug("Creating AzureBlobClient using service principal id: {}.", clientId);
+            return new AzureBlobClient(AzureCredentialConfiguration.byServicePrincipal()
+                    .storageAccount(storageAccount)
+                    .clientId(clientId)
+                    .clientSecret(clientSecret)
+                    .tenantId(tenantId)
+                    .build());
+        }
+
+        log.debug("Creating AzureBlobClient with token credentials.");
+        return new AzureBlobClient(AzureCredentialConfiguration.byDefault()
+                .storageAccount(storageAccount)
+                .managedIdentityId(managedIdentityId)
+                .tenantId(tenantId)
+                .build());
     }
 
     @Bean
