@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.genepred;
 
+import org.bouncycastle.util.Strings;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,6 +49,6 @@ public final class GenePredUtils {
     }
 
     public static boolean isGenePred(String path) {
-        return GENE_PRED_EXTENSION.stream().anyMatch(path::endsWith);
+        return GENE_PRED_EXTENSION.stream().anyMatch(Strings.toLowerCase(path)::endsWith);
     }
 }

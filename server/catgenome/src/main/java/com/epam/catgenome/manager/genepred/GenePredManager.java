@@ -79,7 +79,7 @@ public class GenePredManager {
                 GeneType.GENE.getGffName(),
                 f.getStart(),
                 f.getEnd(),
-                String.valueOf(f.getScore()),
+                Float.isNaN(f.getScore()) ? DOT : String.valueOf(f.getScore()),
                 StrandSerializable.valueOf(f.getStrand().name()),
                 DOT,
                 attributes
