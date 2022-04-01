@@ -88,8 +88,7 @@ export default class ngbPathwaysService {
 
     initState(loadedState) {
         loadedState = {
-            // TODO: (TBD) do we need to load panel state
-            // ...JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)),
+            ...JSON.parse(localStorage.getItem(PATHWAYS_STORAGE_NAME)),
             ...loadedState
         };
         this._currentState = loadedState.state;
@@ -100,6 +99,7 @@ export default class ngbPathwaysService {
         if (state) {
             this.initState(state.layout);
             this.ngbPathwaysAnnotationService.initState(state.annotations);
+            this.dispatcher.emit('session:load:pathways', state.layout);
         }
     }
 

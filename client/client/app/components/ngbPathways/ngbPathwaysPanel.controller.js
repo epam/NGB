@@ -11,6 +11,11 @@ export default class ngbPathwaysPanelController extends baseController {
         'read:show:pathways': data => {
             this.searchRequest = data ? data.search : null;
             this.changeState('INTERNAL_PATHWAYS');
+        },
+        'session:load:pathways': data => {
+            if (data && data.state) {
+                this.changeState(data.state);
+            }
         }
     };
 
@@ -25,7 +30,9 @@ export default class ngbPathwaysPanelController extends baseController {
         this.pathwaysStates = this.ngbPathwaysService.pathwaysStates;
         this.initEvents();
         this.changeState(this.ngbPathwaysService.currentState);
-        this.searchPathway();
+        if(this.ngbPathwaysService.currentState === this.pathwaysStates.INTERNAL_PATHWAYS) {
+            this.searchPathway();
+        }
     }
 
     static get UID() {
