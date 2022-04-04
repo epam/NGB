@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,17 +58,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.gene.GeneUtils.DBXREF_ATTR;
+import static com.epam.catgenome.manager.gene.GeneUtils.ID_ATTR;
+import static com.epam.catgenome.manager.gene.GeneUtils.NAME_ATTR;
+import static com.epam.catgenome.manager.gene.GeneUtils.NOTE_ATTR;
+import static com.epam.catgenome.util.Utils.DOT;
 
 @Service
 @Slf4j
 public class GenbankManager {
 
     @Autowired private FileManager fileManager;
-
-    private static final String ID_ATTR = "ID";
-    private static final String DBXREF_ATTR = "Dbxref";
-    private static final String NOTE_ATTR = "Note";
-    private static final String NAME_ATTR = "Name";
 
     private static final String SOURCE = "GenBank";
 
@@ -81,13 +81,12 @@ public class GenbankManager {
 
     private static final String DB_XREF_SEPARATOR = ":";
     private static final String LOCATION_SEPARATORS_REGEX = "\\..|,";
-    private static final String DOT = ".";
 
     @SneakyThrows
     public Map<String, DNASequence> readGenbankFile(final String genbankFilePath) {
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        try (InputStream genBankStream = IOHelper.openStream(genbankFilePath)) {
-            return GenbankUtils.readGenbankDNASequence(genBankStream);
+        try (InputStream genbankStream = IOHelper.openStream(genbankFilePath)) {
+            return GenbankUtils.readGenbankDNASequence(genbankStream);
         }
     }
 
@@ -101,8 +100,8 @@ public class GenbankManager {
     }
 
     @SneakyThrows
-    public void genbankToGff(final String genebankFilePath, final Path gffFilePath) {
-        Map<String, DNASequence> dnaSequences = readGenbankFile(genebankFilePath);
+    public void genbankToGff(final String genbankFilePath, final Path gffFilePath) {
+        Map<String, DNASequence> dnaSequences = readGenbankFile(genbankFilePath);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
         Map<String, Integer> featureIds = new HashMap<>();
         String featureIdKey;
@@ -153,8 +152,7 @@ public class GenbankManager {
                             parseFeatureLocation(f.getSource()).getEnd(),
                             DOT,
                             StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
-                            attributes.containsKey(CODON_START) ?
-                                    getQualifierByKey(qualifiers, CODON_START) + 1 : DOT,
+                            attributes.containsKey(CODON_START) ? getQualifierByKey(qualifiers, CODON_START) + 1 : DOT,
                             attributes
                     );
                     try {

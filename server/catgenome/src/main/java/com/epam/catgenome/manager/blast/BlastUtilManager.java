@@ -52,10 +52,10 @@ import static com.epam.catgenome.component.MessageHelper.*;
 public class BlastUtilManager {
 
     private static final Pattern FEATURE_TAG_PATTERN = Pattern.compile(".*/(gene|locus_tag|operon)=\"(.*)\".*");
-    private static final String GENE_BANK_FORMAT = "gb";
+    private static final String GENBANK_FORMAT = "gb";
     private static final String PROTEIN_DB = "protein";
     private static final String NUCLEOTIDE_DB = "nucleotide";
-    private static final String GENE_BANK_ORIGIN_TAG = "ORIGIN";
+    private static final String GENBANK_ORIGIN_TAG = "ORIGIN";
     private static final String NEW_LINE = "\n";
     private static final String GENE_FEATURE_TAG = "gene";
     private static final String OPERON_FEATURE_TAG = "operon";
@@ -104,11 +104,11 @@ public class BlastUtilManager {
 
     private String fetchFeatureNameFromNcbi(final String sequenceId, 
                                             final BlastDatabaseType type) throws ExternalDbUnavailableException {
-        String geneBankFile = ncbiDataManager.fetchTextById(getNcbiDbType(type), sequenceId, GENE_BANK_FORMAT);
+        String genBankFile = ncbiDataManager.fetchTextById(getNcbiDbType(type), sequenceId, GENBANK_FORMAT);
 
         final Map<String, String> featureTags = new HashMap<>();
-        for (String line : geneBankFile.split(NEW_LINE)) {
-            if(line.contains(GENE_BANK_ORIGIN_TAG)) {
+        for (String line : genBankFile.split(NEW_LINE)) {
+            if(line.contains(GENBANK_ORIGIN_TAG)) {
                 break;
             }
             final Matcher matcher = FEATURE_TAG_PATTERN.matcher(line);
