@@ -174,7 +174,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         return items.size() != files.size() ? 1 : 0;
     }
 
-    protected List<BiologicalDataItem> registerItems() {
+    public List<BiologicalDataItem> registerItems() {
         List<BiologicalDataItem> items = new ArrayList<>(files.size());
         List<Pair<String, String>> failed = new ArrayList<>(files.size());
         for (Pair<String, String> file : files) {

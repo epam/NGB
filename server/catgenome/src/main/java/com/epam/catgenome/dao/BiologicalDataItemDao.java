@@ -25,6 +25,7 @@
 package com.epam.catgenome.dao;
 
 import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper;
+import static com.epam.catgenome.entity.BiologicalDataItem.getBioDataItemId;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -130,12 +131,14 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateBiologicalDataItemPath(final List<BiologicalDataItem> items) {
+    public void updateBiologicalDataItems(final List<BiologicalDataItem> items) {
         if (!CollectionUtils.isEmpty(items)) {
             final List<MapSqlParameterSource> params = new ArrayList<>(items.size());
             for (BiologicalDataItem item : items) {
                 MapSqlParameterSource param = new MapSqlParameterSource();
-                param.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), item.getId());
+                param.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), getBioDataItemId(item));
+                param.addValue(BiologicalDataItemParameters.NAME.name(), item.getName());
+                param.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
                 param.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
                 params.add(param);
             }

@@ -68,6 +68,11 @@ public class DataItemSecurityService {
         return dataItemManager.deleteFileByBioItemId(id);
     }
 
+    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
+    public void renameFile(final String name, final String newName, final String newPrettyName) {
+        dataItemManager.renameFile(name, newName, newPrettyName);
+    }
+
     @PostAuthorize("isAllowed(returnObject, 'READ')" + OR + RETURN_OBJECT_IS_REFERENCE)
     public BiologicalDataItem findFileByBioItemId(Long id) {
         return dataItemManager.findFileByBioItemId(id);

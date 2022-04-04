@@ -44,8 +44,10 @@
         <property name="updateBiologicalDataItemQuery">
             <value>
                 <![CDATA[
-                    UPDATE catgenome.biological_data_item
-                    SET path = :PATH
+                    UPDATE catgenome.biological_data_item SET
+                        path = :PATH,
+                        name = :NAME,
+                        pretty_name = :PRETTY_NAME
                     WHERE bio_data_item_id = :BIO_DATA_ITEM_ID
                 ]]>
             </value>

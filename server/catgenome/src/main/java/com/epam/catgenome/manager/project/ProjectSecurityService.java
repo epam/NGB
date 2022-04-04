@@ -2,7 +2,7 @@
  *
  *  * MIT License
  *  *
- *  * Copyright (c) 2018 EPAM Systems
+ *  * Copyright (c) 2018-2022 EPAM Systems
  *  *
  *  * Permission is hereby granted, free of charge, to any person obtaining a copy
  *  * of this software and associated documentation files (the "Software"), to deal
@@ -112,6 +112,11 @@ public class ProjectSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + "projectCanBeDeleted(#projectId, #force)")
     public Project deleteProject(long projectId, Boolean force) throws IOException {
         return projectManager.deleteProject(projectId, force);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public void renameProject(final String name, final String newName, final String newPrettyName) {
+        projectManager.renameProject(name, newName, newPrettyName);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)

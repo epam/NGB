@@ -281,7 +281,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void addProjectItem(final long projectId, final long biologicalItemId) {
         final Project project = loadProject(projectId);
-        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
+        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_ID_NOT_FOUND, projectId));
 
         final long newId = daoHelper.createId(projectItemSequenceName);
 
@@ -311,7 +311,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void addProjectItems(final long projectId, final List<ProjectItem> items) {
         final Project project = loadProject(projectId);
-        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
+        Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_ID_NOT_FOUND, projectId));
 
         final List<Long> newIds = daoHelper.createIds(projectItemSequenceName, items.size());
 

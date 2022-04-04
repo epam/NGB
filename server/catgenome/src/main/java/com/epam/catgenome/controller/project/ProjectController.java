@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,9 +62,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,7 +91,7 @@ public class ProjectController extends AbstractRESTController {
     @Autowired
     private FeatureIndexSecurityService featureIndexSecurityService;
 
-    @RequestMapping(value = "/project/loadMy", method = RequestMethod.GET)
+    @GetMapping(value = "/project/loadMy")
     @ResponseBody
     @ApiOperation(
             value = "Returns all top-level projects for current user",
@@ -106,7 +105,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.loadTopLevelProjects()));
     }
 
-    @RequestMapping(value = "/project/tree", method = RequestMethod.GET)
+    @GetMapping(value = "/project/tree")
     @ResponseBody
     @ApiOperation(
         value = "Returns all projects in a form of tree hierarchy",
@@ -122,7 +121,7 @@ public class ProjectController extends AbstractRESTController {
                 projectSecurityService.loadProjectTree(parentId, referenceName)));
     }
 
-    @RequestMapping(value = "/project/{projectId}/load", method = RequestMethod.GET)
+    @GetMapping(value = "/project/{projectId}/load")
     @ResponseBody
     @ApiOperation(
             value = "Returns a project by given ID",
@@ -135,7 +134,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.load(projectId)));
     }
 
-    @RequestMapping(value = "/project/load", method = RequestMethod.GET)
+    @GetMapping(value = "/project/load")
     @ResponseBody
     @ApiOperation(
         value = "Returns a project by given name",
@@ -150,7 +149,7 @@ public class ProjectController extends AbstractRESTController {
         );
     }
 
-    @RequestMapping(value = "/project/save", method = RequestMethod.POST)
+    @PostMapping(value = "/project/save")
     @ResponseBody
     @ApiOperation(
             value = "Creates new project or updates existing one",
@@ -169,7 +168,24 @@ public class ProjectController extends AbstractRESTController {
             project), parentId)));
     }
 
-    @RequestMapping(value = "/project/{projectId}/move", method = RequestMethod.PUT)
+    @ResponseBody
+    @PutMapping(value = "/project/{name}/rename")
+    @ApiOperation(
+            value = "Updates project name and/or pretty name.",
+            notes = "Updates project name and/or pretty name.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public final Result<Boolean> rename(
+            @PathVariable(value = "name") final String name,
+            @RequestParam(value = "newName", required = false) final String newName,
+            @RequestParam(value = "newPrettyName", required = false) final String newPrettyName) {
+        projectSecurityService.renameProject(name, newName, newPrettyName);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/project/{projectId}/move")
     @ResponseBody
     @ApiOperation(
         value = "Moves a project to a parent project",
@@ -185,7 +201,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(true);
     }
 
-    @RequestMapping(value = "/project/{projectId}/add/{biologicalItemId}", method = RequestMethod.PUT)
+    @PutMapping(value = "/project/{projectId}/add/{biologicalItemId}")
     @ResponseBody
     @ApiOperation(
             value = "Adds a file to project",
@@ -201,7 +217,7 @@ public class ProjectController extends AbstractRESTController {
                 projectSecurityService.addProjectItem(projectId, biologicalItemId)));
     }
 
-    @RequestMapping(value = "/project/{projectId}/remove/{biologicalItemId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/project/{projectId}/remove/{biologicalItemId}")
     @ResponseBody
     @ApiOperation(
             value = "Removes a file from a project",
@@ -217,7 +233,7 @@ public class ProjectController extends AbstractRESTController {
                 biologicalItemId)));
     }
 
-    @RequestMapping(value = "/project/{projectId}/hide/{biologicalItemId}", method = RequestMethod.PUT)
+    @PutMapping(value = "/project/{projectId}/hide/{biologicalItemId}")
     @ResponseBody
     @ApiOperation(
             value = "Hides a project file",
@@ -232,7 +248,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.load(projectId)));
     }
 
-    @RequestMapping(value = "/project/{projectId}/search", method = RequestMethod.GET)
+    @GetMapping(value = "/project/{projectId}/search")
     @ResponseBody
     @ApiOperation(
             value = "Searches for a given feature ID in a given project, case-insensitive",
@@ -247,7 +263,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(featureIndexSecurityService.searchFeaturesInProject(featureId, projectId));
     }
 
-    @RequestMapping(value = "/project/{projectId}/filter/vcf", method = RequestMethod.POST)
+    @PostMapping(value = "/project/{projectId}/filter/vcf")
     @ResponseBody
     @ApiOperation(
             value = "Filters variations for a given VCF file in a given project",
@@ -313,7 +329,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId).getEntries());
     }
 
-    @RequestMapping(value = "/project/{projectId}/filter/vcf/new", method = RequestMethod.POST)
+    @PostMapping(value = "/project/{projectId}/filter/vcf/new")
     @ResponseBody
     @ApiOperation(
         value = "Filters variations for a given VCF file in a given project",
@@ -379,7 +395,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId));
     }
 
-    @RequestMapping(value = "/project/{projectId}/group/vcf", method = RequestMethod.POST)
+    @PostMapping(value = "/project/{projectId}/group/vcf")
     @ResponseBody
     @ApiOperation(
         value = "Groups variations by given field for a given project, according to filter",
@@ -441,7 +457,7 @@ public class ProjectController extends AbstractRESTController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/project/{projectId}/filter/vcf/searchGenes", method = RequestMethod.POST)
+    @PostMapping(value = "/project/{projectId}/filter/vcf/searchGenes")
     @ApiOperation(
             value = "Searches for IDs of genes, that are affected by variations",
             notes = "Searches for IDs of genes, that are affected by variations located in VCF files, specified by " +
@@ -458,7 +474,7 @@ public class ProjectController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/project/{projectId}/filter/vcf/info", method = RequestMethod.GET)
+    @GetMapping(value = "/project/{projectId}/filter/vcf/info")
     @ApiOperation(
             value = "Returns information for VCF filter for given project ID",
             notes = "Returns information for VCF filter for given project ID, all information taken from VCF file " +
@@ -471,7 +487,7 @@ public class ProjectController extends AbstractRESTController {
         return Result.success(featureIndexSecurityService.loadVcfFilterInfoForProject(projectId));
     }
 
-    @RequestMapping(value = "/project/{projectId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/project/{projectId}")
     @ResponseBody
     @ApiOperation(
             value = "Deletes a project, specified by project ID",

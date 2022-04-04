@@ -63,6 +63,7 @@ public class Application {
             + "rr\treg_ref\t\t: registers a reference file\t{rr \\path\\to\\file.fa -n grch38}\n"
             + "dr\tdel_ref\t\t: unregisters a reference file\t{dr grch38}\n"
             + "lr\tlist_ref\t: lists all reference files, registered on the server\t{lr}\n"
+            + "rnr\trename_ref\t: rename reference, registered on the server\t{rnr name -n 'new name'}\n"
             + "ag\tadd_genes\t: adds a gene file to the reference\t{ag grch38 genes.gtf}\n"
             + "an\tadd_ann\t: adds a annotation file to the reference\t{an grch38 annotations.gtf}\n"
             + "ran\tremove_ann\t: remove a annotation file from the list of reference annotation files"
@@ -104,6 +105,7 @@ public class Application {
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
             + "df\tdel_file\t: deletes a feature file one\t{df my_vcf}\n"
             + "if\tindex_file\t: creates a feature index for a file. \t {if genes.gtf}\n\n"
+            + "rnf\trename_file\t: rename file, registered on the server\t{rnf name -n 'new name'}\n"
             + "SEARCH commands:\n"
             + "s\tsearch\t\t: finds a reference or feature file by it's name, "
             + "search can be configured by a '-c' option"
@@ -122,6 +124,7 @@ public class Application {
             + " \tadd_description\t: uploads dataset description file\t{add_description my_dataset description_file}\n"
             + " \tremove_description\t: removes dataset description\t{remove_description my_dataset " +
                 "--name description_file}\n\n"
+            + "rnd\trename_dataset\t: rename dataset, registered on the server\t{rnd name -n 'new name'}\n"
             + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "
                                        + "{url my_dataset}\n\n"
