@@ -195,6 +195,9 @@ dependencies {
     // newick format
     compile group: "com.github.qurben", name: "libnewicktree", version: "1.0"
 
+    // igv
+    compile group: "com.github.igvteam", name: "igv", version: "v2.6.3"
+
     // sbgn format
     compile group: "org.sbgn", name: "libsbgn", version: "0.2"
 
