@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset;
 
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
@@ -30,9 +30,8 @@ import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.dataset.DatasetDeletionHandler;
+import com.epam.ngb.cli.manager.command.handler.http.dataset.DatasetItemDeletionHandler;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -41,11 +40,12 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class DatasetDeletionHandlerTest extends AbstractCliTest {
+public class DatasetItemDeletionHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "delete_dataset";
+    private static final String COMMAND = "remove_from_dataset";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
+
     private static final Long REF_BIO_ID = 1L;
     private static final Long REF_ID = 50L;
     private static final String PATH_TO_REFERENCE = "reference/50";
@@ -54,14 +54,35 @@ public class DatasetDeletionHandlerTest extends AbstractCliTest {
     private static final String DATASET_NAME = "data";
     private static final Long DATASET_ID = 1L;
 
+    private static final Long VCF_BIO_ID = 2L;
+    private static final Long VCF_ID = 1L;
+    private static final String PATH_TO_VCF = "path/test.vcf";
+    private static final String VCF_NAME = "test.vcf";
+
+    private static final Long BAM_BIO_ID = 3L;
+    private static final Long BAM_ID = 1L;
+    private static final String PATH_TO_BAM = "path/test.bam";
+    private static final String BAM_NAME = "test.bam";
+
     @BeforeClass
     public static void setUp() {
         server.start();
+
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         BiologicalDataItem reference = TestDataProvider.getBioItem(REF_ID, REF_BIO_ID,
                 BiologicalDataItemFormat.REFERENCE, PATH_TO_REFERENCE, REFERENCE_NAME);
         server.addDataset(DATASET_ID, DATASET_NAME, Collections.singletonList(reference));
-        server.addDatasetDeletion(DATASET_ID, DATASET_NAME);
+
+        BiologicalDataItem vcf = TestDataProvider.getBioItem(VCF_ID, VCF_BIO_ID,
+                BiologicalDataItemFormat.VCF, PATH_TO_VCF, VCF_NAME);
+        server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, PATH_TO_VCF, BiologicalDataItemFormat.VCF);
+
+        BiologicalDataItem bam = TestDataProvider.getBioItem(BAM_ID, BAM_BIO_ID,
+                BiologicalDataItemFormat.BAM, PATH_TO_BAM, BAM_NAME);
+        server.addFile(BAM_BIO_ID, BAM_ID, BAM_NAME, PATH_TO_BAM, BiologicalDataItemFormat.BAM);
+
+        server.removeFileFromDataset(DATASET_ID, DATASET_NAME, Arrays.asList(reference, vcf), vcf);
+        server.removeFileFromDataset(DATASET_ID, DATASET_NAME, Arrays.asList(reference, vcf, bam), bam);
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -70,42 +91,29 @@ public class DatasetDeletionHandlerTest extends AbstractCliTest {
         server.stop();
     }
 
-    @Test
-    public void testDeleteByName() {
-        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+    @Test(expected = IllegalArgumentException.class)
+    public void testWrongArguments() {
+        DatasetItemDeletionHandler handler = getDatasetItemDeletionHandler();
         handler.parseAndVerifyArguments(Collections.singletonList(DATASET_NAME), new ApplicationOptions());
+    }
+
+    @Test
+    public void testDeleteOneFile() {
+        DatasetItemDeletionHandler handler = getDatasetItemDeletionHandler();
+        handler.parseAndVerifyArguments(Arrays.asList(DATASET_NAME, VCF_NAME), new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test
-    public void testDeleteByID() {
-        DatasetDeletionHandler handler = getDatasetDeletionHandler();
-        handler.parseAndVerifyArguments(Collections.singletonList(String.valueOf(DATASET_ID)),
-                new ApplicationOptions());
+    public void testDeleteTwoFiles() {
+        DatasetItemDeletionHandler handler = getDatasetItemDeletionHandler();
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(DATASET_ID), BAM_NAME,
+                String.valueOf(VCF_BIO_ID)), new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
-    @Test(expected = ApplicationException.class)
-    public void testDeleteNonExisting() {
-        DatasetDeletionHandler handler = getDatasetDeletionHandler();
-        handler.parseAndVerifyArguments(Collections.singletonList("UNKNOWN"), new ApplicationOptions());
-        handler.runCommand();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteNoArguments() {
-        DatasetDeletionHandler handler = getDatasetDeletionHandler();
-        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteTooManyArguments() {
-        DatasetDeletionHandler handler = getDatasetDeletionHandler();
-        handler.parseAndVerifyArguments(Arrays.asList(DATASET_NAME, DATASET_NAME), new ApplicationOptions());
-    }
-
-    private DatasetDeletionHandler getDatasetDeletionHandler() {
-        DatasetDeletionHandler handler = new DatasetDeletionHandler();
+    public DatasetItemDeletionHandler getDatasetItemDeletionHandler() {
+        DatasetItemDeletionHandler handler = new DatasetItemDeletionHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;

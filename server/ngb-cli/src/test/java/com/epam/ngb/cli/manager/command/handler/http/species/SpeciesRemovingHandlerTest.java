@@ -22,35 +22,41 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.AbstractCliTest;
+import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesDeletionHandler;
+import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesRemovingHandler;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 
-public class SpeciesDeletionHandlerTest extends AbstractCliTest {
+public class SpeciesRemovingHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "delete_species";
+    private static final String COMMAND = "remove_species";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
-    private static final String SPECIES_NAME = "human";
-    private static final String SPECIES_VERSION = "hg19";
+    private static final Long REF_BIO_ID = 1L;
+    private static final Long REF_ID = 50L;
+    private static final String REFERENCE_NAME = "hg38";
+    private static final String PATH_TO_REFERENCE = "references/50";
 
     @BeforeClass
     public static void setUp() {
         server.start();
-
-        server.addSpeciesDeletion(SPECIES_NAME, SPECIES_VERSION);
+        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
+        server.addSpeciesRemoving(
+                TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
+                        PATH_TO_REFERENCE, REFERENCE_NAME));
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -59,27 +65,33 @@ public class SpeciesDeletionHandlerTest extends AbstractCliTest {
         server.stop();
     }
 
-    @Test
-    public void testDeletion() {
-        SpeciesDeletionHandler handler = getSpeciesDeletionHandler();
-        handler.parseAndVerifyArguments(Collections.singletonList(SPECIES_VERSION), new ApplicationOptions());
+    @Test()
+    public void testRemoving() {
+        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        applicationOptions.setPrintJson(true);
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test(expected = ApplicationException.class)
+    public void testWrongReference() {
+        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME + "/"),
+                applicationOptions);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        SpeciesDeletionHandler handler = getSpeciesDeletionHandler();
-        handler.parseAndVerifyArguments(Arrays.asList(SPECIES_NAME, SPECIES_VERSION), new ApplicationOptions());
+        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Collections.emptyList(),
+                applicationOptions);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNoArguments() {
-        SpeciesDeletionHandler handler = getSpeciesDeletionHandler();
-        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
-    }
-
-    private SpeciesDeletionHandler getSpeciesDeletionHandler() {
-        SpeciesDeletionHandler handler = new SpeciesDeletionHandler();
+    private SpeciesRemovingHandler getSpeciesRemovingHandler() {
+        SpeciesRemovingHandler handler = new SpeciesRemovingHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;

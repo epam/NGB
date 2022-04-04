@@ -22,23 +22,27 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.gene;
 
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.reference.ReferenceListHandler;
-import org.junit.*;
+import com.epam.ngb.cli.manager.command.handler.http.gene.GeneRemovingHandler;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 
-public class ReferenceListHandlerTest extends AbstractCliTest {
+public class GeneRemovingHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "list_references";
+    private static final String COMMAND = "add_genes";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
@@ -50,6 +54,10 @@ public class ReferenceListHandlerTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
+        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
+        server.addGeneRemoving(
+                TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
+                        PATH_TO_REFERENCE, REFERENCE_NAME));
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -58,59 +66,45 @@ public class ReferenceListHandlerTest extends AbstractCliTest {
         server.stop();
     }
 
-    @After
-    public void reset() {
-        server.reset();
-    }
-
-    @Test
-    public void testNoReferences() {
-        server.addReferenceListing(Collections.emptyList());
-        ReferenceListHandler handler = getReferenceListHandler();
+    @Test()
+    public void testRemoveByName() {
+        GeneRemovingHandler handler = getGeneRemovingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+        applicationOptions.setPrintJson(true);
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
-    @Test
-    public void testListReferences() {
-        BiologicalDataItem reference = TestDataProvider
-                .getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
-                        PATH_TO_REFERENCE, REFERENCE_NAME);
-        server.addReferenceListing(Collections.singletonList(reference));
-        ReferenceListHandler handler = getReferenceListHandler();
-        ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
-        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
-    }
-
-    @Test
-    public void testListReferencesTable() {
-        BiologicalDataItem reference = TestDataProvider
-                .getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
-                        PATH_TO_REFERENCE, REFERENCE_NAME);
-        server.addReferenceListing(Collections.singletonList(reference));
-        ReferenceListHandler handler = getReferenceListHandler();
+    @Test()
+    public void testRemoveById() {
+        GeneRemovingHandler handler = getGeneRemovingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
-        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+        handler.parseAndVerifyArguments(Collections.singletonList(String.valueOf(REF_BIO_ID)),
+                applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
+    @Test(expected = ApplicationException.class)
+    public void testWrongReference() {
+        GeneRemovingHandler handler = getGeneRemovingHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME + "/"),
+                applicationOptions);
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        ReferenceListHandler handler = getReferenceListHandler();
+        GeneRemovingHandler handler = getGeneRemovingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        applicationOptions.setPrintTable(true);
-        handler.parseAndVerifyArguments(Collections.singletonList("test"), applicationOptions);
+        handler.parseAndVerifyArguments(Collections.emptyList(),
+                applicationOptions);
     }
 
-    private ReferenceListHandler getReferenceListHandler() {
-        ReferenceListHandler handler = new ReferenceListHandler();
+    private GeneRemovingHandler getGeneRemovingHandler() {
+        GeneRemovingHandler handler = new GeneRemovingHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;
     }
-
 }

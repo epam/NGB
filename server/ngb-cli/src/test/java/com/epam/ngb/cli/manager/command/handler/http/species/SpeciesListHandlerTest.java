@@ -22,41 +22,30 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.species;
 
 import com.epam.ngb.cli.AbstractCliTest;
-import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.exception.ApplicationException;
+import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesRemovingHandler;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesListHandler;
+import org.junit.*;
 
 import java.util.Collections;
 
-public class SpeciesRemovingHandlerTest extends AbstractCliTest {
+public class SpeciesListHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "remove_species";
+    private static final String COMMAND = "list_species";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
-    private static final Long REF_BIO_ID = 1L;
-    private static final Long REF_ID = 50L;
-    private static final String REFERENCE_NAME = "hg38";
-    private static final String PATH_TO_REFERENCE = "references/50";
+    private static final String SPECIES_NAME = "human";
+    private static final String SPECIES_VERSION = "hg19";
 
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
-        server.addSpeciesRemoving(
-                TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
-                        PATH_TO_REFERENCE, REFERENCE_NAME));
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -65,33 +54,54 @@ public class SpeciesRemovingHandlerTest extends AbstractCliTest {
         server.stop();
     }
 
-    @Test()
-    public void testRemoving() {
-        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+    @After
+    public void reset() {
+        server.reset();
+    }
+
+    @Test
+    public void testNoSpecies() {
+        server.addSpeciesListing(Collections.emptyList());
+        SpeciesListHandler handler = getSpeciesListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        applicationOptions.setPrintJson(true);
-        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
+        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
-    @Test(expected = ApplicationException.class)
-    public void testWrongReference() {
-        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+    @Test
+    public void testListSpecies() {
+        SpeciesEntity speciesEntity = new SpeciesEntity();
+        speciesEntity.setName(SPECIES_NAME);
+        speciesEntity.setVersion(SPECIES_VERSION);
+        server.addSpeciesListing(Collections.singletonList(speciesEntity));
+        SpeciesListHandler handler = getSpeciesListHandler();
+        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void testListReferencesTable() {
+        SpeciesEntity speciesEntity = new SpeciesEntity();
+        speciesEntity.setName(SPECIES_NAME);
+        speciesEntity.setVersion(SPECIES_VERSION);
+        server.addSpeciesListing(Collections.singletonList(speciesEntity));
+        SpeciesListHandler handler = getSpeciesListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME + "/"),
-                applicationOptions);
+        applicationOptions.setPrintTable(true);
+        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        SpeciesRemovingHandler handler = getSpeciesRemovingHandler();
+        SpeciesListHandler handler = getSpeciesListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.emptyList(),
-                applicationOptions);
+        applicationOptions.setPrintTable(true);
+        handler.parseAndVerifyArguments(Collections.singletonList("test"), applicationOptions);
     }
 
-    private SpeciesRemovingHandler getSpeciesRemovingHandler() {
-        SpeciesRemovingHandler handler = new SpeciesRemovingHandler();
+    private SpeciesListHandler getSpeciesListHandler() {
+        SpeciesListHandler handler = new SpeciesListHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;

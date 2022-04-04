@@ -1,4 +1,4 @@
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset;
 
 import java.util.Collections;
 

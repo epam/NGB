@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2016 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,30 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.reference;
 
 import com.epam.ngb.cli.AbstractCliTest;
+import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.entity.SpeciesEntity;
+import com.epam.ngb.cli.entity.BiologicalDataItem;
+import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesListHandler;
+import com.epam.ngb.cli.manager.command.handler.http.reference.ReferenceListHandler;
 import org.junit.*;
 
 import java.util.Collections;
 
-public class SpeciesListHandlerTest extends AbstractCliTest {
+public class ReferenceListHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "list_species";
+    private static final String COMMAND = "list_references";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
-    private static final String SPECIES_NAME = "human";
-    private static final String SPECIES_VERSION = "hg19";
+    private static final Long REF_BIO_ID = 1L;
+    private static final Long REF_ID = 50L;
+    private static final String REFERENCE_NAME = "hg38";
+    private static final String PATH_TO_REFERENCE = "references/50";
 
     @BeforeClass
     public static void setUp() {
@@ -60,50 +64,53 @@ public class SpeciesListHandlerTest extends AbstractCliTest {
     }
 
     @Test
-    public void testNoSpecies() {
-        server.addSpeciesListing(Collections.emptyList());
-        SpeciesListHandler handler = getSpeciesListHandler();
+    public void testNoReferences() {
+        server.addReferenceListing(Collections.emptyList());
+        ReferenceListHandler handler = getReferenceListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test
-    public void testListSpecies() {
-        SpeciesEntity speciesEntity = new SpeciesEntity();
-        speciesEntity.setName(SPECIES_NAME);
-        speciesEntity.setVersion(SPECIES_VERSION);
-        server.addSpeciesListing(Collections.singletonList(speciesEntity));
-        SpeciesListHandler handler = getSpeciesListHandler();
-        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
+    public void testListReferences() {
+        BiologicalDataItem reference = TestDataProvider
+                .getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
+                        PATH_TO_REFERENCE, REFERENCE_NAME);
+        server.addReferenceListing(Collections.singletonList(reference));
+        ReferenceListHandler handler = getReferenceListHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test
     public void testListReferencesTable() {
-        SpeciesEntity speciesEntity = new SpeciesEntity();
-        speciesEntity.setName(SPECIES_NAME);
-        speciesEntity.setVersion(SPECIES_VERSION);
-        server.addSpeciesListing(Collections.singletonList(speciesEntity));
-        SpeciesListHandler handler = getSpeciesListHandler();
+        BiologicalDataItem reference = TestDataProvider
+                .getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
+                        PATH_TO_REFERENCE, REFERENCE_NAME);
+        server.addReferenceListing(Collections.singletonList(reference));
+        ReferenceListHandler handler = getReferenceListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
+
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        SpeciesListHandler handler = getSpeciesListHandler();
+        ReferenceListHandler handler = getReferenceListHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
         handler.parseAndVerifyArguments(Collections.singletonList("test"), applicationOptions);
     }
 
-    private SpeciesListHandler getSpeciesListHandler() {
-        SpeciesListHandler handler = new SpeciesListHandler();
+    private ReferenceListHandler getReferenceListHandler() {
+        ReferenceListHandler handler = new ReferenceListHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;
     }
+
 }

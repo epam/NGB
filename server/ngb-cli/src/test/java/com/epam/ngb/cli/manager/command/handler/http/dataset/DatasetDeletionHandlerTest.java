@@ -22,16 +22,17 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.dataset;
 
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.gene.GeneAddingHandler;
+import com.epam.ngb.cli.manager.command.handler.http.dataset.DatasetDeletionHandler;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -40,31 +41,27 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class GeneAddingHandlerTest extends AbstractCliTest {
+public class DatasetDeletionHandlerTest extends AbstractCliTest {
 
-    private static final String COMMAND = "add_genes";
+    private static final String COMMAND = "delete_dataset";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
-
     private static final Long REF_BIO_ID = 1L;
     private static final Long REF_ID = 50L;
+    private static final String PATH_TO_REFERENCE = "reference/50";
     private static final String REFERENCE_NAME = "hg38";
-    private static final String PATH_TO_REFERENCE = "references/50";
 
-    private static final Long GENE_BIO_ID = 2L;
-    private static final Long GENE_ID = 51L;
-    private static final String GENE_NAME = "genes_38";
-    private static final String PATH_TO_GENE = "path/genes.gtf";
+    private static final String DATASET_NAME = "data";
+    private static final Long DATASET_ID = 1L;
 
     @BeforeClass
     public static void setUp() {
         server.start();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
-        server.addFile(GENE_BIO_ID, GENE_ID, GENE_NAME, PATH_TO_GENE, BiologicalDataItemFormat.GENE);
-        server.addGeneAdding(
-                TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
-                        PATH_TO_REFERENCE, REFERENCE_NAME),
-                GENE_ID);
+        BiologicalDataItem reference = TestDataProvider.getBioItem(REF_ID, REF_BIO_ID,
+                BiologicalDataItemFormat.REFERENCE, PATH_TO_REFERENCE, REFERENCE_NAME);
+        server.addDataset(DATASET_ID, DATASET_NAME, Collections.singletonList(reference));
+        server.addDatasetDeletion(DATASET_ID, DATASET_NAME);
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -73,43 +70,42 @@ public class GeneAddingHandlerTest extends AbstractCliTest {
         server.stop();
     }
 
-    @Test()
-    public void testAddByName() {
-        GeneAddingHandler handler = getGeneAddingHandler();
-        ApplicationOptions applicationOptions = new ApplicationOptions();
-        applicationOptions.setPrintJson(true);
-        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME, GENE_NAME), applicationOptions);
+    @Test
+    public void testDeleteByName() {
+        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+        handler.parseAndVerifyArguments(Collections.singletonList(DATASET_NAME), new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
-    @Test()
-    public void testAddById() {
-        GeneAddingHandler handler = getGeneAddingHandler();
-        ApplicationOptions applicationOptions = new ApplicationOptions();
-        applicationOptions.setPrintTable(true);
-        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID), String.valueOf(GENE_BIO_ID)),
-                applicationOptions);
+    @Test
+    public void testDeleteByID() {
+        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+        handler.parseAndVerifyArguments(Collections.singletonList(String.valueOf(DATASET_ID)),
+                new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test(expected = ApplicationException.class)
-    public void testWrongReference() {
-        GeneAddingHandler handler = getGeneAddingHandler();
-        ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME + "/", GENE_NAME),
-                applicationOptions);
+    public void testDeleteNonExisting() {
+        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+        handler.parseAndVerifyArguments(Collections.singletonList("UNKNOWN"), new ApplicationOptions());
+        handler.runCommand();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testWrongArguments() {
-        GeneAddingHandler handler = getGeneAddingHandler();
-        ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME),
-                applicationOptions);
+    public void testDeleteNoArguments() {
+        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
     }
 
-    private GeneAddingHandler getGeneAddingHandler() {
-        GeneAddingHandler handler = new GeneAddingHandler();
+    @Test(expected = IllegalArgumentException.class)
+    public void testDeleteTooManyArguments() {
+        DatasetDeletionHandler handler = getDatasetDeletionHandler();
+        handler.parseAndVerifyArguments(Arrays.asList(DATASET_NAME, DATASET_NAME), new ApplicationOptions());
+    }
+
+    private DatasetDeletionHandler getDatasetDeletionHandler() {
+        DatasetDeletionHandler handler = new DatasetDeletionHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;

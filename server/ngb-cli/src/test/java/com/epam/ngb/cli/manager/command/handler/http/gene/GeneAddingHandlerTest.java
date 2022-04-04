@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
+package com.epam.ngb.cli.manager.command.handler.http.gene;
 
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
@@ -31,7 +31,7 @@ import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.gene.GeneRemovingHandler;
+import com.epam.ngb.cli.manager.command.handler.http.gene.GeneAddingHandler;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -40,7 +40,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class GeneRemovingHandlerTest extends AbstractCliTest {
+public class GeneAddingHandlerTest extends AbstractCliTest {
 
     private static final String COMMAND = "add_genes";
     private static ServerParameters serverParameters;
@@ -51,13 +51,20 @@ public class GeneRemovingHandlerTest extends AbstractCliTest {
     private static final String REFERENCE_NAME = "hg38";
     private static final String PATH_TO_REFERENCE = "references/50";
 
+    private static final Long GENE_BIO_ID = 2L;
+    private static final Long GENE_ID = 51L;
+    private static final String GENE_NAME = "genes_38";
+    private static final String PATH_TO_GENE = "path/genes.gtf";
+
     @BeforeClass
     public static void setUp() {
         server.start();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
-        server.addGeneRemoving(
+        server.addFile(GENE_BIO_ID, GENE_ID, GENE_NAME, PATH_TO_GENE, BiologicalDataItemFormat.GENE);
+        server.addGeneAdding(
                 TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,
-                        PATH_TO_REFERENCE, REFERENCE_NAME));
+                        PATH_TO_REFERENCE, REFERENCE_NAME),
+                GENE_ID);
         serverParameters = getDefaultServerOptions(server.getPort());
     }
 
@@ -67,42 +74,42 @@ public class GeneRemovingHandlerTest extends AbstractCliTest {
     }
 
     @Test()
-    public void testRemoveByName() {
-        GeneRemovingHandler handler = getGeneRemovingHandler();
+    public void testAddByName() {
+        GeneAddingHandler handler = getGeneAddingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintJson(true);
-        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
+        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME, GENE_NAME), applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test()
-    public void testRemoveById() {
-        GeneRemovingHandler handler = getGeneRemovingHandler();
+    public void testAddById() {
+        GeneAddingHandler handler = getGeneAddingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
-        handler.parseAndVerifyArguments(Collections.singletonList(String.valueOf(REF_BIO_ID)),
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID), String.valueOf(GENE_BIO_ID)),
                 applicationOptions);
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test(expected = ApplicationException.class)
     public void testWrongReference() {
-        GeneRemovingHandler handler = getGeneRemovingHandler();
+        GeneAddingHandler handler = getGeneAddingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME + "/"),
+        handler.parseAndVerifyArguments(Arrays.asList(REFERENCE_NAME + "/", GENE_NAME),
                 applicationOptions);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        GeneRemovingHandler handler = getGeneRemovingHandler();
+        GeneAddingHandler handler = getGeneAddingHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
-        handler.parseAndVerifyArguments(Collections.emptyList(),
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME),
                 applicationOptions);
     }
 
-    private GeneRemovingHandler getGeneRemovingHandler() {
-        GeneRemovingHandler handler = new GeneRemovingHandler();
+    private GeneAddingHandler getGeneAddingHandler() {
+        GeneAddingHandler handler = new GeneAddingHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));
         return handler;
