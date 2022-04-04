@@ -24,6 +24,9 @@ import routes from './app.routes';
 import './app.scss';
 import angularMaterial from './compat/angularMaterial';
 import components from './components';
+import PathwaysService from './components/ngbPathways/ngbPathways.service.js';
+import AppearanceContext from './shared/appearanceContext';
+import BamCoverageContext from './shared/bamCoverageContext';
 import BLASTContext from './shared/blastContext';
 import browserDetect from './shared/browserDetect';
 import sharedComponents from './shared/components';
@@ -33,10 +36,8 @@ import HeatmapContext from './shared/heatmapContext';
 import './shared/hotkeys';
 import lastActionRepeater from './shared/lastActionRepeater';
 import MiewContext from './shared/miewContext';
-import NotificationsContext from './shared/notificationsContext';
-import AppearanceContext from './shared/appearanceContext';
 import MotifsContext from './shared/motifsContext';
-import BamCoverageContext from './shared/bamCoverageContext';
+import NotificationsContext from './shared/notificationsContext';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
@@ -79,4 +80,5 @@ export default angular.module('NGB', [
     .service('appearanceContext', AppearanceContext.instance)
     .service('motifsContext', MotifsContext.instance)
     .service('bamCoverageContext', BamCoverageContext.instance)
+    .service('ngbPathwaysService', PathwaysService.instance)
     .name;

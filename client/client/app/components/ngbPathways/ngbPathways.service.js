@@ -55,6 +55,7 @@ export default class ngbPathwaysService {
             ...loadedState,
             internalPathway: this._currentInternalPathway
         }));
+        this.report();
     }
 
     _currentState;
@@ -71,6 +72,30 @@ export default class ngbPathwaysService {
             state: this._currentState
         }));
     }
+
+    get routeInfo() {
+        if (this.currentInternalPathway) {
+            return JSON.stringify(this.currentInternalPathway);
+        }
+        return null;
+    }
+
+    set routeInfo(routeInfo) {
+        try {
+            if (routeInfo) {
+                const internalPathway = JSON.parse(routeInfo);
+                const state = {
+                    internalPathway,
+                    state: this.pathwaysStates.INTERNAL_PATHWAYS_RESULT
+                };
+                this.initState(state);
+                this.dispatcher.emit('load:pathways', state);
+            }
+        } catch (_) {
+            this.currentState = this.pathwaysStates.INTERNAL_PATHWAYS;
+        }
+    }
+
 
     static instance(dispatcher, projectContext,
         ngbInternalPathwaysTableService, ngbInternalPathwaysResultService,
@@ -92,14 +117,14 @@ export default class ngbPathwaysService {
             ...loadedState
         };
         this._currentState = loadedState.state;
-        this._currentInternalPathway = loadedState.internalPathway;
+        this.currentInternalPathway = loadedState.internalPathway;
     }
 
     recoverLocalState(state) {
         if (state) {
             this.initState(state.layout);
             this.ngbPathwaysAnnotationService.initState(state.annotations);
-            this.dispatcher.emit('session:load:pathways', state.layout);
+            this.dispatcher.emit('load:pathways', state.layout);
         }
     }
 
@@ -109,5 +134,10 @@ export default class ngbPathwaysService {
             annotations: this.ngbPathwaysAnnotationService.getSessionAnnotationList()
         };
     }
+
+    report() {
+        this.dispatcher.emitGlobalEvent('route:change');
+    }
+
 
 }

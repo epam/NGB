@@ -114,7 +114,7 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
     }
 
     async loadInternalPathways(currentSearch) {
-        if (currentSearch.rewriteSpecies) {
+        if (currentSearch && currentSearch.rewriteSpecies) {
             this.internalPathwaysFilter.organisms = currentSearch.speciesList;
             currentSearch.speciesList = [];
             currentSearch.rewriteSpecies = false;
@@ -125,7 +125,7 @@ export default class ngbInternalPathwaysTableService extends ClientPaginationSer
                 pageNum: this.currentPage
             },
             sortInfo: this.orderBy ? this.orderBy[0] : null,
-            term: currentSearch.search || '',
+            term: currentSearch && currentSearch.search || '',
             taxIds: this.internalPathwaysFilter.organisms || []
         };
 
