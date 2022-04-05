@@ -127,6 +127,10 @@ export default class ngbInternalPathwaysResultController extends baseController 
         this.ngbPathwaysAnnotationService.deleteAnnotationById(id);
         if (!this.annotationList || this.annotationList.length === 0) {
             this.annotationsPanelVisible = false;
+            this.treeSearchParams = {
+                ...this.treeSearchParams,
+                annotations: []
+            };
         }
     }
 

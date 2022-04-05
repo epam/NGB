@@ -1,0 +1,39 @@
+$element-annotation-shadow-color: rgba(0, 0, 0, 0.75);
+
+@mixin pathway-annotation-background ($shadow-size: 2px) {
+  filter: drop-shadow(0 0 $shadow-size $element-annotation-shadow-color);
+  background-position: left;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+ngb-pathway-annotation-mark {
+  display: block;
+  position: relative;
+  overflow: visible;
+  .internal-pathway-annotation-background {
+    @include pathway-annotation-background;
+  }
+  .internal-pathway-annotation-tooltip {
+    position: absolute;
+    top: 50px;
+  }
+}
+
+.noIcon ngb-pathway-annotation-mark {
+  margin-left: 0 !important;
+}
+
+.ngb-pathway-annotation-tooltip-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  width: 1px;
+  height: 1px;
+  z-index: 100;
+  .ngb-pathway-annotation-tooltip {
+    @include pathway-annotation-background(5px);
+    position: absolute;
+  }
+}

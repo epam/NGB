@@ -7,7 +7,6 @@ $element-hover-background-color: #F0F6FF;
 $element-selected-background-color: #E1EBFD;
 $element-shadow-color: rgba(0, 0, 0, 0.4);
 $element-selected-shadow-color: rgba(44, 79, 158, 0.4);
-$element-annotation-shadow-color: rgba(0, 0, 0, 0.75);
 
 $knot-background-color: transparent;
 $edge-description-background-color: transparent;
@@ -218,14 +217,6 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
-.internal-pathway-annotation {
-  display: block;
-  filter: drop-shadow(0 0 2px $element-annotation-shadow-color);
-  background-position: left;
-  background-repeat: no-repeat;
-  background-size: contain;
-}
-
 .internal-pathway-node-label-container {
   position: relative;
   flex: 1;
@@ -246,6 +237,6 @@ $sbgn-background-color: #F6F6F6;
   }
 }
 
-.noIcon .internal-pathway-annotation {
+.noIcon ngb-pathway-annotation-mark {
   margin-left: 0 !important;
 }

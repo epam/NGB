@@ -1,7 +1,6 @@
 import angular from 'angular';
 import dom_node from 'cytoscape-dom-node';
 import {formatColor} from '../../../../modules/render/heatmap/color-scheme/helpers';
-import generateAnnotationBackground from './annotation.background.generator';
 
 const Cytoscape = require('cytoscape');
 const graphml = require('cytoscape-graphml');
@@ -40,10 +39,6 @@ const selectedEdgeStyle = {
 
 const INTERNAL_PATHWAY_FEATURE_CLASS_LIST = ['nucleic acid feature', 'macromolecule', 'simple chemical'];
 const TEXT_STYLE = ['color', 'font-weight'];
-const EMPTY_ANNOTATION_STYLE = {
-    display: 'none'
-};
-
 
 const clearEdgesSelectionStyle = (cy, edgeSettings) => {
     if (cy && edgeSettings) {
@@ -98,11 +93,14 @@ function deepSearch(obj, term, type = configurationType.STRING, fieldsToIgnore =
 }
 
 export default class ngbCytoscapePathwayController {
-    constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapePathwaySettings) {
+    constructor($element, $scope, $compile, $window, $timeout, dispatcher, cytoscapePathwaySettings, ngbInternalPathwayNodeService, ngbPathwayAnnotationMarkService) {
         this.$scope = $scope;
         this.$compile = $compile;
         this.cytoscapeContainer = $element.find('.cytoscape-container')[0];
         this.settings = cytoscapePathwaySettings;
+        this.nodeService = ngbInternalPathwayNodeService;
+        this.nodeService.clearAnnotations();
+        this.annotationMarkService = ngbPathwayAnnotationMarkService;
         this.dispatcher = dispatcher;
         this.$timeout = $timeout;
         this.actionsManager = {
@@ -135,6 +133,7 @@ export default class ngbCytoscapePathwayController {
         $scope.$on('$destroy', () => {
             this.dispatcher.removeListener('cytoscape:panel:active', cytoscapeActiveEventHandler);
             this.dispatcher.removeListener('cytoscape:pathways:selection:change', handleSelectionChange);
+            this.annotationMarkService.hideTooltip();
             angular.element($window).off('resize', resizeHandler);
         });
     }
@@ -205,6 +204,8 @@ export default class ngbCytoscapePathwayController {
     }
 
     reloadCytoscape(active) {
+        this.annotationMarkService.hideTooltip();
+        this.nodeService.clearAnnotations();
         if (active) {
             if (this.viewer) {
                 this.viewer.destroy();
@@ -490,6 +491,7 @@ export default class ngbCytoscapePathwayController {
 
     clearAnnotation(node) {
         node.data('isAnnotated', false);
+        this.nodeService.clearAnnotation(node.data('id'));
         if (!node.data('isFound')) {
             const style = {
                 color: '',
@@ -534,51 +536,24 @@ export default class ngbCytoscapePathwayController {
             });
             if (colorList.length) {
                 if (!node.data('isFound')) {
-                    this.setStyleToNode(node, {}, this.buildAnnotationStyle(colorList));
+                    this.nodeService.annotateNode(node.data('id'), colorList);
                 } else {
-                    this.setStyleToNode(node);
+                    this.nodeService.clearAnnotation(node.data('id'));
                 }
                 node.data('isAnnotated', true);
             } else {
-                this.setStyleToNode(node);
+                this.nodeService.clearAnnotation(node.data('id'));
             }
         }
     }
 
-    buildAnnotationStyle(colorList) {
-        const backgroundInfo = generateAnnotationBackground(colorList);
-        if (!backgroundInfo) {
-            return EMPTY_ANNOTATION_STYLE;
-        }
-        const {
-            backgroundImage,
-            width,
-            height
-        } = backgroundInfo;
-        const offset = 0.5;
-        const unitSize = 1;
-        const units = 'em';
-        return {
-            display: 'initial',
-            backgroundImage,
-            width: `${width * unitSize}${units}`,
-            marginLeft: `-${(width + offset) * unitSize}${units}`,
-            marginRight: `${offset * unitSize}${units}`,
-            height: `${height * unitSize}${units}`
-        };
+    setStyleToNode(node, style = {}) {
+        this.setStyleToDomNode(node.data('id'), style);
     }
 
-    setStyleToNode(node, style = {}, annotationStyle = EMPTY_ANNOTATION_STYLE) {
-        this.setStyleToDomNode(node.data('id'), style, annotationStyle);
-    }
-
-    setStyleToDomNode(domId, style, annotationStyle) {
+    setStyleToDomNode(domId, style) {
         const domElem = $(document).find(`#${domId}`);
         const textElem = domElem.find('.internal-pathway-node-title');
-        const backgroundElement = domElem.find('.internal-pathway-node-title .internal-pathway-annotation');
-        if (backgroundElement) {
-            backgroundElement.css(annotationStyle || {});
-        }
         if (domElem) {
             Object.keys(style).forEach(key => {
                 domElem.css(key, style[key]);

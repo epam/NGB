@@ -11,9 +11,10 @@ export default class ngbInternalPathwayNodeController {
     navigationInProcess = false;
     highlightStyle;
 
-    constructor(projectContext, $sce, ngbInternalPathwaysResultService) {
+    constructor(projectContext, $sce, ngbInternalPathwaysResultService, ngbInternalPathwayNodeService) {
         this.projectContext = projectContext;
         this.ngbInternalPathwaysResultService = ngbInternalPathwaysResultService;
+        this.ngbInternalPathwayNodeService = ngbInternalPathwayNodeService;
         this.nodeData = JSON.parse(this.nodeDataJson);
         this.highlightNode();
         if (this.nodeData.label) {
@@ -41,6 +42,13 @@ export default class ngbInternalPathwayNodeController {
     get selected() {
         return this.nodeData &&
             this.ngbInternalPathwaysResultService.selectedElementId === this.nodeData.id;
+    }
+
+    get annotations() {
+        if (this.nodeData && this.nodeData.id) {
+            return this.ngbInternalPathwayNodeService.getAnnotationsForNode(this.nodeData.id);
+        }
+        return [];
     }
 
     onMouseDown(event) {

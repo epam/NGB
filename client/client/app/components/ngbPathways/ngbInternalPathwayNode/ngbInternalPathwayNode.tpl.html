@@ -7,7 +7,7 @@
     <div class="internal-pathway-node-title"
          ng-class="{'internal-pathway-node-link': $ctrl.nodeData.taxId && $ctrl.geneId}"
          ng-mouseup="$ctrl.navigate()">
-        <div class="internal-pathway-annotation"></div>
+        <ngb-pathway-annotation-mark annotations="$ctrl.annotations"></ngb-pathway-annotation-mark>
         <div ng-if="$ctrl.geneName"
              class="internal-pathway-node-label-container">
             <div class="internal-pathway-node-label"
