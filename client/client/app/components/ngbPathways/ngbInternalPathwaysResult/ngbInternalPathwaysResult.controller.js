@@ -133,8 +133,8 @@ export default class ngbInternalPathwaysResultController extends baseController 
     refreshAnnotationList() {
         if (this.ngbPathwaysService.currentInternalPathway) {
             this.annotationList = this.ngbPathwaysAnnotationService.getPathwayAnnotationList(this.ngbPathwaysService.currentInternalPathway.id);
-            this.applyAnnotations();
             if (this.annotationList && this.annotationList.length !== 0) {
+                this.applyAnnotations();
                 this.annotationsPanelVisible = true;
             }
         }

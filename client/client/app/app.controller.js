@@ -17,6 +17,7 @@ export default class ngbAppController extends baseController {
                 projectContext,
                 miewContext,
                 heatmapContext,
+                ngbPathwaysService,
                 eventHotkey,
                 $stateParams,
                 $rootScope,
@@ -41,6 +42,7 @@ export default class ngbAppController extends baseController {
             projectContext,
             miewContext,
             heatmapContext,
+            ngbPathwaysService,
             projectDataService,
             utilsDataService,
             apiService,
@@ -213,7 +215,8 @@ export default class ngbAppController extends baseController {
             filterByGenome,
             collapsedTrackHeaders,
             miew,
-            heatmap
+            heatmap,
+            pathway
         } = params;
         const position = start
             ? {end, start}
@@ -226,6 +229,7 @@ export default class ngbAppController extends baseController {
         }
         this.miewContext.routeInfo = miew;
         this.heatmapContext.routeInfo = heatmap;
+        this.ngbPathwaysService.routeInfo = pathway;
         const tracksState = tracks
             ? this.projectContext
                 .convertTracksStateFromJson(tracks)
@@ -318,6 +322,7 @@ export default class ngbAppController extends baseController {
         }
         state.miew = this.miewContext.routeInfo;
         state.heatmap = this.heatmapContext.routeInfo;
+        state.pathway = this.ngbPathwaysService.routeInfo;
         this.$state.go(this.$state.current.name, state, options);
     }
 

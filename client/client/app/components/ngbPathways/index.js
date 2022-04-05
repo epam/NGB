@@ -4,7 +4,6 @@ import cytoscapePathwayComponent from './ngbCytoscapePathway';
 // Import components
 import ngbInternalPathwaysResult from './ngbInternalPathwaysResult';
 import ngbInternalPathwaysTable from './ngbInternalPathwaysTable';
-import service from './ngbPathways.service';
 import ngbPathwaysAnnotation from './ngbPathwaysAnnotation';
 import ngbPathwaysColorSchemePreference from './ngbPathwaysColorSchemePreference';
 
@@ -26,7 +25,6 @@ export default angular
         ngbPathwaysColorSchemePreference,
         ngbPathwaysAnnotation
     ])
-    .service('ngbPathwaysService', service.instance)
     .component('ngbPathwaysPanel', ngbPathwaysPanel)
     .controller(controller.UID, controller)
     .name;
