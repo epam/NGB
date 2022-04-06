@@ -9,6 +9,7 @@
     - [BLAST search](#blast-panel)
     - [Heatmap panel](#heatmap-panel)
     - [Lineage panel](#lineage-panel)
+    - [Pathways panel](#pathways-panel)
 - [Taking screenshots](#taking-screenshots)
 
 The NGB user interface is implemented as the main menu on the left side and a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.  
@@ -248,6 +249,15 @@ User can click such link to navigate to the corresponding reference track (at th
   ![NGB GUI](images/overview-53.png)
 
 For more details see [here](strain-lineage.md).
+
+### Pathways panel
+
+Metabolic pathways are series of chemical reactions that start with a substrate and finish with an end product.  
+These pathways are being displayed as certain kind of infographics, often called "maps".  
+NGB supports visualisation maps that can be as public ones received from different sources like [BioCyc](https://biocyc.org/) database and as well as internal, produced by pathway modelling software:  
+  ![NGB GUI](images/overview-54.png)
+
+For more details see [here](metabolic-pathways.md).
 
 ## Taking screenshots
 

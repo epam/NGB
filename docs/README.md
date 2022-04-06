@@ -37,6 +37,7 @@ The following sections are currently covered in a documentation
     * [Homologs search](md/user-guide/homologs-search.md)
     * [Motifs search](md/user-guide/motifs-search.md)
     * [Strain lineage](md/user-guide/strain-lineage.md)
+    * [Metabolic pathways](md/user-guide/metabolic-pathways.md)
 * Administrator guide
     * [Overview](md/user-guide/um-overview.md)
     * [Users](md/user-guide/um-users.md)
