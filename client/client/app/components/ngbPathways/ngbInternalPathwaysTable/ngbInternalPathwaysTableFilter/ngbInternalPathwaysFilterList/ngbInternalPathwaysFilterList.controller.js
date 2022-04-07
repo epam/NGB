@@ -26,9 +26,8 @@ export default class ngbInternalPathwaysFilterListController {
             case 'organisms': {
                 if (this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms) {
                     this.selectedItems = this.ngbInternalPathwaysTableService.speciesList
-                        .filter(organism => this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms.indexOf(organism.taxId) >= 0)
-                        .map(organism => organism.taxId);
-                    this.displayText = [...this.selectedItems].join(', ');
+                        .filter(organism => this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms.indexOf(organism.taxId) >= 0);
+                    this.displayText = [...this.selectedItems].map(organism => organism.speciesName || organism.taxId).join(', ');
                 }
                 break;
             }
@@ -46,11 +45,30 @@ export default class ngbInternalPathwaysFilterListController {
             last = parts[parts.length - 1];
             parts.splice(parts.length - 1, 1);
         }
-        if (this.listElements.fullList && this.listElements.fullList.model.length > 0) {
-            this.selectedItems = this.listElements.fullList.model.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
-            const [fullMatch] = this.listElements.fullList.model.filter(item => item.toLowerCase() === last.toLowerCase());
-            if (fullMatch) {
-                this.selectedItems.push(fullMatch);
+        if (this.listElements.fullList && this.listElements.fullList.view.length > 0) {
+            switch (this.field.field) {
+                case 'organisms': {
+                    this.selectedItems = this.listElements.fullList.view
+                        .filter(item => {
+                            if (item.speciesName) {
+                                return parts.indexOf(item.speciesName.toLowerCase()) >= 0;
+                            } else {
+                                return parts.indexOf(item.taxId) >= 0;
+                            }
+                        });
+                    const [fullMatch] = this.listElements.fullList.view
+                        .filter(item => {
+                            if (item.speciesName) {
+                                return item.speciesName.toLowerCase() === last.toLowerCase() || item.taxId === last.toLowerCase();
+                            } else {
+                                return item.taxId === last.toLowerCase();
+                            }
+                        });
+                    if (fullMatch) {
+                        this.selectedItems.push(fullMatch);
+                    }
+                    break;
+                }
             }
         }
         if (shouldUpdateScope) {
@@ -98,7 +116,20 @@ export default class ngbInternalPathwaysFilterListController {
     }
 
     itemIsSelected(item) {
-        return this.selectedItems.filter(listItem => listItem.toLowerCase() === item.toLowerCase()).length > 0;
+        // TODO: make optional fn to determine display value text and refactor mappedSelectedItems and other dependant entries
+        let mappedSelectedItems, selectedItem;
+        switch (this.field.field) {
+            case 'organisms': {
+                selectedItem = item.speciesName || item.taxId.toString();
+                mappedSelectedItems = this.selectedItems.map(item => item.speciesName || item.taxId);
+                break;
+            }
+            default: {
+                selectedItem = item;
+                mappedSelectedItems = this.selectedItems;
+            }
+        }
+        return mappedSelectedItems.filter(listItem => listItem.toLowerCase() === selectedItem.toLowerCase()).length > 0;
     }
 
     inputChanged() {
@@ -113,12 +144,25 @@ export default class ngbInternalPathwaysFilterListController {
             this.hideListTimeout = null;
         }
         this.input.focus();
-        const index = this.selectedItems.indexOf(item);
-        if (index >= 0) {
-            this.selectedItems.splice(index, 1);
-        } else {
-            this.selectedItems.push(item);
+        let mappedSelectedItems, selectedItem;
+        switch (this.field.field) {
+            case 'organisms': {
+                selectedItem = item.speciesName || item.taxId.toString();
+                mappedSelectedItems = this.selectedItems.map(item => item.speciesName || item.taxId);
+                break;
+            }
+            default: {
+                selectedItem = item;
+                mappedSelectedItems = this.selectedItems;
+            }
         }
+        const index = mappedSelectedItems.indexOf(selectedItem);
+        if (index >= 0) {
+            mappedSelectedItems.splice(index, 1);
+        } else {
+            mappedSelectedItems.push(selectedItem);
+        }
+        this.selectedItems = mappedSelectedItems;
         if (this.selectedItems.length) {
             this.displayText = [...this.selectedItems, ''].join(', ');
         } else {
@@ -129,19 +173,26 @@ export default class ngbInternalPathwaysFilterListController {
 
     apply() {
         const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
-        if (this.listElements.fullList && this.listElements.length > 0) {
-            this.selectedItems = this.listElements.fullList.model.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+        if (this.listElements.fullList && this.listElements.fullList.view.length > 0) {
+            this.selectedItems = this.listElements.fullList.view
+                .filter(item => {
+                    if (item.speciesName) {
+                        return parts.indexOf(item.speciesName.toLowerCase()) >= 0;
+                    } else {
+                        return parts.indexOf(item.taxId.toLowerCase()) >= 0;
+                    }
+                });
         } else {
             this.selectedItems = parts.filter(part => part !== '');
         }
-        this.displayText = this.selectedItems.join(', ');
+        this.displayText = this.selectedItems.map(item => item.speciesName || item.taxId).join(', ');
         this.listIsDisplayed = false;
         if (!this.ngbInternalPathwaysTableService.canScheduleFilterInternalPathways()) {
             return;
         }
         switch (this.field.field) {
             case 'organisms': {
-                const selectedItemsLowerCase = this.selectedItems.map(i => i.toLowerCase());
+                const selectedItemsLowerCase = this.selectedItems.map(i => i.taxId.toString());
                 const prevValue = (this.ngbInternalPathwaysTableService.internalPathwaysFilter.organisms || []);
                 prevValue.sort();
                 const prevValueStr = JSON.stringify(prevValue).toUpperCase();
