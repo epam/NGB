@@ -7,7 +7,7 @@ import {readHeatmapState} from '../../../../modules/render/heatmap/heatmap-view-
 function initializeManualConfig(config) {
     let result = '';
     config.forEach(configStr => {
-        result += `${configStr.term}\t`;
+        result += `"${configStr.term}"\t`;
         result += configStr.backgroundColor;
         if (configStr.foregroundColor) {
             result += `,${configStr.foregroundColor}`;
