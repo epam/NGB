@@ -187,8 +187,6 @@ server.ssl.key-store=$PKI_FOLDER/store.jks
 server.ssl.keyAlias=ssl
 saml.sign.key=sso  
 ```
-             
-
 
 ### Configure Embedded Tomcat
 
