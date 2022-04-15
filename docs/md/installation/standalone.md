@@ -180,12 +180,15 @@ keytool -importkeystore -deststorepass changeit \
         -srcstorepass changeit \
         -alias sso \
         -noprompt   
-        
-# Use the follwing values in `catgenome.properties` configuration file
+```        
+Use the following values in `catgenome.properties` configuration file
+```
 server.ssl.key-store=$PKI_FOLDER/store.jks
 server.ssl.keyAlias=ssl
-saml.sign.key=sso               
+saml.sign.key=sso  
 ```
+             
+
 
 ### Configure Embedded Tomcat
 
