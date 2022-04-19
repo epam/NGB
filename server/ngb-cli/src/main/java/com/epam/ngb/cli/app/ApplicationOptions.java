@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,6 +126,7 @@ public class ApplicationOptions {
     private Long taxId;
     private String taxIds;
     private boolean sendContent;
+    private boolean alias;
 
     /**
      * Option for BAM file coverage registration, specifies a coverage interval size.

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,10 +42,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.saml.SAMLAuthenticationProvider;
+import org.springframework.security.saml.SAMLEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,10 +72,15 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
 
-    @Autowired(required = false)
+    @Autowired
     private SAMLAuthenticationProvider samlAuthenticationProvider;
 
+    @Autowired
+    private SAMLEntryPoint samlEntryPoint;
+
     private static final String CLAIM_DELIMITER = "=";
+
+    private static final String ROUTE_URL = "/restapi/navigate";
 
     protected String getPublicKey() {
         return publicKey;
@@ -79,17 +88,18 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        if (samlAuthenticationProvider != null) {
-            auth.authenticationProvider(samlAuthenticationProvider);
-        }
-
+        auth.authenticationProvider(samlAuthenticationProvider);
         auth.authenticationProvider(jwtAuthenticationProvider());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                .exceptionHandling()
+                .defaultAuthenticationEntryPointFor(
+                        samlEntryPoint, getRedirectRequestMatcher())
+                .defaultAuthenticationEntryPointFor(
+                        new RestAuthenticationEntryPoint(), new AntPathRequestMatcher(getSecuredResources()))
                 .and()
                 .requestMatcher(getFullRequestMatcher())
                 .authorizeRequests()
@@ -148,5 +158,15 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     String[] splittedClaims = v.split(CLAIM_DELIMITER);
                     return new ImmutablePair<>(splittedClaims[0], splittedClaims[1]);
                 }).collect(Collectors.toList());
+    }
+
+    private String[] redirectedUrls() {
+        return new String[] { ROUTE_URL };
+    }
+
+    private RequestMatcher getRedirectRequestMatcher() {
+        return new OrRequestMatcher(Arrays.stream(redirectedUrls())
+                .map(AntPathRequestMatcher::new)
+                .collect(Collectors.toCollection(ArrayList::new)));
     }
 }
