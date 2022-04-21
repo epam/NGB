@@ -169,7 +169,8 @@ public class LineageTreeManager {
                         .referenceId(getCellValue(cells[2]) == null ? null : Long.valueOf(getCellValue(cells[2])))
                         .projectId(getProjectId(isOldFormat ? null : getCellValue(cells[3])))
                         .creationDate(getCellValue(cells[3 + indexShift]) == null ? null :
-                                LocalDate.parse(getCellValue(cells[3 + indexShift]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
+                                LocalDate.parse(getCellValue(cells[3 + indexShift]),
+                                        DateTimeFormatter.ofPattern(DATE_FORMAT)))
                         .attributes(parseAttributes(getCellValue(cells[4 + indexShift])))
                         .build();
                 nodes.add(node);

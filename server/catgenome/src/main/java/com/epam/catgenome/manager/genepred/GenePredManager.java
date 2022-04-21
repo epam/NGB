@@ -24,29 +24,35 @@
 package com.epam.catgenome.manager.genepred;
 
 import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.manager.genbank.GeneType;
+import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.parser.GffFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.broad.igv.feature.BasicFeature;
+import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.tribble.UCSCGeneTableCodec;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.gene.GeneUtils.ID_ATTR;
-import static com.epam.catgenome.manager.gene.GeneUtils.NAME_ATTR;
 import static com.epam.catgenome.manager.genepred.GenePredUtils.SOURCE;
 import static com.epam.catgenome.util.Utils.DOT;
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 public class GenePredManager {
@@ -63,24 +69,64 @@ public class GenePredManager {
             basicFeatures = iterator.toList();
             iterator.close();
         }
+
         try (Gff3Writer gff3Writer = new Gff3Writer(gffFilePath)) {
-            for (BasicFeature f : basicFeatures) {
-                Gff3FeatureImpl feature = convertFeature(f);
-                gff3Writer.addFeature(feature);
+            final Map<String, List<BasicFeature>> featuresByName = basicFeatures.stream()
+                    .collect(groupingBy(BasicFeature::getName));
+            for (String key : featuresByName.keySet()) {
+                List<BasicFeature> features = featuresByName.get(key);
+                writeGene(gff3Writer, features.get(0));
+                Set<Pair<Integer, Integer>> regions = new HashSet<>();
+                for (BasicFeature feature : features) {
+                    writeCDS(gff3Writer, feature, regions);
+                    for (Exon exon: feature.getExons()) {
+                        writeExon(gff3Writer, feature, exon, regions);
+                    }
+                }
             }
         }
     }
 
-    private Gff3FeatureImpl convertFeature(final BasicFeature f) {
+    private void writeExon(final Gff3Writer gff3Writer,
+                           final BasicFeature f,
+                           final Exon e,
+                           final Set<Pair<Integer, Integer>> regions) throws IOException {
+        final Pair<Integer, Integer> pair = new ImmutablePair<>(e.getStart(), e.getEnd());
+        if (regions.contains(pair)) {
+            return;
+        }
+        regions.add(pair);
+        gff3Writer.addFeature(convertFeature(f, GffFeature.EXON_FEATURE_NAME, e.getStart(), e.getEnd()));
+    }
+
+    private void writeGene(final Gff3Writer gff3Writer, final BasicFeature f) throws IOException {
+        gff3Writer.addFeature(convertFeature(f, GffFeature.GENE_FEATURE_NAME, f.getStart(), f.getEnd()));
+    }
+
+    private void writeCDS(final Gff3Writer gff3Writer,
+                          final BasicFeature f,
+                          final Set<Pair<Integer, Integer>> regions) throws IOException {
+        final String[] representation = f.getRepresentation().split("\t");
+        final int start = Integer.parseInt(representation[6]);
+        final int end = Integer.parseInt(representation[7]);
+        final Pair<Integer, Integer> pair = new ImmutablePair<>(start, end);
+        if (regions.contains(pair)) {
+            return;
+        }
+        regions.add(pair);
+        gff3Writer.addFeature(convertFeature(f, "CDS", start, end));
+    }
+
+    private Gff3FeatureImpl convertFeature(final BasicFeature f, final String type, final int start, final int end) {
         final Map<String, List<String>> attributes = new LinkedHashMap<>();
-        attributes.put(ID_ATTR, Collections.singletonList(f.getIdentifier()));
-        attributes.put(NAME_ATTR, Collections.singletonList(f.getName()));
+        attributes.put(GeneUtils.ID_ATTR, Collections.singletonList(f.getIdentifier()));
+        attributes.put(GeneUtils.NAME_ATTR, Collections.singletonList(f.getName()));
         return new Gff3FeatureImpl(
                 f.getChr(),
                 SOURCE,
-                GeneType.GENE.getGffName(),
-                f.getStart(),
-                f.getEnd(),
+                type,
+                start,
+                end,
                 Float.isNaN(f.getScore()) ? DOT : String.valueOf(f.getScore()),
                 StrandSerializable.valueOf(f.getStrand().name()),
                 DOT,
