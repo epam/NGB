@@ -24,24 +24,30 @@
 package com.epam.catgenome.manager.genepred;
 
 import com.epam.catgenome.component.MessageCode;
+import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
 import com.epam.catgenome.manager.gene.GeneUtils;
+import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.GffFeature;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
+import com.epam.catgenome.manager.tools.ToolsManager;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.broad.igv.feature.BasicFeature;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.tribble.UCSCGeneTableCodec;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -57,8 +63,25 @@ import static java.util.stream.Collectors.groupingBy;
 @Service
 public class GenePredManager {
 
+    @Autowired
+    private ToolsManager toolsManager;
+
+    public void genePredToGff(final String fileName,
+                              final String path,
+                              final Path gffFilePath,
+                              final String tempDir) {
+        final Path tempGffFilePath = Paths.get(tempDir,
+                FilenameUtils.removeExtension(fileName) + GffCodec.GFF_EXTENSION);
+        convert(path, tempGffFilePath);
+
+        final FeatureFileSortRequest sortRequest = new FeatureFileSortRequest();
+        sortRequest.setOriginalFilePath(tempGffFilePath.toString());
+        sortRequest.setSortedFilePath(gffFilePath.toString());
+        toolsManager.sortFeatureFile(sortRequest);
+    }
+
     @SneakyThrows
-    public void genePredToGTF(final String genePredFile, final Path gffFilePath) {
+    public void convert(final String genePredFile, final Path gffFilePath) {
         Assert.notNull(genePredFile, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         final UCSCGeneTableCodec codec = new UCSCGeneTableCodec(UCSCGeneTableCodec.Type.GENEPRED, null);
         List<BasicFeature> basicFeatures;
