@@ -72,6 +72,17 @@
                     </ngb-dataset-item-download-url>
                 </md-button>
             </md-menu-item>
+            <md-menu-item
+                    ng-if="subfield.type === 'text' && (subfield.isVisible === undefined || subfield.isVisible())"
+                    class="track-menu-item">
+                <div
+                        layout="row"
+                        layout-align="start middle"
+                        class="track-menu-item-div subfield-text"
+                >
+                    {{subfield.label}}
+                </div>
+            </md-menu-item>
         </div>
     </md-menu-content>
 </md-menu>

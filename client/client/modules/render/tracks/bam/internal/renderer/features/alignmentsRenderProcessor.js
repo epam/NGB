@@ -24,9 +24,10 @@ export class AlignmentsRenderProcessor {
         return this._container;
     }
 
-    constructor() {
+    constructor(bisulfiteModeContext) {
         this._alignmentHeight = 1;
         this._container = new PIXI.Container();
+        this.bisulfiteModeContext = bisulfiteModeContext;
     }
 
     clear() {
@@ -125,7 +126,8 @@ export class AlignmentsRenderProcessor {
             currentY,
             features,
             labelsManager,
-            height
+            height,
+            this.bisulfiteModeContext
         );
         alignmentsRenderer.startRender();
         for (let line = startLine; line < endLine; line++) {
@@ -161,10 +163,11 @@ export class AlignmentsRenderProcessor {
             currentY,
             features,
             labelsManager,
-            height
+            height,
+            this.bisulfiteModeContext
         );
         alignmentsRenderer.startRender(true);
-        const renderers = Line.renderSimpleRead(read, features);
+        const renderers = Line.renderSimpleRead(read, features, this.bisulfiteModeContext);
         alignmentsRenderer.line = line;
         for (let j = 0, len = renderers.length; j < len; j++) {
             alignmentsRenderer.render(renderers[j]);

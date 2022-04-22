@@ -9,3 +9,4 @@ export const softClip = 8;
 export const softClipBase = 9;
 export const pairedReadConnection = 10;
 export const spliceJunctions = 11;
+export const methylation = 12;

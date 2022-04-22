@@ -38,6 +38,7 @@ import lastActionRepeater from './shared/lastActionRepeater';
 import MiewContext from './shared/miewContext';
 import MotifsContext from './shared/motifsContext';
 import NotificationsContext from './shared/notificationsContext';
+import BisulfiteModeContext from './shared/bisulfiteModeContext';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
@@ -81,4 +82,5 @@ export default angular.module('NGB', [
     .service('motifsContext', MotifsContext.instance)
     .service('bamCoverageContext', BamCoverageContext.instance)
     .service('ngbPathwaysService', PathwaysService.instance)
+    .service('bisulfiteModeContext', BisulfiteModeContext.instance)
     .name;
