@@ -67,11 +67,11 @@ export default class BisulfiteModeContext {
     }
 
     getRead(block) {
-        const {items} = this;
+        const {_items} = this;
         const thisStartIndex = this.startIndex;
         const thisEndIndex = this.endIndex;
         return function() {
-            if (!items) {
+            if (!_items) {
                 return '';
             }
             const {startIndex, endIndex, cigarString, differentBase, renderDump} = block;
@@ -88,7 +88,7 @@ export default class BisulfiteModeContext {
                 switch (letter) {
                     case CIGAR_M:
                         for (let m = 0; m < count; m++) {
-                            readSequence.push(items[index + m]);
+                            readSequence.push(_items[index + m]);
                         }
                         if (differentBase) {
                             for (let d = 0; d < differentBase.length; d++) {
