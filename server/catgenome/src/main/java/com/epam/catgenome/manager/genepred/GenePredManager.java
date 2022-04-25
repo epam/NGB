@@ -101,34 +101,34 @@ public class GenePredManager {
                 writeGene(gff3Writer, features.get(0));
                 Set<Pair<Integer, Integer>> regions = new HashSet<>();
                 for (BasicFeature feature : features) {
-                    writeCDS(gff3Writer, feature, regions);
+                    writeTranscript(gff3Writer, feature, regions);
                     for (Exon exon: feature.getExons()) {
-                        writeExon(gff3Writer, feature, exon, regions);
+                        writeCDS(gff3Writer, feature, exon, regions);
                     }
                 }
             }
         }
     }
 
-    private void writeExon(final Gff3Writer gff3Writer,
-                           final BasicFeature f,
-                           final Exon e,
-                           final Set<Pair<Integer, Integer>> regions) throws IOException {
+    private void writeCDS(final Gff3Writer gff3Writer,
+                          final BasicFeature f,
+                          final Exon e,
+                          final Set<Pair<Integer, Integer>> regions) throws IOException {
         final Pair<Integer, Integer> pair = new ImmutablePair<>(e.getStart(), e.getEnd());
         if (regions.contains(pair)) {
             return;
         }
         regions.add(pair);
-        gff3Writer.addFeature(convertFeature(f, GffFeature.EXON_FEATURE_NAME, e.getStart(), e.getEnd()));
+        gff3Writer.addFeature(convertFeature(f, "CDS", e.getStart(), e.getEnd()));
     }
 
     private void writeGene(final Gff3Writer gff3Writer, final BasicFeature f) throws IOException {
         gff3Writer.addFeature(convertFeature(f, GffFeature.GENE_FEATURE_NAME, f.getStart(), f.getEnd()));
     }
 
-    private void writeCDS(final Gff3Writer gff3Writer,
-                          final BasicFeature f,
-                          final Set<Pair<Integer, Integer>> regions) throws IOException {
+    private void writeTranscript(final Gff3Writer gff3Writer,
+                                 final BasicFeature f,
+                                 final Set<Pair<Integer, Integer>> regions) throws IOException {
         final String[] representation = f.getRepresentation().split("\t");
         final int start = Integer.parseInt(representation[6]);
         final int end = Integer.parseInt(representation[7]);
@@ -137,7 +137,7 @@ public class GenePredManager {
             return;
         }
         regions.add(pair);
-        gff3Writer.addFeature(convertFeature(f, "CDS", start, end));
+        gff3Writer.addFeature(convertFeature(f, GffFeature.TRANSCRIPT_FEATURE_NAME, start, end));
     }
 
     private Gff3FeatureImpl convertFeature(final BasicFeature f, final String type, final int start, final int end) {
