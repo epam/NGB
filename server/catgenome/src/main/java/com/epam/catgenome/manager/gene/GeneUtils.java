@@ -72,6 +72,11 @@ public final class GeneUtils {
 
     //attributes
     public static final String ID_ATTR = "ID";
+    public static final String PARENT_ATTR = "Parent";
+    public static final String TRANSCRIPT_ID_ATTR = "transcript_id";
+    public static final String TRANSCRIPT_NAME_ATTR = "transcript_name";
+    public static final String GENE_ID_ATTR = "gene_id";
+    public static final String GENE_NAME_ATTR = "gene_name";
     public static final String NAME_ATTR = "Name";
     public static final String DBXREF_ATTR = "Dbxref";
     public static final String NOTE_ATTR = "Note";

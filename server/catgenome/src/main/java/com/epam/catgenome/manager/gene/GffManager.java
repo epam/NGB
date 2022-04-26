@@ -221,7 +221,6 @@ public class GffManager {
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
-
         return geneFile;
     }
 
@@ -294,7 +293,7 @@ public class GffManager {
         fileManager.makeGeneDir(geneFile.getId());
 
         if (isGenbank(path) || isGenePred(path)) {
-            String geneDir = fileManager.getGeneDir(geneFile.getId());
+            final String geneDir = fileManager.getGeneDir(geneFile.getId());
             Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
             Path gffFilePath = Paths.get(geneDir,
                     FilenameUtils.removeExtension(geneFile.getName()) + GffCodec.GFF_EXTENSION);
@@ -302,7 +301,8 @@ public class GffManager {
                 genbankManager.genbankToGff(path, gffFilePath);
             }
             if (isGenePred(path)) {
-                genePredManager.genePredToGTF(path, gffFilePath);
+                genePredManager.genePredToGff(geneFile.getName(), path, gffFilePath,
+                        fileManager.getTempDir().toString());
             }
             path = gffFilePath.toString();
             geneFile.setPath(path);
