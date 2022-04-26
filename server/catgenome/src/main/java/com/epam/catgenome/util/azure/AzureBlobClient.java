@@ -64,7 +64,8 @@ class AccessKeyCredentialConfigurer extends AbstractCredentialConfigurer impleme
 
 @Getter
 @Builder
-class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer implements AzureCredentialConfiguration {
+class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer
+        implements AzureCredentialConfiguration {
 
     private final String storageAccount;
     private final String clientId;
@@ -73,7 +74,7 @@ class ServicePrincipalCredentialConfigurer extends AbstractCredentialConfigurer 
 
     @Override
     BlobServiceClientBuilder configureCredential(BlobServiceClientBuilder builder) {
-        return builder.credential( new ClientSecretCredentialBuilder()
+        return builder.credential(new ClientSecretCredentialBuilder()
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .tenantId(tenantId)

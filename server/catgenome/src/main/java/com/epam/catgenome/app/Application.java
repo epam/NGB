@@ -97,7 +97,7 @@ public class Application extends SpringBootServletInitializer {
             return new AzureBlobClient();
         }
 
-        if(StringUtils.isNotEmpty(storageKey)) {
+        if (StringUtils.isNotEmpty(storageKey)) {
             log.debug("Creating AzureBlobClient using storage account access key credentials.");
             return new AzureBlobClient(AzureCredentialConfiguration.byAccessKey()
                     .storageAccount(storageAccount)
@@ -105,7 +105,8 @@ public class Application extends SpringBootServletInitializer {
                     .build());
         }
 
-        if(StringUtils.isNotEmpty(clientId) && StringUtils.isNotEmpty(clientSecret) && StringUtils.isNotEmpty(tenantId)) {
+        if (StringUtils.isNotEmpty(clientId) && StringUtils.isNotEmpty(clientSecret) &&
+                StringUtils.isNotEmpty(tenantId)) {
             log.debug("Creating AzureBlobClient using service principal id: {}.", clientId);
             return new AzureBlobClient(AzureCredentialConfiguration.byServicePrincipal()
                     .storageAccount(storageAccount)

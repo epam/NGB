@@ -14,7 +14,8 @@ public class ApplicationTest {
 
     @BeforeClass
     public static void prepareClass() {
-        credentialConfigField = ReflectionUtils.findField(AzureBlobClient.class,"credentialConfig", AzureCredentialConfiguration.class);
+        credentialConfigField = ReflectionUtils.findField(AzureBlobClient.class, "credentialConfig",
+                AzureCredentialConfiguration.class);
         Assert.assertNotNull(credentialConfigField);
         ReflectionUtils.makeAccessible(credentialConfigField);
     }
@@ -32,7 +33,8 @@ public class ApplicationTest {
     public void testAzureBlobClientAccessKeyClient() {
         Application app = new Application();
 
-        AzureBlobClient client = app.azureBlobClient("storageAccount", "storageKey", "managedIdentity", "tenantId", "clientId", "clientSecret");
+        AzureBlobClient client = app.azureBlobClient("storageAccount", "storageKey",
+                "managedIdentity", "tenantId", "clientId", "clientSecret");
         Assert.assertNotNull(client);
         Object credentialConfig = ReflectionUtils.getField(credentialConfigField, client);
         Assert.assertNotNull(credentialConfig);

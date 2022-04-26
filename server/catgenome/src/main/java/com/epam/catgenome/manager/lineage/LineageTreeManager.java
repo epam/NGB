@@ -158,10 +158,11 @@ public class LineageTreeManager {
                         .name(nodeName)
                         .description(getCellValue(cells[1]))
                         .referenceId(getCellValue(cells[2]) == null ? null : Long.valueOf(getCellValue(cells[2])))
-                        .projectId(getProjectId(getCellValue(cells[3])))
-                        .creationDate(getCellValue(cells[4]) == null ? null :
-                                LocalDate.parse(getCellValue(cells[4]), DateTimeFormatter.ofPattern(DATE_FORMAT)))
-                        .attributes(parseAttributes(getCellValue(cells[5])))
+                        .projectId(getProjectId(isOldFormat ? null : getCellValue(cells[3])))
+                        .creationDate(getCellValue(cells[3 + indexShift]) == null ? null :
+                                LocalDate.parse(getCellValue(cells[3 + indexShift]),
+                                        DateTimeFormatter.ofPattern(DATE_FORMAT)))
+                        .attributes(parseAttributes(getCellValue(cells[4 + indexShift])))
                         .build();
                 nodes.add(node);
                 nodeNames.add(nodeName);
