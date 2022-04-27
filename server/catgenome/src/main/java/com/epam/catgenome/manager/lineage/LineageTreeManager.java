@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,6 +73,7 @@ import static com.epam.catgenome.util.Utils.parseAttributes;
 public class LineageTreeManager {
 
     private static final int NODES_FILE_COLUMNS = 6;
+    private static final int ALT_NODES_FILE_COLUMNS = 5;
     private static final int EDGES_FILE_COLUMNS = 4;
     private final LineageTreeDao lineageTreeDao;
     private final LineageTreeNodeDao lineageTreeNodeDao;
@@ -147,8 +148,11 @@ public class LineageTreeManager {
                     break;
                 }
                 cells = line.split(separator);
-                Assert.isTrue(cells.length == NODES_FILE_COLUMNS,
+                Assert.isTrue(cells.length == NODES_FILE_COLUMNS || cells.length == ALT_NODES_FILE_COLUMNS,
                         getMessage(MessagesConstants.ERROR_LINEAGE_INCORRECT_COLUMN_NUM, NODES_FILE_COLUMNS));
+                //support for previous 5 column format
+                boolean isOldFormat = cells.length == ALT_NODES_FILE_COLUMNS;
+                int indexShift = isOldFormat ? 0 : 1;
                 nodeName = getCellValue(cells[0]);
                 Assert.notNull(nodeName, getMessage(MessagesConstants.ERROR_LINEAGE_NODE_NAME_REQUIRED));
                 Assert.isTrue(!nodeNames.contains(nodeName),
