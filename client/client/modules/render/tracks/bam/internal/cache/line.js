@@ -90,12 +90,9 @@ export class Line {
         }
         if (colorMode === BISULFITE_MODE) {
             const getRead = context.getRead(read);
-            const parts = context.getParts(bisulfiteMode, getRead());
+            const parts = context.getReadParts(bisulfiteMode, getRead());
             if (parts && parts.length) {
-                result = result.concat([{
-                    type: partTypes.methylation,
-                    bases: parts
-                }]);
+                result = result.concat(parts);
                 result = Line._filterSoftClipBases(result, parts);
             }
         }
@@ -144,12 +141,9 @@ export class Line {
             }
             if (colorMode === BISULFITE_MODE) {
                 const getRead = this.bisulfiteModeContext.getRead(render);
-                const parts = this.bisulfiteModeContext.getParts(bisulfiteMode, getRead());
+                const parts = this.bisulfiteModeContext.getReadParts(bisulfiteMode, getRead());
                 if (parts && parts.length) {
-                    result = result.concat([{
-                        type: partTypes.methylation,
-                        bases: parts
-                    }]);
+                    result = result.concat(parts);
                     result = Line._filterSoftClipBases(result, parts);
                 }
             }
@@ -169,8 +163,14 @@ export class Line {
             if (
                 (item.type === partTypes.softClipBase ||
                     item.type === partTypes.softClip ||
-                    item.type === partTypes.base) &&
-                parts.some(part => part.startIndex === item.startIndex)
+                    item.type === partTypes.base ||
+                    item.type === partTypes.cytosineMismatch ||
+                    item.type === partTypes.noncytosineMismatch) &&
+                parts.some(part => (
+                    part.type !== partTypes.cytosineMismatch &&
+                    part.type !== partTypes.noncytosineMismatch &&
+                    part.startIndex === item.startIndex
+                ))
             ) {
                 return false;
             }

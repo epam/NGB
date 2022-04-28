@@ -7,7 +7,6 @@ const modes = {
 
 export function transformReference(data, viewport) {
     let {blocks, mode} = data;
-        
     if (!blocks || blocks.length === 0) {
         return {
             items: null,

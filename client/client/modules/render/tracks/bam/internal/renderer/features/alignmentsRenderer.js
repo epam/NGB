@@ -16,12 +16,9 @@ const baseLabelStyle = {
     fontSize: '6pt',
     fontWeight: 'normal'
 };
-const baseLabelBisulfiteStyle = {
-    fill: 0xD2B48C,
-    fontFamily: 'arial',
-    fontSize: '6pt',
-    fontWeight: 'normal'
-};
+const METHYLATED_BASE = 'methylatedBase';
+const UNMETHYLATED_BASE = 'unmethylatedBase';
+const BISULFITE_CONVERSION = 'bisulfiteConversion';
 
 export class AlignmentsRenderer {
     constructor(
@@ -376,16 +373,37 @@ export class AlignmentsRenderer {
         return {breakOnLeft, breakOnRight};
     }
 
+    _getStyleForBase(renderEntry) {
+        const isBisulfite = this._features.colorMode === BISULFITE_CONVERSION;
+        if (!isBisulfite) {
+            return {
+                color: this._colors[renderEntry.base],
+                style: baseLabelStyle
+            };
+        }
+        const isCytosine = renderEntry.type === partTypes.cytosineMismatch;
+        const isNoncytosine = renderEntry.type === partTypes.noncytosineMismatch;
+        const letterColor = isCytosine ?
+            this._colors.bisulfite.cytosineMismatch :
+            (isNoncytosine ?
+                this._colors.bisulfite.noncytosineMismatch :
+                this._colors.bisulfite.mismatch
+            );
+        const baseLabelBisulfiteStyle = {...baseLabelStyle};
+        baseLabelBisulfiteStyle.fill = letterColor;
+        return {
+            color: this._canShowLetters ? this._baseColor : letterColor,
+            style: baseLabelBisulfiteStyle
+        };
+    }
+
     _renderBase(renderEntry) {
-        const isBisulfite = this._features.colorMode === 'bisulfiteConversion';
         const {localYHeight, localYOffset} = AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
         const {breakOnLeft, breakOnRight} = this._getReadBreaks(renderEntry);
         const start = renderEntry.startIndex + (breakOnLeft ? BP_OFFSET : 0);
         const end = renderEntry.endIndex + (breakOnRight ? -BP_OFFSET : 0);
-        this._setColor(isBisulfite ?
-            (this._canShowLetters ? this._baseColor : this._colors.bisulfite.letter) :
-            this._colors[renderEntry.base]
-        );
+        const {color, style} = this._getStyleForBase(renderEntry);
+        this._setColor(color);
         this._scaledRect(
             start,
             localYOffset,
@@ -402,7 +420,7 @@ export class AlignmentsRenderer {
         ) {
             const sprite = this._labelsManager.getLabel(
                 renderEntry.base,
-                isBisulfite ? baseLabelBisulfiteStyle : baseLabelStyle
+                style
             );
             sprite.x = Math.round(this._projectX(renderEntry.startIndex + BP_OFFSET) - sprite.width / 2);
             sprite.y = Math.round(this._projectY(localYOffset + localYHeight / 2) - sprite.height / 2);
@@ -493,7 +511,9 @@ export class AlignmentsRenderer {
                 this._renderBase(renderEntry);
             }
                 break;
-            case partTypes.base: {
+            case partTypes.base:
+            case partTypes.cytosineMismatch:
+            case partTypes.noncytosineMismatch: {
                 this._renderMismatch(renderEntry);
             }
                 break;
@@ -505,28 +525,29 @@ export class AlignmentsRenderer {
                 this._renderSpliceJunction(renderEntry);
             }
                 break;
-            case partTypes.methylation: {
+            case partTypes.methylatedBase:
+            case partTypes.unmethylatedBase: {
                 this._renderMethylation(renderEntry);
             }
+                break;
         }
     }
 
     _renderMethylation(renderEntry) {
-        for (let i = 0; i < renderEntry.bases.length; i++) {
-            const item = renderEntry.bases[i];
-            const {localYHeight, localYOffset} =
-                AlignmentsRenderer.getRenderEntryVerticalPositioning(item);
-            const {breakOnLeft, breakOnRight} = this._getReadBreaks(item);
-            const start = item.startIndex + (breakOnLeft ? BP_OFFSET : 0);
-            const end = item.endIndex + (breakOnRight ? -BP_OFFSET : 0);
-            this._setColor(this._colors.bisulfite[item.type.toLowerCase()]);
-            this._scaledRect(
-                start,
-                localYOffset,
-                end - start,
-                localYHeight,
-                0);
-        }
+        const {localYHeight, localYOffset} =
+            AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
+        const {breakOnLeft, breakOnRight} = this._getReadBreaks(renderEntry);
+        const start = renderEntry.startIndex + (breakOnLeft ? BP_OFFSET : 0);
+        const end = renderEntry.endIndex + (breakOnRight ? -BP_OFFSET : 0);
+        const type = renderEntry.type === partTypes.methylatedBase ?
+            METHYLATED_BASE : UNMETHYLATED_BASE;
+        this._setColor(this._colors.bisulfite[type]);
+        this._scaledRect(
+            start,
+            localYOffset,
+            end - start,
+            localYHeight,
+            0);
     }
 
     _setColor(color, alpha = 1) {

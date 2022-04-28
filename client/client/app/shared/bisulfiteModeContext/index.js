@@ -1,48 +1,48 @@
-const CIGAR_M = 'M';
-const CIGAR_S = 'S';
+const CIGAR = {
+    M: 'M',
+    S: 'S',
+    H: 'H',
+    REG: /\d+[MIDNSHP=X]/img
+};
+const BASE = {
+    C: 'c',
+    T: 't',
+    G: 'g'
+};
+const FLIP_BASE = {
+    A: 't',
+    T: 'a',
+    C: 'g',
+    G: 'c'
+};
+const SECOND_C = ['HCG', 'WCG', 'GCH'];
+const NONE = 'None';
 const MODES = {
     CG: /CG/ig,
     CHH: /C[ATC][ATC]/ig,
-    GHH: /G[ATC][ATC]/ig,
     CHG: /C[ATC]G/ig,
     HCG: /[ATC]CG/ig,
     GCH: /GC[ATC]/ig,
     WCG: /[AT]CG/ig,
-    None: /[CG]/ig,
+    None: /[C]/ig,
 };
-const PAIR = {
-    F1R2: 'F1R2',
-    F2R1: 'F2R1'
+const UNMETHYLATED_MODES = {
+    CG: /TG/ig,
+    CHH: /T[ATC][ATC]/ig,
+    CHG: /T[ATC]G/ig,
+    HCG: /[ATC]TG/ig,
+    GCH: /GT[ATC]/ig,
+    WCG: /[AT]TG/ig,
+    None: /[T]/ig,
 };
 const TYPE = {
-    METHYLATED: 'METHYLATED',
-    UNMETHYLATED: 'UNMETHYLATED'
+    METHYLATED_BASE: 12,
+    UNMETHYLATED_BASE: 13,
+    CYTOSINE_MISMATCH: 14,
+    NONCYTOSINE_MISMATCH: 15
 };
-const BASE = {
-    C: 'C',
-    G: 'G',
-    regC: /C/i,
-    regG: /G/i,
-    A: 'A',
-    T: 'T'
-};
-
-function getPair(pair) {
-    switch (pair) {
-        case 'R2L1':
-        case 'L1R2':
-        case 'L1L2':
-        case 'L2L1':
-            return PAIR.F1R2;
-        case 'R1L2':
-        case 'L2R1':
-        case 'R1R2':
-        case 'R2R1':
-            return PAIR.F2R1;
-        default:
-            return null;
-    }
-}
+const READ_PAIRED_FLAG = 0x1;
+const REVERSE_STRAND = 'reverse';
 
 export default class BisulfiteModeContext {
     static instance() {
@@ -61,96 +61,156 @@ export default class BisulfiteModeContext {
         this._reverseItems = value;
     }
 
-    constructor () {
-        this.getReadSequence = ::this.getRead;
-        this.getParts = ::this.getParts;
-    }
-
     getRead(block) {
-        const {_items} = this;
-        const thisStartIndex = this.startIndex;
-        const thisEndIndex = this.endIndex;
+        const self = this;
         return function() {
-            if (!_items) {
-                return '';
+            const {startIndex, endIndex, cigarString, differentBase, renderDump, flagMask} = block;
+            if (endIndex < self.startIndex || startIndex > self.endIndex) {
+                return null;
             }
-            const {startIndex, endIndex, cigarString, differentBase, renderDump} = block;
-            if (endIndex < thisStartIndex || startIndex > thisEndIndex) {
-                return '';
+            const isFlip = (({strand, firstInPair}, flagMask) => {
+                const isPaired = (flagMask & READ_PAIRED_FLAG) !== 0;
+                const isStrandNegative = strand === REVERSE_STRAND;
+                return isPaired ?
+                    (isStrandNegative ? firstInPair : !firstInPair) :
+                    isStrandNegative;
+            })(renderDump.spec, flagMask);
+            const items = isFlip ? self._reverseItems : self._items;
+            if (!items) {
+                return null;
             }
-            const softClip = renderDump.softClip;
-            const cigarList = cigarString.match(/\d+[MIDNSHP=X]/img);
-            const readSequence = [];
+            const cigarList = cigarString.match(CIGAR.REG);
+            let readSequence = [];
+
             let index = startIndex;
             for (let i = 0; i < cigarList.length; i++) {
                 const letter = cigarList[i].slice(-1);
                 const count = cigarList[i].slice(0, -1);
                 switch (letter) {
-                    case CIGAR_M:
+                    case CIGAR.M:
                         for (let m = 0; m < count; m++) {
-                            readSequence.push(_items[index + m]);
+                            readSequence.push(items[index + m]);
                         }
                         if (differentBase) {
                             for (let d = 0; d < differentBase.length; d++) {
-                                readSequence[differentBase[d].relativePosition] = differentBase[d].base;
+                                const diffBase = differentBase[d].base;
+                                const base = isFlip ? FLIP_BASE[diffBase] : diffBase;
+                                readSequence[differentBase[d].relativePosition] = base;
                             } 
                         }
                         index += count;
                         break;
-                    case CIGAR_S:
+                    case CIGAR.S:
                         for (let s = 0; s < count; s++) {
-                            readSequence.push(softClip[s][3].base);
+                            readSequence.push('-');
                         }
                         index += count;
                         break;
+                    case CIGAR.H:
+                        index += count;
+                        break;
                     default:
-                        readSequence.push(letter);
+                        readSequence.push('-');
                         index += count;
                         break;
                 }
             }
+            readSequence = isFlip ? readSequence.reverse() : readSequence;
             return {
-                sequence: readSequence.map(item => item ? item : '-').join(''),
+                sequence: readSequence.map(item => item ? item : '-'),
                 startIndex,
                 endIndex,
-                pair: getPair(renderDump.spec.pair)
+                isFlip,
+                differentBase
             };
         };
     }
 
-    getParts(bisulfiteMode, read) {
-        const refParts = this.getReferenceParts(read, bisulfiteMode);
+    getRefSequence({isFlip, startIndex, endIndex}) {
+        let refSequence = [];
+        const items = isFlip ? this._reverseItems : this._items;
+        for (let i = startIndex; i <= endIndex; i++) {
+            refSequence.push(items[i] ? items[i].toLowerCase() : '-');
+        }
+        refSequence = isFlip ? refSequence.reverse() : refSequence;
+        return refSequence;
+    }
+
+    getString (sequence, i, bisulfiteMode) {
+        const startIndex = SECOND_C.includes(bisulfiteMode) ? (i > 0 ? (i - 1) : (-1)) : i;
+        const length = bisulfiteMode === NONE ? 1 : bisulfiteMode.length;
+        const endIndex = startIndex + length;
+        if (startIndex < 0 || endIndex > sequence.length) {
+            return '';
+        }
+        const string = sequence.slice(startIndex, endIndex).join('');
+        if (string.includes('-')) {
+            return '';
+        }
+        return string.toLowerCase();
+    }
+
+    getReferenceParts(read, bisulfiteMode) {
+        const refSequence = this.getRefSequence(read);
         const result = [];
+        if (!refSequence.length) return result;
+        for (let i = 0; i < refSequence.length; i++) {
+            let match, string;
+            switch (refSequence[i]) {
+                case BASE.C:
+                    string = this.getString(refSequence, i, bisulfiteMode);
+                    if (string) {
+                        match = string.match(MODES[bisulfiteMode]);
+                    }
+                    if (match) {
+                        result.push(i);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return result;
+    }
+
+    getReadParts(bisulfiteMode, read) {
+        let result = [];
+        if (!read) {
+            return result;
+        }
+        const refParts = this.getReferenceParts(read, bisulfiteMode);
         if (refParts.length) {
-            const refBase = read.pair === PAIR.F1R2 ? BASE.regC : BASE.regG;
-            for (let i = 0; i < refParts.length; i++) {
-                const {refString, refPosition} = refParts[i];
-                const position = this.getBasePosition(refString, refBase, bisulfiteMode);
-                if (position >= 0) {
-                    const baseIndex = refPosition + position + read.startIndex;
-                    const readString = read.sequence.slice(refPosition, refPosition + refString.length);
-                    if (!readString.includes('-')) {
-                        if (refString === readString) {
-                            result.push({
-                                type: TYPE.METHYLATED,
-                                startIndex: baseIndex,
-                                endIndex: baseIndex + 1
-                            });
-                        } else {
-                            if (readString === this.getMethylatedString(refBase, refString, bisulfiteMode, true)) {
-                                result.push({
-                                    type: TYPE.METHYLATED,
-                                    startIndex: baseIndex,
-                                    endIndex: baseIndex + 1
-                                });
-                            } else if (readString === this.getMethylatedString(refBase, refString, bisulfiteMode, false)) {
-                                result.push({
-                                    type: TYPE.UNMETHYLATED,
-                                    startIndex: baseIndex,
-                                    endIndex: baseIndex + 1
-                                });
-                            }
-                        }
+            result = result.concat(this.getReadMethBase(refParts, read, bisulfiteMode));
+        }
+        if (read.differentBase) {
+            result = result.concat(this.getReadCytosineMismatch(read));
+        }
+        return result;
+    }
+
+    getReadMethBase(refParts, read, bisulfiteMode) {
+        const result = [];
+        for (let i = 0; i < refParts.length; i++) {
+            const position = refParts[i];
+            const readString = this.getString(read.sequence, position, bisulfiteMode);
+            if (readString) {
+                if (readString.match(MODES[bisulfiteMode]) || readString.match(UNMETHYLATED_MODES[bisulfiteMode])) {
+                    const cPosition = SECOND_C.includes(bisulfiteMode) ? 1 : 0;
+                    const cBase = readString[cPosition];
+                    const baseIndex = read.isFlip ? (read.endIndex - position) : (position + read.startIndex);
+                    if (cBase === BASE.C) {
+                        result.push({
+                            type: TYPE.METHYLATED_BASE,
+                            startIndex: baseIndex,
+                            endIndex: baseIndex + 1
+                        });
+                    }
+                    if (cBase === BASE.T) {
+                        result.push({
+                            type: TYPE.UNMETHYLATED_BASE,
+                            startIndex: baseIndex,
+                            endIndex: baseIndex + 1
+                        });
                     }
                 }
             }
@@ -158,42 +218,28 @@ export default class BisulfiteModeContext {
         return result;
     }
 
-    getReferenceParts(read, bisulfiteMode) {
-        let refSequence = '';
-        for (let i = read.startIndex; i <= read.endIndex; i++) {
-            refSequence = refSequence.concat(this._items[i] || '-');
-        }
-        const isCHH = bisulfiteMode === 'CHH';
-        const mode = isCHH ? (
-            read.pair === PAIR.F1R2 ? MODES[bisulfiteMode] : MODES.GHH) :
-            MODES[bisulfiteMode];
-        let value = mode.exec(refSequence);
+    getReadCytosineMismatch(read) {
+        const {isFlip, startIndex, endIndex, differentBase} = read;
         const result = [];
-        while (value) {
+        for (let i = 0; i < differentBase.length; i++) {
+            let type = TYPE.NONCYTOSINE_MISMATCH;
+            const {relativePosition, base} = differentBase[i];
+            const flipRelativePosition = read.sequence.length - relativePosition - 1;
+            const baseIndex = isFlip ?
+                (endIndex - flipRelativePosition) :
+                (relativePosition + startIndex);
+            if (
+                (isFlip && base.toLowerCase() === BASE.G) ||
+                (!isFlip && base.toLowerCase() === BASE.C)
+            ) { type = TYPE.CYTOSINE_MISMATCH; }
             result.push({
-                refPosition: value.index,
-                refString: value[0]
+                base,
+                length: 1,
+                type,
+                startIndex: baseIndex,
+                endIndex: baseIndex + 1
             });
-            if (isCHH) {
-                mode.lastIndex = mode.lastIndex - 2;
-            }
-            value = mode.exec(refSequence);
         }
         return result;
-    }
-
-    getBasePosition(string, base, bisulfiteMode) {
-        return bisulfiteMode === 'HCG' ?
-            (string.slice(1).search(base) + 1) : string.search(base);
-    }
-
-    getMethylatedString(base, string, bisulfiteMode, isMethylated) {
-        const basePosition = this.getBasePosition(string, base, bisulfiteMode);
-        if (basePosition < 0) return;
-        const basesArray = string.split('');
-        basesArray[basePosition] = base === BASE.regC ? 
-            (isMethylated ? BASE.C : BASE.T) :
-            (isMethylated ? BASE.G : BASE.A);
-        return basesArray.join('');
     }
 }
