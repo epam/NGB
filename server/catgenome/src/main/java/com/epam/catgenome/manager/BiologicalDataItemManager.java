@@ -178,8 +178,9 @@ public class BiologicalDataItemManager {
         Assert.notNull(references);
         Assert.isTrue(!references.isEmpty());
         Long referenceId = references.get(0);
+        Reference reference = referenceGenomeManager.load(referenceId);
+        items.add(reference);
 
-        List<Long> itemIds = new ArrayList<>(items.size());
         for (BiologicalDataItem item : items) {
             if (FeatureFile.class.isAssignableFrom(item.getClass())) {
                 FeatureFile file = (FeatureFile) item;
@@ -190,9 +191,8 @@ public class BiologicalDataItemManager {
                 Assert.isTrue(referenceId.equals(file.getReferenceId()),
                                   "Specified files have different references");
             }
-            itemIds.add(BiologicalDataItem.getBioDataItemId(item));
         }
-        Reference reference = referenceGenomeManager.load(referenceId);
+
         return makeUrl(items, project, reference, chromosomeName, startIndex, endIndex);
     }
 

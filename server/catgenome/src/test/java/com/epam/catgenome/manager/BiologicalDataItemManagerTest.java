@@ -110,7 +110,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
                 testChromosome.getName(), 1, TEST_CHROMOSOME_SIZE);
         Assert.assertNotNull(url);
 
-        checkUrl(url, Collections.singletonList(testVcf1.getName()));
+        checkUrl(url, Arrays.asList(testVcf1.getName(), testReference.getName()));
 
         Assert.assertEquals(url, biologicalDataItemManager.generateUrl(testProject.getId().toString(),
                 Collections.singletonList(testVcf1.getName()),
@@ -123,7 +123,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
                 testChromosome.getName(), 1, TEST_CHROMOSOME_SIZE);
         Assert.assertNotNull(url);
 
-        checkUrl(url, Collections.singletonList(testVcf2.getName()));
+        checkUrl(url, Arrays.asList(testVcf2.getName(), testReference.getName()));
 
         Assert.assertEquals(url, biologicalDataItemManager.generateUrl(testProject2.getId().toString(),
                 Collections.singletonList(testVcf2.getName()),
@@ -133,13 +133,13 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
                 Collections.singletonList(testVcf1.getBioDataItemId().toString()),
                 testChromosome.getName(), null, null);
         Assert.assertNotNull(chrUrl);
-        checkChrUrl(chrUrl, Collections.singletonList(testVcf1.getName()));
+        checkChrUrl(chrUrl, Arrays.asList(testVcf1.getName(), testReference.getName()));
 
         String shortUrl = biologicalDataItemManager.generateUrl(testProject2.getName(),
                 Collections.singletonList(testVcf2.getBioDataItemId().toString()),
                 null, null, null);
         Assert.assertNotNull(shortUrl);
-        checkShortUrl(shortUrl, Arrays.asList(testVcf2.getName()));
+        checkShortUrl(shortUrl, Arrays.asList(testVcf2.getName(), testReference.getName()));
 
 
         url = biologicalDataItemManager.generateUrl(testProject.getName(),
