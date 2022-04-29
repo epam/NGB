@@ -14,22 +14,23 @@ export default class ngbAppController extends baseController {
 
     /* @ngInject */
     constructor(dispatcher,
-                projectContext,
-                miewContext,
-                heatmapContext,
-                ngbPathwaysService,
-                eventHotkey,
-                $stateParams,
-                $rootScope,
-                $scope,
-                $state,
-                $mdDialog,
-                projectDataService,
-                genomeDataService,
-                localDataService,
-                utilsDataService,
-                apiService,
-                appearanceContext) {
+        projectContext,
+        appLayout,
+        miewContext,
+        heatmapContext,
+        ngbPathwaysService,
+        eventHotkey,
+        $stateParams,
+        $rootScope,
+        $scope,
+        $state,
+        $mdDialog,
+        projectDataService,
+        genomeDataService,
+        localDataService,
+        utilsDataService,
+        apiService,
+        appearanceContext) {
         super();
         Object.assign(this, {
             $scope,
@@ -37,6 +38,7 @@ export default class ngbAppController extends baseController {
             $stateParams,
             $mdDialog,
             dispatcher,
+            appLayout,
             eventHotkey,
             genomeDataService,
             projectContext,
@@ -235,6 +237,10 @@ export default class ngbAppController extends baseController {
                 .convertTracksStateFromJson(tracks)
                 .filter(track => track.format !== 'BLAST')
             : null;
+        const layoutChange = this.appLayout.Panels.pathways;
+        layoutChange.displayed = true;
+        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+
         this.projectContext.changeState({
             chromosome: chromosome ? {name: chromosome} : null,
             position: (start && !end) ? start : null,
@@ -243,6 +249,21 @@ export default class ngbAppController extends baseController {
             viewport: position,
             filterDatasets: filterByGenome ? filterByGenome : null
         });
+        if (miew) {
+            const layoutChange = this.appLayout.Panels.molecularViewer;
+            layoutChange.displayed = true;
+            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        }
+        if (heatmap) {
+            const layoutChange = this.appLayout.Panels.heatmap;
+            layoutChange.displayed = true;
+            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        }
+        if (pathway) {
+            const layoutChange = this.appLayout.Panels.pathways;
+            layoutChange.displayed = true;
+            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        }
     }
 
     initStateFromParams() {
