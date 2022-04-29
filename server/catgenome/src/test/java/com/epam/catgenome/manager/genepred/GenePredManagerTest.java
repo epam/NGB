@@ -59,9 +59,9 @@ public class GenePredManagerTest extends TestCase {
     }
 
     @Test
-    public void createSBGNPathwayTest() throws IOException {
+    public void convertToGffTest() throws IOException {
         final File gffFile = temporaryFolder.newFile("cat.gff");
-        genePredManager.genePredToGTF(genePredFileName, gffFile.toPath());
+        genePredManager.convert(genePredFileName, gffFile.toPath());
         final FeatureList featureList = GFF3Reader.read(gffFile.getAbsolutePath());
         assertNotNull(featureList);
         assertEquals("gene", featureList.get(0).type());
