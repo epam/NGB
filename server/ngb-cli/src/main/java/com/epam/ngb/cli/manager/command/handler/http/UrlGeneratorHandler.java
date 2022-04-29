@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import com.epam.ngb.cli.entity.UrlWithAliasItem;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -31,11 +32,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 @Command(type = Command.Type.REQUEST, command = {"generate_url"}) public class UrlGeneratorHandler
         extends AbstractHTTPCommandHandler {
+
+    private static final String SHORT_URL_FORMAT = "%s/restapi/navigate?alias=%s";
+
     private List<String> ids;
     private String dataset;
     private String chrName;
     private Integer startIndex;
     private Integer endIndex;
+    private boolean alias;
 
     /**
      * If true command will output result of dataset registration in a json format
@@ -58,6 +63,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();
+        alias = options.isAlias();
 
         String location = options.getLocation();
         if (StringUtils.isNoneBlank(location)) {
@@ -94,10 +100,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
                     new StringEntity(getMapper().writeValueAsString(new UrlRequest(dataset, ids))));
 
             String result = RequestManager.executeRequest(request);
+            String url = getUrl(result);
 
-            isResultOk(result);
-            String url = getResult(result, String.class);
             url = serverParameters.getServerUrl() + url;
+
+            if (alias && StringUtils.isNotBlank(url)) {
+                final UrlWithAliasItem urlWithAliasItem = UrlWithAliasItem.builder()
+                        .url(url)
+                        .build();
+                builder = new URIBuilder(serverParameters.getServerUrl() +
+                        serverParameters.getGenerateShortUrlUrl());
+                request = (HttpPost) getRequestFromURLByType(HttpPost.METHOD_NAME, builder.build().toString());
+                result = getPostResult(urlWithAliasItem, request);
+
+                url = getUrl(result);
+                url = String.format(SHORT_URL_FORMAT, serverParameters.getServerUrl(), url);
+            }
 
             AbstractResultPrinter printer;
             if (!printJson && !printTable) {
@@ -110,6 +128,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
         } catch (URISyntaxException | JsonProcessingException | UnsupportedEncodingException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
+    }
+
+    private String getUrl(final String result) {
+        isResultOk(result);
+        return getResult(result, String.class);
     }
 
     private static final class UrlRequest {

@@ -104,7 +104,6 @@ public class Application extends SpringBootServletInitializer {
                     .storageKey(storageKey)
                     .build());
         }
-
         if (StringUtils.isNotEmpty(clientId) && StringUtils.isNotEmpty(clientSecret) &&
                 StringUtils.isNotEmpty(tenantId)) {
             log.debug("Creating AzureBlobClient using service principal id: {}.", clientId);

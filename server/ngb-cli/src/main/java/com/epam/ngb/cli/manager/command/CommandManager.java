@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,6 +68,7 @@ public class CommandManager {
     private static final String HANDLER_PACKAGE = "com.epam.ngb.cli.manager.command.handler";
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
     private static final String PROJECT_DESCRIPTION_URL_PROPERTY = "project_description_url";
+    private static final String GENERATE_SHORT_URL_URL_PROPERTY = "generate_short_url_url";
     private static final String SERVER_URL_ENV_VAR = "NGB_API";
     private static final String TOKEN_ENV_VAR = "NGB_TOKEN";
 
@@ -79,7 +80,7 @@ public class CommandManager {
      * @param serverProperties NGB server configuration
      */
     public CommandManager(String command, CommandConfiguration configuration,
-            Properties serverProperties) {
+                          Properties serverProperties) {
         ServerParameters serverParameters = loadServerParameters(serverProperties);
         this.commandHandler = createCommandHandler(command, serverParameters, configuration);
     }
@@ -96,7 +97,7 @@ public class CommandManager {
     }
 
     private CommandHandler createCommandHandler(String command,
-            ServerParameters serverParameters, CommandConfiguration configuration) {
+                                                ServerParameters serverParameters, CommandConfiguration configuration) {
         final List<Class<?>> handlers = new ArrayList<>();
         new FastClasspathScanner(HANDLER_PACKAGE)
                 .matchClassesWithAnnotation(Command.class, handlers::add).scan();
@@ -158,6 +159,7 @@ public class CommandManager {
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
         parameters.setProjectDescriptionUrl(serverProperties.getProperty(PROJECT_DESCRIPTION_URL_PROPERTY));
+        parameters.setGenerateShortUrlUrl(serverProperties.getProperty(GENERATE_SHORT_URL_URL_PROPERTY));
         return parameters;
     }
 

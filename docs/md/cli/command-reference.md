@@ -626,6 +626,7 @@ ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]
 //Options:
 //-loc (--location) chr:startIndex-endIndex     Browse selected files on a specific location
 //-loc (--location) chr                         Browse selected files on a specific chromosome
+//--alias                                       Allows to get short share link
 ```
 *Description*
 
