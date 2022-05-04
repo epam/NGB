@@ -32,6 +32,15 @@ export default {
             strand: {
                 forward: 0xe69696,
                 reverse: 0x9696e6
+            },
+            bisulfite: {
+                F1R2: 0Xd9d9d9,
+                F2R1: 0xd7dfc3,
+                methylatedBase: 0xcf3030,
+                unmethylatedBase: 0x2c2cba,
+                cytosineMismatch: 0xcf3030,
+                noncytosineMismatch: 0xCD853F,
+                mismatch: 0x808080
             }
         },
         defaultFeatures: {

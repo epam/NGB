@@ -137,6 +137,7 @@ export default class BamCache {
 
     constructor(track, invalidate = true) {
         this.track = track;
+        this.bisulfiteModeContext = this.track.bisulfiteModeContext;
         if (invalidate) {
             this.invalidate();
         }
@@ -325,8 +326,11 @@ export default class BamCache {
             let readsSorted = layoutReads(this._groups[g].rawReads);
             for (let i = 0; i < readsSorted.length; i++) {
                 const read = readsSorted[i];
-                while (this._groups[g].lines.length <= read.lineIndex)
-                    this._groups[g].lines.push(new Line(this.track, this._groups[g].lines.length));
+                while (this._groups[g].lines.length <= read.lineIndex) {
+                    const line = new Line(this.track, this._groups[g].lines.length);
+                    line.bisulfiteModeContext = this.bisulfiteModeContext;
+                    this._groups[g].lines.push(line);
+                }
                 this._groups[g].lines[read.lineIndex].push(read);
             }
             readsSorted = null;
@@ -370,8 +374,11 @@ export default class BamCache {
             const readsSorted = layoutReads(this._groups[g].rawPairedReads);
             for (let i = 0; i < readsSorted.length; i++) {
                 const read = readsSorted[i];
-                while (this._groups[g].pairedLines.length <= read.lineIndex)
-                    this._groups[g].pairedLines.push(new Line(this.track, this._groups[g].pairedLines.length));
+                while (this._groups[g].pairedLines.length <= read.lineIndex) {
+                    const line = new Line(this.track, this._groups[g].pairedLines.length);
+                    line.bisulfiteModeContext = this.bisulfiteModeContext;
+                    this._groups[g].pairedLines.push(line);
+                }
                 this._groups[g].pairedLines[read.lineIndex].push(read);
             }
         }

@@ -6,7 +6,8 @@ import {
     HOVERED_ITEM_TYPE_COVERAGE,
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
     HOVERED_ITEM_TYPE_REGION,
-    HOVERED_ITEM_TYPE_SPLICE_JUNCTION
+    HOVERED_ITEM_TYPE_SPLICE_JUNCTION,
+    transformReference
 } from './internal';
 import {default as bamMenu, coverageStateMutators, sashimiMenu} from './menu';
 import {dataModes, groupModes, sortTypes} from './modes';
@@ -16,11 +17,13 @@ import {ScrollableTrack} from '../../core';
 import {menu as menuUtilities} from '../../utilities';
 import Menu from '../../core/menu';
 import {scaleModes} from '../common/scaleModes';
+import {GenomeDataService} from '../../../../dataServices';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
 
     cacheService: BamCacheService = null;
+    genomeDataService;
 
     downsampled = false;
     shouldDisplayCenterLine = false;
@@ -130,6 +133,7 @@ export class BAMTrack extends ScrollableTrack {
             'arrows',
             'alignments',
             'colorMode',
+            'bisulfiteMode',
             'coverage',
             'diffBase',
             'groupMode',
@@ -221,8 +225,10 @@ export class BAMTrack extends ScrollableTrack {
     constructor(opts) {
         super(opts);
         const cacheServiceInitialized = !!opts.cacheService;
+        this.genomeDataService = new GenomeDataService(opts.dispatcher);
 
         this.bamCoverageContext = opts.bamCoverageContext;
+        this.bisulfiteModeContext = opts.bisulfiteModeContext;
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
         this.state.spliceJunctionsFiltering = opts.spliceJunctionsFiltering
             ? opts.spliceJunctionsCoverageThreshold
@@ -243,6 +249,7 @@ export class BAMTrack extends ScrollableTrack {
             index: this.config.openByUrl ? this.config.indexPath : undefined,
             projectId: this.config.project ? this.config.project.id : undefined,
         };
+        this.setReference(bamSettings);
         const bamRenderSettings = Object.assign({
             filterFailedVendorChecks: true,
             filterPcrOpticalDuplicates: true,
@@ -493,6 +500,7 @@ export class BAMTrack extends ScrollableTrack {
         if (this.trackDataLoadingStatusChanged) {
             this.trackDataLoadingStatusChanged(false);
         }
+        await this.setReference();
         return result;
     }
 
@@ -646,4 +654,35 @@ export class BAMTrack extends ScrollableTrack {
             this._removeListener();
         }
     }
+
+    async setReference(settings) {
+        if (
+            this.viewport.actualBrushSize > this._bamRenderer.maximumAlignmentsRange ||
+            this._bamRenderer._noReadsInRangePlaceholderContainer.visible
+        ) {
+            return;
+        }
+        if (!settings) {
+            settings = this.bamRequestSettings;
+        }
+        const config = {
+            chromosomeId: settings.chromosomeId,
+            id: this.projectContext.reference.id,
+            projectId: settings.projectId
+        };
+        const {brush, brushSize, chromosomeSize, factor} = this.viewport;
+        const startIndex = Math.round(Math.max(1, brush.start - brushSize / 2));
+        const endIndex = Math.round(Math.min(chromosomeSize, brush.end + brushSize / 2));
+        const payload = Object.assign({
+            endIndex,
+            scaleFactor: factor,
+            startIndex,
+        }, config);
+        const data = await this.genomeDataService.loadReferenceTrack(payload);
+        const {items, reverseItems} = transformReference(data, this.viewport);
+        this.bisulfiteModeContext.items = items;
+        this.bisulfiteModeContext.reverseItems = reverseItems;
+        this.bisulfiteModeContext.startIndex = startIndex;
+        this.bisulfiteModeContext.endIndex = endIndex;
+    }     
 }

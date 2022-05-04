@@ -9,3 +9,7 @@ export const softClip = 8;
 export const softClipBase = 9;
 export const pairedReadConnection = 10;
 export const spliceJunctions = 11;
+export const methylatedBase = 12;
+export const unmethylatedBase = 13;
+export const cytosineMismatch = 14;
+export const noncytosineMismatch = 15;

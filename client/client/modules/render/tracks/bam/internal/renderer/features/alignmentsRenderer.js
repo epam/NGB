@@ -16,9 +16,23 @@ const baseLabelStyle = {
     fontSize: '6pt',
     fontWeight: 'normal'
 };
+const METHYLATED_BASE = 'methylatedBase';
+const UNMETHYLATED_BASE = 'unmethylatedBase';
+const BISULFITE_CONVERSION = 'bisulfiteConversion';
 
 export class AlignmentsRenderer {
-    constructor(viewport, config, colors, alignmentRowHeight, topMargin, y, features, labelsManager, height) {
+    constructor(
+        viewport,
+        config,
+        colors,
+        alignmentRowHeight,
+        topMargin,
+        y,
+        features,
+        labelsManager,
+        height,
+        bisulfiteModeContext
+    ) {
         this._graphics = new PIXI.Graphics();
         this._container = new PIXI.Container();
         this._container.addChild(this._graphics);
@@ -44,6 +58,7 @@ export class AlignmentsRenderer {
         const canShowLettersFactor = 10;
         this._canShowDetails = viewport.factor > CAN_SHOW_DETAILS_FACTOR;
         this._canShowLetters = viewport.factor > canShowLettersFactor;
+        this.bisulfiteModeContext = bisulfiteModeContext;
     }
 
     startRender(hovered = false) {
@@ -156,6 +171,26 @@ export class AlignmentsRenderer {
         }
     }
 
+    _initReadColorModeBisulfiteConversion(renderEntry) {
+        switch (renderEntry.spec.pair) {
+            case 'R2L1':
+            case 'L1R2':
+            case 'L1L2':
+            case 'L2L1':
+                this._setColor(this._baseColor = this._colors.bisulfite.F1R2);
+                break;
+            case 'R1L2':
+            case 'L2R1':
+            case 'R1R2':
+            case 'R2R1':
+                this._setColor(this._baseColor = this._colors.bisulfite.F2R1);
+                break;
+            default:
+                this._setColor(this._baseColor = this._colors.base);
+                break;
+        }
+    }
+
     _initRead(renderEntry) {
         this._contoured = this._features.shadeByQuality && renderEntry.spec.lowQ;
         switch (this._features.colorMode) {
@@ -174,10 +209,12 @@ export class AlignmentsRenderer {
             case 'insertSizeAndPairOrientation':
                 this._initReadColorModeInsertSizeAndPairOrientation(renderEntry);
                 break;
-            case 'firstInPairStrand': {
+            case 'firstInPairStrand':
                 this._initReadColorModeFirstInPairStrand(renderEntry);
                 break;
-            }
+            case 'bisulfiteConversion':
+                this._initReadColorModeBisulfiteConversion(renderEntry);
+                break;
         }
     }
 
@@ -333,12 +370,37 @@ export class AlignmentsRenderer {
         return {breakOnLeft, breakOnRight};
     }
 
+    _getStyleForBase(renderEntry) {
+        const isBisulfite = this._features.colorMode === BISULFITE_CONVERSION;
+        if (!isBisulfite) {
+            return {
+                color: this._colors[renderEntry.base],
+                style: baseLabelStyle
+            };
+        }
+        const isCytosine = renderEntry.type === partTypes.cytosineMismatch;
+        const isNoncytosine = renderEntry.type === partTypes.noncytosineMismatch;
+        const letterColor = isCytosine ?
+            this._colors.bisulfite.cytosineMismatch :
+            (isNoncytosine ?
+                this._colors.bisulfite.noncytosineMismatch :
+                this._colors.bisulfite.mismatch
+            );
+        const baseLabelBisulfiteStyle = {...baseLabelStyle};
+        baseLabelBisulfiteStyle.fill = letterColor;
+        return {
+            color: this._canShowLetters ? this._baseColor : letterColor,
+            style: baseLabelBisulfiteStyle
+        };
+    }
+
     _renderBase(renderEntry) {
         const {localYHeight, localYOffset} = AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
         const {breakOnLeft, breakOnRight} = this._getReadBreaks(renderEntry);
         const start = renderEntry.startIndex + (breakOnLeft ? BP_OFFSET : 0);
         const end = renderEntry.endIndex + (breakOnRight ? -BP_OFFSET : 0);
-        this._setColor(this._colors[renderEntry.base]);
+        const {color, style} = this._getStyleForBase(renderEntry);
+        this._setColor(color);
         this._scaledRect(
             start,
             localYOffset,
@@ -353,7 +415,10 @@ export class AlignmentsRenderer {
             !renderEntry.isOverlaps &&
             this._labelsManager
         ) {
-            const sprite = this._labelsManager.getLabel(renderEntry.base, baseLabelStyle);
+            const sprite = this._labelsManager.getLabel(
+                renderEntry.base,
+                style
+            );
             sprite.x = Math.round(this._projectX(renderEntry.startIndex + BP_OFFSET) - sprite.width / 2);
             sprite.y = Math.round(this._projectY(localYOffset + localYHeight / 2) - sprite.height / 2);
             this._container.addChild(sprite);
@@ -443,7 +508,9 @@ export class AlignmentsRenderer {
                 this._renderBase(renderEntry);
             }
                 break;
-            case partTypes.base: {
+            case partTypes.base:
+            case partTypes.cytosineMismatch:
+            case partTypes.noncytosineMismatch: {
                 this._renderMismatch(renderEntry);
             }
                 break;
@@ -455,7 +522,29 @@ export class AlignmentsRenderer {
                 this._renderSpliceJunction(renderEntry);
             }
                 break;
+            case partTypes.methylatedBase:
+            case partTypes.unmethylatedBase: {
+                this._renderMethylation(renderEntry);
+            }
+                break;
         }
+    }
+
+    _renderMethylation(renderEntry) {
+        const {localYHeight, localYOffset} =
+            AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
+        const {breakOnLeft, breakOnRight} = this._getReadBreaks(renderEntry);
+        const start = renderEntry.startIndex + (breakOnLeft ? BP_OFFSET : 0);
+        const end = renderEntry.endIndex + (breakOnRight ? -BP_OFFSET : 0);
+        const type = renderEntry.type === partTypes.methylatedBase ?
+            METHYLATED_BASE : UNMETHYLATED_BASE;
+        this._setColor(this._colors.bisulfite[type]);
+        this._scaledRect(
+            start,
+            localYOffset,
+            end - start,
+            localYHeight,
+            0);
     }
 
     _setColor(color, alpha = 1) {
