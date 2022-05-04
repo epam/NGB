@@ -173,9 +173,6 @@ export class AlignmentsRenderer {
 
     _initReadColorModeBisulfiteConversion(renderEntry) {
         switch (renderEntry.spec.pair) {
-            case undefined:
-                this._setColor(this._baseColor = this._colors.base);
-                break;
             case 'R2L1':
             case 'L1R2':
             case 'L1L2':

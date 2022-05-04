@@ -89,8 +89,8 @@ export class Line {
             }, null, null));
         }
         if (colorMode === BISULFITE_MODE) {
-            const getRead = context.getRead(read);
-            const parts = context.getReadParts(bisulfiteMode, getRead());
+            const readInfo = context.getRead(read);
+            const parts = context.getReadParts(bisulfiteMode, readInfo);
             if (parts && parts.length) {
                 result = result.concat(parts);
                 result = Line._filterSoftClipBases(result, parts);
@@ -140,8 +140,8 @@ export class Line {
                 }, null, null));
             }
             if (colorMode === BISULFITE_MODE) {
-                const getRead = this.bisulfiteModeContext.getRead(render);
-                const parts = this.bisulfiteModeContext.getReadParts(bisulfiteMode, getRead());
+                const readInfo = this.bisulfiteModeContext.getRead(render);
+                const parts = this.bisulfiteModeContext.getReadParts(bisulfiteMode, readInfo);
                 if (parts && parts.length) {
                     result = result.concat(parts);
                     result = Line._filterSoftClipBases(result, parts);
@@ -158,6 +158,8 @@ export class Line {
         return result;
     }
 
+    // In bisulfite mode different type bases and mismatches shouldn't be displayed,
+    // if its coordinates coincided with bisulfite parts.
     static _filterSoftClipBases(result, parts) {
         return result.filter(item => {
             if (

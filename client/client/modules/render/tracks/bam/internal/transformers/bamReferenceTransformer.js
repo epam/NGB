@@ -1,69 +1,45 @@
 import {complementNucleotidesConst} from '../../../../core';
 
-const modes = {
-    gcContent: 'GC_CONTENT',
-    nucleotides: 'NUCLEOTIDES',
-};
+const CONTENT_GC = 'contentGC';
+const NUCLEOTIDE_MODE = 'NUCLEOTIDES';
+const GC_CONTENT_MODE = 'GC_CONTENT';
 
 export function transformReference(data, viewport) {
     let {blocks, mode} = data;
+    const reference = {
+        items: {},
+        reverseItems: {}
+    };
     if (!blocks || blocks.length === 0) {
-        return {
-            items: null,
-            reverseItems: null
-        };
+        return reference;
     }
     if (!mode) {
-        mode = blocks[0].hasOwnProperty('contentGC') ? modes.gcContent : modes.nucleotides;
+        mode = blocks[0].hasOwnProperty(CONTENT_GC) ? GC_CONTENT_MODE : NUCLEOTIDE_MODE;
+    }
+    if (mode === GC_CONTENT_MODE) {
+        return reference;
     }
     if (viewport.isShortenedIntronsMode) {
         blocks = viewport.shortenedIntronsViewport.transformFeaturesArray(blocks);
     }
-    const mapNucleotideItemsFn = function (item) {
-        return [item.startIndex, item.text];
-    };
-    const mapReverseNucleotideItemsFn = function (item) {
+
+    reference.items = blocks.reduce((result, block) => {
+        result[block.startIndex] = block.text;
+        return result;
+    }, {});
+    reference.reverseItems = blocks.reduce((result, block) => {
         let value;
-        if (complementNucleotidesConst.hasOwnProperty(item.text)) {
-            value = complementNucleotidesConst[item.text];
-        } else if (complementNucleotidesConst.hasOwnProperty(item.text.toUpperCase())) {
-            value = complementNucleotidesConst[item.text.toUpperCase()].toLowerCase();
+        if (complementNucleotidesConst.hasOwnProperty(block.text)) {
+            value = complementNucleotidesConst[block.text];
+        } else if (complementNucleotidesConst.hasOwnProperty(block.text.toUpperCase())) {
+            value = complementNucleotidesConst[block.text.toUpperCase()].toLowerCase();
         } else {
-            value = item.text;
+            value = block.text;
         }
 
-        return [item.startIndex, value];
-    };
-    const mapGCContentItemsFn = function (item) {
-        return [item.startIndex, item.contentGC];
-    };
-    let items = {};
-    let reverseItems = {};
-    switch (mode) {
-        case modes.gcContent:
-            items = blocks.reduce((result, block) => {
-                const [index, value] = mapGCContentItemsFn(block);
-                result[index] = value;
-                return result;
-            }, {});
-            break;
-        case modes.nucleotides: {
-            items = blocks.reduce((result, block) => {
-                const [index, value] = mapNucleotideItemsFn(block);
-                result[index] = value;
-                return result;
-            }, {});
-            reverseItems = blocks.reduce((result, block) => {
-                const [index, value] = mapReverseNucleotideItemsFn(block);
-                result[index] = value;
-                return result;
-            }, {});
-            break;
-        }
-    }
-    
-    return {
-        items,
-        reverseItems,
-    };
+        result[block.startIndex] = value;
+        return result;
+    }, {});
+
+    return reference;
 }

@@ -656,6 +656,12 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     async setReference(settings) {
+        if (
+            this.viewport.actualBrushSize > this._bamRenderer.maximumAlignmentsRange ||
+            this._bamRenderer._noReadsInRangePlaceholderContainer.visible
+        ) {
+            return;
+        }
         if (!settings) {
             settings = this.bamRequestSettings;
         }
