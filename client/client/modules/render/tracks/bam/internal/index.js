@@ -8,4 +8,4 @@ export {
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './renderer';
-export {CoverageTransformer} from './transformers';
+export {CoverageTransformer, transformReference} from './transformers';

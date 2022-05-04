@@ -8,6 +8,7 @@ Dict.prototype.assertString = function (key) {
         throw new TypeError(`key must be a string but got ${key}`);
     }
 };
+const BISULFITE_MODE = 'bisulfiteConversion';
 
 
 export class Line {
@@ -51,7 +52,11 @@ export class Line {
         return !(pointer && pointer.value.startIndex >= viewport.brush.start && pointer.value.startIndex <= viewport.brush.end);
     }
 
-    static renderSimpleRead(read, {arrows, diffBase, ins_del, softClip}) {
+    static renderSimpleRead(
+        read,
+        {arrows, diffBase, ins_del, softClip, colorMode, bisulfiteMode},
+        context
+    ) {
         let result = [];
         if (read.isPairedReads) {
             const {commonRange, connectionRange} = Line.getIntersectionRanges(read);
@@ -83,10 +88,18 @@ export class Line {
                 softClip
             }, null, null));
         }
+        if (colorMode === BISULFITE_MODE) {
+            const readInfo = context.getRead(read);
+            const parts = context.getReadParts(bisulfiteMode, readInfo);
+            if (parts && parts.length) {
+                result = result.concat(parts);
+                result = Line._filterSoftClipBases(result, parts);
+            }
+        }
         return result;
     }
 
-    render(start, end, {arrows, diffBase, ins_del, softClip}) {
+    render(start, end, {arrows, diffBase, ins_del, softClip, colorMode, bisulfiteMode}) {
         let cursor = start;
         let pointer = this.itemsSortedByStartIndex.findGreatestLessThanOrEqual({startIndex: cursor});
         if (!pointer || pointer.value.endIndex < start)
@@ -126,6 +139,14 @@ export class Line {
                     softClip
                 }, null, null));
             }
+            if (colorMode === BISULFITE_MODE) {
+                const readInfo = this.bisulfiteModeContext.getRead(render);
+                const parts = this.bisulfiteModeContext.getReadParts(bisulfiteMode, readInfo);
+                if (parts && parts.length) {
+                    result = result.concat(parts);
+                    result = Line._filterSoftClipBases(result, parts);
+                }
+            }
 
             cursor = pointer.value.endIndex;
 
@@ -135,6 +156,28 @@ export class Line {
             }
         }
         return result;
+    }
+
+    // In bisulfite mode different type bases and mismatches shouldn't be displayed,
+    // if its coordinates coincided with bisulfite parts.
+    static _filterSoftClipBases(result, parts) {
+        return result.filter(item => {
+            if (
+                (item.type === partTypes.softClipBase ||
+                    item.type === partTypes.softClip ||
+                    item.type === partTypes.base ||
+                    item.type === partTypes.cytosineMismatch ||
+                    item.type === partTypes.noncytosineMismatch) &&
+                parts.some(part => (
+                    part.type !== partTypes.cytosineMismatch &&
+                    part.type !== partTypes.noncytosineMismatch &&
+                    part.startIndex === item.startIndex
+                ))
+            ) {
+                return false;
+            }
+            return true;
+        });
     }
 
     static _splitRenderers(renderers, commonRange, isLeftPair, isRightPair) {

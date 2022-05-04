@@ -215,6 +215,7 @@ export class BamRenderer {
         this._container.addChild(this._noReadsInRangePlaceholderContainer);
         this._yPosition = 0;
         this._groupAutoScaleManager = opts.groupAutoScaleManager;
+        this.bisulfiteModeContext = track.bisulfiteModeContext;
     }
 
     _initializeSubRenderers() {
@@ -346,7 +347,7 @@ export class BamRenderer {
     }
 
     _initAlignments() {
-        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor();
+        this._alignmentsRenderProcessor = new AlignmentsRenderProcessor(this.bisulfiteModeContext);
         this._dataContainer.addChild(this._alignmentsRenderProcessor.container);
     }
 

@@ -36,6 +36,7 @@ import MiewContext from './shared/miewContext';
 import NotificationsContext from './shared/notificationsContext';
 import AppearanceContext from './shared/appearanceContext';
 import MotifsContext from './shared/motifsContext';
+import BisulfiteModeContext from './shared/bisulfiteModeContext';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
@@ -77,4 +78,5 @@ export default angular.module('NGB', [
     .service('heatmapContext', HeatmapContext.instance)
     .service('appearanceContext', AppearanceContext.instance)
     .service('motifsContext', MotifsContext.instance)
+    .service('bisulfiteModeContext', BisulfiteModeContext.instance)
     .name;
