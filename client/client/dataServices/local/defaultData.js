@@ -38,7 +38,7 @@ export default {
                 F2R1: 0xd7dfc3,
                 methylatedBase: 0xcf3030,
                 unmethylatedBase: 0x2c2cba,
-                cgMethylatedBase: 0x7fa4ff,
+                cgMethylatedBase: 0x000000,
                 cgUnmethylatedBase: 0xddff7f,
                 gcMethylatedBase: 0x00cc99,
                 gcUnmethylatedBase: 0xff7fbf,

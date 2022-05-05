@@ -49,7 +49,7 @@ const TYPE = {
     UNMETHYLATED_BASE: 13, // blue
     CYTOSINE_MISMATCH: 14,
     NONCYTOSINE_MISMATCH: 15,
-    CG_METHYLATED_BASE: 16, // light blue
+    CG_METHYLATED_BASE: 16, // black
     CG_UNMETHYLATED_BASE: 17, // light yellow
     GC_METHYLATED_BASE: 18, // mint
     GC_UNMETHYLATED_BASE: 19 // light pink
