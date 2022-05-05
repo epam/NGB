@@ -15,8 +15,17 @@ const FLIP_BASE = {
     C: 'g',
     G: 'c'
 };
-const SECOND_C = ['HCG', 'WCG', 'GCH'];
-const NONE = 'None';
+const SECOND_C = ['HCG', 'WCG', 'GCH', 'NOMeSeq'];
+const NONE = {
+    name: 'None',
+    length: 1
+};
+const NOME_SEQ = {
+    name: 'NOMeSeq',
+    length: 3
+};
+const GCH = 'GCH';
+const HCG = 'HCG';
 const METHYLATED_MODES = {
     CG: /CG/ig,
     CHH: /C[ATC][ATC]/ig,
@@ -36,10 +45,14 @@ const UNMETHYLATED_MODES = {
     None: /[T]/ig,
 };
 const TYPE = {
-    METHYLATED_BASE: 12,
-    UNMETHYLATED_BASE: 13,
+    METHYLATED_BASE: 12, // red
+    UNMETHYLATED_BASE: 13, // blue
     CYTOSINE_MISMATCH: 14,
-    NONCYTOSINE_MISMATCH: 15
+    NONCYTOSINE_MISMATCH: 15,
+    CG_METHYLATED_BASE: 16, // black
+    CG_UNMETHYLATED_BASE: 17, // light yellow
+    GC_METHYLATED_BASE: 18, // mint
+    GC_UNMETHYLATED_BASE: 19 // light pink
 };
 const READ_PAIRED_FLAG = 0x1;
 const REVERSE_STRAND = 'reverse';
@@ -149,10 +162,16 @@ export default class BisulfiteModeContext {
     // Gets a substring in the sequence by current mode's length and C-base position.
     // E.g.: sequence = AAATCGCCA and position = 4
     // for 'CG' - 'CG'; for 'None' - 'C'; for ('CHH', 'CHG') - 'CGC';
-    // for ('HCG', 'GCH', 'WCG') - 'TCG'.
+    // for ('HCG', 'GCH', 'WCG', 'NOMeSeq') - 'TCG'.
     getCBaseContext (sequence, i, bisulfiteMode) {
         const startIndex = SECOND_C.includes(bisulfiteMode) ? (i - 1) : i;
-        const length = bisulfiteMode === NONE ? 1 : bisulfiteMode.length;
+        let length = bisulfiteMode.length;
+        if (bisulfiteMode === NONE.name) {
+            length = NONE.length;
+        }
+        if (bisulfiteMode === NOME_SEQ.name) {
+            length = NOME_SEQ.length;
+        }
         const endIndex = startIndex + length;
         if (startIndex < 0 || endIndex > sequence.length) {
             return '';
@@ -165,20 +184,33 @@ export default class BisulfiteModeContext {
     }
 
     // Returns array of relative positions of C-bases which have context corresponds to current mode
+    // For NOMe-Seq mode it's array of arrays with position and exact mode (GCH or HCG)
     getReferenceParts(read, bisulfiteMode) {
         const refSequence = this.getRefSequence(read);
         const result = [];
         if (!refSequence.length) return result;
         for (let i = 0; i < refSequence.length; i++) {
             let context, match;
+            let nomeSeqMatchGCH, nomeSeqMatchHCG;
             switch (refSequence[i]) {
                 case BASE.C:
                     context = this.getCBaseContext(refSequence, i, bisulfiteMode);
                     if (context) {
-                        match = context.match(METHYLATED_MODES[bisulfiteMode]);
-                    }
-                    if (match) {
-                        result.push(i);
+                        if (bisulfiteMode === NOME_SEQ.name) {
+                            nomeSeqMatchGCH = context.match(METHYLATED_MODES.GCH);
+                            nomeSeqMatchHCG = context.match(METHYLATED_MODES.HCG);
+                            if (nomeSeqMatchGCH) {
+                                result.push([GCH, i]);
+                            }
+                            if (nomeSeqMatchHCG) {
+                                result.push([HCG, i]);
+                            }
+                        } else {
+                            match = context.match(METHYLATED_MODES[bisulfiteMode]);
+                            if (match) {
+                                result.push(i);
+                            }
+                        }
                     }
                     break;
                 default:
@@ -205,39 +237,71 @@ export default class BisulfiteModeContext {
         return result;
     }
 
+    // Base is methylated if on the position, where the reference has C, the read has C,
+    // and unmethylated - when the read has T.
+    // For NOMe-Seq mode colors are different, so types are different too.
+    getMethylationType(isNomeSeq, mode, readContext, cBase) {
+        let type;
+        if (isNomeSeq) {
+            if (mode === GCH &&
+                (readContext.match(METHYLATED_MODES.GCH) ||
+                readContext.match(UNMETHYLATED_MODES.GCH))
+            ) {
+                if (cBase === BASE.C) {
+                    type = TYPE.GC_METHYLATED_BASE;
+                }
+                if (cBase === BASE.T) {
+                    type = TYPE.GC_UNMETHYLATED_BASE;
+                }
+            }
+            if (mode === HCG &&
+                (readContext.match(METHYLATED_MODES.HCG) ||
+                readContext.match(UNMETHYLATED_MODES.HCG))
+            ) {
+                if (cBase === BASE.C) {
+                    type = TYPE.CG_METHYLATED_BASE;
+                }
+                if (cBase === BASE.T) {
+                    type = TYPE.CG_UNMETHYLATED_BASE;
+                }
+            }
+        } else {
+            if (
+                readContext.match(METHYLATED_MODES[mode]) ||
+                readContext.match(UNMETHYLATED_MODES[mode])
+            ) {
+                if (cBase === BASE.C) {
+                    type = TYPE.METHYLATED_BASE;
+                }
+                if (cBase === BASE.T) {
+                    type = TYPE.UNMETHYLATED_BASE;
+                }
+            }
+        }
+        return type;
+    }
+
     // For each reference's  C-base's position in the read's sequence,
     // the context is checked and, if it matches the mode,
     // the corresponding objects are returned for methylated and unmethylated bases.
-    // Base is methylated if on the position, where the reference has C, the read has C,
-    // and unmethylated - when the read has T.
     // For fliped reads relative position is reculculated.
     getReadMethBase(refParts, read, bisulfiteMode) {
         const result = [];
+        const isNomeSeq = bisulfiteMode === NOME_SEQ.name;
         for (let i = 0; i < refParts.length; i++) {
-            const position = refParts[i];
-            const readContext = this.getCBaseContext(read.sequence, position, bisulfiteMode);
+            const [mode, position] = isNomeSeq ? refParts[i] : [bisulfiteMode, refParts[i]];
+            const readContext = this.getCBaseContext(read.sequence, position, mode);
             if (readContext) {
-                if (
-                    readContext.match(METHYLATED_MODES[bisulfiteMode]) ||
-                    readContext.match(UNMETHYLATED_MODES[bisulfiteMode])
-                ) {
-                    const cPosition = SECOND_C.includes(bisulfiteMode) ? 1 : 0;
-                    const cBase = readContext[cPosition];
-                    const baseIndex = read.isFlip ? (read.endIndex - position) : (position + read.startIndex);
-                    if (cBase === BASE.C) {
-                        result.push({
-                            type: TYPE.METHYLATED_BASE,
-                            startIndex: baseIndex,
-                            endIndex: baseIndex + 1
-                        });
-                    }
-                    if (cBase === BASE.T) {
-                        result.push({
-                            type: TYPE.UNMETHYLATED_BASE,
-                            startIndex: baseIndex,
-                            endIndex: baseIndex + 1
-                        });
-                    }
+                const cPosition = SECOND_C.includes(bisulfiteMode) ? 1 : 0;
+                const cBase = readContext[cPosition];
+                const baseIndex = read.isFlip ? (read.endIndex - position) : (position + read.startIndex);
+                const type = this.getMethylationType(isNomeSeq, mode, readContext, cBase);
+                if (type) {
+                    result.push({
+                        type,
+                        startIndex: baseIndex,
+                        endIndex: baseIndex + 1
+                    });
                 }
             }
         }

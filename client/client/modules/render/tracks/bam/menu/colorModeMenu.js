@@ -37,6 +37,8 @@ export default {
                         return 'By bisulfite conversion: WCG';
                     case colorModes.bisulfiteMode.None:
                         return 'By bisulfite conversion: None';
+                    case colorModes.bisulfiteMode.NOMeSeq:
+                        return 'By bisulfite conversion: NOMe-Seq';
                 }
         }
     },
@@ -190,6 +192,20 @@ export default {
             ),
             label: 'None',
             name: 'bam>color>bisulfiteConversion>None',
+            type: 'checkbox'
+        },
+        {
+            disable: state => state.colorMode = colorModes.noColor,
+            enable: state => {
+                state.colorMode = colorModes.byBisulfiteConversion;
+                state.bisulfiteMode = colorModes.bisulfiteMode.NOMeSeq;
+            },
+            isEnabled: state => (
+                state.colorMode === colorModes.byBisulfiteConversion &&
+                state.bisulfiteMode === colorModes.bisulfiteMode.NOMeSeq
+            ),
+            label: 'NOMeSeq',
+            name: 'bam>color>bisulfiteConversion>NOMeSeq',
             type: 'checkbox'
         },
         menu.getDivider(),

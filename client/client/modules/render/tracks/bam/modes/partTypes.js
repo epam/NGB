@@ -13,3 +13,7 @@ export const methylatedBase = 12;
 export const unmethylatedBase = 13;
 export const cytosineMismatch = 14;
 export const noncytosineMismatch = 15;
+export const cgMethylatedBase = 16;
+export const cgUnmethylatedBase = 17;
+export const gcMethylatedBase = 18;
+export const gcUnmethylatedBase = 19;

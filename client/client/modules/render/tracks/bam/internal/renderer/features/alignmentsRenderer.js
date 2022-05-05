@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js-legacy';
 import {drawingConfiguration} from '../../../../../core';
 import {ColorProcessor} from '../../../../../utilities';
-import {partTypes} from '../../../modes';
+import {bisulfiteTypes, partTypes} from '../../../modes';
 
 const Math = window.Math;
 
@@ -16,8 +16,6 @@ const baseLabelStyle = {
     fontSize: '6pt',
     fontWeight: 'normal'
 };
-const METHYLATED_BASE = 'methylatedBase';
-const UNMETHYLATED_BASE = 'unmethylatedBase';
 const BISULFITE_CONVERSION = 'bisulfiteConversion';
 
 export class AlignmentsRenderer {
@@ -191,6 +189,15 @@ export class AlignmentsRenderer {
         }
     }
 
+    _initReadColorModeNomeSeqBisulfiteConversion(renderEntry) {
+        const paired = ['R2L1', 'L1R2', 'L1L2', 'L2L1', 'R1L2', 'L2R1', 'R1R2', 'R2R1'];
+        if (paired.includes(renderEntry.spec.pair)) {
+            this._setColor(this._baseColor = this._colors.bisulfite.F1R2);
+        } else {
+            this._setColor(this._baseColor = this._colors.base);
+        }
+    }
+
     _initRead(renderEntry) {
         this._contoured = this._features.shadeByQuality && renderEntry.spec.lowQ;
         switch (this._features.colorMode) {
@@ -213,8 +220,14 @@ export class AlignmentsRenderer {
                 this._initReadColorModeFirstInPairStrand(renderEntry);
                 break;
             case 'bisulfiteConversion':
-                this._initReadColorModeBisulfiteConversion(renderEntry);
-                break;
+                switch (this._features.bisulfiteMode) {
+                    case 'NOMeSeq':
+                        this._initReadColorModeNomeSeqBisulfiteConversion(renderEntry);
+                        break;
+                    default:
+                        this._initReadColorModeBisulfiteConversion(renderEntry);
+                        break;
+                }
         }
     }
 
@@ -523,7 +536,11 @@ export class AlignmentsRenderer {
             }
                 break;
             case partTypes.methylatedBase:
-            case partTypes.unmethylatedBase: {
+            case partTypes.unmethylatedBase:
+            case partTypes.cgMethylatedBase:
+            case partTypes.cgUnmethylatedBase:
+            case partTypes.gcMethylatedBase:
+            case partTypes.gcUnmethylatedBase: {
                 this._renderMethylation(renderEntry);
             }
                 break;
@@ -536,8 +553,7 @@ export class AlignmentsRenderer {
         const {breakOnLeft, breakOnRight} = this._getReadBreaks(renderEntry);
         const start = renderEntry.startIndex + (breakOnLeft ? BP_OFFSET : 0);
         const end = renderEntry.endIndex + (breakOnRight ? -BP_OFFSET : 0);
-        const type = renderEntry.type === partTypes.methylatedBase ?
-            METHYLATED_BASE : UNMETHYLATED_BASE;
+        const type = bisulfiteTypes.numbers[renderEntry.type];
         this._setColor(this._colors.bisulfite[type]);
         this._scaledRect(
             start,
