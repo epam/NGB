@@ -12,5 +12,6 @@ export const bisulfiteMode = {
     HCG: 'HCG',
     GCH: 'GCH',
     WCG: 'WCG',
-    None: 'None'
+    None: 'None',
+    NOMeSeq: 'NOMeSeq'
 };

@@ -38,6 +38,10 @@ export default {
                 F2R1: 0xd7dfc3,
                 methylatedBase: 0xcf3030,
                 unmethylatedBase: 0x2c2cba,
+                cgMethylatedBase: 0x7fa4ff,
+                cgUnmethylatedBase: 0xddff7f,
+                gcMethylatedBase: 0x00cc99,
+                gcUnmethylatedBase: 0xff7fbf,
                 cytosineMismatch: 0xcf3030,
                 noncytosineMismatch: 0xCD853F,
                 mismatch: 0x808080
