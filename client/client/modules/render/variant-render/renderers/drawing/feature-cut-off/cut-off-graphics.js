@@ -1,4 +1,4 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
 const Math = window.Math;
 
 export default class CutOffGraphics{

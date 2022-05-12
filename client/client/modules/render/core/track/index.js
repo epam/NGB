@@ -1,4 +1,9 @@
 export {Track} from './track';
 export {InteractiveTrack} from './interactiveTrack';
-export {CachedTrack, CachedTrackRenderer} from './cachedTrack';
+export {
+    CachedTrack,
+    CachedTrackWithVerticalScroll,
+    CachedTrackRenderer,
+    CachedTrackRendererWithVerticalScroll
+} from './cachedTrack';
 export {ScrollableTrack} from './scrollableTrack';

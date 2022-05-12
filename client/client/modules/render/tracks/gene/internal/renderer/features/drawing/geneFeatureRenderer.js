@@ -1,9 +1,8 @@
+import * as PIXI from 'pixi.js-legacy';
 import FeatureBaseRenderer from './featureBaseRenderer';
-import PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';
-import drawStrandDirection from './strandDrawing';
-import {drawingConfiguration} from '../../../../../../core';
+import drawStrandDirection, {getStrandArrowSize} from './strandDrawing';
 
 const Math = window.Math;
 
@@ -11,9 +10,33 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
     _transcriptFeatureRenderer: TranscriptFeatureRenderer = null;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, transcriptRenderer) {
-        super(config, registerLabel, registerDockableElement, registerFeaturePosition);
+    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, transcriptRenderer) {
+        super(track, config, registerLabel, registerDockableElement, registerFeaturePosition, undefined);
         this._transcriptFeatureRenderer = transcriptRenderer;
+    }
+
+    get strandIndicatorConfig(): undefined {
+        return this.config && this.config.gene && this.config.gene.strand
+            ? this.config.gene.strand
+            : super.strandIndicatorConfig;
+    }
+
+    getFeatureKey (feature, viewport) {
+        if (!feature.name) {
+            return undefined;
+        }
+        const transcripts = feature.transcripts || [];
+        const transcriptLength = (transcripts || []).length;
+        const transcriptsKeys = [];
+        for (let i = 0; i < transcriptLength; i++) {
+            this._transcriptFeatureRenderer.gffShowNumbersAminoacid = this._opts.gffShowNumbersAminoacid;
+            this._transcriptFeatureRenderer.collapsedMode = this._opts.collapsedMode;
+            const transcriptKey = this._transcriptFeatureRenderer.getFeatureKey(transcripts[i], viewport);
+            if (transcriptKey) {
+                transcriptsKeys.push(`${transcriptKey}`);
+            }
+        }
+        return `[${feature.name}]>${transcriptsKeys.join('-')}`;
     }
 
     analyzeBoundaries(feature, viewport) {
@@ -23,13 +46,24 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         const shouldDisplayDetails = width >= this.config.gene.displayDetailsThreshold;
         let maxLabelWidth = {height: 0, width: 0};
         const gene = this.config.gene;
-        if (feature.name !== null) {
+        if (feature.name) {
             maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label);
         }
         if (rect) {
+            rect.x2 = Math.max(rect.x2, rect.x1 + maxLabelWidth.width);
             let transcriptsHeight = 0;
             const transcripts = feature.transcripts;
             const transcriptLength = transcripts.length;
+
+            if (
+                feature.hasOwnProperty('strand') &&
+                this.shouldRenderStrandIndicatorInsteadOfGraphics(rect.x1, rect.x2)
+            ) {
+                const correctedEnd = rect.x1 +
+                    getStrandArrowSize(this.config.gene.strand.arrow.height).width +
+                    this.config.gene.strand.arrow.margin * 4;
+                rect.x2 = Math.max(rect.x2, correctedEnd);
+            }
 
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 for (let i = 0; i < transcriptLength; i++) {
@@ -42,12 +76,11 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                             height: childRect.y2 - childRect.y1,
                             width: childRect.x2 - childRect.x1
                         };
-                        maxLabelWidth.width = Math.max(maxLabelWidth.width, childSize.width);
+                        rect.x2 = Math.max(rect.x2, childRect.x2);
                         transcriptsHeight += childSize.height;
                     }
                 }
             }
-            rect.x2 = Math.max(rect.x2, rect.x1 + maxLabelWidth.width);
             rect.y2 = gene.bar.height + maxLabelWidth.height + transcriptsHeight;
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 boundaries.margin = {
@@ -56,6 +89,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 };
             }
         }
+        boundaries.key = this.getBoundariesKey(feature, viewport);
         return boundaries;
     }
 
@@ -72,14 +106,14 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
     static getFeatureFillColor(featureName, opts, config) {
         if (featureName !== 'gene' && opts && opts.gffColorByFeatureType) {
             const colorMask = 0x00FFFFFF;
-            return GeneFeatureRenderer.hashCode(featureName) & colorMask
+            return GeneFeatureRenderer.hashCode(featureName) & colorMask;
         }
         return config.gene.bar.fill;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
-        const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), - viewport.canvasSize);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize);
         const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex + 1), 2 * viewport.canvasSize);
         const width = featurePxEnd - featurePxStart;
         if (width < 0) {
@@ -91,18 +125,19 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         let geneNameLabelHeight = 0;
         const gene = this.config.gene;
 
-        if (feature.name !== null) {
-            const label = new PIXI.Text(feature.name, this.config.gene.label);
-            label.resolution = drawingConfiguration.resolution;
-            label.x = Math.round(position.x);
-            label.y = Math.round(position.y);
-            dockableElementsContainer.addChild(label);
-            geneNameLabelHeight = label.height;
-            this.registerLabel(label, position, {
-                end: feature.endIndex,
-                height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
-                start: feature.startIndex
-            }, true);
+        if (feature.name && this.labelsManager) {
+            const sprite = this.labelsManager.getLabel(feature.name, this.config.gene.label, true);
+            if (sprite) {
+                geneNameLabelHeight = sprite.height;
+                sprite.x = Math.round(position.x);
+                sprite.y = Math.round(position.y);
+                dockableElementsContainer.addChild(sprite);
+                this.registerLabel(sprite, position, {
+                    end: feature.endIndex,
+                    height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
+                    start: feature.startIndex
+                }, true);
+            }
         }
 
         const geneBar = gene.bar;
@@ -116,45 +151,34 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             if (startX > endX) {
                 return;
             }
-            graphics
-                .beginFill(fillColor, 1)
-                .drawRect(
-                    startX,
-                    Math.round(position.y + geneNameLabelHeight),
-                    endX - startX,
-                    Math.round(geneBar.height)
-                )
-                .endFill();
-            hoveredGraphics
-                .beginFill(ColorProcessor.darkenColor(fillColor), 1)
-                .drawRect(
-                    startX,
-                    Math.round(position.y + geneNameLabelHeight),
-                    endX - startX,
-                    Math.round(geneBar.height)
-                )
-                .endFill();
             this.updateTextureCoordinates(
                 {
                     x: startX,
                     y: Math.round(position.y + geneNameLabelHeight)
                 });
-            if (feature.hasOwnProperty('strand')) {
-                const project = viewport.project;
-                const white = 0xFFFFFF;
-                const maxViewportsOnScreen = 3;
+            if (
+                feature.hasOwnProperty('strand') &&
+                this.shouldRenderStrandIndicatorInsteadOfGraphics(startX, endX)
+            ) {
+                const correctedEnd = startX +
+                    getStrandArrowSize(gene.strand.arrow.height).width +
+                    gene.strand.arrow.margin * 4;
+                const arrowConfig = {
+                    ...gene.strand.arrow,
+                    mode: 'fill',
+                    height: gene.strand.arrow.height + 2 * gene.strand.arrow.margin
+                };
                 drawStrandDirection(
                     feature.strand,
                     {
                         centerY: position.y + geneNameLabelHeight + geneBar.height / 2,
                         height: geneBar.height,
-                        width: Math.min(project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2
-                            - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
-                        x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
+                        width: correctedEnd - startX,
+                        x: startX
                     },
-                    graphics,
-                    white,
-                    gene.strand.arrow,
+                    graphics.graphics,
+                    fillColor,
+                    arrowConfig,
                     1,
                     ::this.updateTextureCoordinates
                 );
@@ -163,16 +187,69 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                     {
                         centerY: position.y + geneNameLabelHeight + geneBar.height / 2,
                         height: geneBar.height,
-                        width: Math.min(project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2
-                            - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
-                        x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
+                        width: correctedEnd - startX,
+                        x: startX
                     },
-                    hoveredGraphics,
-                    white,
-                    gene.strand.arrow,
+                    graphics.hoveredGraphics,
+                    ColorProcessor.darkenColor(fillColor),
+                    arrowConfig,
                     1,
                     ::this.updateTextureCoordinates
                 );
+            } else {
+                graphics.graphics
+                    .beginFill(fillColor, 1)
+                    .drawRect(
+                        startX,
+                        Math.round(position.y + geneNameLabelHeight),
+                        endX - startX,
+                        Math.round(geneBar.height)
+                    )
+                    .endFill();
+                graphics.hoveredGraphics
+                    .beginFill(ColorProcessor.darkenColor(fillColor), 1)
+                    .drawRect(
+                        startX,
+                        Math.round(position.y + geneNameLabelHeight),
+                        endX - startX,
+                        Math.round(geneBar.height)
+                    )
+                    .endFill();
+                if (feature.hasOwnProperty('strand')) {
+                    const project = viewport.project;
+                    const white = 0xFFFFFF;
+                    const maxViewportsOnScreen = 3;
+                    drawStrandDirection(
+                        feature.strand,
+                        {
+                            centerY: position.y + geneNameLabelHeight + geneBar.height / 2,
+                            height: geneBar.height,
+                            width: Math.min(project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2
+                                - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
+                            x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
+                        },
+                        graphics.graphics,
+                        white,
+                        gene.strand.arrow,
+                        1,
+                        ::this.updateTextureCoordinates
+                    );
+                    drawStrandDirection(
+                        feature.strand,
+                        {
+                            centerY: position.y + geneNameLabelHeight + geneBar.height / 2,
+                            height: geneBar.height,
+                            width: Math.min(project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2
+                                - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
+                            x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
+                        },
+                        graphics.hoveredGraphics,
+                        white,
+                        gene.strand.arrow,
+                        1,
+                        ::this.updateTextureCoordinates
+                    );
+                }
             }
             this.registerFeaturePosition(feature, {
                 x1: position.x,
@@ -180,8 +257,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 y1: position.y + geneNameLabelHeight,
                 y2: position.y + geneNameLabelHeight + geneBar.height
             });
-        }
-        else {
+        } else {
             const dockableGraphics = new PIXI.Graphics();
             dockableGraphics
                 .lineStyle(1, geneBar.callout, 1)
@@ -200,18 +276,17 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             const transcript = this.config.transcript;
 
             for (let i = 0; i < transcriptLength; i++) {
-                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     x: position.x,
                     y: transcriptY
                 });
 
                 const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
 
-                if (transcripts[i].name !== null) {
+                if (transcripts[i].name) {
                     const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
                     transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-                }
-                else {
+                } else {
                     transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 }
             }

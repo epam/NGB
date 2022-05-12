@@ -1,6 +1,5 @@
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
-import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
 
 export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
@@ -34,42 +33,43 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         };
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
-        const label = new PIXI.Text(symbol, labelStyle);
+        const label = this.labelsManager ? this.labelsManager.getLabel(symbol, labelStyle) : undefined;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
         const cY = Math.round(position.y + position.height - height / 2);
-        const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
-        const labelPosition = {
-            x: Math.round(textX1),
-            y: Math.round(position.y + position.height - height - this.config.variant.allele.height / 2 - label.height / 2)
-        };
-        label.resolution = drawingConfiguration.resolution;
-        label.x = Math.round(labelPosition.x);
-        label.y = Math.round(labelPosition.y);
-        labelContainer.addChild(label);
-        this.registerLabel(
-            label,
-            labelPosition,
-            {
-                end: feature.startIndex,
-                start: feature.startIndex,
-            },
-            false,
-            true);
+        if (label) {
+            const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - label.width / 2;
+            const labelPosition = {
+                x: Math.round(textX1),
+                y: Math.round(position.y + position.height - height - this.config.variant.allele.height / 2 - label.height / 2)
+            };
+            label.x = Math.round(labelPosition.x);
+            label.y = Math.round(labelPosition.y);
+            labelContainer.addChild(label);
+            this.registerLabel(
+                label,
+                labelPosition,
+                {
+                    end: feature.startIndex,
+                    start: feature.startIndex,
+                },
+                false,
+                true);
+        }
         const white = 0xFFFFFF;
-        graphics.lineStyle(0, white, 0);
-        graphics
+        graphics.graphics.lineStyle(0, white, 0);
+        graphics.graphics
             .beginFill(this.config.variant.zygosity.unknownColor, 1)
             .drawRect(cX - width / 2, cY - height / 2, width, height)
             .endFill();
-        hoveredGraphics.lineStyle(0, white, 0);
-        hoveredGraphics
+        graphics.hoveredGraphics.lineStyle(0, white, 0);
+        graphics.hoveredGraphics
             .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.unknownColor), 1)
             .drawRect(cX - width / 2, cY - height / 2, width, height)
             .endFill();

@@ -3,6 +3,13 @@ const Math = window.Math;
 const COS_60_SQRT_PARAMETER = 3; // eslint
 const COS_60_DEGREES = Math.sqrt(COS_60_SQRT_PARAMETER) / 2;
 
+export function getStrandArrowSize (size) {
+    return {
+        height: size,
+        width: size * COS_60_DEGREES
+    };
+}
+
 export default function drawStrandDirection(strand, boundaries, graphics, color, arrow, alpha = 1, renderCallback = null) {
     if (!strand || (strand.toLowerCase() !== 'positive' && strand.toLowerCase() !== 'negative'))
         return;
@@ -11,7 +18,7 @@ export default function drawStrandDirection(strand, boundaries, graphics, color,
     const strandArrowSize = {height: arrow.height, width: 0};
     strandArrowSize.width = strandArrowSize.height * COS_60_DEGREES;
     const direction = strand.toLowerCase() === 'positive' ? 1 : -1;
-    if (boundaries.width - 2 * margin > strandArrowSize.width){
+    if (boundaries.width - 2 * margin >= strandArrowSize.width){
         const arrowsCount = Math.max(1, Math.floor(boundaries.width / strandArrowBoxWidth));
         const diff = (boundaries.width - strandArrowBoxWidth * arrowsCount) / 2;
         const iDiff = 0.5;

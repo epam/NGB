@@ -3,17 +3,15 @@ import {
     VariantContainer,
     VCFCollapsedRenderer,
     VCFExpandedRenderer,
-    VcfTransformer,
-    PlaceholderRenderer
+    VcfTransformer
 } from './internal';
 import {GENETrack} from '../gene';
 import VcfConfig from './vcfConfig';
 import {VcfDataService} from '../../../../dataServices';
-import GeneConfig from '../gene/geneConfig';
 import {default as menu} from './menu';
 import Menu from '../../core/menu';
 import {variantsView} from './modes';
-import {menu as menuUtilities} from '../../utilities';
+import {menu as menuUtilities, PlaceholderRenderer} from '../../utilities';
 import {EventVariationInfo} from '../../../../app/shared/utils/events';
 
 export class VCFTrack extends GENETrack {
@@ -21,16 +19,20 @@ export class VCFTrack extends GENETrack {
     _collapsedRenderer: VCFCollapsedRenderer = null;
     _lastHovered = null;
     _variantsMaximumRange;
-    _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer();
+    _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer(this);
 
     projectContext;
 
     static getTrackDefaultConfig() {
-        return Object.assign({}, GeneConfig, VcfConfig);
+        return VcfConfig;
     }
 
     get stateKeys() {
         return ['variantsView', 'header'];
+    }
+
+    get featuresFilteringEnabled () {
+        return false;
     }
 
     static preStateMutatorFn = (track) => ({
@@ -46,7 +48,7 @@ export class VCFTrack extends GENETrack {
         }
         track.updateAndRefresh();
         track.reportTrackState();
-    }
+    };
 
     static Menu = Menu(
         menu,
@@ -104,7 +106,12 @@ export class VCFTrack extends GENETrack {
         super.globalSettingsChanged(state);
         Promise.resolve().then(async () => {
             if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
-                await this.updateCache();
+                try {
+                    this.unsetError();
+                    await this.updateCache();
+                } catch (e) {
+                    this.reportError(e.message);
+                }
             }
             if (changed) {
                 this._flags.renderReset = true;
@@ -173,10 +180,17 @@ export class VCFTrack extends GENETrack {
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new VCFExpandedRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new VCFExpandedRenderer(
+                this.trackConfig,
+                this.transformer,
+                this
+            );
         }
         if (!this._collapsedRenderer) {
-            this._collapsedRenderer = new VCFCollapsedRenderer(VcfConfig);
+            this._collapsedRenderer = new VCFCollapsedRenderer(
+                VcfConfig,
+                this
+            );
         }
         if (this.state.variantsView === variantsView.variantsViewCollapsed) {
             return this._collapsedRenderer;
@@ -235,10 +249,49 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
             }
             if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
                 this.renderer.height = this.height;
-                this.renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._gffColorByFeatureType, this._showCenterLine);
+                this.renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._showCenterLine);
                 somethingChanged = true;
             }
             return somethingChanged;
+        }
+    }
+
+    onStatisticsClicked (statisticsContainer: StatisticsContainer) {
+        const length = statisticsContainer.variant.endIndex - statisticsContainer.variant.startIndex;
+        const bubbleExpandFactor = 5;
+        this.moveBrush({
+            end: statisticsContainer.variant.endIndex + length / bubbleExpandFactor,
+            start: statisticsContainer.variant.startIndex - length / bubbleExpandFactor
+        });
+    }
+
+    onVariantContainerClicked (variantContainer: VariantContainer, position, sample) {
+        const mapEndContainersFn = (m) => ({
+            chromosome: m.chromosome || this.config.chromosome.name,
+            chromosomeId: this.dataConfig.chromosomeId,
+            position: m.displayPosition || m.position
+        });
+        const [endPoints] = variantContainer._endContainers
+            .filter(m => m.visible === true)
+            .map(mapEndContainersFn);
+        const variantRequest = new EventVariationInfo(
+            {
+                chromosome: {
+                    id: this.config.chromosome.id,
+                    name: this.config.chromosome.name
+                },
+                endPoints,
+                id: variantContainer._variant.identifier,
+                position: variantContainer._variant.serverStartIndex,
+                type: variantContainer._variant.type,
+                sample,
+                vcfFileId: this.dataConfig.id,
+                projectId: this.config.projectId,
+                projectIdNumber: this.config.project.id
+            }
+        );
+        if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
+            this.dataItemClicked(this, variantRequest, {name: 'variant-request', position});
         }
     }
 
@@ -290,40 +343,9 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         } else {
             const variantContainer = this.renderer.onClick({x, y});
             if (variantContainer && variantContainer instanceof StatisticsContainer) {
-                const length = variantContainer.variant.endIndex - variantContainer.variant.startIndex;
-                const bubbleExpandFactor = 5;
-                this.moveBrush({
-                    end: variantContainer.variant.endIndex + length / bubbleExpandFactor,
-                    start: variantContainer.variant.startIndex - length / bubbleExpandFactor
-                });
+                this.onStatisticsClicked(variantContainer);
             } else if (variantContainer instanceof VariantContainer) {
-                const self = this;
-                const mapEndContainersFn = function (m) {
-                    return {
-                        chromosome: m.chromosome || self.config.chromosome.name,
-                        chromosomeId: self.dataConfig.chromosomeId,
-                        position: m.displayPosition || m.position
-                    };
-                };
-                const [endPoints] = variantContainer._endContainers.filter(m => m.visible === true).map(mapEndContainersFn);
-                const variantRequest = new EventVariationInfo(
-                    {
-                        chromosome: {
-                            id: this.config.chromosome.id,
-                            name: this.config.chromosome.name
-                        },
-                        endPoints,
-                        id: variantContainer._variant.identifier,
-                        position: variantContainer._variant.serverStartIndex,
-                        type: variantContainer._variant.type,
-                        vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId,
-                        projectIdNumber: this.config.project.id
-                    }
-                );
-                if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
-                    this.dataItemClicked(this, variantRequest, {name: 'variant-request', position: {x, y}});
-                }
+                this.onVariantContainerClicked(variantContainer, {x, y});
             }
         }
     }
@@ -362,12 +384,16 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         return true;
     }
 
-    onMouseOut() {
-        super.onMouseOut();
+    unhoverRenderer () {
         this._lastHovered = null;
         if (this.state.variantsView === variantsView.variantsViewCollapsed) {
             this.renderer.onMove();
         }
+    }
+
+    onMouseOut() {
+        super.onMouseOut();
+        this.unhoverRenderer();
         // for correct animations
         this.requestAnimation();
     }
@@ -420,5 +446,12 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                 this.viewport.selectPosition(data.startIndex);
             }
         );
+    }
+
+    clearData() {
+        if (typeof this._removeHotKeyListener === 'function') {
+            this._removeHotKeyListener();
+        }
+        super.clearData();
     }
 }

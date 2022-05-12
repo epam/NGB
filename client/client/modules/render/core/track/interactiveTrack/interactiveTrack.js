@@ -27,7 +27,9 @@ export default class InteractiveTrack extends Track {
 
     constructor(opts) {
         super(opts);
-        this.initializeEventListeners();
+        if (!opts.interactionDisabled) {
+            this.initializeEventListeners();
+        }
     }
 
     destructor() {
@@ -80,6 +82,8 @@ export default class InteractiveTrack extends Track {
             });
         } else if (event.target === angular.element(this.domElement).find('canvas')[0] && !InteractiveTrack.lockMoveEvent) {
             this.onHover({x: event.offsetX, y: event.offsetY});
+        } else {
+            this.onMouseOut();
         }
         this._lastPosition = {x: event.screenX, y: event.screenY};
     }
@@ -108,11 +112,11 @@ export default class InteractiveTrack extends Track {
     }
 
     _onMouseOver() {
-        window.jQuery(document.body)
+        window.jQuery(this.domElement)
             .on(`mousewheel.${this._trackSystemName}`, ::this._onMouseWheel);
         const self = this;
         this._removeWheelEventListener = function() {
-            window.jQuery(document.body)
+            window.jQuery(this.domElement)
                 .off(`mousewheel.${self._trackSystemName}`);
         };
         this.onMouseOver();
@@ -127,13 +131,17 @@ export default class InteractiveTrack extends Track {
     }
 
     _onClick(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
         const x = event.offsetX;
         const y = event.offsetY;
         if (!this._isDoubleClick && !this._dragged) {
             const self = this;
             const handler = function () {
-                if (!self._isDoubleClick)
+                if (!self._isDoubleClick) {
                     self.onClick({x, y});
+                }
             };
             setTimeout(handler, DOUBLE_CLICK_TIMEOUT);
         }

@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js-legacy';
 import {
     AminoacidFeatureRenderer,
     FeatureBaseRenderer,
@@ -6,7 +7,6 @@ import {
     ZONES_MANAGER_DEFAULT_ZONE_NAME
 } from './drawing';
 import {Sorting, ZonesManager} from '../../../../../utilities';
-import PIXI from 'pixi.js';
 import {Viewport} from '../../../../../core';
 
 const Math = window.Math;
@@ -28,22 +28,32 @@ export default class FeatureRenderer {
     _featuresPositions = null;
     _opts;
 
-    constructor(config) {
+    constructor(config, track) {
         this._config = config;
-        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(config,
+        this._track = track;
+        this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
-            ::this.registerFeaturePosition);
-        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(config,
+            ::this.registerFeaturePosition
+        );
+        this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            this._aminoacidFeatureRenderer);
-        this._geneFeatureRenderer = new GeneFeatureRenderer(config,
+            this._aminoacidFeatureRenderer
+        );
+        this._geneFeatureRenderer = new GeneFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
             ::this.registerFeaturePosition,
-            this._transcriptFeatureRenderer);
+            this._transcriptFeatureRenderer
+        );
 
         this._labels = [];
         this._dockableLabels = [];
@@ -64,7 +74,7 @@ export default class FeatureRenderer {
             x: null,
             y: null
         };
-        const updateCoordinates = function(newCoordinates) {
+        const updateCoordinates = function (newCoordinates) {
             if (!newCoordinates) {
                 return;
             }
@@ -105,13 +115,15 @@ export default class FeatureRenderer {
     }
 
     render(features,
-           viewport: Viewport,
-           labelContainer: PIXI.Container,
-           dockableElementsContainer: PIXI.Container,
-           attachedElementsContainer: PIXI.Container,
-           graphics: PIXI.Graphics = null, hoveredGraphics: PIXI.Graphics): PIXI.Graphics {
+        viewport: Viewport,
+        labelContainer: PIXI.Container,
+        dockableElementsContainer: PIXI.Container,
+        attachedElementsContainer: PIXI.Container,
+        graphics: PIXI.Graphics = null, hoveredGraphics: PIXI.Graphics,
+        highlightGraphics: PIXI.Graphics = null, hoveredHighlightGraphics: PIXI.Graphics) {
         if (features === null || features === undefined)
             return null;
+
         this.prepareRenderers();
         this._labels = [];
         this._dockableLabels = [];
@@ -129,33 +141,76 @@ export default class FeatureRenderer {
         if (hoveredFeatureGraphics === null || hoveredFeatureGraphics === undefined) {
             hoveredFeatureGraphics = new PIXI.Graphics();
         }
+        let featureHighlightGraphics = highlightGraphics;
+        if (featureHighlightGraphics === null || featureHighlightGraphics === undefined) {
+            featureHighlightGraphics = new PIXI.Graphics();
+        }
+        let hoveredFeatureHighlightGraphics = hoveredHighlightGraphics;
+        if (hoveredFeatureHighlightGraphics === null || hoveredFeatureHighlightGraphics === undefined) {
+            hoveredFeatureHighlightGraphics = new PIXI.Graphics();
+        }
+        const graphicsObj = {
+            graphics: featureGraphics,
+            highlightGraphics: featureHighlightGraphics,
+            hoveredGraphics: hoveredFeatureGraphics,
+            hoveredHighlightGraphics: hoveredFeatureHighlightGraphics
+        };
         this._geneFeatureRenderer._opts = this._opts;
-        const maxIterations = 10000000;
-        for (let i = 0; i < features.length; i++) {
-            const item = features[i];
+        const {
+            geneFeatures
+        } = this._opts || {};
+        const featureOutOfViewport = ({startIndex, endIndex}) => {
+            if (startIndex === undefined || endIndex === undefined) {
+                return true;
+            }
+            const x1 = viewport.project.brushBP2pixel(startIndex);
+            const x2 = viewport.project.brushBP2pixel(endIndex);
+            return x2 <= -viewport.canvasSize || x1 >= 2.0 * viewport.canvasSize;
+        };
+        const filteredFeatures = (features || []).filter(item =>
+            !featureOutOfViewport(item) &&
+            this.getRendererForFeature(item) &&
+            !(
+                geneFeatures &&
+                geneFeatures.length > 0 &&
+                !/^statistic$/i.test(item.feature) &&
+                geneFeatures.indexOf(item.feature) === -1
+            )
+        );
+        const featureBoundariesArray = filteredFeatures.map(item => ({
+            feature: item,
+            boundary: Object.assign(
+                {
+                    global: {
+                        x: 0,
+                        y: zoneBoundaries.y1
+                    }
+                },
+                this.getRendererForFeature(item).analyzeBoundaries(item, viewport)
+            )
+        }));
+        const getFeatureBoundaries = (feature) => {
+            const [boundaries] = featureBoundariesArray.filter(o => o.feature === feature);
+            return boundaries ? boundaries.boundary : undefined;
+        };
+        for (let i = 0; i < filteredFeatures.length; i++) {
+            const item = filteredFeatures[i];
             const renderer = this.getRendererForFeature(item);
             if (!renderer) {
-                continue;
+                return;
             }
+            const boundary = getFeatureBoundaries(item);
             const boundaries = this._zonesManager.checkArea(
                 ZONES_MANAGER_DEFAULT_ZONE_NAME,
-                Object.assign(
-                    {
-                        global: {
-                            x: 0,
-                            y: zoneBoundaries.y1
-                        }
-                    },
-                    renderer.analyzeBoundaries(item, viewport)
-                ),
+                boundary,
                 {
                     translateX: 0,
                     translateY: 1
                 },
-                maxIterations);
-            if (!boundaries.conflicts) {
+            );
+            if (boundaries && !boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
-                renderer.render(item, viewport, featureGraphics, hoveredFeatureGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                renderer.render(item, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
                     width: boundaries.rect.x2 - boundaries.rect.x1,
                     x: boundaries.rect.x1,
@@ -163,10 +218,10 @@ export default class FeatureRenderer {
                 });
             }
         }
-        return {graphics: featureGraphics, hoveredGraphics: hoveredFeatureGraphics};
+        return graphicsObj;
     }
 
-    manageLabels(viewport) {
+    manageLabels(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._labels.length; i++) {
             const labelData = this._labels[i];
             if (labelData.label.parent === null || labelData.label.parent === undefined)
@@ -178,16 +233,14 @@ export default class FeatureRenderer {
             } else if (labelData.range.shift) {
                 labelData.label.x = Math.round(viewport.project.brushBP2pixel(labelData.range.start) +
                     labelData.range.shift + labelData.label.width * labelData.range.shiftDirection);
-            }
-            else {
+            } else {
                 const startPx = viewport.project.brushBP2pixel(labelData.range.start) +
                     (labelData.range.offset ? labelData.range.offset.left : 0);
                 const endPx = Math.max(viewport.project.brushBP2pixel(labelData.range.end) -
                     labelData.label.width, startPx);
                 if (startPx > viewport.canvasSize || endPx < -labelData.label.width) {
                     labelData.label.visible = false;
-                }
-                else {
+                } else {
                     labelData.label.visible = true;
                     labelData.label.x = Math.round(Math.max(startPx, Math.min(endPx, 0))) - labelData.label.parent.x;
                 }
@@ -196,6 +249,11 @@ export default class FeatureRenderer {
                     const relativeYStartPosition = labelData.label.parent.y + labelData.position.y;
                     const relativeYEndPosition = labelData.label.parent.y + labelData.position.y + labelData.range.height - labelData.label.height;
                     labelData.label.y = Math.round(Math.max(relativeYStartPosition, Math.min(relativeYEndPosition, 0))) - labelData.label.parent.y;
+                }
+                const verticallyInvisible = (labelData.label.y + labelData.label.height) < -yOffset ||
+                    labelData.label.y > (-yOffset) + height;
+                if (verticallyInvisible) {
+                    labelData.visible = false;
                 }
             }
         }
@@ -209,18 +267,21 @@ export default class FeatureRenderer {
             const relativeYStartPosition = dockableElementData.element.parent.y + dockableElementData.range.y1;
             const relativeYEndPosition = dockableElementData.element.parent.y + dockableElementData.range.y2;
             dockableElementData.element.y = Math.round(Math.max(relativeYStartPosition,
-                    Math.min(relativeYEndPosition, dockableElementData.range.topMargin))) -
+                Math.min(relativeYEndPosition, dockableElementData.range.topMargin))) -
                 dockableElementData.element.parent.y;
         }
     }
 
-    manageAttachedElements(viewport) {
+    manageAttachedElements(viewport, height, yOffset = 0) {
         for (let i = 0; i < this._attachedElements.length; i++) {
             const {attachedInfo, element} = this._attachedElements[i];
-            element.y = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            const elementY = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            element.y = elementY;
             const startPx = viewport.project.brushBP2pixel(attachedInfo.range.start);
             const endPx = viewport.project.brushBP2pixel(attachedInfo.range.end);
-            if (startPx > viewport.canvasSize || endPx < 0) {
+            const verticallyInvisible = elementY < -yOffset || elementY + attachedInfo.renderInfo.height > (-yOffset) + height;
+
+            if (startPx > viewport.canvasSize || endPx < 0 || verticallyInvisible) {
                 element.visible = false;
                 continue;
             }
@@ -266,7 +327,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element:PIXI.Text = labels[i].label;
+            const element = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -374,7 +435,7 @@ export default class FeatureRenderer {
         });
     }
 
-    checkPosition(position, relativeContainer) {
+    checkPosition(position, relativeContainer, isCollapsedMode = false) {
         const result = [];
         if (this._featuresPositions === null)
             return result;
@@ -386,7 +447,11 @@ export default class FeatureRenderer {
                 const featureName = this._featuresPositions[i].feature.feature ?
                     this._featuresPositions[i].feature.feature.toLowerCase() : null;
                 result.push(this._featuresPositions[i]);
-                if (featureName && (featureName === 'mrna' || featureName === 'transcript')) {
+                if (
+                    featureName &&
+                    (featureName === 'mrna' || featureName === 'transcript') &&
+                    !isCollapsedMode
+                ) {
                     break;
                 }
             }
@@ -400,16 +465,17 @@ export default class FeatureRenderer {
         if (hoveredItem && hoveredItem.length) {
             const [exon] = hoveredItem.filter(i => i.feature && i.feature.feature === 'exon');
             const item = exon || hoveredItem[hoveredItem.length - 1];
-            const x1 = Math.max(- viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
+            const x1 = Math.max(-viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
             const x2 = Math.min(2 * viewport.canvasSize, item.graphicsBoundaries.x2) + 2;
-            let y1 = item.graphicsBoundaries.y1 - 1;
-            let y2 = item.graphicsBoundaries.y2 + 1;
+            const y1 = item.graphicsBoundaries.y1 - 1;
+            const y2 = item.graphicsBoundaries.y2 + 1;
             if (item.graphicsBoundaries.ignore) {
                 return true;
             }
+            const diff = container.getGlobalPosition().y;
             const graphics = new PIXI.Graphics();
             graphics.beginFill(0x00FF00, 1);
-            graphics.drawRect(x1, y1, x2 - x1, y2 - y1);
+            graphics.drawRect(x1, y1 + diff, x2 - x1, y2 - y1);
             graphics.endFill();
             container.mask = graphics;
             container.visible = true;

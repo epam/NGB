@@ -1,3 +1,5 @@
+import * as PIXI from 'pixi.js-legacy';
+
 const Math = window.Math;
 
 export class VariantBaseContainer {
@@ -5,6 +7,7 @@ export class VariantBaseContainer {
     _variant = null;
     _container = null;
     _graphics = null;
+    _highlightGraphics = null;
     _linesGraphics = null;
     _componentIsBuilt = false;
     _isFaded = false;
@@ -23,14 +26,27 @@ export class VariantBaseContainer {
     get linesGraphics(): PIXI.Graphics {
         return this._linesGraphics;
     }
+    get highlightGraphics(): PIXI.Graphics {
+        return this._highlightGraphics;
+    }
 
-    constructor(variant, config) {
+    /**
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager () {
+        return this._track ? this._track.labelsManager : undefined;
+    }
+
+    constructor(variant, config, track) {
         this._container = new PIXI.Container();
         this._config = config;
         this._variant = variant;
+        this._track = track;
 
         this._graphics = new PIXI.Graphics();
+        this._highlightGraphics = new PIXI.Graphics();
         this._linesGraphics = new PIXI.Graphics();
+
         this._container.addChild(this._graphics);
     }
 
@@ -79,6 +95,7 @@ export class VariantBaseContainer {
                     Math.min(1, this._fadeFactor + (this._isFaded ? -fadeDelta : fadeDelta)));
             this.container.alpha = this._fadeFactor;
             this.linesGraphics.alpha = this._fadeFactor;
+            this.highlightGraphics.alpha = this._fadeFactor;
         }
         return needAnimateFade;
     }

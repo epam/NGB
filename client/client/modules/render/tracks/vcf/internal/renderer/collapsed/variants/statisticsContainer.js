@@ -1,17 +1,11 @@
 import {NumberFormatter} from '../../../../../../utilities';
-import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
 
 export class StatisticsContainer extends VariantBaseContainer {
-
     _bubbleInfo = null;
-
-    constructor(variant, config) {
-        super(variant, config);
-    }
 
     render(viewport, manager) {
         super.render(viewport, manager);
@@ -28,12 +22,18 @@ export class StatisticsContainer extends VariantBaseContainer {
 
     buildBubble(manager) {
         this.drawBubble(0);
-        const label = new PIXI.Text(NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
-            this._config.statistics.label);
-        label.resolution = drawingConfiguration.resolution;
-        label.x = Math.floor(-label.width / 2);
-        label.y = Math.floor(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
-        this._container.addChild(label);
+        const label = this.labelsManager
+            ? this.labelsManager.getLabel(
+                NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
+                this._config.statistics.label
+            )
+            : undefined;
+        if (label) {
+            label.resolution = drawingConfiguration.resolution;
+            label.x = Math.floor(-label.width / 2);
+            label.y = Math.floor(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
+            this._container.addChild(label);
+        }
         manager.submitArea('default', {
             global: {
                 x: this.container.x,
@@ -54,6 +54,11 @@ export class StatisticsContainer extends VariantBaseContainer {
     }
 
     drawBubble(extraSize) {
+        const white = 0xFFFFFF,
+            cx = 0,
+            cy = Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
+            r = Math.round(this._variant.bubble.radius + extraSize);
+        const arcStart = -Math.PI / 2;
         this._graphics.clear();
         this._graphics
             .lineStyle(this._config.statistics.bubble.stroke.thickness, this._config.statistics.bubble.stroke.color, 1)
@@ -61,10 +66,15 @@ export class StatisticsContainer extends VariantBaseContainer {
             .lineTo(-this._config.statistics.bubble.stroke.thickness / 2, -this._config.statistics.height)
             .lineStyle(0, this._config.statistics.bubble.stroke.color, 0);
         this._graphics
-            .beginFill(this._config.statistics.bubble.fill, 1)
-            .drawCircle(0, Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
-                Math.round(this._variant.bubble.radius + extraSize))
+            .beginFill(white, 0)
+            .moveTo(cx, cy)
+            .arc(cx, cy, r, arcStart, arcStart + 2 * Math.PI)
+            .lineTo(cx, cy)
             .endFill();
+        this._graphics
+            .lineStyle(1, this._config.statistics.bubble.stroke.color, 1)
+            .drawCircle(0, Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
+                Math.round(this._variant.bubble.radius + extraSize));
     }
 
 
@@ -96,5 +106,4 @@ export class StatisticsContainer extends VariantBaseContainer {
         }
         return needAnimateBubbleHover || needAnimateFade;
     }
-
 }

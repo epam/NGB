@@ -1,7 +1,10 @@
+import {SCALE_MODES} from 'pixi.js-legacy';
+
 export default {
     antialias: false,
     resolution: getScreenResolution(),
-    scale: getScreenResolution()
+    scale: getScreenResolution(),
+    scaleMode: SCALE_MODES.NEAREST
 };
 
 function getScreenResolution() {

@@ -29,13 +29,8 @@ export const output = {
     path: path.resolve(context, 'dist'),
     publicPath: global.buildOptions.publicPath || '/',
     desktopBuild: !!global.buildOptions.desktop,
-    filename: '[name].bundle.js',
+    filename: '[name].bundle.[hash].js',
     chunkFilename: '[id].[name].js'
-};
-export const resolve = {
-    alias: {
-        'pixi.js': 'pixi.js/bin/pixi.js',
-    }
 };
 export const devtool = DEV ? 'source-map' : undefined;
 export const module = {loaders};

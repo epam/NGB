@@ -1,10 +1,11 @@
+import * as PIXI from 'pixi.js-legacy';
 import BaseTrack from './baseTrack';
-import PIXI from 'pixi.js';
 import {Subject} from 'rx';
 import {getRenderer} from '../configuration';
 import menuFactory from './menu';
 import {scaleModes, displayModes} from '../../tracks/wig/modes';
 import tooltipFactory from './tooltip';
+import LabelsManager from '../labelsManager';
 
 const DEBOUNCE_TIMEOUT = 100;
 const Math = window.Math;
@@ -37,11 +38,13 @@ export class Track extends BaseTrack {
 
     shouldDisplayTooltips = true;
 
+    preferWebGL = false;
     domElement = document.createElement('div');
     tooltip = tooltipFactory(this.domElement);
     menuElement = menuFactory(this.domElement);
     container: PIXI.Container = new PIXI.Container();
     _pixiRenderer: PIXI.CanvasRenderer;
+    labelsManager: LabelsManager;
     _flags = getFlags();
     trackDataLoadingStatusChanged = null;
 
@@ -85,6 +88,7 @@ export class Track extends BaseTrack {
     _lastAnimationTime = null;
 
     _actions = null;
+    _error = undefined;
 
     moveBrush(params) {
         if (this.viewport.canTransform) {
@@ -102,6 +106,10 @@ export class Track extends BaseTrack {
 
     get trackIsHidden() {
         return this._trackIsHidden;
+    }
+
+    get error() {
+        return this._error;
     }
 
     getImageData() {
@@ -159,6 +167,9 @@ export class Track extends BaseTrack {
         this.viewport.shortenedIntronsViewport.intronLength = opts.shortenedIntronLength;
         this.viewport.shortenedIntronsViewport.maximumRange = opts.shortenedIntronsMaximumRange;
         if (opts) {
+            if (opts.preferWebGL) {
+                this.preferWebGL = opts.preferWebGL;
+            }
             if (opts.restoredHeight) {
                 this.height = opts.restoredHeight;
             }
@@ -175,6 +186,18 @@ export class Track extends BaseTrack {
         this._showCenterLine = opts.showCenterLine;
         requestAnimationFrame(::this.tick);
         this._pixiRenderer.plugins.interaction.autoPreventDefault = false;
+        const visibilitychangeCallback = () => {
+            if (document.visibilityState === 'visible') {
+                this._resetRender();
+                requestAnimationFrame(this.tick.bind(this));
+            }
+        };
+        this.visibilitychangeCallback = visibilitychangeCallback.bind(this);
+        document.addEventListener('visibilitychange', this.visibilitychangeCallback);
+    }
+
+    getTrackStatePayload() {
+        return this.state;
     }
 
     reportTrackState(silent = false) {
@@ -189,7 +212,7 @@ export class Track extends BaseTrack {
             isLocal: this.config.isLocal,
             projectId: this.config.projectId,
             projectIdNumber: this.config.project ? this.config.project.id : undefined,
-            state: this.state,
+            state: this.getTrackStatePayload()
         };
         this.projectContext.applyTrackState(track, silent);
     }
@@ -213,6 +236,13 @@ export class Track extends BaseTrack {
         this._pixiRenderer.render(this.container);
     }
 
+    handleContextLoss = (e) => {
+        e.preventDefault();
+        this.preferWebGL = false;
+        this._destroyPixiRenderer();
+        this._refreshPixiRenderer(true);
+    };
+
     _refreshPixiRenderer(force = false) {
         const size = this._getCurrentSize();
         const newSize = this._getExpectedSize();
@@ -227,17 +257,25 @@ export class Track extends BaseTrack {
         if (this._pixiRenderer) {
             refreshRender(this._pixiRenderer, newSize);
             if (!this.isResizing) {
-                if (size.width !== newSize.width)
+                if (size.width !== newSize.width) {
                     this._flags.widthChanged = true;
-                if (size.height !== newSize.height)
+                }
+                if (size.height !== newSize.height) {
                     this._flags.heightChanged = true;
+                }
             }
         } else {
-            this._pixiRenderer = getRenderer(newSize);
+            this._pixiRenderer = getRenderer(newSize, null, this.preferWebGL);
+            if (this.preferWebGL) {
+                this._pixiRenderer.view.addEventListener('webglcontextlost', this.handleContextLoss);
+            }
+
             this.domElement.appendChild(this._pixiRenderer.view);
             refreshRender(this._pixiRenderer, newSize);
             this._flags.widthChanged = true;
             this._flags.heightChanged = true;
+            this._destroyLabelsManager();
+            this.labelsManager = new LabelsManager(this._pixiRenderer);
         }
         if (!this.isResizing) {
             this._resetRender();
@@ -250,17 +288,33 @@ export class Track extends BaseTrack {
         this._flags.renderReset = true;
     }
 
-    destructor() {
-        super.destructor();
-        if (this.tooltip) {
-            this.tooltip.hide();
-        }
+    _destroyPixiRenderer() {
         if (this._pixiRenderer && this._pixiRenderer.view) {
             this.container.removeChildren();
+            if (this.preferWebGL) {
+                this._pixiRenderer.view.removeEventListener('webglcontextlost', this.handleContextLoss);
+            }
             this.domElement.removeChild(this._pixiRenderer.view);
             this._pixiRenderer.destroy(true);
             this._pixiRenderer = null;
         }
+    }
+
+    _destroyLabelsManager() {
+        if (this.labelsManager) {
+            this.labelsManager.destroy();
+            this.labelsManager = null;
+        }
+    }
+
+    destructor() {
+        super.destructor();
+        document.removeEventListener('visibilitychange', this.visibilitychangeCallback);
+        if (this.tooltip) {
+            this.tooltip.hide();
+        }
+        this._destroyLabelsManager();
+        this._destroyPixiRenderer();
         this.clearData();
         for (const disposable of this._disposables)
             disposable.dispose();
@@ -281,15 +335,53 @@ export class Track extends BaseTrack {
         }
     }
 
+    unsetError() {
+        this._error = undefined;
+        this.refreshScope();
+    }
+
+    reportError(error) {
+        this._error = error ? (error.message || error) : undefined;
+        this.refreshScope();
+    }
+
     _refreshCache() {
-        Promise.resolve().then(() => this.getNewCache())
+        this._refreshCacheToken = (this._refreshCacheToken || 0) + 1;
+        const currentToken = this._refreshCacheToken;
+        Promise.resolve()
+            .then(() => {
+                if (this.trackDataLoadingStatusChanged) {
+                    this.trackDataLoadingStatusChanged(true);
+                }
+                return this.getNewCache();
+            })
             .then((somethingChanged) => {
+                if (currentToken === this._refreshCacheToken) {
+                    this.unsetError();
+                }
                 if (somethingChanged) {
                     this._flags.dataChanged = true;
-                    requestAnimationFrame(::this.tick);
+                    requestAnimationFrame(this.tick.bind(this));
                 }
-
+            })
+            .catch((error) => {
+                if (currentToken === this._refreshCacheToken) {
+                    this.reportError(error);
+                }
+                this._flags.dataChanged = true;
+                requestAnimationFrame(this.tick.bind(this));
+            })
+            .then(() => {
+                if (currentToken === this._refreshCacheToken && this.trackDataLoadingStatusChanged) {
+                    this.trackDataLoadingStatusChanged(false);
+                }
             });
+    }
+
+    refreshScope() {
+        if (this.config && typeof this.config.reloadScope === 'function') {
+            this.config.reloadScope();
+        }
     }
 
     //noinspection JSDuplicatedDeclaration I know it, you stupid IDE
@@ -302,17 +394,19 @@ export class Track extends BaseTrack {
     }
 
     set isResizing(value) {
-        this._isResizing = value;
-        if (!value) {
-            this._flags.heightChanged = true;
-            this._refreshPixiRenderer(true);
+        if (this._isResizing !== value) {
+            this._isResizing = value;
+            if (!value) {
+                this._flags.heightChanged = true;
+                this._refreshPixiRenderer(true);
+            }
         }
     }
 
     //noinspection JSDuplicatedDeclaration
     set height(val) {
-        const max = typeof this._maxHeight === 'function' ? this._maxHeight(this.state, this.trackConfig) : this._maxHeight;
-        const min = typeof this._minHeight === 'function' ? this._minHeight(this.state, this.trackConfig) : this._minHeight;
+        const max = typeof this._maxHeight === 'function' ? this._maxHeight(this.state, this.trackConfig, this) : this._maxHeight;
+        const min = typeof this._minHeight === 'function' ? this._minHeight(this.state, this.trackConfig, this) : this._minHeight;
         const newHeight = Math.floor(Math.max(Math.min(val, max), min));
 
         if (newHeight === this.height)

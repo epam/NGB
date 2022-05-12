@@ -15,7 +15,7 @@ export class REFERENCETrack extends CachedTrack {
 
     constructor(opts) {
         super(opts);
-        this._referenceRenderer = new ReferenceRenderer(this.trackConfig, this._pixiRenderer);
+        this._referenceRenderer = new ReferenceRenderer(this.trackConfig, this);
         this.dataService = new GenomeDataService(opts.dispatcher);
         this.dispatcher = opts.dispatcher;
     }
@@ -114,15 +114,21 @@ export class REFERENCETrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             somethingChanged = true;
-            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine, this.state);
+            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._showCenterLine, this.state);
         }
         return somethingChanged;
     }
 
     async updateAndRefresh() {
-        await this.updateCache();
-        this._flags.dataChanged = true;
-        await this.requestRenderRefresh();
+        try {
+            this.unsetError();
+            await this.updateCache();
+        } catch (e) {
+            this.reportError(e.message);
+        } finally {
+            this._flags.dataChanged = true;
+            await this.requestRenderRefresh();
+        }
     }
 
     updateHeight() {

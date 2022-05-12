@@ -24,7 +24,9 @@ export default {
             alpha: 0.8,
             label: {
                 fill: 0xFFFFFF,
-                font: 'normal 8pt arial'
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'normal'
             },
             margin: 1,
             padding: 2,
@@ -60,7 +62,9 @@ export default {
         },
         label: {
             fill: 0x000000,
-            font: 'normal 7pt arial'
+            fontFamily: 'arial',
+            fontSize: '7pt',
+            fontWeight: 'normal'
         },
         margin: {
             x: 5,
@@ -201,7 +205,9 @@ export default {
                     alpha: 0.8,
                     label: {
                         fill: 0xFFFFFF,
-                        font: 'normal 8pt arial'
+                        fontFamily: 'arial',
+                        fontSize: '8pt',
+                        fontWeight: 'normal'
                     },
                     margin: 1,
                     padding: 2,
@@ -225,7 +231,8 @@ export default {
             color: 0xE21F27,
             label: {
                 fill: 0xE21F27,
-                font: '8pt arial'
+                fontFamily: 'arial',
+                fontSize: '8pt'
             }
         }
     },

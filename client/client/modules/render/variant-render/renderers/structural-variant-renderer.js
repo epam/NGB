@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js-legacy';
 import VariantBaseRenderer from './base-renderer';
 import {BaseViewport, drawingConfiguration} from '../../core';
 import {StructuralVariantConfig, CommonConfig} from '../configs';
@@ -9,7 +10,6 @@ import {
 } from './drawing';
 import {VariantZonesManager} from './zones';
 import {DragManager} from './interaction';
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 
@@ -571,10 +571,11 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
 
     _addInteractionArea(config) {
         const area = new PIXI.Graphics();
-        area.beginFill(0xffffff, 0)
+        area.interactive = true;
+        area.beginFill(0xffffff, 1)
             .drawRect(0, 0, config.width, this.variantZonesManager.getTotalHeight())
             .endFill();
-        area.interactive = true;
+        area.alpha = 0;
         area.on('mousemove', (event) => {
             if (event.target !== area) {
                 return;

@@ -57,4 +57,9 @@ export class RulerTrack extends Track {
         this.brush.clearData();
         super.clearData();
     }
+
+    destructor() {
+        super.destructor();
+        this.renderer.destroy();
+    }
 }

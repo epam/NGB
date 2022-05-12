@@ -314,13 +314,15 @@ export default class ngbTrackController {
     }
 
     get trackHeaderStyle() {
-        const styles = {
-            ...this.trackInstance.config.header,
-            ...this.trackInstance.state.header,
-        };
-        return {
-            'font-size': styles.fontSize || '12px',
-        };
+        if (this.trackInstance) {
+            const styles = {
+                ...this.trackInstance.config.header,
+                ...this.trackInstance.state.header,
+            };
+            return {
+                'font-size': styles.fontSize || '12px',
+            };
+        }
     }
 
     changeTrackVisibility(visible) {
@@ -371,7 +373,7 @@ export default class ngbTrackController {
             dispatcher: this.dispatcher,
             groupAutoScaleManager: this.groupAutoScaleManager,
             projectContext: this.projectContext,
-            reloadScope: () => this.scope.$apply(),
+            reloadScope: () => this.$timeout(() => this.scope.$apply()),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,
             state: state,

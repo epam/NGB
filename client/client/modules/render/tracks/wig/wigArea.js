@@ -1,7 +1,7 @@
+import * as PIXI from 'pixi.js-legacy';
 import {Viewport, drawingConfiguration} from '../../core';
 import * as ScaleModes from './modes/scaleModes';
 import wigConfig from './wigConfig';
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 
@@ -9,18 +9,33 @@ export default class WIGArea{
 
     _height = null;
 
-    constructor(viewport, config){
+    /**
+     * Labels manager
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager () { return this.track ? this.track.labelsManager : undefined; }
+
+    constructor(viewport, config, track){
         if (!(viewport instanceof Viewport)) {
             throw new TypeError('WIGArea: `viewport` is not instance of Viewport');
         }
+        this.track = track;
         this._viewport = viewport;
         this._config = config;
         this._height = config.height;
         this._area = new PIXI.Container();
+        this._areaAxis = new PIXI.Graphics();
+        this._areaTicks = new PIXI.Container();
+        this._area.addChild(this._areaAxis);
+        this._area.addChild(this._areaTicks);
         this._logScaleIndicator = this._createLogScaleIndicator();
         this._logScaleIndicator.visible = false;
         this._groupAutoScaleIndicator = this._createGroupAutoScaleIndicator();
         this._groupAutoScaleIndicator.visible = false;
+    }
+
+    destroy () {
+        this._area.removeChildren();
     }
 
     registerGroupAutoScaleManager(manager) {
@@ -91,15 +106,28 @@ export default class WIGArea{
         }
     }
 
-    _changeAxises(viewport, coordinateSystem, features){
+    _changeAxises(viewport, coordinateSystem, features) {
         if (coordinateSystem === null || coordinateSystem === undefined)
             return;
         this._logScaleIndicator.visible = !coordinateSystem.isHeatMap && coordinateSystem.isLogScale;
         this._groupAutoScaleIndicator.visible = !coordinateSystem.isHeatMap &&
             features.coverageScaleMode === ScaleModes.groupAutoScaleMode;
-        if (this._area.children.length > 0) {
-            this._area.removeChildren(0, this._area.children.length);
-        }
+        this._areaAxis.clear();
+        this._areaTicks.children.forEach(child => {
+            child.visible = false;
+        });
+        this.calll = (this.calll || 0) + 1;
+        const getAvailableTick = () => {
+            let [label] = this._areaTicks.children
+                .filter(child => child instanceof PIXI.Text && !child.visible);
+            if (!label) {
+                label = new PIXI.Text('', this._config.label || {fontSize: '7pt'});
+                label.resolution = drawingConfiguration.resolution;
+                this._areaTicks.addChild(label);
+            }
+            label.visible = true;
+            return label;
+        };
         if (coordinateSystem.isHeatMap) {
             return;
         }
@@ -111,7 +139,7 @@ export default class WIGArea{
         const dashCount = Math.floor(viewport.canvasSize / (dashSize + spaceSize));
         for (let dividerIndex = 0; dividerIndex < coordinateSystem.dividers.length; dividerIndex++) {
             const divider = coordinateSystem.dividers[dividerIndex];
-            const axis = new PIXI.Graphics();
+            const axis = this._areaAxis;
             const y = this.height * (divider.value - coordinateSystem.minimum) / (coordinateSystem.maximum - coordinateSystem.minimum);
             if (divider.value === 0){
                 axis.lineStyle(1, this._config.divider.color, 0.5);
@@ -126,14 +154,12 @@ export default class WIGArea{
                 }
             }
             axis.endFill();
-            this._area.addChild(axis);
             if (divider.value !== 0) {
                 const value = coordinateSystem.isLogScale ? Math.pow(10, divider.value)  : divider.value;
-                const label = new PIXI.Text(value, {font: '30px'});
-                label.resolution = drawingConfiguration.resolution;
+                const label = getAvailableTick();
+                label.text = `${value}`;
                 label.x = 0;
                 label.y = Math.round(this.height - y - label.height);
-                this._area.addChild(label);
             }
         }
     }

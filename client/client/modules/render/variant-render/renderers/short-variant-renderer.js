@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js-legacy';
 import VariantBaseRenderer from './base-renderer';
 import {BaseViewport, drawingConfiguration} from '../../core';
 import {ShortVariantConfig, CommonConfig} from '../configs';
@@ -13,7 +14,6 @@ import {
 import {ShortVariantTransformer} from '../transformers';
 import {VariantZonesManager} from './zones';
 import {DragManager} from './interaction';
-import PIXI from 'pixi.js';
 
 const Math = window.Math;
 

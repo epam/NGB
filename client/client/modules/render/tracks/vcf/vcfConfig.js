@@ -1,4 +1,7 @@
+import GeneConfig from '../gene/geneConfig';
+
 export default {
+    ...GeneConfig,
     animation: {
         fade: {
             duration: 0.25,
@@ -32,8 +35,10 @@ export default {
         },
         height: 7,
         label: {
-            fill: 0xFFFFFF,
-            font: 'bold 10pt arial'
+            fill: 0x000000,
+            fontFamily: 'arial',
+            fontSize: '10pt',
+            fontWeight: 'bold'
         }
     },
 
@@ -41,11 +46,15 @@ export default {
         allele: {
             defaultLabel: {
                 fill: 0x000000,
-                font: 'normal 10pt arial'
+                fontFamily: 'arial',
+                fontSize: '10pt',
+                fontWeight: 'normal'
             },
             detailsTooltipLabel: {
                 fill: 0x000000,
-                font: 'bold 8pt arial'
+                fontFamily: 'arial',
+                fontSize: '9pt',
+                fontWeight: 'bold'
             },
             height: 10,
             intersection: {
@@ -56,7 +65,9 @@ export default {
             },
             label: {
                 fill: 0x000000,
-                font: 'normal 8pt arial'
+                fontFamily: 'arial',
+                fontSize: '8pt',
+                fontWeight: 'normal'
             },
             margin: 0
         },
@@ -79,28 +90,36 @@ export default {
                     fill: 0xFFF9C4,
                     font: {
                         fill: 0x000000,
-                        font: 'normal 7pt arial'
+                        fontFamily: 'arial',
+                        fontSize: '7pt',
+                        fontWeight: 'normal'
                     }
                 },
                 default: {
                     fill: 0x92AEE7,
                     font: {
                         fill: 0x000000,
-                        font: 'normal 7pt arial'
+                        fontFamily: 'arial',
+                        fontSize: '7pt',
+                        fontWeight: 'normal'
                     }
                 },
                 del: {
                     fill: 0xC9D6F0,
                     font: {
                         fill: 0x000000,
-                        font: 'normal 7pt arial'
+                        fontFamily: 'arial',
+                        fontSize: '7pt',
+                        fontWeight: 'normal'
                     }
                 },
                 inv: {
                     fill: 0x92AEE7,
                     font: {
                         fill: 0x000000,
-                        font: 'normal 7pt arial'
+                        fontFamily: 'arial',
+                        fontSize: '7pt',
+                        fontWeight: 'normal'
                     }
                 }
             },

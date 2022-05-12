@@ -1,7 +1,7 @@
-import PIXI from 'pixi.js';
+import * as PIXI from 'pixi.js-legacy';
+import {renderCenterLine as centerLineRenderer} from '../../../utilities';
 
-export default class CachedTrackRenderer{
-
+export default class CachedTrackRenderer {
     _labels = [];
     containerIsReady = false;
     container = new PIXI.Container();
@@ -15,30 +15,47 @@ export default class CachedTrackRenderer{
     _config = null;
     _centerLineGraphics = new PIXI.Graphics();
 
-    constructor(){
+    constructor(track) {
+        this._track = track;
         this.container.addChild(this._backgroundContainer);
         this.container.addChild(this.dataContainer);
+    }
+
+    /**
+     * @returns {LabelsManager|undefined}
+     */
+    get labelsManager() { return this._track ? this._track.labelsManager : undefined; }
+    /**
+     * @return {PIXI.CanvasRenderer | PIXI.Renderer | null}
+     * */
+    get pixiRenderer() { return this._track ? this._track._pixiRenderer : null; }
+    get viewport() { return this._viewport; }
+
+    initializeCentralLine() {
         this.container.addChild(this._centerLineGraphics);
     }
 
-    get viewport() { return this._viewport; }
-
-    render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine){
+    render(viewport, cache, forceRedraw = false, _showCenterLine) {
         if (cache === null || cache === undefined || cache.viewport === undefined)
             return;
         const factor = viewport.factor / cache.viewport.factor;
         const factorMaximumDelta = 0.1;
-        if (!forseRedraw && this.containerIsReady && viewport && cache && cache.viewport &&
-            Math.abs(factor - 1) < factorMaximumDelta && !cache.isNew){
+        if (!forceRedraw && this.containerIsReady && viewport && cache && cache.viewport &&
+            Math.abs(factor - 1) < factorMaximumDelta && !cache.isNew) {
             this.translateContainer(viewport, cache);
-        }
-        else {
+        } else {
+            if (this.labelsManager) {
+                this.labelsManager.startSession();
+            }
             this._viewport = cache.viewport;
             this.containerIsReady = false;
             this._labels = [];
             this.rebuildContainer(viewport, cache);
             this.containerIsReady = true;
             cache.isNew = false;
+            if (this.labelsManager) {
+                this.labelsManager.finishSession();
+            }
         }
         this.renderCenterLine(viewport, {
             config: this._config,
@@ -90,30 +107,6 @@ export default class CachedTrackRenderer{
     }
 
     renderCenterLine(viewport, drawingConfig) {
-        const {config, graphics, height, shouldRender} = drawingConfig;
-
-        graphics.clear();
-        if (shouldRender) {
-            const dashesCount = height / (2 * config.centerLine.dash.length);
-            const length = config.centerLine.dash.length;
-            const thickness = config.centerLine.dash.thickness;
-            const color = config.centerLine.dash.fill;
-            const drawVerticalDashLine = (x) => {
-                graphics.lineStyle(thickness, color, 1);
-                for (let i = 0; i < dashesCount; i++) {
-                    graphics
-                        .moveTo(Math.floor(x) + thickness / 2.0, (2 * i) * length)
-                        .lineTo(Math.floor(x) + thickness / 2.0, (2 * i + 1) * length);
-                }
-            };
-            const center = Math.round(viewport.centerPosition);
-            if (viewport.factor > 2) {
-                drawVerticalDashLine(viewport.project.brushBP2pixel(center) - viewport.factor / 2);
-                drawVerticalDashLine(viewport.project.brushBP2pixel(center) + viewport.factor / 2);
-            }
-            else {
-                drawVerticalDashLine(viewport.project.brushBP2pixel(center));
-            }
-        }
+        centerLineRenderer(viewport, drawingConfig);
     }
 }

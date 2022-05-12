@@ -5,8 +5,8 @@ export default class BEDFeatureRenderer extends FeatureRenderer {
 
     _bedItemFeatureRenderer = null;
 
-    constructor(track, config) {
-        super(config);
+    constructor(config, track) {
+        super(config, track);
         this._bedItemFeatureRenderer = new BedItemFeatureRenderer(
             track,
             config,

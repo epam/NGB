@@ -1,7 +1,6 @@
+import * as PIXI from 'pixi.js-legacy';
 import {AlignmentsRenderer, BP_OFFSET} from './alignmentsRenderer';
-import PIXI from 'pixi.js';
 import {Line} from '../../cache/line';
-import {drawingConfiguration} from '../../../../../core';
 
 const Math = window.Math;
 
@@ -12,7 +11,6 @@ export class AlignmentsRenderProcessor {
     _renderPositionInfo = null;
 
     _alignmentHeight;
-    _lettersCache = null;
 
     set alignmentHeight(value) {
         this._alignmentHeight = value;
@@ -26,29 +24,9 @@ export class AlignmentsRenderProcessor {
         return this._container;
     }
 
-    constructor(renderer) {
+    constructor() {
         this._alignmentHeight = 1;
         this._container = new PIXI.Container();
-        this._initializeLettersTextures(renderer);
-    }
-
-    _initializeLettersTextures(renderer) {
-        this._lettersCache = {};
-        for (const letter of ['A', 'G', 'C', 'T', 'N']) {
-            const text = new PIXI.Text(letter, {
-                fill: 0xFFFFFF,
-                font: 'normal 6pt arial'
-            });
-            text.resolution = drawingConfiguration.resolution;
-            const texture = text.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
-            texture.offsetX = Math.round(text.width / 2);
-            texture.offsetY = Math.round(text.height / 2);
-            texture.width = text.width;
-            texture.height = text.height;
-            if (texture.baseTexture) {
-                this._lettersCache[letter] = texture;
-            }
-        }
     }
 
     clear() {
@@ -56,7 +34,7 @@ export class AlignmentsRenderProcessor {
     }
 
     render(cache, viewport, flags, drawingConfig) {
-        const {colors, config, currentY, features, height, renderer, topMargin} = drawingConfig;
+        const {colors, config, currentY, features, height, labelsManager, renderer, topMargin} = drawingConfig;
         const visibleLinesCount = (height - topMargin) / this._alignmentHeight;
         const linesCount = cache.linesCount;
         const y = Math.max(Math.min(currentY, linesCount - visibleLinesCount), 0);
@@ -96,6 +74,7 @@ export class AlignmentsRenderProcessor {
                 endLine,
                 features,
                 height,
+                labelsManager,
                 renderer,
                 startLine,
                 topMargin,
@@ -129,6 +108,7 @@ export class AlignmentsRenderProcessor {
             endLine,
             features,
             height,
+            labelsManager,
             renderer,
             startLine,
             topMargin,
@@ -144,7 +124,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this._lettersCache,
+            labelsManager,
             height
         );
         alignmentsRenderer.startRender();
@@ -167,7 +147,7 @@ export class AlignmentsRenderProcessor {
     }
 
     hoverRead(cache, viewport, drawingConfig, container, read, line) {
-        const {colors, config, currentY, features, height, renderer, topMargin} = drawingConfig;
+        const {colors, config, currentY, features, height, labelsManager, renderer, topMargin} = drawingConfig;
         if (!read) {
             container.removeChildren();
             return;
@@ -180,7 +160,7 @@ export class AlignmentsRenderProcessor {
             topMargin,
             currentY,
             features,
-            this._lettersCache,
+            labelsManager,
             height
         );
         alignmentsRenderer.startRender(true);

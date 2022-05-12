@@ -9,7 +9,7 @@ import SegTransformer from './segTransformer';
 export class SEGTrack extends CachedTrack {
 
     _dataService;
-    _renderer = new SegRenderer(this.trackConfig);
+    _renderer = new SegRenderer(this.trackConfig, this);
 
     static postStateMutatorFn = (track) => {
         track.reportTrackState();
@@ -66,7 +66,7 @@ export class SEGTrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             flags.heightChanged && (this._renderer.height = this.height);
-            this._renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, null, this._showCenterLine);
+            this._renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._showCenterLine);
             somethingChanged = true;
         }
         return somethingChanged;
