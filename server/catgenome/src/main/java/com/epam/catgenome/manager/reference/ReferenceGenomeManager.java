@@ -151,7 +151,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
      * @param reference an instnce to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(final Reference reference) {
+    public Reference delete(final Reference reference) {
         Assert.notNull(reference, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.notNull(reference.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
@@ -169,6 +169,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         referenceGenomeDao.unregisterReferenceGenome(reference.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(reference.getBioDataItemId());
         metadataManager.delete(reference);
+        return reference;
     }
 
     /**

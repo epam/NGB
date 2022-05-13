@@ -139,7 +139,7 @@ public class VcfFileManager implements SecuredEntityManager {
      * @param vcfFile file to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteVcfFile(final VcfFile vcfFile) {
+    public VcfFile delete(final VcfFile vcfFile) {
         Assert.notNull(vcfFile, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.notNull(vcfFile.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
@@ -152,6 +152,7 @@ public class VcfFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
         metadataManager.delete(vcfFile);
+        return vcfFile;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

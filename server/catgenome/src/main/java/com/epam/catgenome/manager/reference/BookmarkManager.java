@@ -137,11 +137,12 @@ public class BookmarkManager implements SecuredEntityManager {
      * @param bookmarkId {@code Long} an ID of a bookmark to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(Long bookmarkId) {
+    public Bookmark delete(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
         Assert.notNull(bookmark);
         bookmarkDao.deleteBookmarkItems(bookmarkId);
         bookmarkDao.deleteBookmark(bookmarkId);
+        return bookmark;
     }
 
     /**
@@ -172,5 +173,4 @@ public class BookmarkManager implements SecuredEntityManager {
     public AclClass getSupportedClass() {
         return AclClass.BOOKMARK;
     }
-
 }

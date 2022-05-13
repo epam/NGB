@@ -58,7 +58,7 @@ public class BucketManager implements SecuredEntityManager {
      * @param bucket {@code Bucket} to save
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Bucket save(final Bucket bucket) {
+    public Bucket create(final Bucket bucket) {
         Assert.notNull(bucket, MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(bucket.getAccessKeyId(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(bucket.getBucketName(), MessagesConstants.ERROR_NULL_PARAM);
@@ -68,7 +68,6 @@ public class BucketManager implements SecuredEntityManager {
         bucketDao.createBucket(bucket);
         return bucket;
     }
-
 
     /**
      * Loads a persisted {@code Bucket} record by it's ID

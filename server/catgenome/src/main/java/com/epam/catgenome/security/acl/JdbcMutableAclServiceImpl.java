@@ -134,12 +134,12 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public MutableAcl getAcl(AbstractSecuredEntity securedEntity) {
         ObjectIdentity identity = new ObjectIdentityImpl(securedEntity);
-        if (retrieveObjectIdentityPrimaryKey(identity) != null) {
+        try {
             Acl acl = readAclById(identity);
             Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
                     MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
             return (MutableAcl) acl;
-        } else {
+        } catch (NotFoundException e) {
             return null;
         }
     }

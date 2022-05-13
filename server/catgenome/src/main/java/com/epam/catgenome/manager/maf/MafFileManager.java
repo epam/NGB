@@ -70,8 +70,9 @@ public class MafFileManager implements SecuredEntityManager {
      * @param mafFile instance to create
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void create(MafFile mafFile) {
+    public MafFile create(MafFile mafFile) {
         mafFileDao.createMafFile(mafFile);
+        return mafFile;
     }
 
     /**
@@ -123,7 +124,7 @@ public class MafFileManager implements SecuredEntityManager {
      * @param mafFile {@code MafFile} ID to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteMafFile(final MafFile mafFile) {
+    public MafFile delete(final MafFile mafFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(mafFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(
                 MessagesConstants.ERROR_FILE_IN_USE, mafFile.getName(), mafFile.getId(),
@@ -132,5 +133,6 @@ public class MafFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(mafFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(mafFile.getBioDataItemId());
         metadataManager.delete(mafFile);
+        return mafFile;
     }
 }
