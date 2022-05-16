@@ -736,5 +736,15 @@
                 ]]>
             </value>
         </property>
+        <property name="countBiologicalDataItemsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        count(*)
+                    FROM
+                        catgenome.biological_data_item b
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

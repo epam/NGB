@@ -26,6 +26,7 @@ package com.epam.catgenome.dao;
 
 import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper;
 import static com.epam.catgenome.entity.BiologicalDataItem.getBioDataItemId;
+import static com.epam.catgenome.util.Utils.addPagingInfoToQuery;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,6 +57,7 @@ import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
 
+import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +92,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String loadBiologicalDataItemsByNamesStrictQuery;
     private String loadBiologicalDataItemsByNameQuery;
     private String loadBiologicalDataItemsByNameCaseInsensitiveQuery;
+    private String countBiologicalDataItemsQuery;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -167,6 +170,17 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsQuery, getRowMapper());
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<BiologicalDataItem> loadBiologicalDataItems(final PagingInfo paging) {
+        return getNamedParameterJdbcTemplate().query(addPagingInfoToQuery(loadBiologicalDataItemsQuery, paging),
+                getRowMapper());
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Integer countBiologicalDataItems() {
+        return getJdbcTemplate().queryForObject(countBiologicalDataItemsQuery, Integer.class);
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createBioItemId() {
         return daoHelper.createId(biologicalDataItemSequenceName);
@@ -242,7 +256,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByNameQuery,
                 params, getRowMapper());
     }
-
 
     public enum BiologicalDataItemParameters {
         BIO_DATA_ITEM_ID,
@@ -696,5 +709,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setUpdateOwnerQuery(String updateOwnerQuery) {
         this.updateOwnerQuery = updateOwnerQuery;
+    }
+
+    @Required
+    public void setCountBiologicalDataItemsQuery(String countBiologicalDataItemsQuery) {
+        this.countBiologicalDataItemsQuery = countBiologicalDataItemsQuery;
     }
 }
