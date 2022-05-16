@@ -30,10 +30,9 @@ export default class ngbTrackEvents {
                 let geneTracks = [];
                 if (!isGeneTrack) {
                     geneTracks = this._getGeneTracks();
-                }
-                else {
+                } else {
                     geneTracks.push({
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         id: track.id,
                         name: track.name,
                         projectId: track.projectIdNumber || undefined,
@@ -44,12 +43,12 @@ export default class ngbTrackEvents {
                 menuData.push({
                     events: [{
                         data: {
-                            chromosomeId: track.instance.config.chromosomeId,
+                            chromosomeId: trackInstance.config.chromosomeId,
                             endIndex: data.feature.endIndex,
                             name: data.feature.name,
                             properties: data.info,
                             projectId: track.projectIdNumber || undefined,
-                            referenceId: track.instance.config.referenceId,
+                            referenceId: trackInstance.config.referenceId,
                             startIndex: data.feature.startIndex,
                             geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                             title: 'FEATURE'
@@ -222,11 +221,11 @@ export default class ngbTrackEvents {
             events: [
                 {
                     data: {
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         endIndex: data.read.endIndex,
                         properties: data.info,
                         read: data.read,
-                        referenceId: track.instance.config.referenceId,
+                        referenceId: trackInstance.config.referenceId,
                         startIndex: data.read.startIndex,
                         geneId: null,
                         title: 'ALIGNMENT',
