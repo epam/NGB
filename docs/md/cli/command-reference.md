@@ -963,6 +963,7 @@ ngb reg_pathway|rp [<PATH>] [options]
 //Options:
 //-n (--name)                   Pathway name
 //-pt (--pretty)                Pathway pretty name
+//-desc (--description)         Pathway description
 //--taxids                      List of taxonomy IDs, separated by comma
 
 ```
