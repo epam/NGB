@@ -72,4 +72,9 @@ public class AclPermissionSecurityService {
     public AclSecuredEntry changeOwner(Long id, AclClass aclClass, String userName) {
         return permissionManager.changeOwner(id, aclClass, userName);
     }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public void syncEntities() {
+        permissionManager.syncEntities();
+    }
 }

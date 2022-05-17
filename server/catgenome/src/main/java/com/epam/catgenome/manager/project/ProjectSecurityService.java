@@ -111,7 +111,7 @@ public class ProjectSecurityService {
 
     @PreAuthorize(ROLE_ADMIN + OR + "projectCanBeDeleted(#projectId, #force)")
     public Project deleteProject(long projectId, Boolean force) throws IOException {
-        return projectManager.deleteProject(projectId, force);
+        return projectManager.delete(projectId, force);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)

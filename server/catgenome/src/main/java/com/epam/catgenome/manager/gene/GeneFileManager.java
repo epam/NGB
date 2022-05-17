@@ -84,8 +84,9 @@ public class GeneFileManager implements SecuredEntityManager {
      * @param geneFile a {@code GeneFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void create(GeneFile geneFile) {
+    public GeneFile create(GeneFile geneFile) {
         geneFileDao.createGeneFile(geneFile);
+        return geneFile;
     }
 
     /**
@@ -94,7 +95,7 @@ public class GeneFileManager implements SecuredEntityManager {
      * @param geneFile a {@code GeneFile} record to remove
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(GeneFile geneFile) {
+    public GeneFile delete(GeneFile geneFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(geneFile.getBioDataItemId());
         List<Long> genomeIdsByAnnotation = referenceGenomeDao.
                 loadGenomeIdsByAnnotationDataItemId(geneFile.getBioDataItemId());
@@ -119,6 +120,7 @@ public class GeneFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(geneFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(geneFile.getBioDataItemId());
         metadataManager.delete(geneFile);
+        return geneFile;
     }
 
     /**
@@ -176,5 +178,4 @@ public class GeneFileManager implements SecuredEntityManager {
     public Long createGeneFileId() {
         return geneFileDao.createGeneFileId();
     }
-
 }

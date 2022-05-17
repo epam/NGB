@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,16 @@ public class BiologicalDataItemManager {
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadAllItems() {
         return biologicalDataItemDao.loadBiologicalDataItems();
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<BiologicalDataItem> loadAllItems(final PagingInfo paging) {
+        return biologicalDataItemDao.loadBiologicalDataItems(paging);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Integer countItems() {
+        return biologicalDataItemDao.countBiologicalDataItems();
     }
 
     /**

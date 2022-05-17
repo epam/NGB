@@ -72,7 +72,7 @@ public class SegFileManager implements SecuredEntityManager {
      * @param segFile to save
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void create(SegFile segFile) {
+    public SegFile create(SegFile segFile) {
         if (segFile.getBioDataItemId() == null) {
             long realId = segFile.getId();
             biologicalDataItemDao.createBiologicalDataItem(segFile);
@@ -81,6 +81,7 @@ public class SegFileManager implements SecuredEntityManager {
             segFileDao.createSegFile(segFile);
         }
         segFileDao.createSamples(segFile.getSamples(), segFile.getId());
+        return segFile;
     }
 
     /**
@@ -116,7 +117,7 @@ public class SegFileManager implements SecuredEntityManager {
      * @param segFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(SegFile segFile) {
+    public SegFile delete(SegFile segFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(segFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 segFile.getName(), segFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -127,6 +128,7 @@ public class SegFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getBioDataItemId());
         metadataManager.delete(segFile);
+        return segFile;
     }
 
     @Override
@@ -142,5 +144,4 @@ public class SegFileManager implements SecuredEntityManager {
     public AclClass getSupportedClass() {
         return AclClass.SEG;
     }
-
 }

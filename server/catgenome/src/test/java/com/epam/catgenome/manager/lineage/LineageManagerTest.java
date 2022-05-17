@@ -79,7 +79,7 @@ public class LineageManagerTest extends TestCase {
 
     @After
     public void teardown() throws IOException {
-        projectManager.deleteProject(project.getId(), true);
+        projectManager.delete(project.getId(), true);
     }
 
     @Test

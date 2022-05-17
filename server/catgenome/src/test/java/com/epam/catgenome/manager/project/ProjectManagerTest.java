@@ -213,7 +213,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 .get(0)), item.getId());
 
         // Now delete project
-        projectManager.deleteProject(project.getId(), false);
+        projectManager.delete(project.getId(), false);
         try {
             projectManager.load(project.getId());
             Assert.fail("No exception happened, but should happen");
@@ -283,7 +283,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         // check that we cannot delete parent dataset without force option
         boolean catchException = false;
         try {
-            projectManager.deleteProject(root.getId(), false);
+            projectManager.delete(root.getId(), false);
         } catch (IllegalArgumentException e) {
             catchException = true;
         }
@@ -292,7 +292,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         }
 
         // check that we can delete parent dataset with force option
-        projectManager.deleteProject(root.getId(), true);
+        projectManager.delete(root.getId(), true);
         assertNullLoadProjectWithNested(root);
     }
 

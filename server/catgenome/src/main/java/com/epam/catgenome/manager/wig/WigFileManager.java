@@ -79,14 +79,14 @@ public class WigFileManager implements SecuredEntityManager {
      * @param wigFile a {@code WigFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void save(WigFile wigFile) {
-
+    public WigFile create(WigFile wigFile) {
         Assert.notNull(wigFile.getName());
         Assert.notNull(wigFile.getReferenceId());
         Assert.notNull(wigFile.getPath());
         Assert.notNull(wigFile.getType());
         Assert.notNull(wigFile.getFormat());
         wigFileDao.createWigFile(wigFile);
+        return wigFile;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -111,7 +111,7 @@ public class WigFileManager implements SecuredEntityManager {
      * @param wigFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(WigFile wigFile) {
+    public WigFile delete(WigFile wigFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(wigFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 wigFile.getName(), wigFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -123,6 +123,7 @@ public class WigFileManager implements SecuredEntityManager {
             biologicalDataItemDao.deleteBiologicalDataItem(wigFile.getIndex().getId());
         }
         metadataManager.delete(wigFile);
+        return wigFile;
     }
 
     @Override
@@ -138,5 +139,4 @@ public class WigFileManager implements SecuredEntityManager {
     public AclClass getSupportedClass() {
         return AclClass.WIG;
     }
-
 }

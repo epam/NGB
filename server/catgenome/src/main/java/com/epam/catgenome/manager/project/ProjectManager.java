@@ -380,7 +380,7 @@ public class ProjectManager implements SecuredEntityManager {
      *                             with nested projects
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project deleteProject(final Long projectId, final Boolean force) throws IOException {
+    public Project delete(final Long projectId, final Boolean force) throws IOException {
         // Throws an error if there is no such project
         final Project projectToDelete = this.load(projectId);
         //if force flag is disabled that we can't delete parent project

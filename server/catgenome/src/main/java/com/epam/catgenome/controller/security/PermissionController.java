@@ -39,10 +39,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @Api(value = "Permissions")
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class PermissionController extends AbstractRESTController {
@@ -51,7 +50,6 @@ public class PermissionController extends AbstractRESTController {
     private AclPermissionSecurityService permissionApiService;
 
     @RequestMapping(value = "/grant", method = RequestMethod.POST)
-    @ResponseBody
     @ApiOperation(
             value = "Sets user's  permissions for an object.",
             notes = "Sets user's permissions for an object.",
@@ -64,7 +62,6 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/grant", method = RequestMethod.DELETE)
-    @ResponseBody
     @ApiOperation(
             value = "Deletes user's permissions for an object.",
             notes = "Deletes user's permissions for an object.",
@@ -80,7 +77,6 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/grant/all", method = RequestMethod.DELETE)
-    @ResponseBody
     @ApiOperation(
             value = "Deletes all permissions for an object.",
             notes = "Deletes all permissions for an object.",
@@ -94,7 +90,6 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/grant", method = RequestMethod.GET)
-    @ResponseBody
     @ApiOperation(
             value = "Loads all permissions for an object.",
             notes = "Loads all permissions for an object.",
@@ -108,7 +103,6 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "grant/owner", method = RequestMethod.POST)
-    @ResponseBody
     @ApiOperation(
             value = "Change the owner of the particular acl object.",
             notes = "Change the owner of the particular acl object.",
@@ -119,5 +113,17 @@ public class PermissionController extends AbstractRESTController {
     public Result<AclSecuredEntry> changeOwner(@RequestParam Long id,
             @RequestParam AclClass aclClass, @RequestParam String userName) {
         return Result.success(permissionApiService.changeOwner(id, aclClass, userName));
+    }
+
+    @PostMapping(value = "grant/sync")
+    @ApiOperation(
+            value = "Synchronises all existing entities to ACL tables.",
+            notes = "Might be useful when security is enabled for previously registered data.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void syncAclEntities() {
+        permissionApiService.syncEntities();
     }
 }

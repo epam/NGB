@@ -179,7 +179,7 @@ public class MafManager {
         MafFile fileToDelete = mafFileManager.load(mafFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        mafFileManager.deleteMafFile(fileToDelete);
+        mafFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;

@@ -76,13 +76,14 @@ public class BamFileManager implements SecuredEntityManager {
      * @param bamFile a {@code BamFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void create(BamFile bamFile) {
+    public BamFile create(BamFile bamFile) {
         Assert.notNull(bamFile);
         Assert.notNull(bamFile.getName());
         Assert.notNull(bamFile.getReferenceId());
         Assert.notNull(bamFile.getPath());
 
         bamFileDao.createBamFile(bamFile);
+        return bamFile;
     }
 
     /**
@@ -102,7 +103,7 @@ public class BamFileManager implements SecuredEntityManager {
      * @param bamFile a {@code BamFile} to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(BamFile bamFile) {
+    public BamFile delete(BamFile bamFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(bamFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 bamFile.getName(), bamFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -112,6 +113,7 @@ public class BamFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getBioDataItemId());
         metadataManager.delete(bamFile);
+        return bamFile;
     }
 
     @Override
