@@ -35,7 +35,11 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.user.RoleManager;
+import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.db.PagingInfo;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +92,9 @@ public class GrantPermissionManager {
 
     @Autowired
     private RoleManager roleManager;
+
+    @Autowired
+    private BiologicalDataItemManager dataItemManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public AclSecuredEntry setPermissions(AclClass aclClass, Long entityId, String userName, Boolean principal,
@@ -164,6 +171,22 @@ public class GrantPermissionManager {
         }
         aclService.changeOwner(entity, userName);
         return new AclSecuredEntry(entityManager.changeOwner(aclClass, id, userName));
+    }
+
+    public void syncEntities() {
+        LOGGER.debug("Starting ACL entities synchronisation");
+        final Integer total = dataItemManager.countItems();
+        final int pageSize = Utils.DEFAULT_PAGE_SIZE;
+        int currentPage = 1;
+        while (currentPage <= total/pageSize + 1) {
+            final PagingInfo pagingInfo = new PagingInfo(pageSize, currentPage);
+            ListUtils.emptyIfNull(dataItemManager.loadAllItems(pagingInfo))
+                    .stream()
+                    .filter(item -> !item.getFormat().isIndex())
+                    .forEach(item -> aclService.getOrCreateObjectIdentity(item));
+            currentPage++;
+        }
+        LOGGER.debug("Finished ACL entities synchronization for {} entities", total);
     }
 
     public boolean filterTree(AbstractHierarchicalEntity entity, Permission permission) {

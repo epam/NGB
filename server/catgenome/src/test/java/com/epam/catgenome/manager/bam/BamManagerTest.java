@@ -499,7 +499,7 @@ public class BamManagerTest extends AbstractManagerTest {
         bucket.setBucketName(s3BucketName);
         bucket.setAccessKeyId(s3AccessKey);
         bucket.setSecretAccessKey(s3SecretKey);
-        bucketManager.save(bucket);
+        bucketManager.create(bucket);
 
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(s3FilePath);

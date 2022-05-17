@@ -68,7 +68,7 @@ public class BucketManagerTest extends AbstractManagerTest {
         bucket.setSecretAccessKey(SECRET_KEY);
         bucket.setBucketName(BUCKET_NAME);
         bucket.setAccessKeyId(ACCESS_KEY);
-        bucket = bucketManager.save(bucket);
+        bucket = bucketManager.create(bucket);
 
         final Bucket loadBucket = bucketManager.load(bucket.getId());
 

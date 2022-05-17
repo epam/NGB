@@ -71,8 +71,9 @@ public class BedFileManager implements SecuredEntityManager {
      * @param bedFile a {@code BedFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void create(BedFile bedFile) {
+    public BedFile create(BedFile bedFile) {
         bedFileDao.createBedFile(bedFile);
+        return bedFile;
     }
 
     /**
@@ -103,7 +104,7 @@ public class BedFileManager implements SecuredEntityManager {
      * @param bedFile BedFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(BedFile bedFile) {
+    public BedFile delete(BedFile bedFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(bedFile.getBioDataItemId());
         List<Long> genomeIdsByAnnotation = referenceGenomeDao.
                 loadGenomeIdsByAnnotationDataItemId(bedFile.getBioDataItemId());
@@ -129,6 +130,7 @@ public class BedFileManager implements SecuredEntityManager {
         bedFileDao.deleteBedFile(bedFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bedFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bedFile.getBioDataItemId());
+        return bedFile;
     }
 
     @Override

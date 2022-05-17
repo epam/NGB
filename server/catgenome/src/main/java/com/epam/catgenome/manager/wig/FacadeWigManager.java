@@ -161,7 +161,7 @@ public class FacadeWigManager {
 
             prepareWigFileToWork(wigFile);
 
-            wigFileManager.save(wigFile);
+            wigFileManager.create(wigFile);
         } catch (IOException e) {
             throw new RegistrationException(getMessage(MessagesConstants.ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
@@ -275,5 +275,4 @@ public class FacadeWigManager {
             return new WigProcessor(biologicalDataItemManager, fileManager);
         }
     }
-
 }

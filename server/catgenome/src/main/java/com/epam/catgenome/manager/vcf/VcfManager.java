@@ -229,7 +229,7 @@ public class VcfManager {
         Assert.isTrue(vcfFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
         VcfFile vcfFile = vcfFileManager.load(vcfFileId);
         Assert.notNull(vcfFile, MessagesConstants.ERROR_NO_SUCH_FILE);
-        vcfFileManager.deleteVcfFile(vcfFile);
+        vcfFileManager.delete(vcfFile);
         if (vcfFile.getType() == BiologicalDataItemResourceType.GA4GH) {
             return vcfFile;
         }
