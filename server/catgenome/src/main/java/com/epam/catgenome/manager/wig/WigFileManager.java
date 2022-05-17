@@ -86,7 +86,7 @@ public class WigFileManager implements SecuredEntityManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Long create() {
+    public Long createId() {
         return wigFileDao.createWigFileId();
     }
 

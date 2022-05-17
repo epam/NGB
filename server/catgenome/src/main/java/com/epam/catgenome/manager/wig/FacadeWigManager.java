@@ -125,7 +125,6 @@ public class FacadeWigManager {
      * @param request
      * @return
      */
-    @Transactional(propagation = Propagation.REQUIRED)
     public WigFile registerWigFile(final IndexedFileRegistrationRequest request) {
         Assert.notNull(request, MessagesConstants.ERROR_NULL_PARAM);
         final String requestPath = request.getPath();
@@ -153,7 +152,7 @@ public class FacadeWigManager {
                     throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM,
                             "type", request.getType()));
             }
-            long id = wigFileManager.create();
+            long id = wigFileManager.createId();
             biologicalDataItemManager.createBiologicalDataItem(wigFile);
             wigFile.setBioDataItemId(wigFile.getId());
             wigFile.setId(id);
