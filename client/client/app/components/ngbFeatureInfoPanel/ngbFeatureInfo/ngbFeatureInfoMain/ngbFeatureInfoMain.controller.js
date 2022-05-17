@@ -8,7 +8,6 @@ export default class ngbFeatureInfoMainController {
     sequenceProgress = 0;
     isSequenceLoading = true;
     error = null;
-    _isGeneralInfoOpen = true;
 
     constructor($scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService) {
         Object.assign(this, {$scope, dispatcher, genomeDataService, bamDataService, $anchorScroll, ngbFeatureInfoPanelService});
@@ -26,7 +25,6 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
-        this.dispatcher.on('feature:info:changes:cancel', this.onClickCancelBtn.bind(this));
     }
 
     loadSequence() {
@@ -106,10 +104,6 @@ export default class ngbFeatureInfoMainController {
         return this.ngbFeatureInfoPanelService.editMode;
     }
 
-    get disableSave () {
-        return this.ngbFeatureInfoPanelService.disableSaveButton();
-    }
-
     get saveError () {
         return this.ngbFeatureInfoPanelService.saveError;
     }
@@ -119,56 +113,10 @@ export default class ngbFeatureInfoMainController {
     }
 
     get isGeneralInfoOpen () {
-        return this._isGeneralInfoOpen;
+        return this.ngbFeatureInfoPanelService.isGeneralInfoOpen;
     }
 
     set isGeneralInfoOpen (value) {
-        this._isGeneralInfoOpen = value;
-    }
-
-    onClickEditBtn (event) {
-        if (event) {
-            event.stopPropagation();
-        }
-        this.ngbFeatureInfoPanelService.editMode = true;
-        this.ngbFeatureInfoPanelService.newAttributes = this.properties;
-    }
-
-    onClickSaveBtn (event) {
-        if (event) {
-            event.stopPropagation();
-        }
-        this.ngbFeatureInfoPanelService.saveInProgress = true;
-        this.ngbFeatureInfoPanelService.saveNewAttributes();
-        this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
-            .map(newAttribute => (
-                [
-                    newAttribute.name,
-                    newAttribute.value,
-                    newAttribute.attribute,
-                    newAttribute.deleted || false
-                ]
-            ))];
-        this.feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
-        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, this.feature)
-            .then((success) => {
-                this.ngbFeatureInfoPanelService.saveInProgress = false;
-                const data = { trackId: this.fileId };
-                if (success) {
-                    this.onClickCancelBtn();
-                    this.dispatcher.emitSimpleEvent('feature:info:saved', data);
-                }
-                this.$scope.$apply();
-            });
-    }
-
-    onClickCancelBtn (event) {
-        if (event) {
-            event.stopPropagation();
-        }
-        this.ngbFeatureInfoPanelService.editMode = false;
-        this.ngbFeatureInfoPanelService.newAttributes = null;
-        this.ngbFeatureInfoPanelService.saveInProgress = false;
-        this.ngbFeatureInfoPanelService.saveError = null;
+        this.ngbFeatureInfoPanelService.isGeneralInfoOpen = value;
     }
 }

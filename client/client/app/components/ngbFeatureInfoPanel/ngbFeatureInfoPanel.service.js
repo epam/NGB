@@ -17,6 +17,15 @@ export default class ngbFeatureInfoPanelService {
     _historyData = [];
     _saveInProgress = false;
     getHistoryInProgress = false;
+    _isGeneralInfoOpen = true;
+
+    get isGeneralInfoOpen () {
+        return this._isGeneralInfoOpen;
+    }
+
+    set isGeneralInfoOpen (value) {
+        this._isGeneralInfoOpen = value;
+    }
 
     static instance(geneDataService) {
         return new ngbFeatureInfoPanelService(geneDataService);
