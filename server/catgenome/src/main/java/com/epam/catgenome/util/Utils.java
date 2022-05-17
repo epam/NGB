@@ -40,6 +40,7 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.db.PagingInfo;
 import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -74,6 +75,11 @@ public final class Utils {
     private static final String GZ_EXTENSION = ".gz";
 
     private static final int S3_LINK_EXPIRATION = 60;
+
+    private static final String PAGING_INFO_CLAUSE = " limit %s offset %s";
+    public static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int DEFAULT_PAGE_NUM = 0;
+    public static final String DOT = ".";
 
     private Utils() {
         // no operations by default
@@ -417,6 +423,14 @@ public final class Utils {
     public static String getUrlWithoutTrailingSlash(String url) {
         return url.endsWith("/") ?
                url.substring(0, url.length() - 1) : url;
+    }
+
+    public static String addPagingInfoToQuery(final String query, final PagingInfo pagingInfo) {
+        return query + (pagingInfo == null ? "" : String.format(
+                PAGING_INFO_CLAUSE,
+                pagingInfo.getPageSize() < 1 ? DEFAULT_PAGE_SIZE : pagingInfo.getPageSize(),
+                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM
+                        : (pagingInfo.getPageNum() - 1) * pagingInfo.getPageSize()));
     }
 
     @FunctionalInterface

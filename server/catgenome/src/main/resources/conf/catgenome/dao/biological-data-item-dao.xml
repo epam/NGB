@@ -506,6 +506,98 @@
                 ]]>
             </value>
         </property>
+        <property name="loadBiologicalDataItemsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_date,
+                        b.pretty_name,
+                        b.owner,
+
+                        v.vcf_id,
+                        v.reference_genome_id as vcf_reference_genome_id,
+                        v.compressed as vcf_compressed,
+                        v.multi_sample as vcf_multi_sample,
+
+                        g.gene_item_id,
+                        g.reference_genome_id as gene_reference_genome_id,
+                        g.compressed as gene_compressed,
+                        g.external_db_type_id as gene_external_db_type_id,
+                        g.external_db_id as gene_external_db_id,
+                        g.external_db_organism as gene_external_db_organism,
+
+                        r.reference_genome_id,
+                        r.reference_genome_size,
+                        r.gene_item_id as reference_gene_item_id,
+                        rgb.name as reference_gene_item_name,
+                        rgb.bio_data_item_id as reference_gene_bio_data_item_id,
+                        rgb.type as reference_gene_type,
+                        rgb.path as reference_gene_path,
+                        rgb.format as reference_gene_format,
+                        rgb.created_date as reference_gene_created_date,
+                        rg.reference_genome_id as reference_gene_reference_genome_id,
+                        rg.compressed as reference_gene_compressed,
+
+                        m.bam_id,
+                        m.reference_genome_id as bam_reference_genome_id,
+
+                        bg.bed_graph_id,
+                        bg.reference_genome_id as bed_graph_reference_genome_id,
+
+                        bd.bed_id,
+                        bd.reference_genome_id as bed_reference_genome_id,
+                        bd.compressed as bed_compressed,
+
+                        s.seg_id,
+                        s.reference_genome_id as seg_reference_genome_id,
+                        s.compressed as seg_compressed,
+
+                        maf.maf_id,
+                        maf.reference_genome_id as maf_reference_genome_id,
+                        maf.compressed as maf_compressed,
+                        maf.real_path as maf_real_path,
+
+                        vg.vg_id,
+                        vg.reference_genome_id as vg_reference_genome_id,
+                        vg.real_path as vg_real_path,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM
+                        catgenome.biological_data_item b
+                        LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
+
+                        LEFT JOIN catgenome.reference_genome r ON r.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.gene_item rg ON r.gene_item_id = rg.gene_item_id
+                        LEFT JOIN catgenome.biological_data_item rgb ON rg.bio_data_item_id = rgb.bio_data_item_id
+
+                        LEFT JOIN catgenome.bam m ON m.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.biological_data_item i ON
+                                i.bio_data_item_id = m.index_id
+                                OR i.bio_data_item_id = g.index_id
+                                OR i.bio_data_item_id = v.index_id
+                                OR i.bio_data_item_id = bd.index_id
+                                OR i.bio_data_item_id = s.index_id
+                                OR i.bio_data_item_id = r.index_id
+                ]]>
+            </value>
+        </property>
         <property name="countBiologicalDataItemsQuery">
             <value>
                 <![CDATA[

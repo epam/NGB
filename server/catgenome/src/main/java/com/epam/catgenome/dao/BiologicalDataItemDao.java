@@ -25,7 +25,6 @@
 package com.epam.catgenome.dao;
 
 import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper;
-import static com.epam.catgenome.entity.BiologicalDataItem.getBioDataItemId;
 import static com.epam.catgenome.util.Utils.addPagingInfoToQuery;
 
 import java.sql.ResultSet;
@@ -79,6 +78,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String insertBiologicalDataItemQuery;
     private String updateOwnerQuery;
     private String loadBiologicalDataItemsByIdsQuery;
+    private String loadBiologicalDataItemsQuery;
     private String deleteBiologicalDataItemQuery;
     private String loadBiologicalDataItemsByNameStrictQuery;
     private String loadBiologicalDataItemsByNamesStrictQuery;
@@ -561,6 +561,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBiologicalDataItemsByIdsQuery(String loadBiologicalDataItemsByIdsQuery) {
         this.loadBiologicalDataItemsByIdsQuery = loadBiologicalDataItemsByIdsQuery;
+    }
+
+    @Required
+    public void setLoadBiologicalDataItemsQuery(String loadBiologicalDataItemsQuery) {
+        this.loadBiologicalDataItemsQuery = loadBiologicalDataItemsQuery;
     }
 
     @Required
