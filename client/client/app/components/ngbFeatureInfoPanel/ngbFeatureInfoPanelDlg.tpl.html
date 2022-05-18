@@ -35,4 +35,7 @@
             <ngb-panel-error-list message-list="[error]"></ngb-panel-error-list>
         </div>
     </md-dialog-content>
+    <md-dialog-actions ng-if="showFooter()" class="feature-info-main-actions">
+        <ngb-feature-info-main-actions></ngb-feature-info-main-actions>
+    </md-dialog-actions>
 </md-dialog>

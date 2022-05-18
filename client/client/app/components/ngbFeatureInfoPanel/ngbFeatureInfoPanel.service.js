@@ -18,14 +18,7 @@ export default class ngbFeatureInfoPanelService {
     _saveInProgress = false;
     getHistoryInProgress = false;
     _isGeneralInfoOpen = true;
-
-    get isGeneralInfoOpen () {
-        return this._isGeneralInfoOpen;
-    }
-
-    set isGeneralInfoOpen (value) {
-        this._isGeneralInfoOpen = value;
-    }
+    _isMainTabSelected;
 
     static instance(geneDataService) {
         return new ngbFeatureInfoPanelService(geneDataService);
@@ -33,6 +26,14 @@ export default class ngbFeatureInfoPanelService {
 
     constructor(geneDataService) {
         Object.assign(this, {geneDataService});
+    }
+
+    get isGeneralInfoOpen () {
+        return this._isGeneralInfoOpen;
+    }
+
+    set isGeneralInfoOpen (value) {
+        this._isGeneralInfoOpen = value;
     }
 
     get editMode() {
@@ -95,6 +96,14 @@ export default class ngbFeatureInfoPanelService {
 
     set saveInProgress(progress) {
         this._saveInProgress = progress;
+    }
+
+    get isMainTabSelected() {
+        return this._isMainTabSelected;
+    }
+
+    set isMainTabSelected(value) {
+        this._isMainTabSelected = value;
     }
 
     removeAttribute(property) {

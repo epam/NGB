@@ -1,27 +1,6 @@
 <div layout="column">
-    <div class="general-information-buttons">
-        <md-button
-            class="general-information-button"
-            ng-if="$ctrl.uuid && !$ctrl.editMode && $ctrl.isGeneralInfoOpen"
-            ng-click="$ctrl.onClickEditBtn($event)">
-            Edit
-        </md-button>
-        <md-button
-            class="general-information-button cancel-button"
-            ng-if="$ctrl.editMode"
-            ng-click="$ctrl.onClickCancelBtn($event)">
-            Cancel
-        </md-button>
-        <md-button
-            class="general-information-button"
-            ng-if="$ctrl.editMode"
-            ng-click="$ctrl.onClickSaveBtn($event)"
-            ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
-            Save
-        </md-button>
-    </div>
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
-        <md-tab id="gff">
+        <md-tab id="gff" md-on-select="$ctrl.selectMainTab()">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info-main properties="$ctrl.properties"
@@ -31,6 +10,9 @@
                                        end-index="$ctrl.endIndex"
                                        read="$ctrl.read"
                                        name="$ctrl.name"
+                                       file-id="$ctrl.fileId"
+                                       feature="$ctrl.feature"
+                                       uuid="$ctrl.uuid"
                                        flex></ngb-feature-info-main>
             </md-tab-body>
         </md-tab>
@@ -63,7 +45,7 @@
         </md-tab>
     </md-tabs>
     <md-tabs md-dynamic-height ng-if="!$ctrl.shouldDisplayGeneInfo">
-        <md-tab id="gff">
+        <md-tab id="gff" md-on-select="$ctrl.selectMainTab()">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info-main properties="$ctrl.properties"
@@ -73,6 +55,9 @@
                                        end-index="$ctrl.endIndex"
                                        read="$ctrl.read"
                                        name="$ctrl.name"
+                                       file-id="$ctrl.fileId"
+                                       feature="$ctrl.feature"
+                                       uuid="$ctrl.uuid"
                                        info-for-read="$ctrl.infoForRead"
                                        flex></ngb-feature-info-main>
             </md-tab-body>

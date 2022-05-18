@@ -2,9 +2,8 @@
     <collapsible>
         <collapsible-panel
             is-open="$ctrl.isGeneralInfoOpen"
-            ng-disabled="$ctrl.editMode"
             disabled="$ctrl.editMode"
-        >
+            ng-disabled="$ctrl.editMode">
             <collapsible-panel-title>
                 General information
             </collapsible-panel-title>
@@ -16,7 +15,8 @@
                     <md-progress-linear md-mode="query"></md-progress-linear>
                 </div>
                 <div ng-if="$ctrl.saveError" class="md-padding">
-                    <ngb-panel-error-list message-list="$ctrl.saveError"></ngb-panel-error-list>
+                    <ngb-panel-error-list message-list="$ctrl.saveError">
+                    </ngb-panel-error-list>
                 </div>
                 <ngb-info-rows properties="$ctrl.properties" editmode="$ctrl.editMode"></ngb-info-rows>
                 <div ng-hide="$ctrl.isReadLoadingis" >
@@ -43,7 +43,7 @@
 
     <collapsible ng-show="$ctrl.read === undefined">
         <collapsible-panel is-open="true">
-            <collapsible-panel-title>
+            <collapsible-panel-title id="sequencePanel">
                 Sequence
             </collapsible-panel-title>
             <collapsible-panel-content>

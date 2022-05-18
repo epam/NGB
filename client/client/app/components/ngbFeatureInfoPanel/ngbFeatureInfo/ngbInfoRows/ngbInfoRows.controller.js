@@ -6,8 +6,9 @@ export default class ngbInfoRowsController {
 
     saveRequest = {};
 
-    constructor($scope, ngbFeatureInfoPanelService, $compile) {
-        Object.assign(this, {$scope, ngbFeatureInfoPanelService, $compile});
+    constructor($scope, dispatcher, ngbFeatureInfoPanelService, $compile) {
+        Object.assign(this, {$scope, dispatcher, ngbFeatureInfoPanelService, $compile});
+        this.dispatcher.on('feature:info:add:click', ::this.onClickAddBtn);
     }
 
     get attributes () {

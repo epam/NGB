@@ -25,6 +25,10 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
+        this.dispatcher.on('feature:info:edit:click', ::this.onClickEditBtn);
+        this.dispatcher.on('feature:info:cancel:click', ::this.onClickCancelBtn);
+        this.dispatcher.on('feature:info:save:click', ::this.onClickSaveBtn);
+        this.dispatcher.on('feature:info:add:click', ::this.scrollTo);
     }
 
     loadSequence() {
@@ -100,16 +104,18 @@ export default class ngbFeatureInfoMainController {
         this.$anchorScroll(id);
     }
 
-    get editMode () {
+    get editMode() {
         return this.ngbFeatureInfoPanelService.editMode;
+    }
+    set editMode(value) {
+        this.ngbFeatureInfoPanelService.editMode = value;
     }
 
     get saveError () {
         return this.ngbFeatureInfoPanelService.saveError;
     }
-
-    get saveInProgress () {
-        return this.ngbFeatureInfoPanelService.saveInProgress;
+    set saveError (value) {
+        this.ngbFeatureInfoPanelService.saveError = value;
     }
 
     get isGeneralInfoOpen () {
@@ -118,5 +124,49 @@ export default class ngbFeatureInfoMainController {
 
     set isGeneralInfoOpen (value) {
         this.ngbFeatureInfoPanelService.isGeneralInfoOpen = value;
+    }
+
+    get saveInProgress() {
+        return this.ngbFeatureInfoPanelService.saveInProgress;
+    }
+    set saveInProgress(value) {
+        this.ngbFeatureInfoPanelService.saveInProgress = value;
+    }
+
+    onClickEditBtn () {
+        this.editMode = true;
+        this.ngbFeatureInfoPanelService.newAttributes = this.properties;
+    }
+
+    onClickCancelBtn () {
+        this.editMode = false;
+        this.ngbFeatureInfoPanelService.newAttributes = null;
+        this.saveInProgress = false;
+        this.saveError = null;
+    }
+
+    onClickSaveBtn () {
+        this.saveInProgress = true;
+        this.ngbFeatureInfoPanelService.saveNewAttributes();
+        this.properties = [...this.ngbFeatureInfoPanelService.newAttributes
+            .map(newAttribute => (
+                [
+                    newAttribute.name,
+                    newAttribute.value,
+                    newAttribute.attribute,
+                    newAttribute.deleted || false
+                ]
+            ))];
+        this.feature = this.ngbFeatureInfoPanelService.updateFeatureInfo(this.feature);
+        this.ngbFeatureInfoPanelService.sendNewGeneInfo(this.fileId, this.uuid, this.feature)
+            .then((success) => {
+                this.saveInProgress = false;
+                const data = { trackId: this.fileId };
+                if (success) {
+                    this.dispatcher.emitSimpleEvent('feature:info:changes:cancel');
+                    this.dispatcher.emitSimpleEvent('feature:info:saved', data);
+                }
+                this.$scope.$apply();
+            });
     }
 }
