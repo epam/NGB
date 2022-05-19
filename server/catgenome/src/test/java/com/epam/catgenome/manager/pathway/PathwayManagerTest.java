@@ -49,6 +49,10 @@ import java.util.Collections;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class PathwayManagerTest extends TestCase {
 
+    private static final long HOMO_SAPIENS_TAX_ID = 9606L;
+    private static final long CANIDAE_TAX_ID = 9608L;
+    private static final long CANIS_TAX_ID = 9611L;
+
     @Autowired
     private PathwayManager pathwayManager;
 
@@ -109,7 +113,7 @@ public class PathwayManagerTest extends TestCase {
         final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
-        parameters.setTaxIds(Collections.singletonList(9606L));
+        parameters.setTaxIds(Collections.singletonList(HOMO_SAPIENS_TAX_ID));
         final Page<NGBPathway> pathways = pathwayManager.loadPathways(parameters);
         pathwayManager.deletePathway(pathway.getPathwayId());
         pathwayManager.deletePathway(pathway1.getPathwayId());
@@ -144,7 +148,7 @@ public class PathwayManagerTest extends TestCase {
                 .prettyName("pathway")
                 .path(fileName)
                 .pathwayDesc("description")
-                .taxIds(ImmutableSet.of(9606L, 9608L, 9611L))
+                .taxIds(ImmutableSet.of(HOMO_SAPIENS_TAX_ID, CANIDAE_TAX_ID, CANIS_TAX_ID))
                 .build();
         return pathwayManager.registerPathway(request);
     }
