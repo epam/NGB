@@ -272,6 +272,9 @@ public class Application {
     @Option(name = "--step", usage = "specifies Bam file coverage interval size")
     private Integer step;
 
+    @Option(name = "-desc", usage = "specifies entity description", aliases = "--description")
+    private String description;
+
     @Argument
     private List<String> arguments;
 
@@ -385,6 +388,7 @@ public class Application {
         options.setSendContent(sendContent);
         options.setAlias(alias);
         options.setStep(step);
+        options.setDescription(description);
         return options;
     }
 

@@ -308,7 +308,7 @@
     <rename_file>
         <name>rename_file</name>
         <type>PUT</type>
-        <url>/restapi/dataitem/%s/rename</url>
+        <url>/restapi/dataitem/rename</url>
     </rename_file>
     <rename_dataset>
         <name>rename_dataset</name>

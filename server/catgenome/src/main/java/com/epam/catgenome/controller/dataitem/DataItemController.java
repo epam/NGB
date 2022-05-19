@@ -130,7 +130,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @PutMapping(value = "/dataitem/{name}/rename")
+    @PutMapping(value = "/dataitem/rename")
     @ApiOperation(
             value = "Updates file name and/or pretty name.",
             notes = "Updates file name and/or pretty name.",
@@ -139,7 +139,7 @@ public class DataItemController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Boolean> rename(
-            @PathVariable(value = "name") final String name,
+            @RequestParam(value = "name") final String name,
             @RequestParam(value = "newName", required = false) final String newName,
             @RequestParam(value = "newPrettyName", required = false) final String newPrettyName) {
         dataItemSecurityService.renameFile(name, newName, newPrettyName);

@@ -67,17 +67,17 @@ public abstract class AbstractEntityRenameHandler extends AbstractHTTPCommandHan
     @Override
     public int runCommand() {
         try {
-            String url = serverParameters.getServerUrl() + getRequestUrl();
-            URIBuilder builder = new URIBuilder(String.format(url, name));
+            final URIBuilder builder = new URIBuilder(serverParameters.getServerUrl() + getRequestUrl());
+            builder.addParameter("name", name);
             if (StringUtils.isNotBlank(newName)) {
                 builder.addParameter("newName", newName);
             }
             if (StringUtils.isNotBlank(newPrettyName)) {
                 builder.addParameter("newPrettyName", newPrettyName);
             }
-            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
-            String result = RequestManager.executeRequest(request);
-            ResponseResult response = getMapper().readValue(result,
+            final HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+            final String result = RequestManager.executeRequest(request);
+            final ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));
             if (!SUCCESS_STATUS.equals(response.getStatus())) {
                 log.info(response.getStatus() + "\t" + response.getMessage());

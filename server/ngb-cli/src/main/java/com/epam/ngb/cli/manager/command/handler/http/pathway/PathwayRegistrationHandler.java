@@ -67,6 +67,7 @@ public class PathwayRegistrationHandler extends AbstractHTTPCommandHandler {
                 .build();
         registrationRequest.setName(options.getName());
         registrationRequest.setPrettyName(options.getPrettyName());
+        registrationRequest.setPathwayDesc(options.getDescription());
         if (!TextUtils.isBlank(options.getTaxIds())) {
             final Set<Long> taxIds = getTaxIds(options.getTaxIds());
             registrationRequest.setTaxIds(taxIds);

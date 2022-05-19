@@ -127,6 +127,7 @@ public class ApplicationOptions {
     private String taxIds;
     private boolean sendContent;
     private boolean alias;
+    private String description;
 
     /**
      * Option for BAM file coverage registration, specifies a coverage interval size.
