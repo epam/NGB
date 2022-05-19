@@ -69,6 +69,7 @@ public class PathwayOrganismDao extends NamedParameterJdbcDaoSupport {
                 final PathwayOrganism organism = species.get(i);
                 organism.setPathwayOrganismId(newIds.get(i));
                 params[i] = PathwayOrganismParameters.getParameters(organism);
+                organisms.add(organism);
             }
             getNamedParameterJdbcTemplate().batchUpdate(insertPathwayOrganismQuery, params);
         }

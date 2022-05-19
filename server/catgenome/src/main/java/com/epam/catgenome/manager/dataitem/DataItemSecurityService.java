@@ -63,7 +63,7 @@ public class DataItemSecurityService {
         return dataItemManager.findFilesByName(name, strict);
     }
 
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
+    @PreAuthorize("isAllowed(#id, 'WRITE')")
     public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
         return dataItemManager.deleteFileByBioItemId(id);
     }

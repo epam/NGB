@@ -45,6 +45,7 @@ import com.epam.catgenome.manager.pathway.PathwayManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -60,6 +61,7 @@ import java.io.IOException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@Ignore
 public class UpdateFilePathManagerTest extends AbstractManagerTest {
 
     private static final String HEATMAP_CONTENT = "\tgene1\tgene2\tgene3\tgene4\tgene5\tgene6\n" +
