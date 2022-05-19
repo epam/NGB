@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2018-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,6 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean isAllowed(Object target, String permission) {
-
         AbstractSecuredEntity item = (AbstractSecuredEntity) target;
         List<Sid> sids = permissionHelper.getSids();
         if (permissionHelper.isAdmin(sids) || permissionHelper.isOwner(item)) {
@@ -65,6 +64,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
 
     public boolean isAllowed(final Long entityId, final AclClass entityClass, final String permission) {
         return permissionHelper.isAllowed(permission, entityId, entityClass);
+    }
+
+    public boolean isAllowed(final Long id, final String permission) {
+        return permissionHelper.isAllowedByBioItemId(permission, id);
     }
 
     public boolean hasSpecificRole(AclClass aclClass) {
@@ -231,5 +234,4 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     public void setPermissionHelper(PermissionHelper permissionHelper) {
         this.permissionHelper = permissionHelper;
     }
-
 }

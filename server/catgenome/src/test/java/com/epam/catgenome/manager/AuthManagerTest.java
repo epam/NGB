@@ -28,6 +28,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.saml.SAMLAuthenticationProvider;
+import org.springframework.security.saml.SAMLEntryPoint;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.epam.catgenome.common.AbstractSecurityTest;
@@ -49,6 +52,12 @@ public class AuthManagerTest extends AbstractSecurityTest {
 
     @Autowired
     private JwtTokenVerifier jwtTokenVerifier;
+
+    @MockBean
+    protected SAMLEntryPoint samlEntryPoint;
+
+    @MockBean
+    protected SAMLAuthenticationProvider samlAuthenticationProvider;
 
     @Test
     @WithMockUserContext(userName = TEST_USER_NAME)

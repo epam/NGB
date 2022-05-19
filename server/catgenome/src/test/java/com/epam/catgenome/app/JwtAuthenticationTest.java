@@ -5,9 +5,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.saml.SAMLAuthenticationProvider;
+import org.springframework.security.saml.SAMLEntryPoint;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -46,6 +49,12 @@ public class JwtAuthenticationTest {
 
     @Autowired
     private JwtTokenGenerator jwtTokenGenerator;
+
+    @MockBean
+    protected SAMLEntryPoint samlEntryPoint;
+
+    @MockBean
+    protected SAMLAuthenticationProvider samlAuthenticationProvider;
 
     private static final String INVALID_TOKEN = "1234556";
     private static final String BEARER = "Bearer ";

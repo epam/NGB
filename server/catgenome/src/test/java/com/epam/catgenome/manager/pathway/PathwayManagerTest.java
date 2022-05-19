@@ -109,7 +109,7 @@ public class PathwayManagerTest extends TestCase {
         final PathwayQueryParams parameters = new PathwayQueryParams();
         final PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
-        parameters.setTaxIds(Collections.singletonList(1L));
+        parameters.setTaxIds(Collections.singletonList(9606L));
         final Page<NGBPathway> pathways = pathwayManager.loadPathways(parameters);
         pathwayManager.deletePathway(pathway.getPathwayId());
         pathwayManager.deletePathway(pathway1.getPathwayId());
@@ -130,9 +130,11 @@ public class PathwayManagerTest extends TestCase {
 
     @Test
     public void shouldLoadSpecies() throws IOException {
-        registerPathway("loadPathways1", sbgnFileName);
-        registerPathway("loadPathways2", sbgnFileName);
+        final NGBPathway pathway1 = registerPathway("loadPathways1", sbgnFileName);
+        final NGBPathway pathway2 = registerPathway("loadPathways2", sbgnFileName);
         assertEquals(3, pathwayManager.loadPathwaySpecies().size());
+        pathwayManager.deletePathway(pathway1.getPathwayId());
+        pathwayManager.deletePathway(pathway2.getPathwayId());
     }
 
     @NotNull
@@ -142,7 +144,7 @@ public class PathwayManagerTest extends TestCase {
                 .prettyName("pathway")
                 .path(fileName)
                 .pathwayDesc("description")
-                .taxIds(ImmutableSet.of(1L, 2L, 3L))
+                .taxIds(ImmutableSet.of(9606L, 9608L, 9611L))
                 .build();
         return pathwayManager.registerPathway(request);
     }
