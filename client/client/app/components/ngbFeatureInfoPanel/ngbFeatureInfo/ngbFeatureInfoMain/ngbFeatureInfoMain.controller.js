@@ -25,10 +25,20 @@ export default class ngbFeatureInfoMainController {
         else {
             this.isReadLoadingis = false;
         }
-        this.dispatcher.on('feature:info:edit:click', ::this.onClickEditBtn);
-        this.dispatcher.on('feature:info:cancel:click', ::this.onClickCancelBtn);
-        this.dispatcher.on('feature:info:save:click', ::this.onClickSaveBtn);
-        this.dispatcher.on('feature:info:add:click', ::this.scrollTo);
+        const onClickEditBtn = () => this.onClickEditBtn();
+        const onClickCancelBtn = () => this.onClickCancelBtn();
+        const onClickSaveBtn = () => this.onClickSaveBtn();
+        const scrollTo = (id) => this.scrollTo(id);
+        this.dispatcher.on('feature:info:edit:click', onClickEditBtn);
+        this.dispatcher.on('feature:info:cancel:click', onClickCancelBtn);
+        this.dispatcher.on('feature:info:save:click', onClickSaveBtn);
+        this.dispatcher.on('feature:info:add:click', scrollTo);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('feature:info:edit:click', onClickEditBtn);
+            dispatcher.removeListener('feature:info:cancel:click', onClickCancelBtn);
+            dispatcher.removeListener('feature:info:save:click', onClickSaveBtn);
+            dispatcher.removeListener('feature:info:add:click', scrollTo);
+        });
     }
 
     loadSequence() {

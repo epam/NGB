@@ -4,9 +4,13 @@ export default class ngbFeatureInfoMainActionsController {
         return 'ngbFeatureInfoMainActionsController';
     }
 
-    constructor(dispatcher, ngbFeatureInfoPanelService) {
-        Object.assign(this, {dispatcher, ngbFeatureInfoPanelService});
-        this.dispatcher.on('feature:info:changes:cancel', this.onClickCancelBtn.bind(this));
+    constructor($scope, dispatcher, ngbFeatureInfoPanelService) {
+        Object.assign(this, {$scope, dispatcher, ngbFeatureInfoPanelService});
+        const onClickCancelBtn = () => this.onClickCancelBtn();
+        this.dispatcher.on('feature:info:changes:cancel', onClickCancelBtn);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('feature:info:changes:cancel', onClickCancelBtn);
+        });
     }
 
     get editMode() {

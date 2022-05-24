@@ -8,7 +8,11 @@ export default class ngbInfoRowsController {
 
     constructor($scope, dispatcher, ngbFeatureInfoPanelService, $compile) {
         Object.assign(this, {$scope, dispatcher, ngbFeatureInfoPanelService, $compile});
-        this.dispatcher.on('feature:info:add:click', ::this.onClickAddBtn);
+        const onClickAddBtn = () => this.onClickAddBtn();
+        this.dispatcher.on('feature:info:add:click', onClickAddBtn);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('feature:info:add:click', onClickAddBtn);
+        });
     }
 
     get attributes () {
