@@ -11,7 +11,7 @@ image: Ubuntu1604
 stack: jdk 8, python 3.9
 
 build_script:
-  - python3 -m pip install mkdocs mkdocs-material
+  - python3 -m pip install mkdocs==1.3.0 mkdocs-material==8.2.15
   - bash build.sh
   - ./gradlew jacocoTestReport
   - bash <(curl -s https://codecov.io/bash)
