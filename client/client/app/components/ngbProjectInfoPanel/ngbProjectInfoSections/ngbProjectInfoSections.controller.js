@@ -5,56 +5,19 @@ export default class ngbProjectInfoSectionsController extends baseController {
         return 'ngbProjectInfoSectionsController';
     }
 
-    constructor($scope, dispatcher, ngbProjectInfoService, projectContext) {
+    constructor($scope, dispatcher, projectContext, ngbProjectInfoService) {
         super(dispatcher);
-        this.ngbProjectInfoService = ngbProjectInfoService;
-        this.projectContext = projectContext;
+        Object.assign(this, {$scope, dispatcher, projectContext, ngbProjectInfoService});
     }
 
-    onButtonClick($mdOpenMenu, $event) {
+    handleOpenMenu($mdOpenMenu, $event) {
         if (this.projectContext.currentChromosome) {
-            this.ngbProjectInfoService.currentMode = this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
+            // switch from track view
+            this.modeModel = [this.mode.SUMMARY, null];
+            this.projectContext.changeState({chromosome: null});
         } else {
             this.openMenu($mdOpenMenu, $event);
         }
-    }
-
-    get descriptionAvailable () {
-        return this.ngbProjectInfoService.descriptionAvailable;
-    }
-
-    get projects () {
-        return this.ngbProjectInfoService.projects;
-    }
-
-    get multipleProjects() {
-        return this.projects.length > 1;
-    }
-
-    get plainItems() {
-        return this.ngbProjectInfoService.plainItems;
-    }
-
-    setDescription (project, descriptionId) {
-        const [
-            currentMode,
-            currentDescriptionId
-        ] = Array.isArray(this.ngbProjectInfoService.currentMode) ?
-                this.ngbProjectInfoService.currentMode :
-                [this.ngbProjectInfoService.currentMode, null];
-        const currentProjectId = this.ngbProjectInfoService.currentProject.id;
-        if (currentMode === this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION &&
-            currentProjectId === project.id &&
-            currentDescriptionId === descriptionId
-        ) {
-            return;
-        }
-        this.setCurrentProject(project);
-        this.ngbProjectInfoService.setDescription(descriptionId);
-    }
-
-    setCurrentProject (project) {
-        this.ngbProjectInfoService.currentProject = project;
     }
 
     openMenu($mdOpenMenu, $event) {
@@ -62,13 +25,134 @@ export default class ngbProjectInfoSectionsController extends baseController {
         $mdOpenMenu($event);
     }
 
-    summaryFalseValue () {
-        if (this.projects.length === 1 && this.descriptionList.length) {
-            return [
-                this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
-                this.descriptionList[0].id
-            ];
+    get currentName() {
+        return this.ngbProjectInfoService.currentName;
+    }
+
+    get isSingleProject() {
+        return  this.ngbProjectInfoService.isSingleProject;
+    }
+    get isMultipleProjects() {
+        return  this.ngbProjectInfoService.isMultipleProjects;
+    }
+
+    get plainItems() {
+        return this.ngbProjectInfoService.plainItems;
+    }
+
+    get currentProject() {
+        return this.ngbProjectInfoService.currentProject;
+    }
+
+    get modeModel() {
+        return this.ngbProjectInfoService.modeModel;
+    }
+    set modeModel(value) {
+        this.ngbProjectInfoService.modeModel = value;
+    }
+
+    get defaultModeModel() {
+        return this.ngbProjectInfoService.defaultModeModel;
+    }
+
+    get mode() {
+        return this.ngbProjectInfoService.mode;
+    }
+    get currentMode() {
+        return this.ngbProjectInfoService.currentMode;
+    }
+    get currentId() {
+        return this.ngbProjectInfoService.currentId;
+    }
+
+    get isAdditionMode() {
+        return this.ngbProjectInfoService.isAdditionMode;
+    }
+
+    get summaryFalseValue() {
+        return this.isSingleProject ? [...this.defaultModeModel] : [this.mode.SUMMARY, null];
+    }
+    get descriptionFalseValue() {
+        if (this.isSingleProject &&
+            this.defaultModeModel[0] === this.currentMode &&
+            this.defaultModeModel[1] === this.currentId
+        ) {
+            return [this.mode.SUMMARY, null];
+        } else {
+            return [...this.defaultModeModel];
         }
-        return this.ngbProjectInfoService.projectInfoModeList.SUMMARY;
+    }
+    get noteFalseValue() {
+        return [...this.defaultModeModel];
+    }
+
+    hasChanges() {
+        return this.ngbProjectInfoService.hasChanges();
+    }
+
+    showUnsavedChangesDialog() {
+        this.ngbProjectInfoService.showUnsavedChangesDialog();
+    }
+
+    handleChangeSummary($event) {
+        if (this.currentMode === this.mode.SUMMARY) {
+            this.ngbProjectInfoService.setFalseMode(this.summaryFalseValue);
+            return;
+        }
+        if (this.hasChanges()) {
+            this.showUnsavedChangesDialog();
+            $event.stopImmediatePropagation();
+        } else {
+            this.ngbProjectInfoService.setSummary();
+        }
+    }
+
+    handleChangeDescription ($event, project, descriptionId) {
+        if (this.currentMode === this.mode.DESCRIPTION &&
+            this.currentProject &&
+            this.currentProject.id === project.id &&
+            this.currentId === descriptionId
+        ) {
+            this.ngbProjectInfoService.setFalseMode(this.descriptionFalseValue);
+            return;
+        }
+        if (this.hasChanges()) {
+            this.showUnsavedChangesDialog();
+            $event.stopImmediatePropagation();
+        } else {
+            this.ngbProjectInfoService.setDescription(descriptionId, project);
+        }
+    }
+
+    handleChangeNote ($event, project, noteId) {
+        if (this.currentMode === this.mode.NOTE &&
+            this.currentProject &&
+            this.currentProject.id === project.id &&
+            this.currentId  === noteId
+        ) {
+            this.ngbProjectInfoService.setFalseMode(this.noteFalseValue);
+        }
+        if (this.hasChanges()) {
+            this.showUnsavedChangesDialog();
+            $event.stopImmediatePropagation();
+        } else {
+            this.ngbProjectInfoService.setNote(project, noteId);
+        }
+    }
+
+    handleClickAddNote($event, project) {
+        if (this.isAdditionMode &&
+            this.currentProject &&
+            this.currentProject.id === project.id
+        ) {
+            return;
+        }
+        this.ngbProjectInfoService.isCancel = false;
+        if (this.hasChanges()) {
+            this.showUnsavedChangesDialog();
+            $event.stopImmediatePropagation();
+        } else {
+            this.ngbProjectInfoService.addNote(project);
+        }
     }
 }

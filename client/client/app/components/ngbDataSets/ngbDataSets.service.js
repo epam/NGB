@@ -114,7 +114,6 @@ export default class ngbDataSetsService {
                 ? this.updateTerminalNodeStateFn(datasets[i])
                 : this.updateParentNodeStateFn(datasets[i]);
         }
-        this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
     getSelectedDatasets (datasets) {
@@ -297,7 +296,6 @@ export default class ngbDataSetsService {
             }
         }
         this.navigateToTracks(datasets, forceReference);
-        this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
     updateTracksState(datasets, forceReference) {
