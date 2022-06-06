@@ -100,9 +100,10 @@ export default class ngbProjectInfoService {
     _descriptionAvailable = false;
     selectedProjects = [];
     _currentProject = null;
+    previousProjectId;
     plainItems = [];
     _modeModel = [];
-    previouseModeModel;
+    previousModeModel;
     _newNote = {};
     _editableNote = {};
     _inEditing = false;
@@ -142,6 +143,11 @@ export default class ngbProjectInfoService {
     }
     set currentProject (project) {
         this._currentProject = project;
+    }
+
+    get previousProject() {
+        return this.selectedProjects.filter(project => (
+            project.id === this.previousProjectId))[0] || {};
     }
 
     get modeModel() {
@@ -311,9 +317,6 @@ export default class ngbProjectInfoService {
             this._currentProject = {};
             this.setNoCurrentChromosome();
         }
-        if (!currentProjectChanged && this.isAdditionMode) {
-            this.previouseModeModel = undefined;
-        }
     }
 
     _setNoneProject() {
@@ -416,23 +419,19 @@ export default class ngbProjectInfoService {
     }
 
     addNote(project = this._currentProject) {
+        if ([this.mode.SUMMARY, this.mode.DESCRIPTION, this.mode.NOTE]
+            .includes(this.currentMode)
+        ) {
+            this.previousModeModel = [...this.modeModel];
+            this.previousProjectId = this._currentProject.id;
+        }
         if (this.isMultipleProjects) {
-            if ([this.mode.DESCRIPTION, this.mode.NOTE].includes(this.currentMode) &&
-                project.id === this._currentProject.id
-            ) {
-                this.previouseModeModel = [...this.modeModel];
-            }
             this._currentProject = project;
             this._newNote = {
                 projectId: this._currentProject.id
             };
             this._modeModel = [this.mode.ADD_NOTE, project.id];
         } else {
-            if ([this.mode.SUMMARY, this.mode.DESCRIPTION, this.mode.NOTE]
-                .includes(this.currentMode)
-            ) {
-                this.previouseModeModel = [...this.modeModel];
-            }
             this._modeModel = [this.mode.ADD_NOTE, project.id];
         }
     }
@@ -444,13 +443,18 @@ export default class ngbProjectInfoService {
         const filteredNoteList = this.noteList.filter(item => item.id === id);
         this._editableNote = filteredNoteList.length ? {...filteredNoteList[0]} : {};
         this._inEditing = true;
-        this.previouseModeModel = [...this.modeModel];
+        this.previousModeModel = [...this.modeModel];
+        this.previousProjectId = this._currentProject.id;
     }
 
     cancelNote() {
         this._clearEnvironment();
-        this.modeModel = this.previouseModeModel || this.defaultModeModel;
-        this.previouseModeModel = undefined;
+        if (this.previousProjectId) {
+            this.currentProject = this.previousProject;
+        }
+        this.modeModel = this.previousModeModel || this.defaultModeModel;
+        this.previousProjectId = undefined;
+        this.previousModeModel = undefined;
     }
 
     saveNote(note) {
@@ -474,9 +478,10 @@ export default class ngbProjectInfoService {
                     const newNoteId = newIds.filter(id => !previousIds.includes(id))[0];
                     this._modeModel = [this.mode.NOTE, newNoteId];
                 } else {
-                    this.modeModel = this.previouseModeModel;
+                    this.modeModel = this.previousModeModel;
                 }
-                this.previouseModeModel = undefined;
+                this.previousProjectId = undefined;
+                this.previousModeModel = undefined;
                 this.refreshPlainList();
                 return data;
             });
