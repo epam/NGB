@@ -41,8 +41,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.RoleManager;
 import org.apache.commons.collections4.ListUtils;
@@ -102,9 +100,6 @@ public class GrantPermissionManager {
 
     @Autowired
     private RoleManager roleManager;
-
-    @Autowired
-    private BiologicalDataItemManager dataItemManager;
 
     @Autowired
     private ProjectManager projectManager;
@@ -207,25 +202,6 @@ public class GrantPermissionManager {
         projects.forEach(p -> processProject(p, batch));
         flushBatch(batch);
         LOGGER.debug("Finished ACL cache warm up");
-    }
-
-    private void processProject(Project project, List<ObjectIdentity> batch) {
-        batch.add(new ObjectIdentityImpl(project));
-        ListUtils.emptyIfNull(project.getItems())
-                .forEach(item -> batch.add(new ObjectIdentityImpl(item.getBioDataItem())));
-        flushBatch(batch);
-        ListUtils.emptyIfNull(project.getNestedProjects()).forEach(child -> processProject(child, batch));
-    }
-
-    private void flushBatch(List<ObjectIdentity> batch) {
-        if (batch.size() >= PAGE_SIZE) {
-            try {
-                aclService.readAclsById(batch);
-            } catch (NotFoundException e) {
-                LOGGER.debug(e.getMessage(), e);
-            }
-            batch.clear();
-        }
     }
 
     public boolean filterTree(AbstractHierarchicalEntity entity, Permission permission) {
@@ -398,4 +374,22 @@ public class GrantPermissionManager {
         }
     }
 
+    private void processProject(Project project, List<ObjectIdentity> batch) {
+        batch.add(new ObjectIdentityImpl(project));
+        ListUtils.emptyIfNull(project.getItems())
+                .forEach(item -> batch.add(new ObjectIdentityImpl(item.getBioDataItem())));
+        flushBatch(batch);
+        ListUtils.emptyIfNull(project.getNestedProjects()).forEach(child -> processProject(child, batch));
+    }
+
+    private void flushBatch(List<ObjectIdentity> batch) {
+        if (batch.size() >= PAGE_SIZE) {
+            try {
+                aclService.readAclsById(batch);
+            } catch (NotFoundException e) {
+                LOGGER.debug(e.getMessage(), e);
+            }
+            batch.clear();
+        }
+    }
 }
