@@ -86,12 +86,12 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
     @Transactional(propagation = Propagation.REQUIRED)
     public MutableAcl getOrCreateObjectIdentity(AbstractSecuredEntity securedEntity) {
         ObjectIdentity identity = new ObjectIdentityImpl(securedEntity);
-        if (retrieveObjectIdentityPrimaryKey(identity) != null) {
+        try {
             Acl acl = readAclById(identity);
             Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
                     MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
             return (MutableAcl) acl;
-        } else {
+        } catch (NotFoundException e) {
             MutableAcl acl = createAcl(identity);
             if (securedEntity.getParent() != null && securedEntity.getParent().getId() != null) {
                 MutableAcl parentAcl = getOrCreateObjectIdentity(securedEntity.getParent());

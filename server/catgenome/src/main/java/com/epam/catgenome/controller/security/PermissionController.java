@@ -126,4 +126,16 @@ public class PermissionController extends AbstractRESTController {
     public void syncAclEntities() {
         permissionApiService.syncEntities();
     }
+
+    @PostMapping(value = "grant/cache")
+    @ApiOperation(
+            value = "Performs cache warm up",
+            notes = "Performs cache warm up.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void fillAclCache() {
+        permissionApiService.fillCache();
+    }
 }

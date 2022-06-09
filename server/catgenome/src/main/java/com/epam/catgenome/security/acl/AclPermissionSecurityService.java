@@ -77,4 +77,9 @@ public class AclPermissionSecurityService {
     public void syncEntities() {
         permissionManager.syncEntities();
     }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public void fillCache() {
+        permissionManager.fillCache();
+    }
 }

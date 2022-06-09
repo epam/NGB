@@ -49,7 +49,7 @@ public class LookupStrategyImpl implements LookupStrategy {
 
     public static final String DEFAULT_ORDER_BY_CLAUSE = ") order by acl_object_identity.object_id_identity"
             + " asc, acl_entry.ace_order asc";
-    private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 1000;
 
     // ~ Instance fields
     // ================================================================================================

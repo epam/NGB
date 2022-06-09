@@ -27,7 +27,13 @@ package com.epam.catgenome.security.acl;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -36,18 +42,21 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
+import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.RoleManager;
-import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PermissionFactory;
 import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.NotFoundException;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Service;
@@ -74,6 +83,7 @@ public class GrantPermissionManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrantPermissionManager.class);
     private static final String READ = "READ";
+    private static final int PAGE_SIZE = 10000;
 
     @Autowired
     private PermissionFactory permissionFactory;
@@ -95,6 +105,9 @@ public class GrantPermissionManager {
 
     @Autowired
     private BiologicalDataItemManager dataItemManager;
+
+    @Autowired
+    private ProjectManager projectManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public AclSecuredEntry setPermissions(AclClass aclClass, Long entityId, String userName, Boolean principal,
@@ -175,18 +188,44 @@ public class GrantPermissionManager {
 
     public void syncEntities() {
         LOGGER.debug("Starting ACL entities synchronisation");
-        final Integer total = dataItemManager.countItems();
-        final int pageSize = Utils.DEFAULT_PAGE_SIZE;
-        int currentPage = 1;
-        while (currentPage <= total/pageSize + 1) {
-            final PagingInfo pagingInfo = new PagingInfo(pageSize, currentPage);
-            ListUtils.emptyIfNull(dataItemManager.loadAllItems(pagingInfo))
-                    .stream()
-                    .filter(item -> !item.getFormat().isIndex())
-                    .forEach(item -> aclService.getOrCreateObjectIdentity(item));
-            currentPage++;
+        final List<Project> projects = projectManager.loadProjectTree(null, null);
+        ListUtils.emptyIfNull(projects).forEach(this::syncProject);
+        LOGGER.debug("Finished ACL entities synchronization");
+    }
+
+    private void syncProject(final Project project) {
+        aclService.getOrCreateObjectIdentity(project);
+        ListUtils.emptyIfNull(project.getItems())
+                .forEach(item -> aclService.getOrCreateObjectIdentity(item.getBioDataItem()));
+        ListUtils.emptyIfNull(project.getNestedProjects()).forEach(this::syncProject);
+    }
+
+    public void fillCache() {
+        LOGGER.debug("Warming up cache for ACL");
+        final List<Project> projects = projectManager.loadProjectTree(null, null);
+        final List<ObjectIdentity> batch = new ArrayList<>(PAGE_SIZE);
+        projects.forEach(p -> processProject(p, batch));
+        flushBatch(batch);
+        LOGGER.debug("Finished ACL cache warm up");
+    }
+
+    private void processProject(Project project, List<ObjectIdentity> batch) {
+        batch.add(new ObjectIdentityImpl(project));
+        ListUtils.emptyIfNull(project.getItems())
+                .forEach(item -> batch.add(new ObjectIdentityImpl(item.getBioDataItem())));
+        flushBatch(batch);
+        ListUtils.emptyIfNull(project.getNestedProjects()).forEach(child -> processProject(child, batch));
+    }
+
+    private void flushBatch(List<ObjectIdentity> batch) {
+        if (batch.size() >= PAGE_SIZE) {
+            try {
+                aclService.readAclsById(batch);
+            } catch (NotFoundException e) {
+                LOGGER.debug(e.getMessage(), e);
+            }
+            batch.clear();
         }
-        LOGGER.debug("Finished ACL entities synchronization for {} entities", total);
     }
 
     public boolean filterTree(AbstractHierarchicalEntity entity, Permission permission) {
