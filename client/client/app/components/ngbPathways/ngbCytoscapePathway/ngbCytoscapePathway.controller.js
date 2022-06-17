@@ -108,14 +108,8 @@ export default class ngbCytoscapePathwayController {
         };
         this.defaultNodeStyle = {};
 
-        const resizeHandler = () => {
-            if (this.resizeCytoscape()) {
-                this.centerCytoscape();
-            }
-        };
         graphml(Cytoscape, $);
         Cytoscape.use(dom_node);
-        angular.element($window).on('resize', resizeHandler);
         const cytoscapeActiveEventHandler = this.reloadCytoscape.bind(this);
         this.dispatcher.on('cytoscape:panel:active', cytoscapeActiveEventHandler);
         const handleSelectionChange = (e) => {
@@ -134,7 +128,6 @@ export default class ngbCytoscapePathwayController {
             this.dispatcher.removeListener('cytoscape:panel:active', cytoscapeActiveEventHandler);
             this.dispatcher.removeListener('cytoscape:pathways:selection:change', handleSelectionChange);
             this.annotationMarkService.hideTooltip();
-            angular.element($window).off('resize', resizeHandler);
         });
     }
 
@@ -309,6 +302,12 @@ export default class ngbCytoscapePathwayController {
                     }
                 });
                 layout.run();
+                if (this.zoomLevel) {
+                    this.viewer.zoom(this.zoomLevel);
+                }
+                if (this.panPosition) {
+                    this.viewer.pan(this.panPosition);
+                }
                 const viewerContext = this;
                 this.actionsManager = {
                     ZOOM_STEP: viewerContext.settings.externalOptions.zoomStep,
@@ -317,14 +316,12 @@ export default class ngbCytoscapePathwayController {
                     zoomIn() {
                         const zoom = this.zoom() + this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
                     zoomOut() {
                         const zoom = this.zoom() - this.ZOOM_STEP;
                         viewerContext.viewer.zoom(zoom);
-                        viewerContext.centerCytoscape();
                         this.canZoomIn = zoom < viewerContext.viewer.maxZoom();
                         this.canZoomOut = zoom > viewerContext.viewer.minZoom();
                     },
@@ -345,6 +342,11 @@ export default class ngbCytoscapePathwayController {
                     ready: true
                 };
             });
+        } else {
+            if (this.viewer) {
+                this.zoomLevel = this.viewer._private.zoom;
+                this.panPosition = this.viewer.pan();
+            }
         }
     }
 
@@ -362,12 +364,6 @@ export default class ngbCytoscapePathwayController {
             return changed;
         }
         return false;
-    }
-
-    centerCytoscape() {
-        if (this.viewer) {
-            this.viewer.center();
-        }
     }
 
     saveLayout() {
