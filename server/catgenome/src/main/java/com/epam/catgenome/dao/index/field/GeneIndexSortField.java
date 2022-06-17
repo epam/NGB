@@ -36,6 +36,7 @@ public enum GeneIndexSortField {
     FEATURE_ID(FeatureIndexFields.FEATURE_ID, SortField.Type.STRING),
     FEATURE_TYPE(FeatureIndexFields.FEATURE_TYPE, SortField.Type.STRING),
     SCORE(FeatureIndexFields.SCORE, SortField.Type.FLOAT),
+    SOURCE(FeatureIndexFields.SOURCE, SortField.Type.STRING),
     STRAND(FeatureIndexFields.STRAND, SortField.Type.STRING),
     FRAME(FeatureIndexFields.FRAME, SortField.Type.INT),
     START_INDEX(FeatureIndexFields.START_INDEX, SortField.Type.INT),
@@ -48,6 +49,7 @@ public enum GeneIndexSortField {
         fieldMap.put(FEATURE_TYPE.name(), FEATURE_TYPE);
         fieldMap.put(STRAND.name(), STRAND);
         fieldMap.put(SCORE.name(), SCORE);
+        fieldMap.put(SOURCE.name(), SOURCE);
         fieldMap.put(FRAME.name(), FRAME);
         fieldMap.put(START_INDEX.name(), START_INDEX);
         fieldMap.put(END_INDEX.name(), END_INDEX);
