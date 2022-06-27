@@ -1,0 +1,153 @@
+#---------------------------------------------------------------------
+# GitHub Action Workflow for NGB
+# Version 1.1
+# 2022
+#---------------------------------------------------------------------
+
+name: build
+on:
+  push:
+    branches: 
+    - 'develop'
+    - 'release/**'
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".README.md"
+      - ".gitignore"
+  pull_request:
+    branches: 
+      - '**'
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".README.md"
+      - ".gitignore"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin"
+          java-version: "8"
+          cache: "gradle"
+      
+      - name: Correcting a Build Number
+        run: echo "BUILD_NUMBER=$(echo $((${{ github.run_number }}+5000)))" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 8
+      
+      - name: Python Setup Action
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'  
+      - run: python3 -m pip install mkdocs mkdocs-material
+      
+      - name: Build JAR with H2 support and "everything" else (catgenome-h2.jar)
+        if: "!contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildJar buildCli buildDoc -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest
+      - run: mv dist/catgenome.jar dist/catgenome-h2.jar
+        if: "!contains(github.ref_name, 'release')"
+
+      - name: Rebuild JAR with PSQL support only (catgenome-psql.jar)
+        if: "!contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildJar -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest -Pdatabase=postgres
+      - run: | 
+          mv dist/catgenome.jar dist/catgenome-psql.jar
+          cp dist/catgenome-h2.jar dist/catgenome.jar
+        if: "!contains(github.ref_name, 'release')"
+      
+      - name: Docker. Build JAR with H2 support and "everything" else (catgenome-h2.jar)
+        if: "contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildJar buildCli buildDoc buildDocker -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest
+      - run: mv dist/catgenome.jar dist/catgenome-h2.jar
+        if: "contains(github.ref_name, 'release')"
+
+      - name: Docker. Rebuild JAR with PSQL support only (catgenome-psql.jar)
+        if: "contains(github.ref_name, 'release')"
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildJar -PbuildNumber=${{ env.BUILD_NUMBER }}.${{ github.sha }} -PnoTest -Pdatabase=postgres
+      - run: | 
+          mv dist/catgenome.jar dist/catgenome-psql.jar
+          cp dist/catgenome-h2.jar dist/catgenome.jar
+        if: "contains(github.ref_name, 'release')"
+
+      - name: Generate JaCoCo test report
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: jacocoTestReport
+          
+      - name: Upload coverage report to Codecov
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        uses: codecov/codecov-action@v2
+
+      - name: Get current version
+        run: echo "NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$BUILD_NUMBER |  grep "Project version is " | sed 's/^.*is //')" >> $GITHUB_ENV
+      - run: |
+          echo "Current version is ${NGB_VERSION}"
+          cd dist
+          echo "Creating ${NGB_VERSION} distribution"
+          mkdir -p ${NGB_VERSION}
+          for file in *
+          do 
+              [[ -d $file ]] && continue
+              ext="${file#*.}"
+              filename="${file%%.*}"
+              versioned_file=${filename}-${NGB_VERSION}.${ext}
+              cp -rf "$file" "${NGB_VERSION}/${versioned_file}"
+              if [[ $versioned_file == *"ngb-docs"* ]]; then
+                  DOCS_VERSION=$versioned_file
+              fi
+          done
+          echo "Publishing ${NGB_VERSION} distribution"
+
+      - name: Configure AWS Credentials
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      
+      - name: Copy a build artifact to AWS
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'develop') || contains(github.ref_name, 'release')) }}
+        run: aws s3 cp dist/${{ env.NGB_VERSION }} s3://ngb-oss-builds/public/builds/$GITHUB_REF_NAME/${{ env.NGB_VERSION }}/ --recursive
+        shell: bash
+
+      - name: Publishing to Docker Hub
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'release')) }}
+        run: |
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
+            docker tag ngb:latest ${{ secrets.DOCKER_USER }}/ngb:${{ env.NGB_VERSION }}
+            docker push ${{ secrets.DOCKER_USER }}/ngb:${{ env.NGB_VERSION }}
+
+      - name: Upload a build artifact on the GitHub Actions job page
+        uses: actions/upload-artifact@v3
+        with:
+          name: ngb-${{ env.NGB_VERSION }}.${{ github.sha }}
+          path: dist/${{ env.NGB_VERSION }}/
+          retention-days: 7
+
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' && (contains(github.ref_name, 'release')) }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/${{ env.NGB_VERSION }}/*"
+          tag: ${{ env.NGB_VERSION }}
+          name: Release ${{ env.NGB_VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
