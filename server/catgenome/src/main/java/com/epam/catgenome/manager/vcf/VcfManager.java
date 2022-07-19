@@ -225,7 +225,7 @@ public class VcfManager {
                         getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
         final double time2 = Utils.getSystemTimeMilliseconds();
-        log.debug("File registration took {} ms", time2 - time1);
+        log.error("File registration took {} ms", time2 - time1);
         return vcfFile;
     }
 
@@ -621,9 +621,11 @@ public class VcfManager {
             // In order to fix bugs with zipped VCF
             final Map<String, Pair<Integer, Integer>> metaMap =
                     readMetaMap(vcfFile, chromosomeMap, reader, reference, doIndex);
+            log.error("VCF file indexed");
             fileManager.makeIndexMetadata(vcfFile, metaMap);
             biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
             vcfFileManager.create(vcfFile);
+            log.error("VCF file entity created");
         } catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
