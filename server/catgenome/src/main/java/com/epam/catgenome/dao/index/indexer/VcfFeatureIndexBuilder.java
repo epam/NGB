@@ -235,30 +235,19 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
 
 
     public VcfIndexEntry build(final VcfIndexEntry entry, final List<GeneFile> geneFiles, final Chromosome chromosome) {
-        final int start = 0;
-        final int end = chromosome.getSize();
-
-        final List<VcfIndexEntry> indexEntries = fillEntryDetails(entry, geneFiles, chromosome, start, end);
+        final List<VcfIndexEntry> indexEntries = fillEntryDetails(entry, geneFiles, chromosome);
         return indexEntries.get(0);
     }
 
     @Override
     public List<VcfIndexEntry> build(final List<GeneFile> geneFiles, final Chromosome chromosome) {
         final List<VcfIndexEntry> processedEntries = new ArrayList<>();
-        int start = chromosome.getSize();
-        int end = 0;
-        for (FeatureIndexEntry entry : allEntries) {
-            start = Math.min(start, entry.getStartIndex());
-            end = Math.max(end, entry.getEndIndex());
-        }
-
         for (VcfIndexEntry indexEntry : allEntries) {
             List<VcfIndexEntry> filledEntries =
-                    fillEntryDetails(indexEntry, geneFiles, chromosome, start, end);
+                    fillEntryDetails(indexEntry, geneFiles, chromosome);
             processedEntries
                     .addAll(filledEntries);
         }
-
         return processedEntries;
     }
 
@@ -277,7 +266,7 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
     }
 
     private List<VcfIndexEntry> fillEntryDetails(final VcfIndexEntry entry, final List<GeneFile> geneFiles,
-            final Chromosome chromosome, final int start, final int end) {
+            final Chromosome chromosome) {
         String geneIdsString = null;
         String geneNamesString = null;
         Set<GeneInfo> geneIds = Collections.emptySet();
@@ -285,7 +274,8 @@ public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContex
         for (GeneFile geneFile : geneFiles) {
             if (!intervalMapCache.containsKey(geneFile)) {
                 intervalMapCache.put(geneFile, featureIndexManager
-                        .loadGenesIntervalMap(Collections.singletonList(geneFile), start, end, chromosome));
+                        .loadGenesIntervalMap(Collections.singletonList(geneFile), 0,
+                                chromosome.getSize(), chromosome));
             }
             NggbIntervalTreeMap<List<Gene>> intervalMap = intervalMapCache.get(geneFile);
 
