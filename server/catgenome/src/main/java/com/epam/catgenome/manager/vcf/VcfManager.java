@@ -761,7 +761,8 @@ public class VcfManager {
         final String fileName = FilenameUtils.getName(request.getPath());
 
         vcfFile.setCompressed((resourceType == BiologicalDataItemResourceType.FILE
-                || resourceType == BiologicalDataItemResourceType.S3) && IOHelper.isGZIPFile(fileName));
+                || resourceType == BiologicalDataItemResourceType.S3
+                || resourceType == BiologicalDataItemResourceType.AZ) && IOHelper.isGZIPFile(fileName));
         vcfFile.setName(request.getName() != null ? request.getName() : fileName);
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setId(vcfFileManager.createVcfFileId());
