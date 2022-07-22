@@ -78,13 +78,13 @@ public class DataItemSecurityService {
         return dataItemManager.getFormats();
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_ADMIN)
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
                                                final Boolean source) throws IOException {
         return dataItemManager.loadItemFile(biologicalDataItem, source);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_ADMIN)
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long generateDownloadUrl,
                                                              final BiologicalDataItem biologicalDataItem) {
         return dataItemManager.generateDownloadUrl(generateDownloadUrl, biologicalDataItem);
