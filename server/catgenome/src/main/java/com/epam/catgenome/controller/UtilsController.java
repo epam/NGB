@@ -172,6 +172,20 @@ public class UtilsController extends AbstractRESTController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/urls/allowed", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Checks if url file browsing is allowed",
+            notes = "Returns true if url file browsing is allowed and false if not",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> isUrlsBrowsingAllowed()
+            throws IOException {
+        return Result.success(fileManager.isUrlsBrowsingAllowed());
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/generateShortUrl", method = RequestMethod.POST)
     @ApiOperation(
             value = "Generates short URL postfix",

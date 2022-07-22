@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager;
 
+import static com.epam.catgenome.component.MessageCode.URL_FILE_BROWSING_NOT_ALLOWED;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
 import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
@@ -305,6 +306,9 @@ public class FileManager {
     @Value("#{catgenome['file.browsing.allowed'] ?: false}")
     private boolean filesBrowsingAllowed;
 
+    @Value("#{catgenome['url.browsing.allowed'] ?: false}")
+    private boolean urlsBrowsingAllowed;
+
     /**
      * {@code String} specifies the path string to directory with default track configurations.
      */
@@ -331,6 +335,15 @@ public class FileManager {
     }
 
     /**
+     * Checks if url files browsing is allowed
+     *
+     * @return true if url files browsing is allowed
+     */
+    public boolean isUrlsBrowsingAllowed() {
+        return urlsBrowsingAllowed;
+    }
+
+    /**
      * Returns a reference on a catalogue that should be used to handle any temporary resources,
      * e.g. to handle file uploads
      *
@@ -338,6 +351,12 @@ public class FileManager {
      */
     public File getTempDir() {
         return new File(toRealPath(TMP_DIR.getPath()));
+    }
+
+    public void checkIfUrlBrowsingAllowed() throws AccessDeniedException {
+        if (!isUrlsBrowsingAllowed()) {
+            throw new AccessDeniedException(getMessage(URL_FILE_BROWSING_NOT_ALLOWED));
+        }
     }
 
     /**
