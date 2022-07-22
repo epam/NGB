@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import static java.util.Collections.*;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 
@@ -179,7 +180,7 @@ public class VcfController extends AbstractRESTController {
     public Result<Variation> loadVariation(@RequestBody final VariationQuery query,
                                            @RequestParam(required = false) final String fileUrl,
                                            @RequestParam(required = false) final String indexUrl)
-        throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
         if (fileUrl == null) {
             return Result.success(vcfSecurityService.loadVariation(query));
         } else {
@@ -198,14 +199,14 @@ public class VcfController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Variation> jumpToNextGene(@RequestParam int fromPosition,
-                                        @PathVariable(value = "chromosomeId") long chromosomeId,
-                                        @RequestParam(required = false) Long trackId,
-                                        @RequestParam(required = false) Long sampleId,
-                                        @RequestParam(required = false) final String fileUrl,
-                                        @RequestParam(required = false) final String indexUrl,
-                                        @RequestParam(required = false) final  Long projectId)
-            throws VcfReadingException {
+    public Result<Variation> jumpToNextGene(@RequestParam final int fromPosition,
+                                            @PathVariable(value = "chromosomeId") final long chromosomeId,
+                                            @RequestParam(required = false) final Long trackId,
+                                            @RequestParam(required = false) final Long sampleId,
+                                            @RequestParam(required = false) final String fileUrl,
+                                            @RequestParam(required = false) final String indexUrl,
+                                            @RequestParam(required = false) final Long projectId)
+            throws VcfReadingException, AccessDeniedException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                                                                             chromosomeId, true, fileUrl,
                                                                             indexUrl, projectId));
@@ -222,14 +223,14 @@ public class VcfController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Variation> jumpToPrevGene(@RequestParam int fromPosition,
-                                        @PathVariable(value = "chromosomeId") long chromosomeId,
-                                        @RequestParam(required = false) Long trackId,
-                                        @RequestParam(required = false) Long sampleId,
-                                        @RequestParam(required = false) final String fileUrl,
-                                        @RequestParam(required = false) final String indexUrl,
-                                        @RequestParam(required = false) final  Long projectId)
-            throws VcfReadingException {
+    public Result<Variation> jumpToPrevGene(@RequestParam final int fromPosition,
+                                            @PathVariable(value = "chromosomeId") final long chromosomeId,
+                                            @RequestParam(required = false) final Long trackId,
+                                            @RequestParam(required = false) final Long sampleId,
+                                            @RequestParam(required = false) final String fileUrl,
+                                            @RequestParam(required = false) final String indexUrl,
+                                            @RequestParam(required = false) final Long projectId)
+            throws VcfReadingException, AccessDeniedException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                 chromosomeId, false, fileUrl, indexUrl, projectId));
     }

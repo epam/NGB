@@ -50,6 +50,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -86,7 +87,7 @@ public class GeneSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public Track<Gene> loadGenes(Track<Gene> geneTrack, boolean collapsed, String fileUrl, String indexUrl)
-            throws GeneReadingException {
+            throws GeneReadingException, AccessDeniedException {
         return geneTrackManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
     }
 
@@ -103,7 +104,7 @@ public class GeneSecurityService {
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<GeneTranscript> loadGenesTranscript(Track<Gene> track, String fileUrl, String indexUrl)
-            throws GeneReadingException {
+            throws GeneReadingException, AccessDeniedException {
         return geneTrackManager.loadGenesTranscript(track, fileUrl, indexUrl);
     }
 

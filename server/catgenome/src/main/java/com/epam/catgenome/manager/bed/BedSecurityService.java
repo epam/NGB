@@ -40,6 +40,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -64,7 +65,7 @@ public class BedSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public Track<BedRecord> loadFeatures(Track<BedRecord> track, String fileUrl, String indexUrl)
-            throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
         return bedManager.loadFeatures(track, fileUrl, indexUrl);
     }
 

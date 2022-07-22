@@ -54,7 +54,9 @@ public enum MessageCode {
 
     ERROR_GENBANK_FILE_READING("error.genbank.file.reading"),
     ERROR_GENE_PRED_FILE_READING("error.genepred.file.reading"),
-    ERROR_NO_QUALIFIERS("error.no.qualifiers");
+    ERROR_NO_QUALIFIERS("error.no.qualifiers"),
+
+    URL_FILE_BROWSING_NOT_ALLOWED("error.url.file.browsing.not.allowed");
 
     private final String code;
 

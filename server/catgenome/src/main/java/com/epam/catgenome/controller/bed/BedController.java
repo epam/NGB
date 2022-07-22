@@ -28,6 +28,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 
 import com.epam.catgenome.manager.bed.BedSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +123,7 @@ public class BedController extends AbstractRESTController {
     public Result<Track<BedRecord>> loadTrack(@RequestBody final TrackQuery trackQuery,
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
-        throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
         final Track<BedRecord> track = convertToTrack(trackQuery);
         if (fileUrl == null) {
             return Result.success(bedSecurityService.loadFeatures(track));

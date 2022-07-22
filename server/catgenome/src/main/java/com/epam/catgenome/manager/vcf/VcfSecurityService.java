@@ -42,6 +42,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -86,7 +87,7 @@ public class VcfSecurityService {
     @PreAuthorize(ROLE_USER)
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo,
-                                           final boolean collapse) throws VcfReadingException {
+                                           final boolean collapse) throws VcfReadingException, AccessDeniedException {
         return vcfManager.loadVariations(track, fileUrl, indexUrl, sampleIndex, loadInfo, collapse);
     }
 
@@ -96,15 +97,16 @@ public class VcfSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Variation loadVariation(VariationQuery query, String fileUrl, String indexUrl)
-            throws FeatureFileReadingException {
+    public Variation loadVariation(final VariationQuery query, final String fileUrl, final String indexUrl)
+            throws FeatureFileReadingException, AccessDeniedException {
         return vcfManager.loadVariation(query, fileUrl, indexUrl);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Variation getNextOrPreviousVariation(int fromPosition, Long trackId, Long sampleId, long chromosomeId,
-                                                boolean loadInfo, String fileUrl, String indexUrl, Long projectId)
-                                                throws VcfReadingException {
+    public Variation getNextOrPreviousVariation(final int fromPosition, final Long trackId, final Long sampleId,
+                                                final long chromosomeId, final boolean loadInfo, final String fileUrl,
+                                                final String indexUrl, final Long projectId)
+            throws VcfReadingException, AccessDeniedException {
         return vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
                                                      loadInfo, fileUrl, indexUrl);
     }

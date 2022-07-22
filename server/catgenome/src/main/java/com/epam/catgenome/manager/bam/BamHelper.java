@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -53,6 +54,7 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import com.epam.catgenome.util.azure.AzureBlobClient;
@@ -139,6 +141,9 @@ public class BamHelper {
 
     @Autowired
     private ReferenceManager referenceManager;
+
+    @Autowired
+    private FileManager fileManager;
 
     /*@Value("#{catgenome['bam.max.reads.count'] ?: 500000}")
     private int maxReadsCount;*/
@@ -255,7 +260,8 @@ public class BamHelper {
      * @return
      */
     public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
-            throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
+        fileManager.checkIfUrlBrowsingAllowed();
         try {
             return Utils.createNonRegisteredFile(BamFile.class, bamUrl, bamIndexUrl, chromosome);
         } catch (InvocationTargetException e) {
