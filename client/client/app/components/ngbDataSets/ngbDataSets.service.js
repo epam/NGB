@@ -300,6 +300,29 @@ export default class ngbDataSetsService {
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
+    selectItems(items: Node[], datasets) {
+        let forceReference = this.projectContext.reference;
+        items.forEach(item => {
+            if (item.isProject) {
+                utilities.expandNodeWithChilds(item);
+                forceReference = utilities.findProjectReference(item);
+                if (forceReference) {
+                    utilities.deSelectAllProjectReferences(datasets);
+                    forceReference.__selected = true;
+                }
+            } else {
+                // we should also select reference:
+                if (item.reference) {
+                    forceReference = item.reference;
+                    item.reference.__selected = true;
+                }
+            }
+        });
+        this.updateTracksState(datasets, forceReference);
+        this.navigateToTracks(datasets, forceReference);
+        this.dispatcher.emitSimpleEvent('dataset:selection:change');
+    }
+
     updateTracksState(datasets, forceReference) {
         for (let i = 0; i < datasets.length; i++) {
             utilities.updateTracksStateFn(datasets[i], forceReference);

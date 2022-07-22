@@ -25,14 +25,15 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 heatmap: null,
                 pathway: null,
                 embedded: null,
-                controls: null
+                controls: null,
+                auth: null
             },
             resolve: {
                 $stateParams: '$stateParams'
             },
             reloadOnSearch: false,
             template: require('./app.tpl.html'),
-            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway'
+            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway?auth'
         });
 
 }

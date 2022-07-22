@@ -1,5 +1,20 @@
 import {Node} from '../../components/ngbDataSets/internal';
 import {stringParseInt} from '../utils/Int';
+import {dataServicesConfiguration} from '../../../dataServices';
+
+const findDataset = (id, source = []) => {
+    const [item] = source.filter(m => m.id === Number(id) || m.name === id);
+    if (item) {
+        return item;
+    }
+    for (let i = 0; i < source.length; i++) {
+        const found = findDataset(id, source[i].nestedProjects);
+        if (found) {
+            return found;
+        }
+    }
+    return undefined;
+};
 
 export default class ngbApiService {
 
@@ -41,30 +56,26 @@ export default class ngbApiService {
         });
     }
 
-    /** returns a Promise */
-    async loadDataSet(id, forceSwitchRef = false) {
+    async _refreshDatasets () {
         let datasets = this.projectContext.datasets;
         if (!datasets || datasets.length === 0) {
             await this.projectContext.refreshDatasets();
             datasets = await this.ngbDataSetsService.getDatasets();
-            const [item] = datasets.filter(m => m.id === id);
-            if (!item) {
-                return Promise.resolve({
-                    isSuccessful: false,
-                    message: `No dataset with id = ${id}`
-                });
-            }
-            return this._select(item, true, datasets, forceSwitchRef);
-        } else {
-            const [item] = datasets.filter(m => m.id === id);
-            if (!item) {
-                return Promise.resolve({
-                    isSuccessful: false,
-                    message: `No dataset with id = ${id}`
-                });
-            }
-            return this._select(item, true, datasets, forceSwitchRef);
         }
+        return datasets;
+    }
+
+    /** returns a Promise */
+    async loadDataSet(id, forceSwitchRef = false) {
+        const datasets = this._refreshDatasets();
+        const result = findDataset(id, datasets);
+        if (!result) {
+            return Promise.resolve({
+                isSuccessful: false,
+                message: `No dataset with id = ${id}`
+            });
+        }
+        return this._select(result, true, datasets, forceSwitchRef);
     }
 
     /** returns a Promise */
@@ -235,7 +246,7 @@ export default class ngbApiService {
     }
 
     /** returns a Promise */
-    async loadTracks(params) {
+    async loadTracks(params, registered = false) {
         const forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
 
         if (!params.tracks || !params.referenceId) {
@@ -270,18 +281,18 @@ export default class ngbApiService {
                 .cancel('Cancel');
 
             return this.$mdDialog.show(confirm)
-                .then(() => this._processTracks(params.tracks, chosenReference))
+                .then(() => this._processTracks(params.tracks, chosenReference, registered))
                 .catch(() => ({
                     isSuccessful: false,
                     message: 'Aborted by user'
                 }));
         } else {
-            return this._processTracks(params.tracks, chosenReference);
+            return this._processTracks(params.tracks, chosenReference, registered);
         }
     }
 
     setToken(token){
-        localStorage.setItem('token', token);
+        dataServicesConfiguration.token = token;
         return {
             isSuccessful: true,
             message: 'Ok'
@@ -305,34 +316,46 @@ export default class ngbApiService {
     }
 
     /** returns a Promise */
-    _processTracks(tracks, chosenReference) {
+    _processTracks(tracks, chosenReference, registered = false) {
         const errors = [];
-
-        const selectedItems = (tracks || []).map(t => {
-            const shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
-
-            if (shouldReturn) {
-                return {
-                    format: this._trackFormat(t),
-                    index: t.index ? t.index : null,
-                    name: this._fileName(t),
-                    path: t.path,
-                    reference: chosenReference,
-                };
-            } else {
-                errors.push(`Index file required for ${t.path}.`);
+        const formatted = [];
+        (tracks || []).forEach(t => {
+            let validationError = `Track info is not full (${JSON.stringify(t)})`;
+            let payload = {
+                local: false,
+                reference: chosenReference,
+                ...t
+            };
+            if (t.bioDataItemId && t.format && t.dataset) {
+                // everything is OK
+                validationError = undefined;
+            } else if (t.name && t.format && t.dataset) {
+                validationError = undefined;
+            } else if (t.path && t.index) {
+                validationError = undefined;
+                payload.local = true;
+                payload.format = this._trackFormat(t);
+                payload.name = this._fileName(t);
+            } else if (t.path && this._trackNeedsIndexFile(t)) {
+                validationError = `Index file required for ${t.path}.`;
+                payload = undefined;
             }
-            return false;
-        }).filter(i => !!i);
-
+            if (validationError) {
+                errors.push(validationError);
+            } else if (payload) {
+                formatted.push(payload);
+            }
+        });
         if (errors.length) {
             return Promise.resolve({
                 isSuccessful: false,
                 message: errors.join(' | ')
             });
         }
-
-        return this._loadTracks(selectedItems);
+        if (registered) {
+            return this._loadDatasetTracks(formatted.filter(o => !o.local));
+        }
+        return this._loadTracks(formatted.filter(o => o.local));
     }
 
     _trackNeedsIndexFile(track) {
@@ -367,6 +390,9 @@ export default class ngbApiService {
     }
 
     _trackFormat(track) {
+        if (track && track.format) {
+            return track.format;
+        }
         const extension = this._fileExtension(track);
         if (extension) {
             switch (extension.toLowerCase()) {
@@ -454,6 +480,41 @@ export default class ngbApiService {
                     }));
             });
         }
+    }
+
+    async _loadDatasetTracks (tracks = []) {
+        const datasets = await this._refreshDatasets();
+        const items = [];
+        tracks.forEach(track => {
+            const {
+                dataset,
+                format = '',
+                name,
+                bioDataItemId
+            } = track;
+            const result = findDataset(dataset, datasets);
+            if (result) {
+                const datasetItems = result._lazyItems || result.items || [];
+                const [item] = datasetItems
+                    .filter(di => (di.format || '').toLowerCase() === format.toLowerCase() &&
+                        (
+                            (name && (di.name || '').toLowerCase() === name.toLowerCase()) ||
+                            (bioDataItemId && Number(di.bioDataItemId) === Number(bioDataItemId))
+                        )
+                    );
+                if (item) {
+                    result.__selected = true;
+                    item.__selected = true;
+                    items.push(result); // it's OK to add the same dataset multiple times
+                    items.push(item);
+                }
+            }
+        });
+        this.ngbDataSetsService.selectItems(items, datasets);
+        return {
+            isSuccessful: true,
+            message: 'Ok'
+        };
     }
 
     async _getAllDataSets() {

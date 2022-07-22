@@ -1,5 +1,6 @@
 import angular from 'angular';
 import baseController from './shared/baseController';
+import {dataServicesConfiguration} from '../dataServices';
 
 export default class ngbAppController extends baseController {
     static get UID() {
@@ -50,6 +51,8 @@ export default class ngbAppController extends baseController {
             apiService,
             appearanceContext
         });
+        const {auth} = this.$stateParams;
+        dataServicesConfiguration.authenticationMode = auth;
 
         this.utilsDataService.checkSessionExpirationBehavior();
 
@@ -119,16 +122,17 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case 'loadTracks': {
-                const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null,
-                    mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
-                if (tracks && mode) {
-                    this.apiService.loadTracks(event.data.params).then((response) => {
+            case 'loadTracks':
+            case 'loadRegisteredTracks': {
+                const registered = event.data.method === 'loadRegisteredTracks';
+                const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null;
+                if (tracks) {
+                    this.apiService.loadTracks(event.data.params, registered).then((response) => {
                         this._apiResponse(response, callerId);
                     });
                 } else {
                     this._apiResponse({
-                        message: `Api error: loadTrack wrong params ${JSON.stringify(event.data.params)}`,
+                        message: `Api error: loadTrack wrong params ${JSON.stringify(event.data.params)}: tracks array is missing`,
                         isSuccessful: false
                     }, callerId);
                 }

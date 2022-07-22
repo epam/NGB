@@ -1,9 +1,55 @@
+import {
+    SessionExpirationBehavior,
+    SessionExpirationBehaviorStorageKey
+} from './utils/session-expiration-behavior';
 import BluebirdPromise from 'bluebird';
 import ngbConstants from '../constants';
-import {SessionExpirationBehavior, SessionExpirationBehaviorStorageKey} from './utils/session-expiration-behavior';
 
 const AUTH_ERROR_CODE = 401;
 const ERROR_CODE_RANGE_START = 400;
+
+class DataServicesConfiguration {
+    _token;
+    _authenticationMode;
+    get authenticationMode () {
+        return this._authenticationMode;
+    }
+    set authenticationMode (auth) {
+        this._authenticationMode = auth || 'default';
+        switch (this._authenticationMode.toLowerCase()) {
+            case 'js_api_token':
+                break;
+            default:
+                this.resolve();
+                break;
+        }
+    }
+    get token () {
+        return this._token;
+    }
+    set token (value) {
+        this._token = value;
+        if (value) {
+            this.resolve();
+        }
+    }
+    constructor() {
+        this._tokenReceivedPromise = new Promise((resolve) => {
+            this._resolve = resolve;
+        });
+    }
+    waitUntilTokenReceived () {
+        return this._tokenReceivedPromise;
+    }
+    resolve () {
+        if (typeof this._resolve === 'function') {
+            this._resolve();
+            this._resolve = undefined;
+        }
+    }
+}
+
+export const dataServicesConfiguration = new DataServicesConfiguration();
 
 /**
  * Data Service class
@@ -146,8 +192,8 @@ export function $http(method, url, data, config) {
     if (arguments.length < 4)
         return $http(arguments[0], arguments[1], undefined, arguments[2]);
 
-    const token = localStorage.getItem('token');
-    return new BluebirdPromise((resolve, reject, onCancel) => {
+    return new BluebirdPromise(async (resolve, reject, onCancel) => {
+        await dataServicesConfiguration.waitUntilTokenReceived();
         const xhr = new XMLHttpRequest();
         if (onCancel instanceof Function)
             onCancel(() => xhr.abort());
@@ -157,8 +203,8 @@ export function $http(method, url, data, config) {
         xhr.addEventListener('abort', reject);
         xhr.responseType = (config && config.customResponseType) || 'json';
         xhr.open(method, url);
-        if (token) {
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        if (dataServicesConfiguration.token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${dataServicesConfiguration.token}`);
         }
         switch (true) {
             case data === undefined:
