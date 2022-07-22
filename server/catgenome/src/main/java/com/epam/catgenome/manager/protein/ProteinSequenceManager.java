@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.protein;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -278,7 +279,8 @@ public class ProteinSequenceManager {
     // If we got MRNA -> we just take featureId form request, or else if we gote GENE feature, we need to choose
     // canonical transcript, for any other types we can't build any aminoacid sequence
     private String resolveFeatureNameForTranslation(final ProteinSequenceConstructRequest request,
-                                                    final Track<Gene> geneTrack) throws GeneReadingException {
+                                                    final Track<Gene> geneTrack)
+            throws GeneReadingException, AccessDeniedException {
         final String transcript;
         if (request.getFeatureType() == FeatureType.GENE) {
             transcript = geneTrackManager.loadGenesTranscript(geneTrack, null, null)

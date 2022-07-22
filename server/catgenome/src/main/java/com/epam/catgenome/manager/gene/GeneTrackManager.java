@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -142,7 +143,8 @@ public class GeneTrackManager {
      * @return {@code Track} a track, filled with {@code Gene} blocks
      */
     public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse, String fileUrl, String indexUrl)
-            throws GeneReadingException {
+            throws GeneReadingException, AccessDeniedException {
+        fileManager.checkIfUrlBrowsingAllowed();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
         GeneFile geneFile;
         try {
@@ -177,7 +179,9 @@ public class GeneTrackManager {
      * @throws GeneReadingException
      */
     public Track<GeneTranscript> loadGenesTranscript(final Track<Gene> track,
-                                                     String fileUrl, String indexUrl) throws GeneReadingException {
+                                                     final String fileUrl,
+                                                     final String indexUrl)
+            throws GeneReadingException, AccessDeniedException {
         final Track<Gene> geneTrack;
         if (fileUrl == null) {
             geneTrack = loadGenes(track, false);

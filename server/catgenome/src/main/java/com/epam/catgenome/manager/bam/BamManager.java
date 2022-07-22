@@ -28,12 +28,17 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.BasePosition;
+import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -85,6 +90,9 @@ public class BamManager {
 
     @Autowired
     private BamFileManager bamFileManager;
+
+    @Autowired
+    private FileManager fileManager;
 
     @Autowired
     private BiologicalDataItemManager biologicalDataItemManager;
@@ -181,6 +189,7 @@ public class BamManager {
     public void sendBamTrackToEmitterFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
                                                        String indexUrl, ResponseBodyEmitter emitter)
             throws IOException {
+        fileManager.checkIfUrlBrowsingAllowed();
         double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;

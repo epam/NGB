@@ -30,6 +30,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -190,7 +191,7 @@ public class VcfController extends AbstractRESTController {
     public Result<Variation> loadVariation(@RequestBody final VariationQuery query,
                                            @RequestParam(required = false) final String fileUrl,
                                            @RequestParam(required = false) final String indexUrl)
-            throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
         if (fileUrl == null) {
             return Result.success(vcfSecurityService.loadVariation(query));
         } else {
@@ -215,7 +216,7 @@ public class VcfController extends AbstractRESTController {
                                             @RequestParam(required = false) final String fileUrl,
                                             @RequestParam(required = false) final String indexUrl,
                                             @RequestParam(required = false) final Long projectId)
-            throws VcfReadingException {
+            throws VcfReadingException, AccessDeniedException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                 chromosomeId, true, fileUrl,
                 indexUrl, projectId));
@@ -238,7 +239,7 @@ public class VcfController extends AbstractRESTController {
                                             @RequestParam(required = false) final String fileUrl,
                                             @RequestParam(required = false) final String indexUrl,
                                             @RequestParam(required = false) final Long projectId)
-            throws VcfReadingException {
+            throws VcfReadingException, AccessDeniedException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                 chromosomeId, false, fileUrl, indexUrl, projectId));
     }

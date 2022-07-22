@@ -32,6 +32,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_INDEX;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -294,7 +295,9 @@ public class VcfManager {
      */
     public Track<Variation> loadVariations(final Track<Variation> track, final String fileUrl, final String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
-        throws VcfReadingException {
+            throws VcfReadingException, AccessDeniedException {
+        fileManager.checkIfUrlBrowsingAllowed();
+
         final double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
@@ -354,7 +357,7 @@ public class VcfManager {
      * @return desired {@code Variation} from VCF file
      */
     public Variation loadVariation(final VariationQuery query, final String fileUrl, final String indexUrl)
-        throws FeatureFileReadingException {
+            throws FeatureFileReadingException, AccessDeniedException {
         // converts query to a simple track corresponded to a single nucleotide position, where a particular
         // variation should be presented
 
@@ -391,7 +394,8 @@ public class VcfManager {
      */
     public Variation getNextOrPreviousVariation(final int fromPosition, final Long vcfFileId, final Long sampleId,
                                                 final long chromosomeId, final boolean forward, final String fileUrl,
-                                                final String indexUrl) throws VcfReadingException {
+                                                final String indexUrl)
+            throws VcfReadingException, AccessDeniedException {
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.isTrue(vcfFileId != null ||
                       (StringUtils.isNotBlank(fileUrl) && StringUtils.isNotBlank(indexUrl)),
@@ -560,7 +564,10 @@ public class VcfManager {
 
     @NotNull
     private VcfFile makeTemporaryVcfFileFromUrl(final String fileUrl, final String indexUrl,
-                                                final Chromosome chromosome) throws VcfReadingException {
+                                                final Chromosome chromosome)
+            throws VcfReadingException, AccessDeniedException {
+        fileManager.checkIfUrlBrowsingAllowed();
+
         try {
             return Utils.createNonRegisteredFile(VcfFile.class, fileUrl, indexUrl, chromosome);
         } catch (InvocationTargetException e) {

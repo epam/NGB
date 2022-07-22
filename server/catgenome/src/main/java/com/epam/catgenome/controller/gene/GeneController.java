@@ -25,6 +25,7 @@
 package com.epam.catgenome.controller.gene;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -165,7 +166,7 @@ public class GeneController extends AbstractRESTController {
     public Result<Track<GeneHighLevel>> loadTrack(@RequestBody final TrackQuery trackQuery,
             @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
             @RequestParam(required = false) final String fileUrl,
-            @RequestParam(required = false) final String indexUrl) throws GeneReadingException {
+            @RequestParam(required = false) final String indexUrl) throws GeneReadingException, AccessDeniedException {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
         boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
 
@@ -215,7 +216,7 @@ public class GeneController extends AbstractRESTController {
     public Result<Track<GeneTranscript>> loadTrackWithTranscript(@RequestBody final TrackQuery trackQuery,
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl)
-        throws GeneReadingException {
+            throws GeneReadingException, AccessDeniedException {
         return Result.success(geneSecurityService.loadGenesTranscript(Query2TrackConverter.convertToTrack(trackQuery),
                 fileUrl, indexUrl));
     }
