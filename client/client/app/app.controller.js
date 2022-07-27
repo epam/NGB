@@ -273,7 +273,7 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot, embedded, controls} = this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot, embedded, controls, panels, hideMenu} = this.$stateParams;
         if (embedded) {
             this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
         } else if (controls) {
@@ -318,6 +318,22 @@ export default class ngbAppController extends baseController {
         if (screenshot) {
             const screenShotVisibility = this.dictionaryState.on.toLowerCase() === screenshot.toLowerCase();
             this.projectContext.screenShotVisibility = screenShotVisibility;
+        }
+        if (panels) {
+            try {
+                const panelsArray = JSON.parse(panels);
+                if (Array.isArray(panelsArray)) {
+                    this.appearanceContext.initialPanels = panelsArray.map(panel => panel.toLowerCase());
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.warn(`Error parsing "panels" attribute: ${e.message}`);
+            }
+        }
+        if (hideMenu !== undefined) {
+            const menuHidden = `${hideMenu}`.toLowerCase() === 'true' ||
+                this.dictionaryState.on.toLowerCase() === `${hideMenu}`.toLowerCase();
+            this.projectContext.toolbarVisibility = !menuHidden;
         }
     }
 
