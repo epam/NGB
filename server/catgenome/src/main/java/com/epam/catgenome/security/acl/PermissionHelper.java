@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2018-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -163,6 +163,24 @@ public class PermissionHelper {
                 .hasPermission(SecurityContextHolder.getContext().getAuthentication(),
                         bioItem,
                         permissionName);
+    }
+
+    public boolean isDownloadBioDataItemAllowed(final Long bioItemId) {
+        if (isAdmin(getSids())){
+            return true;
+        }
+        final BiologicalDataItem bioItem = dataItemManager.findFileByBioItemId(bioItemId);
+        if (1 == bioItem.getFormat().getId() || isOwner(bioItem) || isAnnotation(bioItemId)) {
+            return true;
+        }
+        return permissionEvaluator
+                .hasPermission(SecurityContextHolder.getContext().getAuthentication(),
+                        bioItem,
+                        READ);
+    }
+
+    public boolean isAnnotation(final Long id) {
+        return CollectionUtils.isNotEmpty(referenceGenomeManager.loadReferenceIdsByAnnotationFileId(id));
     }
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {

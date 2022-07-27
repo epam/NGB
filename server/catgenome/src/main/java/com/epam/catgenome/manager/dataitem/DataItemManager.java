@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.dataitem;
 
+import static com.epam.catgenome.component.MessageCode.FILES_DOWNLOAD_NOT_ALLOWED;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOUND;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_NAME_NOT_FOUND;
@@ -32,6 +33,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_NAME_EXIS
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -103,6 +105,9 @@ public class DataItemManager {
 
     @Value("${base.external.url:}")
     private String baseExternalUrl;
+
+    @Value("#{catgenome['file.download.allowed'] ?: false}")
+    private boolean fileDownloadAllowed;
 
     /**
      * Method finds all files registered in the system by an input search query
@@ -213,6 +218,9 @@ public class DataItemManager {
 
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
                                                final Boolean source) throws IOException {
+        if (!isFileDownloadAllowed()) {
+            throw new AccessDeniedException(getMessage(FILES_DOWNLOAD_NOT_ALLOWED));
+        }
         final String dataItemPath = source ? biologicalDataItem.getSource() : biologicalDataItem.getPath();
         if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
             return loadLocalFileItem(biologicalDataItem, dataItemPath);
@@ -221,7 +229,11 @@ public class DataItemManager {
     }
 
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
-                                                             final BiologicalDataItem biologicalDataItem) {
+                                                             final BiologicalDataItem biologicalDataItem)
+            throws AccessDeniedException {
+        if (!isFileDownloadAllowed()) {
+            throw new AccessDeniedException(getMessage(FILES_DOWNLOAD_NOT_ALLOWED));
+        }
         final BiologicalDataItemResourceType type = determineType(biologicalDataItem);
         switch (type) {
             case FILE:
@@ -234,6 +246,10 @@ public class DataItemManager {
                 throw new UnsupportedOperationException(String.format(
                         "Cannot generate download url for data type '%s'", biologicalDataItem.getType()));
         }
+    }
+
+    public boolean isFileDownloadAllowed() {
+        return fileDownloadAllowed;
     }
 
     private BiologicalDataItemResourceType determineType(final BiologicalDataItem biologicalDataItem) {

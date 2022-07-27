@@ -2,7 +2,7 @@
  *
  *  * MIT License
  *  *
- *  * Copyright (c) 2018 EPAM Systems
+ *  * Copyright (c) 2018-2022 EPAM Systems
  *  *
  *  * Permission is hereby granted, free of charge, to any person obtaining a copy
  *  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -83,15 +84,15 @@ public class DataItemSecurityService {
         return dataItemManager.getFormats();
     }
 
-    @PreAuthorize(ROLE_USER)
-    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
-                                               final Boolean source) throws IOException {
+    @PreAuthorize("isDownloadAllowedByBioItemId(#id)")
+    public BiologicalDataItemFile loadItemFile(final Long id, final Boolean source) throws IOException {
+        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
         return dataItemManager.loadItemFile(biologicalDataItem, source);
     }
 
-    @PreAuthorize(ROLE_USER)
-    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long generateDownloadUrl,
-                                                             final BiologicalDataItem biologicalDataItem) {
-        return dataItemManager.generateDownloadUrl(generateDownloadUrl, biologicalDataItem);
+    @PreAuthorize("isDownloadAllowedByBioItemId(#id)")
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id) throws AccessDeniedException {
+        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
+        return dataItemManager.generateDownloadUrl(id, biologicalDataItem);
     }
 }
