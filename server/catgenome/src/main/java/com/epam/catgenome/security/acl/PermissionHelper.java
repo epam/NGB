@@ -73,6 +73,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -165,8 +166,16 @@ public class PermissionHelper {
                         permissionName);
     }
 
-    public boolean isDownloadBioDataItemAllowed(final Long bioItemId) {
+    public boolean isDownloadFileAllowed(final Long bioItemId, final Long projectId) {
         if (isAdmin(getSids())){
+            return true;
+        }
+        final Project project = projectManager.load(projectId);
+        final boolean projectContainsItem = project.getItems().stream()
+                .map(i -> BiologicalDataItem.getBioDataItemId(i.getBioDataItem()))
+                .collect(Collectors.toSet())
+                .contains(bioItemId);
+        if (projectContainsItem && (isAllowed(READ, project) || isOwner(project))) {
             return true;
         }
         final BiologicalDataItem bioItem = dataItemManager.findFileByBioItemId(bioItemId);

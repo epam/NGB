@@ -84,15 +84,17 @@ public class DataItemSecurityService {
         return dataItemManager.getFormats();
     }
 
-    @PreAuthorize("isDownloadAllowedByBioItemId(#id)")
-    public BiologicalDataItemFile loadItemFile(final Long id, final Boolean source) throws IOException {
+    @PreAuthorize("isDownloadFileAllowed(#id, #projectId)")
+    public BiologicalDataItemFile loadItemFile(final Long id, final Long projectId, final Boolean source)
+            throws IOException {
         final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
         return dataItemManager.loadItemFile(biologicalDataItem, source);
     }
 
-    @PreAuthorize("isDownloadAllowedByBioItemId(#id)")
-    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id) throws AccessDeniedException {
+    @PreAuthorize("isDownloadFileAllowed(#id, #projectId)")
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id, final Long projectId)
+            throws AccessDeniedException {
         final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
-        return dataItemManager.generateDownloadUrl(id, biologicalDataItem);
+        return dataItemManager.generateDownloadUrl(id, projectId, biologicalDataItem);
     }
 }

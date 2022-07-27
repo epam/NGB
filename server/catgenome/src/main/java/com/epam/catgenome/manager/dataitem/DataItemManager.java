@@ -74,7 +74,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
  */
 @Service
 public class DataItemManager {
-    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download";
+    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download/%d";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -229,6 +229,7 @@ public class DataItemManager {
     }
 
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
+                                                             final Long projectId,
                                                              final BiologicalDataItem biologicalDataItem)
             throws AccessDeniedException {
         if (!isFileDownloadAllowed()) {
@@ -237,7 +238,7 @@ public class DataItemManager {
         final BiologicalDataItemResourceType type = determineType(biologicalDataItem);
         switch (type) {
             case FILE:
-                return generateDownloadUrlForLocalFile(id, biologicalDataItem);
+                return generateDownloadUrlForLocalFile(id, projectId, biologicalDataItem);
             case S3:
                 return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getSource());
             case AZ:
@@ -263,6 +264,7 @@ public class DataItemManager {
     }
 
     private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
+                                                                          final Long projectId,
                                                                           final BiologicalDataItem biologicalDataItem) {
         final Path dataItemPath = Paths.get(biologicalDataItem.getSource());
         try {
@@ -270,7 +272,7 @@ public class DataItemManager {
                     getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
             return BiologicalDataItemDownloadUrl.builder()
                     .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
-                            StringUtils.removeEnd(baseExternalUrl, "/"), id))
+                            StringUtils.removeEnd(baseExternalUrl, "/"), id, projectId))
                     .type(BiologicalDataItemResourceType.FILE)
                     .size(Files.size(dataItemPath))
                     .build();

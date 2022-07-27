@@ -148,21 +148,22 @@ public class DataItemController extends AbstractRESTController {
         return Result.success(null);
     }
 
-    @GetMapping("/{id}/download")
+    @GetMapping("/{id}/download/{projectId}")
     @ApiOperation(
             value = "Downloads a file specified by biological item id",
             notes = "Downloads a file specified by biological item id",
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadFileByBiologicalItemId(
             @PathVariable(value = "id") final Long id,
+            @PathVariable(value = "projectId") final Long projectId,
             @RequestParam(value = "source", defaultValue = "true") final Boolean source,
             final HttpServletResponse response) throws IOException {
-        final BiologicalDataItemFile biologicalDataItemFile = dataItemSecurityService.loadItemFile(id, source);
-        writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
+        final BiologicalDataItemFile itemFile = dataItemSecurityService.loadItemFile(id, projectId, source);
+        writeStreamToResponse(response, itemFile.getContent(), itemFile.getFileName());
     }
 
     @ResponseBody
-    @GetMapping("/{id}/downloadUrl")
+    @GetMapping("/{id}/downloadUrl/{projectId}")
     @ApiOperation(
             value = "Generates download url for file specified by biological item id",
             notes = "Generates download url for file specified by biological item id",
@@ -170,9 +171,11 @@ public class DataItemController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id)
+    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(
+            @PathVariable(value = "id") final Long id,
+            @PathVariable(value = "projectId") final Long projectId)
             throws AccessDeniedException {
-        return Result.success(dataItemSecurityService.generateDownloadUrl(id));
+        return Result.success(dataItemSecurityService.generateDownloadUrl(id, projectId));
     }
 
     @ResponseBody
