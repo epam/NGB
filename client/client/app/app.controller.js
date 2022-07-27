@@ -273,7 +273,7 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot, embedded, controls} = this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot, embedded, controls, panels, hideLeftMenu} = this.$stateParams;
         if (embedded) {
             this.appearanceContext.embedded = this.dictionaryState.on.toLowerCase() === embedded.toLowerCase();
         } else if (controls) {
@@ -318,6 +318,15 @@ export default class ngbAppController extends baseController {
         if (screenshot) {
             const screenShotVisibility = this.dictionaryState.on.toLowerCase() === screenshot.toLowerCase();
             this.projectContext.screenShotVisibility = screenShotVisibility;
+        }
+        if (panels) {
+            const panelsArray = JSON.parse(panels);
+            if (Array.isArray(panelsArray)) {
+                this.projectContext.panelsParameters = panelsArray.map(panel => panel.toLowerCase());
+            }
+        }
+        if (hideLeftMenu) {
+            this.projectContext.toolbarVisibility = !JSON.parse(hideLeftMenu);
         }
     }
 

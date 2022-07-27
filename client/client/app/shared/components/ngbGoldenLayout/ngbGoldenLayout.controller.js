@@ -214,6 +214,28 @@ export default class ngbGoldenLayoutController extends baseController {
         if (this.goldenLayout.isSubWindow) {
             this._createCommunicationBetweenWindows();
         }
+
+        if (this.projectContext.panelsParameters) {
+            this.setPanelsFromParams();
+        }
+    }
+
+    setPanelsFromParams() {
+        const panelsParameters = this.projectContext.panelsParameters;
+        for (const key in this.appLayout.Panels) {
+            if (this.appLayout.Panels.hasOwnProperty(key)) {
+                const panelObject = this.appLayout.Panels[key];
+                const [panelItem] = this.goldenLayout.root
+                    .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                        && obj.config.componentState.panel === panelObject.panel);
+                if (panelsParameters.includes(key.toLowerCase()) && !panelItem) {
+                    this.panelAdd(panelObject);
+                }
+                if (!panelsParameters.includes(key.toLowerCase()) && panelItem) {
+                    this.panelRemove(panelObject);
+                }
+            }
+        }
     }
 
     handleKeyPressed(event) {
