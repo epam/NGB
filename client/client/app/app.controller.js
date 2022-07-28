@@ -320,13 +320,20 @@ export default class ngbAppController extends baseController {
             this.projectContext.screenShotVisibility = screenShotVisibility;
         }
         if (panels) {
-            const panelsArray = JSON.parse(panels);
-            if (Array.isArray(panelsArray)) {
-                this.appearanceContext.initialPanels = panelsArray.map(panel => panel.toLowerCase());
+            try {
+                const panelsArray = JSON.parse(panels);
+                if (Array.isArray(panelsArray)) {
+                    this.appearanceContext.initialPanels = panelsArray.map(panel => panel.toLowerCase());
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.warn(`Error parsing "panels" attribute: ${e.message}`);
             }
         }
-        if (hideMenu) {
-            this.projectContext.toolbarVisibility = !JSON.parse(hideMenu);
+        if (hideMenu !== undefined) {
+            const menuHidden = `${hideMenu}`.toLowerCase() === 'true' ||
+                this.dictionaryState.on.toLowerCase() === `${hideMenu}`.toLowerCase();
+            this.projectContext.toolbarVisibility = !menuHidden;
         }
     }
 
