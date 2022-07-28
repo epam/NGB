@@ -28,13 +28,13 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 controls: null,
                 auth: null,
                 panels: null,
-                hideLeftMenu: null
+                hideMenu: null
             },
             resolve: {
                 $stateParams: '$stateParams'
             },
             reloadOnSearch: false,
             template: require('./app.tpl.html'),
-            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway&auth&panels&hideLeftMenu'
+            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway&auth&panels&hideMenu'
         });
 }
