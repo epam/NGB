@@ -63,7 +63,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Controller
 @Api(value = "DATAITEM", description = "Data Item Management")
-@RequestMapping(value = "/dataitem")
 public class DataItemController extends AbstractRESTController {
 
     @Autowired
@@ -73,7 +72,7 @@ public class DataItemController extends AbstractRESTController {
     private DataItemManager dataItemManager;
 
     @ResponseBody
-    @GetMapping(value = "/search")
+    @GetMapping(value = "/dataitem/search")
     @ApiOperation(
             value = "Finds all files registered on the server by a specified file name",
             notes = "Finds all files registered on the server by a specified file name</br>" +
@@ -91,7 +90,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/formats")
+    @GetMapping(value = "/dataitem/formats")
     @ApiOperation(
             value = "Get all available bed formats.",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -103,7 +102,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @DeleteMapping(value = "/delete")
+    @DeleteMapping(value = "/dataitem/delete")
     @ApiOperation(
             value = "Deletes a file, specified by biological item id from the database",
             notes = "Deletes a file, specified by biological item id from the database",
@@ -118,7 +117,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/find")
+    @GetMapping(value = "/dataitem/find")
     @ApiOperation(
             value = "Finds a file, specified by biological item id from the database",
             notes = "Finds a file, specified by biological item id from the database",
@@ -132,7 +131,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @PutMapping(value = "/rename")
+    @PutMapping(value = "/dataitem/rename")
     @ApiOperation(
             value = "Updates file name and/or pretty name.",
             notes = "Updates file name and/or pretty name.",
@@ -148,7 +147,7 @@ public class DataItemController extends AbstractRESTController {
         return Result.success(null);
     }
 
-    @GetMapping("/{id}/download/{projectId}")
+    @GetMapping("/dataitem/{id}/download/{projectId}")
     @ApiOperation(
             value = "Downloads a file specified by biological item id",
             notes = "Downloads a file specified by biological item id",
@@ -163,7 +162,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @GetMapping("/{id}/downloadUrl/{projectId}")
+    @GetMapping("/dataitem/{id}/downloadUrl/{projectId}")
     @ApiOperation(
             value = "Generates download url for file specified by biological item id",
             notes = "Generates download url for file specified by biological item id",
@@ -179,7 +178,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/download/allowed")
+    @GetMapping(value = "/dataitem/download/allowed")
     @ApiOperation(
             value = "Checks if files download is allowed",
             notes = "Returns true if files download is allowed and false if not",
