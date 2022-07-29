@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2022 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.dataitem;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Controller
 @Api(value = "DATAITEM", description = "Data Item Management")
+@RequestMapping(value = "/dataitem")
 public class DataItemController extends AbstractRESTController {
 
     @Autowired
@@ -71,7 +73,7 @@ public class DataItemController extends AbstractRESTController {
     private DataItemManager dataItemManager;
 
     @ResponseBody
-    @RequestMapping(value = "/dataitem/search", method = RequestMethod.GET)
+    @GetMapping(value = "/search")
     @ApiOperation(
             value = "Finds all files registered on the server by a specified file name",
             notes = "Finds all files registered on the server by a specified file name</br>" +
@@ -89,7 +91,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/dataitem/formats", method = RequestMethod.GET)
+    @GetMapping(value = "/formats")
     @ApiOperation(
             value = "Get all available bed formats.",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -101,7 +103,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/dataitem/delete", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/delete")
     @ApiOperation(
             value = "Deletes a file, specified by biological item id from the database",
             notes = "Deletes a file, specified by biological item id from the database",
@@ -116,7 +118,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/dataitem/find", method = RequestMethod.GET)
+    @GetMapping(value = "/find")
     @ApiOperation(
             value = "Finds a file, specified by biological item id from the database",
             notes = "Finds a file, specified by biological item id from the database",
@@ -130,7 +132,7 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @PutMapping(value = "/dataitem/rename")
+    @PutMapping(value = "/rename")
     @ApiOperation(
             value = "Updates file name and/or pretty name.",
             notes = "Updates file name and/or pretty name.",
@@ -146,23 +148,22 @@ public class DataItemController extends AbstractRESTController {
         return Result.success(null);
     }
 
-    @GetMapping("/dataitem/{id}/download")
+    @GetMapping("/{id}/download/{projectId}")
     @ApiOperation(
             value = "Downloads a file specified by biological item id",
             notes = "Downloads a file specified by biological item id",
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadFileByBiologicalItemId(
             @PathVariable(value = "id") final Long id,
+            @PathVariable(value = "projectId") final Long projectId,
             @RequestParam(value = "source", defaultValue = "true") final Boolean source,
             final HttpServletResponse response) throws IOException {
-        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
-        final BiologicalDataItemFile biologicalDataItemFile =
-                dataItemSecurityService.loadItemFile(biologicalDataItem, source);
-        writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
+        final BiologicalDataItemFile itemFile = dataItemSecurityService.loadItemFile(id, projectId, source);
+        writeStreamToResponse(response, itemFile.getContent(), itemFile.getFileName());
     }
 
     @ResponseBody
-    @GetMapping("/dataitem/{id}/downloadUrl")
+    @GetMapping("/{id}/downloadUrl/{projectId}")
     @ApiOperation(
             value = "Generates download url for file specified by biological item id",
             notes = "Generates download url for file specified by biological item id",
@@ -170,8 +171,23 @@ public class DataItemController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id) {
-        final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
-        return Result.success(dataItemSecurityService.generateDownloadUrl(id, biologicalDataItem));
+    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(
+            @PathVariable(value = "id") final Long id,
+            @PathVariable(value = "projectId") final Long projectId)
+            throws AccessDeniedException {
+        return Result.success(dataItemSecurityService.generateDownloadUrl(id, projectId));
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/download/allowed")
+    @ApiOperation(
+            value = "Checks if files download is allowed",
+            notes = "Returns true if files download is allowed and false if not",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> isFileDownloadAllowed() {
+        return Result.success(dataItemManager.isFileDownloadAllowed());
     }
 }
