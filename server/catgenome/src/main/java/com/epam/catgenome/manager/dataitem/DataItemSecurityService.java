@@ -63,12 +63,13 @@ public class DataItemSecurityService {
         return dataItemManager.findFilesByName(name, strict);
     }
 
-    @PreAuthorize("isAllowed(#id, 'WRITE')")
+    @PreAuthorize(ROLE_ADMIN + OR + "isAllowed(#id, 'WRITE')")
     public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
         return dataItemManager.deleteFileByBioItemId(id);
     }
 
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
+    //TODO: fix to @PreAuthorize
+    @PostAuthorize(ROLE_ADMIN + OR + "isAllowed(returnObject, 'WRITE')")
     public void renameFile(final String name, final String newName, final String newPrettyName) {
         dataItemManager.renameFile(name, newName, newPrettyName);
     }
