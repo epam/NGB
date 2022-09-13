@@ -4,7 +4,7 @@ branches:
   only:
     - develop
     - /release\/.*/
-    - appv*
+    - appv_py39
 
 skip_tags: true
 max_jobs: 1
