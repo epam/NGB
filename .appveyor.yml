@@ -8,7 +8,7 @@ branches:
 
 skip_tags: true
 max_jobs: 1
-image: Ubuntu1604
+image: Previous Ubuntu1604
 stack: jdk 8, python 3.9.13
 
 build_script:
