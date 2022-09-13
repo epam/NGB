@@ -4,6 +4,7 @@ branches:
   only:
     - develop
     - /release\/.*/
+    - appv*
 
 skip_tags: true
 max_jobs: 1
