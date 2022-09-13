@@ -308,7 +308,7 @@ export default class ngbDataSetsService {
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
-    selectItems(items: Node[], datasets) {
+    selectItems(items: Node[], datasets, callback) {
         let forceReference = this.projectContext.reference;
         items.forEach(item => {
             if (item.isProject) {
@@ -327,7 +327,7 @@ export default class ngbDataSetsService {
             }
         });
         this.updateTracksState(datasets, forceReference);
-        this.navigateToTracks(datasets, forceReference);
+        this.navigateToTracks(datasets, forceReference, callback);
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
@@ -340,7 +340,7 @@ export default class ngbDataSetsService {
         }
     }
 
-    navigateToTracks(datasets, forceReference) {
+    navigateToTracks(datasets, forceReference, callback) {
         const {tracks} = this.getSelectedTracks(datasets, forceReference);
         const currentTracks = (this.projectContext.tracks || []).slice();
         this.__lockStatesUpdate = true;
@@ -413,9 +413,9 @@ export default class ngbDataSetsService {
                 tracks: newTracks,
                 tracksState: newTracksState,
                 shouldAddAnnotationTracks
-            });
+            }, false, callback);
         } else {
-            this.projectContext.changeState({reference: null, tracks: null, tracksState: null});
+            this.projectContext.changeState({reference: null, tracks: null, tracksState: null}, false, callback);
         }
         this.__lockStatesUpdate = false;
     }

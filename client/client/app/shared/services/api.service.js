@@ -510,7 +510,10 @@ export default class ngbApiService {
                 }
             }
         });
-        this.ngbDataSetsService.selectItems(items, datasets);
+        const awaitSelectItems = () => new Promise((resolve) => {
+            this.ngbDataSetsService.selectItems(items, datasets, resolve);
+        });
+        await awaitSelectItems();
         return {
             isSuccessful: true,
             message: 'Ok'
