@@ -45,6 +45,8 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
+import static htsjdk.samtools.SAMRecord.NULL_SEQUENCE_STRING;
+
 
 /**
  * Implementation for {@code SAMRecord} handling and getting data for a {@code BAMTrack}.
@@ -137,8 +139,9 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         if (BamUtil.validateReadParams(flags, cigarList, end, start)) {
             coverageAdd(start, end, coverageArray, true);
             final String readString = record.getReadString();
+            boolean hasBases = !readString.equals(NULL_SEQUENCE_STRING);
 
-            if (showClipping) {
+            if (hasBases && showClipping) {
                 final CigarElement first = cigarList.get(0);
                 final CigarElement last = cigarList.get(cigarList.size() - 1);
 
@@ -158,9 +161,12 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
                 refreshTailReferenceBuffer(end);
             }
 
-            List<BasePosition> differentBase = computeDifferentBase(readString,
-                    referenceBuffer != null ? referenceBuffer.getBuffer() : null, start, min, cigarList, showClipping,
-                    record);
+            List<BasePosition> differentBase = Collections.emptyList();
+            if (hasBases) {
+                differentBase = computeDifferentBase(readString,
+                        referenceBuffer != null ? referenceBuffer.getBuffer() : null, start, min, cigarList, showClipping,
+                        record);
+            }
 
             filter.add(record, start, end, mode == BamTrackMode.FULL ? differentBase : null, head, tail);
         }
