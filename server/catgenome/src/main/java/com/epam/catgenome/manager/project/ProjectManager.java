@@ -47,7 +47,6 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.seg.SegFileDao;
 import com.epam.catgenome.dao.vcf.VcfFileDao;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -483,20 +482,6 @@ public class ProjectManager implements SecuredEntityManager {
     public void hideProjectItem(long projectId, long biologicalItemId) {
         Boolean isHidden = projectDao.isProjectItemHidden(projectId, biologicalItemId);
         projectDao.hideProjectItem(projectId, biologicalItemId, !isHidden);
-    }
-
-    private void countProjectItem(ProjectItem projectItem, List<ProjectItem> referenceItems,
-                                  Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
-        BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
-        if (format == BiologicalDataItemFormat.REFERENCE) {
-            referenceItems.add(projectItem);
-        } else {
-            if (!itemsCountPerFormat.containsKey(format)) {
-                itemsCountPerFormat.put(format, 1);
-            } else {
-                itemsCountPerFormat.put(format, itemsCountPerFormat.get(format) + 1);
-            }
-        }
     }
 
     private void deleteProjectWithNested(Project projectToDelete) throws IOException {

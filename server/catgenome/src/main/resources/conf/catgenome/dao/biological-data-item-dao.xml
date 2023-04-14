@@ -121,12 +121,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
                     WHERE b.bio_data_item_id IN @in@
                 ]]>
             </value>
@@ -220,13 +215,7 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
-                    WHERE b.name = :NAME
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
                 ]]>
             </value>
         </property>
@@ -312,13 +301,8 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
-                    WHERE b.name IN @in@
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
+                    WHERE b.name = :NAME
                 ]]>
             </value>
         </property>
@@ -404,13 +388,8 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
-                    WHERE LOWER(b.name) = :NAME
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
+                    WHERE b.name IN @in@
                 ]]>
             </value>
         </property>
@@ -496,13 +475,8 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
-                    WHERE LOWER(b.name) LIKE :NAME
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
+                    WHERE LOWER(b.name) = :NAME
                 ]]>
             </value>
         </property>
@@ -588,12 +562,8 @@
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.biological_data_item i ON
-                                i.bio_data_item_id = m.index_id
-                                OR i.bio_data_item_id = g.index_id
-                                OR i.bio_data_item_id = v.index_id
-                                OR i.bio_data_item_id = bd.index_id
-                                OR i.bio_data_item_id = s.index_id
-                                OR i.bio_data_item_id = r.index_id
+                                i.bio_data_item_id = COALESCE(m.index_id, g.index_id, v.index_id, bd.index_id, s.index_id, r.index_id)
+                    WHERE LOWER(b.name) LIKE :NAME
                 ]]>
             </value>
         </property>

@@ -61,6 +61,8 @@ import com.epam.catgenome.manager.gene.GeneFileManager;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
     private static final String TEST_OWNER = "TEST_USER";
+    public static final String TEST_GENE_FILE_NAME = "testGeneFile";
+    public static final String TEST_GENE_FILE_NAME_2 = "testGeneFile2";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -101,7 +103,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         biologicalDataItemDao.createBiologicalDataItem(item);
 
         Reference reference = createTestReference(item);
-        GeneFile geneFile = createTestGeneFile(reference);
+        GeneFile geneFile = createTestGeneFile(reference, TEST_GENE_FILE_NAME);
         referenceGenomeDao.updateReferenceGeneFileId(reference.getId(), geneFile.getId());
 
         List<BiologicalDataItem> loadedItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(Collections
@@ -133,7 +135,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         biologicalDataItemDao.createBiologicalDataItem(item);
 
         Reference reference = createTestReference(item);
-        GeneFile geneFile = createTestGeneFile(reference);
+        GeneFile geneFile = createTestGeneFile(reference, TEST_GENE_FILE_NAME);
         referenceGenomeDao.updateReferenceGeneFileId(reference.getId(), geneFile.getId());
 
         List<BiologicalDataItem> loadedItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NAME);
@@ -166,7 +168,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         biologicalDataItemDao.createBiologicalDataItem(item);
 
         Reference reference = createTestReference(item);
-        GeneFile geneFile = createTestGeneFile(reference);
+        GeneFile geneFile = createTestGeneFile(reference, TEST_GENE_FILE_NAME);
         referenceGenomeDao.updateReferenceGeneFileId(reference.getId(), geneFile.getId());
 
         for (final String match : MATCHING_NAMES) {
@@ -180,11 +182,66 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         }
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testSearchNotStrictProperLoadAllFields() {
+        BiologicalDataItem item = new BiologicalDataItem();
+        item.setName(TEST_NAME);
+        item.setPath(TEST_PATH);
+        item.setFormat(BiologicalDataItemFormat.REFERENCE);
+        item.setType(BiologicalDataItemResourceType.FILE);
+        item.setCreatedDate(new Date());
+        item.setOwner(TEST_OWNER);
+
+        biologicalDataItemDao.createBiologicalDataItem(item);
+
+        Reference reference = createTestReference(item);
+        GeneFile geneFile = createTestGeneFile(reference, TEST_GENE_FILE_NAME);
+        GeneFile geneFile2 = createTestGeneFile(reference, TEST_GENE_FILE_NAME_2);
+
+        List<BiologicalDataItem> loadedItems = biologicalDataItemDao.loadFilesByName(TEST_GENE_FILE_NAME);
+        Assert.assertFalse(loadedItems.isEmpty());
+        Assert.assertEquals(2, loadedItems.size());
+
+        final GeneFile foundGeneFile = loadedItems.stream()
+                .filter(bdi -> bdi.getName().equals(TEST_GENE_FILE_NAME)).findFirst()
+                .map(bdi -> (GeneFile) bdi)
+                .orElseThrow(IllegalStateException::new);
+        compareTwoBioDataItems(geneFile, foundGeneFile, () -> compareTwoGeneFiles(geneFile, foundGeneFile));
+
+        final GeneFile foundGeneFile2 = loadedItems.stream()
+                .filter(bdi -> bdi.getName().equals(TEST_GENE_FILE_NAME_2)).findFirst()
+                .map(bdi -> (GeneFile) bdi)
+                .orElseThrow(IllegalStateException::new);
+        compareTwoBioDataItems(geneFile2, foundGeneFile2, () -> compareTwoGeneFiles(geneFile2, foundGeneFile2));
+    }
+
+    private void compareTwoBioDataItems(final BiologicalDataItem expected, final BiologicalDataItem actual,
+                                        final Runnable additionalCheck) {
+        Assert.assertEquals(expected.getId(), actual.getId());
+        Assert.assertEquals(expected.getPath(), actual.getPath());
+        Assert.assertEquals(expected.getName(), actual.getName());
+        Assert.assertEquals(expected.getFormat(), actual.getFormat());
+        additionalCheck.run();
+    }
+
+    private void compareTwoGeneFiles(GeneFile expected, GeneFile actual) {
+        BiologicalDataItem expectedIndex = expected.getIndex();
+        BiologicalDataItem actualIndex = actual.getIndex();
+        Assert.assertEquals(expectedIndex != null, actualIndex != null);
+        if (expectedIndex != null) {
+            Assert.assertEquals(expectedIndex.getId(), actualIndex.getId());
+            Assert.assertEquals(expectedIndex.getPath(), actualIndex.getPath());
+            Assert.assertEquals(expectedIndex.getName(), actualIndex.getName());
+            Assert.assertEquals(expectedIndex.getFormat(), actualIndex.getFormat());
+        }
+    }
+
     private Reference createTestReference(BiologicalDataItem item) {
         Reference reference = new Reference();
 
         reference.setSize(1L);
-        reference.setName("testReference");
+        reference.setName(item.getName());
         reference.setPath(TEST_PATH);
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setId(item.getId());
@@ -198,7 +255,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         return referenceGenomeDao.createReferenceGenome(reference, referenceGenomeDao.createReferenceGenomeId());
     }
 
-    private GeneFile createTestGeneFile(Reference reference) {
+    private GeneFile createTestGeneFile(Reference reference, String geneFileName) {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(TEST_PATH);
@@ -211,7 +268,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
 
         GeneFile geneFile = new GeneFile();
         geneFile.setId(geneFileManager.createGeneFileId());
-        geneFile.setName("testGeneFile");
+        geneFile.setName(geneFileName);
         geneFile.setCompressed(false);
         geneFile.setPath(TEST_PATH);
         geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
