@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.ProjectNote;
 import com.epam.catgenome.util.db.Filter;
 import lombok.AllArgsConstructor;
@@ -43,6 +44,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -91,6 +93,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String updateProjectQuery;
     private String updateProjectOwnerQuery;
     private String loadTopLevelProjectsForUserOrderByLastOpenedQuery;
+    private String loadTopLevelProjectsStatsQuery;
     private String loadAllProjectsQuery;
     private String loadProjectByIdQuery;
     private String updateLastOpenedDateQuery;
@@ -144,6 +147,36 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                                        ProjectParameters.getRowMapper());
     }
 
+    /**
+     * Loads {@code Project}s and its stats,
+     * like file counts by {@link com.epam.catgenome.entity.BiologicalDataItemFormat}
+     * @return a {@code List&lt;Project&gt;}.
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Project> loadTopLevelProjectsStats() {
+        // Each item represents statistics for project related to only one bio data format
+        final List<Project> projectsWithStatsByBioItemFormat =
+                getJdbcTemplate().query(loadTopLevelProjectsStatsQuery, ProjectStatsParameters.getRowMapper());
+
+        // Merging all bio data format statistics into one object per project
+        final Map<Long, Project> projectsStats = new HashMap<>();
+        for (Project projectStats : projectsWithStatsByBioItemFormat) {
+            final Project toBeMerged = projectsStats.get(projectStats.getId());
+            if (toBeMerged == null) {
+                projectsStats.put(projectStats.getId(), projectStats);
+            } else  {
+                toBeMerged.setItemsCount(toBeMerged.getItemsCount() + projectStats.getItemsCount());
+                final List<ProjectItem> referenceItems = toBeMerged.getItems() != null
+                        ? toBeMerged.getItems() : projectStats.getItems();
+                toBeMerged.setItems(referenceItems);
+                final Map<BiologicalDataItemFormat, Integer> mergedItemsPerFormat =
+                        new HashMap<>(MapUtils.emptyIfNull(toBeMerged.getItemsCountPerFormat()));
+                mergedItemsPerFormat.putAll(MapUtils.emptyIfNull(projectStats.getItemsCountPerFormat()));
+                toBeMerged.setItemsCountPerFormat(mergedItemsPerFormat);
+            }
+        }
+        return new ArrayList<>(projectsStats.values());
+    }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadAllProjects() {
@@ -596,6 +629,52 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                     project.setParentId(longVal);
                 }
 
+                return project;
+            };
+        }
+
+    }
+
+    enum ProjectStatsParameters {
+        PROJECT_ID,
+        PROJECT_NAME,
+        PROJECT_PARENT_ID,
+        PROJECT_PRETTY_NAME,
+        PROJECT_CREATED_DATE,
+        PROJECT_LAST_OPENED_DATE,
+        PROJECT_OWNER,
+        BIO_DATA_ITEM_COUNT,
+        FORMAT;
+
+        static RowMapper<Project> getRowMapper() {
+            final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+            return (rs, rowNum) -> {
+                Project project = new Project();
+
+                project.setId(rs.getLong(PROJECT_ID.name()));
+                project.setName(rs.getString(PROJECT_NAME.name()));
+                project.setCreatedDate(new Date(rs.getTimestamp(PROJECT_CREATED_DATE.name()).getTime()));
+                project.setPrettyName(rs.getString(PROJECT_PRETTY_NAME.name()));
+                project.setLastOpenedDate(new Date(rs.getTimestamp(PROJECT_LAST_OPENED_DATE.name()).getTime()));
+                project.setOwner(rs.getString(PROJECT_OWNER.name()));
+
+                long longVal = rs.getLong(PROJECT_PARENT_ID.name());
+                if (!rs.wasNull()) {
+                    project.setParentId(longVal);
+                }
+
+                final BiologicalDataItemFormat bioDataItemFormat =
+                        BiologicalDataItemFormat.getById(rs.getLong(FORMAT.name()));
+                if (bioDataItemFormat == BiologicalDataItemFormat.REFERENCE) {
+                    project.setItemsCount(0);
+                    final ProjectItem reference = projectItemRowMapper.mapRow(rs, 0);
+                    project.setItems(Collections.singletonList(reference));
+                    project.setItemsCountPerFormat(Collections.emptyMap());
+                } else {
+                    final int bioDataItemCount = rs.getInt(BIO_DATA_ITEM_COUNT.name());
+                    project.setItemsCountPerFormat(Collections.singletonMap(bioDataItemFormat, bioDataItemCount));
+                    project.setItemsCount(bioDataItemCount);
+                }
                 return project;
             };
         }

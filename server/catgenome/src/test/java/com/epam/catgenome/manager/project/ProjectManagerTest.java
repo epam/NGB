@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.epam.catgenome.entity.metadata.MetadataVO;
@@ -401,6 +402,69 @@ public class ProjectManagerTest extends AbstractManagerTest {
                                .allMatch(p -> CollectionUtils.isEmpty(p.getNestedProjects())));
         Assert.assertFalse(topLevel.get(0).getNestedProjects().stream()
                                .allMatch(p -> CollectionUtils.isEmpty(p.getItems())));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadTopLevelProjects() throws IOException {
+        Project project1 = new Project();
+        project1.setName(TEST_PARENT_NAME);
+        project1.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        project1 = projectManager.create(project1);
+        Long project1Id = project1.getId();
+
+        Project project2 = new Project();
+        project2.setName(TEST_CHILD_NAME);
+        project2.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        project2 = projectManager.create(project2);
+        Long project2Id = project2.getId();
+        addVcfFileToProject(project2Id, "testVcf", TEST_VCF_FILE_PATH);
+        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setName("genes");
+        request.setPath(resource.getFile().getAbsolutePath());
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        projectManager.addProjectItem(project2Id, geneFile.getBioDataItemId());
+
+        Project project3 = new Project();
+        project3.setName("testChild2");
+        project3.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        project3 = projectManager.create(project3);
+        Long project3Id = project3.getId();
+        addVcfFileToProject(project3.getId(), "testVcf2", TEST_VCF_FILE_PATH);
+        addVcfFileToProject(project3.getId(), "testVcf3", TEST_VCF_FILE_PATH);
+
+
+        List<Project> topLevel = projectManager.loadTopLevelProjects();
+        Assert.assertEquals(3, topLevel.size());
+
+        final Project loadedProject1 = topLevel.stream()
+                .filter(project -> Objects.equals(project.getId(), project1Id)).findFirst().get();
+        Assert.assertEquals(0, (int) loadedProject1.getItemsCount());
+        Assert.assertTrue(loadedProject1.getItemsCountPerFormat().isEmpty());
+        Assert.assertEquals(1, loadedProject1.getItems().size());
+        Assert.assertEquals(testReference.getId(), loadedProject1.getItems().get(0).getBioDataItem().getId());
+
+        final Project loadedProject2 = topLevel.stream()
+                .filter(project -> Objects.equals(project.getId(), project2Id)).findFirst().get();
+        Assert.assertEquals(2, (int) loadedProject2.getItemsCount());
+        Assert.assertNotNull(loadedProject2.getItemsCountPerFormat());
+        Assert.assertEquals(1, (int) loadedProject2.getItemsCountPerFormat().get(BiologicalDataItemFormat.VCF));
+        Assert.assertEquals(1, (int) loadedProject2.getItemsCountPerFormat().get(BiologicalDataItemFormat.GENE));
+        Assert.assertEquals(1, loadedProject2.getItems().size());
+        Assert.assertEquals(testReference.getId(), loadedProject2.getItems().get(0).getBioDataItem().getId());
+
+        final Project loadedProject3 = topLevel.stream()
+                .filter(project -> Objects.equals(project.getId(), project3Id)).findFirst().get();
+        Assert.assertEquals(2, (int) loadedProject3.getItemsCount());
+        Assert.assertNotNull(loadedProject3.getItemsCountPerFormat());
+        Assert.assertEquals(2, (int) loadedProject3.getItemsCountPerFormat().get(BiologicalDataItemFormat.VCF));
+        Assert.assertEquals(1, loadedProject3.getItems().size());
+        Assert.assertEquals(testReference.getId(), loadedProject3.getItems().get(0).getBioDataItem().getId());
     }
 
     @Test
