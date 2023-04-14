@@ -85,14 +85,14 @@ public class ProjectController extends AbstractRESTController {
     @RequestMapping(value = "/project/loadMy", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
-            value = "Returns all top-level projects for current user",
+            value = "Returns all top-level projects",
             notes = "Each summary provides only major metadata per a single project, no files information is provided" +
                     " via this service",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<ProjectVO>> loadProjectsForCurrentUser() {
+    public Result<List<ProjectVO>> loadTopLevelProjects() {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.loadTopLevelProjects()));
     }
 

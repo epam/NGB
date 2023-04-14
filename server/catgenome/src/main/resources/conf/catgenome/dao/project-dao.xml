@@ -544,5 +544,54 @@
                 ]]>
             </value>
         </property>
+        <property name="loadTopLevelProjectsStatsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        p.project_id as project_id,
+                        min(p.project_name) as project_name,
+                        min(p.created_date) as project_created_date,
+                        min(p.project_pretty_name) as project_pretty_name,
+                        min(p.last_opened_date) as project_last_opened_date,
+                        min(p.parent_id) as project_parent_id,
+                        min(p.owner) as project_owner,
+
+                        count(b.bio_data_item_id) as bio_data_item_count,
+
+                        min(pi.project_item_id) as project_item_id,
+                        min(pi.hidden) as hidden,
+                        min(pi.ordinal_number) as ordinal_number,
+
+                        b.format as format,
+                        min(b.path) as path,
+                        min(b.bio_data_item_id) as bio_data_item_id,
+                        min(b.name) as name,
+                        min(b.type) as type,
+                        min(b.created_date) as created_date,
+                        min(b.pretty_name) as pretty_name,
+                        min(b.owner) as owner,
+
+                        min(r.reference_genome_id) as reference_genome_id,
+                        min(r.reference_genome_size) as reference_genome_size,
+                        min(r.gene_item_id) as reference_gene_item_id,
+                        min(rgb.name) as reference_gene_item_name,
+                        min(rgb.bio_data_item_id) as reference_gene_bio_data_item_id,
+                        min(rgb.type) as reference_gene_type,
+                        min(rgb.path) as reference_gene_path,
+                        min(rgb.format) as reference_gene_format,
+                        min(rgb.created_date) as reference_gene_created_date,
+                        min(rg.reference_genome_id) as reference_gene_reference_genome_id,
+                        min(rg.compressed) as reference_gene_compressed
+                    FROM catgenome.project p
+                        JOIN catgenome.project_item pi ON pi.referred_project_id = p.project_id
+                        JOIN catgenome.biological_data_item b ON pi.referred_bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.reference_genome r ON r.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.gene_item rg ON r.gene_item_id = rg.gene_item_id
+                        LEFT JOIN catgenome.biological_data_item rgb ON rg.bio_data_item_id = rgb.bio_data_item_id
+                    WHERE p.parent_id IS NULL
+                    GROUP BY p.project_id, b.format
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

@@ -96,32 +96,14 @@ public class ProjectManager implements SecuredEntityManager {
     private AuthManager authManager;
 
     /**
-     * Loads all top-level projects for current user from the database.
-     * Projects are being loaded with single reference item.
+     * Loads all top-level projects from the database.
+     * Projects are being loaded with single reference item and statistics regarding item counts by bio data type.
      *
-     * @return a {@code List&lt;Project&gt;} of projects, created by current user
+     * @return a {@code List&lt;Project&gt;} of projects
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadTopLevelProjects() {
-        List<Project> projects = projectDao.loadTopLevelProjectsOrderByLastOpened();
-        final Map<Long, Set<ProjectItem>> itemsMap = projectDao.loadProjectItemsByProjectIds(
-                projects.parallelStream().map(BaseEntity::getId).collect(Collectors.toList()));
-
-        projects.parallelStream().forEach(p -> {
-            if (itemsMap.containsKey(p.getId())) {
-                Set<ProjectItem> items = itemsMap.get(p.getId());
-                List<ProjectItem> referenceItems = new ArrayList<>();
-                Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat = new EnumMap<>(
-                                                                                        BiologicalDataItemFormat.class);
-
-                items.stream().forEach(pi -> countProjectItem(pi, referenceItems, itemsCountPerFormat));
-
-                p.setItems(referenceItems);
-                p.setItemsCountPerFormat(itemsCountPerFormat);
-                p.setItemsCount(items.size() - referenceItems.size());
-            }
-        });
-        return projects;
+        return projectDao.loadTopLevelProjectsStats();
     }
 
     /**
