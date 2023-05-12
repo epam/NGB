@@ -24,4 +24,5 @@ export default angular.module('ngbDataServices', [])
     .service('permissionsDataService', dataServices.PermissionsDataService.serviceFactory)
     .service('heatmapDataService', dataServices.HeatmapDataService.serviceFactory)
     .service('motifsDataService', dataServices.MotifsDataService.serviceFactory)
+    .service('targetDataService', dataServices.TargetDataService.serviceFactory)
     .name;

@@ -1,0 +1,131 @@
+ngb-targets-table {
+    .loading-indicator {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        height: 6px;
+    }
+
+    .error-message {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 1000;
+        padding-top: 10px;
+    
+        .no-records-warning {
+            color: #999;
+        }
+    }
+
+    .md-button.md-icon-button {
+        min-height: 30px;
+        height: 30px;
+        padding: 2px;
+    }
+
+    .md-button.md-icon-button .icon-launch {
+        fill: rgb(102, 153, 255);
+    }
+
+    .target-name {
+        color: rgb(102, 153, 255);
+        font-size: 14px;
+        line-height: 30px;
+        padding-left: 4px;
+    }
+
+    .cell-content {
+        font-size: 12px;
+        align-self: center;
+        padding: 5px;
+    }
+
+    .cell-content p {
+        margin: 2px 0;
+    }
+
+    .others-button {
+        text-decoration: underline;
+        font-style: italic;
+        white-space: nowrap;
+    }
+
+    .others-button:hover {
+        text-decoration: none;
+    }
+
+    .ui-grid-header-cell-label {
+        text-transform: capitalize;
+    }
+
+    .ui-grid-header {
+        border-bottom: none;
+    }
+
+    .ui-grid-header-cell {
+        border: none;
+    }
+
+    .ui-grid-header-cell:last-child .ui-grid-column-resizer.right {
+        border: none;
+    }
+
+    .targets-table.ui-grid {
+        height: calc(100% - 39px) !important;
+    }
+
+    .ui-grid-container {
+
+
+        .ui-grid-cell-contents.md-button {
+            min-height: 30px;
+            text-align: left;
+            padding: 5px 4px 3px 5px;
+        }
+
+        .ui-grid-cell {
+            border: none;
+        }
+
+        .ui-grid-row {
+            display: table-row;
+        }
+
+        .ui-grid-row .ui-grid-cell {
+            float: none;
+            display: table-cell;
+        }
+
+        .ui-grid-row:nth-child(odd) .ui-grid-cell {
+            background-color: #ececec;
+        }
+
+        .ui-grid-row:nth-child(odd).ui-grid-row-selected>[ui-grid-row]>.ui-grid-cell {
+            background-color: #ececec;
+        }
+
+        .ui-grid-row:nth-child(even).ui-grid-row-selected>[ui-grid-row]>.ui-grid-cell {
+            background-color: #fff;
+        }
+    }
+
+    .ui-grid-row:nth-child(odd).ui-grid-row-selected>[ui-grid-row]>.ui-grid-cell {
+        background-color: #ececec;
+    }
+
+    .ui-grid-row:nth-child(even).ui-grid-row-selected>[ui-grid-row]>.ui-grid-cell {
+        background-color: #fff;
+    }
+
+    .targets-table.ui-grid {
+        border: none;
+    }
+}

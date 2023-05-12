@@ -1,0 +1,234 @@
+.add-target-form {
+    height: 100%;
+
+    .md-button {
+        margin: 0 5px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    ngb-panel-error-list {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+
+        .ngb-panel-error-list md-content.md-warn {
+            border-top: 0;
+        }
+
+        md-list-item, md-list-item .md-list-item-inner {
+            min-height: 18px;
+            height: 19px;
+            overflow: hidden;
+            font-size: 14px;
+        }
+    }
+}
+
+.form-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 5px 0;
+    width: 100%;
+
+    .md-warn {
+        color: rgba(0,0,0,0.87);
+        background-color: rgb(251, 84, 84);
+    }
+
+    .md-warn:hover {
+        background-color: rgb(251, 128, 128);
+    }
+}
+
+.back-target-button {
+  min-height: 25px;
+  height: 25px;
+  line-height: 25px;
+  min-width: 60px;
+  width: 60px;
+  margin: 5px;
+
+  ng-md-icon {
+    fill: rgba(255,255,255,0.87);
+  }
+}
+
+.save-target-button {
+    min-height: 25px;
+    height: 25px;
+    line-height: 25px;
+    min-width: 80px;
+    width: 80px;
+    margin: 5px;
+}
+
+.name-input {
+    margin: 5px;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+
+    label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    input {
+        border-radius: 5px;
+        flex: 1;
+        border: 1px solid #cacaca;
+        height: 21px;
+        min-width: 50px;
+    }
+}
+
+.form-block {
+    display: flex;
+    justify-content: space-around;
+    margin: 5px;
+    align-items: center;
+
+    label {
+        margin: 8px 10px 12px 0;
+    }
+
+    md-chips-wrap {
+        font-size: 14px;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    md-chips .md-chips.md-focused {
+        box-shadow: none;
+    }
+
+    md-chips.md-default-theme .md-chips,
+    md-chips .md-chips {
+        box-shadow: none;
+    }
+
+    md-chips.md-default-theme md-chip.md-focused,
+    md-chips md-chip.md-focused {
+        background-color: rgb(102,153,255);
+    }
+
+    .md-chips {
+        padding: 0;
+    }
+
+    .md-chips md-chip {
+        border-radius: 10px;
+        height: 25px;
+        line-height: 25px;
+        margin: 0 8px 4px 0;
+    }
+
+    .md-chips.md-removable md-chip .md-chip-content {
+        padding-right: 0;
+    }
+
+    .md-chips md-chip .md-chip-remove {
+        width: 22px;
+        height: 22px;
+
+        md-icon {
+            height: 14px;
+            width: 14px;
+            min-height: 14px;
+            min-width: 14px;
+        }
+    }
+
+    .md-chips md-chip .md-chip-remove-container {
+        line-height: 16px;
+    }
+
+    .md-chips .md-chip-input-container {
+        line-height: 25px;
+        margin: 0;
+
+        input:not([type]) {
+            border: 1px dashed #999;
+            border-radius: 10px;
+            height: 23px;
+            line-height: 23px;
+            padding-left: 5px;
+            margin: 0 0 4px 0;
+            width: 90px;
+        }
+
+        :not(:first-child) {
+            margin: 0;
+        }
+    }
+
+    .table-container {
+        width: 100%;
+    }
+
+    table {
+        width: 100%;
+
+        input {
+            width: 90%;
+        }
+    }
+
+    table th,
+    table tr td {
+        width: calc(100% - 35px);
+        padding: 4px;
+    }
+
+    input {
+        border-radius: 5px;
+        border: 1px solid #cacaca;
+        height: 21px;
+    }
+
+    th.button-column {
+        width: 15px;
+        padding: 4px;
+    }
+
+    .remove-btn {
+        min-height: 15px;
+        min-width: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
+        padding: 0;
+        margin: 0;
+    }
+
+    .button-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin: 10px;
+    }
+
+    .add-button {
+        min-height: 20px;
+        height: 20px;
+        line-height: 20px;
+        min-width: 70px;
+        width: 70px;
+        margin: 0;
+        margin-right: 0;
+
+        span {
+            text-transform: capitalize;
+        }
+    }
+}
