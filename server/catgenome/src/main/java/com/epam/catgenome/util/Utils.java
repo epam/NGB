@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,6 +92,7 @@ public final class Utils {
     private static final int DEFAULT_PAGE_NUM = 0;
     public static final String NEW_LINE = "\n";
     public static final String DOT = ".";
+    private static final String SEPARATOR = ",";
 
     private Utils() {
         // no operations by default
@@ -286,7 +287,7 @@ public final class Utils {
      * @throws IOException if it thrown by reader
      */
     public static <T extends Feature> CloseableIterator<T> query(final AbstractFeatureReader<T, LineIterator>
-                     featureReader, final String chromosomeName, final int start, final int end) throws IOException {
+                                                                         featureReader, final String chromosomeName, final int start, final int end) throws IOException {
         CloseableIterator<T> iterator = featureReader.query(chromosomeName, start, end);
         if (!iterator.hasNext()) {
             iterator = featureReader.query(Utils.changeChromosomeName(chromosomeName), start, end);
@@ -306,7 +307,7 @@ public final class Utils {
      * @throws IOException if it thrown by reader
      */
     public static <T extends Feature> CloseableIterator<T> query(final AbstractFeatureReader<T, LineIterator>
-                    featureReader, final Chromosome chromosome, final int start, final int end) throws IOException {
+                                                                         featureReader, final Chromosome chromosome, final int start, final int end) throws IOException {
         return query(featureReader, chromosome.getName(), start, end);
     }
 
@@ -318,7 +319,7 @@ public final class Utils {
      */
     public static boolean isFullyOnTrack(Block block, Track track) {
         return  !(block.getStartIndex() <= track.getStartIndex() && block.getEndIndex() <= track.getEndIndex()) &&
-            !(block.getStartIndex() >= track.getStartIndex() && block.getEndIndex() >= track.getEndIndex());
+                !(block.getStartIndex() >= track.getStartIndex() && block.getEndIndex() >= track.getEndIndex());
     }
 
     /**
@@ -331,7 +332,7 @@ public final class Utils {
      */
     public static Chromosome getFromChromosomeMap(Map<String, Chromosome> chromosomeMap, String chromosomeName) {
         return chromosomeMap.containsKey(chromosomeName) ? chromosomeMap.get(chromosomeName) :
-               chromosomeMap.get(changeChromosomeName(chromosomeName));
+                chromosomeMap.get(changeChromosomeName(chromosomeName));
     }
 
     /**
@@ -344,7 +345,7 @@ public final class Utils {
      */
     public static boolean chromosomeMapContains(Map<String, Chromosome> chromosomeMap, String chromosomeName) {
         return  chromosomeMap.containsKey(chromosomeName) || chromosomeMap.containsKey(
-            changeChromosomeName(chromosomeName));
+                changeChromosomeName(chromosomeName));
     }
 
     /**
@@ -375,12 +376,12 @@ public final class Utils {
      */
     public static void checkSorted(Feature feature, Feature lastFeature, FeatureFile featureFile) {
         if (feature.getStart() < lastFeature.getStart() && // Check if file is sorted
-            lastFeature.getContig().equals(feature.getContig())) {
+                lastFeature.getContig().equals(feature.getContig())) {
             throw new TribbleException.MalformedFeatureFile(
-                "Input file is not sorted by start position. \n" +
-                "We saw a record with a start of " + feature.getContig() + ":" +
-                feature.getStart() + " after a record with a start of " +
-                lastFeature.getContig() + ":" + lastFeature.getStart(), featureFile.getName());
+                    "Input file is not sorted by start position. \n" +
+                            "We saw a record with a start of " + feature.getContig() + ":" +
+                            feature.getStart() + " after a record with a start of " +
+                            lastFeature.getContig() + ":" + lastFeature.getStart(), featureFile.getName());
         }
     }
 
@@ -398,12 +399,12 @@ public final class Utils {
      */
     public static <T extends FeatureFile> T createNonRegisteredFile(Class<T> c, String fileUrl, String indexUrl,
                                                                     Chromosome chromosome)
-        throws InvocationTargetException {
+            throws InvocationTargetException {
         T notRegisteredFile;
         try {
             notRegisteredFile = c.getConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-            InvocationTargetException e) {
+                 InvocationTargetException e) {
             throw new InvocationTargetException(e, "Cannot instantiate object of class " + c);
         }
         String preprocessedUrl = processUrl(fileUrl);
@@ -434,7 +435,7 @@ public final class Utils {
 
     public static String getUrlWithoutTrailingSlash(String url) {
         return url.endsWith("/") ?
-               url.substring(0, url.length() - 1) : url;
+                url.substring(0, url.length() - 1) : url;
     }
 
     @FunctionalInterface
@@ -463,6 +464,10 @@ public final class Utils {
         }
         return filter.isEmpty() ? query
                 : query + String.format(WHERE_CLAUSE, join(filter, " and "));
+    }
+
+    public static String addClauseToQuery(final String query, final String clause) {
+        return StringUtils.isNotBlank(clause) ? query + String.format(WHERE_CLAUSE, clause) : query;
     }
 
     public static String addPagingInfoToQuery(final String query, final PagingInfo pagingInfo) {
@@ -503,6 +508,14 @@ public final class Utils {
         return CollectionUtils.isEmpty(attributes) ? null : attributes.keySet().stream()
                 .map(key -> key + "=" + attributes.get(key))
                 .collect(Collectors.joining(","));
+    }
+
+    public static List<String> dataToList(final String data) {
+        return Arrays.asList(data.split(SEPARATOR));
+    }
+
+    public static String listToData(final List<String> data) {
+        return join(data, SEPARATOR);
     }
 
     public static HeatmapDataType guessType(final String value) {
@@ -561,5 +574,4 @@ public final class Utils {
         }
         return null;
     }
-
 }

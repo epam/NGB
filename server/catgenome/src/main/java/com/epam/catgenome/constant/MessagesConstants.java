@@ -96,14 +96,14 @@ public final class MessagesConstants {
 
     //Track validation errors
     public static final String ERROR_INVALID_PARAM_TRACK_INDEXES_BELOW_ZERO = "error.invalid.param.track.indexes." +
-                                                                              "below.zero";
+            "below.zero";
     public static final String ERROR_INVALID_PARAM_TRACK_SCALE_FACTOR_BELOW_ZERO = "error.invalid.param.track.scale." +
-                                                                                   "factor.below.zero";
+            "factor.below.zero";
     public static final String ERROR_INVALID_PARAM_TRACK_START_GREATER_THEN_END = "error.invalid.param.track.indexes" +
-                                                                                  ".start.greater.end";
+            ".start.greater.end";
     public static final String ERROR_INVALID_PARAM_QUERY_SO_LARGE = "error.invalid.param.large.query";
     public static final String ERROR_INVALID_PARAM_TRACK_END_GREATER_CHROMOSOME_SIZE = "error.invalid.param.track.end" +
-                                                                                       ".greater.chromosome";
+            ".greater.chromosome";
     public static final String ERROR_INVALID_PARAM_TRACK_IS_NULL = "error.invalid.param.query.null";
 
     //Common to all feature files
@@ -310,6 +310,9 @@ public final class MessagesConstants {
     public static final String ERROR_WRONG_CHROMOSOME_ID = "error.wrong.chromosome.id";
 
     public static final String ERROR_CLOUD_PIPELINE_NOT_AVAILABLE = "error.cloud.pipeline.not.available";
+
+    //TARGET
+    public static final String ERROR_TARGET_NOT_FOUND = "error.target.not.found";
 
     private MessagesConstants() {
         // No-op
