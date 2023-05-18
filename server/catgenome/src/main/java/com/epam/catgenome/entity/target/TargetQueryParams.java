@@ -35,8 +35,10 @@ import java.util.List;
 @Builder
 public class TargetQueryParams {
     private PagingInfo pagingInfo;
-    private String name;
+    private String targetName;
     private List<String> diseases;
     private List<String> products;
+    private List<String> geneIds;
+    private List<String> geneNames;
     private List<String> speciesNames;
 }

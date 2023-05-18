@@ -79,7 +79,6 @@ public class TargetController extends AbstractRESTController {
         return Result.success(targetSecurityService.loadTargets(queryParameters));
     }
 
-
     @PostMapping(value = "/target")
     @ApiOperation(
             value = "Registers new target",

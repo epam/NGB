@@ -58,7 +58,7 @@ public class TargetManagerTest extends TestCase {
     @Test
     public void createTargetTest(){
         final Target target = createTarget(TARGET);
-        final Target createdTarget = targetManager.loadTarget(target.getTargetId());
+        final Target createdTarget = targetManager.load(target.getTargetId());
         assertNotNull(createdTarget);
         assertNotNull(createdTarget.getTargetGenes());
     }
@@ -66,9 +66,9 @@ public class TargetManagerTest extends TestCase {
     @Test
     public void updateTargetTest(){
         final Target target = createTarget(TARGET);
-        target.setName("New Target");
-        final Target updatedTarget = targetManager.updateTarget(target);
-        assertEquals(updatedTarget.getName(), "New Target");
+        target.setTargetName("New Target");
+        final Target updatedTarget = targetManager.update(target);
+        assertEquals(updatedTarget.getTargetName(), "New Target");
     }
 
     @Test
@@ -79,7 +79,7 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .pagingInfo(PagingInfo.builder().pageSize(2).pageNum(1).build())
                 .build();
-        final Page<Target> updatedTarget = targetManager.loadTargets(targetQueryParams);
+        final Page<Target> updatedTarget = targetManager.load(targetQueryParams);
         assertEquals(2, updatedTarget.getItems().size());
         assertEquals(3, updatedTarget.getTotalCount());
     }
@@ -89,9 +89,9 @@ public class TargetManagerTest extends TestCase {
         createTarget(TARGET);
         createTarget(TARGET_1);
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
-                .name("Target1")
+                .targetName("Target1")
                 .build();
-        final Page<Target> updatedTarget = targetManager.loadTargets(targetQueryParams);
+        final Page<Target> updatedTarget = targetManager.load(targetQueryParams);
         assertEquals(1, updatedTarget.getItems().size());
         assertEquals(1, updatedTarget.getTotalCount());
     }
@@ -104,7 +104,7 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .products(Arrays.asList("product1", "product3"))
                 .build();
-        final Page<Target> updatedTarget = targetManager.loadTargets(targetQueryParams);
+        final Page<Target> updatedTarget = targetManager.load(targetQueryParams);
         assertEquals(2, updatedTarget.getItems().size());
         assertEquals(2, updatedTarget.getTotalCount());
     }
@@ -123,10 +123,10 @@ public class TargetManagerTest extends TestCase {
     @Test
     public void deleteTargetTest() {
         final Target target = createTarget(TARGET);
-        final Target createdTarget = targetManager.loadTarget(target.getTargetId());
+        final Target createdTarget = targetManager.load(target.getTargetId());
         assertNotNull(createdTarget);
-        targetManager.deleteTarget(target.getTargetId());
-        assertNull(targetManager.loadTarget(target.getTargetId()));
+        targetManager.delete(target.getTargetId());
+        assertNull(targetManager.load(target.getTargetId()));
     }
 
     private Target createTarget(final String name, final List<String> products, final List<String> diseases) {
@@ -145,12 +145,12 @@ public class TargetManagerTest extends TestCase {
                 .priority(2)
                 .build();
         final Target target = Target.builder()
-                .name(name)
+                .targetName(name)
                 .products(products)
                 .diseases(diseases)
                 .targetGenes(Arrays.asList(targetGene, targetGene1))
                 .build();
-        return targetManager.createTarget(target);
+        return targetManager.create(target);
     }
 
     private Target createTarget(final String name) {

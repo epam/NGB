@@ -330,8 +330,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         }
 
         ReadBaseProcessor
-                baseCounter = new ReadBaseProcessor(record.getReadString(), referenceBuffer.getBuffer(), record.getStart(),
-                min, record.getCigar().getCigarElements(), showClipping, record);
+                baseCounter = new ReadBaseProcessor(record.getReadString(), referenceBuffer.getBuffer(),
+                record.getStart(), min, record.getCigar().getCigarElements(), showClipping, record);
         return baseCounter.getMismatchBasePositions();
     }
 

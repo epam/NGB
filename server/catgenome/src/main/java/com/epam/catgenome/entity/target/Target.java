@@ -23,6 +23,8 @@
  */
 package com.epam.catgenome.entity.target;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +34,20 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Target {
+public class Target extends AbstractSecuredEntity {
     private Long targetId;
-    private String name;
+    private String targetName;
     private List<String> diseases;
     private List<String> products;
     private List<TargetGene> targetGenes;
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return null;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.TARGET;
+    }
 }

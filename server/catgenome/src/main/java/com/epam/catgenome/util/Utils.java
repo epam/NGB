@@ -287,7 +287,9 @@ public final class Utils {
      * @throws IOException if it thrown by reader
      */
     public static <T extends Feature> CloseableIterator<T> query(final AbstractFeatureReader<T, LineIterator>
-                                                                         featureReader, final String chromosomeName, final int start, final int end) throws IOException {
+                                                                         featureReader,
+                                                                 final String chromosomeName,
+                                                                 final int start, final int end) throws IOException {
         CloseableIterator<T> iterator = featureReader.query(chromosomeName, start, end);
         if (!iterator.hasNext()) {
             iterator = featureReader.query(Utils.changeChromosomeName(chromosomeName), start, end);
@@ -307,7 +309,9 @@ public final class Utils {
      * @throws IOException if it thrown by reader
      */
     public static <T extends Feature> CloseableIterator<T> query(final AbstractFeatureReader<T, LineIterator>
-                                                                         featureReader, final Chromosome chromosome, final int start, final int end) throws IOException {
+                                                                         featureReader,
+                                                                 final Chromosome chromosome,
+                                                                 final int start, final int end) throws IOException {
         return query(featureReader, chromosome.getName(), start, end);
     }
 

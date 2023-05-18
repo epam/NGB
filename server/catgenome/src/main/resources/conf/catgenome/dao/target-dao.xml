@@ -9,12 +9,12 @@
                 <![CDATA[
                     INSERT INTO catgenome.target (
                         target_id,
-                        name,
+                        target_name,
                         diseases,
                         products
                     ) VALUES (
                         :TARGET_ID,
-                        :NAME,
+                        :TARGET_NAME,
                         :DISEASES,
                         :PRODUCTS
                     )
@@ -25,7 +25,7 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.target SET
-                        name = :NAME,
+                        target_name = :TARGET_NAME,
                         diseases = :DISEASES,
                         products = :PRODUCTS
                     WHERE target_id = :TARGET_ID
@@ -44,7 +44,7 @@
                 <![CDATA[
                     SELECT
                         target_id,
-                        name,
+                        target_name,
                         diseases,
                         products
                     FROM catgenome.target
@@ -56,7 +56,7 @@
                 <![CDATA[
                     SELECT
                         t.target_id,
-                        t.name,
+                        t.target_name,
                         t.diseases,
                         t.products,
                         g.target_gene_id,
@@ -75,7 +75,7 @@
                 <![CDATA[
                     SELECT distinct
                         t.target_id,
-                        t.name,
+                        t.target_name,
                         t.diseases,
                         t.products
                     FROM catgenome.target t left join catgenome.target_gene g on t.target_id = g.target_id

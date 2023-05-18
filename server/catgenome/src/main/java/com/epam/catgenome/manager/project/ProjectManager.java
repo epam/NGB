@@ -308,8 +308,8 @@ public class ProjectManager implements SecuredEntityManager {
                     reference = findReference(loadedProject.getItems());
                 }
 
-                Assert.isTrue(itemsToAdd.stream().noneMatch(
-                                item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
+                Assert.isTrue(itemsToAdd.stream().noneMatch(item ->
+                                item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
                         getMessage(ERROR_PROJECT_INVALID_REFERENCE));
                 checkReference(reference, itemsAdded);
 
@@ -406,8 +406,8 @@ public class ProjectManager implements SecuredEntityManager {
         Reference reference = findReference(loadedProject.getItems());
         List<BiologicalDataItem> itemsToAdd = biologicalDataItemDao
                 .loadBiologicalDataItemsByIds(Collections.singletonList(biologicalItemId));
-        Assert.isTrue(itemsToAdd.stream().noneMatch(
-                        item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
+        Assert.isTrue(itemsToAdd.stream()
+                        .noneMatch(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
                 getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         Set<Long> existingBioIds = loadedProject.getItems().stream()
                 .map(item -> BiologicalDataItem.getBioDataItemId(item.getBioDataItem()))

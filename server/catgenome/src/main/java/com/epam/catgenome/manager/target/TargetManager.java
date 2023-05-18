@@ -57,15 +57,18 @@ import static org.apache.commons.lang3.StringUtils.join;
 public class TargetManager {
 
     private static final String LIKE_CLAUSE = "%s like '%%%s%%'";
-    private static final String NAME = "name";
+    private static final String EQUAL_CLAUSE = "%s = '%s'";
+    private static final String TARGET_NAME = "target_name";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
+    private static final String GENE_ID = "gene_id";
+    private static final String GENE_NAME = "gene_name";
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Target createTarget(final Target target) {
+    public Target create(final Target target) {
         final Target createdTarget = targetDao.saveTarget(target);
         final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
                 target.getTargetId());
@@ -74,28 +77,28 @@ public class TargetManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Target updateTarget(Target target) {
+    public Target update(Target target) {
         getTarget(target.getTargetId());
         targetGeneDao.deleteTargetGenes(target.getTargetId());
-        return createTarget(target);
+        return create(target);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteTarget(final long targetId) {
+    public void delete(final long targetId) {
         getTarget(targetId);
         targetGeneDao.deleteTargetGenes(targetId);
         targetDao.deleteTarget(targetId);
     }
 
-    public Target loadTarget(final long targetId) {
+    public Target load(final long targetId) {
         return targetDao.loadTarget(targetId);
     }
 
-    public Page<Target> loadTargets(final TargetQueryParams targetQueryParams) {
+    public Page<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
         final long totalCount = targetDao.getTotalCount(clause);
         final SortInfo sortInfo = SortInfo.builder()
-                .field(NAME)
+                .field(TARGET_NAME)
                 .ascending(true)
                 .build();
         final List<Target> targets = targetDao.loadTargets(clause,
@@ -132,30 +135,36 @@ public class TargetManager {
 
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {
         final List<String> clauses = new ArrayList<>();
-        if (StringUtils.isNotBlank(targetQueryParams.getName())) {
-            clauses.add(String.format(LIKE_CLAUSE, NAME, targetQueryParams.getName()));
+        if (StringUtils.isNotBlank(targetQueryParams.getTargetName())) {
+            clauses.add(String.format(LIKE_CLAUSE, TARGET_NAME, targetQueryParams.getTargetName()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
-            clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts()));
+            clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts(), LIKE_CLAUSE));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getDiseases())) {
-            clauses.add(getFilterClause(DISEASES, targetQueryParams.getDiseases()));
+            clauses.add(getFilterClause(DISEASES, targetQueryParams.getDiseases(), LIKE_CLAUSE));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneIds())) {
+            clauses.add(getFilterClause(GENE_ID, targetQueryParams.getGeneIds(), EQUAL_CLAUSE));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneNames())) {
+            clauses.add(getFilterClause(GENE_NAME, targetQueryParams.getGeneNames(), LIKE_CLAUSE));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getSpeciesNames())) {
-            clauses.add(getFilterClause(SPECIES_NAME, targetQueryParams.getSpeciesNames()));
+            clauses.add(getFilterClause(SPECIES_NAME, targetQueryParams.getSpeciesNames(), LIKE_CLAUSE));
         }
         return join(clauses, Condition.AND.getValue());
     }
 
     @NotNull
-    private static String getFilterClause(final String field, final List<String> values) {
+    private static String getFilterClause(final String field, final List<String> values, final String clause) {
         return String.format("(%s)", values.stream()
-                .map(v -> String.format(LIKE_CLAUSE, field, v))
+                .map(v -> String.format(clause, field, v))
                 .collect(Collectors.joining(Condition.OR.getValue())));
     }
 
     private void getTarget(final long targetId) {
-        final Target target = loadTarget(targetId);
+        final Target target = load(targetId);
         Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, targetId));
     }
 }

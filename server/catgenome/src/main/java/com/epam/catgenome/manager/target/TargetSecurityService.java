@@ -42,22 +42,22 @@ public class TargetSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public Target loadTarget(final long targetId) {
-        return targetManager.loadTarget(targetId);
+        return targetManager.load(targetId);
     }
 
     @PreAuthorize(ROLE_USER)
     public Page<Target> loadTargets(final TargetQueryParams queryParameters) {
-        return targetManager.loadTargets(queryParameters);
+        return targetManager.load(queryParameters);
     }
 
     @PreAuthorize(ROLE_USER)
     public Target createTarget(final Target target) {
-        return targetManager.createTarget(target);
+        return targetManager.create(target);
     }
 
     @PreAuthorize(ROLE_USER)
     public void deleteTarget(final long targetId) {
-        targetManager.deleteTarget(targetId);
+        targetManager.delete(targetId);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -67,6 +67,6 @@ public class TargetSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public Target updateTarget(final Target target) {
-        return targetManager.updateTarget(target);
+        return targetManager.update(target);
     }
 }
