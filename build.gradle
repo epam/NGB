@@ -12,7 +12,7 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 7, patch: 0, build: buildNumber)
+    version = new Version(major: 2, minor: 8, patch: 0, build: buildNumber)
     task printVersion {
         doFirst {
             println "Project version is $version"
