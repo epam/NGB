@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,7 +64,6 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.seg.SegFileDao;
 import com.epam.catgenome.dao.vcf.VcfFileDao;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -310,8 +308,8 @@ public class ProjectManager implements SecuredEntityManager {
                     reference = findReference(loadedProject.getItems());
                 }
 
-                Assert.isTrue(itemsToAdd.stream().noneMatch(
-                    item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
+                Assert.isTrue(itemsToAdd.stream().noneMatch(item ->
+                                item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
                         getMessage(ERROR_PROJECT_INVALID_REFERENCE));
                 checkReference(reference, itemsAdded);
 
@@ -408,8 +406,8 @@ public class ProjectManager implements SecuredEntityManager {
         Reference reference = findReference(loadedProject.getItems());
         List<BiologicalDataItem> itemsToAdd = biologicalDataItemDao
                 .loadBiologicalDataItemsByIds(Collections.singletonList(biologicalItemId));
-        Assert.isTrue(itemsToAdd.stream().noneMatch(
-            item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
+        Assert.isTrue(itemsToAdd.stream()
+                        .noneMatch(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
                 getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         Set<Long> existingBioIds = loadedProject.getItems().stream()
                 .map(item -> BiologicalDataItem.getBioDataItemId(item.getBioDataItem()))
@@ -483,20 +481,6 @@ public class ProjectManager implements SecuredEntityManager {
         project.setItemsCount(project.getItems().size());
     }
 
-    private void countProjectItem(final ProjectItem projectItem, final List<ProjectItem> referenceItems,
-                                  final Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
-        final BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
-        if (format == BiologicalDataItemFormat.REFERENCE) {
-            referenceItems.add(projectItem);
-        } else {
-            if (!itemsCountPerFormat.containsKey(format)) {
-                itemsCountPerFormat.put(format, 1);
-            } else {
-                itemsCountPerFormat.put(format, itemsCountPerFormat.get(format) + 1);
-            }
-        }
-    }
-
     private void deleteProjectWithNested(final Project projectToDelete) throws IOException {
         deleteNestedProjects(projectToDelete.getId());
         projectDescriptionDao.deleteByProjectId(projectToDelete.getId());
@@ -559,13 +543,13 @@ public class ProjectManager implements SecuredEntityManager {
 
             // for new project ensure that there is no project with this name
             Assert.isNull(existingProject, getMessage(ERROR_PROJECT_NAME_EXISTS,
-                                                                    helpProject.getName()));
+                    helpProject.getName()));
             newProject = true;
         } else {
             // for updated one - ensure that if there is a project with that name,
             // its ID is equal to this project's id
             Assert.isTrue(existingProject == null || existingProject.getId().equals(helpProject.getId()),
-                          getMessage(ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
+                    getMessage(ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
         }
         return newProject;
     }

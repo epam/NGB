@@ -164,8 +164,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
             List<BasePosition> differentBase = Collections.emptyList();
             if (hasBases) {
                 differentBase = computeDifferentBase(readString,
-                        referenceBuffer != null ? referenceBuffer.getBuffer() : null, start, min, cigarList, showClipping,
-                        record);
+                        referenceBuffer != null ? referenceBuffer.getBuffer() : null, start, min, cigarList,
+                        showClipping, record);
             }
 
             filter.add(record, start, end, mode == BamTrackMode.FULL ? differentBase : null, head, tail);
@@ -321,7 +321,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
     }
 
     public List<BasePosition> computeDifferentBase(final SAMRecord record)
-        throws IOException {
+            throws IOException {
         if (record.getStart() < min) {
             refreshHeadReferenceBuffer(record.getStart());
         }
@@ -330,8 +330,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         }
 
         ReadBaseProcessor
-            baseCounter = new ReadBaseProcessor(record.getReadString(), referenceBuffer.getBuffer(), record.getStart(),
-                                                min, record.getCigar().getCigarElements(), showClipping, record);
+                baseCounter = new ReadBaseProcessor(record.getReadString(), referenceBuffer.getBuffer(),
+                record.getStart(), min, record.getCigar().getCigarElements(), showClipping, record);
         return baseCounter.getMismatchBasePositions();
     }
 
@@ -351,7 +351,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         private int bias;
 
         protected ReadBaseProcessor(String readString, String bufferBase, int startReadPosition,
-                int bufferStart, List<CigarElement> cigar, boolean showClipping, SAMRecord record) {
+                                    int bufferStart, List<CigarElement> cigar, boolean showClipping, SAMRecord record) {
             this.bufferBase = bufferBase;
             this.startReadPosition = startReadPosition;
             this.bufferStart = bufferStart;

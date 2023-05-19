@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022-2023 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.util.db;
+package com.epam.catgenome.entity.target;
 
-import lombok.AllArgsConstructor;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -34,9 +34,20 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Page<T> {
-    List<T> items;
-    long totalCount;
+public class Target extends AbstractSecuredEntity {
+    private Long targetId;
+    private String targetName;
+    private List<String> diseases;
+    private List<String> products;
+    private List<TargetGene> targetGenes;
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return null;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.TARGET;
+    }
 }

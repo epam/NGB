@@ -16,5 +16,6 @@ public enum AclClass {
     SESSION,
     HEATMAP,
     LINEAGE,
-    PATHWAY
+    PATHWAY,
+    TARGET
 }

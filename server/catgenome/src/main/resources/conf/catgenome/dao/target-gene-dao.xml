@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.target.TargetGeneDao" id="targetGeneDao" autowire="byName">
+        <property name="targetGeneSequenceName" value="catgenome.s_target_gene"/>
+        <property name="insertTargetGeneQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.target_gene (
+                        target_gene_id,
+                        target_id,
+                        gene_id,
+                        gene_name,
+                        tax_id,
+                        species_name,
+                        priority
+                    ) VALUES (
+                        :TARGET_GENE_ID,
+                        :TARGET_ID,
+                        :GENE_ID,
+                        :GENE_NAME,
+                        :TAX_ID,
+                        :SPECIES_NAME,
+                        :PRIORITY
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deleteTargetGenesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.target_gene WHERE target_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadTargetGenesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        target_gene_id,
+                        target_id,
+                        gene_id,
+                        gene_name,
+                        tax_id,
+                        species_name,
+                        priority
+                    FROM catgenome.target_gene WHERE target_id IN (@in@)
+                ]]>
+            </value>
+        </property>
+        <property name="loadSpeciesNamesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        distinct(species_name)
+                    FROM catgenome.target_gene
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>
