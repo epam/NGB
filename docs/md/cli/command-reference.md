@@ -1025,6 +1025,67 @@ Deletes a specified pathway from NGB server.
 $ ngb del_pathway 2
 ```
 
+## Target commands
+### Register target
+```
+ngb reg_target|rt [<NAME>] [<PRODUCTS>] [<DISEASES>] [<TARGET_GENES_PATH>]
+
+```
+*Description*
+
+Registers a target. Four arguments have to be specified:
+* Target name
+* Target products
+* Target diseases
+* Target genes path
+
+Products and diseases should be specified as a list of items, separated by comma.
+Target genes should be specified in CSV format:
+```bash
+geneId,geneName,taxId,speciesName,priority
+ENSG00000133703,KRAS,9606,Homo Sapiens,0
+```
+
+*Example*
+```bash
+# Create new target with name "Target", 
+# products "Product1" and "Product2", 
+# diseases "Disease1" and "Disease2" 
+# and genes file path "genes.csv"
+$ ngb reg_target "Target" "Product1,Product2" "Disease1,Disease2" "genes.csv"
+
+```
+
+### List targets
+```
+ngb list_targets|lt
+```
+
+*Description*
+
+List all targets registered on NGB server.
+
+*Example*
+```bash
+# List all targets registered on NGB server
+$ ngb list_targets
+```
+
+### Delete target
+```
+ngb del_target|dt [<ID>]
+```
+*Description*
+
+Deletes a specified target from NGB server. One argument has to be specified:
+* target id
+
+*Example*
+```bash
+# Delete target with id 1
+$ ngb del_target 1
+```
+
 ## Bam coverage commands
 ### Register coverage
 ```

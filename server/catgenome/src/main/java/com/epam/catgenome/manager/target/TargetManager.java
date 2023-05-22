@@ -94,6 +94,10 @@ public class TargetManager {
         return targetDao.loadTarget(targetId);
     }
 
+    public List<Target> load() {
+        return targetDao.loadTargets();
+    }
+
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
         final long totalCount = targetDao.getTotalCount(clause);

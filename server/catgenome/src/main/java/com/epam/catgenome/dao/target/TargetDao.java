@@ -113,6 +113,14 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
     }
 
+    /**
+     * Loads {@code Targets} from a database.
+     * @return a {@code List<Target>} from the database
+     */
+    public List<Target> loadTargets() {
+        return getJdbcTemplate().query(loadTargetsQuery, TargetParameters.getRowMapper());
+    }
+
     public long getTotalCount(final String clause) {
         final String query = addClauseToQuery(totalCountQuery, clause);
         return getJdbcTemplate().queryForObject(query, Long.class);
@@ -149,6 +157,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
                     .products(dataToList(rs.getString(PRODUCTS.name())))
                     .build();
         }
+
         static ResultSetExtractor<List<Target>> getExtendedRowExtractor() {
             return (rs) -> {
                 long targetId = 0;

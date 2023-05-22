@@ -67,6 +67,18 @@ public class TargetController extends AbstractRESTController {
         return Result.success(targetSecurityService.loadTarget(targetId));
     }
 
+    @GetMapping(value = "/target/all")
+    @ApiOperation(
+            value = "Returns all targets",
+            notes = "Returns all targets",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Target>> loadTargets() {
+        return Result.success(targetSecurityService.loadTargets());
+    }
+
     @PostMapping(value = "/target/filter")
     @ApiOperation(
             value = "Filters targets",

@@ -315,4 +315,19 @@
         <type>PUT</type>
         <url>/restapi/project/%s/rename</url>
     </rename_dataset>
+    <reg_target>
+        <name>reg_target</name>
+        <type>POST</type>
+        <url>/restapi/target</url>
+    </reg_target>
+    <del_target>
+        <name>del_target</name>
+        <type>DELETE</type>
+        <url>/restapi/target/%d</url>
+    </del_target>
+    <list_target>
+        <name>list_target</name>
+        <type>GET</type>
+        <url>/restapi/target/all</url>
+    </list_target>
 </config>
