@@ -26,8 +26,11 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetSecurityService;
 import com.epam.catgenome.util.db.Page;
@@ -126,5 +129,17 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<List<String>> loadFieldValues(@RequestParam final TargetField field) {
         return Result.success(targetSecurityService.loadFieldValues(field));
+    }
+
+    @PostMapping(value = "/target/identification")
+    @ApiOperation(
+            value = "Launches Identification",
+            notes = "Launches Identification",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request) throws ExternalDbUnavailableException {
+        return Result.success(targetSecurityService.launchIdentification(request));
     }
 }

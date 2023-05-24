@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,8 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +47,9 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.util.CollectionUtils;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * <p>
@@ -55,6 +60,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
+    public static final String OR = " or ";
 
     private JsonMapper mapper = new JsonMapper();
 
@@ -155,6 +161,16 @@ public class NCBIGeneManager {
         return ncbiGeneVO;
     }
 
+    public Map<String, String> fetchGeneSummaryByIds(final List<String> ids) throws ExternalDbUnavailableException {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyMap();
+        }
+        final List<String> realIDs = fetchExternalIds(ids);
+        final String geneInfoXml = ncbiAuxiliaryManager.fetchXmlById(NCBIDatabase.GENE.name(),
+                join(realIDs, OR), null);
+        return geneInfoParser.parseGeneInfos(geneInfoXml);
+    }
+
     public String fetchExternalId(String id) throws ExternalDbUnavailableException {
         String externalID = id;
         // if ID contains literals then we consider this external ID and perform search
@@ -168,6 +184,11 @@ public class NCBIGeneManager {
             }
         }
         return externalID;
+    }
+
+    public List<String> fetchExternalIds(final List<String> ids) throws ExternalDbUnavailableException {
+        return CollectionUtils.isEmpty(ids) ? Collections.emptyList() :
+                ncbiAuxiliaryManager.searchDbForIds(NCBIDatabase.GENE.name(), join(ids, OR));
     }
 
     public void setGeneInfoParser(NCBIGeneInfoParser geneInfoParser) {

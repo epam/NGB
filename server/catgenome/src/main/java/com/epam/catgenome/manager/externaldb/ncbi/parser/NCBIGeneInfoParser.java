@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -88,7 +90,10 @@ public class NCBIGeneInfoParser {
     private static final String PRIMARY_SOURCE_XPATH = GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
                     "Dbtag[1]/Dbtag_tag/Object-id/Object-id_str";
     private static final String ENTREZ_GENE_TYPE_XPATH = GENE_XPATH + "/Entrezgene_type/@value";
-    private static final String ENTREZ_GENE_SUMMARY_XPATH = GENE_XPATH + "/Entrezgene_summary";
+    private static final String ENTREZ_GENE_SUMMARY_XPATH_REL = "Entrezgene_summary";
+    private static final String ENTREZ_GENE_SUMMARY_XPATH = GENE_XPATH + "/" + ENTREZ_GENE_SUMMARY_XPATH_REL;
+    private static final String GENE_ID = "Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+            "Dbtag[2]/Dbtag_tag/Object-id/Object-id_str";
     private static final String REFSEQ_STATUS_XPATH =
             GENE_XPATH + "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
                     "[text()=\"RefSeq Status\"]/../Gene-commentary_label";
@@ -207,6 +212,28 @@ public class NCBIGeneInfoParser {
         }
 
         return ncbiGeneVO;
+    }
+
+    public Map<String, String> parseGeneInfos(final String xml) throws ExternalDbUnavailableException {
+        final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        final Map<String, String> description = new HashMap<>();
+        try {
+            final DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            final InputSource is = new InputSource(new StringReader(xml));
+            final Document document = builder.parse(is);
+            final NodeList genes = (NodeList) xPath.compile(GENE_XPATH).evaluate(document, XPathConstants.NODESET);
+            for (int i = 0; i < genes.getLength(); i++) {
+                Node item = genes.item(i);
+                description.put(xPath.compile(GENE_ID).evaluate(item),
+                        xPath.compile(ENTREZ_GENE_SUMMARY_XPATH_REL).evaluate(item));
+            }
+        } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {
+            LOG.error(PARSING_EXCEPTION_HAPPENED, e);
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(getMessage(MessagesConstants
+                    .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+        return description;
     }
 
     public Pair<String, String> parseHistoryResponse(String srcXml, NCBIUtility utility)

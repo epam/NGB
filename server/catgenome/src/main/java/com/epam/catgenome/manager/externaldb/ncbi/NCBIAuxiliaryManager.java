@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -146,11 +146,11 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      */
     public List<String> searchDbForIds(final String db, final String term) throws ExternalDbUnavailableException {
         JsonNode idList = getIdsByTerm(db, term);
-        List<String> taxIds = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         for (JsonNode id : idList) {
-            taxIds.add(id.asText());
+            ids.add(id.asText());
         }
-        return taxIds;
+        return ids;
     }
 
     private JsonNode getIdsByTerm(final String db, final String term) throws ExternalDbUnavailableException {

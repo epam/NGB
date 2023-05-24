@@ -26,14 +26,19 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.util.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -45,6 +50,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,6 +64,7 @@ public class TargetManager {
 
     private static final String LIKE_CLAUSE = "%s like '%%%s%%'";
     private static final String EQUAL_CLAUSE = "%s = '%s'";
+    private static final String IN_CLAUSE = "%s in (%s)";
     private static final String TARGET_NAME = "target_name";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
@@ -66,6 +73,7 @@ public class TargetManager {
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
+    private final NCBIGeneManager geneManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Target create(final Target target) {
@@ -92,6 +100,19 @@ public class TargetManager {
 
     public Target load(final long targetId) {
         return targetDao.loadTarget(targetId);
+    }
+
+    public IdentificationResult launchIdentification(final IdentificationRequest request)
+            throws ExternalDbUnavailableException {
+        getTarget(request.getTargetId());
+        final List<Long> taxIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalSpecies()),
+                ListUtils.emptyIfNull(request.getSpeciesOfInterest()));
+        Assert.isTrue(!CollectionUtils.isEmpty(taxIds),
+                "Either Species of interest or Translational species must me specified.");
+        final Map<String, String> description = getDescription(request.getTargetId(), taxIds);
+        return IdentificationResult.builder()
+                .description(description)
+                .build();
     }
 
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
@@ -166,5 +187,15 @@ public class TargetManager {
     private void getTarget(final long targetId) {
         final Target target = load(targetId);
         Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, targetId));
+    }
+
+    private Map<String, String> getDescription(final Long targetId, final List<Long> taxIds)
+            throws ExternalDbUnavailableException {
+        final List<String> clauses = new ArrayList<>();
+        clauses.add(String.format(EQUAL_CLAUSE, "target_id", targetId));
+        clauses.add(String.format(IN_CLAUSE, "tax_id", join(taxIds, ",")));
+        final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
+        final List<String> geneIds = targetGenes.stream().map(TargetGene::getGeneId).collect(Collectors.toList());
+        return geneManager.fetchGeneSummaryByIds(geneIds);
     }
 }

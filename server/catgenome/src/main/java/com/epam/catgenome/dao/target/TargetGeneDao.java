@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.epam.catgenome.util.Utils.addClauseToQuery;
+
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,6 +54,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
     private String targetGeneSequenceName;
     private String insertTargetGeneQuery;
     private String loadTargetGenesQuery;
+    private String loadAllTargetGenesQuery;
     private String deleteTargetGenesQuery;
     private String loadSpeciesNamesQuery;
 
@@ -82,7 +85,12 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, TargetGeneParameters.getRowMapper(), targetIds.toArray());
     }
 
-    /**
+    public List<TargetGene> loadTargetGenes(final String clause) {
+        final String query = addClauseToQuery(loadAllTargetGenesQuery, clause);
+        return getJdbcTemplate().query(query, TargetGeneParameters.getRowMapper());
+    }
+
+    /**-
      * Deletes Target genes from the database
      */
     @Transactional(propagation = Propagation.MANDATORY)

@@ -49,6 +49,21 @@
                 ]]>
             </value>
         </property>
+        <property name="loadAllTargetGenesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        target_gene_id,
+                        target_id,
+                        gene_id,
+                        gene_name,
+                        tax_id,
+                        species_name,
+                        priority
+                    FROM catgenome.target_gene
+                ]]>
+            </value>
+        </property>
         <property name="loadSpeciesNamesQuery">
             <value>
                 <![CDATA[
