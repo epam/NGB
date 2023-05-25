@@ -33,6 +33,8 @@ import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.gene.GeneTranscript;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
@@ -156,5 +158,10 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_USER)
     public List<Activity> loadGeneActivity(final Long fileId, final String uid) {
         return gffManager.loadGeneActivity(fileId, uid);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String geneId) throws IOException {
+        return featureIndexManager.searchFeatures(geneId);
     }
 }

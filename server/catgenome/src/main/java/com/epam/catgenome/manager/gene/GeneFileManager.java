@@ -149,6 +149,11 @@ public class GeneFileManager implements SecuredEntityManager {
         return geneFile;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<GeneFile> loadFiles() {
+        return geneFileDao.loadGeneFiles();
+    }
+
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {

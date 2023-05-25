@@ -63,6 +63,7 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     // New queries
     private String createGeneFileQuery;
     private String loadGeneFileQuery;
+    private String loadAllGeneFilesQuery;
     private String loadGeneFilesQuery;
     private String deleteGeneFileQuery;
 
@@ -116,6 +117,14 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         return files.stream().map(f -> (GeneFile) f).collect(Collectors.toList());
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<GeneFile> loadGeneFiles() {
+        final List<BiologicalDataItem> files = getJdbcTemplate().query(loadAllGeneFilesQuery,
+                BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper());
+        return CollectionUtils.isNotEmpty(files) ? files.stream().map(f -> (GeneFile) f).collect(Collectors.toList()) :
+                Collections.emptyList();
+    }
+
     /**
      * Deletes {@code GeneFile} record from the database
      *
@@ -148,6 +157,11 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     @Required
     public void setLoadGeneFileQuery(String loadGeneFileQuery) {
         this.loadGeneFileQuery = loadGeneFileQuery;
+    }
+
+    @Required
+    public void setLoadAllGeneFilesQuery(String loadAllGeneFilesQuery) {
+        this.loadAllGeneFilesQuery = loadAllGeneFilesQuery;
     }
 
     @Required

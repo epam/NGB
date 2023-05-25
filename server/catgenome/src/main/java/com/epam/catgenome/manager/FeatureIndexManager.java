@@ -540,6 +540,16 @@ public class FeatureIndexManager {
         return mergeWithBookmarkSearch(res, featureId);
     }
 
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId) throws IOException {
+        if (featureId == null || featureId.length() < 2) {
+            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+        }
+        final IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
+                featureId, getFeatureFiles(), maxFeatureSearchResultsCount
+        );
+        return mergeWithBookmarkSearch(res, featureId);
+    }
+
     /**
      * Loads {@code VcfFilterInfo} object for a specified project. {@code VcfFilterInfo} contains information about
      * available fields to perform filtering and display results
@@ -756,6 +766,16 @@ public class FeatureIndexManager {
             final Long geneFileId = geneFile.getId();
             annotationFiles.add(geneFileManager.load(geneFileId));
         }
+        return annotationFiles;
+    }
+
+    private List<FeatureFile> getFeatureFiles() {
+        final List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles()
+                .stream()
+                .filter(biologicalDataItem -> biologicalDataItem instanceof FeatureFile)
+                .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
+                .collect(Collectors.toList());
+        annotationFiles.addAll(geneFileManager.loadFiles());
         return annotationFiles;
     }
 

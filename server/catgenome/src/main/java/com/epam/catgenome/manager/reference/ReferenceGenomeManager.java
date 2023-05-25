@@ -385,6 +385,12 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return biologicalDataItemDao.loadBiologicalDataItemsByIds(biologicalDataIds);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<BiologicalDataItem> getReferenceAnnotationFiles() {
+        final List<Long> biologicalDataIds = referenceGenomeDao.loadAllAnnotationFileIds();
+        return biologicalDataItemDao.loadBiologicalDataItemsByIds(biologicalDataIds);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileBiologicalItemId,
                                                    Boolean remove) throws IOException, FeatureIndexException {

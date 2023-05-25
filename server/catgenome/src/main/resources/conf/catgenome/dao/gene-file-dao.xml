@@ -76,6 +76,41 @@
                 ]]>
             </value>
         </property>
+        <property name="loadAllGeneFilesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        g.gene_item_id,
+                        g.reference_genome_id as gene_reference_genome_id,
+                        g.compressed as gene_compressed,
+                        g.external_db_type_id as gene_external_db_type_id,
+                        g.external_db_id as gene_external_db_id,
+                        g.external_db_organism as gene_external_db_organism,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.gene_item g
+                        JOIN catgenome.biological_data_item b ON g.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = g.index_id
+                ]]>
+            </value>
+        </property>
         <property name="createGeneFileQuery">
             <value>
                 <![CDATA[
