@@ -56,8 +56,8 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Slf4j
 public class TargetManager {
 
-    private static final String LIKE_CLAUSE = "%s like '%%%s%%'";
-    private static final String EQUAL_CLAUSE = "%s = '%s'";
+    private static final String LIKE_CLAUSE = "UPPER(%s) like UPPER('%%%s%%')";
+    private static final String EQUAL_CLAUSE = "UPPER(%s) = UPPER('%s')";
     private static final String TARGET_NAME = "target_name";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";

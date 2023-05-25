@@ -89,7 +89,7 @@ public class TargetManagerTest extends TestCase {
         createTarget(TARGET);
         createTarget(TARGET_1);
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
-                .targetName("Target1")
+                .targetName("target1")
                 .build();
         final Page<Target> updatedTarget = targetManager.load(targetQueryParams);
         assertEquals(1, updatedTarget.getItems().size());
