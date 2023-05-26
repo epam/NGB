@@ -12,8 +12,8 @@ export default class ngbTargetsFormController{
         return 'ngbTargetsFormController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService});
     }
 
     get targetModel() {
@@ -123,8 +123,24 @@ export default class ngbTargetsFormController{
         this.targetModel.genes = [...block];
     }
 
-    async removeTarget() {
-        await this.ngbTargetsTabService.deleteTarget();
-        this.$timeout(::this.$scope.$apply);
+    removeTarget() {
+        this.$mdDialog
+            .show({
+                template: require('./ngbTargetDeleteDlg.tpl.html'),
+                controller: function($scope, $mdDialog, dispatcher) {
+                    $scope.delete = function () {
+                        dispatcher.emit('target:delete');
+                        $mdDialog.hide();
+                    };
+                    $scope.cancel = function () {
+                        $mdDialog.hide();
+                    };
+                }
+            });
+
+        this.dispatcher.on('target:delete', async () => {
+            await this.ngbTargetsTabService.deleteTarget();
+            this.$timeout(::this.$scope.$apply);
+        });
     }
 }

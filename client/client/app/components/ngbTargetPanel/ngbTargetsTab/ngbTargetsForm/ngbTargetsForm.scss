@@ -232,3 +232,26 @@
         }
     }
 }
+
+.delete-target-dialog {
+    width: 400px;
+    min-width: 400px;
+
+    md-dialog-content {
+        min-width: 400px;
+        width: 400px;
+    }
+
+    .md-warn {
+        color: rgba(0,0,0,0.87);
+        background-color: rgb(251, 84, 84);
+    }
+
+    .md-warn:hover {
+        background-color: rgb(251, 128, 128);
+    }
+
+    h2 {
+        margin: 15px;
+    }
+}
