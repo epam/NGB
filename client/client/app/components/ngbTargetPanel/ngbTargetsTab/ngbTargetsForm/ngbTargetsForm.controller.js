@@ -45,14 +45,24 @@ export default class ngbTargetsFormController{
         this.dispatcher.emit('show:targets:table');
     }
 
-    async addTarget() {
+    getAddRequest() {
         const {name, diseases, products, genes} = this.targetModel;
         const request = {
             targetName: name,
             diseases,
             products,
-            targetGenes: genes
+            targetGenes: genes.map(gene => {
+                if (gene.priority === 'None') {
+                    delete gene.priority;
+                }
+                return gene;
+            })
         };
+        return request;
+    }
+
+    async addTarget() {
+        const request = this.getAddRequest();
         await this.ngbTargetsTabService.postNewTarget(request)
             .then((success) => {
                 if (success) {
@@ -61,15 +71,25 @@ export default class ngbTargetsFormController{
             });
     }
 
-    async updateTarget() {
+    getUpdateRequest() {
         const {id, name, diseases, products, genes} = this.targetModel;
         const request = {
             targetId: id,
             targetName: name,
             diseases,
             products,
-            targetGenes: genes
+            targetGenes: genes.map(gene => {
+                if (gene.priority === 'None') {
+                    delete gene.priority;
+                }
+                return gene;
+            })
         };
+        return request;
+    }
+
+    async updateTarget() {
+        const request = this.getUpdateRequest();
         await this.ngbTargetsTabService.updateTarget(request)
             .then((success) => {
                 if (success) {
@@ -94,7 +114,7 @@ export default class ngbTargetsFormController{
 
     isGeneEmpty(index) {
         const {geneId, geneName, taxId, speciesName} = this.targetModel.genes[index];
-        return [geneId, geneName, taxId, speciesName].some(field => !field || !`${field}`.length);
+        return [geneId, geneName, taxId, speciesName].some(field => !field || !String(field).length);
     }
 
     isAddGeneDisabled() {
@@ -112,15 +132,14 @@ export default class ngbTargetsFormController{
         if (this.isAddMode) {
             return this.isGeneEmpty(0);
         } else {
-            const genesEmpty = genes.filter((gene, index) => !this.isGeneEmpty(index));
-            if (!genesEmpty.length) return true;
+            const genesEmpty = genes.filter((gene, index) => this.isGeneEmpty(index));
+            if (genesEmpty.length) return true;
             return !this.ngbTargetsTabService.targetModelChanged();
         }
     }
 
     onClickRemove(index) {
-        const block = this.targetModel.genes.filter((el, ind) => ind !== index);
-        this.targetModel.genes = [...block];
+        this.targetModel.genes.splice(index, 1);
     }
 
     removeTarget() {
@@ -143,4 +162,12 @@ export default class ngbTargetsFormController{
             this.$timeout(::this.$scope.$apply);
         });
     }
+
+    priorityList = [{
+        name: 'Low',
+        value: 0
+    }, {
+        name: 'High',
+        value: 1
+    }];
 }

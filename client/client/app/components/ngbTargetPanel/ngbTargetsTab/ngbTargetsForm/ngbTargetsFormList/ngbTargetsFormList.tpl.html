@@ -1,0 +1,13 @@
+<md-autocomplete md-no-cache="$ctrl.noCache"
+                 md-selected-item="$ctrl.selectedItem"
+                 md-search-text="$ctrl.searchText"
+                 md-items="item in $ctrl.getList($ctrl.searchText)"
+                 md-item-text="item[$ctrl.field]"
+                 md-escape-options="clear"
+                 md-require-match=""
+                 md-selected-item-change="$ctrl.selectedItemChange(item)"
+                 md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)">
+    <md-item-template>
+        <span md-highlight-text="$ctrl.searchText">{{item[$ctrl.field]}}</span>
+    </md-item-template>
+</md-autocomplete>

@@ -1,0 +1,43 @@
+ngb-targets-form-list {
+    md-autocomplete {
+        min-width: 50px;
+        border-radius: 5px;
+        border: 1px solid #cacaca;
+        height: 21px;
+    }
+
+    .md-whiteframe-1dp, .md-whiteframe-z1 {
+        box-shadow: none;
+    }
+
+    md-autocomplete input:not(.md-input) {
+        font-size: 14px;
+        box-sizing: border-box;
+        border: none;
+        box-shadow: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        padding: 0 5px;
+        line-height: 20px;
+        height: 20px;
+    }
+
+    md-autocomplete md-autocomplete-wrap {
+        height: 20px;
+    }
+
+    md-autocomplete button {
+        display: none;
+    }
+
+    md-autocomplete {
+        .md-autocomplete-suggestions {
+            .md-autocomplete-suggestions li {
+                padding: 0 5px !important;
+                line-height: 24px !important;
+                height: 24px !important;
+            }
+        }
+    }
+}

@@ -16,6 +16,7 @@ export default class ngbTargetsTabService {
 
     _targetMode = this.mode.TABLE;
     _targetModel;
+    _originalModel;
 
     _loading = false;
     _failed = false;
@@ -66,12 +67,12 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance (targetDataService) {
-        return new ngbTargetsTabService(targetDataService);
+    static instance (dispatcher, targetDataService) {
+        return new ngbTargetsTabService(dispatcher, targetDataService);
     }
 
-    constructor(targetDataService) {
-        Object.assign(this, {targetDataService});
+    constructor(dispatcher, targetDataService) {
+        Object.assign(this, {dispatcher, targetDataService});
     }
 
     setTableMode() {
@@ -101,6 +102,15 @@ export default class ngbTargetsTabService {
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p)
         };
+    }
+
+    get originalModel() {
+        return this._originalModel;
+    }
+    set originalModel(value) {
+        this._originalModel = value;
+        this._originalModel.diseases = (this._originalModel.diseases || []).filter(d => d);
+        this._originalModel.products = (this._originalModel.products || []).filter(p => p);
     }
 
     getTarget(id) {
@@ -224,5 +234,46 @@ export default class ngbTargetsTabService {
                     resolve(false);
                 });
         });
+    }
+
+    searchGenes(geneId) {
+        return new Promise(resolve => {
+            this.targetDataService.searchGenes(geneId)
+                .then(result => {
+                    if (result) {
+                        resolve(result);
+                    }
+                })
+                .catch(err => {
+                    this._failed = true;
+                    this._errorMessageList = [err.message];
+                    resolve([]);
+                });
+        });
+    }
+
+    setGeneModel(index, field, value, isSelected) {
+        const geneFields = {
+            featureId: 'geneId',
+            featureName: 'geneName',
+            priority: 'priority'
+        };
+        if (geneFields[field]) {
+            this._targetModel.genes[index][geneFields[field]] = value;
+
+            if (isSelected) {
+                this._targetModel.genes[index].taxId = 9606;
+                this._targetModel.genes[index].speciesName = 'Homo sapiens';
+            }
+        }
+        this.dispatcher.emit('gene:model:updated');
+    }
+
+    selectedGeneChanged(gene, index) {
+        if (gene) {
+            for (const [key, value] of Object.entries(gene)) {
+                this.setGeneModel(index, key, value, true);
+            }
+        }
     }
 }

@@ -186,7 +186,7 @@
 
     table th,
     table tr td {
-        width: calc(100% - 35px);
+        width: calc((100% - 35px) / 5);
         padding: 4px;
     }
 
@@ -230,6 +230,32 @@
         span {
             text-transform: capitalize;
         }
+    }
+}
+
+.priority-select {
+    md-select {
+        margin: 0;
+        border-radius: 5px;
+        border: 1px solid #cacaca;
+        height: 23px;
+    }
+
+    .md-select-value {
+        padding: 0 5px;
+        border-bottom-width: 0;
+        min-height: 23px;
+    }
+
+    md-select-menu {
+        md-select-menu:not(.md-overflow) md-content {
+            padding: 0;
+        }
+    }
+
+    md-option {
+        padding: 0 10px;
+        height: 24px;
     }
 }
 

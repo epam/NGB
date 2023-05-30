@@ -154,6 +154,14 @@ const targetsTablePagination = {
     },
     isDefault: false
 };
+const targetsTableResetFilter = {
+    name: 'targetsTableResetFilter',
+    isDefault: true,
+    event: 'targets:filters:reset',
+    icon: 'delete_sweep',
+    label: 'Reset targets table filter',
+    isVisible: (context) => context.targetsTableFilterIsVisible
+};
 
 export default {
     actions: {
@@ -177,6 +185,7 @@ export default {
         coverageResetFilters: coverageResetFilters,
         targetsTableActions: targetsTableActions,
         targetsTablePagination: targetsTablePagination,
+        targetsTableResetFilter: targetsTableResetFilter,
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
@@ -184,6 +193,6 @@ export default {
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
         ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
         ngbCoveragePanel: [coverageResetFilters, coverageTableActions],
-        ngbTargetPanel: [targetsTablePagination, targetsTableActions],
+        ngbTargetPanel: [targetsTableResetFilter, targetsTablePagination, targetsTableActions],
     }
 };

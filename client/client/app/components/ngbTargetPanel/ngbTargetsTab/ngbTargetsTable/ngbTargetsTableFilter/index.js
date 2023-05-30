@@ -5,7 +5,10 @@ import angular from 'angular';
 import component from './ngbTargetsTableFilter.component';
 import controller from './ngbTargetsTableFilter.controller';
 
-export default angular.module('ngbTargetsTableFilter', [])
+import ngbTargetsFilterList from './ngbTargetsFilterList';
+import ngbTargetsFilterInput from './ngbTargetsFilterInput';
+
+export default angular.module('ngbTargetsTableFilter', [ngbTargetsFilterList, ngbTargetsFilterInput])
     .controller(controller.UID, controller)
     .component('ngbTargetsTableFilter', component)
     .name;

@@ -76,4 +76,30 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getTargetFieldValue(field) {
+        return new Promise((resolve) => {
+            this.get(`target/fieldValues?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    searchGenes(geneId) {
+        return new Promise((resolve) => {
+            this.get(`gene/search?geneId=${geneId}`)
+                .then(data => {
+                    if (data && data.entries) {
+                        resolve(data.entries);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
 }

@@ -1,6 +1,14 @@
 const PAGE_SIZE = 30;
 
-export default class ngbTargetTableService {
+const FIELDS = {
+    name: 'NAME',
+    genes: 'GENES',
+    species: 'SPECIES_NAME',
+    disease: 'DISEASES',
+    product: 'PRODUCTS'
+};
+
+export default class ngbTargetsTableService {
     _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
@@ -11,12 +19,17 @@ export default class ngbTargetTableService {
 
     _displayFilters = false;
     _filterInfo = null;
+    _sortInfo = null;
 
     _totalCount = 0;
     _currentPage = 1;
-    _pageSize = PAGE_SIZE
+    _pageSize = PAGE_SIZE;
 
     targetsResults = null;
+
+    fields = FIELDS;
+
+    fieldList = {};
 
     get pageSize() {
         return this._pageSize;
@@ -72,6 +85,13 @@ export default class ngbTargetTableService {
         return this._filterInfo;
     }
 
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
+    }
+
     get emptyResults() {
         return this._emptyResults;
     }
@@ -82,12 +102,13 @@ export default class ngbTargetTableService {
         return this._filteringErrorMessageList;
     }
 
-    static instance (targetDataService) {
-        return new ngbTargetTableService(targetDataService);
+    static instance (projectContext, dispatcher, targetDataService) {
+        return new ngbTargetsTableService(projectContext, dispatcher, targetDataService);
     }
 
-    constructor(targetDataService) {
-        Object.assign(this, {targetDataService});
+    constructor(projectContext, dispatcher, targetDataService) {
+        Object.assign(this, {projectContext, dispatcher, targetDataService});
+        this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
     }
 
     setGetTargetsRequest() {
@@ -102,17 +123,20 @@ export default class ngbTargetTableService {
                 request.targetName = this._filterInfo.name;
             }
             if (this._filterInfo.genes) {
-                request.geneNames = [this._filterInfo.genes];
+                request.geneNames = [...this._filterInfo.genes];
             }
             if (this._filterInfo.species) {
-                request.speciesNames = [this._filterInfo.species];
+                request.speciesNames = [...this._filterInfo.species];
             }
             if (this._filterInfo.disease) {
-                request.diseases = [this._filterInfo.disease];
+                request.diseases = [...this._filterInfo.disease];
             }
             if (this._filterInfo.product) {
-                request.products = [this._filterInfo.product];
+                request.products = [...this._filterInfo.product];
             }
+        }
+        if (this._sortInfo) {
+            console.log(this._sortInfo);
         }
         return request;
     }
@@ -179,9 +203,50 @@ export default class ngbTargetTableService {
         });
     }
 
-    setFilter(field, string) {
+    get isFilterEmpty() {
+        if (!this._filterInfo) {
+            return true;
+        }
+        return Object.values(this._filterInfo).every(filter => !filter.length);
+    }
+
+    setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = string;
+        filter[field] = value;
         this._filterInfo = filter;
+        this.projectContext.targetsTableFilterIsVisible = !this.isFilterEmpty;
+    }
+
+    resetFilters() {
+        this._filterInfo = null;
+        this.projectContext.targetsTableFilterIsVisible = false;
+        this.dispatcher.emitSimpleEvent('targets:filters:changed');
+    }
+
+    async onChangeShowFilters() {
+        if (this.displayFilters) {
+            return Promise.all(
+                ['species', 'disease', 'product'].map(async (field) => (
+                    await this.getTargetFieldValue(field)
+                )))
+                    .then(values => (values.some(v => v)));
+        }
+    }
+
+
+    getTargetFieldValue(field) {
+        if (['SPECIES_NAME', 'DISEASES', 'PRODUCTS'].includes(this.fields[field])) {
+            return new Promise(resolve => {
+                this.targetDataService.getTargetFieldValue(this.fields[field])
+                    .then((data) => {
+                        this.fieldList[field] = data.filter(d => d);
+                        resolve(true);
+                    })
+                    .catch(err => {
+                        this.fieldList[field] = [];
+                        resolve(false);
+                    });
+            });
+        }
     }
 }

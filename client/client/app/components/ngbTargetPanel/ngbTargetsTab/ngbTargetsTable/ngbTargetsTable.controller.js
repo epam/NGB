@@ -9,7 +9,7 @@ export default class ngbTargetsTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: false,
+        enableSorting: true,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
@@ -21,7 +21,7 @@ export default class ngbTargetsTableController {
         saveScroll: false,
         saveFocus: false,
         saveVisible: true,
-        saveSort: false,
+        saveSort: true,
         saveFilter: false,
         savePinning: false,
         saveGrouping: false,
@@ -52,11 +52,11 @@ export default class ngbTargetsTableController {
         const filterChanged = this.filterChanged.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
-        dispatcher.on('targets:filter:changed', filterChanged);
+        dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('targets:filter:changed', filterChanged);
+            dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
         });
@@ -108,6 +108,12 @@ export default class ngbTargetsTableController {
     get filteringErrorMessageList() {
         return this.ngbTargetsTableService.filteringErrorMessageList;
     }
+    get sortInfo() {
+        return this.ngbTargetsTableService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbTargetsTableService.sortInfo = value;
+    }
 
     async initialize() {
         Object.assign(this.gridOptions, {
@@ -118,6 +124,7 @@ export default class ngbTargetsTableController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
@@ -139,7 +146,6 @@ export default class ngbTargetsTableController {
             columnSettings = {
                 name: column,
                 enableHiding: false,
-                enableSorting: false,
                 field: column,
                 headerTooltip: column,
                 width: '*'
@@ -148,6 +154,7 @@ export default class ngbTargetsTableController {
                 case 'launch':
                     columnSettings = {
                         ...columnSettings,
+                        enableSorting: false,
                         enableFiltering: false,
                         enableColumnMenu: false,
                         headerCellTemplate: headerCells,
@@ -160,6 +167,7 @@ export default class ngbTargetsTableController {
                 case 'name':
                     columnSettings = {
                         ...columnSettings,
+                        enableSorting: true,
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         displayName: column,
@@ -169,6 +177,7 @@ export default class ngbTargetsTableController {
                 case 'genes':
                     columnSettings = {
                         ...columnSettings,
+                        enableSorting: true,
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
@@ -179,6 +188,7 @@ export default class ngbTargetsTableController {
                 default:
                     columnSettings = {
                         ...columnSettings,
+                        enableSorting: true,
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
@@ -219,6 +229,43 @@ export default class ngbTargetsTableController {
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
         await this.loadData(request);
+    }
+
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
+        this.ngbTargetsTableService.currentPage = 1;
+        this.gridOptions.data = [];
+        const request = await this.ngbTargetsTableService.setGetTargetsRequest();
+        await this.loadData(request);
+        this.$timeout(::this.$scope.$apply);
     }
 
     launchTarget (row, event) {
