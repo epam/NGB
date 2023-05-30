@@ -354,6 +354,14 @@
                 ]]>
             </value>
         </property>
+        <property name="loadAllAnnotationDataIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT bio_data_item_id
+                    FROM catgenome.genome_annotation_data_item
+                ]]>
+            </value>
+        </property>
         <property name="deleteAnnotationDataItemByReferenceIdQuery">
             <value>
                 <![CDATA[

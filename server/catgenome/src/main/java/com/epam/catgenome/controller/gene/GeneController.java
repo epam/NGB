@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.epam.catgenome.entity.activity.Activity;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.manager.gene.GeneSecurityService;
@@ -443,5 +445,19 @@ public class GeneController extends AbstractRESTController {
     public Result<List<Activity>> loadGeneActivity(@PathVariable(value = "fileId") final Long fileId,
                                                    @RequestParam(value = "uid") final String uid) {
         return Result.success(geneSecurityService.loadGeneActivity(fileId, uid));
+    }
+
+    @RequestMapping(value = "/gene/search", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(
+            value = "Searches for a given feature ID in all reference gene files, case-insensitive",
+            notes = "Searches an index of a gene file for a specified feature ID",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatures(
+            @RequestParam final String geneId) throws IOException {
+        return Result.success(geneSecurityService.searchFeatures(geneId));
     }
 }
