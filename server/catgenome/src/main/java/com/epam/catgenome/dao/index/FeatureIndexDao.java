@@ -174,6 +174,7 @@ public class FeatureIndexDao {
         UID("uid"),
         FEATURE_ID("featureId"),
         CHROMOSOME_ID("chromosomeId"),
+        REFERENCE_ID("referenceId"),
         CHROMOSOME_NAME("chromosomeName"),
         START_INDEX("startIndex"),
         END_INDEX("endIndex"),

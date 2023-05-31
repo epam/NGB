@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
@@ -46,6 +47,7 @@ import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
@@ -79,7 +81,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         document.add(buildChromosomeIdField(chromosomeId));
         document.add(new SortedStringField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 entry.getChromosome().getName(), true));
-
+        document.add(new StoredField(FeatureIndexFields.REFERENCE_ID.getFieldName(),
+                entry.getChromosome().getReferenceId().intValue()));
         document.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(),
                 entry.getStartIndex()));
         document.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(),
@@ -162,6 +165,11 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
             entry.getChromosome().setName(
                     doc.getBinaryValue(FeatureIndexFields.CHROMOSOME_NAME.getFieldName())
                             .utf8ToString());
+            final IndexableField referenceId = doc.getField(FeatureIndexFields.REFERENCE_ID.getFieldName());
+            if (referenceId != null) {
+                final Integer number = (Integer)referenceId.numericValue();
+                entry.getChromosome().setReferenceId(number.longValue());
+            }
         }
 
         final String uuid = findFieldValue(doc, FeatureIndexFields.UID);
