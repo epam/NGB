@@ -23,8 +23,11 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,5 +71,11 @@ public class TargetSecurityService {
     @PreAuthorize(ROLE_USER)
     public Target updateTarget(final Target target) {
         return targetManager.update(target);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public IdentificationResult launchIdentification(final IdentificationRequest request)
+            throws ExternalDbUnavailableException {
+        return targetManager.launchIdentification(request);
     }
 }
