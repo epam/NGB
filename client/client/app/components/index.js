@@ -23,6 +23,7 @@ import ngbVariantsTablePanel from './ngbVariantsTablePanel';
 import ngbMotifsPanel from './ngbMotifsPanel';
 import ngbVcfSampleAliases from './ngbVcfSampleAliases';
 import ngbCoveragePanel from './ngbCoveragePanel';
+import ngbTargetPanel from './ngbTargetPanel';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -48,5 +49,6 @@ export default angular.module('NGB_Panels', [
     ngbPathways,
     ngbMotifsPanel,
     ngbVcfSampleAliases,
-    ngbCoveragePanel
+    ngbCoveragePanel,
+    ngbTargetPanel
 ]).name;

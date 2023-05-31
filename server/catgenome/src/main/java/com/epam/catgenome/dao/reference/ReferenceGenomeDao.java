@@ -132,6 +132,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     private String loadBiologicalItemsQuery;
     private String updateReferenceGeneFileIdQuery;
     private String loadAnnotationDataIdsByReferenceIdQuery;
+    private String loadAllAnnotationDataIdsQuery;
     private String addAnnotationDataItemByReferenceIdQuery;
     private String deleteAnnotationDataItemByReferenceIdQuery;
     private String loadGenomeIdsByAnnotationDataItemIdQuery;
@@ -332,6 +333,15 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Loads List of annotation files from the database
+     * @return List of BiologicalDataItem, matching specified IDs
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Long> loadAllAnnotationFileIds() {
+        return getJdbcTemplate().queryForList(loadAllAnnotationDataIdsQuery, Long.class);
+    }
+
+    /**
      * Add a BiologicalDataItem(only BED or GFF/GTF) as annotation for the genome
      * @param referenceId List of IDs of BiologicalDataItem instances
      * @param annotationFileId ID of BiologicalDataItem instance
@@ -444,6 +454,11 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAnnotationDataIdsByReferenceIdQuery(String loadAnnotationDataIdsByReferenceIdQuery) {
         this.loadAnnotationDataIdsByReferenceIdQuery = loadAnnotationDataIdsByReferenceIdQuery;
+    }
+
+    @Required
+    public void setLoadAllAnnotationDataIdsQuery(String loadAllAnnotationDataIdsQuery) {
+        this.loadAllAnnotationDataIdsQuery = loadAllAnnotationDataIdsQuery;
     }
 
     @Required

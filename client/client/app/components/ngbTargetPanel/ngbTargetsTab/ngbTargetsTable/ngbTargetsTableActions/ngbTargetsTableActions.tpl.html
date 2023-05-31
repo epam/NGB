@@ -1,0 +1,19 @@
+<md-menu md-position-mode="target-right target">
+    <md-button aria-label="Open demo menu"
+               class="md-icon-button"
+               ng-click="$mdOpenMenu($event)">
+        <ng-md-icon icon="menu"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" class="targets-actions">
+        <md-menu-item>
+            <div class="for-md-tooltip-work">
+                <md-checkbox flex
+                             layout="row"
+                             class="text__sm show-filters-checkbox"
+                             ng-model="$ctrl.displayFilters">
+                    Show filters
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>

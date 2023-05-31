@@ -1,0 +1,128 @@
+<form class="add-target-form" name="target">
+    <div ng-class="{'hidden': !$ctrl.failed || $ctrl.loading}">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <div class="form-header">
+        <md-button type="button"
+                   class="md-raised md-accent back-target-button"
+                   aria-label="Back to table"
+                   ng-click="$ctrl.backToTable()">
+            <ng-md-icon icon="keyboard_backspace"></ng-md-icon>
+        </md-button>
+        <div class="name-input">
+            <label for="targetName">Target</label>
+            <input type="string"
+                   required
+                   name="targetName"
+                   ng-model="$ctrl.targetModel.name">
+        </div>
+        <md-button type="button"
+                   class="md-raised md-accent save-target-button"
+                   aria-label="Save target"
+                   ng-click="$ctrl.saveTarget()"
+                   ng-disabled="$ctrl.isSaveDisabled()">
+            SAVE
+        </md-button>
+        <md-button type="button"
+                   class="md-warn save-target-button"
+                   ng-class="{'hidden': !$ctrl.isEditMode}"
+                   aria-label="Remove target"
+                   ng-click="$ctrl.removeTarget()"
+                   ng-disabled="$ctrl.loading">
+            REMOVE
+        </md-button>
+    </div>
+    <div>
+        <div class="form-block">
+            <label for="targetDiseases">Diseases:</label>
+            <md-chips name="targetDiseases"
+                      ng-model="$ctrl.targetModel.diseases"
+                      md-removable="ctrl.removable"
+                      md-enable-chip-edit="true"
+                      md-autocomplete-snap="width"
+                      input-aria-label="Diseases"
+                      placeholder="Add disease"
+                      flex>
+            </md-chips>
+        </div>
+        <div class="form-block">
+            <label for="targetProducts">Products:</label>
+            <md-chips name="targetProducts"
+                      ng-model="$ctrl.targetModel.products"
+                      md-removable="ctrl.removable"
+                      md-enable-chip-edit="true"
+                      md-autocomplete-snap="width"
+                      input-aria-label="Products"
+                      placeholder="Add product"
+                      flex>
+            </md-chips>
+        </div>
+        <div class="form-block">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th ng-repeat="column in $ctrl.genesColumns track by $index">
+                                {{column}}
+                            </th>
+                            <th class="button-column"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="gene in $ctrl.targetModel.genes track by $index">
+                            <td>
+                                <input type="string"
+                                       required
+                                       name="geneId"
+                                       ng-model="$ctrl.targetModel.genes[$index].geneId">
+                            </td>
+                            <td>
+                                <input type="string"
+                                       required
+                                       name="geneName"
+                                       ng-model="$ctrl.targetModel.genes[$index].geneName">
+                            </td>
+                            <td>
+                                <input type="string"
+                                       required
+                                       name="taxId"
+                                       ng-model="$ctrl.targetModel.genes[$index].taxId">
+                            </td>
+                            <td>
+                                <input type="string"
+                                       required
+                                       name="speciesName"
+                                       ng-model="$ctrl.targetModel.genes[$index].speciesName">
+                            </td>
+                            <td>
+                                <input type="string"
+                                       name="priority"
+                                       ng-model="$ctrl.targetModel.genes[$index].priority">
+                            </td>
+                            <td class="button-column">
+                                <md-button class="remove-btn"
+                                           ng-click="$ctrl.onClickRemove($index)"
+                                           aria-label="Remove"
+                                           title="Remove gene">
+                                    <ng-md-icon icon="clear"
+                                                size="15"
+                                                style="fill: #999 !important;">
+                                    </ng-md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="button-container">
+                    <md-button type="button"
+                               class="md-raised md-accent add-button"
+                               aria-label="Add gene"
+                               ng-click="$ctrl.addGene()"
+                               ng-disabled="$ctrl.isAddGeneDisabled()">
+                        + Gene
+                    </md-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

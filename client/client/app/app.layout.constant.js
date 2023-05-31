@@ -122,6 +122,15 @@ export default {
             title: 'Coverage',
             name: 'layout>coverage'
         },
+        target: {
+            displayed: false,
+            icon: 'adjust',
+            iconColor: 'accent-600',
+            panel: 'ngbTargetPanel',
+            position: 'right',
+            title: 'Target identification',
+            name: 'layout>target'
+        },
         ...(() => {
             const devPanels = {
                 DevLog: {

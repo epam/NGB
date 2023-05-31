@@ -1,0 +1,10 @@
+<div ng-if="$ctrl.isTableMode" class="target-flex-column">
+    <ngb-targets-table class="target-flex-column"></ngb-targets-table>
+    <md-button type="button"
+               class="md-raised md-accent add-target-button"
+               aria-label="Add target"
+               ng-click="$ctrl.addTarget()">
+        ADD +
+    </md-button>
+</div>
+<ngb-targets-form ng-if="$ctrl.isAddMode || $ctrl.isEditMode"></ngb-targets-form>

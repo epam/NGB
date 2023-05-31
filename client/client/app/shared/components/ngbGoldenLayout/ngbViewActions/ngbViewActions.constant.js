@@ -142,6 +142,19 @@ const coverageResetFilters = {
     )
 };
 
+const targetsTableActions = {
+    name: 'targetsTableActions',
+    isDefault: true,
+    isVisible: (context, appearance) => !appearance.embedded && appearance.targetsActions
+};
+const targetsTablePagination = {
+    name: 'targetsTablePagination',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
@@ -161,13 +174,16 @@ export default {
         bookmarksTablePagination: bookmarksTablePaginationAction,
         bookmarksResetFilter: bookmarksResetFilterActions,
         coverageTableActions: coverageTableActions,
-        coverageResetFilters: coverageResetFilters
+        coverageResetFilters: coverageResetFilters,
+        targetsTableActions: targetsTableActions,
+        targetsTablePagination: targetsTablePagination,
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
         ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
-        ngbCoveragePanel: [coverageResetFilters, coverageTableActions]
+        ngbCoveragePanel: [coverageResetFilters, coverageTableActions],
+        ngbTargetPanel: [targetsTablePagination, targetsTableActions],
     }
 };
