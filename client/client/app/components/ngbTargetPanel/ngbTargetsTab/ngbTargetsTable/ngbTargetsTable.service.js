@@ -18,6 +18,7 @@ export default class ngbTargetsTableService {
     _filteringErrorMessageList = null;
 
     _displayFilters = false;
+
     _filterInfo = null;
     _sortInfo = null;
 
@@ -116,8 +117,14 @@ export default class ngbTargetsTableService {
             pagingInfo: {
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
-            },
+            }
         };
+        if (this._sortInfo && this._sortInfo.length) {
+            request.sortInfo = {
+                field: 'target_name',
+                ascending: this._sortInfo[0].ascending
+            };
+        }
         if (this._filterInfo) {
             if (this._filterInfo.name) {
                 request.targetName = this._filterInfo.name;
@@ -128,15 +135,12 @@ export default class ngbTargetsTableService {
             if (this._filterInfo.species) {
                 request.speciesNames = [...this._filterInfo.species];
             }
-            if (this._filterInfo.disease) {
-                request.diseases = [...this._filterInfo.disease];
+            if (this._filterInfo.diseases) {
+                request.diseases = [...this._filterInfo.diseases];
             }
-            if (this._filterInfo.product) {
-                request.products = [...this._filterInfo.product];
+            if (this._filterInfo.products) {
+                request.products = [...this._filterInfo.products];
             }
-        }
-        if (this._sortInfo) {
-            console.log(this._sortInfo);
         }
         return request;
     }

@@ -146,6 +146,8 @@ export default class ngbTargetsTableController {
             columnSettings = {
                 name: column,
                 enableHiding: false,
+                enableColumnMenu: false,
+                enableSorting: false,
                 field: column,
                 headerTooltip: column,
                 width: '*'
@@ -154,9 +156,7 @@ export default class ngbTargetsTableController {
                 case 'launch':
                     columnSettings = {
                         ...columnSettings,
-                        enableSorting: false,
                         enableFiltering: false,
-                        enableColumnMenu: false,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         maxWidth: 50,
@@ -169,6 +169,7 @@ export default class ngbTargetsTableController {
                         ...columnSettings,
                         enableSorting: true,
                         enableFiltering: true,
+                        enableColumnMenu: true,
                         headerCellTemplate: headerCells,
                         displayName: column,
                         cellTemplate: nameCell
@@ -177,7 +178,6 @@ export default class ngbTargetsTableController {
                 case 'genes':
                     columnSettings = {
                         ...columnSettings,
-                        enableSorting: true,
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
@@ -188,7 +188,6 @@ export default class ngbTargetsTableController {
                 default:
                     columnSettings = {
                         ...columnSettings,
-                        enableSorting: true,
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
@@ -244,23 +243,6 @@ export default class ngbTargetsTableController {
         } else {
             this.sortInfo = null;
         }
-        const sortingConfiguration = sortColumns
-            .filter(column => !!column.sort)
-            .map((column, priority) => ({
-                field: column.field,
-                sort: ({
-                    ...column.sort,
-                    priority
-                })
-            }));
-        const {columns = []} = grid || {};
-        columns.forEach(columnDef => {
-            const [sortingConfig] = sortingConfiguration
-                .filter(c => c.field === columnDef.field);
-            if (sortingConfig) {
-                columnDef.sort = sortingConfig.sort;
-            }
-        });
         this.ngbTargetsTableService.currentPage = 1;
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
