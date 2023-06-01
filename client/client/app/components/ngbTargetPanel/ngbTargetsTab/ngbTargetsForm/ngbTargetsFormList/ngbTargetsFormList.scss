@@ -30,14 +30,14 @@ ngb-targets-form-list {
     md-autocomplete button {
         display: none;
     }
+}
 
-    md-autocomplete {
-        .md-autocomplete-suggestions {
-            .md-autocomplete-suggestions li {
-                padding: 0 5px !important;
-                line-height: 24px !important;
-                height: 24px !important;
-            }
-        }
+.autocomplete-list.md-autocomplete-suggestions {
+    li {
+        padding: 0 5px;
+        line-height: 24px;
+        height: 24px;
+        overflow: visible;
+        width: auto;
     }
 }

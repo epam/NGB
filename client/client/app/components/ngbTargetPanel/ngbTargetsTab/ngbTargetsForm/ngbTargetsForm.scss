@@ -186,8 +186,23 @@
 
     table th,
     table tr td {
-        width: calc((100% - 35px) / 5);
+        width: 20%;
         padding: 4px;
+    }
+
+    table th:nth-child(1),
+    table tr td:nth-child(1) {
+        width: 25%;
+    }
+
+    table th:nth-child(3),
+    table tr td:nth-child(3) {
+        width: 15%;
+    }
+
+    table th:nth-child(5),
+    table tr td:nth-child(5) {
+        width: 15%;
     }
 
     input {
@@ -233,7 +248,7 @@
     }
 }
 
-.priority-select {
+.priority-select-container {
     md-select {
         margin: 0;
         border-radius: 5px;
@@ -255,6 +270,26 @@
 
     md-option {
         padding: 0 10px;
+        height: 24px;
+    }
+
+    .md-select-value .md-select-icon {
+        width: 15px;
+        margin: 0 2px;
+    }
+}
+
+.priority-select {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-select-menu md-content {
+        min-width: 36px;
+    }
+
+    md-option {
+        padding: 0 5px;
         height: 24px;
     }
 }

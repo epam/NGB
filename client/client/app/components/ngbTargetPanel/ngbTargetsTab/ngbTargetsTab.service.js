@@ -260,7 +260,6 @@ export default class ngbTargetsTabService {
         };
         if (geneFields[field]) {
             this._targetModel.genes[index][geneFields[field]] = value;
-
             if (isSelected) {
                 this._targetModel.genes[index].taxId = 9606;
                 this._targetModel.genes[index].speciesName = 'Homo sapiens';

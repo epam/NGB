@@ -94,9 +94,10 @@
                                        name="speciesName"
                                        ng-model="$ctrl.targetModel.genes[$index].speciesName">
                             </td>
-                            <td class="priority-select">
+                            <td class="priority-select-container">
                                 <md-select ng-model="$ctrl.targetModel.genes[$index].priority"
-                                           aria-label="Select priority">
+                                           aria-label="Select priority"
+                                           md-container-class="priority-select">
                                     <md-option><em>None</em></md-option>
                                     <md-option ng-repeat="priority in $ctrl.priorityList"
                                                ng-value="priority.value">
