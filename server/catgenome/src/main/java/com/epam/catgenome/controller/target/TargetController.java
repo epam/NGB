@@ -73,7 +73,7 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/filter")
     @ApiOperation(
             value = "Filters targets",
-            notes = "Filters targets",
+            notes = "Filters targets. Result can be sorted by target_name field.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -139,7 +139,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request) throws ExternalDbUnavailableException {
+    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
+            throws ExternalDbUnavailableException {
         return Result.success(targetSecurityService.launchIdentification(request));
     }
 }

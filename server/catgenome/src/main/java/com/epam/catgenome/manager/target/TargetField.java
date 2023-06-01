@@ -27,5 +27,6 @@ package com.epam.catgenome.manager.target;
 public enum TargetField {
     PRODUCTS,
     DISEASES,
+    GENE_NAME,
     SPECIES_NAME
 }
