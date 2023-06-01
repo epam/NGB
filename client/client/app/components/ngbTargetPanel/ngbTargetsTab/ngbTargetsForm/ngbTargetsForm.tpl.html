@@ -17,14 +17,14 @@
                    ng-model="$ctrl.targetModel.name">
         </div>
         <md-button type="button"
-                   class="md-raised md-accent save-target-button"
+                   class="md-primary save-target-button"
                    aria-label="Save target"
                    ng-click="$ctrl.saveTarget()"
                    ng-disabled="$ctrl.isSaveDisabled()">
             SAVE
         </md-button>
         <md-button type="button"
-                   class="md-warn save-target-button"
+                   class="save-target-button"
                    ng-class="{'hidden': !$ctrl.isEditMode}"
                    aria-label="Remove target"
                    ng-click="$ctrl.removeTarget()"
