@@ -23,19 +23,29 @@
  */
 package com.epam.catgenome.entity.target;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class TargetGene {
-    private Long targetGeneId;
-    private Long targetId;
-    private String geneId;
-    private String geneName;
-    private Long taxId;
-    private String speciesName;
-    private TargetGenePriority priority;
+public enum TargetGenePriority {
+    HIGH(100, "High"),
+    LOW(0, "Low");
+
+    private final int value;
+    private final String name;
+    private static final int HIGH_VALUE = 100;
+    private static final Map<Integer, TargetGenePriority> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, LOW);
+        VALUES_MAP.put(HIGH_VALUE, HIGH);
+    }
+
+    public static TargetGenePriority getByValue(int id) {
+        return VALUES_MAP.get(id);
+    }
 }

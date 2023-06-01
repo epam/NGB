@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetGenePriority;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
@@ -135,14 +136,14 @@ public class TargetManagerTest extends TestCase {
                 .geneName("KRAS")
                 .taxId(HOMO_SAP_TAX_ID)
                 .speciesName("Homo Sapiens")
-                .priority(1)
+                .priority(TargetGenePriority.LOW)
                 .build();
         final TargetGene targetGene1 = TargetGene.builder()
                 .geneId("ENSFCAG00000011704")
                 .geneName("PGLYRP4")
                 .taxId(FELIS_CATUS_TAX_ID)
                 .speciesName("Felis catus")
-                .priority(2)
+                .priority(TargetGenePriority.HIGH)
                 .build();
         final Target target = Target.builder()
                 .targetName(name)

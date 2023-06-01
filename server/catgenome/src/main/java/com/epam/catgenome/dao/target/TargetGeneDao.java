@@ -25,6 +25,7 @@ package com.epam.catgenome.dao.target;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetGenePriority;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -57,6 +58,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
     private String loadAllTargetGenesQuery;
     private String deleteTargetGenesQuery;
     private String loadSpeciesNamesQuery;
+    private String loadGeneNamesQuery;
 
     /**
      * Creates new TargetGene records.
@@ -102,6 +104,10 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().queryForList(loadSpeciesNamesQuery, String.class);
     }
 
+    public List<String> loadGeneNames() {
+        return getJdbcTemplate().queryForList(loadGeneNamesQuery, String.class);
+    }
+
     enum TargetGeneParameters {
         TARGET_GENE_ID,
         TARGET_ID,
@@ -119,7 +125,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
             params.addValue(GENE_NAME.name(), targetGene.getGeneName());
             params.addValue(TAX_ID.name(), targetGene.getTaxId());
             params.addValue(SPECIES_NAME.name(), targetGene.getSpeciesName());
-            params.addValue(PRIORITY.name(), targetGene.getPriority());
+            params.addValue(PRIORITY.name(), targetGene.getPriority().getValue());
             return params;
         }
 
@@ -135,7 +141,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
                     .geneName(rs.getString(GENE_NAME.name()))
                     .taxId(rs.getLong(TAX_ID.name()))
                     .speciesName(rs.getString(SPECIES_NAME.name()))
-                    .priority(rs.getInt(PRIORITY.name()))
+                    .priority(TargetGenePriority.getByValue(rs.getInt(PRIORITY.name())))
                     .build();
         }
     }
