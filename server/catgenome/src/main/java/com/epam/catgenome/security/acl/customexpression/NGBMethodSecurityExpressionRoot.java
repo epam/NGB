@@ -202,6 +202,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return permissionHelper.isAllowedByBioItemId(permission, bioItemId);
     }
 
+    public boolean isDownloadFileAllowed(Long bioItemId, Long projectId) {
+        return permissionHelper.isDownloadFileAllowed(bioItemId, projectId);
+    }
+
     @Override
     public void setFilterObject(Object filterObject) {
         this.filterObject = filterObject;

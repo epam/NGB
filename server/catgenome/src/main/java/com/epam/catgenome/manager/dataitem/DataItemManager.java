@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.dataitem;
 
+import static com.epam.catgenome.component.MessageCode.FILES_DOWNLOAD_NOT_ALLOWED;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOUND;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_NAME_NOT_FOUND;
@@ -32,6 +33,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_NAME_EXIS
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,7 +74,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
  */
 @Service
 public class DataItemManager {
-    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download";
+    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download/%d";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -103,6 +105,9 @@ public class DataItemManager {
 
     @Value("${base.external.url:}")
     private String baseExternalUrl;
+
+    @Value("#{catgenome['file.download.allowed'] ?: false}")
+    private boolean fileDownloadAllowed;
 
     /**
      * Method finds all files registered in the system by an input search query
@@ -213,6 +218,9 @@ public class DataItemManager {
 
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem,
                                                final Boolean source) throws IOException {
+        if (!isFileDownloadAllowed()) {
+            throw new AccessDeniedException(getMessage(FILES_DOWNLOAD_NOT_ALLOWED));
+        }
         final String dataItemPath = source ? biologicalDataItem.getSource() : biologicalDataItem.getPath();
         if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
             return loadLocalFileItem(biologicalDataItem, dataItemPath);
@@ -221,11 +229,16 @@ public class DataItemManager {
     }
 
     public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
-                                                             final BiologicalDataItem biologicalDataItem) {
+                                                             final Long projectId,
+                                                             final BiologicalDataItem biologicalDataItem)
+            throws AccessDeniedException {
+        if (!isFileDownloadAllowed()) {
+            throw new AccessDeniedException(getMessage(FILES_DOWNLOAD_NOT_ALLOWED));
+        }
         final BiologicalDataItemResourceType type = determineType(biologicalDataItem);
         switch (type) {
             case FILE:
-                return generateDownloadUrlForLocalFile(id, biologicalDataItem);
+                return generateDownloadUrlForLocalFile(id, projectId, biologicalDataItem);
             case S3:
                 return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getSource());
             case AZ:
@@ -234,6 +247,10 @@ public class DataItemManager {
                 throw new UnsupportedOperationException(String.format(
                         "Cannot generate download url for data type '%s'", biologicalDataItem.getType()));
         }
+    }
+
+    public boolean isFileDownloadAllowed() {
+        return fileDownloadAllowed;
     }
 
     private BiologicalDataItemResourceType determineType(final BiologicalDataItem biologicalDataItem) {
@@ -247,6 +264,7 @@ public class DataItemManager {
     }
 
     private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
+                                                                          final Long projectId,
                                                                           final BiologicalDataItem biologicalDataItem) {
         final Path dataItemPath = Paths.get(biologicalDataItem.getSource());
         try {
@@ -254,7 +272,7 @@ public class DataItemManager {
                     getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
             return BiologicalDataItemDownloadUrl.builder()
                     .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
-                            StringUtils.removeEnd(baseExternalUrl, "/"), id))
+                            StringUtils.removeEnd(baseExternalUrl, "/"), id, projectId))
                     .type(BiologicalDataItemResourceType.FILE)
                     .size(Files.size(dataItemPath))
                     .build();

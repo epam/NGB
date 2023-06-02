@@ -56,7 +56,8 @@ public enum MessageCode {
     ERROR_GENE_PRED_FILE_READING("error.genepred.file.reading"),
     ERROR_NO_QUALIFIERS("error.no.qualifiers"),
 
-    URL_FILE_BROWSING_NOT_ALLOWED("error.url.file.browsing.not.allowed");
+    URL_FILE_BROWSING_NOT_ALLOWED("error.url.file.browsing.not.allowed"),
+    FILES_DOWNLOAD_NOT_ALLOWED("error.files.download.not.allowed");
 
     private final String code;
 
