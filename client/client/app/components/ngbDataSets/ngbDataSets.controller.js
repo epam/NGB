@@ -45,6 +45,7 @@ export default class ngbDataSetsController extends baseController {
         const self = this;
         this.tracksStateChangeListener = async () => {
             await self.service.updateSelectionFromState(self.datasets);
+            self.dispatcher.emitSimpleEvent('dataset:selection:change');
         };
         const tracksStateChangeListener = ::this.tracksStateChangeListener;
         const globalSettingsChangedHandler = (state) => {

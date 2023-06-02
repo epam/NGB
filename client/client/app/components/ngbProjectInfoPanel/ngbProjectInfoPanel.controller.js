@@ -8,8 +8,6 @@ export default class ngbProjectInfoPanelController extends BaseController {
         return 'ngbProjectInfoPanelController';
     }
 
-    projectContext;
-    newNote;
     events = {
         'project:description:url': this.refreshProjectInfo.bind(this),
     };
@@ -18,62 +16,62 @@ export default class ngbProjectInfoPanelController extends BaseController {
      * @constructor
      */
     /** @ngInject */
-    constructor(projectContext, $scope, $element, $timeout, dispatcher, ngbProjectInfoService) {
+    constructor($scope, $element, $timeout, dispatcher, projectContext, ngbProjectInfoService) {
         super();
         Object.assign(this, {
-            projectContext, $scope, $element, $timeout, dispatcher, ngbProjectInfoService
+            $scope, $element, $timeout, dispatcher, projectContext, ngbProjectInfoService
         });
         this.initEvents();
     }
 
-    get projectInfoModeList() {
-        return this.ngbProjectInfoService.projectInfoModeList;
+    get mode() {
+        return this.ngbProjectInfoService.mode;
     }
-
     get currentMode() {
-        const currentMode = this.ngbProjectInfoService.currentMode;
-        return Array.isArray(currentMode) ? currentMode[0] : currentMode;
+        return this.ngbProjectInfoService.currentMode;
     }
-
     get isProgressShown() {
         return this.ngbProjectInfoService.descriptionIsLoading;
     }
-
+    get blobUrl() {
+        return this.ngbProjectInfoService.blobUrl;
+    }
     get currentNote() {
         return this.ngbProjectInfoService.currentNote;
     }
-
-    get editingNote() {
-        return this.ngbProjectInfoService.editingNote;
+    get editableNote() {
+        return this.ngbProjectInfoService.editableNote;
     }
-
     get newNote() {
         return this.ngbProjectInfoService.newNote;
     }
-
-    get canEdit() {
-        return this.ngbProjectInfoService.canEdit;
+    get isAdditionMode() {
+        return this.ngbProjectInfoService.isAdditionMode;
     }
-
-    get isEdit() {
-        return this.ngbProjectInfoService.isEdit;
+    get isEditingAvailable() {
+        return this.ngbProjectInfoService.isEditingAvailable;
+    }
+    get inEditing() {
+        return this.ngbProjectInfoService.inEditing;
     }
 
     get heatmapId() {
         return this.heatmap ? this.heatmap.id : undefined;
     }
-
     get heatmapProjectId() {
         return this.heatmap && this.heatmap.project ? this.heatmap.project.id : undefined;
     }
-
     get referenceId() {
         return this.projectContext && this.projectContext.reference
             ? this.projectContext.reference.id
             : undefined;
     }
 
-    editNote($event) {
+    get containsVcfFiles() {
+        return this.projectContext.containsVcfFiles && !this.projectContext.variantsGroupError;
+    }
+
+    handleClickEditNote($event) {
         this.ngbProjectInfoService.editNote(this.currentNote.id);
         $event.stopPropagation();
         $event.preventDefault();
@@ -83,9 +81,5 @@ export default class ngbProjectInfoPanelController extends BaseController {
     refreshProjectInfo() {
         this.$timeout(() => this.$scope.$apply());
         this.dispatcher.emitSimpleEvent('refresh:project:info');
-    }
-
-    get containsVcfFiles() {
-        return this.projectContext.containsVcfFiles && !this.projectContext.variantsGroupError;
     }
 }

@@ -6,7 +6,6 @@ import angular from 'angular';
 // Import internal modules
 import controller from './ngbProjectInfoPanel.controller';
 import component from './ngbProjectInfoPanel.component';
-import run from './ngbProjectInfoPanel.run';
 import ngbProjectInfoSections from './ngbProjectInfoSections';
 
 // Import external modules
@@ -25,5 +24,4 @@ export default angular
     .controller(controller.UID, controller)
     .component('ngbProjectInfoPanel', component)
     .service('ngbProjectInfoService', service)
-    .run(run)
     .name;
