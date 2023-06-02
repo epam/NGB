@@ -10,9 +10,14 @@ export default class ngbTargetsFormListController{
     }
 
     constructor($scope, $timeout, dispatcher, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTabService});
+        Object.assign(this, {$scope, $timeout, ngbTargetsTabService});
         this.searchText = this.geneModel;
-        this.dispatcher.on('gene:model:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('gene:model:updated', refresh);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('gene:model:updated', refresh);
+        });
     }
 
     refresh() {
