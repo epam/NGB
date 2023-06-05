@@ -28,6 +28,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -38,6 +39,9 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -45,6 +49,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -92,8 +97,6 @@ public class NCBIGeneInfoParser {
     private static final String ENTREZ_GENE_TYPE_XPATH = GENE_XPATH + "/Entrezgene_type/@value";
     private static final String ENTREZ_GENE_SUMMARY_XPATH_REL = "Entrezgene_summary";
     private static final String ENTREZ_GENE_SUMMARY_XPATH = GENE_XPATH + "/" + ENTREZ_GENE_SUMMARY_XPATH_REL;
-    private static final String GENE_ID = "Entrezgene_gene/Gene-ref/Gene-ref_db/" +
-            "Dbtag[2]/Dbtag_tag/Object-id/Object-id_str";
     private static final String REFSEQ_STATUS_XPATH =
             GENE_XPATH + "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
                     "[text()=\"RefSeq Status\"]/../Gene-commentary_label";
@@ -123,6 +126,9 @@ public class NCBIGeneInfoParser {
     private static final String ID_XPATH = GENE_XPATH + "/Entrezgene_track-info/Gene-track/Gene-track_geneid";
     private static final String PARSING_EXCEPTION_HAPPENED = "Parsing exception happened";
     private static final int LIST_SIZE = 3;
+    private static final String DBTAG_DB = "Dbtag_db";
+    private static final String OBJECT_ID_STR = "Object-id_str";
+    private static final String ENSEMBL = "Ensembl";
 
 
     private final XPath xPath = XPathFactory.newInstance().newXPath();
@@ -215,25 +221,45 @@ public class NCBIGeneInfoParser {
     }
 
     public Map<String, String> parseGeneInfos(final String xml) throws ExternalDbUnavailableException {
-        final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-        final Map<String, String> description = new HashMap<>();
-        try {
-            final DocumentBuilder builder = builderFactory.newDocumentBuilder();
-            final InputSource is = new InputSource(new StringReader(xml));
-            final Document document = builder.parse(is);
-            final NodeList genes = (NodeList) xPath.compile(GENE_XPATH).evaluate(document, XPathConstants.NODESET);
-            for (int i = 0; i < genes.getLength(); i++) {
-                Node item = genes.item(i);
-                description.put(xPath.compile(GENE_ID).evaluate(item),
-                        xPath.compile(ENTREZ_GENE_SUMMARY_XPATH_REL).evaluate(item));
+        final Map<String, String> descriptions = new HashMap<>();
+        try (InputStream is = new ByteArrayInputStream(xml.getBytes())) {
+            XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(is);
+            String geneId = "";
+            String description = "";
+            String dbtagDb = "";
+            while (streamReader.hasNext()) {
+                streamReader.next();
+                if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+                    switch (streamReader.getLocalName()) {
+                        case DBTAG_DB:
+                            dbtagDb = streamReader.getElementText();
+                            break;
+                        case OBJECT_ID_STR:
+                            if (ENSEMBL.equals(dbtagDb)) {
+                                geneId = streamReader.getElementText();
+                            }
+                            break;
+                        case ENTREZ_GENE_SUMMARY_XPATH_REL:
+                            description = streamReader.getElementText();
+                            if (!TextUtils.isBlank(geneId)) {
+                                descriptions.put(geneId, description);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
-        } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {
+            streamReader.close();
+        } catch (XMLStreamException e) {
             LOG.error(PARSING_EXCEPTION_HAPPENED, e);
         } catch (IOException e) {
             throw new ExternalDbUnavailableException(getMessage(MessagesConstants
                     .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
-        return description;
+        return descriptions;
     }
 
     public Pair<String, String> parseHistoryResponse(String srcXml, NCBIUtility utility)
