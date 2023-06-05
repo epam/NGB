@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.entity.externaldb.opentarget;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.Map;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class IdentificationResult {
-    private Map<String, String> description;
-    private Integer diseases;
-    private Integer drugs;
+public class AssociatedDisease {
+    private String diseaseId;
+    private String targetId;
+    private AssociationType type;
+    private Float score;
 }

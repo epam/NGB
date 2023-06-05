@@ -21,23 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.entity.externaldb.opentarget;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.Map;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class IdentificationResult {
-    private Map<String, String> description;
-    private Integer diseases;
-    private Integer drugs;
+public class Drug {
+    private String id;
+    private String name;
+    private String url;
 }

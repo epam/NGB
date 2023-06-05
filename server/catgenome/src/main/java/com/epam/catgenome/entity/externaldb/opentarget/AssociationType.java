@@ -21,23 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+
+package com.epam.catgenome.entity.externaldb.opentarget;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.Map;
 
-@Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class IdentificationResult {
-    private Map<String, String> description;
-    private Integer diseases;
-    private Integer drugs;
+@Getter
+public enum AssociationType {
+    OVERALL("overall"),
+    GENETIC_ASSOCIATIONS("genetic_association"),
+    SOMATIC_MUTATIONS("somatic_mutation"),
+    DRUGS("known_drug"),
+    PATHWAYS("affected_pathway"),
+    TEXT_MINING("literature"),
+    RNA_EXPRESSION("rna_expression"),
+    ANIMAL_MODELS("animal_model");
+    private final String name;
+    private static final Map<String, AssociationType> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put("overall", OVERALL);
+        VALUES_MAP.put("genetic_association", GENETIC_ASSOCIATIONS);
+        VALUES_MAP.put("somatic_mutation", SOMATIC_MUTATIONS);
+        VALUES_MAP.put("known_drug", DRUGS);
+        VALUES_MAP.put("affected_pathway", PATHWAYS);
+        VALUES_MAP.put("literature", TEXT_MINING);
+        VALUES_MAP.put("rna_expression", RNA_EXPRESSION);
+        VALUES_MAP.put("animal_model", ANIMAL_MODELS);
+    }
+
+    public static AssociationType getByName(String name) {
+        return VALUES_MAP.get(name);
+    }
 }

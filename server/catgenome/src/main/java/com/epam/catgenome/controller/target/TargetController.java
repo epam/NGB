@@ -26,10 +26,14 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
+import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.opentarget.*;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetSecurityService;
@@ -39,6 +43,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -57,6 +63,10 @@ import java.util.List;
 public class TargetController extends AbstractRESTController {
 
     private final TargetSecurityService targetSecurityService;
+    private final TargetsSecurityService targetsSecurityService;
+    private final DiseasesSecurityService diseasesSecurityService;
+    private final AssociatedDiseasesSecurityService associationsSecurityService;
+    private final AssociatedDrugsSecurityService drugsSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
     @ApiOperation(
@@ -139,7 +149,88 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request) throws ExternalDbUnavailableException {
+    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
+            throws ExternalDbUnavailableException, ParseException, IOException {
         return Result.success(targetSecurityService.launchIdentification(request));
+    }
+
+    @PostMapping(value = "/target/associated/drugs")
+    @ApiOperation(
+            value = "Launches Identification for associated drugs",
+            notes = "Launches Identification for associated drugs",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<AssociatedDrug>> searchAssociatedDrugs(
+            @RequestBody final AssociationsSearchRequest request) throws ParseException, IOException {
+        return Result.success(drugsSecurityService.search(request));
+    }
+
+    @PostMapping(value = "/target/associated/diseases")
+    @ApiOperation(
+            value = "Launches Identification for associated diseases",
+            notes = "Launches Identification for associated diseases",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<AssociatedDiseaseAggregated>> searchAssociatedDiseases(
+            @RequestBody final AssociationsSearchRequest request,
+            @RequestParam final AssociationsSource source) throws ParseException, IOException {
+        return Result.success(associationsSecurityService.search(request));
+    }
+
+    @PutMapping(value = "/target/import/targets")
+    @ApiOperation(
+            value = "Import targets from Open Targets Datasource",
+            notes = "Import targets from Open Targets Datasource",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importTargets(@RequestParam final String path) throws IOException {
+        targetsSecurityService.importData(path);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/target/import/diseases")
+    @ApiOperation(
+            value = "Import diseases from Open Targets Datasource",
+            notes = "Import diseases from Open Targets Datasource",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importDiseases(@RequestParam final String path) throws IOException {
+        diseasesSecurityService.importData(path);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/target/import/associations")
+    @ApiOperation(
+            value = "Import associations from Open Targets Datasource",
+            notes = "Import associations from Open Targets Datasource",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importAssociations(@RequestParam final String path,
+                                              @RequestParam final String overallPath) throws IOException {
+        associationsSecurityService.importData(path, overallPath);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/target/import/drugs")
+    @ApiOperation(
+            value = "Import drugs from Open Targets Datasource",
+            notes = "Import drugs from Open Targets Datasource",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importDrugs(@RequestParam final String path) throws IOException {
+        drugsSecurityService.importData(path);
+        return Result.success(null);
     }
 }

@@ -21,23 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.manager.externaldb.opentarget;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
+import com.epam.catgenome.manager.externaldb.SearchResult;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.io.IOException;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class IdentificationResult {
-    private Map<String, String> description;
-    private Integer diseases;
-    private Integer drugs;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+
+@Service
+public class AssociatedDrugsSecurityService {
+
+    @Autowired
+    private AssociatedDrugsManager manager;
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<AssociatedDrug> search(final AssociationsSearchRequest request)
+            throws IOException, ParseException {
+        return manager.search(request);
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public void importData(final String path) throws IOException {
+        manager.importData(path);
+    }
 }
