@@ -23,32 +23,32 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
-public class AssociatedDrugsSecurityService {
+public class AssociatedDiseaseSecurityService {
 
     @Autowired
-    private AssociatedDrugsManager manager;
+    private AssociatedDiseaseManager manager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<AssociatedDrug> search(final AssociationsSearchRequest request)
+    public List<AssociatedDiseaseAggregated> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return manager.search(request);
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importData(final String path) throws IOException {
-        manager.importData(path);
+    public void importData(final String path, final String overallPath) throws IOException {
+        manager.importData(path, overallPath);
     }
 }

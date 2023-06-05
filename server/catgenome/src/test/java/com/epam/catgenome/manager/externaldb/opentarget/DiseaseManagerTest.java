@@ -23,8 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -41,36 +40,25 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class AssociatedDrugsManagerTest extends TestCase {
+public class DiseaseManagerTest extends TestCase {
 
     @Autowired
-    private AssociatedDrugsManager manager;
+    private DiseaseManager diseaseManager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String path = context.getResource("classpath:opentargets//drugs").getFile().getPath();
-        manager.importData(path);
+        final String path = context.getResource("classpath:opentargets//diseases").getFile().getPath();
+        diseaseManager.importData(path);
     }
 
     @Test
-    public void searchDrugsCountTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final int totalCount = manager.totalCount(targetIds);
-        assertEquals(1, totalCount);
-    }
-
-    @Test
-    public void searchDrugsTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final AssociationsSearchRequest request = AssociationsSearchRequest.builder()
-                .page(1)
-                .pageSize(3)
-                .targetIds(targetIds)
-                .build();
-        final SearchResult<AssociatedDrug> drugs = manager.search(request);
-        assertEquals(1, drugs.getItems().size());
+    public void searchDiseasesTest() throws IOException, ParseException {
+        final List<String> diseasesIds = Arrays.asList("DOID_7551", "EFO_0004254");
+        final List<Disease> diseases = diseaseManager.search(diseasesIds);
+        assertNotNull(diseases);
+        assertEquals(2, diseases.size());
     }
 }

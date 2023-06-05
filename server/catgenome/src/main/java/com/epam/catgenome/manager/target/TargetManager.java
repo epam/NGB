@@ -26,13 +26,17 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
-import com.epam.catgenome.entity.externaldb.opentarget.TargetDescription;
-import com.epam.catgenome.entity.target.*;
+import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
+import com.epam.catgenome.entity.target.Target;
+import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDiseasesManager;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDrugsManager;
-import com.epam.catgenome.manager.externaldb.opentarget.TargetsManager;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDiseaseManager;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDrugManager;
+import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
 import com.epam.catgenome.util.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -77,9 +81,9 @@ public class TargetManager {
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
     private final NCBIGeneManager geneManager;
-    private final TargetsManager targetsManager;
-    private final AssociatedDiseasesManager associationsManager;
-    private final AssociatedDrugsManager drugsManager;
+    private final TargetDetailsManager targetsManager;
+    private final AssociatedDiseaseManager associationsManager;
+    private final AssociatedDrugManager drugsManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Target create(final Target target) {
@@ -203,9 +207,9 @@ public class TargetManager {
     private Map<String, String> getDescriptions(final List<String> geneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
         final Map<String, String> ncbiDescription = geneManager.fetchGeneSummaryByIds(geneIds);
-        final List<TargetDescription> openTargetDescription = targetsManager.search(geneIds);
-        final Map<String, String> openTargetDescriptionMap = openTargetDescription.stream()
-                .collect(Collectors.toMap(TargetDescription::getId, TargetDescription::getDescription));
+        final List<TargetDetails> openTargetDetails = targetsManager.search(geneIds);
+        final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
+                .collect(Collectors.toMap(TargetDetails::getId, TargetDetails::getDescription));
         return mergeDescriptions(ncbiDescription, openTargetDescriptionMap);
     }
 

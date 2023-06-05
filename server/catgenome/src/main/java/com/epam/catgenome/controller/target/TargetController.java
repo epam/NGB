@@ -33,8 +33,13 @@ import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.opentarget.*;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDiseaseSecurityService;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDrugSecurityService;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociationSource;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSecurityService;
+import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsSecurityService;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetSecurityService;
 import com.epam.catgenome.util.db.Page;
@@ -63,10 +68,10 @@ import java.util.List;
 public class TargetController extends AbstractRESTController {
 
     private final TargetSecurityService targetSecurityService;
-    private final TargetsSecurityService targetsSecurityService;
-    private final DiseasesSecurityService diseasesSecurityService;
-    private final AssociatedDiseasesSecurityService associationsSecurityService;
-    private final AssociatedDrugsSecurityService drugsSecurityService;
+    private final TargetDetailsSecurityService targetDetailsSecurityService;
+    private final DiseaseSecurityService diseaseSecurityService;
+    private final AssociatedDiseaseSecurityService associationsSecurityService;
+    private final AssociatedDrugSecurityService drugsSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
     @ApiOperation(
@@ -163,7 +168,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<AssociatedDrug>> searchAssociatedDrugs(
-            @RequestBody final AssociationsSearchRequest request) throws ParseException, IOException {
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(drugsSecurityService.search(request));
     }
 
@@ -176,8 +181,8 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<AssociatedDiseaseAggregated>> searchAssociatedDiseases(
-            @RequestBody final AssociationsSearchRequest request,
-            @RequestParam final AssociationsSource source) throws ParseException, IOException {
+            @RequestBody final AssociationSearchRequest request,
+            @RequestParam final AssociationSource source) throws ParseException, IOException {
         return Result.success(associationsSecurityService.search(request));
     }
 
@@ -190,7 +195,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importTargets(@RequestParam final String path) throws IOException {
-        targetsSecurityService.importData(path);
+        targetDetailsSecurityService.importData(path);
         return Result.success(null);
     }
 
@@ -203,7 +208,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importDiseases(@RequestParam final String path) throws IOException {
-        diseasesSecurityService.importData(path);
+        diseaseSecurityService.importData(path);
         return Result.success(null);
     }
 

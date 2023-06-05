@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.TargetDescription;
+import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import com.epam.catgenome.util.IndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,24 +48,30 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
 @Slf4j
-public class TargetsManager {
+public class TargetDetailsManager {
 
     private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
 
     @Value("${targets.index.directory}")
     private String indexDirectory;
 
-    public List<TargetDescription> search(final List<String> ids) throws ParseException, IOException {
-        final List<TargetDescription> result = new ArrayList<>();
+    public List<TargetDetails> search(final List<String> ids) throws ParseException, IOException {
+        final List<TargetDetails> result = new ArrayList<>();
         final Query query = getByIdsQuery(ids, IndexFields.TARGET_ID.getFieldName());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
@@ -73,7 +79,7 @@ public class TargetsManager {
             TopDocs topDocs = searcher.search(query, ids.size());
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
-                TargetDescription entry = entryFromDoc(doc);
+                TargetDetails entry = entryFromDoc(doc);
                 result.add(entry);
             }
         }
@@ -88,22 +94,22 @@ public class TargetsManager {
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
             for (File f: directory.listFiles()) {
-                for (TargetDescription entry: readData(f)) {
+                for (TargetDetails entry: readData(f)) {
                     addDoc(writer, entry);
                 }
             }
         }
     }
 
-    public List<TargetDescription> readData(final File path) throws IOException {
-        final List<TargetDescription> entries = new ArrayList<>();
+    public List<TargetDetails> readData(final File path) throws IOException {
+        final List<TargetDetails> entries = new ArrayList<>();
         String line;
         final ObjectMapper objectMapper = new ObjectMapper();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             while ((line = bufferedReader.readLine()) != null) {
                 try {
                     JsonNode jsonNodes = objectMapper.readTree(line);
-                    TargetDescription entry = entryFromJson(jsonNodes);
+                    TargetDetails entry = entryFromJson(jsonNodes);
                     entries.add(entry);
                 } catch (JsonProcessingException e) {
                     throw new IllegalStateException(INCORRECT_JSON_FORMAT);
@@ -113,7 +119,7 @@ public class TargetsManager {
         return entries;
     }
 
-    private static TargetDescription entryFromJson(final JsonNode jsonNodes) {
+    private static TargetDetails entryFromJson(final JsonNode jsonNodes) {
         final JsonNode descriptions = jsonNodes.at("/functionDescriptions");
         final StringBuilder description = new StringBuilder();
         if (descriptions.isArray()) {
@@ -122,7 +128,7 @@ public class TargetsManager {
                 description.append(node.next().asText());
             }
         }
-        return TargetDescription.builder()
+        return TargetDetails.builder()
                 .id(jsonNodes.at("/id").asText())
                 .description(description.toString())
                 .build();
@@ -139,14 +145,14 @@ public class TargetsManager {
         }
     }
 
-    private TargetDescription entryFromDoc(final Document doc) {
-        return TargetDescription.builder()
+    private TargetDetails entryFromDoc(final Document doc) {
+        return TargetDetails.builder()
                 .id(IndexUtils.getField(doc, IndexFields.TARGET_ID.getFieldName()))
                 .description(IndexUtils.getField(doc, IndexFields.DESCRIPTION.getFieldName()))
                 .build();
     }
 
-    private static void addDoc(final IndexWriter writer, final TargetDescription entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final TargetDetails entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(IndexFields.TARGET_ID.getFieldName(), String.valueOf(entry.getId()), Field.Store.YES));
         doc.add(new TextField(IndexFields.DESCRIPTION.getFieldName(),

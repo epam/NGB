@@ -35,13 +35,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.grouping.GroupingSearch;
 import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.Directory;
@@ -51,9 +57,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -63,7 +76,7 @@ import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
 @Slf4j
-public class AssociatedDiseasesManager {
+public class AssociatedDiseaseManager {
 
     private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
 
@@ -77,9 +90,9 @@ public class AssociatedDiseasesManager {
     private int targetsTopHits;
 
     @Autowired
-    private DiseasesManager diseasesManager;
+    private DiseaseManager diseaseManager;
 
-    public List<AssociatedDiseaseAggregated> search(final AssociationsSearchRequest request)
+    public List<AssociatedDiseaseAggregated> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
         final List<AssociatedDiseaseAggregated> records = new ArrayList<>();
         final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
@@ -177,7 +190,7 @@ public class AssociatedDiseasesManager {
                 .distinct()
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseasesManager.search(diseaseIds);
+            final List<Disease> diseases = diseaseManager.search(diseaseIds);
             final Map<String, Disease> diseasesMap = diseases.stream()
                     .collect(Collectors.toMap(Disease::getId, Function.identity()));
             records.forEach(r -> r.setDisease(diseasesMap.get(r.getDisease().getId())));

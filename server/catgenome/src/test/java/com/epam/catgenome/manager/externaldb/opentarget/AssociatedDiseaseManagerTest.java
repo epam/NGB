@@ -40,11 +40,11 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class AssociatedDiseasesManagerTest extends TestCase {
+public class AssociatedDiseaseManagerTest extends TestCase {
 
     private static final int TOTAL_COUNT = 11;
     @Autowired
-    private AssociatedDiseasesManager manager;
+    private AssociatedDiseaseManager manager;
 
     @Autowired
     private ApplicationContext context;
@@ -67,7 +67,7 @@ public class AssociatedDiseasesManagerTest extends TestCase {
     @Test
     public void searchDiseasesTest() throws IOException, ParseException {
         final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final AssociationsSearchRequest request = AssociationsSearchRequest.builder()
+        final AssociationSearchRequest request = AssociationSearchRequest.builder()
                 .page(2)
                 .pageSize(3)
                 .targetIds(targetIds)

@@ -35,7 +35,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -51,9 +53,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -63,7 +72,7 @@ import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
 @Slf4j
-public class AssociatedDrugsManager {
+public class AssociatedDrugManager {
 
     private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
     private static final String OPEN_TARGETS_DRUG_URL_PATTERN = "https://platform.opentargets.org/drug/%s";
@@ -75,9 +84,9 @@ public class AssociatedDrugsManager {
     private int targetsTopHits;
 
     @Autowired
-    private DiseasesManager diseasesManager;
+    private DiseaseManager diseaseManager;
 
-    public SearchResult<AssociatedDrug> search(final AssociationsSearchRequest request)
+    public SearchResult<AssociatedDrug> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
         final List<AssociatedDrug> entries = new ArrayList<>();
         final SearchResult<AssociatedDrug> searchResult = new SearchResult<>();
@@ -157,7 +166,7 @@ public class AssociatedDrugsManager {
                 .distinct()
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseasesManager.search(diseaseIds);
+            final List<Disease> diseases = diseaseManager.search(diseaseIds);
             final Map<String, Disease> diseasesMap = diseases.stream()
                     .collect(Collectors.toMap(Disease::getId, Function.identity()));
             for (AssociatedDrug r : entries) {

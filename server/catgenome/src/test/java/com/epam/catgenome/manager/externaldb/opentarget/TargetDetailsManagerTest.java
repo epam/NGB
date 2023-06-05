@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.TargetDescription;
+import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -40,10 +40,10 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class TargetsManagerTest extends TestCase {
+public class TargetDetailsManagerTest extends TestCase {
 
     @Autowired
-    private TargetsManager targetsManager;
+    private TargetDetailsManager targetDetailsManager;
 
     @Autowired
     private ApplicationContext context;
@@ -51,13 +51,13 @@ public class TargetsManagerTest extends TestCase {
     @Before
     public void setUp() throws IOException, ParseException {
         final String path = context.getResource("classpath:opentargets//targets").getFile().getPath();
-        targetsManager.importData(path);
+        targetDetailsManager.importData(path);
     }
 
     @Test
     public void searchTargetsTest() throws IOException, ParseException {
         final List<String> targetIds = Arrays.asList("ENSG00000020219", "ENSG00000059588");
-        final List<TargetDescription> targets = targetsManager.search(targetIds);
+        final List<TargetDetails> targets = targetDetailsManager.search(targetIds);
         assertNotNull(targets);
         assertEquals(2, targets.size());
     }

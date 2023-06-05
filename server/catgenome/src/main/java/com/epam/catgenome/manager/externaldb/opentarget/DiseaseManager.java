@@ -48,16 +48,21 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
 @Slf4j
-public class DiseasesManager {
+public class DiseaseManager {
 
     private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
     private static final String OPEN_TARGETS_DISEASE_URL_PATTERN = "https://platform.opentargets.org/disease/%s";

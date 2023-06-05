@@ -23,7 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.Disease;
+import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -40,25 +41,36 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class DiseasesManagerTest extends TestCase {
+public class AssociatedDrugManagerTest extends TestCase {
 
     @Autowired
-    private DiseasesManager diseasesManager;
+    private AssociatedDrugManager manager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String path = context.getResource("classpath:opentargets//diseases").getFile().getPath();
-        diseasesManager.importData(path);
+        final String path = context.getResource("classpath:opentargets//drugs").getFile().getPath();
+        manager.importData(path);
     }
 
     @Test
-    public void searchDiseasesTest() throws IOException, ParseException {
-        final List<String> diseasesIds = Arrays.asList("DOID_7551", "EFO_0004254");
-        final List<Disease> diseases = diseasesManager.search(diseasesIds);
-        assertNotNull(diseases);
-        assertEquals(2, diseases.size());
+    public void searchDrugsCountTest() throws IOException, ParseException {
+        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
+        final int totalCount = manager.totalCount(targetIds);
+        assertEquals(1, totalCount);
+    }
+
+    @Test
+    public void searchDrugsTest() throws IOException, ParseException {
+        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
+        final AssociationSearchRequest request = AssociationSearchRequest.builder()
+                .page(1)
+                .pageSize(3)
+                .targetIds(targetIds)
+                .build();
+        final SearchResult<AssociatedDrug> drugs = manager.search(request);
+        assertEquals(1, drugs.getItems().size());
     }
 }
