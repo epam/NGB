@@ -9,9 +9,6 @@ const FIELDS = {
 };
 
 export default class ngbTargetsTableService {
-    _loadingData = false;
-    _failedResult = false;
-    _errorMessageList = null;
 
     _emptyResults = false;
     _filteringFailure = false;
@@ -54,27 +51,6 @@ export default class ngbTargetsTableService {
         return this._currentPage === this._totalCount;
     }
 
-    get loadingData() {
-        return this._loadingData;
-    }
-    set loadingData(value) {
-        this._loadingData = value;
-    }
-
-    get failedResult() {
-        return this._failedResult;
-    }
-    set failedResult(value) {
-        this._failedResult = value;
-    }
-
-    get errorMessageList () {
-        return this._errorMessageList;
-    }
-    set errorMessageList (value) {
-        this._errorMessageList = value;
-    }
-
     get displayFilters() {
         return this._displayFilters;
     }
@@ -103,13 +79,26 @@ export default class ngbTargetsTableService {
         return this._filteringErrorMessageList;
     }
 
-    static instance (projectContext, dispatcher, targetDataService) {
-        return new ngbTargetsTableService(projectContext, dispatcher, targetDataService);
+    static instance (projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
+        return new ngbTargetsTableService(projectContext, dispatcher, ngbTargetsTabService, targetDataService);
     }
 
-    constructor(projectContext, dispatcher, targetDataService) {
-        Object.assign(this, {projectContext, dispatcher, targetDataService});
+    constructor(projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
+        Object.assign(this, {projectContext, dispatcher, ngbTargetsTabService, targetDataService});
         this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
+    }
+
+    get failedResult() {
+        return this.ngbTargetsTabService.tableFailed;
+    }
+    set failedResult(value) {
+        this.ngbTargetsTabService.tableFailed = value;
+    }
+    get errorMessageList () {
+        return this.ngbTargetsTabService.tableErrorMessageList;
+    }
+    set errorMessageList (value) {
+        this.ngbTargetsTabService.tableErrorMessageList = value;
     }
 
     setGetTargetsRequest() {
@@ -155,7 +144,10 @@ export default class ngbTargetsTableService {
                     limit: 2
                 },
                 species: {
-                    value: item.targetGenes.map(gene => gene.speciesName),
+                    value: item.targetGenes.map(gene => ({
+                        name: gene.speciesName,
+                        taxId: gene.taxId
+                    })),
                     limit: 2
                 },
                 disease: {
@@ -175,8 +167,8 @@ export default class ngbTargetsTableService {
         return new Promise(resolve => {
             this.targetDataService.getTargetsResult(request)
                 .then(([data, totalCount]) => {
-                    this._errorMessageList = null;
-                    this._failedResult = false;
+                    this.errorMessageList = null;
+                    this.failedResult = false;
                     this._totalCount = Math.ceil(totalCount/this.pageSize);
                     this._emptyResults = this._totalCount === 0 ? (isFiltered ? false : true) : false;
                     this._filteringFailure = false;
@@ -189,15 +181,15 @@ export default class ngbTargetsTableService {
                     this.targetsResults = null;
                     this._currentPage = 1;
                     if (isFiltered) {
-                        this._errorMessageList = null;
-                        this._failedResult = false;
+                        this.errorMessageList = null;
+                        this.failedResult = false;
                         this._emptyResults = true;
                         this._filteringFailure = true;
                         this._filteringErrorMessageList = [err.message];
                         resolve(true);
                     } else {
-                        this._errorMessageList = [err.message];
-                        this._failedResult = true;
+                        this.errorMessageList = [err.message];
+                        this.failedResult = true;
                         this._emptyResults = false;
                         this._filteringFailure = false;
                         this._filteringErrorMessageList = null;

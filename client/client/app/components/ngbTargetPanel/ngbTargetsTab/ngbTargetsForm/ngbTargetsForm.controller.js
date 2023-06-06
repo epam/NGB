@@ -24,16 +24,16 @@ export default class ngbTargetsFormController{
     }
 
     get loading() {
-        return this.ngbTargetsTabService.loading;
+        return this.ngbTargetsTabService.formLoading;
     }
     set loading(value) {
-        this.ngbTargetsTabService.loading = value;
+        this.ngbTargetsTabService.formLoading = value;
     }
     get failed() {
-        return this.ngbTargetsTabService.failed;
+        return this.ngbTargetsTabService.formFailed;
     }
     get errorMessageList() {
-        return this.ngbTargetsTabService.errorMessageList;
+        return this.ngbTargetsTabService.formErrorMessageList;
     }
     get isAddMode() {
         return this.ngbTargetsTabService.isAddMode;

@@ -18,9 +18,17 @@ export default class ngbTargetsTabService {
     _targetModel;
     _originalModel;
 
-    _loading = false;
-    _failed = false;
-    _errorMessageList = null;
+    _formLoading = false;
+    _formFailed = false;
+    _formErrorMessageList = null;
+
+    _tableLoading = false;
+    _tableFailed = false;
+    _tableErrorMessageList = null;
+
+    _launchLoading = false;
+    _launchFailed = false;
+    _launchErrorMessageList = null;
 
     get mode () {
         return MODE;
@@ -35,23 +43,58 @@ export default class ngbTargetsTabService {
     get isEditMode() {
         return this._targetMode === this.mode.EDIT;
     }
-    get loading() {
-        return this._loading;
+    get formLoading() {
+        return this._formLoading;
     }
-    set loading(value) {
-        this._loading = value;
+    set formLoading(value) {
+        this._formLoading = value;
     }
-    get failed() {
-        return this._failed;
+    get formFailed() {
+        return this._formFailed;
     }
-    set failed(value) {
-        this._failed = value;
+    set formFailed(value) {
+        this._formFailed = value;
     }
-    get errorMessageList() {
-        return this._errorMessageList;
+    get formErrorMessageList() {
+        return this._formErrorMessageList;
     }
-    set errorMessageList(value) {
-        this._errorMessageList = value;
+    set formErrorMessageList(value) {
+        this._formErrorMessageList = value;
+    }
+
+    get tableLoading() {
+        return this._tableLoading;
+    }
+    set tableLoading(value) {
+        this._tableLoading = value;
+    }
+    get tableFailed() {
+        return this._tableFailed;
+    }
+    set tableFailed(value) {
+        this._tableFailed = value;
+    }
+    get tableErrorMessageList() {
+        return this._tableErrorMessageList;
+    }
+    set tableErrorMessageList(value) {
+        this._tableErrorMessageList = value;
+    }
+
+    get launchLoading() {
+        return this._launchLoading;
+    }
+    get launchFailed() {
+        return this._launchFailed;
+    }
+    set launchFailed(value) {
+        this._launchFailed = value;
+    }
+    get launchErrorMessageList() {
+        return this._launchErrorMessageList;
+    }
+    set launchErrorMessageList(value) {
+        this._launchErrorMessageList = value;
     }
 
     get targetModel() {
@@ -67,12 +110,12 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance (dispatcher, targetDataService) {
-        return new ngbTargetsTabService(dispatcher, targetDataService);
+    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
+        return new ngbTargetsTabService(dispatcher, ngbTargetPanelService, targetDataService);
     }
 
-    constructor(dispatcher, targetDataService) {
-        Object.assign(this, {dispatcher, targetDataService});
+    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
     }
 
     setTableMode() {
@@ -117,18 +160,18 @@ export default class ngbTargetsTabService {
         return new Promise(resolve => {
             this.targetDataService.getTargetById(id)
                 .then(data => {
-                    this.failed = false;
-                    this.errorMessageList = null;
+                    this.formFailed = false;
+                    this.formErrorMessageList = null;
                     this.setTargetModel(data);
                     this.originalModel = data;
                     this.setEditMode();
-                    this.loading = false;
+                    this.formLoading = false;
                     resolve(true);
                 })
                 .catch(err => {
-                    this.failed = true;
-                    this.errorMessageList = [err.message];
-                    this.loading = false;
+                    this.formFailed = true;
+                    this.formErrorMessageList = [err.message];
+                    this.formLoading = false;
                     resolve(false);
                 });
         });
@@ -195,19 +238,19 @@ export default class ngbTargetsTabService {
             this.targetDataService.postNewTarget(request)
                 .then(result => {
                     if (result) {
-                        this.failed = false;
-                        this.errorMessageList = null;
+                        this.formFailed = false;
+                        this.formErrorMessageList = null;
                         this.setTargetModel(result);
                         this.originalModel = result;
                         this.setEditMode();
                     }
-                    this.loading = false;
+                    this.formLoading = false;
                     resolve(true);
                 })
                 .catch(err => {
-                    this.failed = true;
-                    this.errorMessageList = [err.message];
-                    this.loading = false;
+                    this.formFailed = true;
+                    this.formErrorMessageList = [err.message];
+                    this.formLoading = false;
                     resolve(false);
                 });
         });
@@ -218,19 +261,19 @@ export default class ngbTargetsTabService {
             this.targetDataService.updateTarget(request)
                 .then(result => {
                     if (result) {
-                        this.failed = false;
-                        this.errorMessageList = null;
+                        this.formFailed = false;
+                        this.formErrorMessageList = null;
                         this.setTargetModel(result);
                         this.originalModel = result;
                         this.setEditMode();
                     }
-                    this.loading = false;
+                    this.formLoading = false;
                     resolve(true);
                 })
                 .catch(err => {
-                    this.failed = true;
-                    this.errorMessageList = [err.message];
-                    this.loading = false;
+                    this.formFailed = true;
+                    this.formErrorMessageList = [err.message];
+                    this.formLoading = false;
                     resolve(false);
                 });
         });
@@ -274,5 +317,36 @@ export default class ngbTargetsTabService {
                 this.setGeneModel(index, key, value, true);
             }
         }
+    }
+
+    async getIdentificationData(params, info) {
+        this._launchLoading = true;
+        await this.launchTargetIdentification(params)
+            .then(result => {
+                this._launchLoading = false;
+                if (result) {
+                    this.dispatcher.emit('target:launch:finished', result, info);
+                } else {
+                    this.dispatcher.emit('target:launch:failed');
+                }
+            });
+    }
+
+    launchTargetIdentification(request) {
+        return new Promise(resolve => {
+            this.targetDataService.postTargetIdentification(request)
+                .then(result => {
+                    if (result && result.desription) {
+                        this._launchFailed = false;
+                        this._launchErrorMessageList = null;
+                    }
+                    resolve(result);
+                })
+                .catch(err => {
+                    this._launchFailed = true;
+                    this._launchErrorMessageList = [err.message];
+                    resolve(false);
+                });
+        });
     }
 }

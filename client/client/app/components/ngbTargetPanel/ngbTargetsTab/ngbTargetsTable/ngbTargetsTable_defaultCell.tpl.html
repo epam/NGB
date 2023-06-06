@@ -1,6 +1,6 @@
 <div class="cell-content">
     <p ng-repeat="element in row.entity[col.field].value | limitTo : row.entity[col.field].limit track by $index">
-        {{element}}
+        {{element.name || element}}
     </p>
     <p ng-if="row.entity[col.field].value.length > row.entity[col.field].limit">
         and

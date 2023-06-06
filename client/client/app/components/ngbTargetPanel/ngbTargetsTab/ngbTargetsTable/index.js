@@ -1,10 +1,12 @@
 import angular from 'angular';
 
 import './ngbTargetsTable.scss';
+import './ngbTargetLaunchDialog/ngbTargetLaunchDialog.scss';
 
 import component from './ngbTargetsTable.component';
 import controller from './ngbTargetsTable.controller';
 import service from './ngbTargetsTable.service';
+import run from './ngbTargetLaunchDialog/ngbTargetLaunchDialog.run';
 
 import ngbTargetsTableActions from './ngbTargetsTableActions';
 import ngbTargetsTableFilter from './ngbTargetsTableFilter';
@@ -17,4 +19,5 @@ export default angular
     .controller(controller.UID, controller)
     .component('ngbTargetsTable', component)
     .service('ngbTargetsTableService', service.instance)
+    .run(run)
     .name;
