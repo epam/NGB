@@ -1,13 +1,13 @@
 
 <div class="loading-indicator"
-     ng-if="$ctrl.loadingData">
+     ng-if="$ctrl.loadingData || $ctrl.launchLoading">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div class="md-padding"
-     ng-if="$ctrl.failedResult">
-    <ngb-panel-error-list class="error-message"
-                          message-list="$ctrl.errorMessageList">
-    </ngb-panel-error-list>
+<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>
+<div ng-class="{'hidden': !$ctrl.launchFailed || $ctrl.launchLoading}">
+    <ngb-panel-error-list message-list="$ctrl.launchErrorMessageList"></ngb-panel-error-list>
 </div>
 <div class="ui-grid-container"
      ng-hide="$ctrl.hideTable">

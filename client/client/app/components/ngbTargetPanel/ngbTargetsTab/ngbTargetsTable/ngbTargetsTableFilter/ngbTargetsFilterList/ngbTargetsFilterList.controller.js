@@ -3,7 +3,6 @@ import ListElements from './ngbFilterList.elements';
 export default class ngbTargetsFilterList {
 
     prevValue;
-    value;
     displayText = '';
     listIsDisplayed = false;
     listElements = null;

@@ -128,4 +128,23 @@ ngb-targets-table {
     .targets-table.ui-grid {
         border: none;
     }
+
+    ngb-panel-error-list {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+
+        .ngb-panel-error-list md-content.md-warn {
+            border-top: 0;
+        }
+
+        md-list-item, md-list-item .md-list-item-inner {
+            min-height: 18px;
+            height: 19px;
+            overflow: hidden;
+            font-size: 14px;
+        }
+    }
 }

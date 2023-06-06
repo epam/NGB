@@ -1,19 +1,24 @@
 <div class="u-height__full">
-    <md-nav-bar class="target-nav-bar" md-selected-nav-item="$ctrl.tabSelected">
-        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.targetState.TARGETS)" name="TARGETS">
+    <md-nav-bar class="target-nav-bar"
+                md-selected-nav-item="$ctrl.tabSelected">
+        <md-nav-item name="TARGETS"
+                     md-nav-click="$ctrl.changeState($ctrl.targetState.TARGETS)">
             TARGETS
         </md-nav-item>
-        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.targetState.IDENTIFICATIONS)" name="IDENTIFICATIONS">
+        <md-nav-item name="IDENTIFICATIONS"
+                     md-nav-click="$ctrl.changeState($ctrl.targetState.IDENTIFICATIONS)"
+                     ng-if="$ctrl.identificationTabIsShown">
             IDENTIFICATIONS
         </md-nav-item>
     </md-nav-bar>
     <md-content class="_md target-flex-column">
-        <ngb-targets-tab change-state="$ctrl.changeState(state)"
-                         class="targets-tab"
+        <ngb-targets-tab change-state="$ctrl.changeState(state, isRepeat)"
+                         class="tab"
                          ng-if="$ctrl.currentTargetState === $ctrl.targetState.TARGETS">
         </ngb-targets-tab>
-        <div change-state="$ctrl.changeState(state, isRepeat)"
-             ng-if="$ctrl.currentTargetState === $ctrl.targetState.IDENTIFICATIONS"
-        >&nbsp;</div>
+        <ngb-identifications-tab change-state="$ctrl.changeState(state, isRepeat)"
+                                 class="tab"
+                                 ng-if="$ctrl.currentTargetState === $ctrl.targetState.IDENTIFICATIONS">
+        </ngb-identifications-tab>
     </md-content>
 </div>

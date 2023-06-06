@@ -12,10 +12,6 @@ export default class ngbTargetsTableFilterController {
                 this.isString = true;
                 break;
             }
-            case 'genes': {
-                this.isString = true;
-                break;
-            }
             default:
                 this.isList = true;
                 break;

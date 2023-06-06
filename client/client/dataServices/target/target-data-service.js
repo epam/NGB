@@ -102,4 +102,21 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    postTargetIdentification(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/identification', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve({});
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error launching target';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

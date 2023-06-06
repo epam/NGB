@@ -1,16 +1,28 @@
+const TARGET_STATE = {
+    TARGETS: 'TARGETS',
+    IDENTIFICATIONS: 'IDENTIFICATIONS'
+};
+
 export default class ngbTargetPanelController{
 
-    targetState;
+    get targetState() {
+        return TARGET_STATE;
+    }
+
+    get identificationTabIsShown() {
+        const {identificationParams, identificationData} = this.ngbTargetPanelService;
+        return identificationParams && identificationData;
+    }
 
     static get UID() {
         return 'ngbTargetPanelController';
     }
 
-    constructor($scope, $timeout, ngbTargetPanelService) {
+    constructor($scope, $timeout, dispatcher, ngbTargetPanelService) {
         Object.assign(this, {$scope, $timeout, ngbTargetPanelService});
-        this.targetState = ngbTargetPanelService.targetState;
         this.currentTargetState = this.targetState.TARGETS;
         this.tabSelected = this.targetState.TARGETS;
+        dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
     }
 
     changeState(state, isRepeat) {
@@ -21,6 +33,12 @@ export default class ngbTargetPanelController{
                 : this.targetState.IDENTIFICATIONS;
         }
         this.ngbTargetPanelService.isRepeat = !!isRepeat;
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    showIdentificationTab() {
+        this.currentTargetState = this.targetState.IDENTIFICATIONS;
+        this.tabSelected = this.targetState.IDENTIFICATIONS;
         this.$timeout(::this.$scope.$apply);
     }
 }

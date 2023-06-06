@@ -52,14 +52,25 @@ export default class ngbTargetsTableController {
         const filterChanged = this.filterChanged.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
+        const refreshTable = this.refreshTable.bind(this);
         dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
+        dispatcher.on('target:launch:failed', refreshTable);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
+            dispatcher.removeListener('target:launch:failed', refreshTable);
         });
+    }
+
+    refreshTable() {
+        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => {
+            this.launchFailed = false;
+            this.launchErrorMessageList = null;
+        }, 5000);
     }
 
     $onInit() {
@@ -84,12 +95,6 @@ export default class ngbTargetsTableController {
     get isLastPage() {
         return this.ngbTargetsTableService.isLastPage;
     }
-    get loadingData() {
-        return this.ngbTargetsTableService.loadingData;
-    }
-    set loadingData(value) {
-        this.ngbTargetsTableService.loadingData = value;
-    }
     get failedResult() {
         return this.ngbTargetsTableService.failedResult;
     }
@@ -113,6 +118,29 @@ export default class ngbTargetsTableController {
     }
     set sortInfo(value) {
         this.ngbTargetsTableService.sortInfo = value;
+    }
+
+    get loadingData() {
+        return this.ngbTargetsTabService.tableLoading;
+    }
+    set loadingData(value) {
+        this.ngbTargetsTabService.tableLoading = value;
+    }
+
+    get launchLoading() {
+        return this.ngbTargetsTabService.launchLoading;
+    }
+    get launchFailed() {
+        return this.ngbTargetsTabService.launchFailed;
+    }
+    set launchFailed(value) {
+        this.ngbTargetsTabService.launchFailed = value;
+    }
+    get launchErrorMessageList() {
+        return this.ngbTargetsTabService.launchErrorMessageList;
+    }
+    set launchErrorMessageList(value) {
+        this.ngbTargetsTabService.launchErrorMessageList = value;
     }
 
     async initialize() {
@@ -252,6 +280,7 @@ export default class ngbTargetsTableController {
 
     launchTarget (row, event) {
         event.stopPropagation();
+        this.dispatcher.emitSimpleEvent('target:launch:identification', row);
     }
 
     async openTarget (row, event) {
