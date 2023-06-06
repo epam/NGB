@@ -125,7 +125,9 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
             params.addValue(GENE_NAME.name(), targetGene.getGeneName());
             params.addValue(TAX_ID.name(), targetGene.getTaxId());
             params.addValue(SPECIES_NAME.name(), targetGene.getSpeciesName());
-            params.addValue(PRIORITY.name(), targetGene.getPriority().getValue());
+            if (targetGene.getPriority() != null) {
+                params.addValue(PRIORITY.name(), targetGene.getPriority().getValue());
+            }
             return params;
         }
 
