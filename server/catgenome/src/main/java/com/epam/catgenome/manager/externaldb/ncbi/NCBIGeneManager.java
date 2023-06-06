@@ -24,11 +24,7 @@
 
 package com.epam.catgenome.manager.externaldb.ncbi;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,8 +44,6 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.util.CollectionUtils;
-
-import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * <p>
@@ -162,13 +156,27 @@ public class NCBIGeneManager {
     }
 
     public Map<String, String> fetchGeneSummaryByIds(final List<String> ids) throws ExternalDbUnavailableException {
+        final Map<String, String> summary = new HashMap<>();
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyMap();
         }
-        final List<String> realIDs = fetchExternalIds(ids);
-        final String geneInfoXml = ncbiAuxiliaryManager.fetchXmlById(NCBIDatabase.GENE.name(),
-                join(realIDs, OR), null);
-        return geneInfoParser.parseGeneInfos(geneInfoXml);
+        final Map<String, String> entrezIds = new HashMap<>();
+        String entrezId;
+        for (String id: ids) {
+            entrezId = fetchExternalId(id);
+            if (StringUtils.isNotBlank(entrezId)) {
+                entrezIds.put(entrezId, id);
+            }
+        }
+        final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
+                StringUtils.join(entrezIds.keySet(), ","));
+        JsonNode node;
+        for (JsonNode jsonNode : root.path("uids")) {
+            String uid = jsonNode.asText();
+            node = root.path(uid);
+            summary.put(entrezIds.get(uid), node.path("summary").asText());
+        }
+        return summary;
     }
 
     public String fetchExternalId(String id) throws ExternalDbUnavailableException {
@@ -184,11 +192,6 @@ public class NCBIGeneManager {
             }
         }
         return externalID;
-    }
-
-    public List<String> fetchExternalIds(final List<String> ids) throws ExternalDbUnavailableException {
-        return CollectionUtils.isEmpty(ids) ? Collections.emptyList() :
-                ncbiAuxiliaryManager.searchDbForIds(NCBIDatabase.GENE.name(), join(ids, OR));
     }
 
     public void setGeneInfoParser(NCBIGeneInfoParser geneInfoParser) {
