@@ -7,16 +7,8 @@ export default class ngbTargetPanelService {
 
     _isRepeat = false;
 
-    static instance (
-        appLayout,
-        dispatcher,
-        projectContext
-    ) {
-        return new ngbTargetPanelService(
-            appLayout,
-            dispatcher,
-            projectContext,
-        );
+    static instance (appLayout, dispatcher) {
+        return new ngbTargetPanelService(appLayout, dispatcher);
     }
 
     get targetState() {
@@ -30,16 +22,8 @@ export default class ngbTargetPanelService {
         this._isRepeat = value;
     }
 
-    constructor(
-        appLayout,
-        dispatcher,
-        projectContext,
-    ) {
-        Object.assign(this, {
-            appLayout,
-            dispatcher,
-            projectContext,
-        });
+    constructor(appLayout, dispatcher) {
+        Object.assign(this, {appLayout, dispatcher});
     }
 
     panelAddTargetPanel() {

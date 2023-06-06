@@ -6,9 +6,7 @@ export default class ngbTargetsTableFilterController {
         return 'ngbTargetsTableFilterController';
     }
 
-    constructor(ngbTargetsTableService) {
-        Object.assign(this, {ngbTargetsTableService});
-
+    constructor() {
         switch (this.column.field) {
             case 'name': {
                 this.isString = true;

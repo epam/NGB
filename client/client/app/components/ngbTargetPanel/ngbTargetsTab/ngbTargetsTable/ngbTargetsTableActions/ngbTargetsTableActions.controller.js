@@ -4,8 +4,8 @@ export default class ngbTargetsTableActionsController {
         return 'ngbTargetsTableActionsController';
     }
 
-    constructor($scope, dispatcher, ngbTargetsTableService) {
-        Object.assign(this, {$scope, dispatcher, ngbTargetsTableService});
+    constructor(dispatcher, ngbTargetsTableService) {
+        Object.assign(this, {dispatcher, ngbTargetsTableService});
     }
 
     get displayFilters() {

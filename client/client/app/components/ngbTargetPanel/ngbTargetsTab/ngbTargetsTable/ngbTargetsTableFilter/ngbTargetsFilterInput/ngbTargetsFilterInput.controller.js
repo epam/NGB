@@ -11,10 +11,15 @@ export default class ngbTargetsFilterInput {
         return 'ngbTargetsFilterInput';
     }
 
-    constructor(dispatcher, ngbTargetsTableService) {
+    constructor($scope, dispatcher, ngbTargetsTableService) {
         Object.assign(this, {dispatcher, ngbTargetsTableService});
         this.prevValue = this.value = this.filterInfo[this.column.field];
-        this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
+
+        const resetFilters = this.resetFilters.bind(this);
+        this.dispatcher.on('targets:filters:reset', resetFilters);
+        $scope.$on('$destroy', () => {
+            this.dispatcher.removeListener('targets:filters:reset', resetFilters);
+        });
     }
 
     apply() {

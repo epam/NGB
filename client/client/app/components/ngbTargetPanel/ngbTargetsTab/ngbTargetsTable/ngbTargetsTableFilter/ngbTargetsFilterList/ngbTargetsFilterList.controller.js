@@ -26,18 +26,25 @@ export default class ngbTargetsFilterList {
         this.displayText = [...this.selectedItems].join(', ');
         this.dispatcher.on('targets:filters:list', this.setList.bind(this));
         this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('targets:filters:list', this.setList.bind(this));
+            dispatcher.removeListener('targets:filters:reset', this.resetFilters.bind(this));
+        });
+        this.setList();
     }
 
     setList() {
         this.list = this.ngbTargetsTableService.fieldList[this.column.field];
-        this.listElements = new ListElements(this.list,  {
-            onSearchFinishedCallback: ::this.searchFinished
-        });
-        this.$scope.$watch('$ctrl.list', () => {
+        if (this.list && this.list.length) {
             this.listElements = new ListElements(this.list,  {
                 onSearchFinishedCallback: ::this.searchFinished
             });
-        });
+            this.$scope.$watch('$ctrl.list', () => {
+                this.listElements = new ListElements(this.list,  {
+                    onSearchFinishedCallback: ::this.searchFinished
+                });
+            });
+        }
     }
 
     preventListFromClosing() {
