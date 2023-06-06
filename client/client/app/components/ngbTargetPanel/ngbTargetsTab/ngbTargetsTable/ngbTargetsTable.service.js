@@ -2,7 +2,7 @@ const PAGE_SIZE = 30;
 
 const FIELDS = {
     name: 'NAME',
-    genes: 'GENES',
+    genes: 'GENE_NAME',
     species: 'SPECIES_NAME',
     disease: 'DISEASES',
     product: 'PRODUCTS'
@@ -222,7 +222,7 @@ export default class ngbTargetsTableService {
     async onChangeShowFilters() {
         if (this.displayFilters) {
             return Promise.all(
-                ['species', 'disease', 'product'].map(async (field) => (
+                ['genes', 'species', 'disease', 'product'].map(async (field) => (
                     await this.getTargetFieldValue(field)
                 )))
                     .then(values => (values.some(v => v)));
@@ -231,18 +231,16 @@ export default class ngbTargetsTableService {
 
 
     getTargetFieldValue(field) {
-        if (['SPECIES_NAME', 'DISEASES', 'PRODUCTS'].includes(this.fields[field])) {
-            return new Promise(resolve => {
-                this.targetDataService.getTargetFieldValue(this.fields[field])
-                    .then((data) => {
-                        this.fieldList[field] = data.filter(d => d);
-                        resolve(true);
-                    })
-                    .catch(err => {
-                        this.fieldList[field] = [];
-                        resolve(false);
-                    });
-            });
-        }
+        return new Promise(resolve => {
+            this.targetDataService.getTargetFieldValue(this.fields[field])
+                .then((data) => {
+                    this.fieldList[field] = data.filter(d => d);
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.fieldList[field] = [];
+                    resolve(false);
+                });
+        });
     }
 }
