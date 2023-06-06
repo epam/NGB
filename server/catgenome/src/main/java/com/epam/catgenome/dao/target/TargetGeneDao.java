@@ -41,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.catgenome.util.Utils.addClauseToQuery;
@@ -125,9 +126,8 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
             params.addValue(GENE_NAME.name(), targetGene.getGeneName());
             params.addValue(TAX_ID.name(), targetGene.getTaxId());
             params.addValue(SPECIES_NAME.name(), targetGene.getSpeciesName());
-            if (targetGene.getPriority() != null) {
-                params.addValue(PRIORITY.name(), targetGene.getPriority().getValue());
-            }
+            params.addValue(PRIORITY.name(), Optional.ofNullable(targetGene.getPriority())
+                    .map(TargetGenePriority::getValue).orElse(null));
             return params;
         }
 
