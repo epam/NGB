@@ -1,5 +1,9 @@
 export default class ngbIdentificationsTabController {
 
+    isOpen = {
+        drugs: false
+    }
+
     static get UID() {
         return 'ngbIdentificationsTabController';
     }

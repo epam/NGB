@@ -1,0 +1,20 @@
+ngb-drugs-table {
+    .ui-grid {
+        border: none;
+        height: auto;
+
+        .ui-grid-viewport {
+            height: 100% !important;
+        }
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: end;
+
+    .md-button {
+        min-width: 36px;
+        margin: 2px;
+    }
+}
