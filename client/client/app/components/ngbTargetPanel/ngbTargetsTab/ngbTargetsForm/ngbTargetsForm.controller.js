@@ -52,7 +52,7 @@ export default class ngbTargetsFormController{
             diseases,
             products,
             targetGenes: genes.map(gene => {
-                if (gene.priority === 'None') {
+                if (gene.priority === 'None' || gene.priority === '') {
                     delete gene.priority;
                 }
                 return gene;
@@ -79,7 +79,7 @@ export default class ngbTargetsFormController{
             diseases,
             products,
             targetGenes: genes.map(gene => {
-                if (gene.priority === 'None') {
+                if (gene.priority === 'None' || gene.priority === '') {
                     delete gene.priority;
                 }
                 return gene;
@@ -165,9 +165,9 @@ export default class ngbTargetsFormController{
 
     priorityList = [{
         name: 'Low',
-        value: 0
+        value: 'LOW'
     }, {
         name: 'High',
-        value: 1
+        value: 'HIGH'
     }];
 }
