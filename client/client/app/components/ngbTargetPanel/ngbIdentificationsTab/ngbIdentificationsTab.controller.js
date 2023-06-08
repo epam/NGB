@@ -32,7 +32,10 @@ export default class ngbIdentificationsTabController {
     }
 
     get description() {
-        return Object.values(this.identificationData.description)[0];
+        if (this.identificationData && this.identificationData.description) {
+            return Object.values(this.identificationData.description)[0];
+        }
+        return 'description';
     }
 
     get shortDescription() {

@@ -1,10 +1,11 @@
-ngb-drugs-table {
+ngb-diseases-table {
     .ui-grid {
         border: none;
         height: auto;
 
         .ui-grid-viewport {
             height: 100% !important;
+            width: 100% !important;
         }
 
         .ui-grid-cell-contents {
@@ -55,6 +56,20 @@ ngb-drugs-table {
         text-overflow: ellipsis;
         overflow: hidden;
         color: rgb(102, 153, 255);
+    }
+
+    .color-cell {
+        width: 100%;
+        font-size: 12px;
+        align-self: center;
+        height: 100%;
+        white-space: normal;
+        padding: 5px;
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        text-align: center;
+        line-height: 20px;
     }
 }
 

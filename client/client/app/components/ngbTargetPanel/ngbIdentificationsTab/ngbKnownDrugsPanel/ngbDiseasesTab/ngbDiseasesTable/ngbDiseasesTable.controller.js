@@ -1,49 +1,76 @@
-const DRUGS_TABLE_COLUMNS = ['drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
+const DISEASES_TABLE_COLUMNS = ['disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models'];
 
-const DRUGS_RESULTS = [
+const DISEASES_RESULTS = [
     {
-        drug: 'SOTORASIB',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'non-small cell lung carcinoma',
-        phase: 'Phase IV',
-        status: 'N/A',
-        source: 'FDA'
+        disease: 'Cardiofaciocutaneous syndrome',
+        'overall score': 0.83,
+        'genetic association': 0.92,
+        'somatic mutations': '',
+        drugs: '',
+        'pathways systems': 0.61,
+        'text mining': '',
+        'animal models': ''
     }, {
-        drug: 'MRTX-849',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'non-small cell lung carcinoma',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
+        disease: 'Noonan syndrome',
+        'overall score': 0.83,
+        'genetic association': 0.91,
+        'somatic mutations': '',
+        drugs: '',
+        'pathways systems': 0.92,
+        'text mining': '',
+        'animal models': ''
     }, {
-        drug: 'MRTX-849',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'metastatic colorectal cancer',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
+        disease: 'Non-small cell lung carcinoma',
+        'overall score': 0.73,
+        'genetic association': '',
+        'somatic mutations': 0.80,
+        drugs: 0.75,
+        'pathways systems': 0.76,
+        'text mining': 0.96,
+        'animal models': ''
     }, {
-        drug: 'SOTORASIB',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'colorectal adenocarcinoma',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
+        disease: 'Gastric cancer',
+        'overall score': 0.70,
+        'genetic association': 0.79,
+        'somatic mutations': 0.55,
+        drugs: '',
+        'pathways systems': '',
+        'text mining': '',
+        'animal models': ''
+    }, {
+        disease: 'Acute myeloid leukemia',
+        'overall score': 0.69,
+        'genetic association': 0.73,
+        'somatic mutations': 0.72,
+        drugs: '',
+        'pathways systems': 0.91,
+        'text mining': 0.62,
+        'animal models': 0.38
+    }, {
+        disease: 'Acute myeloid leukemia',
+        'overall score': 0.20,
+        'genetic association': 0.10,
+        'somatic mutations': 1,
+        drugs: 0.33,
+        'pathways systems': 0.5,
+        'text mining': 0.24,
+        'animal models': 0.01
+    }, {
+        disease: 'Acute myeloid leukemia',
+        'overall score': 1.00,
+        'genetic association': 0.99,
+        'somatic mutations': 0.98,
+        drugs: 0.97,
+        'pathways systems': 0.95,
+        'text mining': 0.94,
+        'animal models': 0.91
     }
 ];
 
-export default class ngbDrugsTableController {
+export default class ngbDiseasesTableController {
 
-    get drugsTableColumnList () {
-        return DRUGS_TABLE_COLUMNS;
+    get diseasesTableColumnList () {
+        return DISEASES_TABLE_COLUMNS;
     }
 
     gridOptions = {
@@ -75,10 +102,16 @@ export default class ngbDrugsTableController {
     };
 
     currentPage = 1;
-    totalPages = 10;
+    totalPages = 20;
+
+    getHighlightColor(alpha) {
+        return alpha
+            ? {'background-color': `rgb(102, 153, 255, ${alpha})`}
+            : undefined;
+    }
 
     static get UID() {
-        return 'ngbDrugsTableController';
+        return 'ngbDiseasesTableController';
     }
 
     constructor($scope, $timeout) {
@@ -104,11 +137,12 @@ export default class ngbDrugsTableController {
     }
 
     getDrugsTableGridColumns() {
-        const headerCells = require('./ngbDrugsTable_header.tpl.html');
-        const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
+        const headerCells = require('./ngbDiseasesTable_header.tpl.html');
+        const linkCell = require('./ngbDiseasesTable_linkCell.tpl.html');
+        const colorCell = require('./ngbDiseasesTable_colorCell.tpl.html');
 
         const result = [];
-        const columnsList = this.drugsTableColumnList;
+        const columnsList = this.diseasesTableColumnList;
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -125,19 +159,7 @@ export default class ngbDrugsTableController {
                 width: '*'
             };
             switch (column) {
-                case 'drug':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: linkCell
-                    };
-                    break;
                 case 'disease':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: linkCell
-                    };
-                    break;
-                case 'source':
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell
@@ -146,6 +168,7 @@ export default class ngbDrugsTableController {
                 default:
                     columnSettings = {
                         ...columnSettings,
+                        cellTemplate: colorCell
                     };
                     break;
             }
@@ -157,14 +180,14 @@ export default class ngbDrugsTableController {
     }
 
     async loadData () {
-        const results = DRUGS_RESULTS;
+        const results = DISEASES_RESULTS;
         this.gridOptions.data = results;
         this.$timeout(::this.$scope.$apply);
     }
 
     sortChanged() {}
 
-    async getDataOnPage() {
+    async getDataOnPage(page) {
         if (!this.gridApi) {
             return;
         }

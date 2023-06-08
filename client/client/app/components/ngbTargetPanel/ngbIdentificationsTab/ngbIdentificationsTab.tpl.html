@@ -83,7 +83,8 @@
                 </collapsible-panel-title>
                 <collapsible-panel-content>
                     <div layout="column"  layout-align="stretch middle" flex="100">
-                        <ngb-known-drugs-panel></ngb-known-drugs-panel>
+                        <ngb-known-drugs-panel ng-if="$ctrl.isOpen.drugs">
+                        </ngb-known-drugs-panel>
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>
