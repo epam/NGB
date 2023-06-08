@@ -76,4 +76,47 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getTargetFieldValue(field) {
+        return new Promise((resolve) => {
+            this.get(`target/fieldValues?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    searchGenes(geneId) {
+        return new Promise((resolve) => {
+            this.get(`gene/search?geneId=${geneId}`)
+                .then(data => {
+                    if (data && data.entries) {
+                        resolve(data.entries);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    postTargetIdentification(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/identification', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve({});
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error launching target';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

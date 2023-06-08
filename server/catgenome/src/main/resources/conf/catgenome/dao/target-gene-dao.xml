@@ -70,6 +70,17 @@
                     SELECT
                         distinct(species_name)
                     FROM catgenome.target_gene
+                    ORDER BY species_name
+                ]]>
+            </value>
+        </property>
+        <property name="loadGeneNamesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        distinct(gene_name)
+                    FROM catgenome.target_gene
+                    ORDER BY gene_name
                 ]]>
             </value>
         </property>

@@ -10,7 +10,8 @@
                 <md-checkbox flex
                              layout="row"
                              class="text__sm show-filters-checkbox"
-                             ng-model="$ctrl.displayFilters">
+                             ng-model="$ctrl.displayFilters"
+                             ng-change="$ctrl.onChangeShowFilters()">
                     Show filters
                 </md-checkbox>
             </div>

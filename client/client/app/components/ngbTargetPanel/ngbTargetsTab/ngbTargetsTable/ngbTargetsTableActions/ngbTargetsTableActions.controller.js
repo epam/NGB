@@ -4,8 +4,8 @@ export default class ngbTargetsTableActionsController {
         return 'ngbTargetsTableActionsController';
     }
 
-    constructor($scope, ngbTargetsTableService) {
-        Object.assign(this, {$scope, ngbTargetsTableService});
+    constructor(dispatcher, ngbTargetsTableService) {
+        Object.assign(this, {dispatcher, ngbTargetsTableService});
     }
 
     get displayFilters() {
@@ -13,5 +13,14 @@ export default class ngbTargetsTableActionsController {
     }
     set displayFilters(value) {
         this.ngbTargetsTableService.displayFilters = value;
+    }
+
+    async onChangeShowFilters() {
+        await this.ngbTargetsTableService.onChangeShowFilters()
+            .then((response) => {
+                if (response) {
+                    this.dispatcher.emitSimpleEvent('targets:filters:list');
+                }
+            });
     }
 }

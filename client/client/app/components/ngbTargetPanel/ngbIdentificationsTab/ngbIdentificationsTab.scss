@@ -1,0 +1,89 @@
+ngb-identifications-tab.tab {
+    overflow: auto;
+    height: calc(100% - 40px);
+
+    .identification-content {
+        margin: 10px;
+        padding: 10px;
+        border: 1px solid #5c5c5c;
+        border-radius: 10px;
+    }
+
+    .identification-header {
+        display: flex;
+        justify-content: flex-start;
+
+        .header-content {
+            margin-left: 70px;
+            font-size: 14px;
+        }
+
+        h3 {
+            margin: 5px 0 10px 0;
+        }
+
+        .species-label {
+            text-decoration: underline;
+        }
+
+        .species-list {
+            font-style: italic;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+
+        .store-report-button {
+            min-height: 25px;
+            height: 25px;
+            line-height: 25px;
+            min-width: 120px;
+            width: 120px;
+            margin: 5px;
+            position: absolute;
+            right: 10px;
+        }
+    }
+
+    .pivot-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-bottom: 32px;
+
+        md-whiteframe {
+            margin: 10px;
+            min-height: 80px;
+            height: auto;
+            width: 220px;
+            box-shadow: none;
+            border: 1px solid #cacaca;
+            border-radius: 10px;
+        }
+
+        .whiteframe-content {
+            display: flex;
+            justify-content: flex-end;
+            height: 50%;
+            align-items: center;
+
+            span {
+                font-size: 14px;
+                margin: 0 10px;
+            }
+
+            .description-span {
+                font-size: 11px;
+            }
+        }
+    }
+
+    .collapsible-container {
+        collapsible-panel .md-button {
+            margin: 6px 0;
+            border: 1px solid #cacaca;
+            border-radius: 10px;
+        }
+    }
+}

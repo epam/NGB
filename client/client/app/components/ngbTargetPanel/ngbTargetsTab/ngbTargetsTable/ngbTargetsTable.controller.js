@@ -9,7 +9,7 @@ export default class ngbTargetsTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: false,
+        enableSorting: true,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
@@ -21,7 +21,7 @@ export default class ngbTargetsTableController {
         saveScroll: false,
         saveFocus: false,
         saveVisible: true,
-        saveSort: false,
+        saveSort: true,
         saveFilter: false,
         savePinning: false,
         saveGrouping: false,
@@ -52,14 +52,25 @@ export default class ngbTargetsTableController {
         const filterChanged = this.filterChanged.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
-        dispatcher.on('targets:filter:changed', filterChanged);
+        const refreshTable = this.refreshTable.bind(this);
+        dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
+        dispatcher.on('target:launch:failed', refreshTable);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('targets:filter:changed', filterChanged);
+            dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
+            dispatcher.removeListener('target:launch:failed', refreshTable);
         });
+    }
+
+    refreshTable() {
+        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => {
+            this.launchFailed = false;
+            this.launchErrorMessageList = null;
+        }, 5000);
     }
 
     $onInit() {
@@ -84,12 +95,6 @@ export default class ngbTargetsTableController {
     get isLastPage() {
         return this.ngbTargetsTableService.isLastPage;
     }
-    get loadingData() {
-        return this.ngbTargetsTableService.loadingData;
-    }
-    set loadingData(value) {
-        this.ngbTargetsTableService.loadingData = value;
-    }
     get failedResult() {
         return this.ngbTargetsTableService.failedResult;
     }
@@ -108,6 +113,35 @@ export default class ngbTargetsTableController {
     get filteringErrorMessageList() {
         return this.ngbTargetsTableService.filteringErrorMessageList;
     }
+    get sortInfo() {
+        return this.ngbTargetsTableService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbTargetsTableService.sortInfo = value;
+    }
+
+    get loadingData() {
+        return this.ngbTargetsTabService.tableLoading;
+    }
+    set loadingData(value) {
+        this.ngbTargetsTabService.tableLoading = value;
+    }
+
+    get launchLoading() {
+        return this.ngbTargetsTabService.launchLoading;
+    }
+    get launchFailed() {
+        return this.ngbTargetsTabService.launchFailed;
+    }
+    set launchFailed(value) {
+        this.ngbTargetsTabService.launchFailed = value;
+    }
+    get launchErrorMessageList() {
+        return this.ngbTargetsTabService.launchErrorMessageList;
+    }
+    set launchErrorMessageList(value) {
+        this.ngbTargetsTabService.launchErrorMessageList = value;
+    }
 
     async initialize() {
         Object.assign(this.gridOptions, {
@@ -118,6 +152,7 @@ export default class ngbTargetsTableController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
@@ -139,6 +174,7 @@ export default class ngbTargetsTableController {
             columnSettings = {
                 name: column,
                 enableHiding: false,
+                enableColumnMenu: false,
                 enableSorting: false,
                 field: column,
                 headerTooltip: column,
@@ -149,7 +185,6 @@ export default class ngbTargetsTableController {
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: false,
-                        enableColumnMenu: false,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         maxWidth: 50,
@@ -160,7 +195,9 @@ export default class ngbTargetsTableController {
                 case 'name':
                     columnSettings = {
                         ...columnSettings,
+                        enableSorting: true,
                         enableFiltering: true,
+                        enableColumnMenu: true,
                         headerCellTemplate: headerCells,
                         displayName: column,
                         cellTemplate: nameCell
@@ -221,8 +258,29 @@ export default class ngbTargetsTableController {
         await this.loadData(request);
     }
 
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        this.ngbTargetsTableService.currentPage = 1;
+        this.gridOptions.data = [];
+        const request = await this.ngbTargetsTableService.setGetTargetsRequest();
+        await this.loadData(request);
+        this.$timeout(::this.$scope.$apply);
+    }
+
     launchTarget (row, event) {
         event.stopPropagation();
+        this.dispatcher.emitSimpleEvent('target:launch:identification', row);
     }
 
     async openTarget (row, event) {

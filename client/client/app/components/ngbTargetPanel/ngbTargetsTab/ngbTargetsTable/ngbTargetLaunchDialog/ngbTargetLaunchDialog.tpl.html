@@ -1,0 +1,72 @@
+<md-dialog aria-label="Target launch identification" class="launch-dialog">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Target identification for '{{name}}'</h2>
+            <span flex></span>
+            <md-button class="md-icon-button"
+                        ng-click="close()"
+                        aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content class="content">
+        <div layout="column" flex="100">
+            <div layout="row" flex="100" class="input-container">
+                <label flex="30" class="input-label">Species of interest</label>
+                <md-chips ng-model="speciesOfInterest"
+                          md-autocomplete-snap
+                          md-require-match="true"
+                          flex="70">
+                    <md-autocomplete
+                        md-selected-item="speciesOfInterest"
+                        md-search-text="searchText"
+                        md-clear-button="true"
+                        md-menu-class="species-md-autocomplete"
+                        md-no-cache="true"
+                        md-items="specie in getSpeciesOfInterestList(searchText)"
+                        md-item-text="item.name"
+                        md-delay="100"
+                        md-match-case-insensitive="true">
+                        <span md-highlight-text="searchText" md-highlight-flags="i">{{specie.name}}</span>
+                    </md-autocomplete>
+                    <md-chip-template>
+                        <span>{{$chip.name}}</span>
+                    </md-chip-template>
+                </md-chips>
+            </div>
+            <div layout="row" flex="100" class="input-container">
+                <label flex="30" class="input-label">Translational species</label>
+                <md-chips ng-model="translationalSpecies"
+                        md-autocomplete-snap
+                        md-require-match="true"
+                        flex="70">
+                    <md-autocomplete
+                        md-selected-item="translationalSpecies"
+                        md-search-text="searchText"
+                        md-clear-button="true"
+                        md-menu-class="species-md-autocomplete"
+                        md-no-cache="true"
+                        md-items="specie in getTranslationalSpecies(searchText)"
+                        md-item-text="item.name"
+                        md-delay="100"
+                        md-min-length="0"
+                        md-match-case-insensitive="true">
+                        <span md-highlight-text="searchText" md-highlight-flags="i">{{specie.name}}</span>
+                    </md-autocomplete>
+                    <md-chip-template>
+                        <span>{{$chip.name}}</span>
+                    </md-chip-template>
+                </md-chips>
+            </div>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="find"
+                   ng-click="identify()"
+                   class="md-primary"
+                   ng-disabled="identifyDisabled()">
+            Identify
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

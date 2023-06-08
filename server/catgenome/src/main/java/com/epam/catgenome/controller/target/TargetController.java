@@ -88,7 +88,7 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/filter")
     @ApiOperation(
             value = "Filters targets",
-            notes = "Filters targets",
+            notes = "Filters targets. Result can be sorted by target_name field.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

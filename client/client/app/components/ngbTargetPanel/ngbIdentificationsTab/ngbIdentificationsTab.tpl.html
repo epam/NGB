@@ -1,0 +1,126 @@
+<md-content flex class="identification-content">
+    <div class="identification-header">
+        <div class="header-content">
+            <h3>{{$ctrl.targetName}}</h3>
+            <p>
+                <span class="species-label">Interest</span>:
+                <span class="species-list">{{$ctrl.interest}}</span>
+            </p>
+            <p>
+                <span class="species-label">Translational</span>:
+                <span class="species-list">{{$ctrl.translational}}</span>
+            </p>
+        </div>
+        <md-button type="button"
+                   class="md-raised md-accent store-report-button"
+                   aria-label="Store report"
+                   ng-click="$ctrl.storeReport()">
+            Store report
+        </md-button>
+    </div>
+    <div class="pivot-container"
+        layout-padding
+        ng-cloak>
+        <md-whiteframe>
+            <h5>DESCRIPTION</h5>
+            <div class="whiteframe-content">
+                <span class="description-span">
+                    {{$ctrl.shortDescription}}
+                </span>
+            </div>
+        </md-whiteframe>
+        <md-whiteframe>
+            <h5>KNOWN DRUGS</h5>
+            <div class="whiteframe-content">
+                <span>Disease: <b>880</b></span>
+                <span>Drugs: <b>2</b></span>
+            </div>
+        </md-whiteframe>
+        <md-whiteframe>
+            <h5>SEQUENCES</h5>
+            <div class="whiteframe-content">
+                <span>DNA: <b>1</b></span>
+                <span>RNA: <b>0</b></span>
+                <span>Proteins: <b>3</b></span>
+            </div>
+        </md-whiteframe>
+        <md-whiteframe>
+            <h5>COMPARATIVE GENOMICS</h5>
+            <div class="whiteframe-content">
+                <span>Paralogs: <b>2</b></span>
+                <span>Orthologs: <b>26</b></span>
+            </div>
+        </md-whiteframe>
+        <md-whiteframe>
+            <h5>STRUCTURE</h5>
+            <div class="whiteframe-content">
+                <span>3D models: <b>112</b></span>
+            </div>
+        </md-whiteframe>
+        <md-whiteframe>
+            <h5>BIBLIOGRAPHY</h5>
+            <div class="whiteframe-content">
+                <span>Publications: <b>8083</b></span>
+            </div>
+        </md-whiteframe>
+    </div>
+    <div class="collapsible-container">
+        <collapsible>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    DESCRIPTION
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                        {{$ctrl.description}}
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    KNOWN DRUGS
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    SEQUENCES
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    COMPARATIVE GENOMICS
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    STRUCTURE
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+            <collapsible-panel is-open="false">
+                <collapsible-panel-title>
+                    BIBLIOGRAPHY
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+    </div>
+</md-content>

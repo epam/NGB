@@ -24,6 +24,7 @@
 package com.epam.catgenome.entity.target;
 
 import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.SortInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +36,7 @@ import java.util.List;
 @Builder
 public class TargetQueryParams {
     private PagingInfo pagingInfo;
+    private SortInfo sortInfo;
     private String targetName;
     private List<String> diseases;
     private List<String> products;

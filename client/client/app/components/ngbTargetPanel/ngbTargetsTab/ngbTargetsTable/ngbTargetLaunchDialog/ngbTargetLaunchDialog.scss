@@ -1,0 +1,118 @@
+.launch-dialog {
+    md-toolbar {
+        background-color: rgb(102,153,255);
+    }
+
+    .input-label {
+        margin: 10px;
+        align-self: center;
+    }
+
+    md-chips-wrap {
+        border: 1px solid rgba(0,0,0,0.38);
+        border-radius: 5px;
+        min-height: 30px;
+        height: auto;
+    }
+
+    md-chips li {
+        height: 30px;
+        line-height: 30px;
+    }
+
+    md-autocomplete-wrap {
+        input {
+            font-size: 12px;
+            height: 22px;
+            align-self: center;
+        }
+    }
+
+    md-chips.md-default-theme .md-chips.md-focused,
+    md-chips .md-chips.md-focused,
+    md-chips.md-default-theme .md-chips,
+    md-chips .md-chips {
+        box-shadow: none;
+    }
+
+    .input-container {
+        margin: 10px 0;
+        width: 100%;
+    }
+
+    .content {
+        margin: 20px;
+        padding: 0;
+    }
+
+    md-chip-template span {
+        font-size: 12px;
+    }
+
+    md-icon {
+        height: 12px;
+        min-height: 12px;
+        width: 12px;
+        min-width: 12px;
+    }
+
+    .md-chips md-chip .md-chip-remove {
+        width: 12px;
+        height: 12px;
+    }
+
+    .md-chips md-chip .md-chip-remove-container {
+        line-height: 16px;
+        right: 4px;
+    }
+
+    .md-chips.md-removable md-chip {
+        padding-right: 14px;
+    }
+
+    .md-chips md-chip {
+        height: 24px;
+        line-height: 21px;
+    }
+
+    .launch-dialog .md-chips md-chip .md-chip-remove-container {
+        line-height: 14px;
+        right: 4px;
+    }
+
+    .md-chips .md-chip-input-container md-autocomplete,
+    .md-chips .md-chip-input-container md-autocomplete-wrap {
+        height: 22px;
+    }
+
+    .md-chips md-chip .md-chip-remove md-icon {
+        height: 12px;
+        width: 12px;
+    }
+
+    md-input-container {
+        margin: 15px 0;
+        height: 32px;
+    }
+}
+
+.species-md-autocomplete.md-autocomplete-suggestions li {
+    font-size: 12px;
+    padding: 0 5px;
+    line-height: 32px;
+    height: 32px;
+}
+
+.confirm-launch-identification-dlg {
+    width: 400px;
+    min-width: 400px;
+
+    md-dialog-content {
+        min-width: 400px;
+        width: 400px;
+    }
+
+    h4 {
+        margin: 15px;
+    }
+}

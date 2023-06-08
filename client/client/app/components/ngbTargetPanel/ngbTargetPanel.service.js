@@ -1,26 +1,11 @@
-const TARGET_STATE = {
-    TARGETS: 'TARGETS',
-    IDENTIFICATIONS: 'IDENTIFICATIONS'
-};
-
 export default class ngbTargetPanelService {
 
     _isRepeat = false;
+    _identificationData = null;
+    _identificationParams = null;
 
-    static instance (
-        appLayout,
-        dispatcher,
-        projectContext
-    ) {
-        return new ngbTargetPanelService(
-            appLayout,
-            dispatcher,
-            projectContext,
-        );
-    }
-
-    get targetState() {
-        return TARGET_STATE;
+    static instance (appLayout, dispatcher) {
+        return new ngbTargetPanelService(appLayout, dispatcher);
     }
 
     get isRepeat() {
@@ -30,16 +15,16 @@ export default class ngbTargetPanelService {
         this._isRepeat = value;
     }
 
-    constructor(
-        appLayout,
-        dispatcher,
-        projectContext,
-    ) {
-        Object.assign(this, {
-            appLayout,
-            dispatcher,
-            projectContext,
-        });
+    get identificationData() {
+        return this._identificationData;
+    }
+    get identificationParams() {
+        return this._identificationParams;
+    }
+
+    constructor(appLayout, dispatcher) {
+        Object.assign(this, {appLayout, dispatcher});
+        dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
     }
 
     panelAddTargetPanel() {
@@ -53,5 +38,10 @@ export default class ngbTargetPanelService {
         const layoutChange = this.appLayout.Panels.target;
         layoutChange.displayed = false;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+    }
+
+    showIdentificationTab(data, params) {
+        this._identificationData = data;
+        this._identificationParams = params;
     }
 }

@@ -1,8 +1,10 @@
 <div flex>
-    <input class="ui-grid-filter-input ngb-filter-input"
-       ng-blur="$ctrl.apply()"
-       ng-key-bind="{enter: '$ctrl.apply()'}"
-       ng-model="$ctrl.value"
-       style="margin-bottom: 1px"
-       type="text">
+    <ngb-targets-filter-list column="$ctrl.column"
+                             ng-if="$ctrl.isList">
+    </ngb-targets-filter-list>
+</div>
+<div flex>
+    <ngb-targets-filter-input column="$ctrl.column"
+                              ng-if="$ctrl.isString">
+    </ngb-targets-filter-input>
 </div>

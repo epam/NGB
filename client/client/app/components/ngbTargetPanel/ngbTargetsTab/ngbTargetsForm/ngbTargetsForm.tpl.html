@@ -17,14 +17,14 @@
                    ng-model="$ctrl.targetModel.name">
         </div>
         <md-button type="button"
-                   class="md-raised md-accent save-target-button"
+                   class="md-primary save-target-button"
                    aria-label="Save target"
                    ng-click="$ctrl.saveTarget()"
                    ng-disabled="$ctrl.isSaveDisabled()">
             SAVE
         </md-button>
         <md-button type="button"
-                   class="md-warn save-target-button"
+                   class="save-target-button"
                    ng-class="{'hidden': !$ctrl.isEditMode}"
                    aria-label="Remove target"
                    ng-click="$ctrl.removeTarget()"
@@ -71,16 +71,16 @@
                     <tbody>
                         <tr ng-repeat="gene in $ctrl.targetModel.genes track by $index">
                             <td>
-                                <input type="string"
-                                       required
-                                       name="geneId"
-                                       ng-model="$ctrl.targetModel.genes[$index].geneId">
+                                <ngb-targets-form-list model="geneId"
+                                                       index="$index"
+                                                       field="featureId">
+                                </ngb-targets-form-list>
                             </td>
                             <td>
-                                <input type="string"
-                                       required
-                                       name="geneName"
-                                       ng-model="$ctrl.targetModel.genes[$index].geneName">
+                                <ngb-targets-form-list model="geneName"
+                                                       index="$index"
+                                                       field="featureName">
+                                </ngb-targets-form-list>
                             </td>
                             <td>
                                 <input type="string"
@@ -94,10 +94,16 @@
                                        name="speciesName"
                                        ng-model="$ctrl.targetModel.genes[$index].speciesName">
                             </td>
-                            <td>
-                                <input type="string"
-                                       name="priority"
-                                       ng-model="$ctrl.targetModel.genes[$index].priority">
+                            <td class="priority-select-container">
+                                <md-select ng-model="$ctrl.targetModel.genes[$index].priority"
+                                           aria-label="Select priority"
+                                           md-container-class="priority-select">
+                                    <md-option><em>None</em></md-option>
+                                    <md-option ng-repeat="priority in $ctrl.priorityList"
+                                               ng-value="priority.value">
+                                        {{priority.name}}
+                                    </md-option>
+                                </md-select>
                             </td>
                             <td class="button-column">
                                 <md-button class="remove-btn"

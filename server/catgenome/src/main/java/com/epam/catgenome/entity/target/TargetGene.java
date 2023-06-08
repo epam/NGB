@@ -37,5 +37,5 @@ public class TargetGene {
     private String geneName;
     private Long taxId;
     private String speciesName;
-    private Integer priority;
+    private TargetGenePriority priority;
 }

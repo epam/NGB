@@ -1,22 +1,33 @@
 const PAGE_SIZE = 30;
 
-export default class ngbTargetTableService {
-    _loadingData = false;
-    _failedResult = false;
-    _errorMessageList = null;
+const FIELDS = {
+    name: 'NAME',
+    genes: 'GENE_NAME',
+    species: 'SPECIES_NAME',
+    disease: 'DISEASES',
+    product: 'PRODUCTS'
+};
+
+export default class ngbTargetsTableService {
 
     _emptyResults = false;
     _filteringFailure = false;
     _filteringErrorMessageList = null;
 
     _displayFilters = false;
+
     _filterInfo = null;
+    _sortInfo = null;
 
     _totalCount = 0;
     _currentPage = 1;
-    _pageSize = PAGE_SIZE
+    _pageSize = PAGE_SIZE;
 
     targetsResults = null;
+
+    fields = FIELDS;
+
+    fieldList = {};
 
     get pageSize() {
         return this._pageSize;
@@ -40,27 +51,6 @@ export default class ngbTargetTableService {
         return this._currentPage === this._totalCount;
     }
 
-    get loadingData() {
-        return this._loadingData;
-    }
-    set loadingData(value) {
-        this._loadingData = value;
-    }
-
-    get failedResult() {
-        return this._failedResult;
-    }
-    set failedResult(value) {
-        this._failedResult = value;
-    }
-
-    get errorMessageList () {
-        return this._errorMessageList;
-    }
-    set errorMessageList (value) {
-        this._errorMessageList = value;
-    }
-
     get displayFilters() {
         return this._displayFilters;
     }
@@ -70,6 +60,13 @@ export default class ngbTargetTableService {
 
     get filterInfo() {
         return this._filterInfo;
+    }
+
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
     }
 
     get emptyResults() {
@@ -82,12 +79,26 @@ export default class ngbTargetTableService {
         return this._filteringErrorMessageList;
     }
 
-    static instance (targetDataService) {
-        return new ngbTargetTableService(targetDataService);
+    static instance (projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
+        return new ngbTargetsTableService(projectContext, dispatcher, ngbTargetsTabService, targetDataService);
     }
 
-    constructor(targetDataService) {
-        Object.assign(this, {targetDataService});
+    constructor(projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
+        Object.assign(this, {projectContext, dispatcher, ngbTargetsTabService, targetDataService});
+        this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
+    }
+
+    get failedResult() {
+        return this.ngbTargetsTabService.tableFailed;
+    }
+    set failedResult(value) {
+        this.ngbTargetsTabService.tableFailed = value;
+    }
+    get errorMessageList () {
+        return this.ngbTargetsTabService.tableErrorMessageList;
+    }
+    set errorMessageList (value) {
+        this.ngbTargetsTabService.tableErrorMessageList = value;
     }
 
     setGetTargetsRequest() {
@@ -95,23 +106,29 @@ export default class ngbTargetTableService {
             pagingInfo: {
                 pageSize: this.pageSize,
                 pageNum: this.currentPage
-            },
+            }
         };
+        if (this._sortInfo && this._sortInfo.length) {
+            request.sortInfo = {
+                field: 'target_name',
+                ascending: this._sortInfo[0].ascending
+            };
+        }
         if (this._filterInfo) {
             if (this._filterInfo.name) {
                 request.targetName = this._filterInfo.name;
             }
             if (this._filterInfo.genes) {
-                request.geneNames = [this._filterInfo.genes];
+                request.geneNames = [...this._filterInfo.genes];
             }
             if (this._filterInfo.species) {
-                request.speciesNames = [this._filterInfo.species];
+                request.speciesNames = [...this._filterInfo.species];
             }
-            if (this._filterInfo.disease) {
-                request.diseases = [this._filterInfo.disease];
+            if (this._filterInfo.diseases) {
+                request.diseases = [...this._filterInfo.diseases];
             }
-            if (this._filterInfo.product) {
-                request.products = [this._filterInfo.product];
+            if (this._filterInfo.products) {
+                request.products = [...this._filterInfo.products];
             }
         }
         return request;
@@ -127,7 +144,10 @@ export default class ngbTargetTableService {
                     limit: 2
                 },
                 species: {
-                    value: item.targetGenes.map(gene => gene.speciesName),
+                    value: item.targetGenes.map(gene => ({
+                        name: gene.speciesName,
+                        taxId: gene.taxId
+                    })),
                     limit: 2
                 },
                 disease: {
@@ -147,8 +167,8 @@ export default class ngbTargetTableService {
         return new Promise(resolve => {
             this.targetDataService.getTargetsResult(request)
                 .then(([data, totalCount]) => {
-                    this._errorMessageList = null;
-                    this._failedResult = false;
+                    this.errorMessageList = null;
+                    this.failedResult = false;
                     this._totalCount = Math.ceil(totalCount/this.pageSize);
                     this._emptyResults = this._totalCount === 0 ? (isFiltered ? false : true) : false;
                     this._filteringFailure = false;
@@ -161,15 +181,15 @@ export default class ngbTargetTableService {
                     this.targetsResults = null;
                     this._currentPage = 1;
                     if (isFiltered) {
-                        this._errorMessageList = null;
-                        this._failedResult = false;
+                        this.errorMessageList = null;
+                        this.failedResult = false;
                         this._emptyResults = true;
                         this._filteringFailure = true;
                         this._filteringErrorMessageList = [err.message];
                         resolve(true);
                     } else {
-                        this._errorMessageList = [err.message];
-                        this._failedResult = true;
+                        this.errorMessageList = [err.message];
+                        this.failedResult = true;
                         this._emptyResults = false;
                         this._filteringFailure = false;
                         this._filteringErrorMessageList = null;
@@ -179,9 +199,48 @@ export default class ngbTargetTableService {
         });
     }
 
-    setFilter(field, string) {
+    get isFilterEmpty() {
+        if (!this._filterInfo) {
+            return true;
+        }
+        return Object.values(this._filterInfo).every(filter => !filter.length);
+    }
+
+    setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = string;
+        filter[field] = value;
         this._filterInfo = filter;
+        this.projectContext.targetsTableFilterIsVisible = !this.isFilterEmpty;
+    }
+
+    resetFilters() {
+        this._filterInfo = null;
+        this.projectContext.targetsTableFilterIsVisible = false;
+        this.dispatcher.emitSimpleEvent('targets:filters:changed');
+    }
+
+    async onChangeShowFilters() {
+        if (this.displayFilters) {
+            return Promise.all(
+                ['genes', 'species', 'disease', 'product'].map(async (field) => (
+                    await this.getTargetFieldValue(field)
+                )))
+                    .then(values => (values.some(v => v)));
+        }
+    }
+
+
+    getTargetFieldValue(field) {
+        return new Promise(resolve => {
+            this.targetDataService.getTargetFieldValue(this.fields[field])
+                .then((data) => {
+                    this.fieldList[field] = data.filter(d => d);
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.fieldList[field] = [];
+                    resolve(false);
+                });
+        });
     }
 }

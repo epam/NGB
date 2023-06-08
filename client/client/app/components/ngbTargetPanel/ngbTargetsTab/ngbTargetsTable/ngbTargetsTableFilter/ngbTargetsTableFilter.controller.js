@@ -1,37 +1,20 @@
 export default class ngbTargetsTableFilterController {
-
-    prevValue;
-    value;
-
-    get filterInfo() {
-        return this.ngbTargetsTableService.filterInfo || {};
-    }
+    isList = false;
+    isString = false;
 
     static get UID() {
         return 'ngbTargetsTableFilterController';
     }
 
-    constructor(dispatcher, ngbTargetsTableService) {
-        Object.assign(this, {dispatcher, ngbTargetsTableService});
-        this.prevValue = this.value = this.filterInfo[this.column.field];
-    }
-
-    apply() {
-        let shouldUpdate = false;
-        let string = this.prevValue;
-        if (this.prevValue !== this.value) {
-            if (!this.value || !this.value.length) {
-                this.value = null;
+    constructor() {
+        switch (this.column.field) {
+            case 'name': {
+                this.isString = true;
+                break;
             }
-            this.prevValue = this.value;
-            shouldUpdate = true;
-            string = this.value;
-        }
-        if (shouldUpdate) {
-            this.ngbTargetsTableService.setFilter(this.column.field, string);
-            this.dispatcher.emit('targets:filter:changed');
+            default:
+                this.isList = true;
+                break;
         }
     }
-
-
 }
