@@ -30,9 +30,11 @@ import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
@@ -75,7 +77,7 @@ public class TargetSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public IdentificationResult launchIdentification(final IdentificationRequest request)
-            throws ExternalDbUnavailableException {
+            throws ExternalDbUnavailableException, ParseException, IOException {
         return targetManager.launchIdentification(request);
     }
 }

@@ -175,9 +175,21 @@ public final class NgbFileUtils {
 
     @NotNull
     public static File getFile(final String path) {
-        Assert.isTrue(!TextUtils.isBlank(path), getMessage(MessagesConstants.PATH_IS_REQUIRED));
-        final File file = new File(path);
+        final File file = checkPath(path);
         Assert.isTrue(file.isFile() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        return file;
+    }
+
+    @NotNull
+    private static File checkPath(final String path) {
+        Assert.isTrue(!TextUtils.isBlank(path), getMessage(MessagesConstants.PATH_IS_REQUIRED));
+        return new File(path);
+    }
+
+    @NotNull
+    public static File getDirectory(final String path) {
+        final File file = checkPath(path);
+        Assert.isTrue(file.isDirectory() && file.canRead(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
         return file;
     }
 

@@ -86,13 +86,17 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
@@ -113,6 +117,7 @@ public final class IndexUtils {
     private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
     private static final String LINE_DELIMITER = "|";
     private static final String LINE_DELIMITER_PATTERN = "\\|";
+    private static final String TERM_SPLIT_TOKEN = " ";
 
     private IndexUtils() {
         //no operations
@@ -599,6 +604,18 @@ public final class IndexUtils {
 
     public static List<String> deserialize(final String encoded) {
         return Arrays.asList(encoded.split(LINE_DELIMITER_PATTERN));
+    }
+
+    public static Query getByIdsQuery(final List<String> ids, final String fieldName)
+            throws ParseException {
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final QueryParser queryParser = new QueryParser(fieldName, analyzer);
+        queryParser.setDefaultOperator(QueryParser.Operator.OR);
+        return queryParser.parse(join(ids, TERM_SPLIT_TOKEN));
+    }
+
+    public static String getField(final Document doc, final String fieldName) {
+        return doc.getField(fieldName).stringValue();
     }
 
     private static InputStream indexFileInputStream(final InputStream indexStream, String extension)

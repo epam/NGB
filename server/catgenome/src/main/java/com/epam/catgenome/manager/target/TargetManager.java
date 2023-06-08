@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
+import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
@@ -33,6 +34,9 @@ import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDiseaseManager;
+import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDrugManager;
+import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
 import com.epam.catgenome.util.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -40,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -75,6 +81,9 @@ public class TargetManager {
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
     private final NCBIGeneManager geneManager;
+    private final TargetDetailsManager targetsManager;
+    private final AssociatedDiseaseManager associationsManager;
+    private final AssociatedDrugManager drugsManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Target create(final Target target) {
@@ -104,15 +113,20 @@ public class TargetManager {
     }
 
     public IdentificationResult launchIdentification(final IdentificationRequest request)
-            throws ExternalDbUnavailableException {
+            throws ExternalDbUnavailableException, ParseException, IOException {
         getTarget(request.getTargetId());
         final List<Long> taxIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalSpecies()),
                 ListUtils.emptyIfNull(request.getSpeciesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(taxIds),
                 "Either Species of interest or Translational species must me specified.");
-        final Map<String, String> description = getDescription(request.getTargetId(), taxIds);
+        final List<String> geneIds = getGeneIds(request.getTargetId(), taxIds);
+        final Map<String, String> description = getDescriptions(geneIds);
+        final Integer diseases = associationsManager.totalCount(geneIds);
+        final Integer drugs = drugsManager.totalCount(geneIds);
         return IdentificationResult.builder()
                 .description(description)
+                .diseases(diseases)
+                .drugs(drugs)
                 .build();
     }
 
@@ -194,13 +208,33 @@ public class TargetManager {
         Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, targetId));
     }
 
-    private Map<String, String> getDescription(final Long targetId, final List<Long> taxIds)
-            throws ExternalDbUnavailableException {
+    private Map<String, String> getDescriptions(final List<String> geneIds)
+            throws ExternalDbUnavailableException, ParseException, IOException {
+        final Map<String, String> ncbiDescription = geneManager.fetchGeneSummaryByIds(geneIds);
+        final List<TargetDetails> openTargetDetails = targetsManager.search(geneIds);
+        final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
+                .collect(Collectors.toMap(TargetDetails::getId, TargetDetails::getDescription));
+        return mergeDescriptions(ncbiDescription, openTargetDescriptionMap);
+    }
+
+    @NotNull
+    private List<String> getGeneIds(final Long targetId, final List<Long> taxIds) {
         final List<String> clauses = new ArrayList<>();
         clauses.add(String.format(EQUAL_CLAUSE, "target_id", targetId));
         clauses.add(String.format(IN_CLAUSE, "tax_id", join(taxIds, ",")));
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
-        final List<String> geneIds = targetGenes.stream().map(TargetGene::getGeneId).collect(Collectors.toList());
-        return geneManager.fetchGeneSummaryByIds(geneIds);
+        return targetGenes.stream().map(TargetGene::getGeneId).collect(Collectors.toList());
+    }
+
+    private static Map<String, String> mergeDescriptions(final Map<String, String> ncbiDescription,
+                                                         final Map<String, String> openTargetDescription) {
+        ncbiDescription.forEach((geneId, value) -> {
+            if (openTargetDescription.containsKey(geneId)) {
+                openTargetDescription.replace(geneId, openTargetDescription.get(geneId) + value);
+            } else {
+                openTargetDescription.put(geneId, value);
+            }
+        });
+        return openTargetDescription;
     }
 }
