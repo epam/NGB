@@ -10,7 +10,8 @@
             class="diseases-table">
     </div>
 </div>
-<ngb-table-pagination total-pages="$ctrl.totalPages"
+<ngb-table-pagination ng-if="$ctrl.totalPages > 1"
+                      total-pages="$ctrl.totalPages"
                       current-page="$ctrl.currentPage"
                       on-change-page="$ctrl.getDataOnPage(page)">
 </ngb-table-pagination>

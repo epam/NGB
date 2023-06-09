@@ -53,8 +53,43 @@ ngb-drugs-table {
         padding: 5px;
         box-sizing: border-box;
         text-overflow: ellipsis;
+        text-decoration: none;
         overflow: hidden;
         color: rgb(102, 153, 255);
+        cursor: pointer;
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+    }
+
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 1000;
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        .no-records-warning {
+            color: #999;
+        }
     }
 }
 

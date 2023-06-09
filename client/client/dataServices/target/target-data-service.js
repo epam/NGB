@@ -119,4 +119,21 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    postAssociatedDrugs(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/associated/drugs', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting associated drugs';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

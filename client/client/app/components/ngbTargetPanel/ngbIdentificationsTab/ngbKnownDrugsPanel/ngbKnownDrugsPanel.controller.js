@@ -5,36 +5,39 @@ const TAB_STATE = {
 
 export default class ngbKnownDrugsPanelController {
 
-    currentTabState;
-    tabSelected;
-
-    sourceList = ['Open Targets'];
-    sourceModel = null;
-
     get tabState() {
         return TAB_STATE;
     }
+
+    tabSelected = this.tabState.DISEASES;
 
     static get UID() {
         return 'ngbKnownDrugsPanelController';
     }
 
-    constructor($scope, $timeout) {
-        Object.assign(this, {$scope, $timeout});
-        this.currentTabState = this.tabState.DISEASES;
-        this.tabSelected = this.tabState.DISEASES;
+    constructor($scope, $timeout, ngbKnownDrugsPanelService) {
+        Object.assign(this, {$scope, $timeout, ngbKnownDrugsPanelService});
     }
 
-    changeState(state, isRepeat) {
+    get sourceOptions () {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
+    get sourceModel () {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+    set sourceModel (value) {
+        this.ngbKnownDrugsPanelService.sourceModel = value;
+    }
+
+    changeState(state) {
         if (this.tabState.hasOwnProperty(state)) {
-            this.currentTabState = this.tabState[state];
-            this.tabSelected = state === this.tabState.DISEASES
-                ? this.tabState.DISEASES
-                : this.tabState.DRUGS;
+            this.tabSelected = this.tabState[state];
         }
         this.$timeout(::this.$scope.$apply);
     }
 
     onChangedModel() {
+        this.ngbKnownDrugsPanelService.onChangeSource(this.sourceModel);
     }
 }

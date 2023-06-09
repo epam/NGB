@@ -1,45 +1,5 @@
 const DRUGS_TABLE_COLUMNS = ['drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
 
-const DRUGS_RESULTS = [
-    {
-        drug: 'SOTORASIB',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'non-small cell lung carcinoma',
-        phase: 'Phase IV',
-        status: 'N/A',
-        source: 'FDA'
-    }, {
-        drug: 'MRTX-849',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'non-small cell lung carcinoma',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
-    }, {
-        drug: 'MRTX-849',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'metastatic colorectal cancer',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
-    }, {
-        drug: 'SOTORASIB',
-        type: 'Small molecule',
-        'mechanism of action': 'GTRase KRas inhibitor',
-        'action type': 'Inhibitor',
-        disease: 'colorectal adenocarcinoma',
-        phase: 'Phase III',
-        status: 'Recruiting',
-        source: 'ClinicalTrials.gov'
-    }
-];
-
 export default class ngbDrugsTableController {
 
     get drugsTableColumnList () {
@@ -74,15 +34,46 @@ export default class ngbDrugsTableController {
         saveSelection: false
     };
 
-    currentPage = 1;
-    totalPages = 10;
-
     static get UID() {
         return 'ngbDrugsTableController';
     }
 
-    constructor($scope, $timeout) {
-        Object.assign(this, {$scope, $timeout});
+    constructor($scope, $timeout, ngbDrugsTableService) {
+        Object.assign(this, {$scope, $timeout, ngbDrugsTableService});
+    }
+
+    get totalPages() {
+        return this.ngbDrugsTableService.totalPages;
+    }
+    get currentPage() {
+        return this.ngbDrugsTableService.currentPage;
+    }
+    set currentPage(value) {
+        this.ngbDrugsTableService.currentPage = value;
+    }
+    get loadingData() {
+        return this.ngbDrugsTableService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbDrugsTableService.loadingData = value;
+    }
+    get failedResult() {
+        return this.ngbDrugsTableService.failedResult;
+    }
+    get errorMessageList() {
+        return this.ngbDrugsTableService.errorMessageList;
+    }
+    get emptyResults() {
+        return this.ngbDrugsTableService.emptyResults;
+    }
+    get pageSize () {
+        return this.ngbDrugsTableService.pageSize;
+    }
+    get sortInfo() {
+        return this.ngbDrugsTableService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbDrugsTableService.sortInfo = value;
     }
 
     $onInit() {
@@ -93,14 +84,18 @@ export default class ngbDrugsTableController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.getDrugsTableGridColumns(),
-            paginationPageSize: 10,
+            paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
-        await this.loadData();
+        if (this.ngbDrugsTableService.drugsResults) {
+            this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
+        } else {
+            await this.loadData();
+        }
     }
 
     getDrugsTableGridColumns() {
@@ -156,18 +151,50 @@ export default class ngbDrugsTableController {
         return result;
     }
 
+    getRequest() {
+        return {
+            page: this.currentPage,
+            pageSize: this.pageSize
+        };
+    }
+
     async loadData () {
-        const results = DRUGS_RESULTS;
+        this.loadingData = true;
+        const request = this.getRequest();
+        const results = await this.ngbDrugsTableService.postAssociatedDrugs(request)
+            .then(success => {
+                if (success) {
+                    return this.ngbDrugsTableService.drugsResults;
+                }
+                return [];
+            });
         this.gridOptions.data = results;
         this.$timeout(::this.$scope.$apply);
     }
 
-    sortChanged() {}
-
-    async getDataOnPage() {
+    async sortChanged(grid, sortColumns) {
         if (!this.gridApi) {
             return;
         }
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        this.currentPage = 1;
+        this.gridOptions.data = [];
+        await this.loadData();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    async getDataOnPage(page) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.currentPage = page;
         await this.loadData();
     }
 

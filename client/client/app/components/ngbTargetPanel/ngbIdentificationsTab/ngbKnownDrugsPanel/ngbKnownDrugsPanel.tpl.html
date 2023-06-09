@@ -1,11 +1,11 @@
 <md-nav-bar class="known-drugs-nav-bar"
             aria-label="Known drugs nav bar"
             md-selected-nav-item="$ctrl.tabSelected">
-    <md-nav-item name="Associated diseases"
+    <md-nav-item name="DISEASES"
                 md-nav-click="$ctrl.changeState($ctrl.tabState.DISEASES)">
         Associated diseases
     </md-nav-item>
-    <md-nav-item name="Known drugs"
+    <md-nav-item name="DRUGS"
                 md-nav-click="$ctrl.changeState($ctrl.tabState.DRUGS)">
         Known drugs
     </md-nav-item>
@@ -14,9 +14,8 @@
             <md-select ng-model="$ctrl.sourceModel"
                         aria-label="Source select"
                         ng-change="$ctrl.onChangedModel()"
-                        ng-model-options="{ trackBy: '$value.id' }"
                         md-container-class="drugs-source-select">
-                <md-option ng-repeat="item in $ctrl.sourceList"
+                <md-option ng-repeat="item in $ctrl.sourceOptions"
                             ng-value="item">
                     {{item}}
                 </md-option>
@@ -26,12 +25,12 @@
     </div>
 </md-nav-bar>
 <md-content class="_md known-drugs-content">
-    <div change-state="$ctrl.changeState(state, isRepeat)"
-         ng-if="$ctrl.currentTabState === $ctrl.tabState.DISEASES">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.tabSelected === $ctrl.tabState.DISEASES">
         <ngb-diseases-tab></ngb-diseases-tab>
     </div>
-    <div change-state="$ctrl.changeState(state, isRepeat)"
-         ng-if="$ctrl.currentTabState === $ctrl.tabState.DRUGS">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.tabSelected === $ctrl.tabState.DRUGS">
         <ngb-drugs-table></ngb-drugs-table>
     </div>
 </md-content>

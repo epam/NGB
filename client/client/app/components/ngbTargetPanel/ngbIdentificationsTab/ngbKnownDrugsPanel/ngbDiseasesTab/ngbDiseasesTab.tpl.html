@@ -2,30 +2,30 @@
             aria-label="Diseases menu"
             md-no-ink-bar="true"
             md-selected-nav-item="$ctrl.itemSelected">
-    <md-nav-item name="Diseases table"
-                md-nav-click="$ctrl.changeState($ctrl.menuState.TABLE)">
+    <md-nav-item name="TABLE"
+                 md-nav-click="$ctrl.changeState($ctrl.menuState.TABLE)">
         TABLE
     </md-nav-item>
-    <md-nav-item name="Diseases bubbles"
-                md-nav-click="$ctrl.changeState($ctrl.menuState.BUBBLES)">
+    <md-nav-item name="BUBBLES"
+                 md-nav-click="$ctrl.changeState($ctrl.menuState.BUBBLES)">
         BUBBLES
     </md-nav-item>
-    <md-nav-item name="Diseases graph"
-                md-nav-click="$ctrl.changeState($ctrl.menuState.GRAPH)">
+    <md-nav-item name="GRAPH"
+                 md-nav-click="$ctrl.changeState($ctrl.menuState.GRAPH)">
         GRAPH
     </md-nav-item>
 </md-nav-bar>
 <md-content class="_md diseases-content">
-    <div change-state="$ctrl.changeState(state, isRepeat)"
-         ng-if="$ctrl.currentMenuState === $ctrl.menuState.TABLE">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.itemSelected === $ctrl.menuState.TABLE">
         <ngb-diseases-table></ngb-diseases-table>
     </div>
-    <div change-state="$ctrl.changeState(state, isRepeat)"
-         ng-if="$ctrl.currentMenuState === $ctrl.menuState.BUBBLES">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.itemSelected === $ctrl.menuState.BUBBLES">
         bubbles
     </div>
-    <div change-state="$ctrl.changeState(state, isRepeat)"
-         ng-if="$ctrl.currentMenuState === $ctrl.menuState.GRAPH">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.itemSelected === $ctrl.menuState.GRAPH">
         graph
     </div>
 </md-content>

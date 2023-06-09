@@ -6,12 +6,11 @@ const MENU_STATE = {
 
 export default class ngbDiseasesTabController {
 
-    currentMenuState = this.menuState.TABLE;
-    itemSelected = this.menuState.TABLE;
-
     get menuState() {
         return MENU_STATE;
     }
+
+    itemSelected = this.menuState.TABLE;
 
     static get UID() {
         return 'ngbDiseasesTabController';
@@ -19,14 +18,12 @@ export default class ngbDiseasesTabController {
 
     constructor($scope, $timeout) {
         Object.assign(this, {$scope, $timeout});
-        this.currentMenuState = this.menuState.TABLE;
         this.itemSelected = this.menuState.TABLE;
     }
 
-    changeState(state, isRepeat) {
+    changeState(state) {
         if (this.menuState.hasOwnProperty(state)) {
-            this.currentMenuState = this.menuState[state];
-            this.tabSelected = state;
+            this.itemSelected = this.menuState[state];
         }
         this.$timeout(::this.$scope.$apply);
     }

@@ -320,6 +320,7 @@ export default class ngbTargetsTabService {
     }
 
     async getIdentificationData(params, info) {
+        this.ngbTargetPanelService.resetIdentificationData();
         this._launchLoading = true;
         await this.launchTargetIdentification(params)
             .then(result => {
