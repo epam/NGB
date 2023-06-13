@@ -1,71 +1,4 @@
-const DISEASES_TABLE_COLUMNS = ['disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models'];
-
-const DISEASES_RESULTS = [
-    {
-        disease: 'Cardiofaciocutaneous syndrome',
-        'overall score': 0.83,
-        'genetic association': 0.92,
-        'somatic mutations': '',
-        drugs: '',
-        'pathways systems': 0.61,
-        'text mining': '',
-        'animal models': ''
-    }, {
-        disease: 'Noonan syndrome',
-        'overall score': 0.83,
-        'genetic association': 0.91,
-        'somatic mutations': '',
-        drugs: '',
-        'pathways systems': 0.92,
-        'text mining': '',
-        'animal models': ''
-    }, {
-        disease: 'Non-small cell lung carcinoma',
-        'overall score': 0.73,
-        'genetic association': '',
-        'somatic mutations': 0.80,
-        drugs: 0.75,
-        'pathways systems': 0.76,
-        'text mining': 0.96,
-        'animal models': ''
-    }, {
-        disease: 'Gastric cancer',
-        'overall score': 0.70,
-        'genetic association': 0.79,
-        'somatic mutations': 0.55,
-        drugs: '',
-        'pathways systems': '',
-        'text mining': '',
-        'animal models': ''
-    }, {
-        disease: 'Acute myeloid leukemia',
-        'overall score': 0.69,
-        'genetic association': 0.73,
-        'somatic mutations': 0.72,
-        drugs: '',
-        'pathways systems': 0.91,
-        'text mining': 0.62,
-        'animal models': 0.38
-    }, {
-        disease: 'Acute myeloid leukemia',
-        'overall score': 0.20,
-        'genetic association': 0.10,
-        'somatic mutations': 1,
-        drugs: 0.33,
-        'pathways systems': 0.5,
-        'text mining': 0.24,
-        'animal models': 0.01
-    }, {
-        disease: 'Acute myeloid leukemia',
-        'overall score': 1.00,
-        'genetic association': 0.99,
-        'somatic mutations': 0.98,
-        drugs: 0.97,
-        'pathways systems': 0.95,
-        'text mining': 0.94,
-        'animal models': 0.91
-    }
-];
+const DISEASES_TABLE_COLUMNS = ['disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
 export default class ngbDiseasesTableController {
 
@@ -101,9 +34,6 @@ export default class ngbDiseasesTableController {
         saveSelection: false
     };
 
-    currentPage = 1;
-    totalPages = 20;
-
     getHighlightColor(alpha) {
         return alpha
             ? {'background-color': `rgb(102, 153, 255, ${alpha})`}
@@ -114,8 +44,42 @@ export default class ngbDiseasesTableController {
         return 'ngbDiseasesTableController';
     }
 
-    constructor($scope, $timeout) {
-        Object.assign(this, {$scope, $timeout});
+    constructor($scope, $timeout, ngbDiseasesTableService) {
+        Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
+    }
+
+    get totalPages() {
+        return this.ngbDiseasesTableService.totalPages;
+    }
+    get currentPage() {
+        return this.ngbDiseasesTableService.currentPage;
+    }
+    set currentPage(value) {
+        this.ngbDiseasesTableService.currentPage = value;
+    }
+    get loadingData() {
+        return this.ngbDiseasesTableService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbDiseasesTableService.loadingData = value;
+    }
+    get failedResult() {
+        return this.ngbDiseasesTableService.failedResult;
+    }
+    get errorMessageList() {
+        return this.ngbDiseasesTableService.errorMessageList;
+    }
+    get emptyResults() {
+        return this.ngbDiseasesTableService.emptyResults;
+    }
+    get pageSize () {
+        return this.ngbDiseasesTableService.pageSize;
+    }
+    get sortInfo() {
+        return this.ngbDiseasesTableService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbDiseasesTableService.sortInfo = value;
     }
 
     $onInit() {
@@ -125,18 +89,22 @@ export default class ngbDiseasesTableController {
     async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
-            columnDefs: this.getDrugsTableGridColumns(),
-            paginationPageSize: 10,
+            columnDefs: this.getDiseasesTableGridColumns(),
+            paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
-        await this.loadData();
+        if (this.ngbDiseasesTableService.diseasesResults) {
+            this.gridOptions.data = this.ngbDiseasesTableService.diseasesResults;
+        } else {
+            await this.loadData();
+        }
     }
 
-    getDrugsTableGridColumns() {
+    getDiseasesTableGridColumns() {
         const headerCells = require('./ngbDiseasesTable_header.tpl.html');
         const linkCell = require('./ngbDiseasesTable_linkCell.tpl.html');
         const colorCell = require('./ngbDiseasesTable_colorCell.tpl.html');
@@ -148,6 +116,7 @@ export default class ngbDiseasesTableController {
             const column = columnsList[i];
             columnSettings = {
                 name: column,
+                displayName: column.charAt(0).toUpperCase() + column.slice(1),
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
@@ -155,20 +124,21 @@ export default class ngbDiseasesTableController {
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
-                minWidth: 40,
+                minWidth: 80,
                 width: '*'
             };
             switch (column) {
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: linkCell
+                        cellTemplate: linkCell,
+                        minWidth: 200
                     };
                     break;
                 default:
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: colorCell
+                        cellTemplate: colorCell,
                     };
                     break;
             }
@@ -180,17 +150,41 @@ export default class ngbDiseasesTableController {
     }
 
     async loadData () {
-        const results = DISEASES_RESULTS;
+        this.loadingData = true;
+        const results = await this.ngbDiseasesTableService.postAssociatedDiseases()
+            .then(success => {
+                if (success) {
+                    return this.ngbDiseasesTableService.diseasesResults;
+                }
+                return [];
+            });
         this.gridOptions.data = results;
         this.$timeout(::this.$scope.$apply);
     }
 
-    sortChanged() {}
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        this.currentPage = 1;
+        this.gridOptions.data = [];
+        await this.loadData();
+        this.$timeout(::this.$scope.$apply);
+    }
 
     async getDataOnPage(page) {
         if (!this.gridApi) {
             return;
         }
+        this.currentPage = page;
         await this.loadData();
     }
 

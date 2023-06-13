@@ -1,8 +1,20 @@
 const SOURCE_OPTIONS = {
-    OPEN_TARGET: 'Open Targets',
-    TXGNN: 'TxGNN',
-    DGIDB: 'DGIdb',
-    PHARMGKB: 'PharmGKB'
+    OPEN_TARGET: {
+        displayName: 'Open Targets',
+        name: 'OPEN_TARGETS'
+    },
+    TXGNN: {
+        displayName: 'TxGNN',
+        name: 'TXGNN'
+    },
+    DGI_DB: {
+        displayName: 'DGIdb',
+        name: 'DGI_DB'
+    },
+    PHARM_GKB: {
+        displayName: 'PharmGKB',
+        name: 'PHARM_GKB'
+    }
 };
 
 export default class ngbKnownDrugsPanelService {
@@ -28,7 +40,5 @@ export default class ngbKnownDrugsPanelService {
         Object.assign(this, {});
     }
 
-    onChangeSource(source) {
-        console.log('onChangeSource', source);
-    }
+    onChangeSource(source) {}
 }

@@ -1,3 +1,10 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>
 <div class="ui-grid-container">
     <div ui-grid="$ctrl.gridOptions"
             disable-wheel-handler
@@ -9,6 +16,13 @@
             ui-grid-pinning
             class="diseases-table">
     </div>
+</div>
+<div class="empty-container"
+     ng-if="$ctrl.emptyResults">
+    <md-content class="no-records-warning"
+                flex>
+        <span>No records found.</span>
+    </md-content>
 </div>
 <ngb-table-pagination ng-if="$ctrl.totalPages > 1"
                       total-pages="$ctrl.totalPages"
