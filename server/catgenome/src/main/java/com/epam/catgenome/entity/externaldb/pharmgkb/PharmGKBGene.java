@@ -21,21 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.entity.externaldb.pharmgkb;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-@AllArgsConstructor
 @Builder
-public class AssociationSearchRequest {
-    private final List<String> targetIds;
-    private Integer page;
-    private Integer pageSize;
+public class PharmGKBGene {
+    private String pharmGKBId;
+    private String entrezId;
+    private String geneName;
 }

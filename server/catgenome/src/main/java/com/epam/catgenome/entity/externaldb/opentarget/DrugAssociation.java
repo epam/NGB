@@ -21,24 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.entity.externaldb.opentarget;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.IOException;
+@Getter
+@Setter
+public class DrugAssociation extends Association {
+    private Drug drug;
+    private String drugType;
+    private String mechanismOfAction;
+    private String actionType;
+    private String phase;
+    private String status;
+    private Source source;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
-
-@Service
-public class DiseaseSecurityService {
-
-    @Autowired
-    private DiseaseManager diseaseManager;
-
-    @PreAuthorize(ROLE_ADMIN)
-    public void importData(final String path) throws IOException {
-        diseaseManager.importData(path);
+    @Builder
+    public DrugAssociation(String targetId, Disease disease) {
+        super(targetId, disease);
     }
 }

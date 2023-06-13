@@ -23,13 +23,13 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import com.epam.catgenome.util.IndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -62,12 +62,9 @@ import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
-@Slf4j
 public class TargetDetailsManager {
 
-    private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
-
-    @Value("${targets.index.directory}")
+    @Value("${opentargets.target.index.directory}")
     private String indexDirectory;
 
     public List<TargetDetails> search(final List<String> ids) throws ParseException, IOException {
@@ -101,7 +98,7 @@ public class TargetDetailsManager {
         }
     }
 
-    public List<TargetDetails> readData(final File path) throws IOException {
+    private List<TargetDetails> readData(final File path) throws IOException {
         final List<TargetDetails> entries = new ArrayList<>();
         String line;
         final ObjectMapper objectMapper = new ObjectMapper();
@@ -112,7 +109,7 @@ public class TargetDetailsManager {
                     TargetDetails entry = entryFromJson(jsonNodes);
                     entries.add(entry);
                 } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(INCORRECT_JSON_FORMAT);
+                    throw new IllegalStateException(MessagesConstants.ERROR_INCORRECT_JSON_FORMAT);
                 }
             }
         }

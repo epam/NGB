@@ -23,16 +23,17 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDisease;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.AssociationType;
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
+import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -53,7 +54,6 @@ import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -67,52 +67,43 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-@Slf4j
-public class AssociatedDiseaseManager {
+public class DiseaseAssociationManager {
 
-    private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
 
-    @Value("${opentarget.associations.index.directory}")
+    @Value("${opentargets.disease.association.index.directory}")
     private String indexDirectory;
-
-    @Value("${opentarget.associations.overall.index.directory}")
-    private String overallIndexDirectory;
 
     @Value("${targets.top.hits:10000}")
     private int targetsTopHits;
 
-    @Autowired
-    private DiseaseManager diseaseManager;
-
-    public List<AssociatedDiseaseAggregated> search(final AssociationSearchRequest request)
+    public SearchResult<DiseaseAssociationAggregated> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        final List<AssociatedDiseaseAggregated> records = new ArrayList<>();
+        final List<DiseaseAssociationAggregated> records = new ArrayList<>();
+        final SearchResult<DiseaseAssociationAggregated> searchResult = new SearchResult<>();
         final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
         final int pageSize = (request.getPageSize() == null || request.getPage() <= 0) ? DEFAULT_PAGE_SIZE
                 : request.getPageSize();
         final int offset = (page - 1) * pageSize;
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(request.getTargetIds());
+            final Query query = getByTargetIdsQuery(request.getGeneIds());
             final GroupingSearch groupingSearch = new GroupingSearch(IndexFields.TARGET_DISEASE.getFieldName());
             groupingSearch.setGroupDocsLimit(targetsTopHits);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
-            final TopGroups<AssociatedDisease> groups = groupingSearch.search(searcher, query, offset, pageSize);
+            final TopGroups<DiseaseAssociation> groups = groupingSearch.search(searcher, query, offset, pageSize);
             for (int i = 0; i < groups.groups.length; i++) {
                 ScoreDoc[] sdoc = groups.groups[i].scoreDocs;
                 Document groupDoc = searcher.doc(sdoc[0].doc);
                 Disease disease = Disease.builder()
                         .id(getDiseaseId(groupDoc))
                         .build();
-                AssociatedDiseaseAggregated record = AssociatedDiseaseAggregated.builder()
+                DiseaseAssociationAggregated record = DiseaseAssociationAggregated.builder()
                         .targetId(getTargetId(groupDoc))
                         .disease(disease)
                         .build();
@@ -124,15 +115,16 @@ public class AssociatedDiseaseManager {
                 record.setScores(scores);
                 records.add(record);
             }
+            searchResult.setItems(records);
+            searchResult.setTotalCount(totalCount(request.getGeneIds()));
         }
-        fillDiseaseNames(records);
-        return records;
+        return searchResult;
     }
 
-    public int totalCount(final List<String> targetIds) throws ParseException, IOException {
+    public int totalCount(final List<String> geneIds) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(targetIds);
+            final Query query = getByTargetIdsQuery(geneIds);
             final GroupingSearch groupingSearch = new GroupingSearch(IndexFields.TARGET_DISEASE.getFieldName());
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             return groupingSearch.search(searcher, query, 0, targetsTopHits).groups.length;
@@ -148,33 +140,33 @@ public class AssociatedDiseaseManager {
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
             for (File f: ArrayUtils.addAll(directory.listFiles(), overallDirectory.listFiles())) {
-                for (AssociatedDisease entry: readEntries(f)) {
+                for (DiseaseAssociation entry: readEntries(f)) {
                     addDoc(writer, entry);
                 }
             }
         }
     }
 
-    public List<AssociatedDisease> readEntries(final File path) throws IOException {
-        final List<AssociatedDisease> entries = new ArrayList<>();
+    private List<DiseaseAssociation> readEntries(final File path) throws IOException {
+        final List<DiseaseAssociation> entries = new ArrayList<>();
         String line;
         final ObjectMapper objectMapper = new ObjectMapper();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             while ((line = bufferedReader.readLine()) != null) {
                 try {
                     JsonNode jsonNodes = objectMapper.readTree(line);
-                    AssociatedDisease entry = entryFromJson(jsonNodes);
+                    DiseaseAssociation entry = entryFromJson(jsonNodes);
                     entries.add(entry);
                 } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(INCORRECT_JSON_FORMAT);
+                    throw new IllegalStateException(MessagesConstants.ERROR_INCORRECT_JSON_FORMAT);
                 }
             }
         }
         return entries;
     }
 
-    private static AssociatedDisease entryFromJson(final JsonNode jsonNodes) {
-        return AssociatedDisease.builder()
+    private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
+        return DiseaseAssociation.builder()
                 .targetId(jsonNodes.at("/targetId").asText())
                 .diseaseId(jsonNodes.at("/diseaseId").asText())
                 .type(jsonNodes.has("datatypeId") ?
@@ -182,19 +174,6 @@ public class AssociatedDiseaseManager {
                         AssociationType.OVERALL)
                 .score(Float.parseFloat(jsonNodes.at("/score").asText()))
                 .build();
-    }
-
-    private void fillDiseaseNames(final List<AssociatedDiseaseAggregated> records) throws ParseException, IOException {
-        final List<String> diseaseIds = records.stream()
-                .map(r -> r.getDisease().getId())
-                .distinct()
-                .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseaseManager.search(diseaseIds);
-            final Map<String, Disease> diseasesMap = diseases.stream()
-                    .collect(Collectors.toMap(Disease::getId, Function.identity()));
-            records.forEach(r -> r.setDisease(diseasesMap.get(r.getDisease().getId())));
-        }
     }
 
     private static Query getByTargetIdsQuery(final List<String> ids)
@@ -232,7 +211,7 @@ public class AssociatedDiseaseManager {
         }
     }
 
-    private static void addDoc(final IndexWriter writer, final AssociatedDisease entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final DiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(IndexFields.DISEASE_ID.getFieldName(),
                 String.valueOf(entry.getDiseaseId()), Field.Store.YES));

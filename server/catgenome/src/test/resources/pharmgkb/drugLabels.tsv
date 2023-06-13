@@ -1,0 +1,6 @@
+PharmGKB ID	Name	Source	Biomarker Flag	Testing Level	Has Prescribing Info	Has Dosing Info	Has Alternate Drug	Cancer Genome	Prescribing	Chemicals	Genes	Variants/Haplotypes	Latest History Date (YYYY-MM-DD)
+PA166269401	Annotation of EMA Label for nateglinide and CYP2C9	EMA		Actionable PGx						nateglinide	CYP2C9
+PA166269301	Annotation of FDA Label for maralixibat and JAG1	FDA	On FDA Biomarker List	Informative PGx						maralixibat	JAG1
+PA166269701	Annotation of EMA Label for glycerol phenylbutyrate and ARG1, ASL, ASS1, CPS1, OTC	EMA	On FDA Biomarker List	Testing required						glycerol phenylbutyrate	ARG1; ASL; ASS1; CPS1; OTC
+PA166273262	Annotation of EMA Label for ospemifene and CYP2B6	EMA		Informative PGx						ospemifene	CYP2B6
+PA166273261	Annotation of EMA Label for ospemifene and CYP2C9	EMA		Actionable PGx	Prescribing Info				Prescribing	ospemifene	CYP2C9

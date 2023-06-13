@@ -21,10 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.manager.externaldb.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -41,36 +40,24 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class AssociatedDrugManagerTest extends TestCase {
+public class PharmGKBGeneManagerTest extends TestCase {
 
     @Autowired
-    private AssociatedDrugManager manager;
+    private PharmGKBGeneManager manager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String path = context.getResource("classpath:opentargets//drugs").getFile().getPath();
+        final String path = context.getResource("classpath:pharmgkb//genes.tsv").getFile().getPath();
         manager.importData(path);
     }
 
     @Test
-    public void searchDrugsCountTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final int totalCount = manager.totalCount(targetIds);
-        assertEquals(1, totalCount);
-    }
-
-    @Test
-    public void searchDrugsTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(1)
-                .pageSize(3)
-                .targetIds(targetIds)
-                .build();
-        final SearchResult<AssociatedDrug> drugs = manager.search(request);
-        assertEquals(1, drugs.getItems().size());
+    public void searchGenesTest() throws IOException, ParseException {
+        final List<String> geneIds = Arrays.asList("503538", "29974");
+        final List<PharmGKBGene> genes = manager.search(geneIds);
+        assertEquals(2, genes.size());
     }
 }

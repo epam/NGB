@@ -21,14 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.opentarget.Disease;
-import com.epam.catgenome.util.IndexUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -47,9 +44,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -58,60 +55,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
-import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
+import static com.epam.catgenome.util.NgbFileUtils.getFile;
 
 @Service
-public class DiseaseManager {
+public class PharmGKBDrugManager {
 
-    private static final String OPEN_TARGETS_DISEASE_URL_PATTERN = "https://platform.opentargets.org/disease/%s";
-
-    @Value("${opentargets.disease.index.directory}")
+    public static final int COLUMNS = 14;
+    @Value("${pharmgkb.drug.index.directory}")
     private String indexDirectory;
 
-    public List<Disease> search(final List<String> ids) throws ParseException, IOException {
-        final List<Disease> result = new ArrayList<>();
-        final Query query = getByIdsQuery(ids, IndexFields.DISEASE_ID.getFieldName());
+    public List<PharmGKBDrug> search(final List<String> ids)
+            throws IOException, ParseException {
+        final List<PharmGKBDrug> entries = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
+
+            final Query query = getByDrugIdsQuery(ids);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, ids.size());
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+
+            for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
-                Disease entry = entryFromDoc(doc);
-                result.add(entry);
+                PharmGKBDrug entry = entryFromDoc(doc);
+                entries.add(entry);
             }
         }
-        return result;
+        return entries;
     }
 
     public void importData(final String path) throws IOException {
-        final File directory = getDirectory(path);
+        getFile(path);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (File f: directory.listFiles()) {
-                for (Disease entry: readEntries(f)) {
-                    addDoc(writer, entry);
-                }
+            for (PharmGKBDrug entry: readEntries(path)) {
+                addDoc(writer, entry);
             }
         }
     }
 
-    private List<Disease> readEntries(final File path) throws IOException {
-        final List<Disease> entries = new ArrayList<>();
+    private List<PharmGKBDrug> readEntries(final String path) throws IOException {
+        final List<PharmGKBDrug> entries = new ArrayList<>();
         String line;
-        final ObjectMapper objectMapper = new ObjectMapper();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
+            line = bufferedReader.readLine();
+            String[] cells = line.split(FileFormat.TSV.getSeparator());
+            Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
-                try {
-                    JsonNode jsonNodes = objectMapper.readTree(line);
-                    Disease entry = entryFromJson(jsonNodes);
-                    entries.add(entry);
-                } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(MessagesConstants.ERROR_INCORRECT_JSON_FORMAT);
-                }
+                cells = line.split(FileFormat.TSV.getSeparator());
+                PharmGKBDrug entry = PharmGKBDrug.builder()
+                        .drugId(cells[0].trim())
+                        .drugName(cells[1].trim())
+                        .source(cells[2].trim())
+                        .build();
+                entries.add(entry);
             }
         }
         return entries;
@@ -119,8 +119,9 @@ public class DiseaseManager {
 
     @Getter
     private enum IndexFields {
-        DISEASE_ID("diseaseId"),
-        NAME("name");
+        DRUG_ID("drug_id"),
+        DRUG_NAME("drug_name"),
+        SOURCE("source");
         private final String fieldName;
 
         IndexFields(String fieldName) {
@@ -128,26 +129,26 @@ public class DiseaseManager {
         }
     }
 
-    private static Disease entryFromJson(final JsonNode jsonNodes) {
-        return Disease.builder()
-                .id(jsonNodes.at("/id").asText())
-                .name(jsonNodes.at("/name").asText())
-                .build();
-    }
-
-    private Disease entryFromDoc(final Document doc) {
-        return Disease.builder()
-                .id(IndexUtils.getField(doc, IndexFields.DISEASE_ID.getFieldName()))
-                .name(IndexUtils.getField(doc, IndexFields.NAME.getFieldName()))
-                .url(String.format(OPEN_TARGETS_DISEASE_URL_PATTERN,
-                        IndexUtils.getField(doc, IndexFields.DISEASE_ID.getFieldName())))
-                .build();
-    }
-
-    private static void addDoc(final IndexWriter writer, final Disease entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DISEASE_ID.getFieldName(), String.valueOf(entry.getId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.NAME.getFieldName(), String.valueOf(entry.getName()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(),
+                String.valueOf(entry.getDrugId()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(),
+                String.valueOf(entry.getDrugName()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.SOURCE.getFieldName(),
+                String.valueOf(entry.getSource()), Field.Store.YES));
         writer.addDocument(doc);
+    }
+
+    private static PharmGKBDrug entryFromDoc(final Document doc) {
+        return PharmGKBDrug.builder()
+                .drugId(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
+                .drugName(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
+                .source(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
+                .build();
+    }
+
+    private static Query getByDrugIdsQuery(final List<String> ids) throws ParseException {
+        return getByIdsQuery(ids, IndexFields.DRUG_ID.getFieldName());
     }
 }

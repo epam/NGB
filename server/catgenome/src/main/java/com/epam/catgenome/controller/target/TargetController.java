@@ -26,21 +26,19 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
+import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
+import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDiseaseSecurityService;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociatedDrugSecurityService;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociationSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.AssociationSource;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSecurityService;
-import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsSecurityService;
+import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.target.TargetField;
+import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
 import com.epam.catgenome.util.db.Page;
 import com.wordnik.swagger.annotations.Api;
@@ -68,10 +66,7 @@ import java.util.List;
 public class TargetController extends AbstractRESTController {
 
     private final TargetSecurityService targetSecurityService;
-    private final TargetDetailsSecurityService targetDetailsSecurityService;
-    private final DiseaseSecurityService diseaseSecurityService;
-    private final AssociatedDiseaseSecurityService associationsSecurityService;
-    private final AssociatedDrugSecurityService drugsSecurityService;
+    private final TargetIdentificationSecurityService targetIdentificationSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
     @ApiOperation(
@@ -148,94 +143,116 @@ public class TargetController extends AbstractRESTController {
 
     @PostMapping(value = "/target/identification")
     @ApiOperation(
-            value = "Launches Identification",
-            notes = "Launches Identification",
+            value = "Launches Target Identification",
+            notes = "Launches Target Identification",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
-        return Result.success(targetSecurityService.launchIdentification(request));
+        return Result.success(targetIdentificationSecurityService.launchIdentification(request));
     }
 
-    @PostMapping(value = "/target/associated/drugs")
+    @PostMapping(value = "/target/dgidb/drugs")
     @ApiOperation(
-            value = "Launches Identification for associated drugs",
-            notes = "Launches Identification for associated drugs",
+            value = "Launches Identification for dgidb datasource drug associations",
+            notes = "Launches Identification for dgidb datasource drug associations",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<AssociatedDrug>> searchAssociatedDrugs(
+    public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(
+            @RequestBody final AssociationSearchRequest request) throws
+            ParseException, IOException, ExternalDbUnavailableException {
+        return Result.success(targetIdentificationSecurityService.getDGIDbDrugs(request));
+    }
+
+    @PostMapping(value = "/target/pharmgkb/drugs")
+    @ApiOperation(
+            value = "Launches Identification for PharmGKB datasource drug associations",
+            notes = "Launches Identification for PharmGKB datasource drug associations",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(
+            @RequestBody final AssociationSearchRequest request)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        return Result.success(targetIdentificationSecurityService.getPharmGKBDrugs(request));
+    }
+
+    @PostMapping(value = "/target/opentargets/drugs")
+    @ApiOperation(
+            value = "Launches Identification for Open Targets datasource drug associations",
+            notes = "Launches Identification for Open Targets datasource drug associations",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<DrugAssociation>> getOpenTargetsDrugs(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
-        return Result.success(drugsSecurityService.search(request));
+        return Result.success(targetIdentificationSecurityService.getOpenTargetsDrugs(request));
     }
 
-    @PostMapping(value = "/target/associated/diseases")
+    @PostMapping(value = "/target/opentargets/diseases")
     @ApiOperation(
-            value = "Launches Identification for associated diseases",
-            notes = "Launches Identification for associated diseases",
+            value = "Launches Identification for Open Targets datasource disease associations",
+            notes = "Launches Identification for Open Targets datasource disease associations",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<AssociatedDiseaseAggregated>> searchAssociatedDiseases(
-            @RequestBody final AssociationSearchRequest request,
-            @RequestParam final AssociationSource source) throws ParseException, IOException {
-        return Result.success(associationsSecurityService.search(request));
+    public Result<SearchResult<DiseaseAssociationAggregated>> searchAssociatedDiseases(
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
+        return Result.success(targetIdentificationSecurityService.getOpenTargetsDiseases(request));
     }
 
-    @PutMapping(value = "/target/import/targets")
+    @PutMapping(value = "/target/import/opentargets")
     @ApiOperation(
-            value = "Import targets from Open Targets Datasource",
-            notes = "Import targets from Open Targets Datasource",
+            value = "Imports data from Open Targets datasource",
+            notes = "Imports data from Open Targets datasource",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importTargets(@RequestParam final String path) throws IOException {
-        targetDetailsSecurityService.importData(path);
+    public Result<Boolean> importOpenTargetsData(
+            @RequestParam(required = false) final String targetsPath,
+            @RequestParam(required = false) final String diseasesPath,
+            @RequestParam(required = false) final String drugsPath,
+            @RequestParam(required = false) final String overallScoresPath,
+            @RequestParam(required = false) final String scoresPath) throws IOException {
+        targetIdentificationSecurityService.importOpenTargetsData(targetsPath, diseasesPath, drugsPath,
+                overallScoresPath, scoresPath);
         return Result.success(null);
     }
 
-    @PutMapping(value = "/target/import/diseases")
+    @PutMapping(value = "/target/import/dgidb")
     @ApiOperation(
-            value = "Import diseases from Open Targets Datasource",
-            notes = "Import diseases from Open Targets Datasource",
+            value = "Imports data from DGIdb datasource",
+            notes = "Imports data from DGIdb datasource",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importDiseases(@RequestParam final String path) throws IOException {
-        diseaseSecurityService.importData(path);
+    public Result<Boolean> importDGIdbData(@RequestParam final String path) throws IOException {
+        targetIdentificationSecurityService.importDGIdbData(path);
         return Result.success(null);
     }
 
-    @PutMapping(value = "/target/import/associations")
+    @PutMapping(value = "/target/import/pharmGKB")
     @ApiOperation(
-            value = "Import associations from Open Targets Datasource",
-            notes = "Import associations from Open Targets Datasource",
+            value = "Imports data from PharmGKB datasource",
+            notes = "Imports data from PharmGKB datasource",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importAssociations(@RequestParam final String path,
-                                              @RequestParam final String overallPath) throws IOException {
-        associationsSecurityService.importData(path, overallPath);
-        return Result.success(null);
-    }
-
-    @PutMapping(value = "/target/import/drugs")
-    @ApiOperation(
-            value = "Import drugs from Open Targets Datasource",
-            notes = "Import drugs from Open Targets Datasource",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Boolean> importDrugs(@RequestParam final String path) throws IOException {
-        drugsSecurityService.importData(path);
+    public Result<Boolean> importPharmGKBData(
+            @RequestParam(required = false) final String genePath,
+            @RequestParam(required = false) final String drugPath,
+            @RequestParam(required = false) final String drugAssociationPath) throws IOException {
+        targetIdentificationSecurityService.importPharmGKBData(genePath, drugPath, drugAssociationPath);
         return Result.success(null);
     }
 }
