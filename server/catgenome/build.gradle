@@ -90,8 +90,9 @@ dependencies {
     // >>>>> dependencies used to compile application and include into artifact
     // Spring Framework
     configurations {
-        all*.exclude module : 'spring-boot-starter-logging'
-        all*.exclude module:'slf4j-log4j12'
+        all*.exclude module: 'spring-boot-starter-logging'
+        all*.exclude group: 'ch.qos.logback'
+        all*.exclude module: 'log4j-slf4j-impl'
     }
     compile group: "org.springframework", name: "spring-jdbc", version: project.ext.versionSpring
     compile group: "org.springframework", name: "spring-context", version: project.ext.versionSpring
