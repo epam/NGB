@@ -1,5 +1,9 @@
 export default class ngbIdentificationsTabController {
 
+    isOpen = {
+        drugs: false
+    }
+
     static get UID() {
         return 'ngbIdentificationsTabController';
     }
@@ -13,22 +17,25 @@ export default class ngbIdentificationsTabController {
     }
 
     get targetName() {
-        const params = this.ngbTargetPanelService.identificationParams;
-        return params && params.targetName;
+        const target = this.ngbTargetPanelService.identificationTarget;
+        return target && target.target.name;
     }
 
     get interest() {
-        const params = this.ngbTargetPanelService.identificationParams;
-        return params && params.interest.join(', ');
+        const target = this.ngbTargetPanelService.identificationTarget;
+        return target && target.interest.map(i => i.name).join(', ');
     }
 
     get translational() {
-        const params = this.ngbTargetPanelService.identificationParams;
-        return params && params.translational.join(', ');
+        const target = this.ngbTargetPanelService.identificationTarget;
+        return target && target.translational.map(i => i.name).join(', ');
     }
 
     get description() {
-        return Object.values(this.identificationData.description)[0];
+        if (this.identificationData && this.identificationData.description) {
+            return Object.values(this.identificationData.description)[0];
+        }
+        return 'description';
     }
 
     get shortDescription() {

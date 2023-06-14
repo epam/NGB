@@ -1,0 +1,93 @@
+ngb-known-drugs-panel {
+    md-nav-bar.known-drugs-nav-bar {
+        .md-nav-bar {
+            height: 30px;
+        }
+
+        .md-nav-item:first-of-type {
+            margin-left: 0;
+        }
+
+        nav, ._md-nav-bar-list {
+            height: 100%;
+        }
+
+        .md-nav-item ._md-nav-button {
+            font-size: 12px;
+            margin: 0 0 0 0;
+            padding: 0 12px;
+            min-height: 30px;
+            border: 1px solid #cacaca;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .md-button.md-default-theme.md-accent,
+        .md-button.md-accent {
+            color: rgba(0,0,0,0.54);
+        }
+    }
+
+    md-content.known-drugs-content {
+        border: 1px solid #cacaca;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .source-select {
+        width: 100%;
+        align-self: center;
+        font-size: 14px;
+
+        md-input-container {
+            margin: 1px 0;
+            float: right;
+        }
+
+        label {
+            float: right;
+            margin-top: 8px;
+            margin-right: 6px;
+        }
+
+        md-select-value {
+            border: 1px solid #cacaca;
+            border-radius: 10px;
+            min-height: 20px;
+            padding: 1px 2px 1px 6px;
+        }
+
+        .md-select-value .md-select-icon {
+            width: 14px;
+            margin: 4px 4px 0 4px;
+        }
+
+        md-select.md-default-theme:not([disabled]):focus .md-select-value,
+        md-select:not([disabled]):focus .md-select-value {
+            border-bottom-color: #cacaca;
+        }
+
+        md-select:not([disabled]):focus .md-select-value {
+            border-bottom-width: 1px;
+        }
+    }
+}
+
+.drugs-source-select {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-option {
+        padding: 0 8px;
+        height: 24px;
+    }
+
+    md-select-menu {
+        min-height: 24px;
+    }
+
+    md-select-menu md-content {
+        min-height: 24px;
+    }
+}

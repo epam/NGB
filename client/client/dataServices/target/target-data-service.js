@@ -119,4 +119,38 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    postAssociatedDrugs(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/associated/drugs', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting associated drugs';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    postAssociatedDiseases(request, source) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/associated/diseases?source=${source}`, request)
+                .then(data => {
+                    if (data && data.length) {
+                        resolve([data, data.length]);
+                    } else {
+                        resolve([[], 0]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting associated diseases';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

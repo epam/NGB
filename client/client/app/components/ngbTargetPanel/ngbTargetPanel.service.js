@@ -1,30 +1,22 @@
 export default class ngbTargetPanelService {
 
-    _isRepeat = false;
     _identificationData = null;
-    _identificationParams = null;
+    _identificationTarget = null;
 
     static instance (appLayout, dispatcher) {
         return new ngbTargetPanelService(appLayout, dispatcher);
     }
 
-    get isRepeat() {
-        return this._isRepeat;
-    }
-    set isRepeat(value) {
-        this._isRepeat = value;
-    }
-
     get identificationData() {
         return this._identificationData;
     }
-    get identificationParams() {
-        return this._identificationParams;
+    get identificationTarget() {
+        return this._identificationTarget;
     }
 
     constructor(appLayout, dispatcher) {
         Object.assign(this, {appLayout, dispatcher});
-        dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
+        dispatcher.on('target:launch:finished', this.setIdentificationData.bind(this));
     }
 
     panelAddTargetPanel() {
@@ -40,8 +32,14 @@ export default class ngbTargetPanelService {
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 
-    showIdentificationTab(data, params) {
+    resetIdentificationData() {
+        this.dispatcher.emit('reset:identification:data');
+        this._identificationData = null;
+        this._identificationTarget = null;
+    }
+
+    setIdentificationData(data, info) {
         this._identificationData = data;
-        this._identificationParams = params;
+        this._identificationTarget = info;
     }
 }

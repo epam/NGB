@@ -80,10 +80,25 @@ ngb-identifications-tab.tab {
     }
 
     .collapsible-container {
-        collapsible-panel .md-button {
-            margin: 6px 0;
+        collapsible-panel .md-button_block {
+            margin: 12px 0 0 0;
             border: 1px solid #cacaca;
             border-radius: 10px;
+        }
+
+        collapsible-panel.open-panel .md-button_block {
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        collapsible-panel .animate-show.u-column-padding {
+            border: 1px solid #cacaca;
+            border-radius: 0 0 10px 10px;
+            border-top: 0;
+        }
+
+        collapsible-panel .u-column-padding {
+            padding: 0 8px 8px 8px;
         }
     }
 }

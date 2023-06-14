@@ -1,0 +1,36 @@
+<md-nav-bar class="known-drugs-nav-bar"
+            aria-label="Known drugs nav bar"
+            md-selected-nav-item="$ctrl.tabSelected">
+    <md-nav-item name="DISEASES"
+                md-nav-click="$ctrl.changeState($ctrl.tabState.DISEASES)">
+        Associated diseases
+    </md-nav-item>
+    <md-nav-item name="DRUGS"
+                md-nav-click="$ctrl.changeState($ctrl.tabState.DRUGS)">
+        Known drugs
+    </md-nav-item>
+    <div class="source-select">
+        <md-input-container>
+            <md-select ng-model="$ctrl.sourceModel"
+                        aria-label="Source select"
+                        ng-change="$ctrl.onChangedModel()"
+                        md-container-class="drugs-source-select">
+                <md-option ng-repeat="item in $ctrl.sourceOptions"
+                            ng-value="item">
+                    {{item.displayName}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <label>Source:</label>
+    </div>
+</md-nav-bar>
+<md-content class="_md known-drugs-content">
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.tabSelected === $ctrl.tabState.DISEASES">
+        <ngb-diseases-tab></ngb-diseases-tab>
+    </div>
+    <div change-state="$ctrl.changeState(state)"
+         ng-if="$ctrl.tabSelected === $ctrl.tabState.DRUGS">
+        <ngb-drugs-table></ngb-drugs-table>
+    </div>
+</md-content>
