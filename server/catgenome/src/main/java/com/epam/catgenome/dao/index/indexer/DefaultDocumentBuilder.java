@@ -41,6 +41,7 @@ public class DefaultDocumentBuilder extends AbstractDocumentBuilder {
         Set<String> requiredFields = new HashSet<>();
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.REFERENCE_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName());

@@ -168,9 +168,6 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                     doc.getBinaryValue(FeatureIndexFields.CHROMOSOME_NAME.getFieldName())
                             .utf8ToString());
             final IndexableField referenceId = doc.getField(FeatureIndexFields.REFERENCE_ID.getFieldName());
-            log.error("Found reference id {}",
-                    Optional.ofNullable(referenceId).map(r -> r.numericValue().toString())
-                            .orElse("NOT FOUND"));
             if (referenceId != null) {
                 entry.getChromosome().setReferenceId(referenceId.numericValue().longValue());
             }
@@ -198,7 +195,11 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                 findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID)));
         newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME), true));
-
+        final String refId = findFieldValue(oldDocument, FeatureIndexFields.REFERENCE_ID);
+        if (StringUtils.isNotBlank(refId)) {
+            newDocument.add(new SortedIntPoint(FeatureIndexFields.REFERENCE_ID.getFieldName(),
+                    Integer.parseInt(refId)));
+        }
         final Integer startIndex = Integer.parseInt(findFieldValue(oldDocument, FeatureIndexFields.START_INDEX));
         newDocument.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
         newDocument.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
