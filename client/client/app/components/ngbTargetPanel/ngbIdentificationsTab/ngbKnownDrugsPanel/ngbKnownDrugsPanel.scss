@@ -26,6 +26,16 @@ ngb-known-drugs-panel {
         .md-button.md-accent {
             color: rgba(0,0,0,0.54);
         }
+
+        .md-nav-item .md-active {
+            background-color: rgba(102,153,255, 0.54);;
+            color: rgba(0,0,0,0.74);
+        }
+
+        .md-nav-bar.md-default-theme md-nav-ink-bar,
+        .md-nav-bar md-nav-ink-bar {
+            display: none;
+        }
     }
 
     md-content.known-drugs-content {

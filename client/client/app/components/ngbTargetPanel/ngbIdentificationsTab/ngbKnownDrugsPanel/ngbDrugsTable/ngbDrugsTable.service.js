@@ -1,5 +1,35 @@
 const PAGE_SIZE = 10;
 
+function romanize (num) {
+    if (isNaN(num)) {
+        return NaN;
+    }
+    const lookup = [
+        ['M', '1000'],
+        ['CM', '900'],
+        ['D',  '500'],
+        ['CD', '400'],
+        ['C',  '100'],
+        ['XC',  '90'],
+        ['L',   '50'],
+        ['XL',  '40'],
+        ['X',   '10'],
+        ['IX',   '9'],
+        ['V',    '5'],
+        ['IV',   '4'],
+        ['I',    '1'],
+    ];
+    let roman = '';
+    for (let i = 0; i < lookup.length; i++) {
+        const [letter, number] = lookup[i];
+        while (num >= Number(number)) {
+            roman += letter;
+            num -= Number(number);
+        }
+    }
+    return roman;
+}
+
 export default class ngbDrugsTableService {
 
     _drugsResults = null;
@@ -80,7 +110,7 @@ export default class ngbDrugsTableService {
             'mechanism of action': item.mechanismOfAction,
             'action type': item.actionType,
             disease: item.disease,
-            phase: String(item.phase),
+            phase: `Phase ${romanize(item.phase)}`,
             status: item.status,
             source: item.source
         }));

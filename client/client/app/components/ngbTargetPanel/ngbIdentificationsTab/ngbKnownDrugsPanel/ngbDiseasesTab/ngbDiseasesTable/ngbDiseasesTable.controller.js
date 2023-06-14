@@ -17,7 +17,7 @@ export default class ngbDiseasesTableController {
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
-        enableHorizontalScrollbar: 0,
+        enableHorizontalScrollbar: 1,
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
         saveWidths: true,
