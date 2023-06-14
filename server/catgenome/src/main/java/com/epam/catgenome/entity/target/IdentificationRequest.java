@@ -34,6 +34,6 @@ import java.util.List;
 @Builder
 public class IdentificationRequest {
     private Long targetId;
-    private List<Long> speciesOfInterest;
-    private List<Long> translationalSpecies;
+    private List<String> genesOfInterest;
+    private List<String> translationalGenes;
 }
