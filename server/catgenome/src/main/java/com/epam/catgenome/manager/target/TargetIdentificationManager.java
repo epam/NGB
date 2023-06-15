@@ -78,11 +78,10 @@ public class TargetIdentificationManager {
     public IdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
         targetManager.getTarget(request.getTargetId());
-        final List<Long> taxIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalSpecies()),
-                ListUtils.emptyIfNull(request.getSpeciesOfInterest()));
-        Assert.isTrue(!CollectionUtils.isEmpty(taxIds),
+        final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
+                ListUtils.emptyIfNull(request.getGenesOfInterest()));
+        Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
-        final List<String> geneIds = targetManager.getTargetGeneIds(request.getTargetId(), taxIds);
         final Map<String, String> entrezMap = geneManager.getEntrezMap(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
         final long drugsCount = getDrugsCount(entrezMap);

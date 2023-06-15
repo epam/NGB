@@ -98,22 +98,6 @@ public class TargetManager {
         return targetDao.loadTarget(targetId);
     }
     
-    public IdentificationResult launchIdentification(final IdentificationRequest request)
-            throws ExternalDbUnavailableException, ParseException, IOException {
-        final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
-                ListUtils.emptyIfNull(request.getGenesOfInterest()));
-        Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
-                "Either Species of interest or Translational species must me specified.");
-        final Map<String, String> description = getDescriptions(geneIds);
-        final Integer diseases = associationsManager.totalCount(geneIds);
-        final Integer drugs = drugsManager.totalCount(geneIds);
-        return IdentificationResult.builder()
-                .description(description)
-                .diseases(diseases)
-                .drugs(drugs)
-                .build();
-    }
-
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
         final long totalCount = targetDao.getTotalCount(clause);
