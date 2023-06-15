@@ -146,7 +146,9 @@ export default class ngbTargetsTableService {
                 species: {
                     value: item.targetGenes.map(gene => ({
                         name: gene.speciesName,
-                        taxId: gene.taxId
+                        taxId: gene.taxId,
+                        geneName: gene.geneName,
+                        geneId: gene.geneId
                     })),
                     limit: 2
                 },

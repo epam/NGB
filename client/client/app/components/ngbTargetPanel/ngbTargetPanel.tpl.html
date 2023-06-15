@@ -12,13 +12,13 @@
         </md-nav-item>
     </md-nav-bar>
     <md-content class="_md target-flex-column">
-        <ngb-targets-tab change-state="$ctrl.changeState(state, isRepeat)"
+        <ngb-targets-tab change-state="$ctrl.changeState(state)"
                          class="tab"
-                         ng-if="$ctrl.currentTargetState === $ctrl.targetState.TARGETS">
+                         ng-if="$ctrl.tabSelected === $ctrl.targetState.TARGETS">
         </ngb-targets-tab>
-        <ngb-identifications-tab change-state="$ctrl.changeState(state, isRepeat)"
+        <ngb-identifications-tab change-state="$ctrl.changeState(state)"
                                  class="tab"
-                                 ng-if="$ctrl.currentTargetState === $ctrl.targetState.IDENTIFICATIONS">
+                                 ng-if="$ctrl.tabSelected === $ctrl.targetState.IDENTIFICATIONS">
         </ngb-identifications-tab>
     </md-content>
 </div>

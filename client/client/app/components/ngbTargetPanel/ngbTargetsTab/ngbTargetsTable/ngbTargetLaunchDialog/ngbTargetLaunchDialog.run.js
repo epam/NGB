@@ -36,15 +36,15 @@ export default function run($mdDialog, dispatcher, ngbTargetsTabService, ngbTarg
                         translationalSpecies: scope.translationalSpecies.map(s => s.taxId)
                     };
                     const info = {
-                        targetName: target.name,
-                        interest:  scope.speciesOfInterest.map(s => s.name),
-                        translational: scope.translationalSpecies.map(s => s.name)
+                        target: target,
+                        interest:  scope.speciesOfInterest,
+                        translational: scope.translationalSpecies
                     };
                     ngbTargetsTabService.getIdentificationData(params, info);
                 }
 
                 $scope.identify = () => {
-                    if (ngbTargetPanelService.identificationData && ngbTargetPanelService.identificationParams) {
+                    if (ngbTargetPanelService.identificationData && ngbTargetPanelService.identificationTarget) {
                         const self = $scope;
                         $mdDialog.show({
                             template: require('./ngbTargetLaunchConfirmDialog.tpl.html'),

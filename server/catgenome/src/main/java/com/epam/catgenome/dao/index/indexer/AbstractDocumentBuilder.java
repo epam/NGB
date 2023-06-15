@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -56,6 +57,7 @@ import org.apache.lucene.util.BytesRef;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,6 +65,7 @@ import java.util.UUID;
  * An abstract class, whose extensions are responsible for building Lucene documents form
  * {@link FeatureIndexEntry}'es and backwards.
  */
+@Slf4j
 public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
     /**
      * Builds a Lucene {@link Document} from specified {@link FeatureIndexEntry}
@@ -166,8 +169,7 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                             .utf8ToString());
             final IndexableField referenceId = doc.getField(FeatureIndexFields.REFERENCE_ID.getFieldName());
             if (referenceId != null) {
-                final Integer number = (Integer)referenceId.numericValue();
-                entry.getChromosome().setReferenceId(number.longValue());
+                entry.getChromosome().setReferenceId(referenceId.numericValue().longValue());
             }
         }
 
@@ -193,7 +195,11 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                 findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID)));
         newDocument.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 findFieldValue(oldDocument, FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME), true));
-
+        final String refId = findFieldValue(oldDocument, FeatureIndexFields.REFERENCE_ID);
+        if (StringUtils.isNotBlank(refId)) {
+            newDocument.add(new SortedIntPoint(FeatureIndexFields.REFERENCE_ID.getFieldName(),
+                    Integer.parseInt(refId)));
+        }
         final Integer startIndex = Integer.parseInt(findFieldValue(oldDocument, FeatureIndexFields.START_INDEX));
         newDocument.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
         newDocument.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(), startIndex));
