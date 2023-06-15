@@ -41,4 +41,12 @@ export default class ngbIdentificationsTabController {
     get shortDescription() {
         return `${this.description.substring(0, 150)}...`;
     }
+
+    get diseases() {
+        return this.identificationData && this.identificationData.diseases;
+    }
+
+    get drugs() {
+        return this.identificationData && this.identificationData.drugs;
+    }
 }

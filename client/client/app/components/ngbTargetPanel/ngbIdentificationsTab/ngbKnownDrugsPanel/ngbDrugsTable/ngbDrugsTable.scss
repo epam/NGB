@@ -8,7 +8,7 @@ ngb-drugs-table {
         }
 
         .ui-grid-cell-contents {
-            white-space: normal;
+            white-space: nowrap;
         }
 
         .ui-grid-column-menu-button {
@@ -45,11 +45,15 @@ ngb-drugs-table {
         height: 100%;
     }
 
+    .with-pagination .ui-grid-row:last-child .ui-grid-cell {
+        border-bottom-width: 1px !important;
+    }
+
     .link-cell {
         font-size: 12px;
         align-self: center;
         height: auto;
-        white-space: normal;
+        white-space: nowrap;
         padding: 5px;
         box-sizing: border-box;
         text-overflow: ellipsis;

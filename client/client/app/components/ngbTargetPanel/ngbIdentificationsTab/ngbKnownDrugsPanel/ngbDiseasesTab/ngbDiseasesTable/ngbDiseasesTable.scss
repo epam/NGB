@@ -46,6 +46,15 @@ ngb-diseases-table {
         height: 100%;
     }
 
+    .ui-grid-container .ui-grid-cell,
+    .ui-grid-cell:last-child {
+        border-right: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .with-pagination .ui-grid-row:last-child .ui-grid-cell {
+        border-bottom-width: 1px !important;
+    }
+
     .link-cell {
         font-size: 12px;
         align-self: center;

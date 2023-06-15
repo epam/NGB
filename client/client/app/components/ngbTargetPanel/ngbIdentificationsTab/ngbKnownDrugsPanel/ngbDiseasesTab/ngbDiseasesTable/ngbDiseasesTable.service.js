@@ -1,5 +1,13 @@
 const PAGE_SIZE = 10;
 
+const fixedNumber = (num) => {
+    if (!num) {
+        return num;
+    }
+    const fixed = Number(num.toFixed(2));
+    return fixed ? fixed : undefined;
+};
+
 export default class ngbDiseasesTableService {
 
     _diseasesResults = null;
@@ -107,14 +115,14 @@ export default class ngbDiseasesTableService {
             } = item.scores;
             return {
                 disease: item.disease,
-                'overall score': OVERALL ? OVERALL.toFixed(2) : OVERALL,
-                'genetic association': GENETIC_ASSOCIATIONS ? GENETIC_ASSOCIATIONS.toFixed(2) : GENETIC_ASSOCIATIONS,
-                'somatic mutations': SOMATIC_MUTATIONS ? SOMATIC_MUTATIONS.toFixed(2) : SOMATIC_MUTATIONS,
-                'drugs': DRUGS ? DRUGS.toFixed(2) : DRUGS,
-                'pathways systems': PATHWAYS ? PATHWAYS.toFixed(2) : PATHWAYS,
-                'text mining': TEXT_MINING ? TEXT_MINING.toFixed(2) : TEXT_MINING,
-                'animal models': ANIMAL_MODELS ? ANIMAL_MODELS.toFixed(2) : ANIMAL_MODELS,
-                'rna expression': RNA_EXPRESSION ? RNA_EXPRESSION.toFixed(2) : RNA_EXPRESSION
+                'overall score': fixedNumber(OVERALL),
+                'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
+                'somatic mutations': fixedNumber(SOMATIC_MUTATIONS),
+                'drugs': fixedNumber(DRUGS),
+                'pathways systems': fixedNumber(PATHWAYS),
+                'text mining': fixedNumber(TEXT_MINING),
+                'animal models': fixedNumber(ANIMAL_MODELS),
+                'rna expression': fixedNumber(RNA_EXPRESSION)
             };
         });
     }
