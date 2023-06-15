@@ -29,15 +29,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Map;
-
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AssociatedDiseaseAggregated {
+public class DiseaseAssociation {
+    private String diseaseId;
     private String targetId;
-    private Disease disease;
-    private Map<AssociationType, Float> scores;
+    private AssociationType type;
+    private Float score;
 }

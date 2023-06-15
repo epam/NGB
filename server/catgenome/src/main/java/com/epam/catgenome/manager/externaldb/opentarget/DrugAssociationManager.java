@@ -23,17 +23,17 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDrug;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import com.epam.catgenome.entity.externaldb.opentarget.Drug;
 import com.epam.catgenome.entity.externaldb.opentarget.Source;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -49,7 +49,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -62,34 +61,26 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-@Slf4j
-public class AssociatedDrugManager {
+public class DrugAssociationManager {
 
-    private static final String INCORRECT_JSON_FORMAT = "Incorrect JSON format";
     private static final String OPEN_TARGETS_DRUG_URL_PATTERN = "https://platform.opentargets.org/drug/%s";
 
-    @Value("${drugs.index.directory}")
+    @Value("${opentargets.drug.association.index.directory}")
     private String indexDirectory;
 
     @Value("${targets.top.hits:10000}")
     private int targetsTopHits;
 
-    @Autowired
-    private DiseaseManager diseaseManager;
-
-    public SearchResult<AssociatedDrug> search(final AssociationSearchRequest request)
+    public SearchResult<DrugAssociation> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        final List<AssociatedDrug> entries = new ArrayList<>();
-        final SearchResult<AssociatedDrug> searchResult = new SearchResult<>();
+        final List<DrugAssociation> entries = new ArrayList<>();
+        final SearchResult<DrugAssociation> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -98,7 +89,7 @@ public class AssociatedDrugManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByTargetIdsQuery(request.getTargetIds());
+            final Query query = getByTargetIdsQuery(request.getGeneIds());
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, hits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -107,23 +98,29 @@ public class AssociatedDrugManager {
             final int to = Math.min(from + pageSize, scoreDocs.length);
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
-                AssociatedDrug entry = entryFromDoc(doc);
+                DrugAssociation entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            fillDiseaseNames(entries);
             searchResult.setItems(entries);
             searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
     }
 
-    public int totalCount(final List<String> targetIds) throws ParseException, IOException {
+    public long totalCount(final List<String> ids) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(targetIds);
+            final Query query = getByTargetIdsQuery(ids);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
-            return topDocs.totalHits;
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            final List<DrugAssociation> entries = new ArrayList<>();
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                DrugAssociation entry = entryFromDoc(doc);
+                entries.add(entry);
+            }
+            return entries.stream().map(e -> e.getDrug().getId()).distinct().count();
         }
     }
 
@@ -135,44 +132,29 @@ public class AssociatedDrugManager {
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
             for (File f: directory.listFiles()) {
-                for (AssociatedDrug entry: readEntries(f)) {
+                for (DrugAssociation entry: readEntries(f)) {
                     addDoc(writer, entry);
                 }
             }
         }
     }
 
-    public List<AssociatedDrug> readEntries(final File path) throws IOException {
-        final List<AssociatedDrug> entries = new ArrayList<>();
+    private List<DrugAssociation> readEntries(final File path) throws IOException {
+        final List<DrugAssociation> entries = new ArrayList<>();
         String line;
         final ObjectMapper objectMapper = new ObjectMapper();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             while ((line = bufferedReader.readLine()) != null) {
                 try {
                     JsonNode jsonNodes = objectMapper.readTree(line);
-                    AssociatedDrug entry = entryFromJson(jsonNodes);
+                    DrugAssociation entry = entryFromJson(jsonNodes);
                     entries.add(entry);
                 } catch (JsonProcessingException e) {
-                    throw new IllegalStateException(INCORRECT_JSON_FORMAT);
+                    throw new IllegalStateException(MessagesConstants.ERROR_INCORRECT_JSON_FORMAT);
                 }
             }
         }
         return entries;
-    }
-
-    private void fillDiseaseNames(final List<AssociatedDrug> entries) throws ParseException, IOException {
-        final List<String> diseaseIds = entries.stream()
-                .map(r -> r.getDisease().getId())
-                .distinct()
-                .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseaseManager.search(diseaseIds);
-            final Map<String, Disease> diseasesMap = diseases.stream()
-                    .collect(Collectors.toMap(Disease::getId, Function.identity()));
-            for (AssociatedDrug r : entries) {
-                r.setDisease(diseasesMap.get(r.getDisease().getId()));
-            }
-        }
     }
 
     private static Query getByTargetIdsQuery(final List<String> ids)
@@ -200,7 +182,7 @@ public class AssociatedDrugManager {
         }
     }
 
-    private static void addDoc(final IndexWriter writer, final AssociatedDrug entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final DrugAssociation entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(),
                 String.valueOf(entry.getDrug().getId()), Field.Store.YES));
@@ -227,7 +209,7 @@ public class AssociatedDrugManager {
         writer.addDocument(doc);
     }
 
-    private static AssociatedDrug entryFromJson(final JsonNode jsonNodes) {
+    private static DrugAssociation entryFromJson(final JsonNode jsonNodes) {
         final JsonNode urls = jsonNodes.at("/urls");
         final Source source = new Source();
         if (urls.isArray()) {
@@ -245,20 +227,23 @@ public class AssociatedDrugManager {
                 .id(jsonNodes.at("/drugId").asText())
                 .name(jsonNodes.at("/prefName").asText())
                 .build();
-        return AssociatedDrug.builder()
-                .drug(drug)
+        final DrugAssociation drugAssociation = DrugAssociation.builder()
                 .targetId(jsonNodes.at("/targetId").asText())
                 .disease(disease)
-                .drugType(jsonNodes.at("/drugType").asText())
-                .mechanismOfAction(jsonNodes.at("/mechanismOfAction").asText())
-                .actionType(jsonNodes.at("/mechanismOfAction").asText())
-                .phase(jsonNodes.at("/phase").asText())
-                .status(jsonNodes.at("/status").asText())
-                .source(source)
                 .build();
+        drugAssociation.setDrug(drug);
+        drugAssociation.setDrugType(jsonNodes.at("/drugType").asText());
+        drugAssociation.setMechanismOfAction(jsonNodes.at("/mechanismOfAction").asText());
+        drugAssociation.setActionType(jsonNodes.at("/mechanismOfAction").asText());
+        drugAssociation.setPhase(jsonNodes.at("/phase").asText());
+        drugAssociation.setStatus(jsonNodes.at("/status").asText());
+        drugAssociation.setSource(source);
+        drugAssociation.setDisease(disease);
+        drugAssociation.setTargetId(jsonNodes.at("/targetId").asText());
+        return drugAssociation;
     }
 
-    private static AssociatedDrug entryFromDoc(final Document doc) {
+    private static DrugAssociation entryFromDoc(final Document doc) {
         final Source source = Source.builder()
                 .name(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
                 .url(doc.getField(IndexFields.SOURCE_URL.getFieldName()).stringValue())
@@ -272,16 +257,18 @@ public class AssociatedDrugManager {
                 .url(String.format(OPEN_TARGETS_DRUG_URL_PATTERN,
                         doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue()))
                 .build();
-        return AssociatedDrug.builder()
-                .drug(drug)
+        final DrugAssociation drugAssociation = DrugAssociation.builder()
                 .targetId(doc.getField(IndexFields.TARGET_ID.getFieldName()).stringValue())
                 .disease(disease)
-                .drugType(doc.getField(IndexFields.DRUG_TYPE.getFieldName()).stringValue())
-                .mechanismOfAction(doc.getField(IndexFields.MECHANISM_OF_ACTION.getFieldName()).stringValue())
-                .actionType(doc.getField(IndexFields.ACTION_TYPE.getFieldName()).stringValue())
-                .phase(doc.getField(IndexFields.PHASE.getFieldName()).stringValue())
-                .status(doc.getField(IndexFields.STATUS.getFieldName()).stringValue())
-                .source(source)
                 .build();
+        drugAssociation.setDrug(drug);
+        drugAssociation.setDrugType(doc.getField(IndexFields.DRUG_TYPE.getFieldName()).stringValue());
+        drugAssociation.setMechanismOfAction(doc.getField(IndexFields.MECHANISM_OF_ACTION.getFieldName())
+                .stringValue());
+        drugAssociation.setActionType(doc.getField(IndexFields.ACTION_TYPE.getFieldName()).stringValue());
+        drugAssociation.setPhase(doc.getField(IndexFields.PHASE.getFieldName()).stringValue());
+        drugAssociation.setStatus(doc.getField(IndexFields.STATUS.getFieldName()).stringValue());
+        drugAssociation.setSource(source);
+        return drugAssociation;
     }
 }

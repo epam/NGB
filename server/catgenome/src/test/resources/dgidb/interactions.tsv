@@ -1,0 +1,6 @@
+gene_name	gene_claim_name	entrez_id	interaction_claim_source	interaction_types	drug_claim_name	drug_claim_primary_name	drug_name	drug_concept_id	interaction_group_score	PMIDs
+CDK7	CDK7	1022	CancerCommons	inhibitor	SNS-032	SNS-032	BMS-387032	chembl:CHEMBL296468	0.82
+CDK7	CAK	1022	ChemblInteractions	inhibitor	CHEMBL1944698	TG-02	ZOTIRACICLIB	chembl:CHEMBL1944698	0.22
+CDK7	Cyclin-dependent kinase 7	1022	TTD		Oxazolyl methylthiothiazole derivative 1	Oxazolyl methylthiothiazole derivative 1
+VDR	VDR	7421	DTC		NIFEKALANT	NIFEKALANT	NIFEKALANT	chembl:CHEMBL360861	0.14
+VDR	VDR	7421	DTC		TANSHINONE IIA SULFONATE	TANSHINONE IIA SULFONATE	TANSHINONE IIA SULFONATE	chembl:CHEMBL1473252	0.02

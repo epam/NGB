@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.manager.externaldb.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -40,39 +40,24 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class AssociatedDiseaseManagerTest extends TestCase {
+public class PharmGKBDrugManagerTest extends TestCase {
 
-    private static final int TOTAL_COUNT = 11;
     @Autowired
-    private AssociatedDiseaseManager manager;
+    private PharmGKBDrugManager manager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String path = context.getResource("classpath:opentargets//associations").getFile().getPath();
-        final String pathOverall = context.getResource("classpath:opentargets//associations_overall")
-                .getFile().getPath();
-        manager.importData(path, pathOverall);
+        final String path = context.getResource("classpath:pharmgkb//drugLabels.tsv").getFile().getPath();
+        manager.importData(path);
     }
 
     @Test
-    public void searchDiseasesCountTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final int totalCount = manager.totalCount(targetIds);
-        assertEquals(TOTAL_COUNT, totalCount);
-    }
-
-    @Test
-    public void searchDiseasesTest() throws IOException, ParseException {
-        final List<String> targetIds = Arrays.asList("ENSG00000007171", "ENSG00000006128");
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(2)
-                .pageSize(3)
-                .targetIds(targetIds)
-                .build();
-        final List<AssociatedDiseaseAggregated> diseases = manager.search(request);
-        assertEquals(3, diseases.size());
+    public void searchDrugsTest() throws IOException, ParseException {
+        final List<String> drugIds = Arrays.asList("PA166269401", "PA166269301");
+        final List<PharmGKBDrug> drugs = manager.search(drugIds);
+        assertEquals(2, drugs.size());
     }
 }

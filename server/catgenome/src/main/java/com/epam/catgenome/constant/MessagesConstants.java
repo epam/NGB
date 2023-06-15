@@ -93,6 +93,7 @@ public final class MessagesConstants {
     public static final String INFO_HISTOGRAM_LOAD = "info.histogram.load";
     public static final String ERROR_UNSUPPORTED_FILE_EXTENSION = "error.unsupported.file.extension";
     public static final String ERROR_FILE_PARSING = "error.file.parsing.exception";
+    public static final String ERROR_INCORRECT_JSON_FORMAT = "error.incorrect.json.format";
 
     //Track validation errors
     public static final String ERROR_INVALID_PARAM_TRACK_INDEXES_BELOW_ZERO = "error.invalid.param.track.indexes." +

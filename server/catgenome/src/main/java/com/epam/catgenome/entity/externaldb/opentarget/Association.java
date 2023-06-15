@@ -21,34 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.opentarget;
+package com.epam.catgenome.entity.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociatedDiseaseAggregated;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.IOException;
-import java.util.List;
-
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
-
-@Service
-public class AssociatedDiseaseSecurityService {
-
-    @Autowired
-    private AssociatedDiseaseManager manager;
-
-    @PreAuthorize(ROLE_USER)
-    public List<AssociatedDiseaseAggregated> search(final AssociationSearchRequest request)
-            throws IOException, ParseException {
-        return manager.search(request);
-    }
-
-    @PreAuthorize(ROLE_ADMIN)
-    public void importData(final String path, final String overallPath) throws IOException {
-        manager.importData(path, overallPath);
-    }
+@AllArgsConstructor
+@Getter
+@Setter
+public class Association {
+    private String targetId;
+    private Disease disease;
 }

@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,6 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.util.CollectionUtils;
 
 /**
  * <p>
@@ -155,28 +155,31 @@ public class NCBIGeneManager {
         return ncbiGeneVO;
     }
 
-    public Map<String, String> fetchGeneSummaryByIds(final List<String> ids) throws ExternalDbUnavailableException {
+    public Map<String, String> fetchGeneSummaryByIds(final Map<String, String> entrezMap)
+            throws ExternalDbUnavailableException {
         final Map<String, String> summary = new HashMap<>();
-        if (CollectionUtils.isEmpty(ids)) {
-            return Collections.emptyMap();
+        final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
+                StringUtils.join(entrezMap.keySet(), ","));
+        JsonNode node;
+        for (JsonNode jsonNode : root.path("uids")) {
+            String uid = jsonNode.asText();
+            node = root.path(uid);
+            summary.put(entrezMap.get(uid), node.path("summary").asText());
         }
+        return summary;
+    }
+
+    @NotNull
+    public Map<String, String> getEntrezMap(final List<String> ensemblIds) throws ExternalDbUnavailableException {
         final Map<String, String> entrezIds = new HashMap<>();
         String entrezId;
-        for (String id: ids) {
+        for (String id: ensemblIds) {
             entrezId = fetchExternalId(id);
             if (StringUtils.isNotBlank(entrezId)) {
                 entrezIds.put(entrezId, id);
             }
         }
-        final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
-                StringUtils.join(entrezIds.keySet(), ","));
-        JsonNode node;
-        for (JsonNode jsonNode : root.path("uids")) {
-            String uid = jsonNode.asText();
-            node = root.path(uid);
-            summary.put(entrezIds.get(uid), node.path("summary").asText());
-        }
-        return summary;
+        return entrezIds;
     }
 
     public String fetchExternalId(String id) throws ExternalDbUnavailableException {

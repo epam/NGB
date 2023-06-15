@@ -21,17 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.entity.externaldb.pharmgkb;
 
-package com.epam.catgenome.manager.externaldb.opentarget;
-
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
-public enum AssociationSource {
-    OPEN_TARGETS,
-    TXGNN,
-    DGI_DB,
-    PHARM_GKB;
+@Setter
+@Builder
+public class PharmGKBDrug {
+    private String geneId;
+    private String drugId;
+    private String drugName;
+    private String source;
 }
