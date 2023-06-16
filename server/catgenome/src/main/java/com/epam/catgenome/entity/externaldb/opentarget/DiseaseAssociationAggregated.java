@@ -24,11 +24,13 @@
 package com.epam.catgenome.entity.externaldb.opentarget;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Map;
 
 @Setter
+@Getter
 public class DiseaseAssociationAggregated extends Association {
     private Map<AssociationType, Float> scores;
 
