@@ -1,9 +1,20 @@
-const DRUGS_TABLE_COLUMNS = ['drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
-
+const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
+const PHARM_GKB_COLUMNS = ['target', 'drug id', 'drug name', 'Source'];
+const DGI_DB_COLUMNS = ['drug name', 'entrez id', 'gene name', 'interaction claim source'];
+const TXGNN_COLUMNS = [];
 export default class ngbDrugsTableController {
 
-    get drugsTableColumnList () {
-        return DRUGS_TABLE_COLUMNS;
+    get openTargetsColumnList () {
+        return OPEN_TARGETS_COLUMNS;
+    }
+    get pharmGkbColumnList () {
+        return PHARM_GKB_COLUMNS;
+    }
+    get dgiDbColumnList () {
+        return DGI_DB_COLUMNS;
+    }
+    get txGnnColumnList () {
+        return TXGNN_COLUMNS;
     }
 
     gridOptions = {
@@ -38,8 +49,20 @@ export default class ngbDrugsTableController {
         return 'ngbDrugsTableController';
     }
 
-    constructor($scope, $timeout, ngbDrugsTableService) {
-        Object.assign(this, {$scope, $timeout, ngbDrugsTableService});
+    constructor($scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService});
+
+        const drugsSourceChanged = this.sourceChanged.bind(this);
+        const diseasesSourceChanged = this.resetDrugsData.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
+        dispatcher.on('drugs:source:changed', drugsSourceChanged);
+        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
+        dispatcher.on('drugs:filters:changed', filterChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
+            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
+            dispatcher.removeListener('drugs:filters:changed', filterChanged);
+        });
     }
 
     get totalPages() {
@@ -75,6 +98,17 @@ export default class ngbDrugsTableController {
     set sortInfo(value) {
         this.ngbDrugsTableService.sortInfo = value;
     }
+    get filterInfo() {
+        return this.ngbDrugsTableService.filterInfo;
+    }
+    set filterInfo(value) {
+        this.ngbDrugsTableService.filterInfo = value;
+    }
+
+    resetDrugsData() {
+        this.ngbDrugsTableService.resetDrugsData();
+        this.dispatcher.emit('drugs:filters:reset');
+    }
 
     $onInit() {
         this.initialize();
@@ -95,6 +129,36 @@ export default class ngbDrugsTableController {
             this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
         } else {
             await this.loadData();
+            this.ngbDrugsTableService.setFieldList();
+        }
+    }
+
+    async sourceChanged() {
+        this.resetDrugsData();
+        this.initialize();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    get sourceModel() {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+
+    get sourceOptions() {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
+    getColumnList() {
+        if (this.sourceModel === this.sourceOptions.OPEN_TARGETS) {
+            return this.openTargetsColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.PHARM_GKB) {
+            return this.pharmGkbColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.DGI_DB) {
+            return this.dgiDbColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.TXGNN) {
+            return this.txGnnColumnList;
         }
     }
 
@@ -103,7 +167,7 @@ export default class ngbDrugsTableController {
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
 
         const result = [];
-        const columnsList = this.drugsTableColumnList;
+        const columnsList = this.getColumnList();
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -112,7 +176,7 @@ export default class ngbDrugsTableController {
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: false,
+                enableFiltering: true,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -133,10 +197,16 @@ export default class ngbDrugsTableController {
                     };
                     break;
                 case 'source':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: linkCell
-                    };
+                    if (this.sourceModel === this.sourceOptions.PHARM_GKB) {
+                        columnSettings = {
+                            ...columnSettings
+                        };
+                    } else {
+                        columnSettings = {
+                            ...columnSettings,
+                            cellTemplate: linkCell
+                        };
+                    }
                     break;
                 default:
                     columnSettings = {
@@ -151,17 +221,9 @@ export default class ngbDrugsTableController {
         return result;
     }
 
-    getRequest() {
-        return {
-            page: this.currentPage,
-            pageSize: this.pageSize
-        };
-    }
-
     async loadData () {
         this.loadingData = true;
-        const request = this.getRequest();
-        const results = await this.ngbDrugsTableService.postAssociatedDrugs(request)
+        const results = await this.ngbDrugsTableService.getDrugsResults()
             .then(success => {
                 if (success) {
                     return this.ngbDrugsTableService.drugsResults;
@@ -184,6 +246,17 @@ export default class ngbDrugsTableController {
         } else {
             this.sortInfo = null;
         }
+        this.currentPage = 1;
+        this.gridOptions.data = [];
+        await this.loadData();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();

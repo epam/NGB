@@ -1,4 +1,6 @@
-.launch-dialog {
+md-dialog.launch-dialog {
+    max-width: 50%;
+
     md-toolbar {
         background-color: rgb(102,153,255);
     }
@@ -62,7 +64,7 @@
     }
 
     .md-chips md-chip .md-chip-remove-container {
-        line-height: 16px;
+        line-height: 24px;
         right: 4px;
     }
 
@@ -85,22 +87,21 @@
         height: 22px;
     }
 
-    .md-chips md-chip .md-chip-remove md-icon {
-        height: 12px;
-        width: 12px;
-    }
-
     md-input-container {
         margin: 15px 0;
         height: 32px;
     }
 }
 
-.species-md-autocomplete.md-autocomplete-suggestions li {
+.genes-md-autocomplete.md-autocomplete-suggestions li {
     font-size: 12px;
     padding: 0 5px;
     line-height: 32px;
     height: 32px;
+}
+
+.genes-md-autocomplete.md-autocomplete-suggestions li .span-padding {
+    padding: 0 20px;
 }
 
 .confirm-launch-identification-dlg {

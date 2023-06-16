@@ -7,9 +7,10 @@ import controller from './ngbDrugsTable.controller';
 import service from './ngbDrugsTable.service';
 
 import ngbTablePagination from '../ngbTablePagination';
+import ngbDrugsTableFilter from './ngbDrugsTableFilter';
 
 export default angular
-    .module('ngbDrugsTable', [ngbTablePagination])
+    .module('ngbDrugsTable', [ngbTablePagination, ngbDrugsTableFilter])
     .controller(controller.UID, controller)
     .component('ngbDrugsTable', component)
     .service('ngbDrugsTableService', service.instance)

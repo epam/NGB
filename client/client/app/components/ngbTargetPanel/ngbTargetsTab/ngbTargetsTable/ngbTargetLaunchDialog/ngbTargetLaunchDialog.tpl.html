@@ -13,50 +13,76 @@
     <md-dialog-content class="content">
         <div layout="column" flex="100">
             <div layout="row" flex="100" class="input-container">
-                <label flex="30" class="input-label">Species of interest</label>
-                <md-chips ng-model="speciesOfInterest"
+                <label flex="25" class="input-label">Genes of interest</label>
+                <md-chips ng-model="genesOfInterest"
                           md-autocomplete-snap
                           md-require-match="true"
+                          md-removable="true"
                           flex="70">
                     <md-autocomplete
-                        md-selected-item="speciesOfInterest"
                         md-search-text="searchText"
                         md-clear-button="true"
-                        md-menu-class="species-md-autocomplete"
+                        md-menu-class="genes-md-autocomplete"
                         md-no-cache="true"
-                        md-items="specie in getSpeciesOfInterestList(searchText)"
-                        md-item-text="item.name"
+                        md-items="gene in getGenesOfInterest(searchText)"
+                        md-item-text="gene.span"
                         md-delay="100"
+                        md-selected-item-change="genesOfInterestChanged(gene)"
                         md-match-case-insensitive="true">
-                        <span md-highlight-text="searchText" md-highlight-flags="i">{{specie.name}}</span>
+                        <md-item-template>
+                            <span md-highlight-text="searchText"
+                                  md-highlight-flags="gi"
+                                  ng-class="{'span-padding': gene.item}">
+                                {{gene.span}}
+                            </span>
+                        </md-item-template>
+                        <md-not-found>
+                            Not found.
+                        </md-not-found>
                     </md-autocomplete>
                     <md-chip-template>
-                        <span>{{$chip.name}}</span>
+                        <span>{{$chip.chip}}</span>
                     </md-chip-template>
+                    <ng-md-icon icon="close"
+                            md-chip-remove=""
+                            size="12"
+                    ></ng-md-icon>
                 </md-chips>
             </div>
             <div layout="row" flex="100" class="input-container">
-                <label flex="30" class="input-label">Translational species</label>
-                <md-chips ng-model="translationalSpecies"
+                <label flex="25" class="input-label">Translational genes</label>
+                <md-chips ng-model="translationalGenes"
                         md-autocomplete-snap
                         md-require-match="true"
                         flex="70">
                     <md-autocomplete
-                        md-selected-item="translationalSpecies"
                         md-search-text="searchText"
                         md-clear-button="true"
-                        md-menu-class="species-md-autocomplete"
+                        md-menu-class="genes-md-autocomplete"
                         md-no-cache="true"
-                        md-items="specie in getTranslationalSpecies(searchText)"
-                        md-item-text="item.name"
+                        md-items="gene in getTranslationalGenes(searchText)"
+                        md-item-text="gene.span"
                         md-delay="100"
-                        md-min-length="0"
+                        md-selected-item-change="translationalGenesChanged(gene)"
                         md-match-case-insensitive="true">
-                        <span md-highlight-text="searchText" md-highlight-flags="i">{{specie.name}}</span>
+                        <md-item-template>
+                            <span md-highlight-text="searchText"
+                                  md-highlight-flags="gi"
+                                  ng-class="{'span-padding': gene.item}">
+                                {{gene.span}}
+                            </span>
+                        </md-item-template>
+                        <md-not-found>
+                            Not found.
+                        </md-not-found>
                     </md-autocomplete>
                     <md-chip-template>
-                        <span>{{$chip.name}}</span>
+                        <span>{{$chip.chip}}</span>
                     </md-chip-template>
+                    <ng-md-icon icon="close"
+                            md-chip-remove=""
+                            size="12"
+                    ></ng-md-icon>
                 </md-chips>
             </div>
         </div>

@@ -1,4 +1,4 @@
-const DISEASES_TABLE_COLUMNS = ['disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const DISEASES_TABLE_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
 export default class ngbDiseasesTableController {
 
@@ -44,8 +44,20 @@ export default class ngbDiseasesTableController {
         return 'ngbDiseasesTableController';
     }
 
-    constructor($scope, $timeout, ngbDiseasesTableService) {
-        Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbDiseasesTableService});
+
+        const diseasesSourceChanged = this.sourceChanged.bind(this);
+        const drugsSourceChanged = this.resetDiseasesData.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
+        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
+        dispatcher.on('drugs:source:changed', drugsSourceChanged);
+        dispatcher.on('diseases:filters:changed', filterChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
+            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
+            dispatcher.removeListener('diseases:filters:changed', filterChanged);
+        });
     }
 
     get totalPages() {
@@ -81,6 +93,17 @@ export default class ngbDiseasesTableController {
     set sortInfo(value) {
         this.ngbDiseasesTableService.sortInfo = value;
     }
+    get filterInfo() {
+        return this.ngbDiseasesTableService.filterInfo;
+    }
+    set filterInfo(value) {
+        this.ngbDiseasesTableService.filterInfo = value;
+    }
+
+    resetDiseasesData() {
+        this.ngbDiseasesTableService.resetDiseasesData();
+        this.dispatcher.emit('diseases:filters:reset');
+    }
 
     $onInit() {
         this.initialize();
@@ -101,7 +124,14 @@ export default class ngbDiseasesTableController {
             this.gridOptions.data = this.ngbDiseasesTableService.diseasesResults;
         } else {
             await this.loadData();
+            this.ngbDiseasesTableService.setFieldList();
         }
+    }
+
+    async sourceChanged() {
+        this.resetDiseasesData();
+        this.initialize();
+        this.$timeout(::this.$scope.$apply);
     }
 
     getDiseasesTableGridColumns() {
@@ -128,10 +158,17 @@ export default class ngbDiseasesTableController {
                 width: '*'
             };
             switch (column) {
+                case 'target':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                    };
+                    break;
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell,
+                        enableFiltering: true,
                         minWidth: 200
                     };
                     break;
@@ -151,7 +188,7 @@ export default class ngbDiseasesTableController {
 
     async loadData () {
         this.loadingData = true;
-        const results = await this.ngbDiseasesTableService.postAssociatedDiseases()
+        const results = await this.ngbDiseasesTableService.getDiseasesResults()
             .then(success => {
                 if (success) {
                     return this.ngbDiseasesTableService.diseasesResults;
@@ -174,6 +211,17 @@ export default class ngbDiseasesTableController {
         } else {
             this.sortInfo = null;
         }
+        this.currentPage = 1;
+        this.gridOptions.data = [];
+        await this.loadData();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();

@@ -32,8 +32,8 @@
         <md-whiteframe>
             <h5>KNOWN DRUGS</h5>
             <div class="whiteframe-content">
-                <span>Diseases: <b>{{$ctrl.diseases}}</b></span>
-                <span>Drugs: <b>{{$ctrl.drugs}}</b></span>
+                <span>Diseases: <b>{{$ctrl.diseasesCount}}</b></span>
+                <span>Drugs: <b>{{$ctrl.knownDrugsCount}}</b></span>
             </div>
         </md-whiteframe>
         <md-whiteframe>
@@ -66,7 +66,8 @@
     </div>
     <div class="collapsible-container">
         <collapsible>
-            <collapsible-panel is-open="false">
+            <collapsible-panel is-open="$ctrl.isOpen.description"
+                               ng-class="{'open-panel': $ctrl.isOpen.description}">
                 <collapsible-panel-title>
                     DESCRIPTION
                 </collapsible-panel-title>
@@ -88,7 +89,8 @@
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>
-            <collapsible-panel is-open="false">
+            <collapsible-panel is-open="$ctrl.isOpen.sequences"
+                               ng-class="{'open-panel': $ctrl.isOpen.sequences}">
                 <collapsible-panel-title>
                     SEQUENCES
                 </collapsible-panel-title>
@@ -97,7 +99,8 @@
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>
-            <collapsible-panel is-open="false">
+            <collapsible-panel is-open="$ctrl.isOpen.genomics"
+                               ng-class="{'open-panel': $ctrl.isOpen.genomics}">
                 <collapsible-panel-title>
                     COMPARATIVE GENOMICS
                 </collapsible-panel-title>
@@ -106,7 +109,8 @@
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>
-            <collapsible-panel is-open="false">
+            <collapsible-panel is-open="$ctrl.isOpen.structure"
+                               ng-class="{'open-panel': $ctrl.isOpen.structure}">
                 <collapsible-panel-title>
                     STRUCTURE
                 </collapsible-panel-title>
@@ -115,7 +119,8 @@
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>
-            <collapsible-panel is-open="false">
+            <collapsible-panel is-open="$ctrl.isOpen.bibliography"
+                               ng-class="{'open-panel': $ctrl.isOpen.bibliography}">
                 <collapsible-panel-title>
                     BIBLIOGRAPHY
                 </collapsible-panel-title>

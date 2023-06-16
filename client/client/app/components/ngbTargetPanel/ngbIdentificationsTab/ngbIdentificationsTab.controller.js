@@ -1,7 +1,12 @@
 export default class ngbIdentificationsTabController {
 
     isOpen = {
-        drugs: false
+        drugs: false,
+        description: false,
+        sequences: false,
+        genomics: false,
+        structure: false,
+        bibliography: false
     }
 
     static get UID() {
@@ -23,12 +28,12 @@ export default class ngbIdentificationsTabController {
 
     get interest() {
         const target = this.ngbTargetPanelService.identificationTarget;
-        return target && target.interest.map(i => i.name).join(', ');
+        return target && target.interest.map(i => i.chip).join(', ');
     }
 
     get translational() {
         const target = this.ngbTargetPanelService.identificationTarget;
-        return target && target.translational.map(i => i.name).join(', ');
+        return target && target.translational.map(i => i.chip).join(', ');
     }
 
     get description() {
@@ -42,11 +47,11 @@ export default class ngbIdentificationsTabController {
         return `${this.description.substring(0, 150)}...`;
     }
 
-    get diseases() {
-        return this.identificationData && this.identificationData.diseases;
+    get diseasesCount() {
+        return this.identificationData && this.identificationData.diseasesCount;
     }
 
-    get drugs() {
-        return this.identificationData && this.identificationData.drugs;
+    get knownDrugsCount() {
+        return this.identificationData && this.identificationData.knownDrugsCount;
     }
 }

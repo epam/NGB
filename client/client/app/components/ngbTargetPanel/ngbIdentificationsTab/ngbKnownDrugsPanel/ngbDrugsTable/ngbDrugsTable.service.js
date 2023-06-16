@@ -36,6 +36,8 @@ export default class ngbDrugsTableService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+    _filterInfo = null;
+    fieldList = {};
 
     _loadingData = false;
     _failedResult = false;
@@ -88,38 +90,125 @@ export default class ngbDrugsTableService {
     set sortInfo(value) {
         this._sortInfo = value;
     }
-
-    static instance (dispatcher, ngbTargetPanelService, targetDataService,) {
-        return new ngbDrugsTableService(dispatcher, ngbTargetPanelService, targetDataService);
+    get filterInfo() {
+        return this._filterInfo;
+    }
+    set filterInfo(value) {
+        this._filterInfo = value;
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
+    static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService,) {
+        return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
+    }
+
+    constructor(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService});
         this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
     }
 
-    get targetIds() {
-        const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
-        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+    get identificationTarget() {
+        return this.ngbTargetPanelService.identificationTarget || {};
+    }
+
+    get geneIds() {
+        const {interest, translational} = this.identificationTarget;
+        if (!this._filterInfo || !this._filterInfo.target) {
+            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        }
+        if (this._filterInfo.target) {
+            return [...interest
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(i => i.geneId),
+                ...translational
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(t => t.geneId)];
+        }
+    }
+
+    getTarget(id) {
+        if (!id) return;
+        const {interest, translational} = this.identificationTarget;
+        const genes = [...interest, ...translational]
+            .filter(gene => gene.geneId === id)
+            .map(gene => gene.chip);
+        if (genes && genes.length) {
+            return genes[0];
+        }
     }
 
     setDrugsResult(result) {
-        this._drugsResults = result.map(item => ({
-            drug: item.drug,
-            type: item.drugType,
-            'mechanism of action': item.mechanismOfAction,
-            'action type': item.actionType,
-            disease: item.disease,
-            phase: `Phase ${romanize(item.phase)}`,
-            status: item.status,
-            source: item.source
-        }));
+        const source = this.ngbKnownDrugsPanelService.sourceModel;
+        const sourceOptions = this.ngbKnownDrugsPanelService.sourceOptions;
+
+        if (source === sourceOptions.OPEN_TARGETS) {
+            this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.targetId),
+                drug: item.drug,
+                type: item.drugType,
+                'mechanism of action': item.mechanismOfAction,
+                'action type': item.actionType,
+                disease: item.disease,
+                phase: `Phase ${romanize(item.phase)}`,
+                status: item.status,
+                source: item.source
+            }));
+        }
+        if (source === sourceOptions.PHARM_GKB) {
+            this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.geneId),
+                'drug id': item.drugId,
+                'drug name': item.drugName,
+                'Source': item.source
+            }));
+        }
+        if (source === sourceOptions.DGI_DB) {
+            this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.geneId),
+                'drug name': item.drugName,
+                'entrez id': item.entrezId,
+                'gene name': item.geneName,
+                'interaction claim source': item.interactionClaimSource
+            }));
+        }
+        if (source === sourceOptions.TXGNN) {
+            this._drugsResults = [];
+        }
     }
 
-    postAssociatedDrugs(request) {
-        request.targetIds = this.targetIds;
+    setFieldList() {
+        const {interest, translational} = this.identificationTarget;
+        this.fieldList = {
+            target: [...interest.map(i => i.chip), ...translational.map(t => t.chip)],
+            disease: []
+        };
+        this.dispatcher.emitSimpleEvent('drugs:filters:list');
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        filter[field] = value;
+        this._filterInfo = filter;
+    }
+
+    getRequest() {
+        return {
+            page: this.currentPage,
+            pageSize: this.pageSize,
+            geneIds: this.geneIds,
+        };
+    }
+
+    getDrugsResults() {
+        const request = this.getRequest();
+        if (!request.geneIds || !request.geneIds.length) {
+            return new Promise(resolve => {
+                this._loadingData = false;
+                resolve(true);
+            });
+        }
+        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.postAssociatedDrugs(request)
+            this.targetDataService.getDrugsResults(request, source)
                 .then(([data, totalCount]) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
@@ -145,6 +234,7 @@ export default class ngbDrugsTableService {
         this._currentPage = 1;
         this._totalPages = 0;
         this._sortInfo = null;
+        this._filterInfo = null;
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;

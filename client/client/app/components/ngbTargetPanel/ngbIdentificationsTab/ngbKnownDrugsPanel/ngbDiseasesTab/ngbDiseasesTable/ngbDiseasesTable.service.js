@@ -14,6 +14,8 @@ export default class ngbDiseasesTableService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+    _filterInfo = null;
+    fieldList = {};
 
     _loadingData = false;
     _failedResult = false;
@@ -66,6 +68,12 @@ export default class ngbDiseasesTableService {
     set sortInfo(value) {
         this._sortInfo = value;
     }
+    get filterInfo() {
+        return this._filterInfo;
+    }
+    set filterInfo(value) {
+        this._filterInfo = value;
+    }
 
     static instance (
         dispatcher,
@@ -96,9 +104,34 @@ export default class ngbDiseasesTableService {
         this.dispatcher.on('reset:identification:data', this.resetDiseasesData.bind(this));
     }
 
-    get targetIds() {
-        const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
-        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+    get identificationTarget() {
+        return this.ngbTargetPanelService.identificationTarget || {};
+    }
+
+    get geneIds() {
+        const {interest, translational} = this.identificationTarget;
+        if (!this._filterInfo || !this._filterInfo.target) {
+            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        }
+        if (this._filterInfo.target) {
+            return [...interest
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(i => i.geneId),
+                ...translational
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(t => t.geneId)];
+        }
+    }
+
+    getTarget(id) {
+        if (!id) return;
+        const {interest, translational} = this.identificationTarget;
+        const genes = [...interest, ...translational]
+            .filter(gene => gene.geneId === id)
+            .map(gene => gene.chip);
+        if (genes && genes.length) {
+            return genes[0];
+        }
     }
 
     setDiseasesResult(result) {
@@ -114,6 +147,7 @@ export default class ngbDiseasesTableService {
                 RNA_EXPRESSION
             } = item.scores;
             return {
+                target: this.getTarget(item.targetId),
                 disease: item.disease,
                 'overall score': fixedNumber(OVERALL),
                 'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
@@ -131,15 +165,21 @@ export default class ngbDiseasesTableService {
         return {
             page: this.currentPage,
             pageSize: this.pageSize,
-            targetIds: this.targetIds,
+            geneIds: this.geneIds,
         };
     }
 
-    postAssociatedDiseases() {
+    getDiseasesResults() {
         const request = this.getRequest();
+        if (!request.geneIds || !request.geneIds.length) {
+            return new Promise(resolve => {
+                this._loadingData = false;
+                resolve(true);
+            });
+        }
         const source = this.ngbKnownDrugsPanelService.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.postAssociatedDiseases(request, source)
+            this.targetDataService.getDiseasesResults(request, source)
                 .then(([data, totalCount]) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
@@ -160,11 +200,27 @@ export default class ngbDiseasesTableService {
         });
     }
 
+    setFieldList() {
+        const {interest, translational} = this.identificationTarget;
+        this.fieldList = {
+            target: [...interest.map(i => i.chip), ...translational.map(t => t.chip)],
+            disease: []
+        };
+        this.dispatcher.emitSimpleEvent('diseases:filters:list');
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        filter[field] = value;
+        this._filterInfo = filter;
+    }
+
     resetDiseasesData() {
         this._diseasesResults = null;
         this._currentPage = 1;
         this._totalPages = 0;
         this._sortInfo = null;
+        this._filterInfo = null;
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;
