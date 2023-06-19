@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -69,21 +70,25 @@ import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 public class DiseaseManager {
 
     private static final String OPEN_TARGETS_DISEASE_URL_PATTERN = "https://platform.opentargets.org/disease/%s";
+    private static final Integer BATCH_SIZE = 1000;
 
     @Value("${opentargets.disease.index.directory}")
     private String indexDirectory;
 
     public List<Disease> search(final List<String> ids) throws ParseException, IOException {
         final List<Disease> result = new ArrayList<>();
-        final Query query = getByIdsQuery(ids, IndexFields.DISEASE_ID.getFieldName());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, ids.size());
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                Disease entry = entryFromDoc(doc);
-                result.add(entry);
+        final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
+        for (List<String> subIds : subSets) {
+            Query query = getByIdsQuery(subIds, IndexFields.DISEASE_ID.getFieldName());
+            try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+                 IndexReader indexReader = DirectoryReader.open(index)) {
+                IndexSearcher searcher = new IndexSearcher(indexReader);
+                TopDocs topDocs = searcher.search(query, subIds.size());
+                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    Disease entry = entryFromDoc(doc);
+                    result.add(entry);
+                }
             }
         }
         return result;
