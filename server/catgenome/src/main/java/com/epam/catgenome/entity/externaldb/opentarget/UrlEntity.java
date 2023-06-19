@@ -25,12 +25,19 @@ package com.epam.catgenome.entity.externaldb.opentarget;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
-public class Association {
-    private String targetId;
-    private Disease disease;
+@NoArgsConstructor
+@AllArgsConstructor
+public class UrlEntity {
+    private String id;
+    private String name;
+    private String url;
+
+    public UrlEntity(String id) {
+        this.id = id;
+    }
 }

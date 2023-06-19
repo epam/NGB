@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -45,10 +46,15 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.grouping.GroupingSearch;
 import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.Directory;
@@ -73,14 +79,15 @@ import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
+@RequiredArgsConstructor
 public class DiseaseAssociationManager {
-
 
     @Value("${opentargets.disease.association.index.directory}")
     private String indexDirectory;
 
     @Value("${targets.top.hits:10000}")
     private int targetsTopHits;
+    private final DiseaseManager diseaseManager;
 
     public SearchResult<DiseaseAssociationAggregated> search(final AssociationSearchRequest request)
             throws IOException, ParseException {
@@ -119,6 +126,31 @@ public class DiseaseAssociationManager {
             searchResult.setTotalCount(totalCount(request.getGeneIds()));
         }
         return searchResult;
+    }
+
+    public List<DiseaseAssociationAggregated> searchAll(final List<String> geneIds) throws IOException, ParseException {
+        final List<DiseaseAssociationAggregated> records = new ArrayList<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            final Query query = buildOverallScoresQuery(geneIds);
+            final IndexSearcher searcher = new IndexSearcher(indexReader);
+            final TopDocs topDocs = searcher.search(query, targetsTopHits);
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                Disease disease = Disease.builder()
+                        .id(getDiseaseId(doc))
+                        .build();
+                DiseaseAssociationAggregated record = DiseaseAssociationAggregated.builder()
+                        .targetId(getTargetId(doc))
+                        .disease(disease)
+                        .build();
+                Map<AssociationType, Float> scores = new HashMap<>();
+                scores.put(AssociationType.getByName(getDataTypeId(doc)), getScore(doc));
+                record.setScores(scores);
+                records.add(record);
+            }
+        }
+        return records;
     }
 
     public int totalCount(final List<String> geneIds) throws ParseException, IOException {
@@ -223,5 +255,21 @@ public class DiseaseAssociationManager {
         doc.add(new SortedDocValuesField(IndexFields.TARGET_DISEASE.getFieldName(),
                 new BytesRef(entry.getDiseaseId() + entry.getTargetId())));
         writer.addDocument(doc);
+    }
+
+    private Query buildOverallScoresQuery(final List<String> geneIds) {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String geneId : geneIds) {
+            builder.add(buildTermQuery(geneId, IndexFields.TARGET_ID), BooleanClause.Occur.SHOULD);
+        }
+        mainBuilder.add(builder.build(), BooleanClause.Occur.MUST);
+        mainBuilder.add(buildTermQuery(AssociationType.OVERALL.getName(), IndexFields.DATATYPE_ID),
+                BooleanClause.Occur.MUST);
+        return mainBuilder.build();
+    }
+
+    private TermQuery buildTermQuery(final String term, final IndexFields field) {
+        return new TermQuery(new Term(field.getFieldName(), term.toLowerCase()));
     }
 }

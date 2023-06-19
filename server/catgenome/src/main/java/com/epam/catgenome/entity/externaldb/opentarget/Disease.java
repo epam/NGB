@@ -29,13 +29,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Disease {
-    private String id;
-    private String name;
-    private String url;
+public class Disease extends UrlEntity{
+    private List<UrlEntity> therapeuticAreas;
+    private boolean isTherapeuticArea;
+    private List<String> parents;
+
+    @Builder
+    public Disease(String id, String name, String url, List<UrlEntity> therapeuticAreas,
+                   boolean isTherapeuticArea, List<String> parents) {
+        super(id, name, url);
+        this.therapeuticAreas = therapeuticAreas;
+        this.isTherapeuticArea = isTherapeuticArea;
+        this.parents = parents;
+    }
 }
