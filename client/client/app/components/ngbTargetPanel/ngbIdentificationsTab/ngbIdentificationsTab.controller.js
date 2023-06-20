@@ -23,12 +23,12 @@ export default class ngbIdentificationsTabController {
 
     get interest() {
         const target = this.ngbTargetPanelService.identificationTarget;
-        return target && target.interest.map(i => i.geneName).join(', ');
+        return target && target.interest.map(i => i.chip).join(', ');
     }
 
     get translational() {
         const target = this.ngbTargetPanelService.identificationTarget;
-        return target && target.translational.map(i => i.geneName).join(', ');
+        return target && target.translational.map(i => i.chip).join(', ');
     }
 
     get description() {

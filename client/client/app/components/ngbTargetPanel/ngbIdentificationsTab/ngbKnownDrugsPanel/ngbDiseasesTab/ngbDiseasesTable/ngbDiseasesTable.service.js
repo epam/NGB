@@ -96,9 +96,24 @@ export default class ngbDiseasesTableService {
         this.dispatcher.on('reset:identification:data', this.resetDiseasesData.bind(this));
     }
 
+    get identificationTarget() {
+        return this.ngbTargetPanelService.identificationTarget || {};
+    }
+
     get geneIds() {
-        const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
+        const {interest, translational} = this.identificationTarget;
         return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+    }
+
+    getTarget(id) {
+        if (!id) return;
+        const {interest, translational} = this.identificationTarget;
+        const genes = [...interest, ...translational]
+            .filter(gene => gene.geneId === id)
+            .map(gene => gene.chip);
+        if (genes && genes.length) {
+            return genes[0];
+        }
     }
 
     setDiseasesResult(result) {
@@ -114,6 +129,7 @@ export default class ngbDiseasesTableService {
                 RNA_EXPRESSION
             } = item.scores;
             return {
+                target: this.getTarget(item.targetId),
                 disease: item.disease,
                 'overall score': fixedNumber(OVERALL),
                 'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),

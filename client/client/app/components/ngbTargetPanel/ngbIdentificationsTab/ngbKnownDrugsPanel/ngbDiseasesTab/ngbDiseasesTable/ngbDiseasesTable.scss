@@ -9,7 +9,7 @@ ngb-diseases-table {
         }
 
         .ui-grid-cell-contents {
-            white-space: normal;
+            white-space: nowrap;
         }
 
         .ui-grid-column-menu-button {
@@ -59,7 +59,7 @@ ngb-diseases-table {
         font-size: 12px;
         align-self: center;
         height: auto;
-        white-space: normal;
+        white-space: nowrap;
         padding: 5px;
         box-sizing: border-box;
         text-overflow: ellipsis;

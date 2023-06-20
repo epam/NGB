@@ -1,4 +1,4 @@
-const DISEASES_TABLE_COLUMNS = ['disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const DISEASES_TABLE_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
 export default class ngbDiseasesTableController {
 
@@ -124,8 +124,8 @@ export default class ngbDiseasesTableController {
     }
 
     getDiseasesTableGridColumns() {
-        const headerCells = require('./ngbDiseasesTable_header.tpl.html');
-        const linkCell = require('./ngbDiseasesTable_linkCell.tpl.html');
+        const headerCells = require('../../cellTemplates/ngbDrugs&DiseasesTable_header.tpl.html');
+        const linkCell = require('../../cellTemplates/ngbDrugs&DiseasesTable_linkCell.tpl.html');
         const colorCell = require('./ngbDiseasesTable_colorCell.tpl.html');
 
         const result = [];
@@ -147,6 +147,12 @@ export default class ngbDiseasesTableController {
                 width: '*'
             };
             switch (column) {
+                case 'target':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                    };
+                    break;
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,

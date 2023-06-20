@@ -98,9 +98,24 @@ export default class ngbDrugsTableService {
         this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
     }
 
+    get identificationTarget() {
+        return this.ngbTargetPanelService.identificationTarget || {};
+    }
+
     get geneIds() {
-        const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
+        const {interest, translational} = this.identificationTarget;
         return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+    }
+
+    getTarget(id) {
+        if (!id) return;
+        const {interest, translational} = this.identificationTarget;
+        const genes = [...interest, ...translational]
+            .filter(gene => gene.geneId === id)
+            .map(gene => gene.chip);
+        if (genes && genes.length) {
+            return genes[0];
+        }
     }
 
     setDrugsResult(result) {
@@ -109,6 +124,7 @@ export default class ngbDrugsTableService {
 
         if (source === sourceOptions.OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.targetId),
                 drug: item.drug,
                 type: item.drugType,
                 'mechanism of action': item.mechanismOfAction,
@@ -121,15 +137,15 @@ export default class ngbDrugsTableService {
         }
         if (source === sourceOptions.PHARM_GKB) {
             this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.geneId),
                 'drug id': item.drugId,
                 'drug name': item.drugName,
-                'gene id': item.geneId,
                 'Source': item.source
             }));
         }
         if (source === sourceOptions.DGI_DB) {
-            'drug name', 'entrez id', 'gene name', ''
             this._drugsResults = result.map(item => ({
+                target: this.getTarget(item.geneId),
                 'drug name': item.drugName,
                 'entrez id': item.entrezId,
                 'gene name': item.geneName,
