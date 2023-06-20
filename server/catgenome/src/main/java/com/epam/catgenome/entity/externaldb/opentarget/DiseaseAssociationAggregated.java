@@ -31,11 +31,9 @@ import java.util.Map;
 
 @Setter
 @Getter
-public class DiseaseAssociationAggregated extends Association {
+@Builder
+public class DiseaseAssociationAggregated {
+    private String targetId;
+    private Disease disease;
     private Map<AssociationType, Float> scores;
-
-    @Builder
-    public DiseaseAssociationAggregated(String targetId, Disease disease) {
-        super(targetId, disease);
-    }
 }

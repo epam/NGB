@@ -198,14 +198,28 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/opentargets/diseases")
     @ApiOperation(
             value = "Launches Identification for Open Targets datasource disease associations",
-            notes = "Launches Identification for Open Targets datasource disease associations",
+            notes = "Launches Identification for Open Targets datasource disease associations for table view",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<DiseaseAssociationAggregated>> searchAssociatedDiseases(
+    public Result<SearchResult<DiseaseAssociationAggregated>> getOpenTargetsDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getOpenTargetsDiseases(request));
+    }
+
+    @PostMapping(value = "/target/opentargets/diseases/all")
+    @ApiOperation(
+            value = "Launches Identification for Open Targets datasource disease associations",
+            notes = "Launches Identification for Open Targets datasource disease associations " +
+                    "for bubbles and tree views",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<DiseaseAssociationAggregated>> getAllOpenTargetsDiseases(
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
+        return Result.success(targetIdentificationSecurityService.getAllOpenTargetsDiseases(request));
     }
 
     @PutMapping(value = "/target/import/opentargets")

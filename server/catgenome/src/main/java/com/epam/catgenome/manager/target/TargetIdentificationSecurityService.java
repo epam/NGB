@@ -37,6 +37,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
@@ -75,6 +76,12 @@ public class TargetIdentificationSecurityService {
     public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return manager.getOpenTargetsDiseases(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<DiseaseAssociationAggregated> getAllOpenTargetsDiseases(final AssociationSearchRequest request)
+            throws IOException, ParseException {
+        return manager.getAllOpenTargetsDiseases(request);
     }
 
     @PreAuthorize(ROLE_ADMIN)

@@ -24,10 +24,7 @@
 package com.epam.catgenome.manager.externaldb.opentarget;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.Disease;
-import com.epam.catgenome.entity.externaldb.opentarget.Drug;
-import com.epam.catgenome.entity.externaldb.opentarget.Source;
+import com.epam.catgenome.entity.externaldb.opentarget.*;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -220,13 +217,9 @@ public class DrugAssociationManager {
                 source.setUrl(node.at("/url").asText());
             }
         }
-        final Disease disease = Disease.builder()
-                .id(jsonNodes.at("/diseaseId").asText())
-                .build();
-        final Drug drug = Drug.builder()
-                .id(jsonNodes.at("/drugId").asText())
-                .name(jsonNodes.at("/prefName").asText())
-                .build();
+        final UrlEntity disease = new UrlEntity(jsonNodes.at("/diseaseId").asText());
+        final UrlEntity drug = new UrlEntity(jsonNodes.at("/drugId").asText());
+        drug.setName(jsonNodes.at("/prefName").asText());
         final DrugAssociation drugAssociation = DrugAssociation.builder()
                 .targetId(jsonNodes.at("/targetId").asText())
                 .disease(disease)
@@ -248,15 +241,10 @@ public class DrugAssociationManager {
                 .name(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
                 .url(doc.getField(IndexFields.SOURCE_URL.getFieldName()).stringValue())
                 .build();
-        final Disease disease = Disease.builder()
-                .id(doc.getField(IndexFields.DISEASE_ID.getFieldName()).stringValue())
-                .build();
-        final Drug drug = Drug.builder()
-                .id(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
-                .name(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
-                .url(String.format(OPEN_TARGETS_DRUG_URL_PATTERN,
-                        doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue()))
-                .build();
+        final UrlEntity disease = new UrlEntity(doc.getField(IndexFields.DISEASE_ID.getFieldName()).stringValue());
+        final UrlEntity drug = new UrlEntity(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue());
+        drug.setName(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue());
+        drug.setUrl(getDrugUrl(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue()));
         final DrugAssociation drugAssociation = DrugAssociation.builder()
                 .targetId(doc.getField(IndexFields.TARGET_ID.getFieldName()).stringValue())
                 .disease(disease)
@@ -270,5 +258,9 @@ public class DrugAssociationManager {
         drugAssociation.setStatus(doc.getField(IndexFields.STATUS.getFieldName()).stringValue());
         drugAssociation.setSource(source);
         return drugAssociation;
+    }
+
+    private static String getDrugUrl(final String drugId) {
+        return String.format(OPEN_TARGETS_DRUG_URL_PATTERN, drugId);
     }
 }

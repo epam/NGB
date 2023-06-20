@@ -29,17 +29,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DrugAssociation extends Association {
-    private Drug drug;
+@Builder
+public class DrugAssociation {
+    private UrlEntity drug;
+    private String targetId;
+    private UrlEntity disease;
     private String drugType;
     private String mechanismOfAction;
     private String actionType;
     private String phase;
     private String status;
     private Source source;
-
-    @Builder
-    public DrugAssociation(String targetId, Disease disease) {
-        super(targetId, disease);
-    }
 }
