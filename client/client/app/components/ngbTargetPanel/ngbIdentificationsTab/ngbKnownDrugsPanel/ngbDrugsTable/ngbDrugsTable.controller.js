@@ -1,9 +1,20 @@
-const DRUGS_TABLE_COLUMNS = ['drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
-
+const OPEN_TARGETS_COLUMNS = ['drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
+const PHARM_GKB_COLUMNS = ['drug id', 'drug name', 'Source'];
+const DGI_DB_COLUMNS = ['drug name', 'entrez id', 'gene name', 'interaction claim source'];
+const TXGNN_COLUMNS = [];
 export default class ngbDrugsTableController {
 
-    get drugsTableColumnList () {
-        return DRUGS_TABLE_COLUMNS;
+    get openTargetsColumnList () {
+        return OPEN_TARGETS_COLUMNS;
+    }
+    get pharmGkbColumnList () {
+        return PHARM_GKB_COLUMNS;
+    }
+    get dgiDbColumnList () {
+        return DGI_DB_COLUMNS;
+    }
+    get txGnnColumnList () {
+        return TXGNN_COLUMNS;
     }
 
     gridOptions = {
@@ -38,8 +49,17 @@ export default class ngbDrugsTableController {
         return 'ngbDrugsTableController';
     }
 
-    constructor($scope, $timeout, ngbDrugsTableService) {
-        Object.assign(this, {$scope, $timeout, ngbDrugsTableService});
+    constructor($scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService) {
+        Object.assign(this, {$scope, $timeout, ngbDrugsTableService, ngbKnownDrugsPanelService});
+
+        const drugsSourceChanged = this.sourceChanged.bind(this);
+        const diseasesSourceChanged = this.resetDrugsData.bind(this);
+        dispatcher.on('drugs:source:changed', drugsSourceChanged);
+        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
+            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
+        });
     }
 
     get totalPages() {
@@ -76,6 +96,10 @@ export default class ngbDrugsTableController {
         this.ngbDrugsTableService.sortInfo = value;
     }
 
+    resetDrugsData() {
+        this.ngbDrugsTableService.resetDrugsData();
+    }
+
     $onInit() {
         this.initialize();
     }
@@ -98,12 +122,41 @@ export default class ngbDrugsTableController {
         }
     }
 
+    async sourceChanged() {
+        this.resetDrugsData();
+        this.initialize();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    get sourceModel() {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+
+    get sourceOptions() {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
+    getColumnList() {
+        if (this.sourceModel === this.sourceOptions.OPEN_TARGETS) {
+            return this.openTargetsColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.PHARM_GKB) {
+            return this.pharmGkbColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.DGI_DB) {
+            return this.dgiDbColumnList;
+        }
+        if (this.sourceModel === this.sourceOptions.TXGNN) {
+            return this.txGnnColumnList;
+        }
+    }
+
     getDrugsTableGridColumns() {
         const headerCells = require('./ngbDrugsTable_header.tpl.html');
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
 
         const result = [];
-        const columnsList = this.drugsTableColumnList;
+        const columnsList = this.getColumnList();
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -133,10 +186,16 @@ export default class ngbDrugsTableController {
                     };
                     break;
                 case 'source':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: linkCell
-                    };
+                    if (this.sourceModel === this.sourceOptions.PHARM_GKB) {
+                        columnSettings = {
+                            ...columnSettings
+                        };
+                    } else {
+                        columnSettings = {
+                            ...columnSettings,
+                            cellTemplate: linkCell
+                        };
+                    }
                     break;
                 default:
                     columnSettings = {
@@ -151,17 +210,9 @@ export default class ngbDrugsTableController {
         return result;
     }
 
-    getRequest() {
-        return {
-            page: this.currentPage,
-            pageSize: this.pageSize
-        };
-    }
-
     async loadData () {
         this.loadingData = true;
-        const request = this.getRequest();
-        const results = await this.ngbDrugsTableService.postAssociatedDrugs(request)
+        const results = await this.ngbDrugsTableService.getDrugsResults()
             .then(success => {
                 if (success) {
                     return this.ngbDrugsTableService.drugsResults;

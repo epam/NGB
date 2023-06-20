@@ -1,5 +1,12 @@
 import {DataService} from '../data-service';
 
+const SOURCE = {
+    OPEN_TARGETS: 'OPEN_TARGETS',
+    TXGNN: 'TXGNN',
+    DGI_DB: 'DGI_DB',
+    PHARM_GKB: 'PHARM_GKB'
+};
+
 export class TargetDataService extends DataService {
 
     getTargetsResult(request) {
@@ -120,9 +127,24 @@ export class TargetDataService extends DataService {
         });
     }
 
-    postAssociatedDrugs(request) {
+    getDrugsResults(request, source) {
+        if (source === SOURCE.OPEN_TARGETS) {
+            return this.getOpenTargetsDrugs(request);
+        }
+        if (source === SOURCE.PHARM_GKB) {
+            return this.getPharmGKBDrugs(request);
+        }
+        if (source === SOURCE.DGI_DB) {
+            return this.getDGIdbDrugs(request);
+        }
+        if (source === SOURCE.TXGNN) {
+            return this.getTxGNNDrugs(request);
+        }
+    }
+
+    getOpenTargetsDrugs(request) {
         return new Promise((resolve, reject) => {
-            this.post('target/associated/drugs', request)
+            this.post('target/opentargets/drugs', request)
                 .then(data => {
                     if (data && data.items) {
                         resolve([data.items, data.totalCount]);
@@ -131,24 +153,141 @@ export class TargetDataService extends DataService {
                     }
                 })
                 .catch(error => {
-                    const message = 'Error getting associated drugs';
+                    const message = 'Error getting drugs from Open Targets';
                     reject(new Error((error && error.message) || message));
                 });
         });
     }
 
-    postAssociatedDiseases(request, source) {
+    getPharmGKBDrugs(request) {
         return new Promise((resolve, reject) => {
-            this.post(`target/associated/diseases?source=${source}`, request)
+            this.post('target/pharmgkb/drugs', request)
                 .then(data => {
-                    if (data && data.length) {
-                        resolve([data, data.length]);
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
                     } else {
-                        resolve([[], 0]);
+                        resolve([[], data.totalCount]);
                     }
                 })
                 .catch(error => {
-                    const message = 'Error getting associated diseases';
+                    const message = 'Error getting drugs from PharmGKB';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getDGIdbDrugs(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/dgidb/drugs', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting drugs from DGIdb';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getTxGNNDrugs(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/txgnn/drugs', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting drugs from TxGNN';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getDiseasesResults(request, source) {
+        if (source === SOURCE.OPEN_TARGETS) {
+            return this.getOpenTargetsDiseases(request);
+        }
+        if (source === SOURCE.PHARM_GKB) {
+            return this.getPharmGKBDiseases(request);
+        }
+        if (source === SOURCE.DGI_DB) {
+            return this.getDGIdbDiseases(request);
+        }
+        if (source === SOURCE.TXGNN) {
+            return this.getTxGNNDiseases(request);
+        }
+    }
+
+    getOpenTargetsDiseases(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/opentargets/diseases', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases from Open Targets';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getPharmGKBDiseases(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/pharmgkb/diseases', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases from PharmGKB';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getDGIdbDiseases(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/dgidb/diseases', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases from DGIdb';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getTxGNNDiseases(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/txgnn/diseases', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases from TxGNN';
                     reject(new Error((error && error.message) || message));
                 });
         });

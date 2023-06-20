@@ -44,8 +44,17 @@ export default class ngbDiseasesTableController {
         return 'ngbDiseasesTableController';
     }
 
-    constructor($scope, $timeout, ngbDiseasesTableService) {
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService) {
         Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
+
+        const diseasesSourceChanged = this.sourceChanged.bind(this);
+        const drugsSourceChanged = this.resetDiseasesData.bind(this);
+        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
+        dispatcher.on('drugs:source:changed', drugsSourceChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
+            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
+        });
     }
 
     get totalPages() {
@@ -82,6 +91,10 @@ export default class ngbDiseasesTableController {
         this.ngbDiseasesTableService.sortInfo = value;
     }
 
+    resetDiseasesData() {
+        this.ngbDiseasesTableService.resetDiseasesData();
+    }
+
     $onInit() {
         this.initialize();
     }
@@ -102,6 +115,12 @@ export default class ngbDiseasesTableController {
         } else {
             await this.loadData();
         }
+    }
+
+    async sourceChanged() {
+        this.resetDiseasesData();
+        this.initialize();
+        this.$timeout(::this.$scope.$apply);
     }
 
     getDiseasesTableGridColumns() {
@@ -151,7 +170,7 @@ export default class ngbDiseasesTableController {
 
     async loadData () {
         this.loadingData = true;
-        const results = await this.ngbDiseasesTableService.postAssociatedDiseases()
+        const results = await this.ngbDiseasesTableService.getDiseasesResults()
             .then(success => {
                 if (success) {
                     return this.ngbDiseasesTableService.diseasesResults;

@@ -96,7 +96,7 @@ export default class ngbDiseasesTableService {
         this.dispatcher.on('reset:identification:data', this.resetDiseasesData.bind(this));
     }
 
-    get targetIds() {
+    get geneIds() {
         const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
         return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
     }
@@ -131,15 +131,15 @@ export default class ngbDiseasesTableService {
         return {
             page: this.currentPage,
             pageSize: this.pageSize,
-            targetIds: this.targetIds,
+            geneIds: this.geneIds,
         };
     }
 
-    postAssociatedDiseases() {
+    getDiseasesResults() {
         const request = this.getRequest();
         const source = this.ngbKnownDrugsPanelService.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.postAssociatedDiseases(request, source)
+            this.targetDataService.getDiseasesResults(request, source)
                 .then(([data, totalCount]) => {
                     this._failedResult = false;
                     this._errorMessageList = null;

@@ -89,37 +89,71 @@ export default class ngbDrugsTableService {
         this._sortInfo = value;
     }
 
-    static instance (dispatcher, ngbTargetPanelService, targetDataService,) {
-        return new ngbDrugsTableService(dispatcher, ngbTargetPanelService, targetDataService);
+    static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService,) {
+        return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
+    constructor(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService});
         this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
     }
 
-    get targetIds() {
+    get geneIds() {
         const {interest, translational} = this.ngbTargetPanelService.identificationTarget || {};
         return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
     }
 
     setDrugsResult(result) {
-        this._drugsResults = result.map(item => ({
-            drug: item.drug,
-            type: item.drugType,
-            'mechanism of action': item.mechanismOfAction,
-            'action type': item.actionType,
-            disease: item.disease,
-            phase: `Phase ${romanize(item.phase)}`,
-            status: item.status,
-            source: item.source
-        }));
+        const source = this.ngbKnownDrugsPanelService.sourceModel;
+        const sourceOptions = this.ngbKnownDrugsPanelService.sourceOptions;
+
+        if (source === sourceOptions.OPEN_TARGETS) {
+            this._drugsResults = result.map(item => ({
+                drug: item.drug,
+                type: item.drugType,
+                'mechanism of action': item.mechanismOfAction,
+                'action type': item.actionType,
+                disease: item.disease,
+                phase: `Phase ${romanize(item.phase)}`,
+                status: item.status,
+                source: item.source
+            }));
+        }
+        if (source === sourceOptions.PHARM_GKB) {
+            this._drugsResults = result.map(item => ({
+                'drug id': item.drugId,
+                'drug name': item.drugName,
+                'gene id': item.geneId,
+                'Source': item.source
+            }));
+        }
+        if (source === sourceOptions.DGI_DB) {
+            'drug name', 'entrez id', 'gene name', ''
+            this._drugsResults = result.map(item => ({
+                'drug name': item.drugName,
+                'entrez id': item.entrezId,
+                'gene name': item.geneName,
+                'interaction claim source': item.interactionClaimSource
+            }));
+        }
+        if (source === sourceOptions.TXGNN) {
+            this._drugsResults = [];
+        }
     }
 
-    postAssociatedDrugs(request) {
-        request.targetIds = this.targetIds;
+    getRequest() {
+        return {
+            page: this.currentPage,
+            pageSize: this.pageSize,
+            geneIds: this.geneIds,
+        };
+    }
+
+    getDrugsResults() {
+        const request = this.getRequest();
+        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.postAssociatedDrugs(request)
+            this.targetDataService.getDrugsResults(request, source)
                 .then(([data, totalCount]) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
