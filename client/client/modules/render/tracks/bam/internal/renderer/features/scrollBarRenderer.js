@@ -7,7 +7,7 @@ export function renderScrollBar(canvasSize, positionInfo, drawingConfig, feature
     const scrollBarHeight = containerHeight * ((end - start) / total);
     let scrollBarFrame = null;
     graphics && graphics.clear();
-    if (!features.alignments || viewport.actualBrushSize > maximumRange) {
+    if (!features || !features.alignments || viewport.actualBrushSize > maximumRange) {
         return;
     }
     if (graphics && (end - start < total)) {

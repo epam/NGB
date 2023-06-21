@@ -1,4 +1,17 @@
 {
-  "presets": ["es2015", "stage-0"],
-  "plugins": ["syntax-flow", "transform-flow-strip-types"]
+  "presets": [
+    "@babel/preset-flow",
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "regenerator": true
+      }
+    ],
+    "@babel/plugin-transform-flow-strip-types",
+    "@babel/plugin-proposal-function-bind",
+    "@babel/plugin-proposal-export-default-from"
+  ]
 }

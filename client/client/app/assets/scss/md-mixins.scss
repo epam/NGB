@@ -266,7 +266,7 @@
 
 @function get-vw($target, $max-width) {
   $vw-context: ($max-width * .01) * 1px; // 1% viewport width
-  @return ($target/$vw-context) * 1vw;
+  @return (calc($target/$vw-context)) * 1vw;
 }
 
 @mixin font-size-vw($size, $min-size, $max-width, $min-width) {

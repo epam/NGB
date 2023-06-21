@@ -1182,7 +1182,8 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         const zoneNames = [`${gene.name} transcripts`];
 
         const borderMargin = 5;
-        const transcriptLegendLabel = new PIXI.Text(`${gene.name.toUpperCase()} TRANSCRIPTS : ${gene.selectedTranscript.name.toUpperCase()} selected`, this.config.transcript.mainLabel);
+        const selectedTranscriptName = gene.selectedTranscript.name || gene.selectedTranscript.id || 'transcript';
+        const transcriptLegendLabel = new PIXI.Text(`${gene.name.toUpperCase()} TRANSCRIPTS : ${selectedTranscriptName.toUpperCase()} selected`, this.config.transcript.mainLabel);
         transcriptLegendLabel.resolution = drawingConfiguration.resolution;
         transcriptLegendLabel.x = Math.round(this._mainOffset + borderMargin * 2);
         transcriptLegendLabel.y = Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel') - transcriptLegendLabel.height / 2);

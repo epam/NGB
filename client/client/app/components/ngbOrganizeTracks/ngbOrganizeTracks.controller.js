@@ -92,6 +92,10 @@ export default class ngbOrganizeTracksController extends baseController {
         });
     }
 
+    $onInit() {
+        this.gridOptions.data = this.organizeTracks;
+    }
+
     getCustomName(track) {
         if (track && track.bioDataItemId) {
             return this.trackNamingService.getCustomName(track);

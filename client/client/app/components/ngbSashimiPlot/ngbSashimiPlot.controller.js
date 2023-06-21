@@ -39,7 +39,9 @@ export default class ngbSashimiPlotController extends baseController{
         this.localDataService = localDataService;
         this.trackNamingService = trackNamingService;
         this.refreshTracksScope = () => $scope.$apply();
+    }
 
+    $onInit() {
         (async() => {
             await this.INIT();
             this.refreshTracksScope();

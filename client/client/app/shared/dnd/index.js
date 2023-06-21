@@ -213,8 +213,6 @@ export default angular.module('dndLists', [])
                 newPos,
                 applyElementStyle
             });
-
-            process.nextTick(completeInit);
         });
     })
 
