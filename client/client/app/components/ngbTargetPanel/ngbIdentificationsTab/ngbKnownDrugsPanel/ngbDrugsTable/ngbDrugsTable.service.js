@@ -36,6 +36,8 @@ export default class ngbDrugsTableService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+    _filterInfo = null;
+    fieldList = {};
 
     _loadingData = false;
     _failedResult = false;
@@ -88,6 +90,12 @@ export default class ngbDrugsTableService {
     set sortInfo(value) {
         this._sortInfo = value;
     }
+    get filterInfo() {
+        return this._filterInfo;
+    }
+    set filterInfo(value) {
+        this._filterInfo = value;
+    }
 
     static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService,) {
         return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
@@ -104,7 +112,17 @@ export default class ngbDrugsTableService {
 
     get geneIds() {
         const {interest, translational} = this.identificationTarget;
-        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        if (!this._filterInfo || !this._filterInfo.target) {
+            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        }
+        if (this._filterInfo.target) {
+            return [...interest
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(i => i.geneId),
+                ...translational
+                    .filter(i => this._filterInfo.target.includes(i.chip))
+                    .map(t => t.geneId)];
+        }
     }
 
     getTarget(id) {
@@ -157,6 +175,21 @@ export default class ngbDrugsTableService {
         }
     }
 
+    setFieldList() {
+        const {interest, translational} = this.identificationTarget;
+        this.fieldList = {
+            target: [...interest.map(i => i.chip), ...translational.map(t => t.chip)],
+            disease: []
+        };
+        this.dispatcher.emitSimpleEvent('drugs:filters:list');
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        filter[field] = value;
+        this._filterInfo = filter;
+    }
+
     getRequest() {
         return {
             page: this.currentPage,
@@ -167,6 +200,12 @@ export default class ngbDrugsTableService {
 
     getDrugsResults() {
         const request = this.getRequest();
+        if (!request.geneIds || !request.geneIds.length) {
+            return new Promise(resolve => {
+                this._loadingData = false;
+                resolve(true);
+            });
+        }
         const source = this.ngbKnownDrugsPanelService.sourceModel.name;
         return new Promise(resolve => {
             this.targetDataService.getDrugsResults(request, source)
@@ -195,6 +234,7 @@ export default class ngbDrugsTableService {
         this._currentPage = 1;
         this._totalPages = 0;
         this._sortInfo = null;
+        this._filterInfo = null;
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;

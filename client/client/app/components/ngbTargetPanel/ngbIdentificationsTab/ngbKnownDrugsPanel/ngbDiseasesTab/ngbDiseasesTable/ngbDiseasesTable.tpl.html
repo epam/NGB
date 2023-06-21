@@ -16,14 +16,14 @@
             ui-grid-save-state
             ui-grid-pinning
             class="diseases-table">
+        <div class="empty-container"
+             ng-if="$ctrl.emptyResults">
+           <md-content class="no-records-warning"
+                       flex>
+               <span>No records found.</span>
+           </md-content>
+       </div>
     </div>
-</div>
-<div class="empty-container"
-     ng-if="$ctrl.emptyResults">
-    <md-content class="no-records-warning"
-                flex>
-        <span>No records found.</span>
-    </md-content>
 </div>
 <ngb-table-pagination ng-if="$ctrl.totalPages > 1"
                       total-pages="$ctrl.totalPages"

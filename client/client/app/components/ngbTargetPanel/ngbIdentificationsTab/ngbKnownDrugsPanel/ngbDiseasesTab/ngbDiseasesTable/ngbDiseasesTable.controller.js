@@ -45,15 +45,18 @@ export default class ngbDiseasesTableController {
     }
 
     constructor($scope, $timeout, dispatcher, ngbDiseasesTableService) {
-        Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbDiseasesTableService});
 
         const diseasesSourceChanged = this.sourceChanged.bind(this);
         const drugsSourceChanged = this.resetDiseasesData.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
         dispatcher.on('diseases:source:changed', diseasesSourceChanged);
         dispatcher.on('drugs:source:changed', drugsSourceChanged);
+        dispatcher.on('diseases:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
             dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
+            dispatcher.removeListener('diseases:filters:changed', filterChanged);
         });
     }
 
@@ -90,9 +93,16 @@ export default class ngbDiseasesTableController {
     set sortInfo(value) {
         this.ngbDiseasesTableService.sortInfo = value;
     }
+    get filterInfo() {
+        return this.ngbDiseasesTableService.filterInfo;
+    }
+    set filterInfo(value) {
+        this.ngbDiseasesTableService.filterInfo = value;
+    }
 
     resetDiseasesData() {
         this.ngbDiseasesTableService.resetDiseasesData();
+        this.dispatcher.emit('diseases:filters:reset');
     }
 
     $onInit() {
@@ -114,6 +124,7 @@ export default class ngbDiseasesTableController {
             this.gridOptions.data = this.ngbDiseasesTableService.diseasesResults;
         } else {
             await this.loadData();
+            this.ngbDiseasesTableService.setFieldList();
         }
     }
 
@@ -124,8 +135,8 @@ export default class ngbDiseasesTableController {
     }
 
     getDiseasesTableGridColumns() {
-        const headerCells = require('../../cellTemplates/ngbDrugs&DiseasesTable_header.tpl.html');
-        const linkCell = require('../../cellTemplates/ngbDrugs&DiseasesTable_linkCell.tpl.html');
+        const headerCells = require('./ngbDiseasesTable_header.tpl.html');
+        const linkCell = require('./ngbDiseasesTable_linkCell.tpl.html');
         const colorCell = require('./ngbDiseasesTable_colorCell.tpl.html');
 
         const result = [];
@@ -157,6 +168,7 @@ export default class ngbDiseasesTableController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell,
+                        enableFiltering: true,
                         minWidth: 200
                     };
                     break;
@@ -199,6 +211,17 @@ export default class ngbDiseasesTableController {
         } else {
             this.sortInfo = null;
         }
+        this.currentPage = 1;
+        this.gridOptions.data = [];
+        await this.loadData();
+        this.$timeout(::this.$scope.$apply);
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();

@@ -1,7 +1,12 @@
 export default class ngbIdentificationsTabController {
 
     isOpen = {
-        drugs: false
+        drugs: false,
+        description: false,
+        sequences: false,
+        genomics: false,
+        structure: false,
+        bibliography: false
     }
 
     static get UID() {

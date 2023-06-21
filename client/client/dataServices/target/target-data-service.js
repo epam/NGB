@@ -166,7 +166,7 @@ export class TargetDataService extends DataService {
                     if (data && data.items) {
                         resolve([data.items, data.totalCount]);
                     } else {
-                        resolve([[], data.totalCount]);
+                        resolve([[], data.totalCount || 0]);
                     }
                 })
                 .catch(error => {
