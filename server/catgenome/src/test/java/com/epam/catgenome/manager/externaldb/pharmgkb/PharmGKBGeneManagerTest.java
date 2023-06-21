@@ -56,7 +56,7 @@ public class PharmGKBGeneManagerTest extends TestCase {
 
     @Test
     public void searchGenesTest() throws IOException, ParseException {
-        final List<String> geneIds = Arrays.asList("503538", "29974");
+        final List<String> geneIds = Arrays.asList("PA267", "PA374");
         final List<PharmGKBGene> genes = manager.search(geneIds);
         assertEquals(2, genes.size());
     }

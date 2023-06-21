@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.externaldb.dgidb;
 
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -70,11 +69,10 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(1)
-                .pageSize(10)
-                .geneIds(ENTREZ_IDS)
-                .build();
+        final DGIDBDrugSearchRequest request = new DGIDBDrugSearchRequest();
+        request.setGeneIds(ENTREZ_IDS);
+        request.setPage(1);
+        request.setPageSize(10);
         final SearchResult<DGIDBDrugAssociation> result = manager.search(request);
         assertEquals(ENTRIES_COUNT, result.getTotalCount().intValue());
     }

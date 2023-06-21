@@ -32,12 +32,12 @@ import lombok.Setter;
 @Builder
 public class DrugAssociation {
     private UrlEntity drug;
-    private String targetId;
+    private String geneId;
     private UrlEntity disease;
     private String drugType;
     private String mechanismOfAction;
     private String actionType;
     private String phase;
     private String status;
-    private Source source;
+    private UrlEntity source;
 }

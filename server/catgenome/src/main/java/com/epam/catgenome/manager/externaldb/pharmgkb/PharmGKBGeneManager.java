@@ -27,10 +27,10 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
+import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -71,7 +71,7 @@ public class PharmGKBGeneManager {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
-            final Query query = getByEntrezIdsQuery(ids);
+            final Query query = getByPharmIdsQuery(ids);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, ids.size());
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -109,8 +109,7 @@ public class PharmGKBGeneManager {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 PharmGKBGene entry = PharmGKBGene.builder()
                         .pharmGKBId(cells[0].trim())
-                        .entrezId(cells[1].trim())
-                        .geneName(cells[3].trim())
+                        .geneId(cells[3].trim())
                         .build();
                 entries.add(entry);
             }
@@ -121,8 +120,7 @@ public class PharmGKBGeneManager {
     @Getter
     private enum IndexFields {
         PHARMGKB_ID("PharmGKB_Accession_Id"),
-        ENTREZ_ID("NCBI_Gene_ID"),
-        GENE_NAME("name");
+        GENE_ID("Ensembl_Id");
         private final String fieldName;
 
         IndexFields(String fieldName) {
@@ -131,26 +129,24 @@ public class PharmGKBGeneManager {
     }
 
     private static void addDoc(final IndexWriter writer, final PharmGKBGene entry) throws IOException {
-        final Document doc = new Document();
-        doc.add(new TextField(IndexFields.PHARMGKB_ID.getFieldName(),
-                String.valueOf(entry.getPharmGKBId()), Field.Store.YES));
-        doc.add(new StringField(IndexFields.ENTREZ_ID.getFieldName(),
-                String.valueOf(entry.getEntrezId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.GENE_NAME.getFieldName(),
-                String.valueOf(entry.getGeneName()), Field.Store.YES));
-        writer.addDocument(doc);
+        final String geneId = entry.getGeneId();
+        if (!TextUtils.isBlank(geneId)) {
+            final Document doc = new Document();
+            doc.add(new TextField(IndexFields.PHARMGKB_ID.getFieldName(), entry.getPharmGKBId(), Field.Store.YES));
+            doc.add(new TextField(IndexFields.GENE_ID.getFieldName(), entry.getGeneId(), Field.Store.YES));
+            writer.addDocument(doc);
+        }
     }
 
     private static PharmGKBGene entryFromDoc(final Document doc) {
         return PharmGKBGene.builder()
                 .pharmGKBId(doc.getField(IndexFields.PHARMGKB_ID.getFieldName()).stringValue())
-                .entrezId(doc.getField(IndexFields.ENTREZ_ID.getFieldName()).stringValue())
-                .geneName(doc.getField(IndexFields.GENE_NAME.getFieldName()).stringValue())
+                .geneId(doc.getField(IndexFields.GENE_ID.getFieldName()).stringValue())
                 .build();
     }
 
-    private static Query getByEntrezIdsQuery(final List<String> ids)
+    private static Query getByPharmIdsQuery(final List<String> ids)
             throws ParseException {
-        return getByIdsQuery(ids, IndexFields.ENTREZ_ID.getFieldName());
+        return getByIdsQuery(ids, IndexFields.PHARMGKB_ID.getFieldName());
     }
 }

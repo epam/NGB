@@ -131,12 +131,9 @@ public class PharmGKBDrugManager {
 
     private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(),
-                String.valueOf(entry.getDrugId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(),
-                String.valueOf(entry.getDrugName()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.SOURCE.getFieldName(),
-                String.valueOf(entry.getSource()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getDrugId(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getDrugName(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.SOURCE.getFieldName(), entry.getSource(), Field.Store.YES));
         writer.addDocument(doc);
     }
 

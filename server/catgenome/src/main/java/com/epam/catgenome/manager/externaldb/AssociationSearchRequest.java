@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.opentarget;
+package com.epam.catgenome.manager.externaldb;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,12 +29,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Source {
-    private String name;
-    private String url;
+@NoArgsConstructor
+@Builder
+public class AssociationSearchRequest {
+    private List<String> geneIds;
+    private Integer page;
+    private Integer pageSize;
 }

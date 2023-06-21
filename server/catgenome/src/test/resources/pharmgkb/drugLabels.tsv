@@ -4,3 +4,7 @@ PA166269301	Annotation of FDA Label for maralixibat and JAG1	FDA	On FDA Biomarke
 PA166269701	Annotation of EMA Label for glycerol phenylbutyrate and ARG1, ASL, ASS1, CPS1, OTC	EMA	On FDA Biomarker List	Testing required						glycerol phenylbutyrate	ARG1; ASL; ASS1; CPS1; OTC
 PA166273262	Annotation of EMA Label for ospemifene and CYP2B6	EMA		Informative PGx						ospemifene	CYP2B6
 PA166273261	Annotation of EMA Label for ospemifene and CYP2C9	EMA		Actionable PGx	Prescribing Info				Prescribing	ospemifene	CYP2C9
+PA166123409	Annotation of EMA Label for aliskiren and ABCB1	EMA		Informative PGx						aliskiren	ABCB1		2019-12-04
+PA166159586	Annotation of HCSC Label for aliskiren and ABCB1	HCSC		Informative PGx						aliskiren	ABCB1
+PA166269742	Annotation of EMA Label for odevixibat and ABCB11	EMA	On FDA Biomarker List	Actionable PGx						odevixibat	ABCB11
+PA166268902	Annotation of FDA Label for odevixibat and ABCB11	FDA	On FDA Biomarker List	Actionable PGx						odevixibat	ABCB11

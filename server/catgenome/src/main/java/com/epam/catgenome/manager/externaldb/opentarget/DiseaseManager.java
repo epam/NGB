@@ -186,7 +186,7 @@ public class DiseaseManager {
                 .build();
     }
 
-    private static String getDiseaseUrl(final String diseaseId) {
+    public static String getDiseaseUrl(final String diseaseId) {
         return String.format(OPEN_TARGETS_DISEASE_URL_PATTERN, diseaseId);
     }
 

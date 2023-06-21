@@ -26,13 +26,13 @@ package com.epam.catgenome.manager.externaldb.dgidb;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.epam.catgenome.util.FileFormat;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -43,9 +43,12 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -64,6 +67,7 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
+@RequiredArgsConstructor
 public class DGIDBDrugAssociationManager {
 
     private static final int COLUMNS = 11;
@@ -74,7 +78,7 @@ public class DGIDBDrugAssociationManager {
     @Value("${targets.top.hits:10000}")
     private int targetsTopHits;
 
-    public SearchResult<DGIDBDrugAssociation> search(final AssociationSearchRequest request)
+    public SearchResult<DGIDBDrugAssociation> search(final DGIDBDrugSearchRequest request)
             throws IOException, ParseException {
         final List<DGIDBDrugAssociation> entries = new ArrayList<>();
         final SearchResult<DGIDBDrugAssociation> searchResult = new SearchResult<>();
@@ -88,7 +92,8 @@ public class DGIDBDrugAssociationManager {
 
             final Query query = getByEntrezIdsQuery(request.getGeneIds());
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, hits);
+            final Sort sort = getSort(request);
+            TopDocs topDocs = searcher.search(query, hits, sort);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -144,7 +149,6 @@ public class DGIDBDrugAssociationManager {
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 DGIDBDrugAssociation entry = DGIDBDrugAssociation.builder()
-                        .geneName(cells[0].trim())
                         .entrezId(getCellValue(cells, 2))
                         .interactionClaimSource(getCellValue(cells, 3))
                         .interactionTypes(getCellValue(cells, 4))
@@ -161,49 +165,46 @@ public class DGIDBDrugAssociationManager {
         return cells.length >= x + 1 ? cells[x].trim() : null;
     }
 
-    @Getter
-    private enum IndexFields {
-        GENE_NAME("gene_name"),
-        ENTREZ_ID("entrez_id"),
-        DRUG_NAME("drug_name"),
-        INTERACTION_TYPES("interaction_types"),
-        INTERACTION_CLAIM_SOURCE("interaction_claim_source");
-        private final String fieldName;
-
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
-        }
-    }
-
     private static void addDoc(final IndexWriter writer, final DGIDBDrugAssociation entry) throws IOException {
         if (!TextUtils.isBlank(entry.getEntrezId()) && !TextUtils.isBlank(entry.getDrugName())) {
             final Document doc = new Document();
-            doc.add(new TextField(IndexFields.GENE_NAME.getFieldName(),
-                    String.valueOf(entry.getGeneName()), Field.Store.YES));
-            doc.add(new StringField(IndexFields.ENTREZ_ID.getFieldName(),
-                    String.valueOf(entry.getEntrezId()), Field.Store.YES));
-            doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(),
-                    String.valueOf(entry.getDrugName()), Field.Store.YES));
-            doc.add(new TextField(IndexFields.INTERACTION_TYPES.getFieldName(),
-                    String.valueOf(entry.getInteractionTypes()), Field.Store.YES));
-            doc.add(new TextField(IndexFields.INTERACTION_CLAIM_SOURCE.getFieldName(),
-                    String.valueOf(entry.getInteractionClaimSource()), Field.Store.YES));
+
+            doc.add(new StringField(DGIDBDrugField.GENE_ID.getName(), entry.getEntrezId(), Field.Store.YES));
+
+            doc.add(new TextField(DGIDBDrugField.DRUG_NAME.getName(), entry.getDrugName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBDrugField.DRUG_NAME.getName(), new BytesRef(entry.getDrugName())));
+
+            doc.add(new TextField(DGIDBDrugField.INTERACTION_TYPES.getName(),
+                    entry.getInteractionTypes(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBDrugField.INTERACTION_TYPES.getName(),
+                    new BytesRef(entry.getInteractionTypes())));
+
+            doc.add(new TextField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName(),
+                    entry.getInteractionClaimSource(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName(),
+                    new BytesRef(entry.getInteractionClaimSource())));
             writer.addDocument(doc);
         }
     }
 
     private static DGIDBDrugAssociation entryFromDoc(final Document doc) {
         return DGIDBDrugAssociation.builder()
-                .geneName(doc.getField(IndexFields.GENE_NAME.getFieldName()).stringValue())
-                .entrezId(doc.getField(IndexFields.ENTREZ_ID.getFieldName()).stringValue())
-                .drugName(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
-                .interactionTypes(doc.getField(IndexFields.INTERACTION_TYPES.getFieldName()).stringValue())
-                .interactionClaimSource(doc.getField(IndexFields.INTERACTION_CLAIM_SOURCE.getFieldName()).stringValue())
+                .entrezId(doc.getField(DGIDBDrugField.GENE_ID.getName()).stringValue())
+                .drugName(doc.getField(DGIDBDrugField.DRUG_NAME.getName()).stringValue())
+                .interactionTypes(doc.getField(DGIDBDrugField.INTERACTION_TYPES.getName()).stringValue())
+                .interactionClaimSource(doc.getField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName()).stringValue())
                 .build();
     }
 
     private static Query getByEntrezIdsQuery(final List<String> ids)
             throws ParseException {
-        return getByIdsQuery(ids, IndexFields.ENTREZ_ID.getFieldName());
+        return getByIdsQuery(ids, DGIDBDrugField.GENE_ID.getName());
+    }
+
+    private static Sort getSort(final DGIDBDrugSearchRequest request) {
+        final SortField sortField = request.getOrderBy() == null ?
+                new SortField(DGIDBDrugField.getDefault(), SortField.Type.STRING, false) :
+                new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
+        return new Sort(sortField);
     }
 }
