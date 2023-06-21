@@ -189,15 +189,6 @@ export default class ngbCoordinatesController extends baseController {
         }
     }
 
-    preventGoldenLayoutPanelDrag(event) {
-        for (let i = 0; i < event.originalEvent.path.length; i++) {
-            if ($(event.originalEvent.path[i]).hasClass('coordinates-menu-item')) {
-                return;
-            }
-        }
-        event.stopImmediatePropagation();
-    }
-
     async searchGenes(text) {
         if (!this.projectContext.reference) {
             return;

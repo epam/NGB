@@ -68,10 +68,11 @@ npmSetup.dependsOn clean
 
 task buildUI(type: NpmTask) {
     dependsOn npmInstall
-    args = ['run', 'build:prod', '--', '--publicPath', clientPath]
+    environment = ['PUBLIC_URL': clientPath]
+    args = ['run', 'build:prod']
     if (desktop) {
         println "Building NGB Desktop UI"
-        args << '--desktop'
+        args = ['run', 'build:desktop']
     }
     doLast {
         println()

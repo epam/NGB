@@ -18,7 +18,7 @@ import ngbBookmark from './ngbBookmark';
 import ngbUserManagement from '../ngbUserManagement';
 
 let dependncies;
-if (__DESKTOP__) { // in desktop mode no shareLink components are needed
+if (process.env.__DESKTOP__) { // in desktop mode no shareLink components are needed
     dependncies = [ngbVersion, ngbToolWindows, ngbInfoProduct, ngbBookmark, ngbOpenFile, ngbUserManagement, dataServices];
 } else {
     dependncies = [ngbVersion, ngbShareLink, ngbShareLinkMenu, ngbToolWindows, ngbInfoProduct, ngbBookmark, ngbOpenFile, ngbUserManagement, dataServices];
