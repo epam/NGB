@@ -135,8 +135,8 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                 function getIdentificationData(scope) {
                     const params = {
                         targetId: target.id,
-                        genesOfInterest:  scope.genesOfInterest.map(s => s.taxId),
-                        translationalGenes: scope.translationalGenes.map(s => s.taxId)
+                        genesOfInterest:  scope.genesOfInterest.map(s => s.geneId),
+                        translationalGenes: scope.translationalGenes.map(s => s.geneId)
                     };
                     const info = {
                         target: target,
