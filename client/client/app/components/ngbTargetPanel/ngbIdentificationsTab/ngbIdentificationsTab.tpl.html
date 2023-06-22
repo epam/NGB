@@ -72,8 +72,14 @@
                     DESCRIPTION
                 </collapsible-panel-title>
                 <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                        {{$ctrl.description}}
+                    <div class="description-content"
+                         layout="column"
+                         layout-align="stretch middle"
+                         flex="100">
+                        <div ng-repeat="item in $ctrl.descriptions track by $index">
+                            <h5>{{item.title}}</h5>
+                            <div class="description-value">{{item.value}}</div>
+                        </div>
                     </div>
                 </collapsible-panel-content>
             </collapsible-panel>

@@ -13,8 +13,13 @@ export default class ngbIdentificationsTabController {
         return 'ngbIdentificationsTabController';
     }
 
-    constructor(dispatcher, ngbTargetPanelService) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService});
+    constructor($scope, $timeout, dispatcher, ngbTargetPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetPanelService});
+        this.dispatcher.on('description:is:assigned', this.refresh.bind(this));
+    }
+
+    refresh() {
+        this.$timeout(::this.$scope.$apply);
     }
 
     get identificationData () {
@@ -36,15 +41,12 @@ export default class ngbIdentificationsTabController {
         return target && target.translational.map(i => i.chip).join(', ');
     }
 
-    get description() {
-        if (this.identificationData && this.identificationData.description) {
-            return Object.values(this.identificationData.description)[0];
-        }
-        return 'description';
+    get descriptions() {
+        return this.ngbTargetPanelService.descriptions;
     }
 
     get shortDescription() {
-        return `${this.description.substring(0, 150)}...`;
+        return `${this.descriptions[0].value.substring(0, 150)}...`;
     }
 
     get diseasesCount() {

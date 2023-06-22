@@ -127,13 +127,7 @@ export default class ngbDrugsTableService {
 
     getTarget(id) {
         if (!id) return;
-        const {interest, translational} = this.identificationTarget;
-        const genes = [...interest, ...translational]
-            .filter(gene => gene.geneId === id)
-            .map(gene => gene.chip);
-        if (genes && genes.length) {
-            return genes[0];
-        }
+        return this.ngbTargetPanelService.getChipByGeneId(id);
     }
 
     setDrugsResult(result) {
