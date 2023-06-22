@@ -277,6 +277,11 @@
         width: 15px;
         margin: 0 2px;
     }
+
+    md-select.md-default-theme:not([disabled]):focus .md-select-value,
+    md-select:not([disabled]):focus .md-select-value {
+        border-radius: 5px;
+    }
 }
 
 .priority-select {

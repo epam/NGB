@@ -110,12 +110,12 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
-        return new ngbTargetsTabService(dispatcher, ngbTargetPanelService, targetDataService);
+    static instance (dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        return new ngbTargetsTabService(dispatcher, ngbTargetPanelService, targetDataService, projectContext);
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
+    constructor(dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, projectContext});
     }
 
     setTableMode() {
@@ -295,26 +295,39 @@ export default class ngbTargetsTabService {
         });
     }
 
-    setGeneModel(index, field, value, isSelected) {
+    setGeneModel(index, field, value) {
         const geneFields = {
             featureId: 'geneId',
             featureName: 'geneName',
-            priority: 'priority'
+            priority: 'priority',
+            taxId: 'taxId',
+            speciesName: 'speciesName'
         };
         if (geneFields[field]) {
             this._targetModel.genes[index][geneFields[field]] = value;
-            if (isSelected) {
-                this._targetModel.genes[index].taxId = 9606;
-                this._targetModel.genes[index].speciesName = 'Homo sapiens';
-            }
         }
         this.dispatcher.emit('gene:model:updated');
     }
 
+    setSpeciesInfo(gene) {
+        if (gene.chromosome) {
+            const {referenceId} = gene.chromosome;
+            const species = this.projectContext.references
+                .filter(r => r.id === referenceId && r.species)
+                .map(r => r.species);
+            if (species.length) {
+                gene.taxId = species[0].taxId;
+                gene.speciesName = species[0].name;
+            }
+        }
+        return gene;
+    }
+
     selectedGeneChanged(gene, index) {
         if (gene) {
+            this.setSpeciesInfo(gene);
             for (const [key, value] of Object.entries(gene)) {
-                this.setGeneModel(index, key, value, true);
+                this.setGeneModel(index, key, value);
             }
         }
     }
