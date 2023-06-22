@@ -1,7 +1,6 @@
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
 const PHARM_GKB_COLUMNS = ['target', 'drug id', 'drug name', 'Source'];
 const DGI_DB_COLUMNS = ['drug name', 'entrez id', 'gene name', 'interaction claim source'];
-const TXGNN_COLUMNS = [];
 export default class ngbDrugsTableController {
 
     get openTargetsColumnList () {
@@ -12,9 +11,6 @@ export default class ngbDrugsTableController {
     }
     get dgiDbColumnList () {
         return DGI_DB_COLUMNS;
-    }
-    get txGnnColumnList () {
-        return TXGNN_COLUMNS;
     }
 
     gridOptions = {
@@ -156,9 +152,6 @@ export default class ngbDrugsTableController {
         }
         if (this.sourceModel === this.sourceOptions.DGI_DB) {
             return this.dgiDbColumnList;
-        }
-        if (this.sourceModel === this.sourceOptions.TXGNN) {
-            return this.txGnnColumnList;
         }
     }
 

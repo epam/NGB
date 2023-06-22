@@ -137,9 +137,6 @@ export class TargetDataService extends DataService {
         if (source === SOURCE.DGI_DB) {
             return this.getDGIdbDrugs(request);
         }
-        if (source === SOURCE.TXGNN) {
-            return this.getTxGNNDrugs(request);
-        }
     }
 
     getOpenTargetsDrugs(request) {
@@ -193,35 +190,12 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTxGNNDrugs(request) {
-        return new Promise((resolve, reject) => {
-            this.post('target/txgnn/drugs', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting drugs from TxGNN';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
-
     getDiseasesResults(request, source) {
         if (source === SOURCE.OPEN_TARGETS) {
             return this.getOpenTargetsDiseases(request);
         }
         if (source === SOURCE.PHARM_GKB) {
             return this.getPharmGKBDiseases(request);
-        }
-        if (source === SOURCE.DGI_DB) {
-            return this.getDGIdbDiseases(request);
-        }
-        if (source === SOURCE.TXGNN) {
-            return this.getTxGNNDiseases(request);
         }
     }
 
@@ -254,40 +228,6 @@ export class TargetDataService extends DataService {
                 })
                 .catch(error => {
                     const message = 'Error getting diseases from PharmGKB';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
-
-    getDGIdbDiseases(request) {
-        return new Promise((resolve, reject) => {
-            this.post('target/dgidb/diseases', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting diseases from DGIdb';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
-
-    getTxGNNDiseases(request) {
-        return new Promise((resolve, reject) => {
-            this.post('target/txgnn/diseases', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting diseases from TxGNN';
                     reject(new Error((error && error.message) || message));
                 });
         });

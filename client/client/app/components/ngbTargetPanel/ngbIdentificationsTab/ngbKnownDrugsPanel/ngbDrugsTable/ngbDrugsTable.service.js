@@ -164,9 +164,6 @@ export default class ngbDrugsTableService {
                 'interaction claim source': item.interactionClaimSource
             }));
         }
-        if (source === sourceOptions.TXGNN) {
-            this._drugsResults = [];
-        }
     }
 
     setFieldList() {
