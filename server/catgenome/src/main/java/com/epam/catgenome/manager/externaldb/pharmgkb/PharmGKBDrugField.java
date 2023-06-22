@@ -21,21 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target;
+
+package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.List;
-
-@Getter
-@Setter
 @AllArgsConstructor
-@Builder
-public class AssociationSearchRequest {
-    private List<String> geneIds;
-    private Integer page;
-    private Integer pageSize;
+@Getter
+public enum PharmGKBDrugField {
+    GENE_ID("geneId"),
+    DRUG_NAME("drugName"),
+    SOURCE("source");
+    private final String name;
+    public static String getDefault() {
+        return PharmGKBDrugField.DRUG_NAME.getName();
+    }
 }

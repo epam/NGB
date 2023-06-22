@@ -23,14 +23,18 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,19 +59,19 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
+    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
         return manager.getDGIDbDrugs(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final AssociationSearchRequest request)
-            throws ExternalDbUnavailableException, ParseException, IOException {
+    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
+            throws ParseException, IOException {
         return manager.getPharmGKBDrugs(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final AssociationSearchRequest request)
+    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final DrugSearchRequest request)
             throws IOException, ParseException {
         return manager.getOpenTargetsDrugs(request);
     }
@@ -85,14 +89,17 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importOpenTargetsData(final String targetsPath, final String diseasesPath, final String drugsPath,
-                                      final String overallScoresPath, final String scoresPath) throws IOException {
+    public void importOpenTargetsData(final String targetsPath,
+                                      final String diseasesPath,
+                                      final String drugsPath,
+                                      final String overallScoresPath,
+                                      final String scoresPath) throws IOException, ParseException {
         manager.importOpenTargetsData(targetsPath, diseasesPath, drugsPath, overallScoresPath, scoresPath);
     }
 
     @PreAuthorize(ROLE_ADMIN)
     public void importPharmGKBData(final String genePath, final String drugPath, final String drugAssociationPath)
-            throws IOException {
+            throws IOException, ParseException {
         manager.importPharmGKBData(genePath, drugPath, drugAssociationPath);
     }
 

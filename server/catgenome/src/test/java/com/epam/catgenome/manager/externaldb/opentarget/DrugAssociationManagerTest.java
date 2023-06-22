@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.externaldb.opentarget;
 
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -44,33 +43,36 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class DrugAssociationManagerTest extends TestCase {
 
-    private static final List<String> TARGET_IDS = Arrays.asList("ENSG00000007171", "ENSG00000006128");
+    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000167325", "ENSG00000136573");
     @Autowired
-    private DrugAssociationManager manager;
+    private DrugAssociationManager drugAssociationManager;
+    @Autowired
+    private DiseaseManager diseaseManager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
+        final String diseasesPath = context.getResource("classpath:opentargets//diseases").getFile().getPath();
         final String path = context.getResource("classpath:opentargets//drugs").getFile().getPath();
-        manager.importData(path);
+        diseaseManager.importData(diseasesPath);
+        drugAssociationManager.importData(path);
     }
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final long totalCount = manager.totalCount(TARGET_IDS);
-        assertEquals(1, totalCount);
+        final long totalCount = drugAssociationManager.totalCount(GENE_IDS);
+        assertEquals(2, totalCount);
     }
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(1)
-                .pageSize(3)
-                .geneIds(TARGET_IDS)
-                .build();
-        final SearchResult<DrugAssociation> result = manager.search(request);
-        assertEquals(1, result.getItems().size());
+        final DrugSearchRequest request = new DrugSearchRequest();
+        request.setPage(1);
+        request.setPageSize(3);
+        request.setGeneIds(GENE_IDS);
+        final SearchResult<DrugAssociation> result = drugAssociationManager.search(request);
+        assertEquals(2, result.getItems().size());
     }
 }

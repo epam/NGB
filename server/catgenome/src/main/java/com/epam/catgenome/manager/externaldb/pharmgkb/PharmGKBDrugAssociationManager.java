@@ -24,14 +24,17 @@
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -41,9 +44,12 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -55,12 +61,17 @@ import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
+@RequiredArgsConstructor
 public class PharmGKBDrugAssociationManager {
 
     @Value("${pharmgkb.drug.association.index.directory}")
@@ -68,11 +79,13 @@ public class PharmGKBDrugAssociationManager {
 
     @Value("${targets.top.hits:10000}")
     private int targetsTopHits;
+    private final PharmGKBGeneManager pharmGKBGeneManager;
+    private final PharmGKBDrugManager pharmGKBDrugManager;
 
-    public SearchResult<PharmGKBDrugAssociation> search(final AssociationSearchRequest request)
+    public SearchResult<PharmGKBDrug> search(final PharmGKBDrugSearchRequest request)
             throws IOException, ParseException {
-        final List<PharmGKBDrugAssociation> entries = new ArrayList<>();
-        final SearchResult<PharmGKBDrugAssociation> searchResult = new SearchResult<>();
+        final List<PharmGKBDrug> entries = new ArrayList<>();
+        final SearchResult<PharmGKBDrug> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -81,16 +94,17 @@ public class PharmGKBDrugAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByPharmGKBIdsQuery(request.getGeneIds());
+            final Query query = getByGeneIdsQuery(request.getGeneIds());
+            final Sort sort = getSort(request);
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, hits);
+            TopDocs topDocs = searcher.search(query, hits, sort);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
             final int to = Math.min(from + pageSize, scoreDocs.length);
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
-                PharmGKBDrugAssociation entry = entryFromDoc(doc);
+                PharmGKBDrug entry = entryFromDoc(doc);
                 entries.add(entry);
             }
             searchResult.setItems(entries);
@@ -102,31 +116,39 @@ public class PharmGKBDrugAssociationManager {
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByPharmGKBIdsQuery(ids);
+            final Query query = getByGeneIdsQuery(ids);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-            final List<PharmGKBDrugAssociation> entries = new ArrayList<>();
+            final List<PharmGKBDrug> entries = new ArrayList<>();
             for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
-                PharmGKBDrugAssociation entry = entryFromDoc(doc);
+                PharmGKBDrug entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            return entries.stream().map(PharmGKBDrugAssociation::getDrugId).distinct().count();
+            return entries.stream().map(PharmGKBDrug::getDrugId).distinct().count();
         }
     }
 
-    public void importData(final String path) throws IOException {
+    public void importData(final String path) throws IOException, ParseException {
         getFile(path);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (PharmGKBDrugAssociation entry: readEntries(path)) {
+            final List<PharmGKBDrugAssociation> entries = readEntries(path);
+            for (PharmGKBDrug entry: toPharmGKBDrugs(entries)) {
                 addDoc(writer, entry);
             }
         }
+    }
+
+    public void importData(final String genePath, final String drugPath, final String drugAssociationPath)
+            throws IOException, ParseException {
+        pharmGKBGeneManager.importData(genePath);
+        pharmGKBDrugManager.importData(drugPath);
+        importData(drugAssociationPath);
     }
 
     private List<PharmGKBDrugAssociation> readEntries(final String path) throws IOException {
@@ -156,32 +178,83 @@ public class PharmGKBDrugAssociationManager {
 
     @Getter
     private enum IndexFields {
-        PHARMGKB_ID("Gene_ID"),
-        DRUG_ID("Label_ID");
-        private final String fieldName;
+        GENE_ID("geneId"),
+        DRUG_NAME("drugName"),
+        DRUG_ID("drugId"),
+        SOURCE("source");
+        private final String name;
 
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
+        IndexFields(String name) {
+            this.name = name;
         }
     }
 
-    private static void addDoc(final IndexWriter writer, final PharmGKBDrugAssociation entry) throws IOException {
-        final Document doc = new Document();
-        doc.add(new TextField(IndexFields.PHARMGKB_ID.getFieldName(),
-                String.valueOf(entry.getPharmGKBGeneId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(),
-                String.valueOf(entry.getDrugId()), Field.Store.YES));
-        writer.addDocument(doc);
+    private List<PharmGKBDrug> toPharmGKBDrugs(final List<PharmGKBDrugAssociation> entries)
+            throws IOException, ParseException {
+        final Set<String> pharmGeneIds = entries.stream()
+                .map(PharmGKBDrugAssociation::getPharmGKBGeneId)
+                .collect(Collectors.toSet());
+        final List<PharmGKBGene> pharmGKBGenes = pharmGKBGeneManager.search(new ArrayList<>(pharmGeneIds));
+        final Map<String, String> genesMap = pharmGKBGenes.stream()
+                .collect(Collectors.toMap(PharmGKBGene::getPharmGKBId, PharmGKBGene::getGeneId));
+
+        final Set<String> drugIds = entries.stream()
+                .map(PharmGKBDrugAssociation::getDrugId)
+                .collect(Collectors.toSet());
+        final List<PharmGKBDrug> drugs = pharmGKBDrugManager.search(new ArrayList<>(drugIds));
+        final Map<String, PharmGKBDrug> drugsMap = drugs.stream()
+                .collect(Collectors.toMap(PharmGKBDrug::getDrugId, Function.identity()));
+        final List<PharmGKBDrug> result = new ArrayList<>();
+        for (PharmGKBDrugAssociation entry: entries) {
+            if (drugsMap.containsKey(entry.getDrugId())) {
+                PharmGKBDrug drug = drugsMap.get(entry.getDrugId());
+                PharmGKBDrug drugAssociation = PharmGKBDrug.builder()
+                        .geneId(genesMap.get(entry.getPharmGKBGeneId()))
+                        .drugId(entry.getDrugId())
+                        .drugName(drug.getDrugName())
+                        .source(drug.getSource())
+                        .build();
+                result.add(drugAssociation);
+            }
+        }
+        return result;
     }
 
-    private static PharmGKBDrugAssociation entryFromDoc(final Document doc) {
-        return PharmGKBDrugAssociation.builder()
-                .pharmGKBGeneId(doc.getField(IndexFields.PHARMGKB_ID.getFieldName()).stringValue())
-                .drugId(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
+    private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
+        final String geneId = entry.getGeneId();
+        if (geneId != null) {
+            final Document doc = new Document();
+            doc.add(new TextField(IndexFields.GENE_ID.getName(), geneId, Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getName(), new BytesRef(geneId)));
+
+            doc.add(new TextField(IndexFields.DRUG_ID.getName(), entry.getDrugId(), Field.Store.YES));
+
+            doc.add(new TextField(IndexFields.DRUG_NAME.getName(), entry.getDrugName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.getName(), new BytesRef(entry.getDrugName())));
+
+            doc.add(new TextField(IndexFields.SOURCE.getName(), entry.getSource(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexFields.SOURCE.getName(), new BytesRef(entry.getSource())));
+            writer.addDocument(doc);
+        }
+    }
+
+    private static PharmGKBDrug entryFromDoc(final Document doc) {
+        return PharmGKBDrug.builder()
+                .geneId(doc.getField(IndexFields.GENE_ID.getName()).stringValue())
+                .drugId(doc.getField(IndexFields.DRUG_ID.getName()).stringValue())
+                .drugName(doc.getField(IndexFields.DRUG_NAME.getName()).stringValue())
+                .source(doc.getField(IndexFields.SOURCE.getName()).stringValue())
                 .build();
     }
 
-    private static Query getByPharmGKBIdsQuery(final List<String> ids) throws ParseException {
-        return getByIdsQuery(ids, IndexFields.PHARMGKB_ID.getFieldName());
+    private static Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
+        return getByIdsQuery(ids, IndexFields.GENE_ID.getName());
+    }
+
+    private static Sort getSort(final PharmGKBDrugSearchRequest request) {
+        final SortField sortField = request.getOrderBy() == null ?
+                new SortField(PharmGKBDrugField.getDefault(), SortField.Type.STRING, false) :
+                new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
+        return new Sort(sortField);
     }
 }

@@ -26,9 +26,12 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
+import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
@@ -36,7 +39,7 @@ import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
@@ -163,7 +166,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(
-            @RequestBody final AssociationSearchRequest request) throws
+            @RequestBody final DGIDBDrugSearchRequest request) throws
             ParseException, IOException, ExternalDbUnavailableException {
         return Result.success(targetIdentificationSecurityService.getDGIDbDrugs(request));
     }
@@ -177,7 +180,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(
-            @RequestBody final AssociationSearchRequest request)
+            @RequestBody final PharmGKBDrugSearchRequest request)
             throws ParseException, IOException, ExternalDbUnavailableException {
         return Result.success(targetIdentificationSecurityService.getPharmGKBDrugs(request));
     }
@@ -191,7 +194,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DrugAssociation>> getOpenTargetsDrugs(
-            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
+            @RequestBody final DrugSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getOpenTargetsDrugs(request));
     }
 
@@ -231,11 +234,11 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importOpenTargetsData(
-            @RequestParam(required = false) final String targetsPath,
-            @RequestParam(required = false) final String diseasesPath,
-            @RequestParam(required = false) final String drugsPath,
-            @RequestParam(required = false) final String overallScoresPath,
-            @RequestParam(required = false) final String scoresPath) throws IOException {
+            @RequestParam final String targetsPath,
+            @RequestParam final String diseasesPath,
+            @RequestParam final String drugsPath,
+            @RequestParam final String overallScoresPath,
+            @RequestParam final String scoresPath) throws IOException, ParseException {
         targetIdentificationSecurityService.importOpenTargetsData(targetsPath, diseasesPath, drugsPath,
                 overallScoresPath, scoresPath);
         return Result.success(null);
@@ -263,9 +266,9 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importPharmGKBData(
-            @RequestParam(required = false) final String genePath,
-            @RequestParam(required = false) final String drugPath,
-            @RequestParam(required = false) final String drugAssociationPath) throws IOException {
+            @RequestParam final String genePath,
+            @RequestParam final String drugPath,
+            @RequestParam final String drugAssociationPath) throws IOException, ParseException {
         targetIdentificationSecurityService.importPharmGKBData(genePath, drugPath, drugAssociationPath);
         return Result.success(null);
     }

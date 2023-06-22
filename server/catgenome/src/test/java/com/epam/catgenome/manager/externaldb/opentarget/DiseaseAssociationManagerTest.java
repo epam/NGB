@@ -25,7 +25,7 @@ package com.epam.catgenome.manager.externaldb.opentarget;
 
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;

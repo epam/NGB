@@ -21,16 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.pharmgkb;
+package com.epam.catgenome.manager.externaldb.opentarget;
 
-import lombok.Builder;
+import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
-public class PharmGKBGene {
-    private String pharmGKBId;
-    private String geneId;
+@AllArgsConstructor
+@NoArgsConstructor
+public class DrugSearchRequest extends AssociationSearchRequest {
+    private DrugField orderBy;
+    private boolean reverse;
 }

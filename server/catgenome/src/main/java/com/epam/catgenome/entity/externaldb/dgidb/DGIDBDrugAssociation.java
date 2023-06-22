@@ -31,8 +31,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class DGIDBDrugAssociation {
+    private String geneId;
     private String entrezId;
-    private String geneName;
     private String drugName;
     private String interactionTypes;
     private String interactionClaimSource;

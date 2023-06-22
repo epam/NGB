@@ -23,9 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.target.AssociationSearchRequest;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -44,38 +43,43 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class PharmGKBDrugAssociationManagerTest extends TestCase {
 
-    private static final List<String> PHARM_GKB_IDS = Arrays.asList("PA267", "PA374");
+    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000085563", "ENSG00000073734");
     private static final int ENTRIES_COUNT = 4;
     private static final int ENTRIES_TOTAL_COUNT = 4;
 
     @Autowired
-    private PharmGKBDrugAssociationManager manager;
+    private PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
+    @Autowired
+    private PharmGKBGeneManager pharmGKBGeneManager;
+    @Autowired
+    private PharmGKBDrugManager pharmGKBDrugManager;
 
     @Autowired
     private ApplicationContext context;
 
-    private String fileName;
-
     @Before
     public void setUp() throws IOException, ParseException {
-        this.fileName = context.getResource("classpath:pharmgkb//drugLabels.byGene.tsv").getFile().getPath();
-        manager.importData(fileName);
+        final String genesPath = context.getResource("classpath:pharmgkb//genes.tsv").getFile().getPath();
+        pharmGKBGeneManager.importData(genesPath);
+        final String drugsPath = context.getResource("classpath:pharmgkb//drugLabels.tsv").getFile().getPath();
+        pharmGKBDrugManager.importData(drugsPath);
+        final String path = context.getResource("classpath:pharmgkb//drugLabels.byGene.tsv").getFile().getPath();
+        pharmGKBDrugAssociationManager.importData(path);
     }
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final long totalCount = manager.totalCount(PHARM_GKB_IDS);
+        final long totalCount = pharmGKBDrugAssociationManager.totalCount(GENE_IDS);
         assertEquals(ENTRIES_TOTAL_COUNT, totalCount);
     }
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(1)
-                .pageSize(10)
-                .geneIds(PHARM_GKB_IDS)
-                .build();
-        final SearchResult<PharmGKBDrugAssociation> result = manager.search(request);
+        final PharmGKBDrugSearchRequest request = new PharmGKBDrugSearchRequest();
+        request.setPage(1);
+        request.setPageSize(10);
+        request.setGeneIds(GENE_IDS);
+        final SearchResult<PharmGKBDrug> result = pharmGKBDrugAssociationManager.search(request);
         assertEquals(ENTRIES_COUNT, result.getTotalCount().intValue());
     }
 }
