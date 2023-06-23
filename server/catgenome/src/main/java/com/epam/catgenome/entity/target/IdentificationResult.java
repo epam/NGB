@@ -38,6 +38,6 @@ import java.util.Map;
 @Builder
 public class IdentificationResult {
     private Map<String, String> description;
-    private Integer diseasesCount;
+    private Long diseasesCount;
     private Long knownDrugsCount;
 }

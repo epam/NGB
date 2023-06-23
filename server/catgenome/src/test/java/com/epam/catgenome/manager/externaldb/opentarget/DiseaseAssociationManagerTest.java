@@ -23,9 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -44,16 +43,20 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class DiseaseAssociationManagerTest extends TestCase {
 
-    private static final int TOTAL_COUNT = 11;
-    private static final List<String> TARGET_IDS = Arrays.asList("ENSG00000007171", "ENSG00000006128");
+    private static final int TOTAL_COUNT = 8;
+    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000007171", "ENSG00000006128");
     @Autowired
     private DiseaseAssociationManager manager;
+    @Autowired
+    private DiseaseManager diseaseManager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
+        final String diseasesPath = context.getResource("classpath:opentargets//diseases").getFile().getPath();
+        diseaseManager.importData(diseasesPath);
         final String path = context.getResource("classpath:opentargets//associations").getFile().getPath();
         final String pathOverall = context.getResource("classpath:opentargets//associations_overall")
                 .getFile().getPath();
@@ -62,18 +65,17 @@ public class DiseaseAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final int totalCount = manager.totalCount(TARGET_IDS);
+        final long totalCount = manager.totalCount(GENE_IDS);
         assertEquals(TOTAL_COUNT, totalCount);
     }
 
     @Test
     public void searchDiseaseAssociationsTest() throws IOException, ParseException {
-        final AssociationSearchRequest request = AssociationSearchRequest.builder()
-                .page(2)
-                .pageSize(3)
-                .geneIds(TARGET_IDS)
-                .build();
-        final SearchResult<DiseaseAssociationAggregated> result = manager.search(request);
+        final DiseaseSearchRequest request = new DiseaseSearchRequest();
+        request.setPage(2);
+        request.setPageSize(3);
+        request.setGeneIds(GENE_IDS);
+        final SearchResult<DiseaseAssociation> result = manager.search(request);
         assertEquals(3, result.getItems().size());
     }
 }

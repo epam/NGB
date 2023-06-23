@@ -21,19 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.opentarget;
+package com.epam.catgenome.manager.externaldb.opentarget;
 
-import lombok.Builder;
+import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Map;
-
-@Setter
 @Getter
-@Builder
-public class DiseaseAssociationAggregated {
-    private String geneId;
-    private Disease disease;
-    private Map<AssociationType, Float> scores;
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class DiseaseSearchRequest extends AssociationSearchRequest {
+    private DiseaseField orderBy;
+    private boolean reverse;
 }
