@@ -22,8 +22,10 @@
     </div>
     <div change-state="$ctrl.changeState(state)"
          ng-if="$ctrl.itemSelected === $ctrl.menuState.BUBBLES">
+        <ngb-diseases-bubbles></ngb-diseases-bubbles>
     </div>
     <div change-state="$ctrl.changeState(state)"
          ng-if="$ctrl.itemSelected === $ctrl.menuState.GRAPH">
+        <ngb-diseases-graph></ngb-diseases-graph>
     </div>
 </md-content>

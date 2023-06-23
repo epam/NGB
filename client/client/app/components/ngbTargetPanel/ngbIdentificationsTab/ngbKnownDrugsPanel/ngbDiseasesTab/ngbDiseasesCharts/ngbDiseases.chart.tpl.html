@@ -1,0 +1,42 @@
+<div class="ngb-diseases-chart-controls">
+    <md-slider
+            ng-model="$ctrl.scoreFilter"
+            min="{{$ctrl.minScore}}"
+            max="{{$ctrl.maxScore}}"
+            step="{{$ctrl.scoreStep}}"
+            aria-label="score filter"
+            ng-if="!$ctrl.dataLoading"
+    >
+    </md-slider>
+    <span class="info" ng-if="!$ctrl.dataLoading">
+        Minimum score: {{$ctrl.scoreFilter}}
+    </span>
+</div>
+<div class="ngb-diseases-chart-svg-container">
+</div>
+<div
+        class="ngb-disease-tooltip"
+        ng-class="{visible: !!$ctrl.hoveredDisease}"
+        ng-mouseover="$ctrl.clearTimeouts($event)"
+        ng-mouseleave="$ctrl.hideInfo($event)"
+>
+    <div class="ngb-disease-title" ng-if="$ctrl.hoveredDisease">
+        <b>{{$ctrl.hoveredDisease.name}}</b>
+    </div>
+    <div class="ngb-disease-identifier" ng-if="$ctrl.hoveredDisease">
+        <span>{{$ctrl.hoveredDisease.id}}</span>
+    </div>
+    <div class="ngb-disease-score" ng-if="$ctrl.hoveredDisease && $ctrl.hoveredDisease.score">
+        <span>Association score: {{$ctrl.hoveredDisease.score}}</span>
+    </div>
+    <div class="ngb-disease-link" ng-if="$ctrl.hoveredDisease && $ctrl.hoveredDisease.url">
+        <a href="{{$ctrl.hoveredDisease.url}}" target="_blank">Disease profile</a>
+    </div>
+</div>
+<div class="ngb-diseases-chart-loading"
+     ng-if="$ctrl.dataLoading"
+>
+    <md-progress-circular md-diameter="20px"
+                          md-mode="indeterminate"
+    ></md-progress-circular>
+</div>

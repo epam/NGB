@@ -7,6 +7,20 @@ const SOURCE = {
     PHARM_GKB: 'PHARM_GKB'
 };
 
+const ExternalDBApi = {
+    [SOURCE.OPEN_TARGETS]: 'opentargets',
+    [SOURCE.TXGNN]: 'txgnn',
+    [SOURCE.DGI_DB]: 'dgidb',
+    [SOURCE.PHARM_GKB]: 'pharmgkb'
+};
+
+const ExternalDBNames = {
+    [SOURCE.OPEN_TARGETS]: 'Open Targets',
+    [SOURCE.TXGNN]: 'TxGNN',
+    [SOURCE.DGI_DB]: 'DGIdb',
+    [SOURCE.PHARM_GKB]: 'PharmGKB'
+}
+
 export class TargetDataService extends DataService {
 
     getTargetsResult(request) {
@@ -191,17 +205,8 @@ export class TargetDataService extends DataService {
     }
 
     getDiseasesResults(request, source) {
-        if (source === SOURCE.OPEN_TARGETS) {
-            return this.getOpenTargetsDiseases(request);
-        }
-        if (source === SOURCE.PHARM_GKB) {
-            return this.getPharmGKBDiseases(request);
-        }
-    }
-
-    getOpenTargetsDiseases(request) {
         return new Promise((resolve, reject) => {
-            this.post('target/opentargets/diseases', request)
+            this.post(`target/${ExternalDBApi[source]}/diseases`, request)
                 .then(data => {
                     if (data && data.items) {
                         resolve([data.items, data.totalCount]);
@@ -210,24 +215,29 @@ export class TargetDataService extends DataService {
                     }
                 })
                 .catch(error => {
-                    const message = 'Error getting diseases from Open Targets';
+                    const message = `Error getting diseases from ${ExternalDBNames[source]}`;
                     reject(new Error((error && error.message) || message));
                 });
         });
     }
 
-    getPharmGKBDiseases(request) {
+    getAllDiseasesResults(request, source) {
         return new Promise((resolve, reject) => {
-            this.post('target/pharmgkb/diseases', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
+            this.post(`target/${ExternalDBApi[source]}/diseases/all`, request)
+                .then(data => resolve(data || []))
                 .catch(error => {
-                    const message = 'Error getting diseases from PharmGKB';
+                    const message = `Error getting all diseases from ${ExternalDBNames[source]}`;
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getOntology(source) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/${ExternalDBApi[source]}/diseases/ontology`)
+                .then(data => resolve(data || []))
+                .catch(error => {
+                    const message = `Error getting diseases ontology from ${ExternalDBNames[source]}`;
                     reject(new Error((error && error.message) || message));
                 });
         });

@@ -39,6 +39,8 @@
     "cytoscape-dom-node": "^1.1.0",
     "cytoscape-graphml": "^1.0.6",
     "cytoscape-sbgn-stylesheet": "^4.0.2",
+    "d3": "3.5.17",
+    "d3-hierarchy": "^3.1.2",
     "deep-extend": "0.6.0",
     "golden-layout": "1.5.9",
     "jquery": "^3.7.0",
