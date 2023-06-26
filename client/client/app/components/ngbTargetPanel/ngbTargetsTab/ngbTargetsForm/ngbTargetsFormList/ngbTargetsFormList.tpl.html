@@ -10,6 +10,6 @@
                  md-selected-item-change="$ctrl.selectedItemChange(item)"
                  md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)">
     <md-item-template>
-        <span md-highlight-text="$ctrl.searchText">{{item[$ctrl.field]}}</span>
+        <span md-highlight-text="$ctrl.searchText">{{item[$ctrl.field]}} {{item.speciesName}}</span>
     </md-item-template>
 </md-autocomplete>
