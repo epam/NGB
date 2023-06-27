@@ -133,6 +133,7 @@ public class DiseaseManager {
         NAME("name"),
         THERAPEUTIC_AREA_IDS("therapeuticAreaIds"),
         PARENTS("parents"),
+        ANCESTORS("ancestors"),
         IS_THERAPEUTIC_AREA("isTherapeuticArea");
         private final String fieldName;
 
@@ -160,12 +161,21 @@ public class DiseaseManager {
                 parents.add(node.next().asText());
             }
         }
+        final JsonNode ancestorsNode = jsonNodes.at("/ancestors");
+        final List<String> ancestors = new ArrayList<>();
+        if (ancestorsNode.isArray()) {
+            Iterator<JsonNode> node = ancestorsNode.elements();
+            while (node.hasNext()) {
+                ancestors.add(node.next().asText());
+            }
+        }
         return Disease.builder()
                 .id(jsonNodes.at("/id").asText())
                 .name(jsonNodes.at("/name").asText())
                 .isTherapeuticArea(jsonNodes.at("/ontology/isTherapeuticArea").asBoolean())
                 .therapeuticAreas(therapeuticAreas)
                 .parents(parents)
+                .ancestors(ancestors)
                 .build();
     }
 
@@ -180,6 +190,7 @@ public class DiseaseManager {
                 .name(getField(doc, IndexFields.NAME.getFieldName()))
                 .url(getDiseaseUrl(getField(doc, IndexFields.DISEASE_ID.getFieldName())))
                 .parents(deserialize(getField(doc, IndexFields.PARENTS.getFieldName())))
+                .ancestors(deserialize(getField(doc, IndexFields.ANCESTORS.getFieldName())))
                 .isTherapeuticArea(Boolean.parseBoolean(doc.getField(IndexFields.IS_THERAPEUTIC_AREA.getFieldName())
                         .stringValue()))
                 .therapeuticAreas(therapeuticAreas)
@@ -197,6 +208,7 @@ public class DiseaseManager {
         doc.add(new TextField(IndexFields.IS_THERAPEUTIC_AREA.getFieldName(),
                 String.valueOf(entry.isTherapeuticArea()), Field.Store.YES));
         doc.add(new TextField(IndexFields.PARENTS.getFieldName(), serialize(entry.getParents()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.ANCESTORS.getFieldName(), serialize(entry.getAncestors()), Field.Store.YES));
         final List<String> therapeuticAreaIds = entry.getTherapeuticAreas().stream()
                 .map(UrlEntity::getId)
                 .collect(Collectors.toList());
