@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
@@ -226,5 +227,9 @@ public class TargetIdentificationManager {
                 }
             }
         }
+    }
+
+    public List<BareDisease> getDiseasesTree() throws IOException {
+        return diseaseManager.search();
     }
 }
