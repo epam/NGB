@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
@@ -78,7 +79,7 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
+    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final DiseaseSearchRequest request)
             throws IOException, ParseException {
         return manager.getOpenTargetsDiseases(request);
     }

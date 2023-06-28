@@ -28,6 +28,7 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
@@ -208,7 +209,7 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DiseaseAssociationAggregated>> getOpenTargetsDiseases(
-            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
+            @RequestBody final DiseaseSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getOpenTargetsDiseases(request));
     }
 

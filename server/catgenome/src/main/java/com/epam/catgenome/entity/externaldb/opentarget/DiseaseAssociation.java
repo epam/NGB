@@ -35,8 +35,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiseaseAssociation {
+    private String geneId;
     private String diseaseId;
-    private String targetId;
+    private String diseaseName;
     private AssociationType type;
     private Float score;
+    private Float overallScore;
+    private Float geneticAssociationScore;
+    private Float somaticMutationScore;
+    private Float knownDrugScore;
+    private Float affectedPathwayScore;
+    private Float literatureScore;
+    private Float rnaExpressionScore;
+    private Float animalModelScore;
 }

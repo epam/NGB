@@ -23,8 +23,10 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.entity.externaldb.opentarget.AssociationType;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
@@ -41,6 +43,7 @@ import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseAssociationManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
@@ -55,17 +58,25 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager.getDiseaseUrl;
 
 @Service
 @RequiredArgsConstructor
 public class TargetIdentificationManager {
 
+    private static final String PUBMED_LINK = "PubMed:<a href='https://europepmc.org/article/med/%s'>%s</a>";
+    private static final String PUBMED_PATTERN = "PubMed:[0-9]+";
     private final TargetManager targetManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
@@ -85,7 +96,7 @@ public class TargetIdentificationManager {
         final Map<String, String> entrezMap = geneManager.getEntrezMap(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
         final long drugsCount = getDrugsCount(entrezMap);
-        final int diseasesCount = diseaseAssociationManager.totalCount(geneIds);
+        final long diseasesCount = diseaseAssociationManager.totalCount(geneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
@@ -117,19 +128,26 @@ public class TargetIdentificationManager {
         return drugAssociationManager.search(request);
     }
 
-    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
+    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final DiseaseSearchRequest request)
             throws IOException, ParseException {
-        final SearchResult<DiseaseAssociationAggregated> result = diseaseAssociationManager.search(request);
-        fillDiseaseNames(result.getItems());
-        return result;
+        final SearchResult<DiseaseAssociation> result = diseaseAssociationManager.search(request);
+        final List<DiseaseAssociationAggregated> converted = result.getItems().stream()
+                .map(this::aggregate)
+                .collect(Collectors.toList());
+        final SearchResult<DiseaseAssociationAggregated> convertedResult = new SearchResult<>();
+        convertedResult.setItems(converted);
+        convertedResult.setTotalCount(result.getTotalCount());
+        return convertedResult;
     }
 
     public List<DiseaseAssociationAggregated> getAllOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        final List<DiseaseAssociationAggregated> result = diseaseAssociationManager.searchAll(request.getGeneIds());
-        fillDiseaseNames(result);
-        fillTANames(result);
-        return result;
+        final List<DiseaseAssociation> result = diseaseAssociationManager.searchAll(request.getGeneIds());
+        final List<DiseaseAssociationAggregated> converted = result.stream()
+                .map(this::aggregate)
+                .collect(Collectors.toList());
+        fillTANames(converted);
+        return converted;
     }
 
     public void importOpenTargetsData(final String targetsPath,
@@ -158,7 +176,25 @@ public class TargetIdentificationManager {
         final List<TargetDetails> openTargetDetails = targetDetailsManager.search(new ArrayList<>(entrezMap.values()));
         final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
                 .collect(Collectors.toMap(TargetDetails::getId, TargetDetails::getDescription));
-        return mergeDescriptions(ncbiDescription, openTargetDescriptionMap);
+        final Map<String, String> merged = mergeDescriptions(ncbiDescription, openTargetDescriptionMap);
+        merged.replaceAll((key, value) -> setHyperLinks(value));
+        return merged;
+    }
+
+    private String setHyperLinks(final String text) {
+        String newText = text;
+        final Pattern pattern = Pattern.compile(PUBMED_PATTERN);
+        final Matcher matcher = pattern.matcher(text);
+        final List<String> matches = new ArrayList<>();
+        while(matcher.find()) {
+            matches.add(matcher.group());
+        }
+        for (String match : matches) {
+            String pubId = match.split(":")[1];
+            String withLink = String.format(PUBMED_LINK, pubId, pubId);
+            newText = newText.replace(match, withLink);
+        }
+        return newText;
     }
 
     private long getDrugsCount(final Map<String, String> entrezMap) throws IOException, ParseException {
@@ -182,54 +218,84 @@ public class TargetIdentificationManager {
         return openTargetDescriptions;
     }
 
-    private void fillDiseaseNames(final List<DiseaseAssociationAggregated> entries) throws ParseException, IOException {
-        final List<String> diseaseIds = entries.stream()
-                .map(r -> r.getDisease().getId())
-                .distinct()
-                .collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseaseManager.search(diseaseIds);
-            final Map<String, Disease> diseasesMap = diseases.stream()
-                    .collect(Collectors.toMap(Disease::getId, Function.identity()));
-            for (DiseaseAssociationAggregated r : entries) {
-                if (diseasesMap.containsKey(r.getDisease().getId())) {
-                    r.setDisease(diseasesMap.get(r.getDisease().getId()));
-                }
-            }
+    private DiseaseAssociationAggregated aggregate(final DiseaseAssociation association) {
+        final Disease disease = Disease.builder()
+                .id(association.getDiseaseId())
+                .name(association.getDiseaseName())
+                .url(getDiseaseUrl(association.getDiseaseId()))
+                .build();
+        final Map<AssociationType, Float> scores = new HashMap<>();
+        if (association.getOverallScore() != null) {
+            scores.put(AssociationType.OVERALL, association.getOverallScore());
         }
+        if (association.getGeneticAssociationScore() != null) {
+            scores.put(AssociationType.GENETIC_ASSOCIATIONS, association.getGeneticAssociationScore());
+        }
+        if (association.getSomaticMutationScore() != null) {
+            scores.put(AssociationType.SOMATIC_MUTATIONS, association.getSomaticMutationScore());
+        }
+        if (association.getKnownDrugScore() != null) {
+            scores.put(AssociationType.DRUGS, association.getKnownDrugScore());
+        }
+        if (association.getAffectedPathwayScore() != null) {
+            scores.put(AssociationType.PATHWAYS, association.getAffectedPathwayScore());
+        }
+        if (association.getLiteratureScore() != null) {
+            scores.put(AssociationType.TEXT_MINING, association.getLiteratureScore());
+        }
+        if (association.getRnaExpressionScore() != null) {
+            scores.put(AssociationType.RNA_EXPRESSION, association.getRnaExpressionScore());
+        }
+        if (association.getAnimalModelScore() != null) {
+            scores.put(AssociationType.ANIMAL_MODELS, association.getAnimalModelScore());
+        }
+        return DiseaseAssociationAggregated.builder()
+                .geneId(association.getGeneId())
+                .disease(disease)
+                .scores(scores)
+                .build();
     }
 
     private void fillTANames(final List<DiseaseAssociationAggregated> records) throws ParseException, IOException {
-        final Set<String> therapeuticAreaIds = new HashSet<>();
-        for (DiseaseAssociationAggregated r : records) {
-            List<UrlEntity> therapeuticAreas = r.getDisease().getTherapeuticAreas();
+        final Set<String> diseaseIds = records.stream().map(r -> r.getDisease().getId()).collect(Collectors.toSet());
+        final Map<String, Disease> diseases = getDiseasesMap(diseaseIds);
+        final Set<String> taIds = new HashSet<>();
+        for (Disease d : diseases.values()) {
+            List<UrlEntity> therapeuticAreas = d.getTherapeuticAreas();
             if (CollectionUtils.isNotEmpty(therapeuticAreas)) {
-                therapeuticAreaIds.addAll(therapeuticAreas.stream().map(UrlEntity::getId).collect(Collectors.toList()));
+                taIds.addAll(therapeuticAreas.stream().map(UrlEntity::getId).collect(Collectors.toList()));
             }
         }
-        if (CollectionUtils.isNotEmpty(therapeuticAreaIds)) {
-            final List<Disease> diseases = diseaseManager.search(new ArrayList<>(therapeuticAreaIds));
-            if (CollectionUtils.isEmpty(diseases)) {
-                return;
-            }
-            final Map<String, UrlEntity> diseasesMap = diseases.stream()
-                    .map(t -> new UrlEntity(t.getId(), t.getName(), t.getUrl()))
-                    .collect(Collectors.toMap(UrlEntity::getId, Function.identity()));
-            for (DiseaseAssociationAggregated r : records) {
-                Disease disease = r.getDisease();
-                List<UrlEntity> diseaseTAs = disease.getTherapeuticAreas();
-                if (CollectionUtils.isNotEmpty(diseaseTAs)) {
-                    List<UrlEntity> newDiseaseTAs = new ArrayList<>();
-                    for (UrlEntity diseaseTA : diseaseTAs) {
-                        newDiseaseTAs.add(diseasesMap.getOrDefault(diseaseTA.getId(), diseaseTA));
-                    }
-                    disease.setTherapeuticAreas(newDiseaseTAs);
-                }
-            }
+        if (CollectionUtils.isEmpty(taIds)) {
+            return;
+        }
+        final Map<String, UrlEntity> tas = getTAsMap(taIds);
+        for (DiseaseAssociationAggregated r : records) {
+            String diseaseId = r.getDisease().getId();
+            Disease disease = diseases.get(diseaseId);
+            List<UrlEntity> diseaseTAs = disease.getTherapeuticAreas();
+            List<UrlEntity> newDiseaseTAs = diseaseTAs.stream()
+                    .map(ta -> tas.getOrDefault(ta.getId(), ta))
+                    .collect(Collectors.toList());
+            disease.setTherapeuticAreas(newDiseaseTAs);
+            r.setDisease(disease);
         }
     }
 
     public List<BareDisease> getDiseasesTree() throws IOException {
         return diseaseManager.search();
+    } 
+
+    private Map<String, UrlEntity> getTAsMap(final Set<String> taIds) throws ParseException, IOException {
+        final List<Disease> tas = diseaseManager.search(new ArrayList<>(taIds));
+        return CollectionUtils.isEmpty(tas) ? Collections.emptyMap() : tas.stream()
+                .map(t -> new UrlEntity(t.getId(), t.getName(), t.getUrl()))
+                .collect(Collectors.toMap(UrlEntity::getId, Function.identity()));
+    }
+
+    private Map<String, Disease> getDiseasesMap(final Set<String> diseaseIds) throws ParseException, IOException {
+        final List<Disease> diseases = diseaseManager.search(new ArrayList<>(diseaseIds));
+        return CollectionUtils.isEmpty(diseases) ? Collections.emptyMap() : diseases.stream()
+                .collect(Collectors.toMap(Disease::getId, Function.identity()));
     }
 }
