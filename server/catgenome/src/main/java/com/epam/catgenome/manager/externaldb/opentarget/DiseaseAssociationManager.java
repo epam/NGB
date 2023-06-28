@@ -24,21 +24,22 @@
 package com.epam.catgenome.manager.externaldb.opentarget;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.AssociationType;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
+import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FloatDocValuesField;
+import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -46,17 +47,13 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.grouping.GroupingSearch;
-import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -69,10 +66,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
@@ -89,91 +88,157 @@ public class DiseaseAssociationManager {
     private int targetsTopHits;
     private final DiseaseManager diseaseManager;
 
-    public SearchResult<DiseaseAssociationAggregated> search(final AssociationSearchRequest request)
+    public SearchResult<DiseaseAssociation> search(final DiseaseSearchRequest request)
             throws IOException, ParseException {
-        final List<DiseaseAssociationAggregated> records = new ArrayList<>();
-        final SearchResult<DiseaseAssociationAggregated> searchResult = new SearchResult<>();
-        final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
-        final int pageSize = (request.getPageSize() == null || request.getPage() <= 0) ? DEFAULT_PAGE_SIZE
-                : request.getPageSize();
-        final int offset = (page - 1) * pageSize;
+        final List<DiseaseAssociation> entries = new ArrayList<>();
+        final SearchResult<DiseaseAssociation> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(request.getGeneIds());
-            final GroupingSearch groupingSearch = new GroupingSearch(IndexFields.TARGET_DISEASE.getFieldName());
-            groupingSearch.setGroupDocsLimit(targetsTopHits);
-            final IndexSearcher searcher = new IndexSearcher(indexReader);
-            final TopGroups<DiseaseAssociation> groups = groupingSearch.search(searcher, query, offset, pageSize);
-            for (int i = 0; i < groups.groups.length; i++) {
-                ScoreDoc[] sdoc = groups.groups[i].scoreDocs;
-                Document groupDoc = searcher.doc(sdoc[0].doc);
-                Disease disease = Disease.builder()
-                        .id(getDiseaseId(groupDoc))
-                        .build();
-                DiseaseAssociationAggregated record = DiseaseAssociationAggregated.builder()
-                        .targetId(getTargetId(groupDoc))
-                        .disease(disease)
-                        .build();
-                Map<AssociationType, Float> scores = new HashMap<>();
-                for (ScoreDoc scoreDoc : sdoc) {
-                    Document doc = searcher.doc(scoreDoc.doc);
-                    scores.put(AssociationType.getByName(getDataTypeId(doc)), getScore(doc));
-                }
-                record.setScores(scores);
-                records.add(record);
+
+            final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
+            final int pageSize = (request.getPageSize() == null || request.getPage() <= 0) ? DEFAULT_PAGE_SIZE
+                    : request.getPageSize();
+            final int hits = page * pageSize;
+
+            final Query query = getByGeneIdsQuery(request.getGeneIds());
+            final Sort sort = getSort(request);
+
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, hits, sort);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+
+            final int from = (page - 1) * pageSize;
+            final int to = Math.min(from + pageSize, scoreDocs.length);
+            for (int i = from; i < to; i++) {
+                Document doc = searcher.doc(scoreDocs[i].doc);
+                DiseaseAssociation entry = entryFromDoc(doc);
+                entries.add(entry);
             }
-            searchResult.setItems(records);
-            searchResult.setTotalCount(totalCount(request.getGeneIds()));
+            searchResult.setItems(entries);
+            searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
     }
 
-    public List<DiseaseAssociationAggregated> searchAll(final List<String> geneIds) throws IOException, ParseException {
-        final List<DiseaseAssociationAggregated> records = new ArrayList<>();
+    private List<DiseaseAssociation> searchAll(final Query query)
+            throws IOException {
+        final List<DiseaseAssociation> entries = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = buildOverallScoresQuery(geneIds);
-            final IndexSearcher searcher = new IndexSearcher(indexReader);
-            final TopDocs topDocs = searcher.search(query, targetsTopHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, targetsTopHits);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
-                Disease disease = Disease.builder()
-                        .id(getDiseaseId(doc))
-                        .build();
-                DiseaseAssociationAggregated record = DiseaseAssociationAggregated.builder()
-                        .targetId(getTargetId(doc))
-                        .disease(disease)
-                        .build();
-                Map<AssociationType, Float> scores = new HashMap<>();
-                scores.put(AssociationType.getByName(getDataTypeId(doc)), getScore(doc));
-                record.setScores(scores);
-                records.add(record);
+                DiseaseAssociation entry = entryFromDoc(doc);
+                entries.add(entry);
             }
         }
-        return records;
+        return entries;
     }
 
-    public int totalCount(final List<String> geneIds) throws ParseException, IOException {
+    public List<DiseaseAssociation> searchAll(final List<String> geneIds)
+            throws IOException, ParseException {
+        final Query query = getByGeneIdsQuery(geneIds);
+        return searchAll(query);
+    }
+
+    public long totalCount(final List<String> geneIds) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(geneIds);
-            final GroupingSearch groupingSearch = new GroupingSearch(IndexFields.TARGET_DISEASE.getFieldName());
+            final Query query = getByGeneIdsQuery(geneIds);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
-            return groupingSearch.search(searcher, query, 0, targetsTopHits).groups.length;
+            final TopDocs topDocs = searcher.search(query, targetsTopHits);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            final List<DiseaseAssociation> entries = new ArrayList<>();
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                DiseaseAssociation entry = entryFromDoc(doc);
+                entries.add(entry);
+            }
+            return entries.stream().map(DiseaseAssociation::getDiseaseId).distinct().count();
         }
     }
 
-    public void importData(final String path, final String overallPath) throws IOException {
+    public void importData(final String path, final String overallPath) throws IOException, ParseException {
         final File directory = getDirectory(path);
         final File overallDirectory = getDirectory(overallPath);
+        final List<DiseaseAssociation> allEntries = new ArrayList<>();
+        for (File f: ArrayUtils.addAll(directory.listFiles(), overallDirectory.listFiles())) {
+            List<DiseaseAssociation> entries = readEntries(f);
+            allEntries.addAll(entries);
+        }
+        final List<DiseaseAssociation> processedEntries = processEntries(allEntries);
+        fillDiseaseNames(processedEntries);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (File f: ArrayUtils.addAll(directory.listFiles(), overallDirectory.listFiles())) {
-                for (DiseaseAssociation entry: readEntries(f)) {
-                    addDoc(writer, entry);
+            for (DiseaseAssociation diseaseAssociation: processedEntries) {
+                addDoc(writer, diseaseAssociation);
+            }
+        }
+    }
+
+    private List<DiseaseAssociation> processEntries(final List<DiseaseAssociation> entries) {
+        final List<DiseaseAssociation> results = new ArrayList<>();
+        final Map<AbstractMap.SimpleEntry<String, String>, List<DiseaseAssociation>> grouped = entries.stream()
+                .collect(Collectors.groupingBy(entry ->
+                        new AbstractMap.SimpleEntry<>(entry.getGeneId(), entry.getDiseaseId())));
+        for (Map.Entry<AbstractMap.SimpleEntry<String, String>, List<DiseaseAssociation>> group : grouped.entrySet()) {
+            DiseaseAssociation result = new DiseaseAssociation();
+            AbstractMap.SimpleEntry<String, String> key = group.getKey();
+            result.setGeneId(key.getKey());
+            result.setDiseaseId(key.getValue());
+            List<DiseaseAssociation> values = group.getValue();
+            for (DiseaseAssociation value: values) {
+                switch (value.getType()) {
+                    case OVERALL:
+                        result.setOverallScore(value.getScore());
+                        break;
+                    case GENETIC_ASSOCIATIONS:
+                        result.setGeneticAssociationScore(value.getScore());
+                        break;
+                    case SOMATIC_MUTATIONS:
+                        result.setSomaticMutationScore(value.getScore());
+                        break;
+                    case DRUGS:
+                        result.setKnownDrugScore(value.getScore());
+                        break;
+                    case PATHWAYS:
+                        result.setAffectedPathwayScore(value.getScore());
+                        break;
+                    case TEXT_MINING:
+                        result.setLiteratureScore(value.getScore());
+                        break;
+                    case RNA_EXPRESSION:
+                        result.setRnaExpressionScore(value.getScore());
+                        break;
+                    case ANIMAL_MODELS:
+                        result.setAnimalModelScore(value.getScore());
+                        break;
+                    default:
+                        break;
+                }
+            }
+            results.add(result);
+        }
+        return results;
+    }
+
+    private void fillDiseaseNames(final List<DiseaseAssociation> entries) throws ParseException, IOException {
+        final List<String> diseaseIds = entries.stream()
+                .map(DiseaseAssociation::getDiseaseId)
+                .distinct()
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(diseaseIds)) {
+            final List<Disease> diseases = diseaseManager.search(diseaseIds);
+            final Map<String, Disease> diseasesMap = diseases.stream()
+                    .collect(Collectors.toMap(Disease::getId, Function.identity()));
+            for (DiseaseAssociation r : entries) {
+                if (diseasesMap.containsKey(r.getDiseaseId())) {
+                    r.setDiseaseName(diseasesMap.get(r.getDiseaseId()).getName());
                 }
             }
         }
@@ -199,7 +264,7 @@ public class DiseaseAssociationManager {
 
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
         return DiseaseAssociation.builder()
-                .targetId(jsonNodes.at("/targetId").asText())
+                .geneId(jsonNodes.at("/targetId").asText())
                 .diseaseId(jsonNodes.at("/diseaseId").asText())
                 .type(jsonNodes.has("datatypeId") ?
                         AssociationType.getByName(jsonNodes.at("/datatypeId").asText()) :
@@ -208,68 +273,110 @@ public class DiseaseAssociationManager {
                 .build();
     }
 
-    private static Query getByTargetIdsQuery(final List<String> ids)
-            throws ParseException {
-        return getByIdsQuery(ids, IndexFields.TARGET_ID.getFieldName());
-    }
-
-    private String getDiseaseId(final Document doc) {
-        return doc.getField(IndexFields.DISEASE_ID.getFieldName()).stringValue();
-    }
-
-    private String getTargetId(final Document doc) {
-        return doc.getField(IndexFields.TARGET_ID.getFieldName()).stringValue();
-    }
-
-    private String getDataTypeId(final Document doc) {
-        return doc.getField(IndexFields.DATATYPE_ID.getFieldName()).stringValue();
-    }
-
-    private Float getScore(final Document doc) {
-        return Float.parseFloat(doc.getField(IndexFields.SCORE.getFieldName()).stringValue());
-    }
-
     @Getter
-    private enum IndexFields {
-        TARGET_DISEASE("target_disease"),
+    private enum IndexField {
+        GENE_ID("geneId"),
         DISEASE_ID("diseaseId"),
-        TARGET_ID("targetId"),
-        DATATYPE_ID("datatypeId"),
-        SCORE("score");
-        private final String fieldName;
+        DISEASE_NAME("diseaseName"),
+        OVERALL_SCORE("overall_score"),
+        GENETIC_ASSOCIATIONS_SCORE("genetic_association_score"),
+        SOMATIC_MUTATIONS_SCORE("somatic_mutation_score"),
+        DRUGS_SCORE("known_drug_score"),
+        PATHWAYS_SCORE("affected_pathway_score"),
+        TEXT_MINING_SCORE("literature_score"),
+        RNA_EXPRESSION_SCORE("rna_expression_score"),
+        ANIMAL_MODELS_SCORE("animal_model_score");
+        private final String name;
 
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
+        IndexField(String name) {
+            this.name = name;
         }
     }
 
     private static void addDoc(final IndexWriter writer, final DiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DISEASE_ID.getFieldName(),
-                String.valueOf(entry.getDiseaseId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.TARGET_ID.getFieldName(),
-                String.valueOf(entry.getTargetId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DATATYPE_ID.getFieldName(),
-                String.valueOf(entry.getType().getName()), Field.Store.YES));
-        doc.add(new StoredField(IndexFields.SCORE.getFieldName(), entry.getScore()));
-        doc.add(new SortedDocValuesField(IndexFields.TARGET_DISEASE.getFieldName(),
-                new BytesRef(entry.getDiseaseId() + entry.getTargetId())));
+        addTextField(entry.getGeneId(), doc, IndexField.GENE_ID);
+
+        doc.add(new TextField(IndexField.DISEASE_ID.getName(), entry.getDiseaseId(), Field.Store.YES));
+
+        addTextField(entry.getDiseaseName(), doc, IndexField.DISEASE_NAME);
+
+        addFloatField(entry.getOverallScore(), doc, IndexField.OVERALL_SCORE);
+        addFloatField(entry.getGeneticAssociationScore(), doc, IndexField.GENETIC_ASSOCIATIONS_SCORE);
+        addFloatField(entry.getSomaticMutationScore(), doc, IndexField.SOMATIC_MUTATIONS_SCORE);
+        addFloatField(entry.getKnownDrugScore(), doc, IndexField.DRUGS_SCORE);
+        addFloatField(entry.getAffectedPathwayScore(), doc, IndexField.PATHWAYS_SCORE);
+        addFloatField(entry.getLiteratureScore(), doc, IndexField.TEXT_MINING_SCORE);
+        addFloatField(entry.getRnaExpressionScore(), doc, IndexField.RNA_EXPRESSION_SCORE);
+        addFloatField(entry.getAnimalModelScore(), doc, IndexField.ANIMAL_MODELS_SCORE);
         writer.addDocument(doc);
     }
 
-    private Query buildOverallScoresQuery(final List<String> geneIds) {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String geneId : geneIds) {
-            builder.add(buildTermQuery(geneId, IndexFields.TARGET_ID), BooleanClause.Occur.SHOULD);
+    private static void addTextField(final String entry, final Document doc, final IndexField field) {
+        if (entry != null) {
+            doc.add(new TextField(field.getName(), entry, Field.Store.YES));
+            doc.add(new SortedDocValuesField(field.getName(), new BytesRef(entry)));
         }
-        mainBuilder.add(builder.build(), BooleanClause.Occur.MUST);
-        mainBuilder.add(buildTermQuery(AssociationType.OVERALL.getName(), IndexFields.DATATYPE_ID),
-                BooleanClause.Occur.MUST);
-        return mainBuilder.build();
     }
 
-    private TermQuery buildTermQuery(final String term, final IndexFields field) {
-        return new TermQuery(new Term(field.getFieldName(), term.toLowerCase()));
+    private static void addFloatField(final Float entry, final Document doc, final IndexField field) {
+        if (entry != null) {
+            doc.add(new FloatPoint(field.getName(), entry));
+            doc.add(new StoredField(field.getName(), entry));
+            doc.add(new FloatDocValuesField(field.getName(), entry));
+        }
+    }
+
+    private static DiseaseAssociation entryFromDoc(final Document doc) {
+        final DiseaseAssociation d = DiseaseAssociation.builder()
+                .geneId(doc.getField(IndexField.GENE_ID.getName()).stringValue())
+                .diseaseId(doc.getField(IndexField.DISEASE_ID.getName()).stringValue())
+                .build();
+        if (doc.getField(IndexField.DISEASE_NAME.getName()) != null) {
+            d.setDiseaseName(doc.getField(IndexField.DISEASE_NAME.getName()).stringValue());
+        }
+        if (doc.getField(IndexField.OVERALL_SCORE.getName()) != null) {
+            d.setOverallScore(getScore(doc, IndexField.OVERALL_SCORE));
+        }
+        if (doc.getField(IndexField.GENETIC_ASSOCIATIONS_SCORE.getName()) != null) {
+            d.setGeneticAssociationScore(getScore(doc, IndexField.GENETIC_ASSOCIATIONS_SCORE));
+        }
+        if (doc.getField(IndexField.SOMATIC_MUTATIONS_SCORE.getName()) != null) {
+            d.setSomaticMutationScore(getScore(doc, IndexField.SOMATIC_MUTATIONS_SCORE));
+        }
+        if (doc.getField(IndexField.DRUGS_SCORE.getName()) != null) {
+            d.setKnownDrugScore(getScore(doc, IndexField.DRUGS_SCORE));
+        }
+        if (doc.getField(IndexField.PATHWAYS_SCORE.getName()) != null) {
+            d.setAffectedPathwayScore(getScore(doc, IndexField.PATHWAYS_SCORE));
+        }
+        if (doc.getField(IndexField.TEXT_MINING_SCORE.getName()) != null) {
+            d.setLiteratureScore(getScore(doc, IndexField.TEXT_MINING_SCORE));
+        }
+        if (doc.getField(IndexField.RNA_EXPRESSION_SCORE.getName()) != null) {
+            d.setRnaExpressionScore(getScore(doc, IndexField.RNA_EXPRESSION_SCORE));
+        }
+        if (doc.getField(IndexField.ANIMAL_MODELS_SCORE.getName()) != null) {
+            d.setAnimalModelScore(getScore(doc, IndexField.ANIMAL_MODELS_SCORE));
+        }
+        return d;
+    }
+
+    private static float getScore(final Document doc, final IndexField field) {
+        return  doc.getField(field.getName()).numericValue().floatValue();
+    }
+
+    private static Query getByGeneIdsQuery(final List<String> ids)
+            throws ParseException {
+        return getByIdsQuery(ids, IndexField.GENE_ID.getName());
+    }
+
+    private static Sort getSort(final DiseaseSearchRequest request) {
+        if (request.getOrderBy() == null) {
+            return new Sort(new SortField(DiseaseField.getDefault(), SortField.Type.FLOAT, true));
+        }
+        final SortField.Type sortType = request.getOrderBy().equals(DiseaseField.DISEASE_NAME) ||
+                request.getOrderBy().equals(DiseaseField.GENE_ID) ? SortField.Type.STRING : SortField.Type.FLOAT;
+        return new Sort(new SortField(request.getOrderBy().getName(), sortType, request.isReverse()));
     }
 }

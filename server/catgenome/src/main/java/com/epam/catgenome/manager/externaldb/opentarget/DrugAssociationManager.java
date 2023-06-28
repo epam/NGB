@@ -100,7 +100,7 @@ public class DrugAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByTargetIdsQuery(request.getGeneIds());
+            final Query query = getByGeneIdsQUery(request.getGeneIds());
             final Sort sort = getSort(request);
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -123,7 +123,7 @@ public class DrugAssociationManager {
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByTargetIdsQuery(ids);
+            final Query query = getByGeneIdsQUery(ids);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -190,7 +190,7 @@ public class DrugAssociationManager {
         return entries;
     }
 
-    private static Query getByTargetIdsQuery(final List<String> ids)
+    private static Query getByGeneIdsQUery(final List<String> ids)
             throws ParseException {
         return getByIdsQuery(ids, IndexFields.GENE_ID.getFieldName());
     }
