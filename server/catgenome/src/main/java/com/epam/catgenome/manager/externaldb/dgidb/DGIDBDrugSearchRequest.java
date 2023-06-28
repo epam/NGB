@@ -36,4 +36,6 @@ import lombok.Setter;
 public class DGIDBDrugSearchRequest extends AssociationSearchRequest {
     private DGIDBDrugField orderBy;
     private boolean reverse;
+    private DGIDBDrugField filterBy;
+    private String term;
 }

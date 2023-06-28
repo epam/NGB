@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.pharmgkb;
 
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +33,6 @@ import lombok.Setter;
 @Builder
 public class PharmGKBDrug {
     private String geneId;
-    private String drugId;
-    private String drugName;
+    private UrlEntity drug;
     private String source;
 }

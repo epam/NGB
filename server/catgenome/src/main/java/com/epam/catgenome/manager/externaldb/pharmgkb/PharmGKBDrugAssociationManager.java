@@ -24,29 +24,21 @@
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.IndexUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -66,6 +58,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -74,6 +67,7 @@ import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 @RequiredArgsConstructor
 public class PharmGKBDrugAssociationManager {
 
+    private static final String DRUG_URL_PATTERN = "https://www.pharmgkb.org/labelAnnotation/%s";
     @Value("${pharmgkb.drug.association.index.directory}")
     private String indexDirectory;
 
@@ -94,7 +88,7 @@ public class PharmGKBDrugAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByGeneIdsQuery(request.getGeneIds());
+            final Query query = buildQuery(request);
             final Sort sort = getSort(request);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, hits, sort);
@@ -126,7 +120,7 @@ public class PharmGKBDrugAssociationManager {
                 PharmGKBDrug entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            return entries.stream().map(PharmGKBDrug::getDrugId).distinct().count();
+            return entries.stream().map(d -> d.getDrug().getId()).distinct().count();
         }
     }
 
@@ -149,6 +143,10 @@ public class PharmGKBDrugAssociationManager {
         pharmGKBGeneManager.importData(genePath);
         pharmGKBDrugManager.importData(drugPath);
         importData(drugAssociationPath);
+    }
+
+    public List<String> getFieldValues(final PharmGKBDrugField field) throws IOException {
+        return IndexUtils.getFieldValues(field.getName(), indexDirectory);
     }
 
     private List<PharmGKBDrugAssociation> readEntries(final String path) throws IOException {
@@ -203,15 +201,17 @@ public class PharmGKBDrugAssociationManager {
                 .collect(Collectors.toSet());
         final List<PharmGKBDrug> drugs = pharmGKBDrugManager.search(new ArrayList<>(drugIds));
         final Map<String, PharmGKBDrug> drugsMap = drugs.stream()
-                .collect(Collectors.toMap(PharmGKBDrug::getDrugId, Function.identity()));
+                .collect(Collectors.toMap(d -> d.getDrug().getId(), Function.identity()));
         final List<PharmGKBDrug> result = new ArrayList<>();
         for (PharmGKBDrugAssociation entry: entries) {
             if (drugsMap.containsKey(entry.getDrugId())) {
                 PharmGKBDrug drug = drugsMap.get(entry.getDrugId());
+                UrlEntity urlEntity = new UrlEntity();
+                urlEntity.setId(entry.getDrugId());
+                urlEntity.setName(drug.getDrug().getName());
                 PharmGKBDrug drugAssociation = PharmGKBDrug.builder()
                         .geneId(genesMap.get(entry.getPharmGKBGeneId()))
-                        .drugId(entry.getDrugId())
-                        .drugName(drug.getDrugName())
+                        .drug(urlEntity)
                         .source(drug.getSource())
                         .build();
                 result.add(drugAssociation);
@@ -224,25 +224,29 @@ public class PharmGKBDrugAssociationManager {
         final String geneId = entry.getGeneId();
         if (geneId != null) {
             final Document doc = new Document();
-            doc.add(new TextField(IndexFields.GENE_ID.getName(), geneId, Field.Store.YES));
+            doc.add(new StringField(IndexFields.GENE_ID.getName(), geneId, Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getName(), new BytesRef(geneId)));
 
-            doc.add(new TextField(IndexFields.DRUG_ID.getName(), entry.getDrugId(), Field.Store.YES));
+            doc.add(new TextField(IndexFields.DRUG_ID.getName(), entry.getDrug().getId(), Field.Store.YES));
 
-            doc.add(new TextField(IndexFields.DRUG_NAME.getName(), entry.getDrugName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.getName(), new BytesRef(entry.getDrugName())));
+            doc.add(new TextField(IndexFields.DRUG_NAME.getName(), entry.getDrug().getName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.getName(), new BytesRef(entry.getDrug().getName())));
 
-            doc.add(new TextField(IndexFields.SOURCE.getName(), entry.getSource(), Field.Store.YES));
+            doc.add(new StringField(IndexFields.SOURCE.getName(), entry.getSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.SOURCE.getName(), new BytesRef(entry.getSource())));
             writer.addDocument(doc);
         }
     }
 
     private static PharmGKBDrug entryFromDoc(final Document doc) {
+        final UrlEntity urlEntity = new UrlEntity();
+        final String id = doc.getField(IndexFields.DRUG_ID.getName()).stringValue();
+        urlEntity.setId(id);
+        urlEntity.setName(doc.getField(IndexFields.DRUG_NAME.getName()).stringValue());
+        urlEntity.setUrl(getDrugUrl(id));
         return PharmGKBDrug.builder()
                 .geneId(doc.getField(IndexFields.GENE_ID.getName()).stringValue())
-                .drugId(doc.getField(IndexFields.DRUG_ID.getName()).stringValue())
-                .drugName(doc.getField(IndexFields.DRUG_NAME.getName()).stringValue())
+                .drug(urlEntity)
                 .source(doc.getField(IndexFields.SOURCE.getName()).stringValue())
                 .build();
     }
@@ -256,5 +260,30 @@ public class PharmGKBDrugAssociationManager {
                 new SortField(PharmGKBDrugField.getDefault(), SortField.Type.STRING, false) :
                 new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
         return new Sort(sortField);
+    }
+
+    private static Query buildQuery(final PharmGKBDrugSearchRequest request) throws ParseException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String geneId : request.getGeneIds()) {
+            builder.add(buildTermQuery(geneId, PharmGKBDrugField.GENE_ID.getName()), BooleanClause.Occur.SHOULD);
+        }
+        mainBuilder.add(builder.build(), BooleanClause.Occur.MUST);
+
+        if (request.getFilterBy() != null && request.getTerm() != null) {
+            Query query;
+            if (PharmGKBDrugField.DRUG_NAME.equals(request.getFilterBy())) {
+                final StandardAnalyzer analyzer = new StandardAnalyzer();
+                query = new QueryParser(request.getFilterBy().getName(), analyzer).parse(request.getTerm());
+            } else {
+                query = buildTermQuery(request.getTerm(), request.getFilterBy().getName());
+            }
+            mainBuilder.add(query, BooleanClause.Occur.MUST);
+        }
+        return mainBuilder.build();
+    }
+
+    private static String getDrugUrl(final String drugId) {
+        return String.format(DRUG_URL_PATTERN, drugId);
     }
 }
