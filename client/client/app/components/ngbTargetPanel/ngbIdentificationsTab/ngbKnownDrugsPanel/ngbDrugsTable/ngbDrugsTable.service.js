@@ -30,6 +30,32 @@ function romanize (num) {
     return roman;
 }
 
+const SORT_FIELDS = {
+    OPEN_TARGETS: {
+        'target': 'GENE_ID',
+        'drug': 'DRUG_NAME',
+        'type': 'DRUG_TYPE',
+        'mechanism of action': 'MECHANISM_OF_ACTION',
+        'action type': 'ACTION_TYPE',
+        'disease': 'DISEASE_NAME',
+        'phase': 'PHASE',
+        'status': 'STATUS',
+        'source': 'SOURCE'
+    },
+    PHARM_GKB: {
+        'target': 'GENE_ID',
+        'drug name': 'DRUG_NAME',
+        'Source': 'SOURCE'
+    },
+    DGI_DB: {
+        'target': 'GENE_ID',
+        'drug name': 'DRUG_NAME',
+        'gene name': '',
+        'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
+        'interaction types': 'INTERACTION_TYPES'
+    }
+};
+
 export default class ngbDrugsTableService {
 
     _drugsResults = null;
@@ -97,6 +123,10 @@ export default class ngbDrugsTableService {
         this._filterInfo = value;
     }
 
+    get sortFields () {
+        return SORT_FIELDS;
+    }
+
     static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService,) {
         return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
     }
@@ -108,6 +138,10 @@ export default class ngbDrugsTableService {
 
     get identificationTarget() {
         return this.ngbTargetPanelService.identificationTarget || {};
+    }
+
+    get sourceModel () {
+        return this.ngbKnownDrugsPanelService.sourceModel;
     }
 
     get geneIds() {
@@ -131,12 +165,14 @@ export default class ngbDrugsTableService {
     }
 
     setDrugsResult(result) {
-        const source = this.ngbKnownDrugsPanelService.sourceModel;
         const sourceOptions = this.ngbKnownDrugsPanelService.sourceOptions;
 
-        if (source === sourceOptions.OPEN_TARGETS) {
+        if (this.sourceModel === sourceOptions.OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
-                target: this.getTarget(item.targetId),
+                target: {
+                    geneId: item.geneId,
+                    value: this.getTarget(item.geneId),
+                },
                 drug: item.drug,
                 type: item.drugType,
                 'mechanism of action': item.mechanismOfAction,
@@ -147,21 +183,25 @@ export default class ngbDrugsTableService {
                 source: item.source
             }));
         }
-        if (source === sourceOptions.PHARM_GKB) {
+        if (this.sourceModel === sourceOptions.PHARM_GKB) {
             this._drugsResults = result.map(item => ({
-                target: this.getTarget(item.geneId),
-                'drug id': item.drugId,
+                target: {
+                    geneId: item.geneId,
+                    value: this.getTarget(item.geneId)
+                },
                 'drug name': item.drugName,
                 'Source': item.source
             }));
         }
-        if (source === sourceOptions.DGI_DB) {
+        if (this.sourceModel === sourceOptions.DGI_DB) {
             this._drugsResults = result.map(item => ({
-                target: this.getTarget(item.geneId),
+                target: {
+                    geneId: item.geneId,
+                    value: this.getTarget(item.geneId)
+                },
                 'drug name': item.drugName,
-                'entrez id': item.entrezId,
-                'gene name': item.geneName,
-                'interaction claim source': item.interactionClaimSource
+                'interaction claim source': item.interactionClaimSource,
+                'interaction types': item.interactionTypes
             }));
         }
     }
@@ -182,11 +222,17 @@ export default class ngbDrugsTableService {
     }
 
     getRequest() {
-        return {
+        const request = {
             page: this.currentPage,
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
+        if (this.sortInfo && this.sortInfo.length) {
+            const {field, ascending} = this.sortInfo[0];
+            request.reverse = !ascending;
+            request.orderBy = this.sortFields[this.sourceModel.name][field];
+        }
+        return request;
     }
 
     getDrugsResults() {
@@ -197,7 +243,7 @@ export default class ngbDrugsTableService {
                 resolve(true);
             });
         }
-        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
+        const source = this.sourceModel.name;
         return new Promise(resolve => {
             this.targetDataService.getDrugsResults(request, source)
                 .then(([data, totalCount]) => {
