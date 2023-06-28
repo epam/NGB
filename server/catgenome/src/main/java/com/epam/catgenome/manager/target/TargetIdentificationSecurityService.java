@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
@@ -107,5 +108,10 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_ADMIN)
     public void importDGIdbData(final String path) throws IOException {
         manager.importDGIdbData(path);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<BareDisease> getDiseasesTree() throws IOException {
+        return manager.getDiseasesTree();
     }
 }

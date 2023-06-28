@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.externaldb.opentarget.AssociationType;
+import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
@@ -280,6 +281,10 @@ public class TargetIdentificationManager {
             r.setDisease(disease);
         }
     }
+
+    public List<BareDisease> getDiseasesTree() throws IOException {
+        return diseaseManager.search();
+    } 
 
     private Map<String, UrlEntity> getTAsMap(final Set<String> taIds) throws ParseException, IOException {
         final List<Disease> tas = diseaseManager.search(new ArrayList<>(taIds));

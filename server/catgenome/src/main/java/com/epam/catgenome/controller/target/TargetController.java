@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
@@ -224,6 +225,18 @@ public class TargetController extends AbstractRESTController {
     public Result<List<DiseaseAssociationAggregated>> getAllOpenTargetsDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getAllOpenTargetsDiseases(request));
+    }
+
+    @GetMapping(value = "/target/opentargets/diseases/ontology")
+    @ApiOperation(
+            value = "Returns all diseases with parents",
+            notes = "Returns all diseases with parents",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<BareDisease>> getDiseasesTree() throws IOException {
+        return Result.success(targetIdentificationSecurityService.getDiseasesTree());
     }
 
     @PutMapping(value = "/target/import/opentargets")

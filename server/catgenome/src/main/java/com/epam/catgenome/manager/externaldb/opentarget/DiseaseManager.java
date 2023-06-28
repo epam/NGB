@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.opentarget;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,6 +95,20 @@ public class DiseaseManager {
         return result;
     }
 
+    public List<BareDisease> search() throws IOException {
+        final List<BareDisease> diseases = new ArrayList<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            int numDocs = indexReader.numDocs();
+            for (int docId = 0; docId < numDocs; docId++) {
+                Document doc = indexReader.document(docId);
+                BareDisease entry = bareEntryFromDoc(doc);
+                diseases.add(entry);
+            }
+        }
+        return diseases;
+    }
+
     public void importData(final String path) throws IOException {
         final File directory = getDirectory(path);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
@@ -107,6 +122,10 @@ public class DiseaseManager {
                 }
             }
         }
+    }
+
+    public static String getDiseaseUrl(final String diseaseId) {
+        return String.format(OPEN_TARGETS_DISEASE_URL_PATTERN, diseaseId);
     }
 
     private List<Disease> readEntries(final File path) throws IOException {
@@ -186,10 +205,6 @@ public class DiseaseManager {
                 .build();
     }
 
-    public static String getDiseaseUrl(final String diseaseId) {
-        return String.format(OPEN_TARGETS_DISEASE_URL_PATTERN, diseaseId);
-    }
-
     private static void addDoc(final IndexWriter writer, final Disease entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(IndexFields.DISEASE_ID.getFieldName(), String.valueOf(entry.getId()), Field.Store.YES));
@@ -203,5 +218,12 @@ public class DiseaseManager {
         doc.add(new TextField(IndexFields.THERAPEUTIC_AREA_IDS.getFieldName(),
                 serialize(therapeuticAreaIds), Field.Store.YES));
         writer.addDocument(doc);
+    }
+
+    private static BareDisease bareEntryFromDoc(final Document doc) {
+        return BareDisease.builder()
+                .id(getField(doc, IndexFields.DISEASE_ID.getFieldName()))
+                .parents(deserialize(getField(doc, IndexFields.PARENTS.getFieldName())))
+                .build();
     }
 }
