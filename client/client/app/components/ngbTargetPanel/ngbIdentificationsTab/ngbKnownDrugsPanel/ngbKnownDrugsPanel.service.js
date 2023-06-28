@@ -3,10 +3,6 @@ const SOURCE_OPTIONS = {
         displayName: 'Open Targets',
         name: 'OPEN_TARGETS'
     },
-    TXGNN: {
-        displayName: 'TxGNN',
-        name: 'TXGNN'
-    },
     DGI_DB: {
         displayName: 'DGIdb',
         name: 'DGI_DB'
