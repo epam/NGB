@@ -50,7 +50,6 @@ const SORT_FIELDS = {
     DGI_DB: {
         'target': 'GENE_ID',
         'drug name': 'DRUG_NAME',
-        'gene name': '',
         'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
         'interaction types': 'INTERACTION_TYPES'
     }
