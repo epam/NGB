@@ -78,15 +78,19 @@ import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-@RequiredArgsConstructor
 public class DiseaseAssociationManager {
 
-    @Value("${opentargets.disease.association.index.directory}")
-    private String indexDirectory;
-
-    @Value("${targets.top.hits:10000}")
-    private int targetsTopHits;
+    private final String indexDirectory;
+    private final int targetsTopHits;
     private final DiseaseManager diseaseManager;
+
+    public DiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
+                                     final @Value("${targets.top.hits:10000}") int targetsTopHits,
+                                     final DiseaseManager diseaseManager) {
+        this.indexDirectory = Paths.get(indexDirectory, "opentargets.disease.association").toString();
+        this.targetsTopHits = targetsTopHits;
+        this.diseaseManager = diseaseManager;
+    }
 
     public SearchResult<DiseaseAssociation> search(final DiseaseSearchRequest request)
             throws IOException, ParseException {

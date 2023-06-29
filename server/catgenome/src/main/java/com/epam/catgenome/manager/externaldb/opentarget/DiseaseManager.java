@@ -75,8 +75,11 @@ public class DiseaseManager {
     private static final String OPEN_TARGETS_DISEASE_URL_PATTERN = "https://platform.opentargets.org/disease/%s";
     private static final Integer BATCH_SIZE = 1000;
 
-    @Value("${opentargets.disease.index.directory}")
-    private String indexDirectory;
+    private final String indexDirectory;
+
+    public DiseaseManager(final @Value("${targets.index.directory}") String indexDirectory) {
+        this.indexDirectory = Paths.get(indexDirectory, "opentargets.disease").toString();
+    }
 
     public List<Disease> search(final List<String> ids) throws ParseException, IOException {
         final List<Disease> result = new ArrayList<>();

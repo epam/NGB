@@ -67,16 +67,17 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-@RequiredArgsConstructor
 public class DGIDBDrugAssociationManager {
 
     private static final int COLUMNS = 11;
+    private final String indexDirectory;
+    private final int targetsTopHits;
 
-    @Value("${dgidb.drug.association.index.directory}")
-    private String indexDirectory;
-
-    @Value("${targets.top.hits:10000}")
-    private int targetsTopHits;
+    public DGIDBDrugAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
+                                       final @Value("${targets.top.hits:10000}") int targetsTopHits) {
+        this.indexDirectory = Paths.get(indexDirectory, "dgidb.drug.association").toString();
+        this.targetsTopHits = targetsTopHits;
+    }
 
     public SearchResult<DGIDBDrugAssociation> search(final DGIDBDrugSearchRequest request)
             throws IOException, ParseException {

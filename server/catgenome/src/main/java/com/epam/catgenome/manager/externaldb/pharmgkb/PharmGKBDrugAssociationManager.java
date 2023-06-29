@@ -71,16 +71,22 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-@RequiredArgsConstructor
 public class PharmGKBDrugAssociationManager {
 
-    @Value("${pharmgkb.drug.association.index.directory}")
-    private String indexDirectory;
-
-    @Value("${targets.top.hits:10000}")
-    private int targetsTopHits;
+    private final String indexDirectory;
+    private final int targetsTopHits;
     private final PharmGKBGeneManager pharmGKBGeneManager;
     private final PharmGKBDrugManager pharmGKBDrugManager;
+
+    public PharmGKBDrugAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
+                                          final @Value("${targets.top.hits:10000}") int targetsTopHits,
+                                          final PharmGKBGeneManager pharmGKBGeneManager,
+                                          final PharmGKBDrugManager pharmGKBDrugManager) {
+        this.indexDirectory = Paths.get(indexDirectory, "pharmgkb.drug.association").toString();
+        this.targetsTopHits = targetsTopHits;
+        this.pharmGKBGeneManager = pharmGKBGeneManager;
+        this.pharmGKBDrugManager = pharmGKBDrugManager;
+    }
 
     public SearchResult<PharmGKBDrug> search(final PharmGKBDrugSearchRequest request)
             throws IOException, ParseException {
