@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * </p>
  */
 @Service
+@Slf4j
 public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
@@ -174,9 +176,13 @@ public class NCBIGeneManager {
         final Map<String, String> entrezIds = new HashMap<>();
         String entrezId;
         for (String id: ensemblIds) {
-            entrezId = fetchExternalId(id);
-            if (StringUtils.isNotBlank(entrezId)) {
-                entrezIds.put(entrezId, id);
+            try {
+                entrezId = fetchExternalId(id);
+                if (StringUtils.isNotBlank(entrezId)) {
+                    entrezIds.put(entrezId, id);
+                }
+            } catch (ExternalDbUnavailableException e) {
+                log.error("Failed to fetch gene id for {}", id);
             }
         }
         return entrezIds;
