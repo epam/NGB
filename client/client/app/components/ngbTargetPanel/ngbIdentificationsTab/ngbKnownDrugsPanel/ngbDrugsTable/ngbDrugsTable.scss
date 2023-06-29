@@ -96,6 +96,17 @@ ngb-drugs-table {
             color: #999;
         }
     }
+
+    .target-cell {
+        font-size: 12px;
+        padding: 5px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        font-size: 12px;
+        align-self: center;
+        height: auto;
+        white-space: nowrap;
+    }
 }
 
 ngb-table-pagination {

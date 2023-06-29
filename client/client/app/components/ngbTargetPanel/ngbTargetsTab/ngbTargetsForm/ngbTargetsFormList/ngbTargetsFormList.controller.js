@@ -9,8 +9,8 @@ export default class ngbTargetsFormListController{
         return 'ngbTargetsFormListController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, ngbTargetsTabService, projectContext) {
+        Object.assign(this, {$scope, $timeout, ngbTargetsTabService, projectContext});
         this.searchText = this.geneModel;
 
         const refresh = this.refresh.bind(this);
@@ -31,7 +31,19 @@ export default class ngbTargetsFormListController{
 
     async getList (text) {
         const result = await this.ngbTargetsTabService.searchGenes(text);
-        return result;
+        const list = result.map(item => {
+            if (item.chromosome) {
+                const {referenceId} = item.chromosome;
+                const species = this.projectContext.references
+                    .filter(r => r.id === referenceId && r.species)
+                    .map(r => r.species);
+                if (species.length) {
+                    item.speciesName = `(${species[0].name})`;
+                }
+            }
+            return item;
+        });
+        return list;
     }
 
     searchTextChange(text) {

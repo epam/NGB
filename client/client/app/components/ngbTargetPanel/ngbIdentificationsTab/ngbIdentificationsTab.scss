@@ -74,7 +74,23 @@ ngb-identifications-tab.tab {
             }
 
             .description-span {
-                font-size: 11px;
+                margin-top: 10px;
+
+                .element-wrapper {
+                    font-size: 0;
+                }
+
+                span, a {
+                    font-size: 11px;
+                    margin: 0;
+                }
+
+                a {
+                    display: inline-block;
+                    text-decoration: none;
+                    color: rgb(102, 153, 255);
+                    cursor: pointer;
+                }
             }
         }
     }
@@ -107,6 +123,22 @@ ngb-identifications-tab.tab {
 
         .description-value {
             font-size: 12px;
+
+            .element-wrapper {
+                font-size: 0;
+            }
+
+            span {
+                font-size: 12px;
+            }
+
+            a {
+                font-size: 12px;
+                display: inline-block;
+                text-decoration: none;
+                color: rgb(102, 153, 255);
+                cursor: pointer;
+            }
         }
     }
 }

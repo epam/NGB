@@ -1,6 +1,6 @@
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
-const PHARM_GKB_COLUMNS = ['target', 'drug id', 'drug name', 'Source'];
-const DGI_DB_COLUMNS = ['drug name', 'entrez id', 'gene name', 'interaction claim source'];
+const PHARM_GKB_COLUMNS = ['target', 'drug name', 'Source'];
+const DGI_DB_COLUMNS = ['target', 'drug name', 'interaction claim source', 'interaction types'];
 export default class ngbDrugsTableController {
 
     get openTargetsColumnList () {
@@ -131,8 +131,19 @@ export default class ngbDrugsTableController {
 
     async sourceChanged() {
         this.resetDrugsData();
+        this.resetSorting();
         this.initialize();
         this.$timeout(::this.$scope.$apply);
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 
     get sourceModel() {
@@ -158,6 +169,7 @@ export default class ngbDrugsTableController {
     getDrugsTableGridColumns() {
         const headerCells = require('./ngbDrugsTable_header.tpl.html');
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
+        const targetCell = require('./ngbDrugsTable_targetCell.tpl.html');
 
         const result = [];
         const columnsList = this.getColumnList();
@@ -177,6 +189,12 @@ export default class ngbDrugsTableController {
                 width: '*'
             };
             switch (column) {
+                case 'target':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: targetCell,
+                    };
+                    break;
                 case 'drug':
                     columnSettings = {
                         ...columnSettings,
