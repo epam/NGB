@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -203,7 +203,8 @@ public class DiseaseManager {
                 .name(getField(doc, IndexFields.NAME.getFieldName()))
                 .url(getDiseaseUrl(getField(doc, IndexFields.DISEASE_ID.getFieldName())))
                 .parents(parents)
-                .isTherapeuticArea(CollectionUtils.isEmpty(parents))
+                .isTherapeuticArea(CollectionUtils.isEmpty(parents) ||
+                        parents.stream().allMatch(StringUtils::isBlank))
                 .therapeuticAreas(therapeuticAreas)
                 .build();
     }
