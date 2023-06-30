@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -132,7 +131,7 @@ public class DrugAssociationManager {
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByGeneIdsQUery(ids);
+            final Query query = getByGeneIdsQuery(ids);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -203,7 +202,7 @@ public class DrugAssociationManager {
         return entries;
     }
 
-    private static Query getByGeneIdsQUery(final List<String> ids)
+    private static Query getByGeneIdsQuery(final List<String> ids)
             throws ParseException {
         return getByIdsQuery(ids, IndexFields.GENE_ID.getFieldName());
     }
@@ -243,7 +242,7 @@ public class DrugAssociationManager {
         doc.add(new TextField(IndexFields.DISEASE_NAME.getFieldName(), diseaseName, Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.getFieldName(), new BytesRef(diseaseName)));
 
-        doc.add(new StringField(IndexFields.GENE_ID.getFieldName(), entry.getGeneId(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.GENE_ID.getFieldName(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getFieldName(), new BytesRef(entry.getGeneId())));
 
         doc.add(new StringField(IndexFields.DRUG_TYPE.getFieldName(), entry.getDrugType(), Field.Store.YES));
@@ -338,12 +337,7 @@ public class DrugAssociationManager {
 
     private static Query buildQuery(final DrugSearchRequest request) throws ParseException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String geneId : request.getGeneIds()) {
-            builder.add(buildTermQuery(geneId, DrugField.GENE_ID.getName()), BooleanClause.Occur.SHOULD);
-        }
-        mainBuilder.add(builder.build(), BooleanClause.Occur.MUST);
-
+        mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
         if (request.getFilterBy() != null && request.getTerm() != null) {
             Query query;
             if (DrugField.DRUG_NAME.equals(request.getFilterBy()) ||

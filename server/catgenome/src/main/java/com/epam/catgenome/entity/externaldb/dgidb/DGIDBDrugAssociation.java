@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.dgidb;
 
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +34,7 @@ import lombok.Setter;
 public class DGIDBDrugAssociation {
     private String geneId;
     private String entrezId;
-    private String drugName;
+    private UrlEntity drug;
     private String interactionTypes;
     private String interactionClaimSource;
 }

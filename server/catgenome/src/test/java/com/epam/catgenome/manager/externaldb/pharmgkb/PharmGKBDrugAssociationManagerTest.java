@@ -43,7 +43,7 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class PharmGKBDrugAssociationManagerTest extends TestCase {
 
-    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000085563", "ENSG00000073734");
+    private static final List<String> GENE_IDS = Arrays.asList("ensg00000085563", "ENSG00000073734");
     private static final int ENTRIES_COUNT = 4;
     private static final int ENTRIES_TOTAL_COUNT = 4;
 

@@ -32,18 +32,30 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FloatDocValuesField;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -63,7 +75,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -290,7 +301,7 @@ public class DiseaseAssociationManager {
 
     private static void addDoc(final IndexWriter writer, final DiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
-        addStringField(entry.getGeneId(), doc, IndexField.GENE_ID);
+        addTextField(entry.getGeneId(), doc, IndexField.GENE_ID);
 
         doc.add(new TextField(IndexField.DISEASE_ID.getName(), entry.getDiseaseId(), Field.Store.YES));
 
@@ -305,13 +316,6 @@ public class DiseaseAssociationManager {
         addFloatField(entry.getRnaExpressionScore(), doc, IndexField.RNA_EXPRESSION_SCORE);
         addFloatField(entry.getAnimalModelScore(), doc, IndexField.ANIMAL_MODELS_SCORE);
         writer.addDocument(doc);
-    }
-
-    private static void addStringField(final String entry, final Document doc, final IndexField field) {
-        if (entry != null) {
-            doc.add(new StringField(field.getName(), entry, Field.Store.YES));
-            doc.add(new SortedDocValuesField(field.getName(), new BytesRef(entry)));
-        }
     }
 
     private static void addTextField(final String entry, final Document doc, final IndexField field) {
@@ -384,12 +388,7 @@ public class DiseaseAssociationManager {
 
     private static Query buildQuery(final DiseaseSearchRequest request) throws ParseException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String geneId : request.getGeneIds()) {
-            builder.add(buildTermQuery(geneId, DiseaseField.GENE_ID.getName()), BooleanClause.Occur.SHOULD);
-        }
-        mainBuilder.add(builder.build(), BooleanClause.Occur.MUST);
-
+        mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
         if (request.getFilterBy() != null && request.getTerm() != null &&
                 DiseaseField.DISEASE_NAME.equals(request.getFilterBy())) {
             final StandardAnalyzer analyzer = new StandardAnalyzer();
