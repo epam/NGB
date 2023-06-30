@@ -71,6 +71,7 @@ export default class ngbHomologeneTableController extends baseController {
         this.isProgressShown = true;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbHomologeneTable_row.tpl.html'),
             columnDefs: this.ngbHomologeneTableService.getHomologeneGridColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;

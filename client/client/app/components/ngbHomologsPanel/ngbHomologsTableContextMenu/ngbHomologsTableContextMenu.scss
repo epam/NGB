@@ -1,0 +1,34 @@
+.ngb-homologs-table-context-menu {
+    background-color: white;
+    box-shadow: 0 0 1em #999;
+    border: 1px solid #ccc;
+    z-index: 100;
+    min-width: 200px;
+
+    md-menu-content {
+      max-height: none;
+      padding: 0;
+      min-height: 40px;
+      height: 40px;
+    }
+
+    .md-button {
+        width: 100%;
+        text-align: left;
+        border-radius: 0;
+        font-size: 14px;
+        text-transform: inherit;
+        height: 40px;
+        line-height: 40px;
+    }
+
+    md-menu-item {
+        flex-direction: column;
+        min-height: 40px;
+        height: 40px;
+    }
+}
+
+.ngb-context-menu-opened {
+    background-color: #efefef !important;
+}

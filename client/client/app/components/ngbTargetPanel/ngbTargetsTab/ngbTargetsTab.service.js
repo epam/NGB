@@ -110,12 +110,13 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance (dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        return new ngbTargetsTabService(dispatcher, ngbTargetPanelService, targetDataService, projectContext);
+    static instance ($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        return new ngbTargetsTabService($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext);
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, projectContext});
+    constructor($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext});
+        dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
     setTableMode() {
@@ -361,6 +362,31 @@ export default class ngbTargetsTabService {
                     this._launchErrorMessageList = [err.message];
                     resolve(false);
                 });
+        });
+    }
+
+    createTargetFromHomologs(genes) {
+        this.setEmptyTargetModel();
+        this.setAddMode();
+        this.$timeout(() => {
+            this._targetModel.name = genes[0];
+            this._targetModel.diseases = [];
+            this._targetModel.products = [];
+            this._targetModel.genes = genes.map(g => ({
+                geneId: '',
+                geneName: g,
+                taxId: '',
+                speciesName: '',
+                priority: ''
+            }));
+            const mdChips = document.getElementsByClassName('chip-input');
+            for (let i = 0; i < mdChips.length; i++) {
+                const input = mdChips[i].getElementsByClassName('md-input');
+                for (let j = 0; j < input.length; j++) {
+                    input[j].value = '';
+                    input[j].innerHTML = '';
+                }
+            }
         });
     }
 }
