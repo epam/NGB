@@ -62,8 +62,11 @@ import static com.epam.catgenome.util.NgbFileUtils.getFile;
 public class PharmGKBDrugManager {
 
     public static final int COLUMNS = 14;
-    @Value("${pharmgkb.drug.index.directory}")
-    private String indexDirectory;
+    private final String indexDirectory;
+
+    public PharmGKBDrugManager(final @Value("${targets.index.directory}") String indexDirectory) {
+        this.indexDirectory = Paths.get(indexDirectory, "pharmgkb.drug").toString();
+    }
 
     public List<PharmGKBDrug> search(final List<String> ids)
             throws IOException, ParseException {

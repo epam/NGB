@@ -26,10 +26,6 @@
                                 ng-if="col.sort.direction == asc"
                                 title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}">
                     </ng-md-icon>
-                    <sub ui-grid-visible="isSortPriorityVisible()"
-                         class="ui-grid-sort-priority-number">
-                        {{col.sort.priority + 1}}
-                    </sub>
                 </span>
             </md-button>
             <div aria-haspopup="true"

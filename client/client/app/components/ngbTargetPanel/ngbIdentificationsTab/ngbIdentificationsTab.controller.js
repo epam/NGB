@@ -46,7 +46,7 @@ export default class ngbIdentificationsTabController {
     }
 
     get shortDescription() {
-        return `${this.descriptions[0].value.substring(0, 150)}...`;
+        return this.ngbTargetPanelService.shortDescription;
     }
 
     get diseasesCount() {

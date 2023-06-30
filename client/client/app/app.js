@@ -7,9 +7,6 @@ import angularMessages from 'angular-messages';
 import angularNvd3 from 'angular-nvd3';
 import angularUiRouter from 'angular-ui-router';
 
-// Import modules for work on Safari
-import 'intl';
-import 'intl/locale-data/jsonp/en.js';
 // Import dependencies
 import appConstants from '../constants/angular-module';
 import dataServices from '../dataServices/angular-module';

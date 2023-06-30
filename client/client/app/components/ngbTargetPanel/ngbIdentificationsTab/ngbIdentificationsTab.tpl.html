@@ -25,7 +25,18 @@
             <h5>DESCRIPTION</h5>
             <div class="whiteframe-content">
                 <span class="description-span">
-                    {{$ctrl.shortDescription}}
+                    <span class="element-wrapper"
+                          ng-repeat="element in $ctrl.shortDescription track by $index"
+                          ng-class="{'inline-block': element.type === 'link'}">
+                        <span ng-if="element.type === 'text'">
+                            {{element.value}}
+                        </span>
+                        <a ng-if="element.type === 'link'"
+                            ng-href="{{element.value.href}}"
+                            target="_blank">
+                            {{element.value.text}}
+                        </a>
+                    </span><span>...</span>
                 </span>
             </div>
         </md-whiteframe>
@@ -78,7 +89,19 @@
                          flex="100">
                         <div ng-repeat="item in $ctrl.descriptions track by $index">
                             <h5>{{item.title}}</h5>
-                            <div class="description-value">{{item.value}}</div>
+                            <div class="description-value">
+                                <span class="element-wrapper"
+                                      ng-repeat="element in item.value track by $index">
+                                    <span ng-if="element.type === 'text'">
+                                        {{element.value}}
+                                    </span>
+                                    <a ng-if="element.type === 'link'"
+                                       ng-href="{{element.value.href}}"
+                                       target="_blank">
+                                       {{element.value.text}}
+                                    </a>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </collapsible-panel-content>

@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -73,8 +75,11 @@ public class DiseaseManager {
     private static final String OPEN_TARGETS_DISEASE_URL_PATTERN = "https://platform.opentargets.org/disease/%s";
     private static final Integer BATCH_SIZE = 1000;
 
-    @Value("${opentargets.disease.index.directory}")
-    private String indexDirectory;
+    private final String indexDirectory;
+
+    public DiseaseManager(final @Value("${targets.index.directory}") String indexDirectory) {
+        this.indexDirectory = Paths.get(indexDirectory, "opentargets.disease").toString();
+    }
 
     public List<Disease> search(final List<String> ids) throws ParseException, IOException {
         final List<Disease> result = new ArrayList<>();
@@ -151,8 +156,7 @@ public class DiseaseManager {
         DISEASE_ID("diseaseId"),
         NAME("name"),
         THERAPEUTIC_AREA_IDS("therapeuticAreaIds"),
-        PARENTS("parents"),
-        IS_THERAPEUTIC_AREA("isTherapeuticArea");
+        PARENTS("parents");
         private final String fieldName;
 
         IndexFields(String fieldName) {
@@ -182,7 +186,6 @@ public class DiseaseManager {
         return Disease.builder()
                 .id(jsonNodes.at("/id").asText())
                 .name(jsonNodes.at("/name").asText())
-                .isTherapeuticArea(jsonNodes.at("/ontology/isTherapeuticArea").asBoolean())
                 .therapeuticAreas(therapeuticAreas)
                 .parents(parents)
                 .build();
@@ -194,13 +197,14 @@ public class DiseaseManager {
         final List<UrlEntity> therapeuticAreas = therapeuticAreasStr.stream()
                 .map(UrlEntity::new)
                 .collect(Collectors.toList());
+        final List<String> parents = deserialize(getField(doc, IndexFields.PARENTS.getFieldName()));
         return Disease.builder()
                 .id(getField(doc, IndexFields.DISEASE_ID.getFieldName()))
                 .name(getField(doc, IndexFields.NAME.getFieldName()))
                 .url(getDiseaseUrl(getField(doc, IndexFields.DISEASE_ID.getFieldName())))
-                .parents(deserialize(getField(doc, IndexFields.PARENTS.getFieldName())))
-                .isTherapeuticArea(Boolean.parseBoolean(doc.getField(IndexFields.IS_THERAPEUTIC_AREA.getFieldName())
-                        .stringValue()))
+                .parents(parents)
+                .isTherapeuticArea(CollectionUtils.isEmpty(parents) ||
+                        parents.stream().allMatch(StringUtils::isBlank))
                 .therapeuticAreas(therapeuticAreas)
                 .build();
     }
@@ -209,8 +213,6 @@ public class DiseaseManager {
         final Document doc = new Document();
         doc.add(new TextField(IndexFields.DISEASE_ID.getFieldName(), String.valueOf(entry.getId()), Field.Store.YES));
         doc.add(new TextField(IndexFields.NAME.getFieldName(), String.valueOf(entry.getName()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.IS_THERAPEUTIC_AREA.getFieldName(),
-                String.valueOf(entry.isTherapeuticArea()), Field.Store.YES));
         doc.add(new TextField(IndexFields.PARENTS.getFieldName(), serialize(entry.getParents()), Field.Store.YES));
         final List<String> therapeuticAreaIds = entry.getTherapeuticAreas().stream()
                 .map(UrlEntity::getId)

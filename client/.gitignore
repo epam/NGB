@@ -4,6 +4,7 @@
 # Generated files
 build/*
 !build/.gitkeep
+dist
 dist/*
 !dist/.gitkeep
 lib/*
@@ -46,3 +47,5 @@ jspm_packages
 
 # Developer configuration
 client/constants/dev.js
+
+.env

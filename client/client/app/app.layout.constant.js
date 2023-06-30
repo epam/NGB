@@ -142,7 +142,7 @@ export default {
                 }
             };
 
-            return __DEV__ && devPanels;
+            return process.env.__DEV__ && devPanels;
         })()
 
     }

@@ -154,7 +154,7 @@ export class BamRenderer {
 
     get spliceJunctionsTopMargin() {
         let margin = 0;
-        if (this._state.coverage) {
+        if (this._state && this._state.coverage) {
             margin += this._config.coverage.height;
         }
         return margin;

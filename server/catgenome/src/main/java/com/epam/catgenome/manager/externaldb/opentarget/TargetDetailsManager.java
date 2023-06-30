@@ -64,8 +64,11 @@ import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 @Service
 public class TargetDetailsManager {
 
-    @Value("${opentargets.target.index.directory}")
-    private String indexDirectory;
+    private final String indexDirectory;
+
+    public TargetDetailsManager(final @Value("${targets.index.directory}") String indexDirectory) {
+        this.indexDirectory = Paths.get(indexDirectory, "opentargets.target").toString();
+    }
 
     public List<TargetDetails> search(final List<String> ids) throws ParseException, IOException {
         final List<TargetDetails> result = new ArrayList<>();
