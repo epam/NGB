@@ -30,7 +30,6 @@ import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
