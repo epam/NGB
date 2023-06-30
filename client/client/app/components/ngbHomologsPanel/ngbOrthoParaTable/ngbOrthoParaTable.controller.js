@@ -71,6 +71,7 @@ export default class ngbOrthoParaTableController extends baseController {
         this.isProgressShown = true;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbOrthoParaTable_row.tpl.html'),
             columnDefs: this.ngbOrthoParaTableService.getOrthoParaGridColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;

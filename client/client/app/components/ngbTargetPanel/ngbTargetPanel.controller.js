@@ -24,6 +24,7 @@ export default class ngbTargetPanelController {
         Object.assign(this, {$scope, $timeout, ngbTargetPanelService});
         this.tabSelected = this.targetState.TARGETS;
         dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
+        dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
     changeState(state) {
@@ -37,5 +38,9 @@ export default class ngbTargetPanelController {
         this.currentTargetState = this.targetState.IDENTIFICATIONS;
         this.tabSelected = this.targetState.IDENTIFICATIONS;
         this.$timeout(::this.$scope.$apply);
+    }
+
+    createTargetFromHomologs() {
+        this.changeState(this.targetState.TARGETS);
     }
 }

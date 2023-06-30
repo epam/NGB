@@ -6,8 +6,10 @@ import component from './ngbHomologeneTable.component';
 import controller from './ngbHomologeneTable.controller';
 import service from './ngbHomologeneTable.service';
 
+import ngbHomologsTableContextMenu from '../ngbHomologsTableContextMenu';
+
 export default angular
-    .module('ngbHomologeneTable', [])
+    .module('ngbHomologeneTable', [ngbHomologsTableContextMenu])
     .service('ngbHomologeneTableService', service.instance)
     .controller(controller.UID, controller)
     .component('ngbHomologeneTable', component)

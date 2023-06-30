@@ -1,11 +1,23 @@
 const GENES_COLUMNS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
 
+const PRIORITY_LIST = [{
+    name: 'Low',
+    value: 'LOW'
+}, {
+    name: 'High',
+    value: 'HIGH'
+}];
+
 export default class ngbTargetsFormController{
 
     diseaseModel;
 
     get genesColumns () {
         return GENES_COLUMNS;
+    }
+
+    get priorityList() {
+        return PRIORITY_LIST;
     }
 
     static get UID() {
@@ -129,13 +141,9 @@ export default class ngbTargetsFormController{
         if (this.loading) return true;
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.isAddMode) {
-            return this.isGeneEmpty(0);
-        } else {
-            const genesEmpty = genes.filter((gene, index) => this.isGeneEmpty(index));
-            if (genesEmpty.length) return true;
-            return !this.ngbTargetsTabService.targetModelChanged();
-        }
+        const genesEmpty = genes.filter((gene, index) => this.isGeneEmpty(index));
+        if (genesEmpty.length) return true;
+        if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
     }
 
     onClickRemove(index) {
@@ -162,12 +170,4 @@ export default class ngbTargetsFormController{
             this.$timeout(::this.$scope.$apply);
         });
     }
-
-    priorityList = [{
-        name: 'Low',
-        value: 'LOW'
-    }, {
-        name: 'High',
-        value: 'HIGH'
-    }];
 }
