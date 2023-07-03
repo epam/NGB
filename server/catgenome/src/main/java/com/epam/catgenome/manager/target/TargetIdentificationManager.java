@@ -41,6 +41,7 @@ import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.manager.externaldb.opentarget.*;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
@@ -78,6 +79,7 @@ public class TargetIdentificationManager {
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
     private final NCBIGeneManager geneManager;
+    private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final TargetDetailsManager targetDetailsManager;
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
@@ -90,7 +92,7 @@ public class TargetIdentificationManager {
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
-        final Map<String, String> entrezMap = geneManager.getEntrezMap(geneIds);
+        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
         final long drugsCount = getDrugsCount(entrezMap);
         final long diseasesCount = diseaseAssociationManager.totalCount(geneIds);
@@ -102,8 +104,8 @@ public class TargetIdentificationManager {
     }
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
-            throws ExternalDbUnavailableException, IOException, ParseException {
-        final Map<String, String> entrezMap = geneManager.getEntrezMap(request.getGeneIds());
+            throws IOException, ParseException {
+        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(request.getGeneIds());
         request.setGeneIds(new ArrayList<>(entrezMap.keySet()));
         final SearchResult<DGIDBDrugAssociation> result = dgidbDrugAssociationManager.search(request);
         final List<DGIDBDrugAssociation> items = result.getItems();

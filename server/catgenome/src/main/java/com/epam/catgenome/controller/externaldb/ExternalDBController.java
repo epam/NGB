@@ -33,22 +33,13 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIShortVarManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIStructVarManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIClinVarManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
+import com.epam.catgenome.manager.externaldb.ncbi.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -103,6 +94,9 @@ public class ExternalDBController extends AbstractRESTController {
 
     @Autowired
     private NCBIGeneManager ncbiGeneManager;
+
+    @Autowired
+    private NCBIGeneIdsManager ncbiGeneIdsManager;
 
     @Autowired
     private NCBIShortVarManager ncbiShortVarManager;
@@ -392,5 +386,19 @@ public class ExternalDBController extends AbstractRESTController {
                                                     @RequestBody final ReadSequenceVO readSequence)
         throws IOException, ExternalDbUnavailableException {
         return Result.success(blatSearchManager.findBlatReadSequence(referenceId, readSequence.getReadSequence()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/externaldb/ncbi/genes/import", method = RequestMethod.PUT)
+    @ApiOperation(
+            value = "Imports gene ids data from NCBI",
+            notes = "Imports gene ids data from NCBI",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException {
+        ncbiGeneIdsManager.importData(path);
+        return Result.success(null);
     }
 }

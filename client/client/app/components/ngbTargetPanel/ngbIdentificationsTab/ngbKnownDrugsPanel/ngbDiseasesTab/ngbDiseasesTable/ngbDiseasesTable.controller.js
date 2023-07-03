@@ -1,6 +1,8 @@
+import ngbDiseasesControllerBase from '../ngbDiseases.controler.base';
+
 const DISEASES_TABLE_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
-export default class ngbDiseasesTableController {
+export default class ngbDiseasesTableController extends ngbDiseasesControllerBase {
 
     get diseasesTableColumnList () {
         return DISEASES_TABLE_COLUMNS;
@@ -45,19 +47,8 @@ export default class ngbDiseasesTableController {
     }
 
     constructor($scope, $timeout, dispatcher, ngbDiseasesTableService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbDiseasesTableService});
-
-        const diseasesSourceChanged = this.sourceChanged.bind(this);
-        const drugsSourceChanged = this.resetDiseasesData.bind(this);
-        const filterChanged = this.filterChanged.bind(this);
-        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
-        dispatcher.on('drugs:source:changed', drugsSourceChanged);
-        dispatcher.on('diseases:filters:changed', filterChanged);
-        $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
-            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
-            dispatcher.removeListener('diseases:filters:changed', filterChanged);
-        });
+        super($scope, $timeout, dispatcher);
+        this.ngbDiseasesTableService = ngbDiseasesTableService;
     }
 
     get totalPages() {
@@ -100,13 +91,13 @@ export default class ngbDiseasesTableController {
         this.ngbDiseasesTableService.filterInfo = value;
     }
 
+    async drugsSourceChanged() {
+        await this.resetDiseasesData();
+    }
+
     resetDiseasesData() {
         this.ngbDiseasesTableService.resetDiseasesData();
         this.dispatcher.emit('diseases:filters:reset');
-    }
-
-    $onInit() {
-        this.initialize();
     }
 
     async initialize() {
