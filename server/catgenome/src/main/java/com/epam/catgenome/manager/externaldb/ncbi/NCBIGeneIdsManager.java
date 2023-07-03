@@ -26,8 +26,9 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.util.FileFormat;
 import com.google.common.collect.Lists;
-import javafx.util.Pair;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -147,7 +148,7 @@ public class NCBIGeneIdsManager {
     }
 
     private static Pair<String, String> entryFromDoc(final Document doc) {
-        return new Pair<>(doc.getField(IndexFields.ENTREZ_ID.getName()).stringValue(),
+        return new ImmutablePair<>(doc.getField(IndexFields.ENTREZ_ID.getName()).stringValue(),
                 doc.getField(IndexFields.ENSEMBL_ID.getName()).stringValue());
     }
 }
