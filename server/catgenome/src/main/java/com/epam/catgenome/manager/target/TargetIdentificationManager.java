@@ -40,7 +40,9 @@ import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseAssociationManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager;
@@ -50,7 +52,9 @@ import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseAssociationManager;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.*;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
@@ -85,6 +89,7 @@ public class TargetIdentificationManager {
     private final PharmGKBDiseaseAssociationManager pharmGKBDiseaseAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
     private final NCBIGeneManager geneManager;
+    private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final TargetDetailsManager targetDetailsManager;
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
@@ -97,7 +102,7 @@ public class TargetIdentificationManager {
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
-        final Map<String, String> entrezMap = geneManager.getEntrezMap(geneIds);
+        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
         final long drugsCount = getDrugsCount(entrezMap);
         final long diseasesCount = getDiseasesCount(geneIds);
@@ -109,8 +114,8 @@ public class TargetIdentificationManager {
     }
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
-            throws ExternalDbUnavailableException, IOException, ParseException {
-        final Map<String, String> entrezMap = geneManager.getEntrezMap(request.getGeneIds());
+            throws IOException, ParseException {
+        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(request.getGeneIds());
         request.setGeneIds(new ArrayList<>(entrezMap.keySet()));
         final SearchResult<DGIDBDrugAssociation> result = dgidbDrugAssociationManager.search(request);
         final List<DGIDBDrugAssociation> items = result.getItems();
@@ -177,6 +182,18 @@ public class TargetIdentificationManager {
 
     public void importDGIdbData(final String path) throws IOException {
         dgidbDrugAssociationManager.importData(path);
+    }
+
+    public List<String> getPharmGKBDrugsFieldValues(final PharmGKBDrugField field) throws IOException {
+        return pharmGKBDrugAssociationManager.getFieldValues(field);
+    }
+
+    public List<String> getDGIDBDrugsFieldValues(final DGIDBDrugField field) throws IOException {
+        return dgidbDrugAssociationManager.getFieldValues(field);
+    }
+
+    public List<String> getDrugsFieldValues(final DrugField field) throws IOException {
+        return drugAssociationManager.getFieldValues(field);
     }
 
     private Map<String, String> getDescriptions(final Map<String, String> entrezMap)

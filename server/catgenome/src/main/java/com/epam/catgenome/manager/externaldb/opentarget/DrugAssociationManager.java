@@ -28,22 +28,26 @@ import com.epam.catgenome.entity.externaldb.opentarget.Disease;
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.util.IndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -71,6 +75,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager.getDiseaseUrl;
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -103,7 +108,7 @@ public class DrugAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByGeneIdsQUery(request.getGeneIds());
+            final Query query = buildQuery(request);
             final Sort sort = getSort(request);
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -126,7 +131,7 @@ public class DrugAssociationManager {
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            final Query query = getByGeneIdsQUery(ids);
+            final Query query = getByGeneIdsQuery(ids);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -155,6 +160,10 @@ public class DrugAssociationManager {
                 }
             }
         }
+    }
+
+    public List<String> getFieldValues(final DrugField field) throws IOException {
+        return IndexUtils.getFieldValues(field.getName(), indexDirectory);
     }
 
     private void fillDiseaseNames(final List<DrugAssociation> entries) throws ParseException, IOException {
@@ -193,7 +202,7 @@ public class DrugAssociationManager {
         return entries;
     }
 
-    private static Query getByGeneIdsQUery(final List<String> ids)
+    private static Query getByGeneIdsQuery(final List<String> ids)
             throws ParseException {
         return getByIdsQuery(ids, IndexFields.GENE_ID.getFieldName());
     }
@@ -236,24 +245,24 @@ public class DrugAssociationManager {
         doc.add(new TextField(IndexFields.GENE_ID.getFieldName(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getFieldName(), new BytesRef(entry.getGeneId())));
 
-        doc.add(new TextField(IndexFields.DRUG_TYPE.getFieldName(), entry.getDrugType(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.DRUG_TYPE.getFieldName(), entry.getDrugType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.DRUG_TYPE.getFieldName(), new BytesRef(entry.getDrugType())));
 
-        doc.add(new TextField(IndexFields.MECHANISM_OF_ACTION.getFieldName(),
+        doc.add(new StringField(IndexFields.MECHANISM_OF_ACTION.getFieldName(),
                 entry.getMechanismOfAction(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.MECHANISM_OF_ACTION.getFieldName(),
                 new BytesRef(entry.getMechanismOfAction())));
 
-        doc.add(new TextField(IndexFields.ACTION_TYPE.getFieldName(), entry.getActionType(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.ACTION_TYPE.getFieldName(), entry.getActionType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.ACTION_TYPE.getFieldName(), new BytesRef(entry.getActionType())));
 
-        doc.add(new TextField(IndexFields.PHASE.getFieldName(), entry.getPhase(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.PHASE.getFieldName(), entry.getPhase(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.PHASE.getFieldName(), new BytesRef(entry.getPhase())));
 
-        doc.add(new TextField(IndexFields.STATUS.getFieldName(), entry.getStatus(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.STATUS.getFieldName(), entry.getStatus(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.STATUS.getFieldName(), new BytesRef(entry.getStatus())));
 
-        doc.add(new TextField(IndexFields.SOURCE.getFieldName(), entry.getSource().getName(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.SOURCE.getFieldName(), entry.getSource().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.SOURCE.getFieldName(), new BytesRef(entry.getSource().getName())));
 
         doc.add(new TextField(IndexFields.SOURCE_URL.getFieldName(), entry.getSource().getUrl(), Field.Store.YES));
@@ -324,5 +333,22 @@ public class DrugAssociationManager {
                 new SortField(DrugField.getDefault(), SortField.Type.STRING, false) :
                 new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
         return new Sort(sortField);
+    }
+
+    private static Query buildQuery(final DrugSearchRequest request) throws ParseException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
+        if (request.getFilterBy() != null && request.getTerm() != null) {
+            Query query;
+            if (DrugField.DRUG_NAME.equals(request.getFilterBy()) ||
+                    DrugField.DISEASE_NAME.equals(request.getFilterBy())) {
+                final StandardAnalyzer analyzer = new StandardAnalyzer();
+                query = new QueryParser(request.getFilterBy().getName(), analyzer).parse(request.getTerm());
+            } else {
+                query = buildTermQuery(request.getTerm(), request.getFilterBy().getName());
+            }
+            mainBuilder.add(query, BooleanClause.Occur.MUST);
+        }
+        return mainBuilder.build();
     }
 }

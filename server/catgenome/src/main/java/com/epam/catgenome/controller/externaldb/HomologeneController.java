@@ -61,7 +61,7 @@ public class HomologeneController extends AbstractRESTController {
             })
     public Result<SearchResult<HomologeneEntry>> search(
             @RequestBody final HomologeneSearchRequest query)
-            throws IOException {
+            throws IOException, ParseException {
         return Result.success(homologeneSecurityService.searchHomologenes(query));
     }
 

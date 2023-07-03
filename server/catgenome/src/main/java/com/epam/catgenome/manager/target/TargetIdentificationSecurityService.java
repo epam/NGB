@@ -26,7 +26,9 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugField;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
@@ -38,6 +40,7 @@ import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -116,6 +119,21 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_ADMIN)
     public void importDGIdbData(final String path) throws IOException {
         manager.importDGIdbData(path);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<String> getPharmGKBDrugsFieldValues(final PharmGKBDrugField field) throws IOException {
+        return manager.getPharmGKBDrugsFieldValues(field);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<String> getDGIDBDrugsFieldValues(final DGIDBDrugField field) throws IOException {
+        return manager.getDGIDBDrugsFieldValues(field);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<String> getDrugsFieldValues(final DrugField field) throws IOException {
+        return manager.getDrugsFieldValues(field);
     }
 
     @PreAuthorize(ROLE_USER)

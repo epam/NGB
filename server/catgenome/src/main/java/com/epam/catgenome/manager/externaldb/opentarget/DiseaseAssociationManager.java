@@ -32,7 +32,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -48,6 +47,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -104,7 +106,7 @@ public class DiseaseAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByGeneIdsQuery(request.getGeneIds());
+            final Query query = buildQuery(request);
             final Sort sort = getSort(request);
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -382,5 +384,17 @@ public class DiseaseAssociationManager {
         final SortField.Type sortType = request.getOrderBy().equals(DiseaseField.DISEASE_NAME) ||
                 request.getOrderBy().equals(DiseaseField.GENE_ID) ? SortField.Type.STRING : SortField.Type.FLOAT;
         return new Sort(new SortField(request.getOrderBy().getName(), sortType, request.isReverse()));
+    }
+
+    private static Query buildQuery(final DiseaseSearchRequest request) throws ParseException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
+        if (request.getFilterBy() != null && request.getTerm() != null &&
+                DiseaseField.DISEASE_NAME.equals(request.getFilterBy())) {
+            final StandardAnalyzer analyzer = new StandardAnalyzer();
+            final Query query = new QueryParser(request.getFilterBy().getName(), analyzer).parse(request.getTerm());
+            mainBuilder.add(query, BooleanClause.Occur.MUST);
+        }
+        return mainBuilder.build();
     }
 }

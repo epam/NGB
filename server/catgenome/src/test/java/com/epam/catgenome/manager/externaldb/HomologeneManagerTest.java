@@ -60,7 +60,7 @@ public class HomologeneManagerTest extends TestCase {
     }
 
     @Test
-    public void searchTest() throws IOException {
+    public void searchTest() throws IOException, ParseException {
         HomologeneSearchRequest query = new HomologeneSearchRequest("ACADML", 1, 5);
         SearchResult<HomologeneEntry> searchResult = homologeneManager.searchHomologenes(query);
         assertNotNull(searchResult);

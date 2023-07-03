@@ -23,16 +23,25 @@
  */
 package com.epam.catgenome.entity.externaldb.pharmgkb;
 
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 
 @Getter
 @Setter
-@Builder
-public class PharmGKBDrug {
+@NoArgsConstructor
+@AllArgsConstructor
+public class PharmGKBDrug extends UrlEntity{
     private String geneId;
-    private String drugId;
-    private String drugName;
     private String source;
+    @Builder
+    public PharmGKBDrug(String id, String name, String url, String geneId, String source) {
+        super(id, name, url);
+        this.geneId = geneId;
+        this.source = source;
+    }
 }

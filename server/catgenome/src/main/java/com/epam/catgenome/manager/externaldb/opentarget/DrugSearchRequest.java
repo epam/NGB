@@ -36,4 +36,6 @@ import lombok.Setter;
 public class DrugSearchRequest extends AssociationSearchRequest {
     private DrugField orderBy;
     private boolean reverse;
+    private DrugField filterBy;
+    private String term;
 }

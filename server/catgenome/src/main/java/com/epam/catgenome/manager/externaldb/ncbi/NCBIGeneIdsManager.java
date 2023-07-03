@@ -21,15 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.pharmgkb;
+package com.epam.catgenome.manager.externaldb.ncbi;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.util.FileFormat;
+import com.google.common.collect.Lists;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -51,40 +54,51 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 
 @Service
-public class PharmGKBDrugManager {
+public class NCBIGeneIdsManager {
 
-    public static final int COLUMNS = 14;
+    private static final Integer BATCH_SIZE = 1000;
+    private static final int COLUMNS = 7;
     private final String indexDirectory;
 
-    public PharmGKBDrugManager(final @Value("${targets.index.directory}") String indexDirectory) {
-        this.indexDirectory = Paths.get(indexDirectory, "pharmgkb.drug").toString();
+    public NCBIGeneIdsManager(final @Value("${ncbi.index.directory}") String indexDirectory) {
+        this.indexDirectory = Paths.get(indexDirectory, "gene.ids").toString();
     }
 
-    public List<PharmGKBDrug> search(final List<String> ids)
-            throws IOException, ParseException {
-        final List<PharmGKBDrug> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+    public Map<String, String> searchByEntrezIds(final List<String> ids) throws ParseException, IOException {
+        return search(ids, true);
+    }
 
-            final Query query = getByDrugIdsQuery(ids);
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, ids.size());
-            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+    public Map<String, String> searchByEnsemblIds(final List<String> ids) throws ParseException, IOException {
+        return search(ids, false);
+    }
 
-            for (ScoreDoc scoreDoc : scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                PharmGKBDrug entry = entryFromDoc(doc);
-                entries.add(entry);
+    private Map<String, String> search(final List<String> ids, final boolean byEntrez)
+            throws ParseException, IOException {
+        final Map<String, String> result = new HashMap<>();
+        final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
+        for (List<String> subIds : subSets) {
+            Query query = getByIdsQuery(ids, byEntrez ? IndexFields.ENTREZ_ID.getName() :
+                    IndexFields.ENSEMBL_ID.getName());
+            try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+                 IndexReader indexReader = DirectoryReader.open(index)) {
+                IndexSearcher searcher = new IndexSearcher(indexReader);
+                TopDocs topDocs = searcher.search(query, subIds.size());
+                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    Pair<String, String> entry = entryFromDoc(doc);
+                    result.put(entry.getKey(), entry.getValue());
+                }
             }
         }
-        return entries;
+        return result;
     }
 
     public void importData(final String path) throws IOException {
@@ -94,14 +108,25 @@ public class PharmGKBDrugManager {
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (PharmGKBDrug entry: readEntries(path)) {
+            for (Map.Entry<String, String> entry: readEntries(path).entrySet()) {
                 addDoc(writer, entry);
             }
         }
     }
 
-    private List<PharmGKBDrug> readEntries(final String path) throws IOException {
-        final List<PharmGKBDrug> entries = new ArrayList<>();
+    @Getter
+    private enum IndexFields {
+        ENTREZ_ID("entrezId"),
+        ENSEMBL_ID("ensemblId");
+        private final String name;
+
+        IndexFields(String name) {
+            this.name = name;
+        }
+    }
+
+    public Map<String, String> readEntries(final String path) throws IOException {
+        final Map<String, String> entries = new HashMap<>();
         String line;
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
@@ -109,46 +134,21 @@ public class PharmGKBDrugManager {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                PharmGKBDrug entry = PharmGKBDrug.builder()
-                        .id(cells[0].trim())
-                        .name(cells[1].trim())
-                        .source(cells[2].trim())
-                        .build();
-                entries.add(entry);
+                entries.put(cells[1].trim(), cells[2].trim());
             }
         }
         return entries;
     }
 
-    @Getter
-    private enum IndexFields {
-        DRUG_ID("drug_id"),
-        DRUG_NAME("drug_name"),
-        SOURCE("source");
-        private final String fieldName;
-
-        IndexFields(String fieldName) {
-            this.fieldName = fieldName;
-        }
-    }
-
-    private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
+    private static void addDoc(final IndexWriter writer, final Map.Entry<String, String> entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getId(), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getName(), Field.Store.YES));
-        doc.add(new TextField(IndexFields.SOURCE.getFieldName(), entry.getSource(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.ENTREZ_ID.getName(), entry.getKey().toString(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.ENSEMBL_ID.getName(), entry.getValue(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
-    private static PharmGKBDrug entryFromDoc(final Document doc) {
-        return PharmGKBDrug.builder()
-                .id(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
-                .name(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
-                .source(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
-                .build();
-    }
-
-    private static Query getByDrugIdsQuery(final List<String> ids) throws ParseException {
-        return getByIdsQuery(ids, IndexFields.DRUG_ID.getFieldName());
+    private static Pair<String, String> entryFromDoc(final Document doc) {
+        return new ImmutablePair<>(doc.getField(IndexFields.ENTREZ_ID.getName()).stringValue(),
+                doc.getField(IndexFields.ENSEMBL_ID.getName()).stringValue());
     }
 }
