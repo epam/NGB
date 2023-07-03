@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;

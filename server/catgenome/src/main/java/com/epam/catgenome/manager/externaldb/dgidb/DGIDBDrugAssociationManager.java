@@ -129,7 +129,7 @@ public class DGIDBDrugAssociationManager {
                 DGIDBDrugAssociation entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            return entries.stream().map(e -> e.getDrug().getName()).distinct().count();
+            return entries.stream().map(UrlEntity::getName).distinct().count();
         }
     }
 
@@ -159,13 +159,11 @@ public class DGIDBDrugAssociationManager {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                UrlEntity urlEntity = new UrlEntity();
-                urlEntity.setName(getCellValue(cells, 7));
                 DGIDBDrugAssociation entry = DGIDBDrugAssociation.builder()
+                        .name(getCellValue(cells, 7))
                         .entrezId(getCellValue(cells, 2))
                         .interactionClaimSource(getCellValue(cells, 3))
                         .interactionTypes(getCellValue(cells, 4))
-                        .drug(urlEntity)
                         .build();
                 entries.add(entry);
             }
@@ -179,14 +177,14 @@ public class DGIDBDrugAssociationManager {
     }
 
     private static void addDoc(final IndexWriter writer, final DGIDBDrugAssociation entry) throws IOException {
-        if (!TextUtils.isBlank(entry.getEntrezId()) && !TextUtils.isBlank(entry.getDrug().getName())) {
+        if (!TextUtils.isBlank(entry.getEntrezId()) && !TextUtils.isBlank(entry.getName())) {
             final Document doc = new Document();
 
             doc.add(new TextField(DGIDBDrugField.GENE_ID.getName(), entry.getEntrezId(), Field.Store.YES));
 
-            doc.add(new TextField(DGIDBDrugField.DRUG_NAME.getName(), entry.getDrug().getName(), Field.Store.YES));
+            doc.add(new TextField(DGIDBDrugField.DRUG_NAME.getName(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBDrugField.DRUG_NAME.getName(),
-                    new BytesRef(entry.getDrug().getName())));
+                    new BytesRef(entry.getName())));
 
             doc.add(new StringField(DGIDBDrugField.INTERACTION_TYPES.getName(),
                     entry.getInteractionTypes(), Field.Store.YES));
@@ -203,12 +201,10 @@ public class DGIDBDrugAssociationManager {
 
     private static DGIDBDrugAssociation entryFromDoc(final Document doc) {
         final String drugName = doc.getField(DGIDBDrugField.DRUG_NAME.getName()).stringValue();
-        final UrlEntity urlEntity = new UrlEntity();
-        urlEntity.setName(drugName);
-        urlEntity.setUrl(getDrugUrl(drugName));
         return DGIDBDrugAssociation.builder()
                 .entrezId(doc.getField(DGIDBDrugField.GENE_ID.getName()).stringValue())
-                .drug(urlEntity)
+                .name(drugName)
+                .url(getDrugUrl(drugName))
                 .interactionTypes(doc.getField(DGIDBDrugField.INTERACTION_TYPES.getName()).stringValue())
                 .interactionClaimSource(doc.getField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName()).stringValue())
                 .build();
