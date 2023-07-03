@@ -139,7 +139,7 @@ public class PharmGKBDrugAssociationManager {
                 PharmGKBDrug entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            return entries.stream().map(d -> d.getDrug().getId()).distinct().count();
+            return entries.stream().map(PharmGKBDrug::getId).distinct().count();
         }
     }
 
@@ -220,17 +220,15 @@ public class PharmGKBDrugAssociationManager {
                 .collect(Collectors.toSet());
         final List<PharmGKBDrug> drugs = pharmGKBDrugManager.search(new ArrayList<>(drugIds));
         final Map<String, PharmGKBDrug> drugsMap = drugs.stream()
-                .collect(Collectors.toMap(d -> d.getDrug().getId(), Function.identity()));
+                .collect(Collectors.toMap(PharmGKBDrug::getId, Function.identity()));
         final List<PharmGKBDrug> result = new ArrayList<>();
         for (PharmGKBDrugAssociation entry: entries) {
             if (drugsMap.containsKey(entry.getDrugId())) {
                 PharmGKBDrug drug = drugsMap.get(entry.getDrugId());
-                UrlEntity urlEntity = new UrlEntity();
-                urlEntity.setId(entry.getDrugId());
-                urlEntity.setName(drug.getDrug().getName());
                 PharmGKBDrug drugAssociation = PharmGKBDrug.builder()
+                        .id(entry.getDrugId())
+                        .name(drug.getName())
                         .geneId(genesMap.get(entry.getPharmGKBGeneId()))
-                        .drug(urlEntity)
                         .source(drug.getSource())
                         .build();
                 result.add(drugAssociation);
@@ -246,10 +244,10 @@ public class PharmGKBDrugAssociationManager {
             doc.add(new TextField(IndexFields.GENE_ID.getName(), geneId, Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getName(), new BytesRef(geneId)));
 
-            doc.add(new TextField(IndexFields.DRUG_ID.getName(), entry.getDrug().getId(), Field.Store.YES));
+            doc.add(new TextField(IndexFields.DRUG_ID.getName(), entry.getId(), Field.Store.YES));
 
-            doc.add(new TextField(IndexFields.DRUG_NAME.getName(), entry.getDrug().getName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.getName(), new BytesRef(entry.getDrug().getName())));
+            doc.add(new TextField(IndexFields.DRUG_NAME.getName(), entry.getName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.getName(), new BytesRef(entry.getName())));
 
             doc.add(new StringField(IndexFields.SOURCE.getName(), entry.getSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.SOURCE.getName(), new BytesRef(entry.getSource())));
@@ -258,14 +256,12 @@ public class PharmGKBDrugAssociationManager {
     }
 
     private static PharmGKBDrug entryFromDoc(final Document doc) {
-        final UrlEntity urlEntity = new UrlEntity();
         final String id = doc.getField(IndexFields.DRUG_ID.getName()).stringValue();
-        urlEntity.setId(id);
-        urlEntity.setName(doc.getField(IndexFields.DRUG_NAME.getName()).stringValue());
-        urlEntity.setUrl(getDrugUrl(id));
         return PharmGKBDrug.builder()
+                .id(id)
+                .name(doc.getField(IndexFields.DRUG_NAME.getName()).stringValue())
+                .url(getDrugUrl(id))
                 .geneId(doc.getField(IndexFields.GENE_ID.getName()).stringValue())
-                .drug(urlEntity)
                 .source(doc.getField(IndexFields.SOURCE.getName()).stringValue())
                 .build();
     }

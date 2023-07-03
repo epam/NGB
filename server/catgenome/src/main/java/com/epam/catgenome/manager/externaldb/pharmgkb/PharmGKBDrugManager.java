@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
@@ -110,11 +109,9 @@ public class PharmGKBDrugManager {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                UrlEntity urlEntity = new UrlEntity();
-                urlEntity.setId(cells[0].trim());
-                urlEntity.setName(cells[1].trim());
                 PharmGKBDrug entry = PharmGKBDrug.builder()
-                        .drug(urlEntity)
+                        .id(cells[0].trim())
+                        .name(cells[1].trim())
                         .source(cells[2].trim())
                         .build();
                 entries.add(entry);
@@ -137,18 +134,16 @@ public class PharmGKBDrugManager {
 
     private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getDrug().getId(), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getDrug().getName(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getId(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getName(), Field.Store.YES));
         doc.add(new TextField(IndexFields.SOURCE.getFieldName(), entry.getSource(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
     private static PharmGKBDrug entryFromDoc(final Document doc) {
-        final UrlEntity urlEntity = new UrlEntity();
-        urlEntity.setId(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue());
-        urlEntity.setName(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue());
         return PharmGKBDrug.builder()
-                .drug(urlEntity)
+                .id(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
+                .name(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
                 .source(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
                 .build();
     }
