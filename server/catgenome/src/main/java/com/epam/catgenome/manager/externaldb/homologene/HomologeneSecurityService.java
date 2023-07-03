@@ -43,7 +43,7 @@ public class HomologeneSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
-            throws IOException {
+            throws IOException, ParseException {
         return homologeneManager.searchHomologenes(query);
     }
 

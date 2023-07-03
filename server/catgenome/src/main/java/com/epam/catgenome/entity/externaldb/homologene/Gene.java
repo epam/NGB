@@ -39,6 +39,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Gene {
     private Long geneId;
+    private String ensemblId;
     private Long groupId;
     private String symbol;
     private Set<String> aliases;
