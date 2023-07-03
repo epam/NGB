@@ -39,16 +39,13 @@ import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseAssociationManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
+import com.epam.catgenome.manager.externaldb.opentarget.*;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
@@ -170,6 +167,18 @@ public class TargetIdentificationManager {
 
     public void importDGIdbData(final String path) throws IOException {
         dgidbDrugAssociationManager.importData(path);
+    }
+
+    public List<String> getPharmGKBDrugsFieldValues(final PharmGKBDrugField field) throws IOException {
+        return pharmGKBDrugAssociationManager.getFieldValues(field);
+    }
+
+    public List<String> getDGIDBDrugsFieldValues(final DGIDBDrugField field) throws IOException {
+        return dgidbDrugAssociationManager.getFieldValues(field);
+    }
+
+    public List<String> getDrugsFieldValues(final DrugField field) throws IOException {
+        return drugAssociationManager.getFieldValues(field);
     }
 
     private Map<String, String> getDescriptions(final Map<String, String> entrezMap)

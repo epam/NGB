@@ -110,8 +110,8 @@ public class PharmGKBDrugManager {
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 PharmGKBDrug entry = PharmGKBDrug.builder()
-                        .drugId(cells[0].trim())
-                        .drugName(cells[1].trim())
+                        .id(cells[0].trim())
+                        .name(cells[1].trim())
                         .source(cells[2].trim())
                         .build();
                 entries.add(entry);
@@ -134,16 +134,16 @@ public class PharmGKBDrugManager {
 
     private static void addDoc(final IndexWriter writer, final PharmGKBDrug entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getDrugId(), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getDrugName(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_ID.getFieldName(), entry.getId(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DRUG_NAME.getFieldName(), entry.getName(), Field.Store.YES));
         doc.add(new TextField(IndexFields.SOURCE.getFieldName(), entry.getSource(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
     private static PharmGKBDrug entryFromDoc(final Document doc) {
         return PharmGKBDrug.builder()
-                .drugId(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
-                .drugName(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
+                .id(doc.getField(IndexFields.DRUG_ID.getFieldName()).stringValue())
+                .name(doc.getField(IndexFields.DRUG_NAME.getFieldName()).stringValue())
                 .source(doc.getField(IndexFields.SOURCE.getFieldName()).stringValue())
                 .build();
     }

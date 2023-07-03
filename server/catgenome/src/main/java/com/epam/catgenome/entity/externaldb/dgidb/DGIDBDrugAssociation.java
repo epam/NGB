@@ -23,17 +23,28 @@
  */
 package com.epam.catgenome.entity.externaldb.dgidb;
 
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
-public class DGIDBDrugAssociation {
+@NoArgsConstructor
+@AllArgsConstructor
+public class DGIDBDrugAssociation extends UrlEntity{
     private String geneId;
     private String entrezId;
-    private String drugName;
     private String interactionTypes;
     private String interactionClaimSource;
+    @Builder
+    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String interactionTypes,
+                                String interactionClaimSource) {
+        super(id, name, url);
+        this.entrezId = entrezId;
+        this.interactionTypes = interactionTypes;
+        this.interactionClaimSource = interactionClaimSource;
+    }
 }
