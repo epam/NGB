@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggrega
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
@@ -47,6 +48,8 @@ import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
@@ -79,6 +82,7 @@ public class TargetIdentificationManager {
     private static final String PUBMED_PATTERN = "PubMed:[0-9]+";
     private final TargetManager targetManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
+    private final PharmGKBDiseaseAssociationManager pharmGKBDiseaseAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
     private final NCBIGeneManager geneManager;
     private final TargetDetailsManager targetDetailsManager;
@@ -96,7 +100,7 @@ public class TargetIdentificationManager {
         final Map<String, String> entrezMap = geneManager.getEntrezMap(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
         final long drugsCount = getDrugsCount(entrezMap);
-        final long diseasesCount = diseaseAssociationManager.totalCount(geneIds);
+        final long diseasesCount = getDiseasesCount(geneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
@@ -121,6 +125,11 @@ public class TargetIdentificationManager {
     public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
             throws IOException, ParseException {
         return pharmGKBDrugAssociationManager.search(request);
+    }
+
+    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final PharmGKBDiseaseSearchRequest request)
+            throws IOException, ParseException {
+        return pharmGKBDiseaseAssociationManager.search(request);
     }
 
     public SearchResult<DrugAssociation> getOpenTargetsDrugs(final DrugSearchRequest request)
@@ -204,6 +213,12 @@ public class TargetIdentificationManager {
         final long dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(entrezIds);
         final long openTargetDrugs = drugAssociationManager.totalCount(ensemblIds);
         return pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs;
+    }
+
+    private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
+        final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
+        final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
+        return openTargetsDiseasesCount + pharmGKBDiseasesCount;
     }
 
     private static Map<String, String> mergeDescriptions(final Map<String, String> ncbiDescriptions,

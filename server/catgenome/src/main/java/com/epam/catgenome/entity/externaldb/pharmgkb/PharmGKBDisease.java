@@ -21,28 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.opentarget;
+package com.epam.catgenome.entity.externaldb.pharmgkb;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UrlEntity {
-    private String id;
-    private String name;
-    private String url;
+public class PharmGKBDisease extends UrlEntity {
+    private static final String URL_PATTERN = "https://www.pharmgkb.org/disease/%s";
+    private String geneId;
 
-    public UrlEntity(String id) {
-        this.id = id;
+    @Builder
+    public PharmGKBDisease(String id, String name, String url, String geneId) {
+        super(id, name, url);
+        this.geneId = geneId;
     }
 
-    public UrlEntity(String id, String name) {
-        this.id = id;
-        this.name = name;
+    public static String getUrl(final String id) {
+        return String.format(URL_PATTERN, id);
     }
 }

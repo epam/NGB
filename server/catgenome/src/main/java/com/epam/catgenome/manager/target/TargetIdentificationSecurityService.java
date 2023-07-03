@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
@@ -36,6 +37,7 @@ import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -70,6 +72,12 @@ public class TargetIdentificationSecurityService {
     public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
             throws ParseException, IOException {
         return manager.getPharmGKBDrugs(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final PharmGKBDiseaseSearchRequest request)
+            throws ParseException, IOException {
+        return manager.getPharmGKBDiseases(request);
     }
 
     @PreAuthorize(ROLE_USER)
