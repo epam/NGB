@@ -39,6 +39,7 @@ import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
@@ -111,29 +112,35 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importPharmGKBData(final String genePath, final String drugPath, final String drugAssociationPath)
+    public void importPharmGKBData(final String genePath, final String drugPath,
+                                   final String drugAssociationPath, final String diseaseAssociationPath)
             throws IOException, ParseException {
-        manager.importPharmGKBData(genePath, drugPath, drugAssociationPath);
+        manager.importPharmGKBData(genePath, drugPath, drugAssociationPath, diseaseAssociationPath);
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importDGIdbData(final String path) throws IOException {
+    public void importDGIdbData(final String path) throws IOException, ParseException {
         manager.importDGIdbData(path);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getPharmGKBDrugsFieldValues(final PharmGKBDrugField field) throws IOException {
-        return manager.getPharmGKBDrugsFieldValues(field);
+    public List<String> getPharmGKBDrugFieldValues(final PharmGKBDrugField field) throws IOException {
+        return manager.getPharmGKBDrugFieldValues(field);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getDGIDBDrugsFieldValues(final DGIDBDrugField field) throws IOException {
-        return manager.getDGIDBDrugsFieldValues(field);
+    public List<String> getPharmGKBDiseaseFieldValues(final PharmGKBDiseaseField field) throws IOException {
+        return manager.getPharmGKBDiseaseFieldValues(field);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getDrugsFieldValues(final DrugField field) throws IOException {
-        return manager.getDrugsFieldValues(field);
+    public List<String> getDGIDBDrugFieldValues(final DGIDBDrugField field) throws IOException {
+        return manager.getDGIDBDrugFieldValues(field);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<String> getDrugFieldValues(final DrugField field) throws IOException {
+        return manager.getDrugFieldValues(field);
     }
 
     @PreAuthorize(ROLE_USER)

@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.pharmgkb;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.util.FileFormat;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -63,6 +64,7 @@ public class PharmGKBGeneManager {
 
     private static final int COLUMNS = 17;
     private final String indexDirectory;
+    private static final Integer BATCH_SIZE = 1000;
 
     public PharmGKBGeneManager(final @Value("${targets.index.directory}") String indexDirectory) {
         this.indexDirectory = Paths.get(indexDirectory, "pharmgkb.gene").toString();
@@ -70,19 +72,22 @@ public class PharmGKBGeneManager {
 
     public List<PharmGKBGene> search(final List<String> ids)
             throws IOException, ParseException {
+        final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
         final List<PharmGKBGene> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        for (List<String> subIds : subSets) {
+            try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+                 IndexReader indexReader = DirectoryReader.open(index)) {
 
-            final Query query = getByPharmIdsQuery(ids);
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, ids.size());
-            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+                final Query query = getByPharmIdsQuery(subIds);
+                IndexSearcher searcher = new IndexSearcher(indexReader);
+                TopDocs topDocs = searcher.search(query, subIds.size());
+                ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
-            for (ScoreDoc scoreDoc : scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                PharmGKBGene entry = entryFromDoc(doc);
-                entries.add(entry);
+                for (ScoreDoc scoreDoc : scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    PharmGKBGene entry = entryFromDoc(doc);
+                    entries.add(entry);
+                }
             }
         }
         return entries;

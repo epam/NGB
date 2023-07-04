@@ -25,10 +25,10 @@ package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.IndexUtils;
 import lombok.Getter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -40,6 +40,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -61,10 +64,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease.getUrl;
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -99,7 +104,7 @@ public class PharmGKBDiseaseAssociationManager {
                     : request.getPageSize();
             final int hits = page * pageSize;
 
-            final Query query = getByGeneIdsQuery(request.getGeneIds());
+            final Query query = buildQuery(request);
             final Sort sort = getSort(request);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, hits, sort);
@@ -143,18 +148,24 @@ public class PharmGKBDiseaseAssociationManager {
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
             final List<PharmGKBDisease> entries = readEntries(path);
-            final List<String> pharmGeneIds = entries.stream()
+            final Set<String> pharmGeneIds = entries.stream()
                     .map(PharmGKBDisease::getGeneId)
-                    .collect(Collectors.toList());
-            final List<PharmGKBGene> geneIds = pharmGKBGeneManager.search(pharmGeneIds);
+                    .collect(Collectors.toSet());
+            final List<PharmGKBGene> geneIds = pharmGKBGeneManager.search(new ArrayList<>(pharmGeneIds));
             final Map<String, PharmGKBGene> geneIdsMap = geneIds.stream()
                     .collect(Collectors.toMap(PharmGKBGene::getPharmGKBId, Function.identity()));
             for (PharmGKBDisease entry: entries) {
-                PharmGKBGene gene = geneIdsMap.get(entry.getGeneId());
-                entry.setGeneId(gene.getGeneId());
-                addDoc(writer, entry);
+                PharmGKBGene gene = geneIdsMap.getOrDefault(entry.getGeneId(), null);
+                if (gene != null) {
+                    entry.setGeneId(gene.getGeneId());
+                    addDoc(writer, entry);
+                }
             }
         }
+    }
+
+    public List<String> getFieldValues(final PharmGKBDiseaseField field) throws IOException {
+        return IndexUtils.getFieldValues(field.getName(), indexDirectory);
     }
 
     private List<PharmGKBDisease> readEntries(final String path) throws IOException {
@@ -181,9 +192,9 @@ public class PharmGKBDiseaseAssociationManager {
 
     @Getter
     private enum IndexFields {
-        GENE_ID("gene_id"),
-        DISEASE_NAME("disease_name"),
-        DISEASE_ID("disease_id");
+        GENE_ID("geneId"),
+        DISEASE_NAME("diseaseName"),
+        DISEASE_ID("diseaseId");
         private final String name;
 
         IndexFields(String name) {
@@ -215,6 +226,22 @@ public class PharmGKBDiseaseAssociationManager {
 
     private static Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
         return getByIdsQuery(ids, IndexFields.GENE_ID.getName());
+    }
+
+    private static Query buildQuery(final PharmGKBDiseaseSearchRequest request) throws ParseException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
+        if (request.getFilterBy() != null && request.getTerm() != null) {
+            Query query;
+            if (PharmGKBDiseaseField.DISEASE_NAME.equals(request.getFilterBy())) {
+                final StandardAnalyzer analyzer = new StandardAnalyzer();
+                query = new QueryParser(request.getFilterBy().getName(), analyzer).parse(request.getTerm());
+            } else {
+                query = buildTermQuery(request.getTerm(), request.getFilterBy().getName());
+            }
+            mainBuilder.add(query, BooleanClause.Occur.MUST);
+        }
+        return mainBuilder.build();
     }
 
     private static Sort getSort(final PharmGKBDiseaseSearchRequest request) {

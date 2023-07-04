@@ -34,6 +34,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PharmGKBDiseaseSearchRequest extends AssociationSearchRequest {
-    private PharmGKBDrugField orderBy;
+    private PharmGKBDiseaseField orderBy;
     private boolean reverse;
+    private PharmGKBDiseaseField filterBy;
+    private String term;
 }
