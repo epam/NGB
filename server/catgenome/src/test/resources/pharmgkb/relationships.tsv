@@ -1,0 +1,5 @@
+Entity1_id	Entity1_name	Entity1_type	Entity2_id	Entity2_name	Entity2_type	Evidence	Association	PK	PD	PMIDs
+PA142672624	ANKFN1	Gene	PA447288	Essential hypertension	Disease	ClinicalAnnotation,VariantAnnotation	associated		PD	25695618
+PA142672624	ANKFN1	Gene	PA449899	hydrochlorothiazide	Chemical	ClinicalAnnotation,VariantAnnotation	associated		PD	25695618
+PA24357	A2M	Gene	PA164712734	Enzymes	Chemical	ClinicalAnnotation,VariantAnnotation	associated		PD	23280790
+PA24357	A2M	Gene	PA447054	Stroke	Disease	ClinicalAnnotation,VariantAnnotation	associated		PD	23280790

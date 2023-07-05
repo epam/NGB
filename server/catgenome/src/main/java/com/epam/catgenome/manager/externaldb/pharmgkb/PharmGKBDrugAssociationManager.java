@@ -156,9 +156,8 @@ public class PharmGKBDrugAssociationManager {
         }
     }
 
-    public void importData(final String genePath, final String drugPath, final String drugAssociationPath)
+    public void importData(final String drugPath, final String drugAssociationPath)
             throws IOException, ParseException {
-        pharmGKBGeneManager.importData(genePath);
         pharmGKBDrugManager.importData(drugPath);
         importData(drugAssociationPath);
     }

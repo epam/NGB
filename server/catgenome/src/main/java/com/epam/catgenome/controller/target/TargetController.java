@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.target;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
@@ -43,6 +44,8 @@ import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
 import com.epam.catgenome.manager.target.TargetField;
@@ -186,8 +189,22 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(
             @RequestBody final PharmGKBDrugSearchRequest request)
-            throws ParseException, IOException, ExternalDbUnavailableException {
+            throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getPharmGKBDrugs(request));
+    }
+
+    @PostMapping(value = "/target/pharmgkb/diseases")
+    @ApiOperation(
+            value = "Launches Identification for PharmGKB datasource disease associations",
+            notes = "Launches Identification for PharmGKB datasource disease associations",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<PharmGKBDisease>> getPharmGKBDiseases(
+            @RequestBody final PharmGKBDiseaseSearchRequest request)
+            throws ParseException, IOException {
+        return Result.success(targetIdentificationSecurityService.getPharmGKBDiseases(request));
     }
 
     @PostMapping(value = "/target/opentargets/drugs")
@@ -269,7 +286,7 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importDGIdbData(@RequestParam final String path) throws IOException {
+    public Result<Boolean> importDGIdbData(@RequestParam final String path) throws IOException, ParseException {
         targetIdentificationSecurityService.importDGIdbData(path);
         return Result.success(null);
     }
@@ -285,8 +302,10 @@ public class TargetController extends AbstractRESTController {
     public Result<Boolean> importPharmGKBData(
             @RequestParam final String genePath,
             @RequestParam final String drugPath,
-            @RequestParam final String drugAssociationPath) throws IOException, ParseException {
-        targetIdentificationSecurityService.importPharmGKBData(genePath, drugPath, drugAssociationPath);
+            @RequestParam final String drugAssociationPath,
+            @RequestParam final String diseaseAssociationPath) throws IOException, ParseException {
+        targetIdentificationSecurityService.importPharmGKBData(genePath, drugPath,
+                drugAssociationPath, diseaseAssociationPath);
         return Result.success(null);
     }
 
@@ -298,9 +317,22 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getPharmGKBDrugsFieldValues(
+    public Result<List<String>> getPharmGKBDrugFieldValues(
             @RequestParam final PharmGKBDrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getPharmGKBDrugsFieldValues(field));
+        return Result.success(targetIdentificationSecurityService.getPharmGKBDrugFieldValues(field));
+    }
+
+    @GetMapping(value = "/target/pharmGKB/diseases/fieldValues")
+    @ApiOperation(
+            value = "Returns all values for specified PharmGKB diseases data field",
+            notes = "Returns all values for specified PharmGKB diseases data field",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<String>> getPharmGKBDiseaseFieldValues(
+            @RequestParam final PharmGKBDiseaseField field) throws IOException {
+        return Result.success(targetIdentificationSecurityService.getPharmGKBDiseaseFieldValues(field));
     }
 
     @GetMapping(value = "/target/dgidb/drugs/fieldValues")
@@ -311,9 +343,9 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getDGIDBDrugsFieldValues(
+    public Result<List<String>> getDGIDBDrugFieldValues(
             @RequestParam final DGIDBDrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getDGIDBDrugsFieldValues(field));
+        return Result.success(targetIdentificationSecurityService.getDGIDBDrugFieldValues(field));
     }
 
     @GetMapping(value = "/target/opentargets/drugs/fieldValues")
@@ -324,8 +356,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getDrugsFieldValues(
+    public Result<List<String>> getDrugFieldValues(
             @RequestParam final DrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getDrugsFieldValues(field));
+        return Result.success(targetIdentificationSecurityService.getDrugFieldValues(field));
     }
 }

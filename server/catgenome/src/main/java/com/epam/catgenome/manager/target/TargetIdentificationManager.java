@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggrega
 import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
 import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
 import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
@@ -43,10 +44,20 @@ import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
 import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.opentarget.*;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager;
+import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugField;
+import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBGeneManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -76,7 +87,9 @@ public class TargetIdentificationManager {
     private static final String PUBMED_LINK = "PubMed:<a href='https://europepmc.org/article/med/%s'>%s</a>";
     private static final String PUBMED_PATTERN = "PubMed:[0-9]+";
     private final TargetManager targetManager;
+    private final PharmGKBGeneManager pharmGKBGeneManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
+    private final PharmGKBDiseaseAssociationManager pharmGKBDiseaseAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
     private final NCBIGeneManager geneManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
@@ -94,8 +107,8 @@ public class TargetIdentificationManager {
                 "Either Species of interest or Translational species must me specified.");
         final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
         final Map<String, String> description = getDescriptions(entrezMap);
-        final long drugsCount = getDrugsCount(entrezMap);
-        final long diseasesCount = diseaseAssociationManager.totalCount(geneIds);
+        final long drugsCount = getDrugsCount(geneIds);
+        final long diseasesCount = getDiseasesCount(geneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
@@ -105,21 +118,17 @@ public class TargetIdentificationManager {
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
             throws IOException, ParseException {
-        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(request.getGeneIds());
-        request.setGeneIds(new ArrayList<>(entrezMap.keySet()));
-        final SearchResult<DGIDBDrugAssociation> result = dgidbDrugAssociationManager.search(request);
-        final List<DGIDBDrugAssociation> items = result.getItems();
-        if (CollectionUtils.isNotEmpty(items)) {
-            for (DGIDBDrugAssociation item: items) {
-                item.setGeneId(entrezMap.get(item.getEntrezId()));
-            }
-        }
-        return result;
+        return dgidbDrugAssociationManager.search(request);
     }
 
     public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
             throws IOException, ParseException {
         return pharmGKBDrugAssociationManager.search(request);
+    }
+
+    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final PharmGKBDiseaseSearchRequest request)
+            throws IOException, ParseException {
+        return pharmGKBDiseaseAssociationManager.search(request);
     }
 
     public SearchResult<DrugAssociation> getOpenTargetsDrugs(final DrugSearchRequest request)
@@ -160,24 +169,31 @@ public class TargetIdentificationManager {
         diseaseAssociationManager.importData(scoresPath, overallScoresPath);
     }
 
-    public void importPharmGKBData(final String genePath, final String drugPath, final String drugAssociationPath)
+    public void importPharmGKBData(final String genePath, final String drugPath,
+                                   final String drugAssociationPath, final String diseaseAssociationPath)
             throws IOException, ParseException {
-        pharmGKBDrugAssociationManager.importData(genePath, drugPath, drugAssociationPath);
+        pharmGKBGeneManager.importData(genePath);
+        pharmGKBDrugAssociationManager.importData(drugPath, drugAssociationPath);
+        pharmGKBDiseaseAssociationManager.importData(diseaseAssociationPath);
     }
 
-    public void importDGIdbData(final String path) throws IOException {
+    public void importDGIdbData(final String path) throws IOException, ParseException {
         dgidbDrugAssociationManager.importData(path);
     }
 
-    public List<String> getPharmGKBDrugsFieldValues(final PharmGKBDrugField field) throws IOException {
+    public List<String> getPharmGKBDrugFieldValues(final PharmGKBDrugField field) throws IOException {
         return pharmGKBDrugAssociationManager.getFieldValues(field);
     }
 
-    public List<String> getDGIDBDrugsFieldValues(final DGIDBDrugField field) throws IOException {
+    public List<String> getPharmGKBDiseaseFieldValues(final PharmGKBDiseaseField field) throws IOException {
+        return pharmGKBDiseaseAssociationManager.getFieldValues(field);
+    }
+
+    public List<String> getDGIDBDrugFieldValues(final DGIDBDrugField field) throws IOException {
         return dgidbDrugAssociationManager.getFieldValues(field);
     }
 
-    public List<String> getDrugsFieldValues(final DrugField field) throws IOException {
+    public List<String> getDrugFieldValues(final DrugField field) throws IOException {
         return drugAssociationManager.getFieldValues(field);
     }
 
@@ -208,13 +224,17 @@ public class TargetIdentificationManager {
         return newText;
     }
 
-    private long getDrugsCount(final Map<String, String> entrezMap) throws IOException, ParseException {
-        final List<String> entrezIds = new ArrayList<>(entrezMap.keySet());
-        final List<String> ensemblIds = new ArrayList<>(entrezMap.values());
+    private long getDrugsCount(final List<String> ensemblIds) throws IOException, ParseException {
         final long pharmGKBDrugsCount = pharmGKBDrugAssociationManager.totalCount(ensemblIds);
-        final long dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(entrezIds);
+        final long dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(ensemblIds);
         final long openTargetDrugs = drugAssociationManager.totalCount(ensemblIds);
         return pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs;
+    }
+
+    private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
+        final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
+        final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
+        return openTargetsDiseasesCount + pharmGKBDiseasesCount;
     }
 
     private static Map<String, String> mergeDescriptions(final Map<String, String> ncbiDescriptions,

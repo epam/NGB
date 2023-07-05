@@ -21,21 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.dgidb;
+package com.epam.catgenome.manager.externaldb.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.util.IndexUtils;
-import org.apache.http.util.TextUtils;
+import lombok.Getter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -54,7 +52,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -68,34 +65,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease.getUrl;
 import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @Service
-public class DGIDBDrugAssociationManager {
+public class PharmGKBDiseaseAssociationManager {
 
-    private static final String DRUG_URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
     private static final int COLUMNS = 11;
-    private final String indexDirectory;
+    private static final String GENE = "Gene";
+    private static final String DISEASE = "Disease";
     private final int targetsTopHits;
-    private final NCBIGeneIdsManager ncbiGeneIdsManager;
+    private final String indexDirectory;
+    private final PharmGKBGeneManager pharmGKBGeneManager;
 
-    public DGIDBDrugAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
-                                       final @Value("${targets.top.hits:10000}") int targetsTopHits,
-                                       final NCBIGeneIdsManager ncbiGeneIdsManager) {
-        this.indexDirectory = Paths.get(indexDirectory, "dgidb.drug.association").toString();
+    public PharmGKBDiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
+                                             final @Value("${targets.top.hits:10000}") int targetsTopHits,
+                                             final PharmGKBGeneManager pharmGKBGeneManager) {
         this.targetsTopHits = targetsTopHits;
-        this.ncbiGeneIdsManager = ncbiGeneIdsManager;
+        this.pharmGKBGeneManager = pharmGKBGeneManager;
+        this.indexDirectory = Paths.get(indexDirectory, "pharmgkb.disease").toString();
     }
 
-    public SearchResult<DGIDBDrugAssociation> search(final DGIDBDrugSearchRequest request)
+    public SearchResult<PharmGKBDisease> search(final PharmGKBDiseaseSearchRequest request)
             throws IOException, ParseException {
-        final List<DGIDBDrugAssociation> entries = new ArrayList<>();
-        final SearchResult<DGIDBDrugAssociation> searchResult = new SearchResult<>();
+        final List<PharmGKBDisease> entries = new ArrayList<>();
+        final SearchResult<PharmGKBDisease> searchResult = new SearchResult<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
 
@@ -105,8 +105,8 @@ public class DGIDBDrugAssociationManager {
             final int hits = page * pageSize;
 
             final Query query = buildQuery(request);
-            IndexSearcher searcher = new IndexSearcher(indexReader);
             final Sort sort = getSort(request);
+            IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, hits, sort);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
@@ -114,7 +114,7 @@ public class DGIDBDrugAssociationManager {
             final int to = Math.min(from + pageSize, scoreDocs.length);
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
-                DGIDBDrugAssociation entry = entryFromDoc(doc);
+                PharmGKBDisease entry = entryFromDoc(doc);
                 entries.add(entry);
             }
             searchResult.setItems(entries);
@@ -130,13 +130,13 @@ public class DGIDBDrugAssociationManager {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             final TopDocs topDocs = searcher.search(query, targetsTopHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-            final List<DGIDBDrugAssociation> entries = new ArrayList<>();
+            final List<PharmGKBDisease> entries = new ArrayList<>();
             for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
-                DGIDBDrugAssociation entry = entryFromDoc(doc);
+                PharmGKBDisease entry = entryFromDoc(doc);
                 entries.add(entry);
             }
-            return entries.stream().map(UrlEntity::getName).distinct().count();
+            return entries.stream().map(PharmGKBDisease::getId).distinct().count();
         }
     }
 
@@ -147,27 +147,29 @@ public class DGIDBDrugAssociationManager {
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            final List<DGIDBDrugAssociation> entries = readEntries(path);
-            final Set<String> entrezIds = entries.stream()
-                    .map(DGIDBDrugAssociation::getEntrezId)
+            final List<PharmGKBDisease> entries = readEntries(path);
+            final Set<String> pharmGeneIds = entries.stream()
+                    .map(PharmGKBDisease::getGeneId)
                     .collect(Collectors.toSet());
-            final Map<String, String> geneIdsMap = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
-            for (DGIDBDrugAssociation entry: entries) {
-                String geneId = geneIdsMap.getOrDefault(entry.getEntrezId(), null);
-                if (geneId != null) {
-                    entry.setGeneId(geneId);
+            final List<PharmGKBGene> geneIds = pharmGKBGeneManager.search(new ArrayList<>(pharmGeneIds));
+            final Map<String, PharmGKBGene> geneIdsMap = geneIds.stream()
+                    .collect(Collectors.toMap(PharmGKBGene::getPharmGKBId, Function.identity()));
+            for (PharmGKBDisease entry: entries) {
+                PharmGKBGene gene = geneIdsMap.getOrDefault(entry.getGeneId(), null);
+                if (gene != null) {
+                    entry.setGeneId(gene.getGeneId());
                     addDoc(writer, entry);
                 }
             }
         }
     }
 
-    public List<String> getFieldValues(final DGIDBDrugField field) throws IOException {
+    public List<String> getFieldValues(final PharmGKBDiseaseField field) throws IOException {
         return IndexUtils.getFieldValues(field.getName(), indexDirectory);
     }
 
-    public List<DGIDBDrugAssociation> readEntries(final String path) throws IOException {
-        final List<DGIDBDrugAssociation> entries = new ArrayList<>();
+    private List<PharmGKBDisease> readEntries(final String path) throws IOException {
+        final List<PharmGKBDisease> entries = new ArrayList<>();
         String line;
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
@@ -175,14 +177,11 @@ public class DGIDBDrugAssociationManager {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                String entrezId = getCellValue(cells, 2);
-                String name = getCellValue(cells, 7);
-                if (!TextUtils.isBlank(entrezId) && !TextUtils.isBlank(name)) {
-                    DGIDBDrugAssociation entry = DGIDBDrugAssociation.builder()
-                            .name(name)
-                            .entrezId(entrezId)
-                            .interactionClaimSource(getCellValue(cells, 3))
-                            .interactionTypes(getCellValue(cells, 4))
+                if (cells[2].trim().equals(GENE) && cells[5].trim().equals(DISEASE)) {
+                    PharmGKBDisease entry = PharmGKBDisease.builder()
+                            .id(cells[3].trim())
+                            .name(cells[4].trim())
+                            .geneId(cells[0].trim())
                             .build();
                     entries.add(entry);
                 }
@@ -191,64 +190,50 @@ public class DGIDBDrugAssociationManager {
         return entries;
     }
 
-    @Nullable
-    private static String getCellValue(final String[] cells, final int x) {
-        return cells.length >= x + 1 ? cells[x].trim() : null;
-    }
+    @Getter
+    private enum IndexFields {
+        GENE_ID("geneId"),
+        DISEASE_NAME("diseaseName"),
+        DISEASE_ID("diseaseId");
+        private final String name;
 
-    private static void addDoc(final IndexWriter writer, final DGIDBDrugAssociation entry) throws IOException {
-        if (!TextUtils.isBlank(entry.getName())) {
-            final Document doc = new Document();
-
-            doc.add(new TextField(DGIDBDrugField.GENE_ID.getName(), entry.getGeneId(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(DGIDBDrugField.GENE_ID.getName(), new BytesRef(entry.getGeneId())));
-
-            doc.add(new TextField(DGIDBDrugField.DRUG_NAME.getName(), entry.getName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(DGIDBDrugField.DRUG_NAME.getName(),
-                    new BytesRef(entry.getName())));
-
-            doc.add(new StringField(DGIDBDrugField.INTERACTION_TYPES.getName(),
-                    entry.getInteractionTypes(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(DGIDBDrugField.INTERACTION_TYPES.getName(),
-                    new BytesRef(entry.getInteractionTypes())));
-
-            doc.add(new StringField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName(),
-                    entry.getInteractionClaimSource(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName(),
-                    new BytesRef(entry.getInteractionClaimSource())));
-            writer.addDocument(doc);
+        IndexFields(String name) {
+            this.name = name;
         }
     }
 
-    private static DGIDBDrugAssociation entryFromDoc(final Document doc) {
-        final String drugName = doc.getField(DGIDBDrugField.DRUG_NAME.getName()).stringValue();
-        return DGIDBDrugAssociation.builder()
-                .entrezId(doc.getField(DGIDBDrugField.GENE_ID.getName()).stringValue())
-                .name(drugName)
-                .url(getDrugUrl(drugName))
-                .interactionTypes(doc.getField(DGIDBDrugField.INTERACTION_TYPES.getName()).stringValue())
-                .interactionClaimSource(doc.getField(DGIDBDrugField.INTERACTION_CLAIM_SOURCE.getName()).stringValue())
+    private static void addDoc(final IndexWriter writer, final PharmGKBDisease entry) throws IOException {
+        final Document doc = new Document();
+        doc.add(new TextField(IndexFields.GENE_ID.getName(), entry.getGeneId(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.GENE_ID.getName(), new BytesRef(entry.getGeneId())));
+
+        doc.add(new TextField(IndexFields.DISEASE_ID.getName(), entry.getId(), Field.Store.YES));
+
+        doc.add(new TextField(IndexFields.DISEASE_NAME.getName(), entry.getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.getName(), new BytesRef(entry.getName())));
+        writer.addDocument(doc);
+    }
+
+    private static PharmGKBDisease entryFromDoc(final Document doc) {
+        final String id = doc.getField(IndexFields.DISEASE_ID.getName()).stringValue();
+        return PharmGKBDisease.builder()
+                .geneId(doc.getField(IndexFields.GENE_ID.getName()).stringValue())
+                .id(id)
+                .name(doc.getField(IndexFields.DISEASE_NAME.getName()).stringValue())
+                .url(getUrl(id))
                 .build();
     }
 
-    private static Query getByGeneIdsQuery(final List<String> ids)
-            throws ParseException {
-        return getByIdsQuery(ids, DGIDBDrugField.GENE_ID.getName());
+    private static Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
+        return getByIdsQuery(ids, IndexFields.GENE_ID.getName());
     }
 
-    private static Sort getSort(final DGIDBDrugSearchRequest request) {
-        final SortField sortField = request.getOrderBy() == null ?
-                new SortField(DGIDBDrugField.getDefault(), SortField.Type.STRING, false) :
-                new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
-        return new Sort(sortField);
-    }
-
-    private static Query buildQuery(final DGIDBDrugSearchRequest request) throws ParseException {
+    private static Query buildQuery(final PharmGKBDiseaseSearchRequest request) throws ParseException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         mainBuilder.add(getByGeneIdsQuery(request.getGeneIds()), BooleanClause.Occur.MUST);
         if (request.getFilterBy() != null && request.getTerm() != null) {
             Query query;
-            if (DGIDBDrugField.DRUG_NAME.equals(request.getFilterBy())) {
+            if (PharmGKBDiseaseField.DISEASE_NAME.equals(request.getFilterBy())) {
                 final StandardAnalyzer analyzer = new StandardAnalyzer();
                 query = new QueryParser(request.getFilterBy().getName(), analyzer).parse(request.getTerm());
             } else {
@@ -259,7 +244,10 @@ public class DGIDBDrugAssociationManager {
         return mainBuilder.build();
     }
 
-    private static String getDrugUrl(final String drugId) {
-        return String.format(DRUG_URL_PATTERN, drugId);
+    private static Sort getSort(final PharmGKBDiseaseSearchRequest request) {
+        final SortField sortField = request.getOrderBy() == null ?
+                new SortField(PharmGKBDiseaseField.getDefault(), SortField.Type.STRING, false) :
+                new SortField(request.getOrderBy().getName(), SortField.Type.STRING, request.isReverse());
+        return new Sort(sortField);
     }
 }

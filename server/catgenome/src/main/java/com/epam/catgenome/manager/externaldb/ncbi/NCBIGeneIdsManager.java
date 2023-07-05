@@ -85,7 +85,7 @@ public class NCBIGeneIdsManager {
         final Map<String, String> result = new HashMap<>();
         final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
         for (List<String> subIds : subSets) {
-            Query query = getByIdsQuery(ids, byEntrez ? IndexFields.ENTREZ_ID.getName() :
+            Query query = getByIdsQuery(subIds, byEntrez ? IndexFields.ENTREZ_ID.getName() :
                     IndexFields.ENSEMBL_ID.getName());
             try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
                  IndexReader indexReader = DirectoryReader.open(index)) {
@@ -142,7 +142,7 @@ public class NCBIGeneIdsManager {
 
     private static void addDoc(final IndexWriter writer, final Map.Entry<String, String> entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(IndexFields.ENTREZ_ID.getName(), entry.getKey().toString(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.ENTREZ_ID.getName(), entry.getKey(), Field.Store.YES));
         doc.add(new TextField(IndexFields.ENSEMBL_ID.getName(), entry.getValue(), Field.Store.YES));
         writer.addDocument(doc);
     }
