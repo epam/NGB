@@ -23,6 +23,8 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
@@ -146,5 +148,10 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_USER)
     public List<BareDisease> getDiseasesTree() throws IOException {
         return manager.getDiseasesTree();
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
+        return manager.getPublications(request);
     }
 }
