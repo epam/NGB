@@ -23,8 +23,11 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -55,12 +58,9 @@ public class DiseaseAssociationManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String diseasesPath = context.getResource("classpath:opentargets//diseases").getFile().getPath();
-        diseaseManager.importData(diseasesPath);
-        final String path = context.getResource("classpath:opentargets//associations").getFile().getPath();
-        final String pathOverall = context.getResource("classpath:opentargets//associations_overall")
-                .getFile().getPath();
-        manager.importData(path, pathOverall);
+        final String path = context.getResource("classpath:opentargets").getFile().getPath();
+        diseaseManager.importData(path);
+        manager.importData(path);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class DiseaseAssociationManagerTest extends TestCase {
 
     @Test
     public void searchDiseaseAssociationsTest() throws IOException, ParseException {
-        final DiseaseSearchRequest request = new DiseaseSearchRequest();
+        final AssociationSearchRequest request = new AssociationSearchRequest();
         request.setPage(2);
         request.setPageSize(3);
         request.setGeneIds(GENE_IDS);

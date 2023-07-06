@@ -23,8 +23,11 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -54,9 +57,8 @@ public class DrugAssociationManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String diseasesPath = context.getResource("classpath:opentargets//diseases").getFile().getPath();
-        final String path = context.getResource("classpath:opentargets//drugs").getFile().getPath();
-        diseaseManager.importData(diseasesPath);
+        final String path = context.getResource("classpath:opentargets").getFile().getPath();
+        diseaseManager.importData(path);
         drugAssociationManager.importData(path);
     }
 
@@ -68,7 +70,7 @@ public class DrugAssociationManagerTest extends TestCase {
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final DrugSearchRequest request = new DrugSearchRequest();
+        final AssociationSearchRequest request = new AssociationSearchRequest();
         request.setPage(1);
         request.setPageSize(3);
         request.setGeneIds(GENE_IDS);
