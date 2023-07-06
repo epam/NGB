@@ -1,4 +1,4 @@
-site_name: New Genome Browser 2.7.0
+site_name: New Genome Browser 2.8.0
 theme:
     name: readthedocs
 extra_css:
@@ -43,6 +43,7 @@ nav:
         - Motifs search: user-guide/motifs-search.md
         - Strain lineage: user-guide/strain-lineage.md
         - Metabolic pathways: user-guide/metabolic-pathways.md
+        - Target identification: user-guide/target-identification.md
     - Administrator guide:
         - Overview: user-guide/um-overview.md
         - Users: user-guide/um-users.md

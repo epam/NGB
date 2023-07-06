@@ -38,6 +38,7 @@ The following sections are currently covered in a documentation
     * [Motifs search](md/user-guide/motifs-search.md)
     * [Strain lineage](md/user-guide/strain-lineage.md)
     * [Metabolic pathways](md/user-guide/metabolic-pathways.md)
+    * [Target identification](md/user-guide/target-identification.md)
 * Administrator guide
     * [Overview](md/user-guide/um-overview.md)
     * [Users](md/user-guide/um-users.md)

@@ -10,6 +10,7 @@
     - [Heatmap panel](#heatmap-panel)
     - [Lineage panel](#lineage-panel)
     - [Pathways panel](#pathways-panel)
+    - [Target identification panel](#target-identification-panel)
 - [Taking screenshots](#taking-screenshots)
 
 The NGB user interface is implemented as the main menu on the left side and a set of panels that can be resized, moved, docked anywhere within the browser window, maximized or hidden.  
@@ -258,6 +259,30 @@ NGB supports visualisation maps that can be as public ones received from differe
   ![NGB GUI](images/overview-54.png)
 
 For more details see [here](metabolic-pathways.md).
+
+### Target identification panel
+
+Via the **Target Identification** panel users can collect identification information about targets of interest (genes), store this information and use it for their own research purposes.
+
+**Target identification** panel includes sub-tabs:
+
+- **Targets** (_opened by default_) - sub-panel where user can manage targets
+- **Identifications** - sub-panel where user can view and manage target identification reports
+
+![NGB GUI](images/overview-55.png)
+
+To launch a new identifying process, find the target in the **Targets** table and click the button to launch identification process, e.g.:  
+  ![NGB GUI](images/overview-56.png)  
+In the appeared pop-up, specify:
+
+- _species of interest_ - list of species of interest. Corresponds to species for which gene (target) the identification will be performed
+- _translational species_ - list of species to which the gene comparison shall be performed during the identification  
+  ![NGB GUI](images/overview-57.png)
+
+Once the identifying process is finished, the **Identifications** sub-tab will be automatically opened with the identification results (report):  
+  ![NGB GUI](images/overview-58.png)
+
+For more details about identification process and report see [here](target-identification.md).
 
 ## Taking screenshots
 

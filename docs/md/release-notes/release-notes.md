@@ -2,9 +2,10 @@
 
 Select the NGB version from the list below to see the release notes for it:
 
-- **Version** [**2.7.1**](2.7.1/2.7.1.md)
+- **Version** [**2.8.0**](2.8.0/2.8.0.md)
 
 ***
+- Version [2.7.1](2.7.1/2.7.1.md)
 - Version [2.7](2.7/2.7.md)
 - Version [2.6](2.6/v2.6.md)
 - Version [2.5.1](2.5.1/v2.5.1.md)
