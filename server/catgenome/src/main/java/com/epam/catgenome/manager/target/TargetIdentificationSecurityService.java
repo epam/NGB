@@ -23,26 +23,20 @@
  */
 package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
-import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugField;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
-import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
-import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
+import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
+import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociationAggregated;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,31 +61,31 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
-            throws ExternalDbUnavailableException, ParseException, IOException {
+    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
+            throws ParseException, IOException {
         return manager.getDGIDbDrugs(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
+    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final AssociationSearchRequest request)
             throws ParseException, IOException {
         return manager.getPharmGKBDrugs(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final PharmGKBDiseaseSearchRequest request)
+    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final AssociationSearchRequest request)
             throws ParseException, IOException {
         return manager.getPharmGKBDiseases(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final DrugSearchRequest request)
+    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return manager.getOpenTargetsDrugs(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final DiseaseSearchRequest request)
+    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return manager.getOpenTargetsDiseases(request);
     }
@@ -103,12 +97,8 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importOpenTargetsData(final String targetsPath,
-                                      final String diseasesPath,
-                                      final String drugsPath,
-                                      final String overallScoresPath,
-                                      final String scoresPath) throws IOException, ParseException {
-        manager.importOpenTargetsData(targetsPath, diseasesPath, drugsPath, overallScoresPath, scoresPath);
+    public void importOpenTargetsData(final String path) throws IOException, ParseException {
+        manager.importOpenTargetsData(path);
     }
 
     @PreAuthorize(ROLE_ADMIN)
@@ -124,23 +114,20 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getPharmGKBDrugFieldValues(final PharmGKBDrugField field) throws IOException {
-        return manager.getPharmGKBDrugFieldValues(field);
+    public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
+            throws IOException, ParseException {
+        return manager.getPharmGKBDrugFieldValues(geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getPharmGKBDiseaseFieldValues(final PharmGKBDiseaseField field) throws IOException {
-        return manager.getPharmGKBDiseaseFieldValues(field);
+    public DGIDBDrugFieldValues getDGIDBDrugFieldValues(final List<String> geneIds)
+            throws IOException, ParseException {
+        return manager.getDGIDBDrugFieldValues(geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> getDGIDBDrugFieldValues(final DGIDBDrugField field) throws IOException {
-        return manager.getDGIDBDrugFieldValues(field);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    public List<String> getDrugFieldValues(final DrugField field) throws IOException {
-        return manager.getDrugFieldValues(field);
+    public DrugFieldValues getDrugFieldValues(final List<String> geneIds) throws IOException, ParseException {
+        return manager.getDrugFieldValues(geneIds);
     }
 
     @PreAuthorize(ROLE_USER)

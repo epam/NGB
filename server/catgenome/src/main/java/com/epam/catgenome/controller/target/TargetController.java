@@ -26,28 +26,22 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
-import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugField;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
-import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
-import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
+import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociationAggregated;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
@@ -168,27 +162,28 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/dgidb/drugs")
     @ApiOperation(
             value = "Launches Identification for dgidb datasource drug associations",
-            notes = "Launches Identification for dgidb datasource drug associations",
+            notes = "Launches Identification for dgidb datasource drug associations." +
+                    "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, INTERACTION_TYPES, " +
+                    "INTERACTION_CLAIM_SOURCE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(
-            @RequestBody final DGIDBDrugSearchRequest request) throws
-            ParseException, IOException, ExternalDbUnavailableException {
+    public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(@RequestBody final AssociationSearchRequest request)
+            throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getDGIDbDrugs(request));
     }
 
     @PostMapping(value = "/target/pharmgkb/drugs")
     @ApiOperation(
             value = "Launches Identification for PharmGKB datasource drug associations",
-            notes = "Launches Identification for PharmGKB datasource drug associations",
+            notes = "Launches Identification for PharmGKB datasource drug associations." +
+            "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, SOURCE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(
-            @RequestBody final PharmGKBDrugSearchRequest request)
+    public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(@RequestBody final AssociationSearchRequest request)
             throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getPharmGKBDrugs(request));
     }
@@ -196,40 +191,46 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/pharmgkb/diseases")
     @ApiOperation(
             value = "Launches Identification for PharmGKB datasource disease associations",
-            notes = "Launches Identification for PharmGKB datasource disease associations",
+            notes = "Launches Identification for PharmGKB datasource disease associations." +
+                    "Available field names for sorting and filtering: GENE_ID, DISEASE_NAME.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<PharmGKBDisease>> getPharmGKBDiseases(
-            @RequestBody final PharmGKBDiseaseSearchRequest request)
-            throws ParseException, IOException {
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getPharmGKBDiseases(request));
     }
 
     @PostMapping(value = "/target/opentargets/drugs")
     @ApiOperation(
             value = "Launches Identification for Open Targets datasource drug associations",
-            notes = "Launches Identification for Open Targets datasource drug associations",
+            notes = "Launches Identification for Open Targets datasource drug associations." +
+                    "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, DISEASE_NAME, DRUG_TYPE, " +
+                    "MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DrugAssociation>> getOpenTargetsDrugs(
-            @RequestBody final DrugSearchRequest request) throws ParseException, IOException {
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getOpenTargetsDrugs(request));
     }
 
     @PostMapping(value = "/target/opentargets/diseases")
     @ApiOperation(
             value = "Launches Identification for Open Targets datasource disease associations",
-            notes = "Launches Identification for Open Targets datasource disease associations for table view",
+            notes = "Launches Identification for Open Targets datasource disease associations." +
+                    "Available field names for sorting: GENE_ID, DISEASE_NAME, OVERALL_SCORE, " +
+                    "GENETIC_ASSOCIATIONS_SCORE, SOMATIC_MUTATIONS_SCORE, DRUGS_SCORE, PATHWAYS_SCORE, " +
+                    "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.\n" +
+                    "Available field names for filtering: GENE_ID, DISEASE_NAME.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DiseaseAssociationAggregated>> getOpenTargetsDiseases(
-            @RequestBody final DiseaseSearchRequest request) throws ParseException, IOException {
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.getOpenTargetsDiseases(request));
     }
 
@@ -267,14 +268,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importOpenTargetsData(
-            @RequestParam final String targetsPath,
-            @RequestParam final String diseasesPath,
-            @RequestParam final String drugsPath,
-            @RequestParam final String overallScoresPath,
-            @RequestParam final String scoresPath) throws IOException, ParseException {
-        targetIdentificationSecurityService.importOpenTargetsData(targetsPath, diseasesPath, drugsPath,
-                overallScoresPath, scoresPath);
+    public Result<Boolean> importOpenTargetsData(@RequestParam final String path) throws IOException, ParseException {
+        targetIdentificationSecurityService.importOpenTargetsData(path);
         return Result.success(null);
     }
 
@@ -311,53 +306,40 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/pharmGKB/drugs/fieldValues")
     @ApiOperation(
-            value = "Returns all values for specified PharmGKB drugs data field",
-            notes = "Returns all values for specified PharmGKB drugs data field",
+            value = "Returns filed values for PharmGKB drugs data",
+            notes = "Returns filed values for PharmGKB drugs data",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getPharmGKBDrugFieldValues(
-            @RequestParam final PharmGKBDrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getPharmGKBDrugFieldValues(field));
-    }
-
-    @GetMapping(value = "/target/pharmGKB/diseases/fieldValues")
-    @ApiOperation(
-            value = "Returns all values for specified PharmGKB diseases data field",
-            notes = "Returns all values for specified PharmGKB diseases data field",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<String>> getPharmGKBDiseaseFieldValues(
-            @RequestParam final PharmGKBDiseaseField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getPharmGKBDiseaseFieldValues(field));
+    public Result<PharmGKBDrugFieldValues> getPharmGKBDrugFieldValues(
+            @RequestParam final List<String> geneIds) throws IOException, ParseException {
+        return Result.success(targetIdentificationSecurityService.getPharmGKBDrugFieldValues(geneIds));
     }
 
     @GetMapping(value = "/target/dgidb/drugs/fieldValues")
     @ApiOperation(
-            value = "Returns all values for specified DGIDB drugs data field",
-            notes = "Returns all values for specified DGIDB drugs data field",
+            value = "Returns filed values for DGIDB drugs data",
+            notes = "Returns filed values for DGIDB drugs data",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getDGIDBDrugFieldValues(
-            @RequestParam final DGIDBDrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getDGIDBDrugFieldValues(field));
+    public Result<DGIDBDrugFieldValues> getDGIDBDrugFieldValues(
+            @RequestParam final List<String> geneIds) throws IOException, ParseException {
+        return Result.success(targetIdentificationSecurityService.getDGIDBDrugFieldValues(geneIds));
     }
 
     @GetMapping(value = "/target/opentargets/drugs/fieldValues")
     @ApiOperation(
-            value = "Returns all values for specified Open Targets drugs data field",
-            notes = "Returns all values for specified Open Targets drugs data field",
+            value = "Returns filed values for Open Targets drugs data",
+            notes = "Returns filed values for Open Targets drugs data",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getDrugFieldValues(
-            @RequestParam final DrugField field) throws IOException {
-        return Result.success(targetIdentificationSecurityService.getDrugFieldValues(field));
+    public Result<DrugFieldValues> getDrugFieldValues(@RequestParam final List<String> geneIds)
+            throws IOException, ParseException {
+        return Result.success(targetIdentificationSecurityService.getDrugFieldValues(geneIds));
     }
 }

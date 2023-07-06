@@ -23,8 +23,11 @@
  */
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -71,7 +74,7 @@ public class PharmGKBDiseaseAssociationManagerTest extends TestCase {
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final PharmGKBDiseaseSearchRequest request = new PharmGKBDiseaseSearchRequest();
+        final AssociationSearchRequest request = new AssociationSearchRequest();
         request.setPage(1);
         request.setPageSize(10);
         request.setGeneIds(GENE_IDS);

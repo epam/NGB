@@ -23,41 +23,28 @@
  */
 package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.externaldb.opentarget.AssociationType;
-import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
-import com.epam.catgenome.entity.externaldb.opentarget.Disease;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.DiseaseAssociationAggregated;
-import com.epam.catgenome.entity.externaldb.opentarget.DrugAssociation;
-import com.epam.catgenome.entity.externaldb.opentarget.TargetDetails;
-import com.epam.catgenome.entity.externaldb.opentarget.UrlEntity;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDrug;
-import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
-import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
+import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
+import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociationAggregated;
+import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
+import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.*;
+import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugField;
-import com.epam.catgenome.manager.externaldb.dgidb.DGIDBDrugSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseAssociationManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugField;
-import com.epam.catgenome.manager.externaldb.opentarget.DrugSearchRequest;
-import com.epam.catgenome.manager.externaldb.opentarget.TargetDetailsManager;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseAssociationManager;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDiseaseSearchRequest;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugField;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBDrugSearchRequest;
-import com.epam.catgenome.manager.externaldb.pharmgkb.PharmGKBGeneManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -78,7 +65,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.externaldb.opentarget.DiseaseManager.getDiseaseUrl;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +74,7 @@ public class TargetIdentificationManager {
     private static final String PUBMED_PATTERN = "PubMed:[0-9]+";
     private final TargetManager targetManager;
     private final PharmGKBGeneManager pharmGKBGeneManager;
+    private final PharmGKBDrugManager pharmGKBDrugManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final PharmGKBDiseaseAssociationManager pharmGKBDiseaseAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
@@ -116,27 +103,27 @@ public class TargetIdentificationManager {
                 .build();
     }
 
-    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final DGIDBDrugSearchRequest request)
+    public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return dgidbDrugAssociationManager.search(request);
     }
 
-    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final PharmGKBDrugSearchRequest request)
+    public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return pharmGKBDrugAssociationManager.search(request);
     }
 
-    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final PharmGKBDiseaseSearchRequest request)
+    public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return pharmGKBDiseaseAssociationManager.search(request);
     }
 
-    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final DrugSearchRequest request)
+    public SearchResult<DrugAssociation> getOpenTargetsDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
         return drugAssociationManager.search(request);
     }
 
-    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final DiseaseSearchRequest request)
+    public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
         final SearchResult<DiseaseAssociation> result = diseaseAssociationManager.search(request);
         final List<DiseaseAssociationAggregated> converted = result.getItems().stream()
@@ -158,22 +145,19 @@ public class TargetIdentificationManager {
         return converted;
     }
 
-    public void importOpenTargetsData(final String targetsPath,
-                                      final String diseasesPath,
-                                      final String drugsPath,
-                                      final String overallScoresPath,
-                                      final String scoresPath) throws IOException, ParseException {
-        targetDetailsManager.importData(targetsPath);
-        diseaseManager.importData(diseasesPath);
-        drugAssociationManager.importData(drugsPath);
-        diseaseAssociationManager.importData(scoresPath, overallScoresPath);
+    public void importOpenTargetsData(final String path) throws IOException, ParseException {
+        targetDetailsManager.importData(path);
+        diseaseManager.importData(path);
+        drugAssociationManager.importData(path);
+        diseaseAssociationManager.importData(path);
     }
 
     public void importPharmGKBData(final String genePath, final String drugPath,
                                    final String drugAssociationPath, final String diseaseAssociationPath)
             throws IOException, ParseException {
         pharmGKBGeneManager.importData(genePath);
-        pharmGKBDrugAssociationManager.importData(drugPath, drugAssociationPath);
+        pharmGKBDrugManager.importData(drugPath);
+        pharmGKBDrugAssociationManager.importData(drugAssociationPath);
         pharmGKBDiseaseAssociationManager.importData(diseaseAssociationPath);
     }
 
@@ -181,20 +165,18 @@ public class TargetIdentificationManager {
         dgidbDrugAssociationManager.importData(path);
     }
 
-    public List<String> getPharmGKBDrugFieldValues(final PharmGKBDrugField field) throws IOException {
-        return pharmGKBDrugAssociationManager.getFieldValues(field);
+    public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
+            throws IOException, ParseException {
+        return pharmGKBDrugAssociationManager.getFieldValues(geneIds);
     }
 
-    public List<String> getPharmGKBDiseaseFieldValues(final PharmGKBDiseaseField field) throws IOException {
-        return pharmGKBDiseaseAssociationManager.getFieldValues(field);
+    public DGIDBDrugFieldValues getDGIDBDrugFieldValues(final List<String> geneIds)
+            throws IOException, ParseException {
+        return dgidbDrugAssociationManager.getFieldValues(geneIds);
     }
 
-    public List<String> getDGIDBDrugFieldValues(final DGIDBDrugField field) throws IOException {
-        return dgidbDrugAssociationManager.getFieldValues(field);
-    }
-
-    public List<String> getDrugFieldValues(final DrugField field) throws IOException {
-        return drugAssociationManager.getFieldValues(field);
+    public DrugFieldValues getDrugFieldValues(final List<String> geneIds) throws IOException, ParseException {
+        return drugAssociationManager.getFieldValues(geneIds);
     }
 
     private Map<String, String> getDescriptions(final Map<String, String> entrezMap)
@@ -253,7 +235,7 @@ public class TargetIdentificationManager {
         final Disease disease = Disease.builder()
                 .id(association.getDiseaseId())
                 .name(association.getDiseaseName())
-                .url(getDiseaseUrl(association.getDiseaseId()))
+                .url(String.format(Disease.URL_PATTERN, association.getDiseaseId()))
                 .build();
         final Map<AssociationType, Float> scores = new HashMap<>();
         if (association.getOverallScore() != null) {
