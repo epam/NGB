@@ -26,6 +26,8 @@ package com.epam.catgenome.controller.target;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.opentarget.BareDisease;
 import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.manager.externaldb.AssociationSearchRequest;
@@ -163,6 +165,18 @@ public class TargetController extends AbstractRESTController {
     public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.launchIdentification(request));
+    }
+
+    @PostMapping(value = "/target/publications")
+    @ApiOperation(
+            value = "Launches Identification for Open Targets datasource disease associations",
+            notes = "Launches Identification for Open Targets datasource disease associations for table view",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request) {
+        return Result.success(targetIdentificationSecurityService.getPublications(request));
     }
 
     @PostMapping(value = "/target/dgidb/drugs")

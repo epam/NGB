@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +86,27 @@ public class NCBIGeneManager {
      * @return NCBIGeneVO
      * @throws ExternalDbUnavailableException
      */
+
+    public List<NCBISummaryVO> fetchPubmedData(final String entrezId) {
+        try {
+            String pubmedQueryXml =
+                    ncbiAuxiliaryManager.link(entrezId,
+                            NCBIDatabase.GENE.name(), NCBIDatabase.PUBMED.name(), "gene_pubmed");
+
+            Pair<String, String> stringStringPair =
+                    geneInfoParser.parseHistoryResponse(pubmedQueryXml, NCBIUtility.NCBI_LINK);
+
+            String pubmedHistoryQuery = stringStringPair.getLeft();
+            String pubmedHistoryWebenv = stringStringPair.getRight();
+
+            JsonNode pubmedEntries = ncbiAuxiliaryManager.summaryWithHistory(pubmedHistoryQuery, pubmedHistoryWebenv);
+            JsonNode pubmedResultRoot = pubmedEntries.path(RESULT_PATH).path(UIDS);
+            return parseJsonFromPubmed(pubmedResultRoot, pubmedEntries);
+        } catch (ExternalDbUnavailableException | JsonProcessingException e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
 
     public NCBIGeneVO fetchGeneById(final String id) throws ExternalDbUnavailableException {
         NCBIGeneVO ncbiGeneVO = null;
@@ -215,20 +237,33 @@ public class NCBIGeneManager {
                 if (ncbiGeneVO.getPubmedReferences().size() >= NUMBER_OF_PUBLICATIONS) {
                     break;
                 }
-                JsonNode jsonNode = pubmedEntries.path(RESULT_PATH).get("" + objNode.asText());
-                NCBISummaryVO pubmedReference = mapper.treeToValue(jsonNode, NCBISummaryVO.class);
-                pubmedReference.setLink(String.format(NCBI_PUBMED_URL, pubmedReference.getUid()));
-                // take first author
-                if (pubmedReference.getAuthors() != null) {
-                    pubmedReference.setMultipleAuthors(pubmedReference.getAuthors().size() > 1);
-                    NCBISummaryVO.NCBIAuthor ncbiAuthor = pubmedReference.getAuthors().get(0);
-                    pubmedReference.setAuthor(ncbiAuthor);
-                    pubmedReference.setAuthors(null);
-                }
-
+                NCBISummaryVO pubmedReference = parsePubmedEntry(pubmedEntries, objNode);
                 ncbiGeneVO.getPubmedReferences().add(pubmedReference);
             }
         }
+    }
+
+    private List<NCBISummaryVO> parseJsonFromPubmed(final JsonNode pubmedResultRoot,
+                                                    final JsonNode pubmedEntries) throws JsonProcessingException {
+        final List<NCBISummaryVO> result = new ArrayList<>();
+        for (final JsonNode objNode : pubmedResultRoot) {
+            result.add(parsePubmedEntry(pubmedEntries, objNode));
+        }
+        return result;
+    }
+
+    @NotNull
+    private NCBISummaryVO parsePubmedEntry(final JsonNode pubmedEntries,
+                                           final JsonNode objNode) throws JsonProcessingException {
+        JsonNode jsonNode = pubmedEntries.path(RESULT_PATH).get("" + objNode.asText());
+        NCBISummaryVO pubmedReference = mapper.treeToValue(jsonNode, NCBISummaryVO.class);
+        pubmedReference.setLink(String.format(NCBI_PUBMED_URL, pubmedReference.getUid()));
+        if (CollectionUtils.isNotEmpty(pubmedReference.getAuthors())) {
+            pubmedReference.setMultipleAuthors(pubmedReference.getAuthors().size() > 1);
+            NCBISummaryVO.NCBIAuthor ncbiAuthor = pubmedReference.getAuthors().get(0);
+            pubmedReference.setAuthor(ncbiAuthor);
+        }
+        return pubmedReference;
     }
 
     private void parseJsonFromBio(final JsonNode biosystemsResultRoot, final JsonNode biosystemsEntries,
