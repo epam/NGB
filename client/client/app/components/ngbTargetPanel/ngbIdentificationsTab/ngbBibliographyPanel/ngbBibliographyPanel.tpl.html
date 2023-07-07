@@ -1,0 +1,33 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>
+<div class="empty-container"
+     ng-if="$ctrl.emptyResults">
+    <md-content class="no-records-warning"
+                flex>
+        <span>No records found.</span>
+    </md-content>
+</div>
+<div>
+    <div ng-repeat="publication in $ctrl.publications track by publication.uid"
+        class="publication-container">
+        <div class="publication-title">
+            <a ng-if="publication.link"
+               ng-href="{{publication.link}}"
+               target="_blank">
+                {{publication.title}}
+            </a>
+        </div>
+        <div class="publication-author">{{publication.author.name}}</div>
+        <div class="publication-authors">
+            <span ng-repeat="author in publication.authors">{{author.name}}</span>
+        </div>
+        <div class="publication-source">
+            <span>{{publication.source}}</span><span>{{publication.pubdate}}</span>
+        </div>
+    </div>
+</div>

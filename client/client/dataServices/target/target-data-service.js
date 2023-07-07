@@ -242,4 +242,21 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getPublications(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/publications', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], 0]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting publications';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }
