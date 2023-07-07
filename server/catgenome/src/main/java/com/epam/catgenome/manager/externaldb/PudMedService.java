@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.externaldb;
 
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
@@ -34,7 +35,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +50,11 @@ public class PudMedService {
 
     @SneakyThrows
     public SearchResult<NCBISummaryVO> fetchPubMedArticles(final List<String> geneIds) {
-        final Collection<String> entrezIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds).keySet();
+        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<String> entrezIds = ncbiGenes.stream()
+                .map(g -> g.getEntrezId().toString())
+                .collect(Collectors.toList());
+
         final List<NCBISummaryVO> articles = entrezIds.stream()
                 .map(ncbiGeneManager::fetchPubmedData)
                 .flatMap(List::stream)

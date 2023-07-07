@@ -24,9 +24,16 @@
 
 package com.epam.catgenome.manager.externaldb.ncbi;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -179,9 +186,11 @@ public class NCBIGeneManager {
         return ncbiGeneVO;
     }
 
-    public Map<String, String> fetchGeneSummaryByIds(final Map<String, String> entrezMap)
+    public Map<GeneId, String> fetchGeneSummaryByIds(final List<GeneId> geneIds)
             throws ExternalDbUnavailableException {
-        final Map<String, String> summary = new HashMap<>();
+        final Map<GeneId, String> summary = new HashMap<>();
+        final Map<String, GeneId> entrezMap = geneIds.stream()
+                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
                 StringUtils.join(entrezMap.keySet(), ","));
         JsonNode node;

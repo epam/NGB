@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
 import com.epam.catgenome.manager.externaldb.ncbi.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -397,7 +398,7 @@ public class ExternalDBController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException {
+    public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException, ParseException {
         ncbiGeneIdsManager.importData(path);
         return Result.success(null);
     }

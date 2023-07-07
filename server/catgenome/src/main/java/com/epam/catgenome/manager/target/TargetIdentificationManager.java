@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
@@ -34,7 +35,6 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
-import com.epam.catgenome.manager.externaldb.target.opentargets.*;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
@@ -44,7 +44,16 @@ import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationMa
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.*;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.opentargets.TargetDetailsManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -92,8 +101,8 @@ public class TargetIdentificationManager {
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
-        final Map<String, String> entrezMap = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
-        final Map<String, String> description = getDescriptions(entrezMap);
+
+        final Map<String, String> description = getDescriptions(geneIds);
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         return IdentificationResult.builder()
@@ -179,13 +188,16 @@ public class TargetIdentificationManager {
         return drugAssociationManager.getFieldValues(geneIds);
     }
 
-    private Map<String, String> getDescriptions(final Map<String, String> entrezMap)
+    public List<BareDisease> getDiseasesTree() throws IOException {
+        return diseaseManager.search();
+    }
+
+    private Map<String, String> getDescriptions(final List<String> geneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
-        final Map<String, String> ncbiDescription = geneManager.fetchGeneSummaryByIds(entrezMap);
-        final List<TargetDetails> openTargetDetails = targetDetailsManager.search(new ArrayList<>(entrezMap.values()));
-        final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
-                .collect(Collectors.toMap(TargetDetails::getId, TargetDetails::getDescription));
-        final Map<String, String> merged = mergeDescriptions(ncbiDescription, openTargetDescriptionMap);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final Map<GeneId, String> ncbiSummary = geneManager.fetchGeneSummaryByIds(ncbiGeneIds);
+        final List<TargetDetails> openTargetDetails = targetDetailsManager.search(geneIds);
+        final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
         merged.replaceAll((key, value) -> setHyperLinks(value));
         return merged;
     }
@@ -219,16 +231,22 @@ public class TargetIdentificationManager {
         return openTargetsDiseasesCount + pharmGKBDiseasesCount;
     }
 
-    private static Map<String, String> mergeDescriptions(final Map<String, String> ncbiDescriptions,
-                                                         final Map<String, String> openTargetDescriptions) {
+    private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
+                                                         final List<TargetDetails> openTargetDetails) {
+        final Map<String, String> ncbiDescriptions = new HashMap<>();
+        ncbiSummary.forEach((key1, value1) -> ncbiDescriptions.put(key1.getEnsembleId().toLowerCase(), value1));
+
+        final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
+                .collect(Collectors.toMap(t -> t.getId().toLowerCase(), TargetDetails::getDescription));
+
         ncbiDescriptions.forEach((geneId, value) -> {
-            if (openTargetDescriptions.containsKey(geneId)) {
-                openTargetDescriptions.replace(geneId, openTargetDescriptions.get(geneId) + value);
+            if (openTargetDescriptionMap.containsKey(geneId)) {
+                openTargetDescriptionMap.replace(geneId, openTargetDescriptionMap.get(geneId) + value);
             } else {
-                openTargetDescriptions.put(geneId, value);
+                openTargetDescriptionMap.put(geneId, value);
             }
         });
-        return openTargetDescriptions;
+        return openTargetDescriptionMap;
     }
 
     private DiseaseAssociationAggregated aggregate(final DiseaseAssociation association) {
@@ -294,10 +312,6 @@ public class TargetIdentificationManager {
             r.setDisease(disease);
         }
     }
-
-    public List<BareDisease> getDiseasesTree() throws IOException {
-        return diseaseManager.search();
-    } 
 
     private Map<String, UrlEntity> getTAsMap(final Set<String> taIds) throws ParseException, IOException {
         final List<Disease> tas = diseaseManager.search(new ArrayList<>(taIds));

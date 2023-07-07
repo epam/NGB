@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,9 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroupGene;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -43,6 +45,7 @@ import com.epam.catgenome.util.db.QueryParameters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.TextUtils;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -59,8 +62,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setEnsemblIds;
 import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGeneSpeciesNames;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -84,9 +91,12 @@ public class HomologManager {
     private HomologDatabaseDao homologDatabaseDao;
     @Autowired
     private NCBIGeneManager ncbiGeneManager;
+    @Autowired
+    private NCBIGeneIdsManager ncbiGeneIdsManager;
+
 
     public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest request)
-            throws IOException {
+            throws IOException, ParseException {
         Assert.isTrue(request.getGeneId() != null, "Gene id is required");
 
         final SearchResult<HomologGroup> searchResult = new SearchResult<>();
@@ -112,14 +122,21 @@ public class HomologManager {
                         .build();
                 final List<HomologGroup> homologGroups = homologGroupDao.load(queryParams);
                 final List<Gene> genes = homologGroupGeneDao.load(queryParams);
-
                 setSpeciesNames(homologGroups, genes);
+
+                final List<GeneId> geneIds = getGeneIds(homologGroups, genes);
+                final Map<Long, GeneId> genesMap = geneIds.stream()
+                        .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+                setEnsemblIds(genes, geneIds);
 
                 for (HomologGroup group: homologGroups) {
                     List<Gene> groupGenes = genes.stream()
                             .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
                             .collect(Collectors.toList());
                     group.setHomologs(groupGenes);
+                    Long groupGeneId = group.getGeneId();
+                    String ensembleGeneId = genesMap.get(groupGeneId).getEnsembleId();
+                    group.setEnsemblId(ensembleGeneId);
                 }
                 searchResult.setItems(homologGroups);
                 List<Long> allGroupIds = homologGroupGeneDao.loadAllGroupIds(geneIdFilters);
@@ -253,5 +270,17 @@ public class HomologManager {
                 group.setSpeciesScientificName(organism.getScientificName());
             }
         }
+    }
+
+    private List<GeneId> getGeneIds(final List<HomologGroup> homologGroups, final List<Gene> genes)
+            throws ParseException, IOException {
+        final Set<String> groupGeneIds = homologGroups.stream()
+                .map(g -> g.getGeneId().toString())
+                .collect(Collectors.toSet());
+        final Set<String> allGeneIds = genes.stream()
+                .map(g -> g.getGeneId().toString())
+                .collect(Collectors.toSet());
+        allGeneIds.addAll(groupGeneIds);
+        return ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
     }
 }
