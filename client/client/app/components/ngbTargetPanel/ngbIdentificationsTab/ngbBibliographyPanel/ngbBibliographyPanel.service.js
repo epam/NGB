@@ -13,6 +13,7 @@ export default class ngbBibliographyPanelService {
     _emptySummary = false;
 
     _publicationsResults = null;
+    _allPublications = null;
     _totalPages = 0;
     _currentPage = 1;
 
@@ -69,16 +70,31 @@ export default class ngbBibliographyPanelService {
         return this._summaryResult;
     }
     
-    static instance ($sce, ngbTargetPanelService, targetDataService) {
-        return new ngbBibliographyPanelService($sce, ngbTargetPanelService, targetDataService);
+    static instance ($sce, dispatcher, ngbTargetPanelService, targetDataService) {
+        return new ngbBibliographyPanelService($sce, dispatcher, ngbTargetPanelService, targetDataService);
     }
 
-    constructor($sce, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {$sce, ngbTargetPanelService, targetDataService});
+    constructor($sce, dispatcher, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {$sce, dispatcher, ngbTargetPanelService, targetDataService});
     }
 
     get geneIds() {
         return this.ngbTargetPanelService.allGenes.map(g => g.geneId);
+    }
+
+    setPublications() {
+        const data = this._allPublications;
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        this._publicationsResults = data.slice(start, end);
+        this._loadingPublications = false;
+    }
+
+    async getDataOnPage(page) {
+        this._loadingPublications = true;
+        this.currentPage = page;
+        this.setPublications();
+        this.dispatcher.emit('publication:page:changed');
     }
 
     getRequest() {
@@ -102,8 +118,8 @@ export default class ngbBibliographyPanelService {
                     this._publicationsError = null;
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyPublications = totalCount === 0;
-                    this._allPublications = data.slice(0, 10);
-                    this._publicationsResults = data.slice(0, 5);
+                    this._allPublications = data;
+                    this.setPublications();
                     this._loadingPublications = false;
                     resolve(true);
                 })
@@ -119,11 +135,10 @@ export default class ngbBibliographyPanelService {
     }
 
     getLlmSummary(provider) {
-        const request = this._allPublications.map(p => p.uid);
+        const request = this._allPublications.slice(0, 10).map(p => p.uid);
         return new Promise(resolve => {
             this.targetDataService.getLlmSummary(request, provider)
                 .then((data) => {
-                    console.log(data);
                     this._failedSummary = false;
                     this._summaryError = null;
                     this.setSummaryResults(data);

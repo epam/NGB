@@ -25,8 +25,18 @@ export default class ngbBibliographyPanelController {
         return 'ngbBibliographyPanelController';
     }
 
-    constructor($scope, $timeout, ngbBibliographyPanelService) {
+    constructor($scope, $timeout, dispatcher, ngbBibliographyPanelService) {
         Object.assign(this, {$scope, $timeout, ngbBibliographyPanelService});
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('publication:page:changed', refresh)
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('drugs:source:changed', refresh);
+        });
+    }
+
+    refresh() {
+        this._publications = this.ngbBibliographyPanelService.publicationsResults;
+        this.$timeout(::this.$scope.$apply);
     }
 
     get loadingPublications() {
@@ -58,6 +68,16 @@ export default class ngbBibliographyPanelController {
         return this.ngbBibliographyPanelService.summaryError;
     }
 
+    get totalPages() {
+        return this.ngbBibliographyPanelService.totalPages;
+    }
+    get currentPage() {
+        return this.ngbBibliographyPanelService.currentPage;
+    }
+    set currentPage(value) {
+        this.ngbBibliographyPanelService.currentPage = value;
+    }
+
     $onInit() {
         this.initialize();
     }
@@ -76,7 +96,6 @@ export default class ngbBibliographyPanelController {
                 return [];
             });
         this.$timeout(::this.$scope.$apply);
-        console.log(this._publications);
     }
 
     async generateSummary(event) {
