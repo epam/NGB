@@ -259,4 +259,17 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getLlmSummary(request, provider) {
+        return new Promise((resolve, reject) => {
+            this.post(`llm/summary?provider=${provider}`, request)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error generating publications summary';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

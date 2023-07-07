@@ -56,12 +56,72 @@ ngb-bibliography-panel {
             }
 
             span:not(:last-child):after {
-                content: ', ';
+                content: ',';
+                margin-right: 5px;
             }
         }
 
         .publication-source {
             margin: 5px 20px;
+
+            span {
+                margin-right: 15px;
+            }
         }
+    }
+
+    .summary-button {
+        position: relative;
+        top: -36px;
+        float: right;
+        margin-bottom: -36px;
+
+        .md-button {
+            height: 36px;
+            min-height: 36px;
+            margin: 0 30px 0 0;
+            display: flex;
+            text-transform: none;
+            font-size: 12px;
+            border-radius: 10px
+        }
+
+        .button-text {
+            padding-left: 22px;
+        }
+
+        md-select {
+            margin: 0;
+
+            .md-select-value {
+                padding: 0 10px;
+                font-size: 12px;
+            }
+
+            .md-select-value .md-select-icon {
+                width: 14px;
+            }
+        }
+
+        md-select[disabled] .md-select-value {
+            background: none;
+        }
+    }
+
+    .summary-container {
+        border: 1px solid rgb(102, 153, 255);
+        border-radius: 10px;
+        margin: 10px;
+        padding: 20px;
+
+        p {
+            margin: 0;
+        }
+    }
+}
+
+.llm-model-select {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
     }
 }
