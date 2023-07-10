@@ -33,7 +33,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +55,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PudMedService {
 
+    private static final String ID_XPATH = "PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Abstract";
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
     private final NCBIDataManager ncbiDataManager;
@@ -63,7 +75,18 @@ public class PudMedService {
 
     @SneakyThrows
     public String getArticleAbstracts(final List<String> pmcIds) {
-        return ncbiDataManager.fetchTextById(NCBIDatabase.PUBMED.name(),
+        final String xml = ncbiDataManager.fetchXmlById(NCBIDatabase.PUBMED.name(),
                 String.join(",", pmcIds), "Abstract");
+        return parseAbstract(xml);
+    }
+
+    private String parseAbstract(final String xml) throws ParserConfigurationException, IOException,
+            SAXException, XPathExpressionException {
+        final XPath xPath = XPathFactory.newInstance().newXPath();
+        final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        final DocumentBuilder builder = builderFactory.newDocumentBuilder();
+        final InputSource is = new InputSource(new StringReader(xml));
+        final Document document = builder.parse(is);
+        return xPath.compile(ID_XPATH).evaluate(document);
     }
 }
