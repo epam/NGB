@@ -23,7 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.opentarget;
 
-import com.epam.catgenome.entity.externaldb.opentarget.Disease;
+import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -50,7 +51,7 @@ public class DiseaseManagerTest extends TestCase {
 
     @Before
     public void setUp() throws IOException, ParseException {
-        final String path = context.getResource("classpath:opentargets//diseases").getFile().getPath();
+        final String path = context.getResource("classpath:opentargets").getFile().getPath();
         diseaseManager.importData(path);
     }
 

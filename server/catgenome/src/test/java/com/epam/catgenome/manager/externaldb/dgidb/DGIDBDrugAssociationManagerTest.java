@@ -23,8 +23,10 @@
  */
 package com.epam.catgenome.manager.externaldb.dgidb;
 
-import com.epam.catgenome.entity.externaldb.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -45,7 +47,8 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
 
     private static final int ENTRIES_COUNT = 4;
     private static final int ENTRIES_TOTAL_COUNT = 4;
-    private static final List<String> ENTREZ_IDS = Arrays.asList("1022", "7421");
+    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000111424", "ENSG00000134058");
+
 
     @Autowired
     private DGIDBDrugAssociationManager manager;
@@ -53,24 +56,22 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
     @Autowired
     private ApplicationContext context;
 
-    private String fileName;
-
     @Before
     public void setUp() throws IOException, ParseException {
-        this.fileName = context.getResource("classpath:dgidb//interactions.tsv").getFile().getPath();
+        String fileName = context.getResource("classpath:dgidb//interactions.tsv").getFile().getPath();
         manager.importData(fileName);
     }
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final long totalCount = manager.totalCount(ENTREZ_IDS);
+        final long totalCount = manager.totalCount(GENE_IDS);
         assertEquals(ENTRIES_TOTAL_COUNT, totalCount);
     }
 
     @Test
     public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final DGIDBDrugSearchRequest request = new DGIDBDrugSearchRequest();
-        request.setGeneIds(ENTREZ_IDS);
+        final AssociationSearchRequest request = new AssociationSearchRequest();
+        request.setGeneIds(GENE_IDS);
         request.setPage(1);
         request.setPageSize(10);
         final SearchResult<DGIDBDrugAssociation> result = manager.search(request);

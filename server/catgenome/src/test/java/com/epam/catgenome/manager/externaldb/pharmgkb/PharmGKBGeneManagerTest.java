@@ -23,7 +23,8 @@
  */
 package com.epam.catgenome.manager.externaldb.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.pharmgkb.PharmGKBGene;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
