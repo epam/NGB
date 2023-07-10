@@ -23,6 +23,8 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
@@ -33,6 +35,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.manager.externaldb.PudMedService;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.*;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
@@ -84,6 +87,7 @@ public class TargetIdentificationManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final DiseaseManager diseaseManager;
+    private final PudMedService pudMedService;
 
     public IdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -177,6 +181,10 @@ public class TargetIdentificationManager {
 
     public DrugFieldValues getDrugFieldValues(final List<String> geneIds) throws IOException, ParseException {
         return drugAssociationManager.getFieldValues(geneIds);
+    }
+
+    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
+        return pudMedService.fetchPubMedArticles(request.getGeneIds());
     }
 
     private Map<String, String> getDescriptions(final Map<String, String> entrezMap)
