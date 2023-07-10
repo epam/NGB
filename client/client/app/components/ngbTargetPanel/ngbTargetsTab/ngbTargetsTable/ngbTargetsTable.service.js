@@ -209,7 +209,6 @@ export default class ngbTargetsTableService {
     }
 
     setFilter(field, value) {
-        console.log(field, value, )
         const filter = {...(this._filterInfo || {})};
         if (value) {
             filter[field] = value;
