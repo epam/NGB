@@ -1,4 +1,4 @@
-const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'disease', 'product', 'launch'];
+const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'launch'];
 const RESIZE_DELAY = 300;
 export default class ngbTargetsTableController {
 

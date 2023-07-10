@@ -4,8 +4,8 @@ const FIELDS = {
     name: 'NAME',
     genes: 'GENE_NAME',
     species: 'SPECIES_NAME',
-    disease: 'DISEASES',
-    product: 'PRODUCTS'
+    diseases: 'DISEASES',
+    products: 'PRODUCTS'
 };
 
 export default class ngbTargetsTableService {
@@ -152,11 +152,11 @@ export default class ngbTargetsTableService {
                     })),
                     limit: 2
                 },
-                disease: {
+                diseases: {
                     value: item.diseases,
                     limit: 2
                 },
-                product: {
+                products: {
                     value: item.products,
                     limit: 2
                 }
@@ -210,7 +210,11 @@ export default class ngbTargetsTableService {
 
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = value;
+        if (value) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
         this._filterInfo = filter;
         this.projectContext.targetsTableFilterIsVisible = !this.isFilterEmpty;
     }
@@ -224,7 +228,7 @@ export default class ngbTargetsTableService {
     async onChangeShowFilters() {
         if (this.displayFilters) {
             return Promise.all(
-                ['genes', 'species', 'disease', 'product'].map(async (field) => (
+                ['genes', 'species', 'diseases', 'products'].map(async (field) => (
                     await this.getTargetFieldValue(field)
                 )))
                     .then(values => (values.some(v => v)));
