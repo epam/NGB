@@ -1,0 +1,127 @@
+ngb-bibliography-panel {
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        .no-records-warning {
+            color: #999;
+        }
+    }
+
+    .publication-container {
+        font-size: 14px;
+
+        .publication-title {
+            margin: 20px 20px 10px 20px;
+
+            a {
+                margin: 0;
+                display: inline-block;
+                text-decoration: none;
+                color: rgb(102, 153, 255);
+                cursor: pointer;
+            }
+        }
+
+        .publication-author {
+            margin: 0 20px;
+        }
+
+        .publication-authors {
+            display: flex;
+            flex-direction: row;
+            margin: 5px 20px;
+            flex-wrap: wrap;
+
+            span {
+                white-space: nowrap;
+            }
+
+            span:not(:last-child):after {
+                content: ',';
+                margin-right: 5px;
+            }
+        }
+
+        .publication-source {
+            margin: 5px 20px;
+
+            span {
+                margin-right: 15px;
+            }
+        }
+    }
+
+    .summary-button {
+        position: relative;
+        top: -36px;
+        float: right;
+        margin-bottom: -36px;
+
+        .md-button {
+            height: 36px;
+            min-height: 36px;
+            margin: 0 30px 0 0;
+            display: flex;
+            text-transform: none;
+            font-size: 12px;
+            border-radius: 10px
+        }
+
+        .button-text {
+            padding-left: 22px;
+        }
+
+        md-select {
+            margin: 0;
+
+            .md-select-value {
+                padding: 0 10px;
+                font-size: 12px;
+            }
+
+            .md-select-value .md-select-icon {
+                width: 14px;
+            }
+        }
+
+        md-select[disabled] .md-select-value {
+            background: none;
+        }
+    }
+
+    .summary-container {
+        border: 1px solid rgb(102, 153, 255);
+        border-radius: 10px;
+        margin: 10px;
+        padding: 20px;
+
+        p {
+            margin: 0;
+        }
+    }
+}
+
+.llm-model-select {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+}

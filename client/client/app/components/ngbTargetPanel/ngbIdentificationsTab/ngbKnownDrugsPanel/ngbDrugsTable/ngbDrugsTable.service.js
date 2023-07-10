@@ -126,7 +126,7 @@ export default class ngbDrugsTableService {
         return SORT_FIELDS;
     }
 
-    static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService,) {
+    static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
         return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
     }
 
