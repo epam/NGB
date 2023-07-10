@@ -29,8 +29,7 @@ export default class ngbHomologsTableContextMenuController extends BaseControlle
         const layoutChange = this.appLayout.Panels.target;
         layoutChange.displayed = true;
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
-        const genes = this.entity.gene.split(',').map(g => g.trim());
-        this.dispatcher.emitSimpleEvent('homologs:create:target', genes);
+        this.dispatcher.emitSimpleEvent('homologs:create:target', this.entity.targetInfo);
         event.stopImmediatePropagation();
     }
 }

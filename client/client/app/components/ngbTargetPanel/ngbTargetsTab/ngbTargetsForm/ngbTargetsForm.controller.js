@@ -124,9 +124,15 @@ export default class ngbTargetsFormController{
         this.ngbTargetsTabService.addNewGene();
     }
 
-    isGeneEmpty(index) {
-        const {geneId, geneName, taxId, speciesName} = this.targetModel.genes[index];
-        return [geneId, geneName, taxId, speciesName].some(field => !field || !String(field).length);
+    isGenesEmpty() {
+        const {genes} = this.targetModel;
+        const genesEmpty = genes.filter(gene => {
+            const {geneId, geneName, taxId, speciesName} = gene;
+            return [geneId, geneName, taxId, speciesName].some(field => (
+                !field || !String(field).length
+            ));
+        });
+        return genesEmpty.length;
     }
 
     isAddGeneDisabled() {
@@ -134,15 +140,14 @@ export default class ngbTargetsFormController{
         if (!block || !block.length) {
             return false;
         }
-        return this.isGeneEmpty(block.length - 1);
+        return this.isGenesEmpty();
     }
 
     isSaveDisabled() {
         if (this.loading) return true;
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
-        const genesEmpty = genes.filter((gene, index) => this.isGeneEmpty(index));
-        if (genesEmpty.length) return true;
+        if (this.isGenesEmpty()) return true;
         if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
     }
 

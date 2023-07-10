@@ -369,14 +369,14 @@ export default class ngbTargetsTabService {
         this.setEmptyTargetModel();
         this.setAddMode();
         this.$timeout(() => {
-            this._targetModel.name = genes[0];
+            this._targetModel.name = genes[0].geneName;
             this._targetModel.diseases = [];
             this._targetModel.products = [];
             this._targetModel.genes = genes.map(g => ({
-                geneId: '',
-                geneName: g,
-                taxId: '',
-                speciesName: '',
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
                 priority: ''
             }));
             const mdChips = document.getElementsByClassName('chip-input');

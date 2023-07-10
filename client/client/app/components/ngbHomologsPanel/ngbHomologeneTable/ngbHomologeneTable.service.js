@@ -206,6 +206,14 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 proteinFrequency[g.title] = 1;
             }
         });
+        const targetInfo = homologene.genes.map(g => {
+            return {
+                geneName: g.symbol,
+                geneId: g.ensemblId,
+                taxId: g.taxId,
+                speciesName: g.speciesScientificName
+            }
+        });
 
         const sortableProteinFrequency = [];
         for (const protein in proteinFrequency) {
@@ -220,7 +228,8 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
             groupId: homologene.groupId,
             gene: [...gene].sort().join(', '),
             protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
-            info: homologene.caption
+            info: homologene.caption,
+            targetInfo
         };
     }
 
