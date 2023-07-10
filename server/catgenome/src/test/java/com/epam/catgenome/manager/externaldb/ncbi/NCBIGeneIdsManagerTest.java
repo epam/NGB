@@ -21,13 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.dgidb;
+package com.epam.catgenome.manager.externaldb.ncbi;
 
-import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
-import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -44,42 +40,35 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class DGIDBDrugAssociationManagerTest extends TestCase {
+public class NCBIGeneIdsManagerTest extends TestCase {
 
-    private static final int ENTRIES_COUNT = 2;
-    private static final int ENTRIES_TOTAL_COUNT = 2;
-    private static final List<String> GENE_IDS = Arrays.asList("ENSG00000111424", "ENSG00000134058");
+    private static final int ENSEMBL_COUNT = 1;
+    private static final int ENTREZ_COUNT = 2;
+    private static final List<String> ENSEMBL_IDS = Arrays.asList("ENSG00000111424", "ENSG00000134058");
+    private static final List<String> ENTREZ_IDS = Arrays.asList("100189549", "7421");
+
 
     @Autowired
-    private DGIDBDrugAssociationManager manager;
-    @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
-
+    private NCBIGeneIdsManager manager;
 
     @Autowired
     private ApplicationContext context;
 
     @Before
     public void setUp() throws IOException, ParseException {
-        String geneIdsFileName = context.getResource("classpath:ncbi//gene2ensembl").getFile().getPath();
-        ncbiGeneIdsManager.importData(geneIdsFileName);
-        String fileName = context.getResource("classpath:dgidb//interactions.tsv").getFile().getPath();
+        String fileName = context.getResource("classpath:ncbi//gene2ensembl").getFile().getPath();
         manager.importData(fileName);
     }
 
     @Test
-    public void totalCountTest() throws IOException, ParseException {
-        final long totalCount = manager.totalCount(GENE_IDS);
-        assertEquals(ENTRIES_TOTAL_COUNT, totalCount);
+    public void searchByEnsemblIdsTest() throws ParseException, IOException {
+        final List<GeneId> result = manager.searchByEnsemblIds(ENSEMBL_IDS);
+        assertEquals(ENSEMBL_COUNT, result.size());
     }
 
     @Test
-    public void searchDrugAssociationsTest() throws IOException, ParseException {
-        final AssociationSearchRequest request = new AssociationSearchRequest();
-        request.setGeneIds(GENE_IDS);
-        request.setPage(1);
-        request.setPageSize(10);
-        final SearchResult<DGIDBDrugAssociation> result = manager.search(request);
-        assertEquals(ENTRIES_COUNT, result.getTotalCount().intValue());
+    public void searchByEntrezIdsTest() throws ParseException, IOException {
+        final List<GeneId> result = manager.searchByEntrezIds(ENTREZ_IDS);
+        assertEquals(ENTREZ_COUNT, result.size());
     }
 }
