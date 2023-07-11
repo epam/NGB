@@ -2,7 +2,7 @@
      ng-if="$ctrl.publications.length">
     <md-button ng-click="$ctrl.generateSummary($event)"
                ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary">
-        <span class="button-text">Generate summary by</span>
+        <span class="button-text">Generate summary with</span>
         <md-select ng-model="$ctrl.llmModelValue"
                    aria-label="LLM model select"
                    class="md-no-underline"

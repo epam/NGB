@@ -44,12 +44,12 @@ const SORT_FIELDS = {
     },
     PHARM_GKB: {
         'target': 'GENE_ID',
-        'drug name': 'DRUG_NAME',
+        'drug': 'DRUG_NAME',
         'Source': 'SOURCE'
     },
     DGI_DB: {
         'target': 'GENE_ID',
-        'drug name': 'DRUG_NAME',
+        'drug': 'DRUG_NAME',
         'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
         'interaction types': 'INTERACTION_TYPES'
     }
@@ -143,6 +143,10 @@ export default class ngbDrugsTableService {
         return this.ngbKnownDrugsPanelService.sourceModel;
     }
 
+    get sourceOptions () {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
     get geneIds() {
         const {interest, translational} = this.identificationTarget;
         if (!this._filterInfo || !this._filterInfo.target) {
@@ -164,9 +168,9 @@ export default class ngbDrugsTableService {
     }
 
     setDrugsResult(result) {
-        const sourceOptions = this.ngbKnownDrugsPanelService.sourceOptions;
+        const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
 
-        if (this.sourceModel === sourceOptions.OPEN_TARGETS) {
+        if (this.sourceModel === OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
                 target: {
                     geneId: item.geneId,
@@ -182,23 +186,29 @@ export default class ngbDrugsTableService {
                 source: item.source
             }));
         }
-        if (this.sourceModel === sourceOptions.PHARM_GKB) {
+        if (this.sourceModel === PHARM_GKB) {
             this._drugsResults = result.map(item => ({
                 target: {
                     geneId: item.geneId,
                     value: this.getTarget(item.geneId)
                 },
-                'drug name': item.drugName,
+                'drug': {
+                    name: item.name,
+                    url: item.url
+                },
                 'Source': item.source
             }));
         }
-        if (this.sourceModel === sourceOptions.DGI_DB) {
+        if (this.sourceModel === DGI_DB) {
             this._drugsResults = result.map(item => ({
                 target: {
-                    geneId: item.geneId,
-                    value: this.getTarget(item.geneId)
+                    geneId: item.entrezId,
+                    value: this.getTarget(item.entrezId)
                 },
-                'drug name': item.drugName,
+                'drug': {
+                    name: item.name,
+                    url: item.url
+                },
                 'interaction claim source': item.interactionClaimSource,
                 'interaction types': item.interactionTypes
             }));

@@ -141,7 +141,7 @@ export default class ngbDiseasesTableService {
                 RNA_EXPRESSION
             } = item.scores;
             return {
-                target: this.getTarget(item.targetId),
+                target: this.getTarget(item.geneId),
                 disease: item.disease,
                 'overall score': fixedNumber(OVERALL),
                 'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),

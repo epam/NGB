@@ -68,7 +68,9 @@ export default class ngbTargetPanelService {
     }
 
     getChipByGeneId(id) {
-        const chips = this.allGenes.filter(g => g.geneId === id).map(g => g.chip);
+        const chips = this.allGenes
+            .filter(g => g.geneId.toLowerCase() === id.toLowerCase())
+            .map(g => g.chip);
         if (chips && chips.length) {
             return chips[0];
         }
