@@ -34,6 +34,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -41,6 +42,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
@@ -55,7 +58,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PudMedService {
 
-    private static final String ID_XPATH = "PubmedArticleSet/PubmedArticle/MedlineCitation/Article/Abstract";
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
     private final NCBIDataManager ncbiDataManager;
@@ -87,6 +89,15 @@ public class PudMedService {
         final DocumentBuilder builder = builderFactory.newDocumentBuilder();
         final InputSource is = new InputSource(new StringReader(xml));
         final Document document = builder.parse(is);
-        return xPath.compile(ID_XPATH).evaluate(document);
+        final XPathExpression exp = xPath.compile("//AbstractText");
+        final NodeList abstracts = (NodeList)exp.evaluate(document, XPathConstants.NODESET);
+        final StringBuilder result = new StringBuilder();
+        for (int i = 0; i < abstracts.getLength(); i++) {
+            if (result.length() != 0) {
+                result.append("\n");
+            }
+            result.append(abstracts.item(i).getTextContent());
+        }
+        return result.toString();
     }
 }
