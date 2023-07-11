@@ -1,6 +1,6 @@
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
-const PHARM_GKB_COLUMNS = ['target', 'drug name', 'Source'];
-const DGI_DB_COLUMNS = ['target', 'drug name', 'interaction claim source', 'interaction types'];
+const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
+const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
 export default class ngbDrugsTableController {
 
     get openTargetsColumnList () {

@@ -63,9 +63,15 @@ export default class ngbTargetsFormController{
             targetName: name,
             diseases,
             products,
-            targetGenes: genes.map(gene => {
-                if (gene.priority === 'None' || gene.priority === '') {
-                    delete gene.priority;
+            targetGenes: genes.map(g => {
+                const gene = {
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    taxId: g.taxId,
+                    speciesName: g.speciesName,
+                };
+                if (g.priority && g.priority !== 'None') {
+                    gene.priority = g.priority;
                 }
                 return gene;
             })
