@@ -190,10 +190,7 @@ export default class ngbDrugsTableService {
 
     get geneIds() {
         const {interest, translational} = this.identificationTarget;
-        if (!this._filterInfo || !this._filterInfo.target) {
-            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
-        }
-        if (this._filterInfo.target) {
+        if (this._filterInfo && this._filterInfo.target) {
             return [...interest
                     .filter(i => this._filterInfo.target.includes(i.chip))
                     .map(i => i.geneId),
@@ -201,6 +198,7 @@ export default class ngbDrugsTableService {
                     .filter(i => this._filterInfo.target.includes(i.chip))
                     .map(t => t.geneId)];
         }
+        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
     }
 
     getTarget(id) {
