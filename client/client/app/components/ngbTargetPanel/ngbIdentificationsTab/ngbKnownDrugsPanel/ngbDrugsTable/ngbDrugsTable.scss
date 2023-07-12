@@ -68,7 +68,6 @@ ngb-drugs-table {
         }
     }
 
-
     ngb-panel-error-list {
         .layout-padding,
         .layout-padding > * {
@@ -107,9 +106,4 @@ ngb-drugs-table {
         height: auto;
         white-space: nowrap;
     }
-}
-
-ngb-table-pagination {
-    display: flex;
-    justify-content: end;
 }

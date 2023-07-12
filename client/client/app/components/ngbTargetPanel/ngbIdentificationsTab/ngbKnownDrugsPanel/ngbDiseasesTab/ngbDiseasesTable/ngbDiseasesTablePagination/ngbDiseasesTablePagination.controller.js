@@ -1,15 +1,34 @@
 const PAGE_DEEPNESS = 3;
 
-export default class ngbTablePaginationController {
+export default class ngbDiseasesTablePaginationController {
 
 
     static get UID() {
-        return 'ngbTablePaginationController';
+        return 'ngbDiseasesTablePaginationController';
     }
 
-    constructor() {
-        Object.assign(this, {});
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService, ) {
+        Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
         this.pages = this.getPages();
+        dispatcher.on('diseases:results:updated', this.refresh.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('diseases:results:updated', this.refresh.bind(this));
+        });
+    }
+
+    get totalPages() {
+        return this.ngbDiseasesTableService.totalPages;
+    }
+    get currentPage() {
+        return this.ngbDiseasesTableService.currentPage;
+    }
+    set currentPage(value) {
+        this.ngbDiseasesTableService.currentPage = value;
+    }
+
+    refresh() {
+        this.pages = this.getPages();
+        this.$timeout(::this.$scope.$apply);
     }
 
     async setPage(page) {

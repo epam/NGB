@@ -256,7 +256,7 @@ export class TargetDataService extends DataService {
                 .catch(error => {
                     const message = 'Error getting publications';
                     reject(new Error((error && error.message) || message));
-                });
+            });
         });
     }
 
@@ -269,6 +269,57 @@ export class TargetDataService extends DataService {
                 .catch(error => {
                     const message = 'Error generating publications summary';
                     reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDrugsFieldValue(field, source) {
+        if (source === SOURCE.OPEN_TARGETS) {
+            return this.getOpenTargetsDrugsFieldValue(field);
+        }
+        if (source === SOURCE.PHARM_GKB) {
+            return this.getPharmGKBDrugsFieldValue(field);
+        }
+        if (source === SOURCE.DGI_DB) {
+            return this.getDGIdbDrugsFieldValue(field);
+        }
+    }
+
+    getOpenTargetsDrugsFieldValue(field) {
+        return new Promise((resolve) => {
+            this.get(`target/opentargets/drugs/fieldValues?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    getPharmGKBDrugsFieldValue(field) {
+        return new Promise((resolve) => {
+            this.get(`target/pharmGKB/drugs/fieldValues?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    getDGIdbDrugsFieldValue(field) {
+        return new Promise((resolve) => {
+            this.get(`target/dgidb/drugs/fieldValues?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
                 });
         });
     }
