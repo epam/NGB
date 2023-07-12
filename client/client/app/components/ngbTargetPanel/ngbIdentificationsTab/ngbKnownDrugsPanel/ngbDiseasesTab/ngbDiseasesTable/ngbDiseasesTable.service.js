@@ -199,9 +199,10 @@ export default class ngbDiseasesTableService {
             geneIds: this.geneIds,
         };
         if (this.sortInfo && this.sortInfo.length) {
-            const {field, ascending} = this.sortInfo[0];
-            request.reverse = !ascending;
-            request.orderBy = this.fields[this.sourceModel.name][field];
+            request.sortInfos = this.sortInfo.map(i => ({
+                orderBy: this.fields[this.sourceModel.name][i.field],
+                reverse: !i.ascending
+            }))
         }
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
@@ -210,7 +211,6 @@ export default class ngbDiseasesTableService {
                     return {
                         field: this.fields[this.sourceModel.name][key],
                         terms: values.map(v => {
-                            console.log(v);
                             if (key === 'target') {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
                                 return chip ? chip : '';
@@ -268,7 +268,11 @@ export default class ngbDiseasesTableService {
 
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = value;
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
         this._filterInfo = filter;
     }
 

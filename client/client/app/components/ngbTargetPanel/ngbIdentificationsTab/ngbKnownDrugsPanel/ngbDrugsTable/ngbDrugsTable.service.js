@@ -278,7 +278,10 @@ export default class ngbDrugsTableService {
             geneIds: this.geneIds,
         };
         if (this.sortInfo && this.sortInfo.length) {
-            request.sortInfos = this.sortInfo.map(i => i)
+            request.sortInfos = this.sortInfo.map(i => ({
+                orderBy: this.fields[this.sourceModel.name][i.field],
+                reverse: !i.ascending
+            }))
         }
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
