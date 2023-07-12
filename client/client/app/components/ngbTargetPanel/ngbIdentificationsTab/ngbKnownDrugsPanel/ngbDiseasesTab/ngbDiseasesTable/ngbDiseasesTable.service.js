@@ -140,18 +140,7 @@ export default class ngbDiseasesTableService {
     }
 
     get geneIds() {
-        const {interest, translational} = this.identificationTarget;
-        if (!this._filterInfo || !this._filterInfo.target) {
-            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
-        }
-        if (this._filterInfo.target) {
-            return [...interest
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(i => i.geneId),
-                ...translational
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(t => t.geneId)];
-        }
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
     getTarget(id) {
@@ -213,6 +202,26 @@ export default class ngbDiseasesTableService {
             const {field, ascending} = this.sortInfo[0];
             request.reverse = !ascending;
             request.orderBy = this.fields[this.sourceModel.name][field];
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    return {
+                        field: this.fields[this.sourceModel.name][key],
+                        terms: values.map(v => {
+                            console.log(v);
+                            if (key === 'target') {
+                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                                return chip ? chip : '';
+                            }
+                            return v;
+                        })
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
         }
         return request;
     }
