@@ -37,7 +37,8 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false
+        saveSelection: false,
+        useExternalSorting: true
     };
 
     getHighlightColor(alpha) {
@@ -143,8 +144,19 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
 
     async sourceChanged() {
         this.resetDiseasesData();
+        this.resetSorting();
         this.initialize();
         this.$timeout(::this.$scope.$apply);
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 
     getDiseasesTableGridColumns() {
@@ -216,6 +228,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         if (sortColumns && sortColumns.length > 0) {
             this.sortInfo = sortColumns.map(sc => ({
                 ascending: sc.sort.direction === 'asc',
@@ -227,7 +240,6 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
     }
 
     async filterChanged() {

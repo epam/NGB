@@ -25,7 +25,8 @@ export default class ngbDrugsTableController {
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false
+        saveSelection: false,
+        useExternalSorting: true
     };
 
     static get UID() {
@@ -235,6 +236,7 @@ export default class ngbDrugsTableController {
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         if (sortColumns && sortColumns.length > 0) {
             this.sortInfo = sortColumns.map(sc => ({
                 ascending: sc.sort.direction === 'asc',
@@ -246,7 +248,6 @@ export default class ngbDrugsTableController {
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
     }
 
     async filterChanged() {
