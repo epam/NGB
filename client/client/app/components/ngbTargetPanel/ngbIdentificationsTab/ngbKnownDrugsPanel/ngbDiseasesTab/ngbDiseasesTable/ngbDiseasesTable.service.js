@@ -108,6 +108,14 @@ export default class ngbDiseasesTableService {
         return this.ngbTargetPanelService.identificationTarget || {};
     }
 
+    get sourceModel () {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+
+    get sourceOptions() {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
     get geneIds() {
         const {interest, translational} = this.identificationTarget;
         if (!this._filterInfo || !this._filterInfo.target) {
@@ -129,30 +137,47 @@ export default class ngbDiseasesTableService {
     }
 
     setDiseasesResult(result) {
-        this._diseasesResults = result.map(item => {
-            const {
-                OVERALL,
-                GENETIC_ASSOCIATIONS,
-                SOMATIC_MUTATIONS,
-                DRUGS,
-                PATHWAYS,
-                TEXT_MINING,
-                ANIMAL_MODELS,
-                RNA_EXPRESSION
-            } = item.scores;
-            return {
-                target: this.getTarget(item.geneId),
-                disease: item.disease,
-                'overall score': fixedNumber(OVERALL),
-                'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
-                'somatic mutations': fixedNumber(SOMATIC_MUTATIONS),
-                'drugs': fixedNumber(DRUGS),
-                'pathways systems': fixedNumber(PATHWAYS),
-                'text mining': fixedNumber(TEXT_MINING),
-                'animal models': fixedNumber(ANIMAL_MODELS),
-                'rna expression': fixedNumber(RNA_EXPRESSION)
-            };
-        });
+        const {OPEN_TARGETS, PHARM_GKB} = this.sourceOptions;
+
+        if (this.sourceModel === OPEN_TARGETS) {
+            this._diseasesResults = result.map(item => {
+                const {
+                    OVERALL,
+                    GENETIC_ASSOCIATIONS,
+                    SOMATIC_MUTATIONS,
+                    DRUGS,
+                    PATHWAYS,
+                    TEXT_MINING,
+                    ANIMAL_MODELS,
+                    RNA_EXPRESSION
+                } = item.scores;
+
+                return {
+                    target: this.getTarget(item.geneId),
+                    disease: item.disease,
+                    'overall score': fixedNumber(OVERALL),
+                    'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
+                    'somatic mutations': fixedNumber(SOMATIC_MUTATIONS),
+                    'drugs': fixedNumber(DRUGS),
+                    'pathways systems': fixedNumber(PATHWAYS),
+                    'text mining': fixedNumber(TEXT_MINING),
+                    'animal models': fixedNumber(ANIMAL_MODELS),
+                    'rna expression': fixedNumber(RNA_EXPRESSION)
+                };
+            });
+        }
+        if (this.sourceModel === PHARM_GKB) {
+            this._diseasesResults = result.map(item => {
+                return {
+                    target: this.getTarget(item.geneId),
+                    disease: {
+                        id: item.id,
+                        name: item.name,
+                        url: item.url
+                    }
+                };
+            });
+        }
     }
 
     getRequest() {
