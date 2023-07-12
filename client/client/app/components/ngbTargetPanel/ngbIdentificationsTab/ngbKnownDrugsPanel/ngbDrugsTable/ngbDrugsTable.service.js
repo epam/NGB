@@ -73,6 +73,17 @@ const FIELDS = {
     }
 };
 
+const FILTER_FIELDS_LIST = {
+    OPEN_TARGETS: {
+        'drugTypes': 'type',
+        'mechanismOfActions': 'mechanism of action',
+        'actionTypes': 'action type',
+        'phases': 'phase',
+        'statuses': 'status',
+        'sources': 'source'
+    }
+};
+
 export default class ngbDrugsTableService {
 
     _drugsResults = null;
@@ -143,6 +154,9 @@ export default class ngbDrugsTableService {
     get fields () {
         return FIELDS;
     }
+    get filterFieldsList () {
+        return FILTER_FIELDS_LIST
+    }
 
     get openTargetsColumns() {
         return OPEN_TARGETS_COLUMNS;
@@ -161,10 +175,6 @@ export default class ngbDrugsTableService {
     constructor(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService});
         this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
-    }
-
-    get identificationTarget() {
-        return this.ngbTargetPanelService.identificationTarget || {};
     }
 
     get sourceModel () {
@@ -189,16 +199,13 @@ export default class ngbDrugsTableService {
     }
 
     get geneIds() {
-        const {interest, translational} = this.identificationTarget;
+        const allGenes = this.ngbTargetPanelService.allGenes;
         if (this._filterInfo && this._filterInfo.target) {
-            return [...interest
+            return [...allGenes
                     .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(i => i.geneId),
-                ...translational
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(t => t.geneId)];
+                    .map(i => i.geneId)];
         }
-        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        return [...allGenes.map(i => i.geneId)];
     }
 
     getTarget(id) {
@@ -319,49 +326,46 @@ export default class ngbDrugsTableService {
     }
 
     async setFieldList() {
-        const columns = this.getColumnList();
-        const result = await this.getFieldsForAllColumns(columns);
-        if (result) {
+        const result = await this.getDrugsFieldValues();
+        if (!result) {
+            this.fieldList = {};
             this.dispatcher.emitSimpleEvent('drugs:filters:list');
         }
+        const entries = Object.entries(result);
+        const source = this.sourceModel.name;
+        const list = this.filterFieldsList;
+        for (let i = 0; i < entries.length; i++) {
+            const key = entries[i][0];
+            const values = entries[i][1].filter(v => v);
+            const field = list[source][key]
+            if (field === 'phase') {
+                this.fieldList[field] = values.map(v => romanize(v));
+            } else {
+                this.fieldList[field] = values;
+            }
+        }
+        const allGenes = this.ngbTargetPanelService.allGenes;
+        this.fieldList.target = [...allGenes.map(i => i.chip)]
+        this.dispatcher.emitSimpleEvent('drugs:filters:list');
     }
 
-    async getFieldsForAllColumns(columns) {
-        return Promise.all(
-            columns.map(async (field) => (
-                await this.getDrugsFieldValue(field)
-            )))
-            .then(values => (values.some(v => v)));
-    }
-
-
-    getDrugsFieldValue(field) {
+    getDrugsFieldValues() {
+        const geneIds = this.geneIds;
+        if (!geneIds || !geneIds.length) {
+            return new Promise(resolve => {
+                resolve(null);
+            });
+        }
         const source = this.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.getDrugsFieldValue(this.fields[source][field], source)
+            this.targetDataService.getDrugsFieldValues(source, geneIds)
                 .then((data) => {
-                    this.setField(field, data);
-                    resolve(true);
+                    resolve(data);
                 })
                 .catch(err => {
-                    this.fieldList[field] = [];
-                    resolve(false);
+                    resolve(null);
                 });
         });
-    }
-
-    setField(field, data) {
-        this.fieldList[field] = data
-            .filter(d => d)
-            .map(d => {
-                if (field === 'phase') {
-                    return romanize(d);
-                }
-                // if (field === 'target') {
-                //     return this.ngbTargetPanelService.getChipByGeneId(d);
-                // }
-                return d;
-            });
     }
 
     resetDrugsData() {

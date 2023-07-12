@@ -233,9 +233,9 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getDrugsFieldValue(field, source) {
-        return new Promise((resolve, reject) => {
-            this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?field=${field}`)
+    getDrugsFieldValues(source, geneIds) {
+        return new Promise((resolve) => {
+            this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
