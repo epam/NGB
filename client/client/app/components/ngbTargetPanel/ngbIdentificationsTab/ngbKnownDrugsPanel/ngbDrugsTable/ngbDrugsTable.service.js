@@ -22,7 +22,7 @@ const ROMAN = {
 
 function romanize (num) {
     if (isNaN(num)) return;
-    if (num === '0') return 'Phase 0';
+    if (num === '0') return 'Phase I (Early)';
     const lookup = Object.entries(ROMAN);
     let roman = '';
     for (let i = 0; i < lookup.length; i++) {
@@ -37,8 +37,8 @@ function romanize (num) {
 
 function unRomanize(phase) {
     if (!phase) return;
+    if (phase === 'Phase I (Early)') return 0;
     const roman = phase.replace('Phase ', '').toUpperCase();
-    if (Number(roman) === 0) return 0;
     if (ROMAN[roman]) return Number(ROMAN[roman]);
     let num = 0;
     const arr = roman.split('');
