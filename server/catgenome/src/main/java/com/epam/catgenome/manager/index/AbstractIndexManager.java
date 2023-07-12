@@ -75,7 +75,7 @@ public abstract class AbstractIndexManager<T> {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, hits, getSort(request.getSortInfos()));
+            TopDocs topDocs = searcher.search(query, hits, getSort(request.getOrderInfos()));
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -142,14 +142,14 @@ public abstract class AbstractIndexManager<T> {
         }
     }
 
-    public Sort getSort(final List<SortInfo> sortInfos) {
+    public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
-        if (sortInfos == null) {
+        if (orderInfos == null) {
             sortFields.add(new SortField(getDefaultSortField(), SortField.Type.STRING, false));
         } else {
-            for (SortInfo sortInfo: sortInfos) {
-                final SortField sortField = new SortField(sortInfo.getOrderBy(),
-                        SortField.Type.STRING, sortInfo.isReverse());
+            for (OrderInfo orderInfo : orderInfos) {
+                final SortField sortField = new SortField(orderInfo.getOrderBy(),
+                        SortField.Type.STRING, orderInfo.isReverse());
                 sortFields.add(sortField);
             }
         }
