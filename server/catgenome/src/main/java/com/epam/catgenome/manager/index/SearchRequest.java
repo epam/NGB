@@ -39,6 +39,6 @@ import java.util.List;
 public class SearchRequest {
     private Integer page;
     private Integer pageSize;
-    private List<SortInfo> sortInfos;
+    private List<OrderInfo> orderInfos;
     private List<Filter> filters;
 }

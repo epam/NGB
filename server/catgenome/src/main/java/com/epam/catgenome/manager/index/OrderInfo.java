@@ -28,7 +28,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SortInfo {
+public class OrderInfo {
     private String orderBy;
     private boolean reverse;
 }

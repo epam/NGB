@@ -29,7 +29,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.index.Filter;
-import com.epam.catgenome.manager.index.SortInfo;
+import com.epam.catgenome.manager.index.OrderInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -217,17 +217,17 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     }
 
     @Override
-    public Sort getSort(final List<SortInfo> sortInfos) {
+    public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
-        if (sortInfos == null) {
+        if (orderInfos == null) {
             sortFields.add(new SortField(getDefaultSortField(), SortField.Type.STRING, false));
         } else {
-            for (SortInfo sortInfo: sortInfos) {
-                final SortField.Type sortType = sortInfo.getOrderBy().equals(IndexFields.DISEASE_NAME.name())
-                        || sortInfo.getOrderBy().equals(IndexFields.GENE_ID.name()) ?
+            for (OrderInfo orderInfo : orderInfos) {
+                final SortField.Type sortType = orderInfo.getOrderBy().equals(IndexFields.DISEASE_NAME.name())
+                        || orderInfo.getOrderBy().equals(IndexFields.GENE_ID.name()) ?
                         SortField.Type.STRING : SortField.Type.FLOAT;
-                final SortField sortField = new SortField(sortInfo.getOrderBy(),
-                        sortType, sortInfo.isReverse());
+                final SortField sortField = new SortField(orderInfo.getOrderBy(),
+                        sortType, orderInfo.isReverse());
                 sortFields.add(sortField);
             }
         }
@@ -238,8 +238,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
-            Query query = IndexFields.GENE_ID.name().equals(filter.getField()) ||
-                    IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
+            Query query = IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
                     buildPrefixQuery(filter.getField(), term) : buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
