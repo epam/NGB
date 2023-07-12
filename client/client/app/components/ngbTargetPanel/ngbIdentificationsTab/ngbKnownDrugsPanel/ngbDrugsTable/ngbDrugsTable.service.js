@@ -215,7 +215,6 @@ export default class ngbDrugsTableService {
 
     setDrugsResult(result) {
         const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
-
         if (this.sourceModel === OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
                 target: {
@@ -263,7 +262,11 @@ export default class ngbDrugsTableService {
 
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = value;
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
         this._filterInfo = filter;
     }
 
@@ -274,21 +277,28 @@ export default class ngbDrugsTableService {
             geneIds: this.geneIds,
         };
         if (this.sortInfo && this.sortInfo.length) {
-            const {field, ascending} = this.sortInfo[0];
-            request.reverse = !ascending;
-            request.orderBy = this.fields[this.sourceModel.name][field];
+            request.sortInfos = this.sortInfo.map(i => i)
         }
         if (this._filterInfo) {
-            const filters = Object.entries(this._filterInfo).filter(([key, value]) => value.length);
-            for (let i = 0; i < filters.length; i++) {
-                const [key, value] = filters[i];
-                if (value.length) {
-                    request.filterBy = this.fields[this.sourceModel.name][key];
-                    request.term = value[0];
-                    if (key === 'phase') {
-                        request.term = unRomanize(value[0]);
-                    }
-                }
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    console.log(key, values)
+                    return {
+                        field: this.fields[this.sourceModel.name][key],
+                        terms: values.map(v => {
+                            if (key === 'phase') {
+                                return unRomanize(v);
+                            }
+                            if (key === 'target') {
+                                return this.ngbTargetPanelService.getGeneIdByChip(v);
+                            }
+                            return v;
+                        })
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
             }
         }
         return request;
