@@ -81,6 +81,13 @@ const FILTER_FIELDS_LIST = {
         'phases': 'phase',
         'statuses': 'status',
         'sources': 'source'
+    },
+    PHARM_GKB: {
+        'sources': 'Source'
+    },
+    DGI_DB: {
+        'interactionClaimSources': 'interaction claim source',
+        'interactionTypes': 'interaction types'
     }
 };
 
@@ -199,13 +206,7 @@ export default class ngbDrugsTableService {
     }
 
     get geneIds() {
-        const allGenes = this.ngbTargetPanelService.allGenes;
-        if (this._filterInfo && this._filterInfo.target) {
-            return [...allGenes
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(i => i.geneId)];
-        }
-        return [...allGenes.map(i => i.geneId)];
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
     getTarget(id) {
@@ -283,15 +284,16 @@ export default class ngbDrugsTableService {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => {
-                    console.log(key, values)
                     return {
                         field: this.fields[this.sourceModel.name][key],
                         terms: values.map(v => {
                             if (key === 'phase') {
-                                return unRomanize(v);
+                                const number = unRomanize(v);
+                                return number ? number : '';
                             }
                             if (key === 'target') {
-                                return this.ngbTargetPanelService.getGeneIdByChip(v);
+                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                                return chip ? chip : '';
                             }
                             return v;
                         })

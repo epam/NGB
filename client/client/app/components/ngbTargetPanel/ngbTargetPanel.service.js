@@ -126,6 +126,7 @@ export default class ngbTargetPanelService {
     }
 
     setShortDescription() {
+        if (!this.descriptions) return '';
         const short = [];
         let count = 0;
         const max = this.shortDescriptionLength;

@@ -27,6 +27,10 @@ ngb-drugs-table {
         }
     }
 
+    .ui-grid-container .ui-grid-render-container {
+        min-height: 200px;
+    }
+
     .ui-grid-header-cell.ui-grid-clearfix,
     .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
         height: 100%;
