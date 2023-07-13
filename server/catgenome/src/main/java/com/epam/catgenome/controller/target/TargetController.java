@@ -347,8 +347,8 @@ public class TargetController extends AbstractRESTController {
 
     @PostMapping(value = "/target/publications")
     @ApiOperation(
-            value = "Launches Identification for Open Targets datasource disease associations",
-            notes = "Launches Identification for Open Targets datasource disease associations for table view",
+            value = "Returns publications for specified gene ids",
+            notes = "Returns publications for specified gene ids",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

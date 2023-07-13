@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
-import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
@@ -38,6 +37,7 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
+import com.epam.catgenome.manager.externaldb.target.opentargets.*;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
@@ -47,16 +47,7 @@ import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationMa
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
-import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
-import com.epam.catgenome.manager.externaldb.target.opentargets.TargetDetailsManager;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
-import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
+import com.epam.catgenome.manager.externaldb.target.pharmgkb.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -106,13 +97,19 @@ public class TargetIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final Map<String, String> description = getDescriptions(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<String> entrezGeneIds = ncbiGeneIds.stream()
+                .map(g -> g.getEntrezId().toString())
+                .collect(Collectors.toList());
+        final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
+        final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds, "");
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
                 .knownDrugsCount(drugsCount)
+                .publicationsCount(publicationsCount)
                 .build();
     }
 
@@ -197,12 +194,12 @@ public class TargetIdentificationManager {
     }
 
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
-        return pudMedService.fetchPubMedArticles(request.getGeneIds());
+        return pudMedService.fetchPubMedArticles(request);
     }
 
-    private Map<String, String> getDescriptions(final List<String> geneIds)
+    private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<String> geneIds = ncbiGeneIds.stream().map(GeneId::getEnsembleId).collect(Collectors.toList());
         final Map<GeneId, String> ncbiSummary = geneManager.fetchGeneSummaryByIds(ncbiGeneIds);
         final List<TargetDetails> openTargetDetails = targetDetailsManager.search(geneIds);
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
