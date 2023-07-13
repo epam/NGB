@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.externaldb.ncbi;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +55,18 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * <p>
@@ -86,33 +100,48 @@ public class NCBIGeneManager {
             + "homologene_pubmed&from_uid=%s";
     private static final String NCBI_GENE_LINK = "https://www.ncbi.nlm.nih.gov/gene/%s";
 
-    /**
-     * Retrieves XML gene info from NCBI's gene database
-     *
-     * @param id gene id
-     * @return NCBIGeneVO
-     * @throws ExternalDbUnavailableException
-     */
-
-    public List<NCBISummaryVO> fetchPubmedData(final String entrezId) {
+    public List<NCBISummaryVO> fetchPubmedData(final Pair<String, String> historyQuery,
+                                               final String retStart, final String retMax) {
         try {
-            String pubmedQueryXml =
-                    ncbiAuxiliaryManager.link(entrezId,
-                            NCBIDatabase.GENE.name(), NCBIDatabase.PUBMED.name(), "gene_pubmed");
-
-            Pair<String, String> stringStringPair =
-                    geneInfoParser.parseHistoryResponse(pubmedQueryXml, NCBIUtility.NCBI_LINK);
-
-            String pubmedHistoryQuery = stringStringPair.getLeft();
-            String pubmedHistoryWebenv = stringStringPair.getRight();
-
-            JsonNode pubmedEntries = ncbiAuxiliaryManager.summaryWithHistory(pubmedHistoryQuery, pubmedHistoryWebenv);
+            final String pubmedHistoryQuery = historyQuery.getLeft();
+            final String pubmedHistoryWebenv = historyQuery.getRight();
+            JsonNode pubmedEntries = ncbiAuxiliaryManager.summaryWithHistory(pubmedHistoryQuery, pubmedHistoryWebenv,
+                    retStart, retMax);
             JsonNode pubmedResultRoot = pubmedEntries.path(RESULT_PATH).path(UIDS);
             return parseJsonFromPubmed(pubmedResultRoot, pubmedEntries);
         } catch (ExternalDbUnavailableException | JsonProcessingException e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+    public int pubmedDataCount(final Pair<String, String> historyQuery) {
+        try {
+            String pubmedHistoryQuery = historyQuery.getLeft();
+            String pubmedHistoryWebenv = historyQuery.getRight();
+
+            final String xml = ncbiAuxiliaryManager.searchWithHistory(pubmedHistoryQuery, pubmedHistoryWebenv,
+                    NCBIDatabase.PUBMED, "0");
+
+            final XPath xPath = XPathFactory.newInstance().newXPath();
+            final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            final DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            final InputSource is = new InputSource(new StringReader(xml));
+            final Document document = builder.parse(is);
+            final String count = xPath.compile("eSearchResult/Count").evaluate(document);
+            return Integer.parseInt(count);
+        } catch (ExternalDbUnavailableException | ParserConfigurationException | XPathExpressionException |
+                 SAXException | IOException e) {
+            log.error(e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    public Pair<String, String> getPubmedHistoryQuery(final List<String> geneIds, final String term)
+            throws ExternalDbUnavailableException {
+        final String pubmedQueryXml = ncbiAuxiliaryManager.link(join(geneIds, ","), NCBIDatabase.GENE.name(),
+                        NCBIDatabase.PUBMED.name(), "gene_pubmed", term);
+        return geneInfoParser.parseHistoryResponse(pubmedQueryXml, NCBIUtility.NCBI_LINK);
     }
 
     public NCBIGeneVO fetchGeneById(final String id) throws ExternalDbUnavailableException {
@@ -192,7 +221,7 @@ public class NCBIGeneManager {
         final Map<String, GeneId> entrezMap = geneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
-                StringUtils.join(entrezMap.keySet(), ","));
+                join(entrezMap.keySet(), ","));
         JsonNode node;
         for (JsonNode jsonNode : root.path("uids")) {
             String uid = jsonNode.asText();
