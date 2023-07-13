@@ -76,6 +76,15 @@ export default class ngbTargetPanelService {
         }
     }
 
+    getGeneIdByChip(chip) {
+        const geneIds = this.allGenes
+            .filter(g => g.chip === chip)
+            .map(g => g.geneId)
+        if (geneIds && geneIds.length) {
+            return geneIds[0].toLowerCase();
+        }
+    }
+
     setDescriptions() {
         const titlesByGeneId = (id) => this.getChipByGeneId(id) || '';
         const getDescriptionElements = (description) => {
@@ -117,6 +126,7 @@ export default class ngbTargetPanelService {
     }
 
     setShortDescription() {
+        if (!this.descriptions) return '';
         const short = [];
         let count = 0;
         const max = this.shortDescriptionLength;

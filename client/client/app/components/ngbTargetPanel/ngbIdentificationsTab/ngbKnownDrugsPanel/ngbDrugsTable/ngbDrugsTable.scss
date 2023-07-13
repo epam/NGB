@@ -27,6 +27,10 @@ ngb-drugs-table {
         }
     }
 
+    .ui-grid-container .ui-grid-render-container {
+        min-height: 200px;
+    }
+
     .ui-grid-header-cell.ui-grid-clearfix,
     .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
         height: 100%;
@@ -68,7 +72,6 @@ ngb-drugs-table {
         }
     }
 
-
     ngb-panel-error-list {
         .layout-padding,
         .layout-padding > * {
@@ -107,9 +110,4 @@ ngb-drugs-table {
         height: auto;
         white-space: nowrap;
     }
-}
-
-ngb-table-pagination {
-    display: flex;
-    justify-content: end;
 }

@@ -21,6 +21,12 @@ const ExternalDBNames = {
     [SOURCE.PHARM_GKB]: 'PharmGKB'
 }
 
+const ExternalDBFields = {
+    [SOURCE.OPEN_TARGETS]: 'opentargets',
+    [SOURCE.DGI_DB]: 'dgidb',
+    [SOURCE.PHARM_GKB]: 'pharmGKB'
+}
+
 export class TargetDataService extends DataService {
 
     getTargetsResult(request) {
@@ -142,20 +148,8 @@ export class TargetDataService extends DataService {
     }
 
     getDrugsResults(request, source) {
-        if (source === SOURCE.OPEN_TARGETS) {
-            return this.getOpenTargetsDrugs(request);
-        }
-        if (source === SOURCE.PHARM_GKB) {
-            return this.getPharmGKBDrugs(request);
-        }
-        if (source === SOURCE.DGI_DB) {
-            return this.getDGIdbDrugs(request);
-        }
-    }
-
-    getOpenTargetsDrugs(request) {
         return new Promise((resolve, reject) => {
-            this.post('target/opentargets/drugs', request)
+            this.post(`target/${ExternalDBApi[source]}/drugs`, request)
                 .then(data => {
                     if (data && data.items) {
                         resolve([data.items, data.totalCount]);
@@ -164,41 +158,7 @@ export class TargetDataService extends DataService {
                     }
                 })
                 .catch(error => {
-                    const message = 'Error getting drugs from Open Targets';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
-
-    getPharmGKBDrugs(request) {
-        return new Promise((resolve, reject) => {
-            this.post('target/pharmgkb/drugs', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting drugs from PharmGKB';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
-
-    getDGIdbDrugs(request) {
-        return new Promise((resolve, reject) => {
-            this.post('target/dgidb/drugs', request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting drugs from DGIdb';
+                    const message = `Error getting drugs from ${ExternalDBNames[source]}`;
                     reject(new Error((error && error.message) || message));
                 });
         });
@@ -256,7 +216,7 @@ export class TargetDataService extends DataService {
                 .catch(error => {
                     const message = 'Error getting publications';
                     reject(new Error((error && error.message) || message));
-                });
+            });
         });
     }
 
@@ -269,6 +229,19 @@ export class TargetDataService extends DataService {
                 .catch(error => {
                     const message = 'Error generating publications summary';
                     reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDrugsFieldValues(source, geneIds) {
+        return new Promise((resolve) => {
+            this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
                 });
         });
     }

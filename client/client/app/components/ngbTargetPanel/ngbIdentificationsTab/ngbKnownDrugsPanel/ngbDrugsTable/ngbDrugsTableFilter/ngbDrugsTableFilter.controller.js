@@ -17,8 +17,6 @@ export default class ngbDrugsTableFilterController {
     constructor($scope, $element, dispatcher, ngbDrugsTableService) {
         Object.assign(this, {$scope, dispatcher, ngbDrugsTableService});
         this.input = $element.find('.ngb-filter-input')[0];
-        this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
-        this.displayText = [...this.selectedItems].join(', ');
 
         this.dispatcher.on('drugs:filters:list', this.setList.bind(this));
         this.dispatcher.on('drugs:filters:reset', this.resetFilters.bind(this));
@@ -26,6 +24,15 @@ export default class ngbDrugsTableFilterController {
             dispatcher.removeListener('drugs:filters:list', this.setList.bind(this));
             dispatcher.removeListener('drugs:filters:reset', this.resetFilters.bind(this));
         });
+    }
+
+    $onInit() {
+        this.initialize();
+    }
+
+    async initialize() {
+        this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
+        this.displayText = [...this.selectedItems].join('; ');
         this.setList();
     }
 
@@ -79,7 +86,7 @@ export default class ngbDrugsTableFilterController {
     }
 
     onChange() {
-        const textParts = (this.displayText || '').split(',');
+        const textParts = (this.displayText || '').split('; ');
         const lastPart = textParts[textParts.length - 1].trim().toLowerCase();
         if (this.listElements) {
             this.listElements.refreshList(lastPart);
@@ -117,7 +124,7 @@ export default class ngbDrugsTableFilterController {
             this.selectedItems.push(item);
         }
         if (this.selectedItems.length) {
-            this.displayText = this.selectedItems.join(', ');
+            this.displayText = this.selectedItems.join('; ');
         } else {
             this.displayText = '';
         }
@@ -125,7 +132,7 @@ export default class ngbDrugsTableFilterController {
     }
     
     searchFinished(searchString, shouldUpdateScope) {
-        const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
+        const parts = this.displayText.split('; ').map(part => part.trim().toLowerCase());
         let last = '';
         if (parts.length) {
             last = parts[parts.length - 1];
@@ -149,25 +156,23 @@ export default class ngbDrugsTableFilterController {
     }
     
     apply() {
-        if (this.column.field === 'target') {
-            const parts = this.displayText.split(',')
-                .map(part => part.trim());
-            this.selectedItems = parts.filter(part => part !== '');
-            this.displayText = this.selectedItems.join(', ');
-            this.listIsDisplayed = false;
-            const prevValue = (this.filterInfo || {})[this.column.field] || [];
-            prevValue.sort();
-            const prevValueStr = JSON.stringify(prevValue).toUpperCase();
-            const currValue = (this.selectedItems || []);
-            currValue.sort();
-            const currValueStr = JSON.stringify(currValue).toUpperCase();
-            if (currValueStr !== prevValueStr) {
-                this.ngbDrugsTableService.setFilter(this.column.field, currValue);
-                this.dispatcher.emit('drugs:filters:changed');
-            }
-            if (this.listElements) {
-                this.listElements.refreshList(null);
-            }
+        const parts = this.displayText.split('; ')
+            .map(part => part.trim());
+        this.selectedItems = parts.filter(part => part !== '');
+        this.displayText = this.selectedItems.join('; ');
+        this.listIsDisplayed = false;
+        const prevValue = (this.filterInfo || {})[this.column.field] || [];
+        prevValue.sort();
+        const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+        const currValue = (this.selectedItems || []);
+        currValue.sort();
+        const currValueStr = JSON.stringify(currValue).toUpperCase();
+        if (currValueStr !== prevValueStr) {
+            this.ngbDrugsTableService.setFilter(this.column.field, currValue);
+            this.dispatcher.emit('drugs:filters:changed');
+        }
+        if (this.listElements) {
+            this.listElements.refreshList(null);
         }
     }
 

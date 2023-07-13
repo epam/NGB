@@ -1,17 +1,4 @@
-const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
-const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
-const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
 export default class ngbDrugsTableController {
-
-    get openTargetsColumnList () {
-        return OPEN_TARGETS_COLUMNS;
-    }
-    get pharmGkbColumnList () {
-        return PHARM_GKB_COLUMNS;
-    }
-    get dgiDbColumnList () {
-        return DGI_DB_COLUMNS;
-    }
 
     gridOptions = {
         height: '100%',
@@ -38,7 +25,8 @@ export default class ngbDrugsTableController {
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false
+        saveSelection: false,
+        useExternalSorting: true
     };
 
     static get UID() {
@@ -59,6 +47,16 @@ export default class ngbDrugsTableController {
             dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
             dispatcher.removeListener('drugs:filters:changed', filterChanged);
         });
+    }
+
+    get openTargetsColumnList () {
+        return this.ngbDrugsTableService.openTargetsColumns;
+    }
+    get pharmGkbColumnList () {
+        return this.ngbDrugsTableService.pharmGkbColumns;
+    }
+    get dgiDbColumnList () {
+        return this.ngbDrugsTableService.dgiDbColumns;
     }
 
     get totalPages() {
@@ -125,7 +123,7 @@ export default class ngbDrugsTableController {
             this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
         } else {
             await this.loadData();
-            this.ngbDrugsTableService.setFieldList();
+            await this.ngbDrugsTableService.setFieldList();
         }
     }
 
@@ -154,25 +152,13 @@ export default class ngbDrugsTableController {
         return this.ngbKnownDrugsPanelService.sourceOptions;
     }
 
-    getColumnList() {
-        if (this.sourceModel === this.sourceOptions.OPEN_TARGETS) {
-            return this.openTargetsColumnList;
-        }
-        if (this.sourceModel === this.sourceOptions.PHARM_GKB) {
-            return this.pharmGkbColumnList;
-        }
-        if (this.sourceModel === this.sourceOptions.DGI_DB) {
-            return this.dgiDbColumnList;
-        }
-    }
-
     getDrugsTableGridColumns() {
         const headerCells = require('./ngbDrugsTable_header.tpl.html');
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
         const targetCell = require('./ngbDrugsTable_targetCell.tpl.html');
 
         const result = [];
-        const columnsList = this.getColumnList();
+        const columnsList = this.ngbDrugsTableService.getColumnList();
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -242,6 +228,7 @@ export default class ngbDrugsTableController {
                 return [];
             });
         this.gridOptions.data = results;
+        this.dispatcher.emit('drugs:results:updated');
         this.$timeout(::this.$scope.$apply);
     }
 
@@ -249,6 +236,7 @@ export default class ngbDrugsTableController {
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         if (sortColumns && sortColumns.length > 0) {
             this.sortInfo = sortColumns.map(sc => ({
                 ascending: sc.sort.direction === 'asc',
@@ -260,7 +248,6 @@ export default class ngbDrugsTableController {
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
     }
 
     async filterChanged() {

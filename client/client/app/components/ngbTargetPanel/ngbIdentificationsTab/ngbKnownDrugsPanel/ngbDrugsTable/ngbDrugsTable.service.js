@@ -1,24 +1,29 @@
 const PAGE_SIZE = 10;
 
+const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
+const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
+const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
+
+const ROMAN = {
+    M: '1000',
+    CM: '900',
+    D:  '500',
+    CD: '400',
+    C:  '100',
+    XC:  '90',
+    L:   '50',
+    XL:  '40',
+    X:   '10',
+    IX:   '9',
+    V:    '5',
+    IV:   '4',
+    I:    '1',
+};
+
 function romanize (num) {
-    if (isNaN(num)) {
-        return NaN;
-    }
-    const lookup = [
-        ['M', '1000'],
-        ['CM', '900'],
-        ['D',  '500'],
-        ['CD', '400'],
-        ['C',  '100'],
-        ['XC',  '90'],
-        ['L',   '50'],
-        ['XL',  '40'],
-        ['X',   '10'],
-        ['IX',   '9'],
-        ['V',    '5'],
-        ['IV',   '4'],
-        ['I',    '1'],
-    ];
+    if (isNaN(num)) return;
+    if (num === '0') return 'Phase I (Early)';
+    const lookup = Object.entries(ROMAN);
     let roman = '';
     for (let i = 0; i < lookup.length; i++) {
         const [letter, number] = lookup[i];
@@ -27,10 +32,23 @@ function romanize (num) {
             num -= Number(number);
         }
     }
-    return roman;
+    return roman ? `Phase ${roman}` : '';
 }
 
-const SORT_FIELDS = {
+function unRomanize(phase) {
+    if (!phase) return;
+    if (phase === 'Phase I (Early)') return 0;
+    const roman = phase.replace('Phase ', '').toUpperCase();
+    if (ROMAN[roman]) return Number(ROMAN[roman]);
+    let num = 0;
+    const arr = roman.split('');
+    while (arr.length) {
+        num += +ROMAN[arr.shift()];
+    }
+    return num;
+}
+
+const FIELDS = {
     OPEN_TARGETS: {
         'target': 'GENE_ID',
         'drug': 'DRUG_NAME',
@@ -52,6 +70,24 @@ const SORT_FIELDS = {
         'drug': 'DRUG_NAME',
         'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
         'interaction types': 'INTERACTION_TYPES'
+    }
+};
+
+const FILTER_FIELDS_LIST = {
+    OPEN_TARGETS: {
+        'drugTypes': 'type',
+        'mechanismOfActions': 'mechanism of action',
+        'actionTypes': 'action type',
+        'phases': 'phase',
+        'statuses': 'status',
+        'sources': 'source'
+    },
+    PHARM_GKB: {
+        'sources': 'Source'
+    },
+    DGI_DB: {
+        'interactionClaimSources': 'interaction claim source',
+        'interactionTypes': 'interaction types'
     }
 };
 
@@ -122,8 +158,21 @@ export default class ngbDrugsTableService {
         this._filterInfo = value;
     }
 
-    get sortFields () {
-        return SORT_FIELDS;
+    get fields () {
+        return FIELDS;
+    }
+    get filterFieldsList () {
+        return FILTER_FIELDS_LIST
+    }
+
+    get openTargetsColumns() {
+        return OPEN_TARGETS_COLUMNS;
+    }
+    get pharmGkbColumns() {
+        return PHARM_GKB_COLUMNS;
+    }
+    get dgiDbColumns() {
+        return DGI_DB_COLUMNS;
     }
 
     static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
@@ -135,31 +184,29 @@ export default class ngbDrugsTableService {
         this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
     }
 
-    get identificationTarget() {
-        return this.ngbTargetPanelService.identificationTarget || {};
-    }
-
     get sourceModel () {
         return this.ngbKnownDrugsPanelService.sourceModel;
     }
 
-    get sourceOptions () {
+    get sourceOptions() {
         return this.ngbKnownDrugsPanelService.sourceOptions;
     }
 
+    getColumnList() {
+        const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
+        if (this.sourceModel === OPEN_TARGETS) {
+            return this.openTargetsColumns;
+        }
+        if (this.sourceModel === PHARM_GKB) {
+            return this.pharmGkbColumns;
+        }
+        if (this.sourceModel === DGI_DB) {
+            return this.dgiDbColumns;
+        }
+    }
+
     get geneIds() {
-        const {interest, translational} = this.identificationTarget;
-        if (!this._filterInfo || !this._filterInfo.target) {
-            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
-        }
-        if (this._filterInfo.target) {
-            return [...interest
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(i => i.geneId),
-                ...translational
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(t => t.geneId)];
-        }
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
     getTarget(id) {
@@ -169,7 +216,6 @@ export default class ngbDrugsTableService {
 
     setDrugsResult(result) {
         const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
-
         if (this.sourceModel === OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
                 target: {
@@ -181,7 +227,7 @@ export default class ngbDrugsTableService {
                 'mechanism of action': item.mechanismOfAction,
                 'action type': item.actionType,
                 disease: item.disease,
-                phase: `Phase ${romanize(item.phase)}`,
+                phase: romanize(item.phase),
                 status: item.status,
                 source: item.source
             }));
@@ -215,18 +261,13 @@ export default class ngbDrugsTableService {
         }
     }
 
-    setFieldList() {
-        const {interest, translational} = this.identificationTarget;
-        this.fieldList = {
-            target: [...interest.map(i => i.chip), ...translational.map(t => t.chip)],
-            disease: []
-        };
-        this.dispatcher.emitSimpleEvent('drugs:filters:list');
-    }
-
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = value;
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
         this._filterInfo = filter;
     }
 
@@ -237,9 +278,33 @@ export default class ngbDrugsTableService {
             geneIds: this.geneIds,
         };
         if (this.sortInfo && this.sortInfo.length) {
-            const {field, ascending} = this.sortInfo[0];
-            request.reverse = !ascending;
-            request.orderBy = this.sortFields[this.sourceModel.name][field];
+            request.orderInfos = this.sortInfo.map(i => ({
+                orderBy: this.fields[this.sourceModel.name][i.field],
+                reverse: !i.ascending
+            }))
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    return {
+                        field: this.fields[this.sourceModel.name][key],
+                        terms: values.map(v => {
+                            if (key === 'phase') {
+                                const number = unRomanize(v);
+                                return number ? number : '';
+                            }
+                            if (key === 'target') {
+                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                                return chip ? chip : '';
+                            }
+                            return v;
+                        })
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
         }
         return request;
     }
@@ -275,12 +340,56 @@ export default class ngbDrugsTableService {
         });
     }
 
+    async setFieldList() {
+        const result = await this.getDrugsFieldValues();
+        if (!result) {
+            this.fieldList = {};
+            this.dispatcher.emitSimpleEvent('drugs:filters:list');
+        }
+        const entries = Object.entries(result);
+        const source = this.sourceModel.name;
+        const list = this.filterFieldsList;
+        for (let i = 0; i < entries.length; i++) {
+            const key = entries[i][0];
+            const values = entries[i][1].filter(v => v);
+            const field = list[source][key]
+            if (field === 'phase') {
+                this.fieldList[field] = values.map(v => romanize(v));
+            } else {
+                this.fieldList[field] = values;
+            }
+        }
+        const allGenes = this.ngbTargetPanelService.allGenes;
+        this.fieldList.target = [...allGenes.map(i => i.chip)]
+        this.dispatcher.emitSimpleEvent('drugs:filters:list');
+    }
+
+    getDrugsFieldValues() {
+        const geneIds = this.geneIds;
+        if (!geneIds || !geneIds.length) {
+            return new Promise(resolve => {
+                resolve(null);
+            });
+        }
+        const source = this.sourceModel.name;
+        return new Promise(resolve => {
+            this.targetDataService.getDrugsFieldValues(source, geneIds)
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch(err => {
+                    resolve(null);
+                });
+        });
+    }
+
     resetDrugsData() {
         this._drugsResults = null;
         this._currentPage = 1;
         this._totalPages = 0;
         this._sortInfo = null;
         this._filterInfo = null;
+        this.fieldList = {};
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;

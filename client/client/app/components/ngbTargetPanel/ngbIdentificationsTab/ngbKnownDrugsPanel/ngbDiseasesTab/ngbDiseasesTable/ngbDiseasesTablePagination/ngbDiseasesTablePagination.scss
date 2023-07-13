@@ -1,8 +1,10 @@
-ngb-table-pagination {
+ngb-diseases-table-pagination {
     font-size: 14px;
     align-self: center;
     height: auto;
     margin-right: 10px;
+    display: flex;
+    justify-content: end;
 
     .pagination {
         margin-right: 5px;

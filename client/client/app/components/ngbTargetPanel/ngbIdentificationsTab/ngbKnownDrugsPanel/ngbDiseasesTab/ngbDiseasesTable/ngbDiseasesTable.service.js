@@ -8,6 +8,25 @@ const fixedNumber = (num) => {
     return fixed ? fixed : undefined;
 };
 
+const FIELDS = {
+    OPEN_TARGETS: {
+        'target': 'GENE_ID',
+        'disease': 'DISEASE_NAME',
+        'overall score': 'OVERALL_SCORE',
+        'genetic association': 'GENETIC_ASSOCIATIONS_SCORE',
+        'somatic mutations': 'SOMATIC_MUTATIONS_SCORE',
+        'drugs': 'DRUGS_SCORE',
+        'pathways systems': 'PATHWAYS_SCORE',
+        'text mining': 'TEXT_MINING_SCORE',
+        'animal models': 'ANIMAL_MODELS_SCORE',
+        'RNA expression': 'RNA_EXPRESSION_SCORE'
+    },
+    PHARM_GKB: {
+        'target': 'GENE_ID',
+        'disease': 'DISEASE_NAME'
+    }
+};
+
 export default class ngbDiseasesTableService {
 
     _diseasesResults = null;
@@ -75,6 +94,10 @@ export default class ngbDiseasesTableService {
         this._filterInfo = value;
     }
 
+    get fields () {
+        return FIELDS;
+    }
+
     static instance (
         dispatcher,
         ngbTargetPanelService,
@@ -108,19 +131,16 @@ export default class ngbDiseasesTableService {
         return this.ngbTargetPanelService.identificationTarget || {};
     }
 
+    get sourceModel () {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+
+    get sourceOptions() {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
     get geneIds() {
-        const {interest, translational} = this.identificationTarget;
-        if (!this._filterInfo || !this._filterInfo.target) {
-            return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
-        }
-        if (this._filterInfo.target) {
-            return [...interest
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(i => i.geneId),
-                ...translational
-                    .filter(i => this._filterInfo.target.includes(i.chip))
-                    .map(t => t.geneId)];
-        }
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
     getTarget(id) {
@@ -129,38 +149,81 @@ export default class ngbDiseasesTableService {
     }
 
     setDiseasesResult(result) {
-        this._diseasesResults = result.map(item => {
-            const {
-                OVERALL,
-                GENETIC_ASSOCIATIONS,
-                SOMATIC_MUTATIONS,
-                DRUGS,
-                PATHWAYS,
-                TEXT_MINING,
-                ANIMAL_MODELS,
-                RNA_EXPRESSION
-            } = item.scores;
-            return {
-                target: this.getTarget(item.geneId),
-                disease: item.disease,
-                'overall score': fixedNumber(OVERALL),
-                'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
-                'somatic mutations': fixedNumber(SOMATIC_MUTATIONS),
-                'drugs': fixedNumber(DRUGS),
-                'pathways systems': fixedNumber(PATHWAYS),
-                'text mining': fixedNumber(TEXT_MINING),
-                'animal models': fixedNumber(ANIMAL_MODELS),
-                'rna expression': fixedNumber(RNA_EXPRESSION)
-            };
-        });
+        const {OPEN_TARGETS, PHARM_GKB} = this.sourceOptions;
+
+        if (this.sourceModel === OPEN_TARGETS) {
+            this._diseasesResults = result.map(item => {
+                const {
+                    OVERALL,
+                    GENETIC_ASSOCIATIONS,
+                    SOMATIC_MUTATIONS,
+                    DRUGS,
+                    PATHWAYS,
+                    TEXT_MINING,
+                    ANIMAL_MODELS,
+                    RNA_EXPRESSION
+                } = item.scores;
+
+                return {
+                    target: this.getTarget(item.geneId),
+                    disease: item.disease,
+                    'overall score': fixedNumber(OVERALL),
+                    'genetic association': fixedNumber(GENETIC_ASSOCIATIONS),
+                    'somatic mutations': fixedNumber(SOMATIC_MUTATIONS),
+                    'drugs': fixedNumber(DRUGS),
+                    'pathways systems': fixedNumber(PATHWAYS),
+                    'text mining': fixedNumber(TEXT_MINING),
+                    'animal models': fixedNumber(ANIMAL_MODELS),
+                    'rna expression': fixedNumber(RNA_EXPRESSION)
+                };
+            });
+        }
+        if (this.sourceModel === PHARM_GKB) {
+            this._diseasesResults = result.map(item => {
+                return {
+                    target: this.getTarget(item.geneId),
+                    disease: {
+                        id: item.id,
+                        name: item.name,
+                        url: item.url
+                    }
+                };
+            });
+        }
     }
 
     getRequest() {
-        return {
+        const request = {
             page: this.currentPage,
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
+        if (this.sortInfo && this.sortInfo.length) {
+            request.orderInfos = this.sortInfo.map(i => ({
+                orderBy: this.fields[this.sourceModel.name][i.field],
+                reverse: !i.ascending
+            }))
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    return {
+                        field: this.fields[this.sourceModel.name][key],
+                        terms: values.map(v => {
+                            if (key === 'target') {
+                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                                return chip ? chip : '';
+                            }
+                            return v;
+                        })
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
+        }
+        return request;
     }
 
     getDiseasesResults() {
@@ -171,7 +234,7 @@ export default class ngbDiseasesTableService {
                 resolve(true);
             });
         }
-        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
+        const source = this.sourceModel.name;
         return new Promise(resolve => {
             this.targetDataService.getDiseasesResults(request, source)
                 .then(([data, totalCount]) => {
@@ -205,7 +268,11 @@ export default class ngbDiseasesTableService {
 
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
-        filter[field] = value;
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
         this._filterInfo = filter;
     }
 

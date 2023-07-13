@@ -1,11 +1,15 @@
 import ngbDiseasesControllerBase from '../ngbDiseases.controler.base';
 
-const DISEASES_TABLE_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const PHARM_GKB_COLUMNS = ['target', 'disease'];
 
 export default class ngbDiseasesTableController extends ngbDiseasesControllerBase {
 
-    get diseasesTableColumnList () {
-        return DISEASES_TABLE_COLUMNS;
+    get openTargetsColumnList () {
+        return OPEN_TARGETS_COLUMNS;
+    }
+    get pharmGkbColumnList () {
+        return PHARM_GKB_COLUMNS;
     }
 
     gridOptions = {
@@ -33,7 +37,8 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
-        saveSelection: false
+        saveSelection: false,
+        useExternalSorting: true
     };
 
     getHighlightColor(alpha) {
@@ -42,13 +47,24 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
             : undefined;
     }
 
+    getColumnList() {
+        const {OPEN_TARGETS, PHARM_GKB} = this.sourceOptions;
+        if (this.sourceModel === OPEN_TARGETS) {
+            return this.openTargetsColumnList;
+        }
+        if (this.sourceModel === PHARM_GKB) {
+            return this.pharmGkbColumnList;
+        }
+    }
+
     static get UID() {
         return 'ngbDiseasesTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService) {
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService, ngbKnownDrugsPanelService) {
         super($scope, $timeout, dispatcher);
         this.ngbDiseasesTableService = ngbDiseasesTableService;
+        this.ngbKnownDrugsPanelService = ngbKnownDrugsPanelService;
     }
 
     get totalPages() {
@@ -91,6 +107,13 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         this.ngbDiseasesTableService.filterInfo = value;
     }
 
+    get sourceModel () {
+        return this.ngbKnownDrugsPanelService.sourceModel;
+    }
+    get sourceOptions() {
+        return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
     async drugsSourceChanged() {
         await this.resetDiseasesData();
     }
@@ -121,8 +144,19 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
 
     async sourceChanged() {
         this.resetDiseasesData();
+        this.resetSorting();
         this.initialize();
         this.$timeout(::this.$scope.$apply);
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 
     getDiseasesTableGridColumns() {
@@ -131,7 +165,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         const colorCell = require('./ngbDiseasesTable_colorCell.tpl.html');
 
         const result = [];
-        const columnsList = this.diseasesTableColumnList;
+        const columnsList = this.getColumnList();
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -194,6 +228,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         if (sortColumns && sortColumns.length > 0) {
             this.sortInfo = sortColumns.map(sc => ({
                 ascending: sc.sort.direction === 'asc',
@@ -205,7 +240,6 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         this.currentPage = 1;
         this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
     }
 
     async filterChanged() {

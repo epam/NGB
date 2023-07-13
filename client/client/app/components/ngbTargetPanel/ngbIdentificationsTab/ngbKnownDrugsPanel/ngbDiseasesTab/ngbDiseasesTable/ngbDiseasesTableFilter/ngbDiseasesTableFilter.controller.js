@@ -149,25 +149,23 @@ export default class ngbDiseasesTableFilterController {
     }
     
     apply() {
-        if (this.column.field === 'target') {
-            const parts = this.displayText.split(',')
-                .map(part => part.trim());
-            this.selectedItems = parts.filter(part => part !== '');
-            this.displayText = this.selectedItems.join(', ');
-            this.listIsDisplayed = false;
-            const prevValue = (this.filterInfo || {})[this.column.field] || [];
-            prevValue.sort();
-            const prevValueStr = JSON.stringify(prevValue).toUpperCase();
-            const currValue = (this.selectedItems || []);
-            currValue.sort();
-            const currValueStr = JSON.stringify(currValue).toUpperCase();
-            if (currValueStr !== prevValueStr) {
-                this.ngbDiseasesTableService.setFilter(this.column.field, currValue);
-                this.dispatcher.emit('diseases:filters:changed');
-            }
-            if (this.listElements) {
-                this.listElements.refreshList(null);
-            }
+        const parts = this.displayText.split(',')
+            .map(part => part.trim());
+        this.selectedItems = parts.filter(part => part !== '');
+        this.displayText = this.selectedItems.join(', ');
+        this.listIsDisplayed = false;
+        const prevValue = (this.filterInfo || {})[this.column.field] || [];
+        prevValue.sort();
+        const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+        const currValue = (this.selectedItems || []);
+        currValue.sort();
+        const currValueStr = JSON.stringify(currValue).toUpperCase();
+        if (currValueStr !== prevValueStr) {
+            this.ngbDiseasesTableService.setFilter(this.column.field, currValue);
+            this.dispatcher.emit('diseases:filters:changed');
+        }
+        if (this.listElements) {
+            this.listElements.refreshList(null);
         }
     }
 
