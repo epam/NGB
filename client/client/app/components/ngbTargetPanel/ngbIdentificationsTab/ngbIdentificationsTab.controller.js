@@ -1,21 +1,19 @@
 export default class ngbIdentificationsTabController {
 
-    isOpen = {
-        drugs: false,
-        description: false,
-        sequences: false,
-        genomics: false,
-        structure: false,
-        bibliography: false
-    }
-
     static get UID() {
         return 'ngbIdentificationsTabController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetPanelService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetPanelService});
+    constructor($scope, $timeout, dispatcher, ngbIdentificationsTabService, ngbTargetPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbIdentificationsTabService, ngbTargetPanelService});
         this.dispatcher.on('description:is:assigned', this.refresh.bind(this));
+    }
+
+    get isOpen () {
+        return this.ngbIdentificationsTabService.isOpen;
+    }
+    set isOpen(value) {
+        this.ngbIdentificationsTabService.isOpen = value;
     }
 
     refresh() {

@@ -3,6 +3,11 @@ import ngbDiseasesControllerBase from '../ngbDiseases.controler.base';
 const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 const PHARM_GKB_COLUMNS = ['target', 'disease'];
 
+const OPEN_TARGETS_DEFAULT_SORT = [{
+    field: 'overall score',
+    ascending: false
+}]
+
 export default class ngbDiseasesTableController extends ngbDiseasesControllerBase {
 
     get openTargetsColumnList () {
@@ -10,6 +15,10 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
     get pharmGkbColumnList () {
         return PHARM_GKB_COLUMNS;
+    }
+
+    get openTargetsDefaultSort() {
+        return OPEN_TARGETS_DEFAULT_SORT;
     }
 
     gridOptions = {
@@ -61,10 +70,18 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         return 'ngbDiseasesTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDiseasesTableService, ngbKnownDrugsPanelService) {
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbDiseasesTableService,
+        ngbKnownDrugsPanelService,
+        ngbIdentificationsTabService
+    ) {
         super($scope, $timeout, dispatcher);
         this.ngbDiseasesTableService = ngbDiseasesTableService;
         this.ngbKnownDrugsPanelService = ngbKnownDrugsPanelService;
+        this.ngbIdentificationsTabService = ngbIdentificationsTabService;
     }
 
     get totalPages() {
@@ -124,6 +141,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
 
     async initialize() {
+        if (!this.ngbIdentificationsTabService.isOpen.drugs) return;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.getDiseasesTableGridColumns(),
@@ -134,6 +152,9 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
             }
         });
+        if (this.sourceModel === this.sourceOptions.OPEN_TARGETS) {
+            this.sortInfo = this.openTargetsDefaultSort;
+        }
         if (this.ngbDiseasesTableService.diseasesResults) {
             this.gridOptions.data = this.ngbDiseasesTableService.diseasesResults;
         } else {
