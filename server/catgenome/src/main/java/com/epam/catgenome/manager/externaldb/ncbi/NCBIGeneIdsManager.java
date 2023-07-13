@@ -24,27 +24,15 @@
 package com.epam.catgenome.manager.externaldb.ncbi;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
-import com.google.common.collect.Lists;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -54,79 +42,31 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-
-import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
-import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import java.util.Set;
 
 @Service
-public class NCBIGeneIdsManager {
+public class NCBIGeneIdsManager extends AbstractIndexManager<GeneId> {
 
-    private static final Integer BATCH_SIZE = 1000;
     private static final int COLUMNS = 7;
-    private final String indexDirectory;
 
-    public NCBIGeneIdsManager(final @Value("${ncbi.index.directory}") String indexDirectory) {
-        this.indexDirectory = Paths.get(indexDirectory, "gene.ids").toString();
+    public NCBIGeneIdsManager(final @Value("${ncbi.index.directory}") String indexDirectory,
+                              final @Value("${targets.top.hits:10000}") int targetsTopHits) {
+        super(Paths.get(indexDirectory, "gene.ids").toString(), targetsTopHits);
     }
 
-    public Map<String, String> searchByEntrezIds(final List<String> ids) throws ParseException, IOException {
-        return search(ids, true);
+    public List<GeneId> searchByEntrezIds(final List<String> ids) throws ParseException, IOException {
+        return search(ids, IndexFields.ENTREZ_ID.name());
     }
 
-    public Map<String, String> searchByEnsemblIds(final List<String> ids) throws ParseException, IOException {
-        return search(ids, false);
+    public List<GeneId> searchByEnsemblIds(final List<String> ids) throws ParseException, IOException {
+        return search(ids, IndexFields.ENSEMBL_ID.name());
     }
 
-    private Map<String, String> search(final List<String> ids, final boolean byEntrez)
-            throws ParseException, IOException {
-        final Map<String, String> result = new HashMap<>();
-        final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
-        for (List<String> subIds : subSets) {
-            Query query = getByIdsQuery(subIds, byEntrez ? IndexFields.ENTREZ_ID.getName() :
-                    IndexFields.ENSEMBL_ID.getName());
-            try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-                 IndexReader indexReader = DirectoryReader.open(index)) {
-                IndexSearcher searcher = new IndexSearcher(indexReader);
-                TopDocs topDocs = searcher.search(query, subIds.size());
-                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                    Document doc = searcher.doc(scoreDoc.doc);
-                    Pair<String, String> entry = entryFromDoc(doc);
-                    result.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return result;
-    }
-
-    public void importData(final String path) throws IOException {
-        getFile(path);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
-                     index, new IndexWriterConfig(new StandardAnalyzer())
-                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
-            writer.deleteAll();
-            for (Map.Entry<String, String> entry: readEntries(path).entrySet()) {
-                addDoc(writer, entry);
-            }
-        }
-    }
-
-    @Getter
-    private enum IndexFields {
-        ENTREZ_ID("entrezId"),
-        ENSEMBL_ID("ensemblId");
-        private final String name;
-
-        IndexFields(String name) {
-            this.name = name;
-        }
-    }
-
-    public Map<String, String> readEntries(final String path) throws IOException {
-        final Map<String, String> entries = new HashMap<>();
+    public List<GeneId> readEntries(final String path) throws IOException {
+        final Set<GeneId> entries = new HashSet<>();
         String line;
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
@@ -134,21 +74,43 @@ public class NCBIGeneIdsManager {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                entries.put(cells[1].trim(), cells[2].trim());
+                GeneId geneId = GeneId.builder()
+                        .entrezId(Long.parseLong(cells[1].trim()))
+                        .ensembleId(cells[2].trim())
+                        .build();
+                entries.add(geneId);
             }
         }
+        return new ArrayList<>(entries);
+    }
+
+    @Override
+    public String getDefaultSortField() {
+        return null;
+    }
+
+    @Override
+    public List<GeneId> processEntries(List<GeneId> entries) throws IOException, ParseException {
         return entries;
     }
 
-    private static void addDoc(final IndexWriter writer, final Map.Entry<String, String> entry) throws IOException {
+    public void addDoc(final IndexWriter writer, final GeneId entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(IndexFields.ENTREZ_ID.getName(), entry.getKey(), Field.Store.YES));
-        doc.add(new TextField(IndexFields.ENSEMBL_ID.getName(), entry.getValue(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.ENTREZ_ID.name(), entry.getEntrezId().toString(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.ENSEMBL_ID.name(), entry.getEnsembleId().toLowerCase(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
-    private static Pair<String, String> entryFromDoc(final Document doc) {
-        return new ImmutablePair<>(doc.getField(IndexFields.ENTREZ_ID.getName()).stringValue(),
-                doc.getField(IndexFields.ENSEMBL_ID.getName()).stringValue());
+    public GeneId entryFromDoc(final Document doc) {
+        return GeneId.builder()
+                .entrezId(Long.parseLong(doc.getField(IndexFields.ENTREZ_ID.name()).stringValue()))
+                .ensembleId(doc.getField(IndexFields.ENSEMBL_ID.name()).stringValue())
+                .build();
+    }
+
+    @Getter
+    private enum IndexFields {
+        ENTREZ_ID,
+        ENSEMBL_ID;
     }
 }

@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.target.dgidb;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -133,11 +135,13 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
         final Set<String> entrezIds = entries.stream()
                 .map(DGIDBDrugAssociation::getEntrezId)
                 .collect(Collectors.toSet());
-        final Map<String, String> geneIdsMap = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
+        final List<GeneId> geneIds = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
+        final Map<String, GeneId> genesMap = geneIds.stream()
+                .collect(Collectors.toMap(g -> g.getEntrezId().toString(), Function.identity()));
         for (DGIDBDrugAssociation entry: entries) {
-            String geneId = geneIdsMap.getOrDefault(entry.getEntrezId(), null);
+            GeneId geneId = genesMap.getOrDefault(entry.getEntrezId(), null);
             if (geneId != null) {
-                entry.setGeneId(geneId);
+                entry.setGeneId(geneId.getEnsembleId());
             }
         }
         return entries;

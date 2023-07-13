@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021-2023 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.homolog;
+package com.epam.catgenome.entity.externaldb.ncbi;
 
-import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
 @Builder
-public class HomologGroup {
-    private Long groupId;
-    private Long geneId;
-    private String ensemblId;
-    private Long taxId;
-    private String speciesCommonName;
-    private String speciesScientificName;
-    private String geneName;
-    private String proteinName;
-    private Long databaseId;
-    private String homologDatabase;
-    private HomologType type;
-    private List<Gene> homologs;
+public class GeneId {
+    private Long entrezId;
+    private String ensembleId;
+
+    @Override public int hashCode() {
+        return entrezId.hashCode();
+    }
+
+    @Override public boolean equals(Object obj) {
+        return obj != null && obj.getClass() == this.getClass() && Objects
+                .equals(((GeneId) obj).entrezId, entrezId);
+    }
 }
