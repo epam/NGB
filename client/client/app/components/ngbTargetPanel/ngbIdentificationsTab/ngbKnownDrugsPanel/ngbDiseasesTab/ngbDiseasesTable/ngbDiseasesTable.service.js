@@ -199,7 +199,7 @@ export default class ngbDiseasesTableService {
             geneIds: this.geneIds,
         };
         if (this.sortInfo && this.sortInfo.length) {
-            request.sortInfos = this.sortInfo.map(i => ({
+            request.orderInfos = this.sortInfo.map(i => ({
                 orderBy: this.fields[this.sourceModel.name][i.field],
                 reverse: !i.ascending
             }))
