@@ -365,14 +365,14 @@ export default class ngbTargetsTabService {
         });
     }
 
-    createTargetFromHomologs(genes) {
+    createTargetFromHomologs(info) {
         this.setEmptyTargetModel();
         this.setAddMode();
         this.$timeout(() => {
-            this._targetModel.name = genes[0].geneName;
+            this._targetModel.name = info.targetName;
             this._targetModel.diseases = [];
             this._targetModel.products = [];
-            this._targetModel.genes = genes.map(g => ({
+            this._targetModel.genes = info.genes.map(g => ({
                 geneId: g.geneId,
                 geneName: g.geneName,
                 taxId: g.taxId,
