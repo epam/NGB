@@ -366,6 +366,7 @@ export default class ngbTargetsTabService {
     }
 
     createTargetFromHomologs(info) {
+        this.formLoading = true;
         this.setEmptyTargetModel();
         this.setAddMode();
         this.$timeout(() => {
@@ -387,6 +388,7 @@ export default class ngbTargetsTabService {
                     input[j].innerHTML = '';
                 }
             }
+            this.formLoading = false;
         });
     }
 }

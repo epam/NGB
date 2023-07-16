@@ -142,6 +142,7 @@ export default class ngbTargetsFormController{
     }
 
     isAddGeneDisabled() {
+        if (this.loading) return true;
         const block = this.targetModel.genes;
         if (!block || !block.length) {
             return false;
