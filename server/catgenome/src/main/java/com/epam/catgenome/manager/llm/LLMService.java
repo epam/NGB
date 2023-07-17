@@ -24,69 +24,43 @@
 
 package com.epam.catgenome.manager.llm;
 
-import com.azure.ai.openai.OpenAIClient;
-import com.azure.ai.openai.OpenAIClientBuilder;
-import com.azure.ai.openai.models.ChatCompletions;
-import com.azure.ai.openai.models.ChatCompletionsOptions;
-import com.azure.ai.openai.models.ChatMessage;
-import com.azure.ai.openai.models.ChatRole;
-import com.azure.ai.openai.models.NonAzureOpenAIKeyCredential;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class LLMService {
 
-    public static final int MAX_PROMT_SIZE = 10000;
-    private final String openAIKey;
-    private final String promptTemplate;
     private final PudMedService pubmedService;
+    private final Map<LLMProvider, LLMHandler> handlers;
 
-    public LLMService(final @Value("${llm.openai.api.key:}") String openAIKey,
-                      final @Value("${llm.openai.prompt.template:}") String promptTemplate,
+    public LLMService(final List<LLMHandler> handlers,
                       final PudMedService pubmedService) {
-        this.openAIKey = openAIKey;
-        this.promptTemplate = promptTemplate;
         this.pubmedService = pubmedService;
+        this.handlers = ListUtils.emptyIfNull(handlers).stream()
+                .collect(Collectors.toMap(LLMHandler::getProvider, Function.identity()));
     }
 
     public String getArticleSummary(final List<String> pubMedIDs,
                                     final LLMProvider provider,
                                     final int maxSize,
                                     final double temperature) {
-        Assert.isTrue(provider != LLMProvider.GOOGLE_MED_PALM2 && provider != LLMProvider.GOOGLE_PALM_2,
-                "Google LLM models are not supported yet.");
-        Assert.isTrue(StringUtils.isNotBlank(openAIKey), "OpenAI API key is not configured.");
-        final OpenAIClient client = new OpenAIClientBuilder()
-                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
-                .endpoint("/chat/completions")
-                .buildClient();
-
-        final ChatCompletionsOptions options = new ChatCompletionsOptions(
-                Collections.singletonList(new ChatMessage(ChatRole.USER).setContent(buildPrompt(pubMedIDs))))
-                .setMaxTokens(maxSize)
-                .setTemperature(temperature)
-                .setN(1);
-        final ChatCompletions completions = client.getChatCompletions(provider.getModel(), options);
-
-        log.debug("Model ID={} is created at {}", completions.getId(), completions.getCreated());
-        return ListUtils.emptyIfNull(completions.getChoices()).stream().findFirst()
-                .map(c -> c.getMessage().getContent())
-                .orElseThrow(() -> new IllegalArgumentException("Failed to receive result from LLM"));
+        final LLMHandler handler = getHandler(provider);
+        return handler.getSummary(pubmedService.getArticleAbstracts(pubMedIDs), temperature);
     }
 
-    private String buildPrompt(final List<String> pubMedIDs) {
-        final String abstracts = pubmedService.getArticleAbstracts(pubMedIDs);
-        return promptTemplate + "\n" + StringUtils.left(abstracts, MAX_PROMT_SIZE);
+    private LLMHandler getHandler(final LLMProvider provider) {
+        final LLMHandler handler = handlers.get(provider);
+        Assert.notNull(handler, provider + " is not supported.");
+        return handler;
     }
 }

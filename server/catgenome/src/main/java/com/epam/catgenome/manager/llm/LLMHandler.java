@@ -22,8 +22,19 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.entity.llm;
+package com.epam.catgenome.manager.llm;
 
-public enum LLMProvider {
-    OPENAI_GPT_35, OPENAI_GPT_40, GOOGLE_PALM_2, GOOGLE_MED_PALM2;
+import com.epam.catgenome.entity.llm.LLMProvider;
+import org.apache.commons.lang3.StringUtils;
+
+public interface LLMHandler {
+
+    int TOKEN_TO_CHAR = 4;
+
+    String getSummary(String text, double temperature);
+    LLMProvider getProvider();
+
+    default String buildPrompt(final String template, final String text, final int maxLength) {
+        return StringUtils.left(template + "\n" + text, maxLength * TOKEN_TO_CHAR);
+    }
 }

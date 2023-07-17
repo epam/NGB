@@ -98,7 +98,7 @@ public class PudMedService {
         final StringBuilder result = new StringBuilder();
         for (int i = 0; i < abstracts.getLength(); i++) {
             if (result.length() != 0) {
-                result.append("\n");
+                result.append('\n');
             }
             result.append(abstracts.item(i).getTextContent());
         }
