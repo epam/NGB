@@ -33,8 +33,22 @@ export default class ngbDrugsTableController {
         return 'ngbDrugsTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService});
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbDrugsTableService,
+        ngbKnownDrugsPanelService,
+        ngbIdentificationsTabService
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbDrugsTableService,
+            ngbKnownDrugsPanelService,
+            ngbIdentificationsTabService
+        });
 
         const drugsSourceChanged = this.sourceChanged.bind(this);
         const diseasesSourceChanged = this.resetDrugsData.bind(this);
@@ -109,6 +123,7 @@ export default class ngbDrugsTableController {
     }
 
     async initialize() {
+        if (!this.ngbIdentificationsTabService.isOpen.drugs) return;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.getDrugsTableGridColumns(),
