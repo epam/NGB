@@ -1,5 +1,13 @@
 .add-target-form {
-    height: 100%;
+    height: calc(100% - 38px);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    .loading-indicator {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        height: 6px;
+    }
 
     .md-button {
         margin: 0 5px;
@@ -174,76 +182,76 @@
 
     .table-container {
         width: 100%;
-    }
 
-    table {
-        width: 100%;
+        table {
+            width: 100%;
+
+            input {
+                width: 90%;
+            }
+        }
+
+        table th,
+        table tr td {
+            width: 20%;
+            padding: 4px;
+        }
+
+        table th:nth-child(1),
+        table tr td:nth-child(1) {
+            width: 25%;
+        }
+
+        table th:nth-child(3),
+        table tr td:nth-child(3) {
+            width: 15%;
+        }
+
+        table th:nth-child(5),
+        table tr td:nth-child(5) {
+            width: 15%;
+        }
 
         input {
-            width: 90%;
+            border-radius: 5px;
+            border: 1px solid #cacaca;
+            height: 21px;
         }
-    }
 
-    table th,
-    table tr td {
-        width: 20%;
-        padding: 4px;
-    }
+        th.button-column {
+            width: 15px;
+            padding: 4px;
+        }
 
-    table th:nth-child(1),
-    table tr td:nth-child(1) {
-        width: 25%;
-    }
+        .remove-btn {
+            min-height: 15px;
+            min-width: 15px;
+            width: 15px;
+            height: 15px;
+            line-height: 15px;
+            padding: 0;
+            margin: 0;
+        }
 
-    table th:nth-child(3),
-    table tr td:nth-child(3) {
-        width: 15%;
-    }
+        .button-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 10px;
+        }
 
-    table th:nth-child(5),
-    table tr td:nth-child(5) {
-        width: 15%;
-    }
+        .add-button {
+            min-height: 20px;
+            height: 20px;
+            line-height: 20px;
+            min-width: 70px;
+            width: 70px;
+            margin: 0;
+            margin-right: 0;
 
-    input {
-        border-radius: 5px;
-        border: 1px solid #cacaca;
-        height: 21px;
-    }
-
-    th.button-column {
-        width: 15px;
-        padding: 4px;
-    }
-
-    .remove-btn {
-        min-height: 15px;
-        min-width: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-        padding: 0;
-        margin: 0;
-    }
-
-    .button-container {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin: 10px;
-    }
-
-    .add-button {
-        min-height: 20px;
-        height: 20px;
-        line-height: 20px;
-        min-width: 70px;
-        width: 70px;
-        margin: 0;
-        margin-right: 0;
-
-        span {
-            text-transform: capitalize;
+            span {
+                text-transform: capitalize;
+            }
         }
     }
 }

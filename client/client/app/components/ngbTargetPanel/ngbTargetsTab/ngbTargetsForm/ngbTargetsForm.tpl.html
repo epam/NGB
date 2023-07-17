@@ -1,4 +1,8 @@
 <form class="add-target-form" name="target">
+    <div class="loading-indicator"
+        ng-if="$ctrl.loading">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
     <div ng-class="{'hidden': !$ctrl.failed || $ctrl.loading}">
         <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
     </div>

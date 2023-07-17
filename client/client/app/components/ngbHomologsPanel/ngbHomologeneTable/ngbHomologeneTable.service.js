@@ -206,7 +206,7 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
                 proteinFrequency[g.title] = 1;
             }
         });
-        const targetInfo = homologene.genes.map(g => {
+        const targetGenes = homologene.genes.map(g => {
             return {
                 geneName: g.symbol,
                 geneId: g.ensemblId,
@@ -229,7 +229,10 @@ export default class ngbHomologeneTableService extends ClientPaginationService {
             gene: [...gene].sort().join(', '),
             protein: sortableProteinFrequency[0] ? sortableProteinFrequency[0][0] : '',
             info: homologene.caption,
-            targetInfo
+            targetInfo: {
+                targetName: homologene.genes[0].geneName,
+                genes: targetGenes
+            }
         };
     }
 
