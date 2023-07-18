@@ -30,6 +30,11 @@ import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.target.GeneSequences;
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
+import com.epam.catgenome.entity.target.Target;
+import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -37,10 +42,6 @@ import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
-import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.IdentificationResult;
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
@@ -355,5 +356,18 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request) {
         return Result.success(targetIdentificationSecurityService.getPublications(request));
+    }
+
+    @GetMapping(value = "/target/sequences")
+    @ApiOperation(
+            value = "Returns data for Gene Sequences block",
+            notes = "Returns data for Gene Sequences block",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<GeneSequences>> getGeneSequences(@RequestParam final List<String> geneIds)
+            throws IOException, ParseException {
+        return Result.success(targetIdentificationSecurityService.getGeneSequences(geneIds));
     }
 }

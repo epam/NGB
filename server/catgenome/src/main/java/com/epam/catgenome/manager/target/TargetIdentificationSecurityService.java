@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -140,5 +141,10 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_USER)
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
         return manager.getPublications(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
+        return manager.getGeneSequences(geneIds);
     }
 }

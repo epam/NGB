@@ -126,7 +126,7 @@ public class HttpDataManager {
         return locationBuilder.toString();
     }
 
-    private String getResultFromURL(final String location) throws ExternalDbUnavailableException {
+    public String getResultFromURL(final String location) throws ExternalDbUnavailableException {
 
         HttpURLConnection conn = null;
         try {
