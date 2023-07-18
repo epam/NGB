@@ -5,6 +5,9 @@ const LLM_MODELS = [
     }, {
         name: 'ChatGPT 4.0',
         value: 'OPENAI_GPT_40'
+    }, {
+        name: 'Google PaLM2',
+        value: 'GOOGLE_PALM_2'
     }
 ];
 
