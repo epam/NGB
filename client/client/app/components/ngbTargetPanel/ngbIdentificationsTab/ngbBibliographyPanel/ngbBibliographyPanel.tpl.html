@@ -1,26 +1,3 @@
-<div class="summary-button"
-     ng-if="$ctrl.publications.length">
-    <md-button ng-click="$ctrl.generateSummary($event)"
-               ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary">
-        <span class="button-text">Generate summary with</span>
-        <md-select ng-model="$ctrl.llmModelValue"
-                   aria-label="LLM model select"
-                   class="md-no-underline"
-                   md-container-class="llm-model-select"
-                   ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary"
-                   ng-click="$ctrl.onClickSelect($event)"
-                   ng-change="$ctrl.onChangeLlmModel()">
-            <md-option ng-repeat="model in $ctrl.llmModels track by $index"
-                       ng-value="model.value">
-                {{model.name}}
-            </md-option>
-          </md-select>
-    </md-button>
-</div>
-<div class="loading-indicator"
-     ng-if="$ctrl.loadingPublications || $ctrl.loadingSummary">
-    <md-progress-linear md-mode="query"></md-progress-linear>
-</div>
 <div ng-class="{'hidden': !$ctrl.failedPublications || $ctrl.loadingPublications}">
     <ngb-panel-error-list message-list="$ctrl.publicationsError"></ngb-panel-error-list>
 </div>
@@ -34,13 +11,56 @@
         <span>No records found.</span>
     </md-content>
 </div>
-<div class="summary-container"
-     ng-if="$ctrl.summary && !$ctrl.loadingSummary">
-     <p ng-repeat="element in $ctrl.summary track by $index">
-        {{element}}
-     </p>
+<div class="ngb-bibliography-section">
+    <div class="ngb-bibliography-section-title" ng-if="$ctrl.publications.length">
+        <span class="section-name"
+              ng-if="$ctrl.summary">
+            Summary
+        </span>
+    </div>
+    <div>
+        <div class="summary-button">
+            <md-button ng-click="$ctrl.generateSummary($event)"
+                       ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary"
+                       md-no-ink
+            >
+            <span class="button-text">
+                {{$ctrl.summary ? 'Generate with' : 'Generate summary with'}}
+            </span>
+                <md-select ng-model="$ctrl.llmModelValue"
+                           aria-label="LLM model select"
+                           class="md-no-underline"
+                           md-container-class="llm-model-select"
+                           ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary"
+                           ng-click="$ctrl.onClickSelect($event)"
+                           ng-change="$ctrl.onChangeLlmModel()">
+                    <md-option ng-repeat="model in $ctrl.llmModels track by $index"
+                               ng-value="model.value">
+                        {{model.name}}
+                    </md-option>
+                </md-select>
+            </md-button>
+        </div>
+    </div>
+    <div class="loading-indicator"
+         ng-if="$ctrl.loadingSummary">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="summary-container"
+         ng-if="$ctrl.summary && !$ctrl.loadingSummary"
+         ng-bind-html="$ctrl.summary.html">
+    </div>
 </div>
-<div>
+<div class="ngb-bibliography-section">
+    <div class="ngb-bibliography-section-title">
+        <span class="section-name">
+            Publications
+        </span>
+    </div>
+    <div class="loading-indicator"
+         ng-if="$ctrl.loadingPublications">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
     <div ng-repeat="publication in $ctrl.publications track by publication.uid"
          class="publication-container">
         <div class="publication-title">
@@ -50,7 +70,6 @@
                 {{publication.title}}
             </a>
         </div>
-        <div class="publication-author">{{publication.author.name}}</div>
         <div class="publication-authors">
             <span ng-repeat="author in publication.authors">{{author.name}}</span>
         </div>
@@ -58,5 +77,5 @@
             <span>{{publication.source}}</span><span>{{publication.pubdate}}</span>
         </div>
     </div>
-    <ngb-bibliography-pagination ng-if="$ctrl.totalPages > 1"></ngb-bibliography-pagination>
 </div>
+<ngb-bibliography-pagination ng-if="$ctrl.totalPages > 1"></ngb-bibliography-pagination>

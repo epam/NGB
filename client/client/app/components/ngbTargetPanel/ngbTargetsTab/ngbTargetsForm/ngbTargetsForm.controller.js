@@ -123,11 +123,13 @@ export default class ngbTargetsFormController{
         } else if (this.isEditMode) {
             await this.updateTarget();
         }
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     addGene() {
-        this.ngbTargetsTabService.addNewGene();
+        if (!this.isAddGeneDisabled) {
+            this.ngbTargetsTabService.addNewGene();
+        }
     }
 
     isGenesEmpty() {
@@ -141,7 +143,7 @@ export default class ngbTargetsFormController{
         return genesEmpty.length;
     }
 
-    isAddGeneDisabled() {
+    get isAddGeneDisabled () {
         if (this.loading) return true;
         const block = this.targetModel.genes;
         if (!block || !block.length) {
@@ -179,7 +181,7 @@ export default class ngbTargetsFormController{
 
         this.dispatcher.on('target:delete', async () => {
             await this.ngbTargetsTabService.deleteTarget();
-            this.$timeout(::this.$scope.$apply);
+            this.$timeout(() => this.$scope.$apply());
         });
     }
 }

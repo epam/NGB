@@ -1,3 +1,5 @@
+import {SourceOptions} from '../ngbDiseasesPanel.service';
+
 const interpolate = (bit, ratio, min, max) =>
     min[bit] + (max[bit] - min[bit]) * ratio;
 
@@ -5,13 +7,11 @@ export default class ngbDiseasesChartService {
     static instance (
         dispatcher,
         ngbTargetPanelService,
-        ngbKnownDrugsPanelService,
         targetDataService
     ) {
         return new ngbDiseasesChartService(
             dispatcher,
             ngbTargetPanelService,
-            ngbKnownDrugsPanelService,
             targetDataService
         )
     }
@@ -19,20 +19,17 @@ export default class ngbDiseasesChartService {
     constructor(
         dispatcher,
         ngbTargetPanelService,
-        ngbKnownDrugsPanelService,
         targetDataService
     ) {
         this.dispatcher = dispatcher;
         this.ngbTargetPanelService = ngbTargetPanelService;
-        this.ngbKnownDrugsPanelService = ngbKnownDrugsPanelService;
         this.targetDataService = targetDataService;
-        this._loading = false;
         this._error = false;
         this._errorMessageList = null;
         this._diseasesResults = null;
         this._diseases = null;
-        this._ontologyRequests = {};
-        this._ontology = {};
+        this._ontologyRequest = undefined;
+        this._ontology = [];
         this.minScore = 0;
         this.maxScore = 1;
         this.scoreStep = 0.01;
@@ -51,7 +48,15 @@ export default class ngbDiseasesChartService {
     }
 
     get loading() {
-        return this._loading;
+        return this.ngbTargetPanelService
+            ? this.ngbTargetPanelService.chartsLoading
+            : false;
+    }
+
+    set loading(loading) {
+        if (this.ngbTargetPanelService) {
+            this.ngbTargetPanelService.chartsLoading = loading;
+        }
     }
 
     get error() {
@@ -71,14 +76,10 @@ export default class ngbDiseasesChartService {
     }
 
     getCurrentOntology() {
-        if (
-            !this.ngbKnownDrugsPanelService.sourceModel ||
-            !this._ontology
-        ) {
+        if (!this._ontology) {
             return [];
         }
-        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
-        return this._ontology[source] || [];
+        return this._ontology;
     }
 
     getColorForScore(score, minColor = this.minColor, maxColor = this.maxColor) {
@@ -162,57 +163,48 @@ export default class ngbDiseasesChartService {
     }
 
     getDiseasesOntology() {
-        if (!this.ngbKnownDrugsPanelService.sourceModel) {
-            return Promise.resolve();
-        }
-        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
-        if (!this._ontologyRequests) {
-            this._ontologyRequests = {};
-        }
-        if (!this._ontologyRequests[source]) {
-            this._ontologyRequests[source] = new Promise((resolve, reject) => {
-                this.targetDataService.getOntology(source)
+        if (!this._ontologyRequest) {
+            this._ontologyRequest = new Promise((resolve, reject) => {
+                this.targetDataService.getOntology(SourceOptions.OPEN_TARGETS)
                     .then((data) => {
-                        this._ontology[source] = data || [];
-                        resolve(this._ontology[source]);
+                        this._ontology = data || [];
+                        resolve(this._ontology);
                     })
                     .catch(reject);
             });
         }
-        return this._ontologyRequests[source];
+        return this._ontologyRequest;
     }
 
     getDiseases() {
         const request = this.getRequest();
         if (
             !request.geneIds ||
-            !request.geneIds.length ||
-            !this.ngbKnownDrugsPanelService.sourceModel
+            !request.geneIds.length
         ) {
             return new Promise(resolve => {
-                this._loading = false;
+                this.loading = false;
                 resolve(true);
             });
         }
-        const source = this.ngbKnownDrugsPanelService.sourceModel.name;
-        this._loading = true;
+        this.loading = true;
         return new Promise(resolve => {
             Promise.all([
                 this.getDiseasesOntology(),
-                this.targetDataService.getAllDiseasesResults(request, source),
+                this.targetDataService.getAllDiseasesResults(request, SourceOptions.OPEN_TARGETS),
             ])
                 .then(([, data]) => {
                     this._error = false;
                     this._errorMessageList = null;
                     this.setDiseasesResult(data);
-                    this._loading = false;
+                    this.loading = false;
                     resolve(true);
                 })
                 .catch((error) => {
                     console.warn(error.message);
                     this._error = true;
                     this._errorMessageList = [error.message];
-                    this._loading = false;
+                    this.loading = false;
                     resolve(false);
                 });
         });
@@ -221,10 +213,9 @@ export default class ngbDiseasesChartService {
     resetDiseasesData() {
         this._diseasesResults = null;
         this._diseases = null;
-        this._ontology = {};
-        this._ontologyRequests = {};
-        this._ontology = {};
-        this._loading = false;
+        this._ontology = [];
+        this._ontologyRequest = undefined;
+        this.loading = false;
         this._error = false;
         this._errorMessageList = null;
         this.minScore = 0;

@@ -13,16 +13,16 @@ export default class ngbDrugsTableFilterController {
     static get UID() {
         return 'ngbDrugsTableFilterController';
     }
-    
+
     constructor($scope, $element, dispatcher, ngbDrugsTableService) {
         Object.assign(this, {$scope, dispatcher, ngbDrugsTableService});
         this.input = $element.find('.ngb-filter-input')[0];
 
-        this.dispatcher.on('drugs:filters:list', this.setList.bind(this));
-        this.dispatcher.on('drugs:filters:reset', this.resetFilters.bind(this));
+        this.dispatcher.on('target:identification:drugs:filters:list', this.setList.bind(this));
+        this.dispatcher.on('target:identification:drugs:filters:reset', this.resetFilters.bind(this));
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('drugs:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('drugs:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('target:identification:drugs:filters:list', this.setList.bind(this));
+            dispatcher.removeListener('target:identification:drugs:filters:reset', this.resetFilters.bind(this));
         });
     }
 
@@ -39,21 +39,16 @@ export default class ngbDrugsTableFilterController {
     get filterInfo() {
         return this.ngbDrugsTableService.filterInfo || {};
     }
-    
+
     setList() {
         this.list = this.ngbDrugsTableService.fieldList[this.column.field];
         if (this.list && this.list.length) {
             this.listElements = new ListElements(this.list,  {
-                onSearchFinishedCallback: ::this.searchFinished
-            });
-            this.$scope.$watch('$ctrl.list', () => {
-                this.listElements = new ListElements(this.list,  {
-                    onSearchFinishedCallback: ::this.searchFinished
-                });
+                onSearchFinishedCallback: this.searchFinished.bind(this)
             });
         }
     }
-    
+
     preventListFromClosing() {
         this._hideListIsPrevented = true;
         this.input.focus();
@@ -71,7 +66,7 @@ export default class ngbDrugsTableFilterController {
         }
         this.listIsDisplayed = true;
     }
-    
+
     hideList() {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -92,7 +87,7 @@ export default class ngbDrugsTableFilterController {
             this.listElements.refreshList(lastPart);
         }
     }
-    
+
     hideListDelayed() {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -110,7 +105,7 @@ export default class ngbDrugsTableFilterController {
         }
         return false;
     }
-    
+
     didClickOnItem(item) {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -130,7 +125,7 @@ export default class ngbDrugsTableFilterController {
         }
         this.listElements.refreshList(null);
     }
-    
+
     searchFinished(searchString, shouldUpdateScope) {
         const parts = this.displayText.split('; ').map(part => part.trim().toLowerCase());
         let last = '';
@@ -154,7 +149,7 @@ export default class ngbDrugsTableFilterController {
             this.$scope.$apply();
         }
     }
-    
+
     apply() {
         const parts = this.displayText.split('; ')
             .map(part => part.trim());
@@ -169,7 +164,7 @@ export default class ngbDrugsTableFilterController {
         const currValueStr = JSON.stringify(currValue).toUpperCase();
         if (currValueStr !== prevValueStr) {
             this.ngbDrugsTableService.setFilter(this.column.field, currValue);
-            this.dispatcher.emit('drugs:filters:changed');
+            this.dispatcher.emit('target:identification:drugs:filters:changed');
         }
         if (this.listElements) {
             this.listElements.refreshList(null);
@@ -179,5 +174,5 @@ export default class ngbDrugsTableFilterController {
     resetFilters() {
         this.selectedItems = [];
         this.displayText = '';
-    }    
+    }
 }

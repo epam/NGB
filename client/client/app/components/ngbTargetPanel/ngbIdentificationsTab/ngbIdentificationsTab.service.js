@@ -1,7 +1,8 @@
-export default class ngbIdentificationsTabService {
+export default class NgbIdentificationsTabService {
 
-    _isOpen = {
+    _openedPanels = {
         drugs: false,
+        diseases: false,
         description: false,
         sequences: false,
         genomics: false,
@@ -9,18 +10,30 @@ export default class ngbIdentificationsTabService {
         bibliography: false
     }
 
-    get isOpen() {
-        return this._isOpen;
+    get openedPanels() {
+        return this._openedPanels;
     }
-    set isOpen(value) {
-        this._isOpen = value;
+    set openedPanels(value) {
+        this._openedPanels = value;
     }
 
     static instance () {
-        return new ngbIdentificationsTabService();
+        return new NgbIdentificationsTabService();
     }
 
     constructor() {
         Object.assign(this, {});
+    }
+
+    closeAll() {
+        this._openedPanels = {
+            drugs: false,
+            diseases: false,
+            description: false,
+            sequences: false,
+            genomics: false,
+            structure: false,
+            bibliography: false
+        };
     }
 }

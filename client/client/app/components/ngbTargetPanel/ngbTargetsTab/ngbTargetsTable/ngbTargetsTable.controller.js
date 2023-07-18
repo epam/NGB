@@ -66,7 +66,7 @@ export default class ngbTargetsTableController {
     }
 
     refreshTable() {
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
         this.$timeout(() => {
             this.launchFailed = false;
             this.launchErrorMessageList = null;
@@ -245,7 +245,7 @@ export default class ngbTargetsTableController {
             });
         this.gridOptions.data = results;
         this.loadingData = false;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async getDataOnPage(page) {
@@ -275,7 +275,7 @@ export default class ngbTargetsTableController {
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
         await this.loadData(request);
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     launchTarget (row, event) {
@@ -286,7 +286,7 @@ export default class ngbTargetsTableController {
     async openTarget (row, event) {
         event.stopPropagation();
         await this.ngbTargetsTabService.getTarget(row.id);
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     showOthers(cell, event) {
@@ -308,7 +308,7 @@ export default class ngbTargetsTableController {
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
         await this.loadData(request);
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async showTargetsTable() {

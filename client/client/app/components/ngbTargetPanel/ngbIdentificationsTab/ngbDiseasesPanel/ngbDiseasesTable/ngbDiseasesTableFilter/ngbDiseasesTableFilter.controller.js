@@ -13,7 +13,7 @@ export default class ngbDiseasesTableFilterController {
     static get UID() {
         return 'ngbDiseasesTableFilterController';
     }
-    
+
     constructor($scope, $element, dispatcher, ngbDiseasesTableService) {
         Object.assign(this, {$scope, dispatcher, ngbDiseasesTableService});
         this.input = $element.find('.ngb-filter-input')[0];
@@ -32,7 +32,7 @@ export default class ngbDiseasesTableFilterController {
     get filterInfo() {
         return this.ngbDiseasesTableService.filterInfo || {};
     }
-    
+
     setList() {
         this.list = this.ngbDiseasesTableService.fieldList[this.column.field];
         if (this.list && this.list.length) {
@@ -46,7 +46,7 @@ export default class ngbDiseasesTableFilterController {
             });
         }
     }
-    
+
     preventListFromClosing() {
         this._hideListIsPrevented = true;
         this.input.focus();
@@ -64,7 +64,7 @@ export default class ngbDiseasesTableFilterController {
         }
         this.listIsDisplayed = true;
     }
-    
+
     hideList() {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -85,7 +85,7 @@ export default class ngbDiseasesTableFilterController {
             this.listElements.refreshList(lastPart);
         }
     }
-    
+
     hideListDelayed() {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -103,7 +103,7 @@ export default class ngbDiseasesTableFilterController {
         }
         return false;
     }
-    
+
     didClickOnItem(item) {
         if (this.hideListTimeout) {
             clearTimeout(this.hideListTimeout);
@@ -123,7 +123,7 @@ export default class ngbDiseasesTableFilterController {
         }
         this.listElements.refreshList(null);
     }
-    
+
     searchFinished(searchString, shouldUpdateScope) {
         const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
         let last = '';
@@ -147,7 +147,7 @@ export default class ngbDiseasesTableFilterController {
             this.$scope.$apply();
         }
     }
-    
+
     apply() {
         const parts = this.displayText.split(',')
             .map(part => part.trim());
@@ -162,7 +162,7 @@ export default class ngbDiseasesTableFilterController {
         const currValueStr = JSON.stringify(currValue).toUpperCase();
         if (currValueStr !== prevValueStr) {
             this.ngbDiseasesTableService.setFilter(this.column.field, currValue);
-            this.dispatcher.emit('diseases:filters:changed');
+            this.dispatcher.emit('target:identification:diseases:filters:changed');
         }
         if (this.listElements) {
             this.listElements.refreshList(null);
@@ -172,5 +172,5 @@ export default class ngbDiseasesTableFilterController {
     resetFilters() {
         this.selectedItems = [];
         this.displayText = '';
-    }    
+    }
 }

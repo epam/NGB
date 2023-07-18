@@ -1,3 +1,4 @@
+import {SourceOptions} from '../ngbDiseasesPanel.service';
 const PAGE_SIZE = 10;
 
 const fixedNumber = (num) => {
@@ -36,7 +37,6 @@ export default class ngbDiseasesTableService {
     _filterInfo = null;
     fieldList = {};
 
-    _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
     _emptyResults = false;
@@ -55,10 +55,14 @@ export default class ngbDiseasesTableService {
     }
 
     get loadingData() {
-        return this._loadingData;
+        return this.ngbDiseasesPanelService
+            ? this.ngbDiseasesPanelService.tableLoading
+            : false;
     }
     set loadingData(value) {
-        this._loadingData = value;
+        if (this.ngbDiseasesPanelService) {
+            this.ngbDiseasesPanelService.tableLoading = value;
+        }
     }
 
     get failedResult() {
@@ -101,13 +105,13 @@ export default class ngbDiseasesTableService {
     static instance (
         dispatcher,
         ngbTargetPanelService,
-        ngbKnownDrugsPanelService,
+        ngbDiseasesPanelService,
         targetDataService
     ) {
         return new ngbDiseasesTableService(
             dispatcher,
             ngbTargetPanelService,
-            ngbKnownDrugsPanelService,
+            ngbDiseasesPanelService,
             targetDataService
         );
     }
@@ -115,16 +119,16 @@ export default class ngbDiseasesTableService {
     constructor(
         dispatcher,
         ngbTargetPanelService,
-        ngbKnownDrugsPanelService,
+        ngbDiseasesPanelService,
         targetDataService
     ) {
         Object.assign(this, {
             dispatcher,
             ngbTargetPanelService,
-            ngbKnownDrugsPanelService,
+            ngbDiseasesPanelService,
             targetDataService
         });
-        this.dispatcher.on('reset:identification:data', this.resetDiseasesData.bind(this));
+        this.dispatcher.on('target:identification:reset', this.resetDiseasesData.bind(this));
     }
 
     get identificationTarget() {
@@ -132,11 +136,7 @@ export default class ngbDiseasesTableService {
     }
 
     get sourceModel () {
-        return this.ngbKnownDrugsPanelService.sourceModel;
-    }
-
-    get sourceOptions() {
-        return this.ngbKnownDrugsPanelService.sourceOptions;
+        return this.ngbDiseasesPanelService.sourceModel;
     }
 
     get geneIds() {
@@ -149,9 +149,7 @@ export default class ngbDiseasesTableService {
     }
 
     setDiseasesResult(result) {
-        const {OPEN_TARGETS, PHARM_GKB} = this.sourceOptions;
-
-        if (this.sourceModel === OPEN_TARGETS) {
+        if (this.sourceModel === SourceOptions.OPEN_TARGETS) {
             this._diseasesResults = result.map(item => {
                 const {
                     OVERALL,
@@ -178,7 +176,7 @@ export default class ngbDiseasesTableService {
                 };
             });
         }
-        if (this.sourceModel === PHARM_GKB) {
+        if (this.sourceModel === SourceOptions.PHARM_GKB) {
             this._diseasesResults = result.map(item => {
                 return {
                     target: this.getTarget(item.geneId),
@@ -200,7 +198,7 @@ export default class ngbDiseasesTableService {
         };
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
-                orderBy: this.fields[this.sourceModel.name][i.field],
+                orderBy: this.fields[this.sourceModel][i.field],
                 reverse: !i.ascending
             }))
         }
@@ -209,7 +207,7 @@ export default class ngbDiseasesTableService {
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => {
                     return {
-                        field: this.fields[this.sourceModel.name][key],
+                        field: this.fields[this.sourceModel][key],
                         terms: values.map(v => {
                             if (key === 'target') {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
@@ -230,20 +228,19 @@ export default class ngbDiseasesTableService {
         const request = this.getRequest();
         if (!request.geneIds || !request.geneIds.length) {
             return new Promise(resolve => {
-                this._loadingData = false;
+                this.loadingData = false;
                 resolve(true);
             });
         }
-        const source = this.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.getDiseasesResults(request, source)
+            this.targetDataService.getDiseasesResults(request, this.sourceModel)
                 .then(([data, totalCount]) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyResults = totalCount === 0;
                     this.setDiseasesResult(data);
-                    this._loadingData = false;
+                    this.loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
@@ -251,7 +248,7 @@ export default class ngbDiseasesTableService {
                     this._errorMessageList = [err.message];
                     this._totalPages = 0;
                     this._emptyResults = false;
-                    this._loadingData = false;
+                    this.loadingData = false;
                     resolve(false);
                 });
         });
@@ -282,7 +279,7 @@ export default class ngbDiseasesTableService {
         this._totalPages = 0;
         this._sortInfo = null;
         this._filterInfo = null;
-        this._loadingData = false;
+        this.loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;
         this._emptyResults = false;

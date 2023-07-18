@@ -19,6 +19,10 @@ export default class ngbVariantsTableFilterController {
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
+        this.projectDataService = projectDataService;
+    }
+
+    $onInit() {
         switch (this.column.field) {
             case 'startIndex': this.isRange = true; break;
             case 'variationType': {
@@ -33,13 +37,13 @@ export default class ngbVariantsTableFilterController {
                             resolve([]);
                         });
                     }
-                    return await projectDataService.searchGeneNames(this.projectContext.referenceId, searchText, 'featureName');
+                    return await this.projectDataService.searchGeneNames(this.projectContext.referenceId, searchText, 'featureName');
                 };
             } break;
             case 'sampleNames': {
                 this.isList = true;
                 this.list = (searchText) => {
-                    const sampleAliases = Object.keys(projectContext.vcfSampleAliases) || [];
+                    const sampleAliases = Object.keys(this.projectContext.vcfSampleAliases) || [];
                     const filtered = sampleAliases.filter(s => !searchText ||
                         s.toLowerCase().startsWith(searchText.toLowerCase())
                     );

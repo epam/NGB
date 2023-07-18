@@ -99,8 +99,6 @@ export default class ngbDrugsTableService {
     _sortInfo = null;
     _filterInfo = null;
     fieldList = {};
-
-    _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
     _emptyResults = false;
@@ -119,10 +117,14 @@ export default class ngbDrugsTableService {
     }
 
     get loadingData() {
-        return this._loadingData;
+        return this.ngbKnownDrugsPanelService
+            ? this.ngbKnownDrugsPanelService.loading
+            : false;
     }
     set loadingData(value) {
-        this._loadingData = value;
+        if (this.ngbKnownDrugsPanelService) {
+            this.ngbKnownDrugsPanelService.loading = value;
+        }
     }
 
     get failedResult() {
@@ -181,7 +183,7 @@ export default class ngbDrugsTableService {
 
     constructor(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService});
-        this.dispatcher.on('reset:identification:data', this.resetDrugsData.bind(this));
+        this.dispatcher.on('target:identification:reset', this.resetDrugsData.bind(this));
     }
 
     get sourceModel () {
@@ -313,7 +315,7 @@ export default class ngbDrugsTableService {
         const request = this.getRequest();
         if (!request.geneIds || !request.geneIds.length) {
             return new Promise(resolve => {
-                this._loadingData = false;
+                this.loadingData = false;
                 resolve(true);
             });
         }
@@ -326,7 +328,7 @@ export default class ngbDrugsTableService {
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyResults = totalCount === 0;
                     this.setDrugsResult(data);
-                    this._loadingData = false;
+                    this.loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
@@ -334,7 +336,7 @@ export default class ngbDrugsTableService {
                     this._errorMessageList = [err.message];
                     this._totalPages = 0;
                     this._emptyResults = false;
-                    this._loadingData = false;
+                    this.loadingData = false;
                     resolve(false);
                 });
         });
@@ -344,7 +346,7 @@ export default class ngbDrugsTableService {
         const result = await this.getDrugsFieldValues();
         if (!result) {
             this.fieldList = {};
-            this.dispatcher.emitSimpleEvent('drugs:filters:list');
+            this.dispatcher.emitSimpleEvent('target:identification:drugs:filters:list');
         }
         const entries = Object.entries(result);
         const source = this.sourceModel.name;
@@ -361,7 +363,7 @@ export default class ngbDrugsTableService {
         }
         const allGenes = this.ngbTargetPanelService.allGenes;
         this.fieldList.target = [...allGenes.map(i => i.chip)]
-        this.dispatcher.emitSimpleEvent('drugs:filters:list');
+        this.dispatcher.emitSimpleEvent('target:identification:drugs:filters:list');
     }
 
     getDrugsFieldValues() {
@@ -390,7 +392,7 @@ export default class ngbDrugsTableService {
         this._sortInfo = null;
         this._filterInfo = null;
         this.fieldList = {};
-        this._loadingData = false;
+        this.loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;
         this._emptyResults = false;

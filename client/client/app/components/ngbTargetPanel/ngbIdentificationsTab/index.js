@@ -7,10 +7,17 @@ import controller from './ngbIdentificationsTab.controller';
 import service from './ngbIdentificationsTab.service';
 
 import ngbKnownDrugsPanel from './ngbKnownDrugsPanel';
+import ngbDiseasesPanel from './ngbDiseasesPanel';
 import ngbBibliographyPanel from './ngbBibliographyPanel';
+import ngbPluralText from './ngbPluralText';
 
 export default angular
-    .module('ngbIdentificationsTab', [ngbKnownDrugsPanel, ngbBibliographyPanel])
+    .module('ngbIdentificationsTab', [
+        ngbKnownDrugsPanel,
+        ngbDiseasesPanel,
+        ngbBibliographyPanel,
+        ngbPluralText
+    ])
     .controller(controller.UID, controller)
     .component('ngbIdentificationsTab', component)
     .service('ngbIdentificationsTabService', service.instance)

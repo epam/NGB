@@ -1,11 +1,13 @@
+@import "./ngbTargetsForm.variables";
+@import "../../../../shared/components/ngbTags/ngbTags";
+
 .add-target-form {
     height: calc(100% - 38px);
     overflow-y: auto;
     overflow-x: hidden;
 
     .loading-indicator {
-        padding-top: 5px;
-        padding-bottom: 5px;
+        padding: 5px $form-horizontal-offset;
         height: 6px;
     }
 
@@ -32,7 +34,7 @@
             min-height: 18px;
             height: 19px;
             overflow: hidden;
-            font-size: 14px;
+            font-size: $tag-font-size;
         }
     }
 }
@@ -43,8 +45,11 @@
     justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
-    margin: 5px 0;
+    margin: 0 0 5px;
+    padding: 0 calc($form-horizontal-offset - 4px);
+    box-sizing: border-box;
     width: 100%;
+    line-height: 32px;
 
     .md-warn {
         color: rgba(0,0,0,0.87);
@@ -57,11 +62,11 @@
 }
 
 .back-target-button {
-  min-height: 25px;
-  height: 25px;
-  line-height: 25px;
-  min-width: 60px;
-  width: 60px;
+  min-height: $main-action-button-height;
+  height: $main-action-button-height;
+  line-height: $main-action-button-height;
+  min-width: 40px;
+  width: 40px;
   margin: 5px;
 
   ng-md-icon {
@@ -69,205 +74,117 @@
   }
 }
 
-.save-target-button {
-    min-height: 25px;
-    height: 25px;
-    line-height: 25px;
-    min-width: 80px;
-    width: 80px;
+.target-button {
+    min-height: $main-action-button-height;
+    height: $main-action-button-height;
+    line-height: $main-action-button-height;
+    min-width: 60px;
     margin: 5px;
 }
 
+.name-input-placeholder,
 .name-input {
     margin: 5px;
     flex: 1;
-    display: inline-flex;
-    align-items: center;
-
-    label {
-        font-weight: bold;
-        margin-right: 5px;
-    }
-
-    input {
-        border-radius: 5px;
-        flex: 1;
-        border: 1px solid #cacaca;
-        height: 21px;
-        min-width: 50px;
-    }
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.form-block {
-    display: flex;
-    justify-content: space-around;
-    margin: 5px;
-    align-items: center;
+.name-input {
+    font-weight: bold;
+}
 
-    label {
-        margin: 8px 10px 12px 0;
-    }
+.name-input-placeholder {
+    font-style: italic;
+    color: #999999;
+}
 
-    md-chips-wrap {
-        font-size: 14px;
-        display: flex;
-        justify-content: start;
-        align-items: center;
-        flex-wrap: wrap;
-    }
+.table-container {
+    width: 100%;
+    overflow: auto;
 
-    md-chips .md-chips.md-focused {
-        box-shadow: none;
-    }
-
-    md-chips.md-default-theme .md-chips,
-    md-chips .md-chips {
-        box-shadow: none;
-    }
-
-    md-chips.md-default-theme md-chip.md-focused,
-    md-chips md-chip.md-focused {
-        background-color: rgb(102,153,255);
-    }
-
-    .md-chips {
-        padding: 0;
-    }
-
-    .md-chips md-chip {
-        border-radius: 10px;
-        height: 25px;
-        line-height: 25px;
-        margin: 0 8px 4px 0;
-    }
-
-    .md-chips.md-removable md-chip .md-chip-content {
-        padding-right: 0;
-    }
-
-    .md-chips md-chip .md-chip-remove {
-        width: 22px;
-        height: 22px;
-
-        md-icon {
-            height: 14px;
-            width: 14px;
-            min-height: 14px;
-            min-width: 14px;
-        }
-    }
-
-    .md-chips md-chip .md-chip-remove-container {
-        line-height: 16px;
-    }
-
-    .md-chips .md-chip-input-container {
-        line-height: 25px;
-        margin: 0;
-
-        input:not([type]) {
-            border: 1px dashed #999;
-            border-radius: 10px;
-            height: 23px;
-            line-height: 23px;
-            padding-left: 5px;
-            margin: 0 0 4px 0;
-            width: 90px;
-        }
-
-        :not(:first-child) {
-            margin: 0;
-        }
-    }
-
-    .table-container {
+    table.ngb-targets-form-table {
         width: 100%;
-
-        table {
+        input {
             width: 100%;
-
-            input {
-                width: 90%;
-            }
         }
-
-        table th,
-        table tr td {
+        th {
             width: 20%;
-            padding: 4px;
+            padding: $table-header-cell-padding;
+            background: $section-header-background;
+            line-height: $table-header-cell-height;
+            height: $table-header-cell-height;
+            font-size: $table-header-cell-font-size;
+            color: $table-header-cell-color;
+            font-weight: $table-header-cell-font-weight;
+        }
+        tr td.full-width {
+            padding: $table-cell-full-width-padding;
+            width: unset;
+        }
+        tr td {
+            width: 20%;
+            padding: $table-cell-padding;
         }
 
-        table th:nth-child(1),
-        table tr td:nth-child(1) {
+        tr th:nth-child(1),
+        tr td:nth-child(1) {
             width: 25%;
         }
 
-        table th:nth-child(3),
-        table tr td:nth-child(3) {
+        tr th:nth-child(3),
+        tr td:nth-child(3) {
             width: 15%;
         }
 
-        table th:nth-child(5),
-        table tr td:nth-child(5) {
+        tr th:nth-child(5),
+        tr td:nth-child(5) {
             width: 15%;
         }
 
-        input {
-            border-radius: 5px;
-            border: 1px solid #cacaca;
-            height: 21px;
+        tr th.button-column,
+        tr td.button-column {
+            width: max($table-control-height, 30px);
         }
 
-        th.button-column {
+        tr th.button-column {
             width: 15px;
             padding: 4px;
         }
+    }
 
-        .remove-btn {
-            min-height: 15px;
-            min-width: 15px;
-            width: 15px;
-            height: 15px;
-            line-height: 15px;
-            padding: 0;
-            margin: 0;
-        }
-
-        .button-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin: 10px;
-        }
-
-        .add-button {
-            min-height: 20px;
-            height: 20px;
-            line-height: 20px;
-            min-width: 70px;
-            width: 70px;
-            margin: 0;
-            margin-right: 0;
-
-            span {
-                text-transform: capitalize;
-            }
-        }
+    .remove-btn {
+        min-height: $table-control-height;
+        min-width: $table-control-height;
+        width: $table-control-height;
+        height: $table-control-height;
+        line-height: $table-control-height;
+        padding: 0;
+        margin: 0;
     }
 }
 
 .priority-select-container {
-    md-select {
+    md-select.ngb-targets-form-table-select {
         margin: 0;
-        border-radius: 5px;
-        border: 1px solid #cacaca;
-        height: 23px;
+        border-radius: $table-control-border-radius;
+        border: $table-control-border;
+        background: $table-control-background;
+        height: $table-control-height;
+        color: $table-control-font-color;
+        box-sizing: border-box;
+        &:hover {
+            background: $table-control-hover-background;
+        }
     }
 
     .md-select-value {
         padding: 0 5px;
         border-bottom-width: 0;
-        min-height: 23px;
+        min-height: calc($table-control-height - 2px);
+        color: $table-control-font-color;
+        font-size: $table-control-font-size;
     }
 
     md-select-menu {
@@ -278,17 +195,46 @@
 
     md-option {
         padding: 0 10px;
-        height: 24px;
+        height: $table-control-height;
+        color: $table-control-font-color;
     }
 
     .md-select-value .md-select-icon {
-        width: 15px;
+        width: calc(($table-control-height - 2px) / 2.0);
         margin: 0 2px;
     }
 
-    md-select.md-default-theme:not([disabled]):focus .md-select-value,
-    md-select:not([disabled]):focus .md-select-value {
-        border-radius: 5px;
+    md-select.ngb-targets-form-table-select.md-default-theme:not([disabled]):focus .md-select-value,
+    md-select.ngb-targets-form-table-select:not([disabled]):focus .md-select-value {
+        border-radius: $table-control-border-radius;
+        border-bottom: none;
+    }
+}
+
+input.ngb-targets-form-table-input {
+    flex: 1;
+    margin: 2px 0;
+    border-radius: $table-control-border-radius;
+    border: none;
+    background: $table-control-background;
+    height: $table-control-height;
+    color: $table-control-font-color;
+    padding: $table-control-padding;
+    font-size: $table-control-font-size;
+    box-sizing: border-box;
+    border-bottom: 1px solid darken($table-control-background, 20%);
+
+    &.error {
+        border-color: red;
+    }
+
+    &:hover:not(:focus) {
+        background: $table-control-hover-background;
+    }
+    &:hover,
+    &:active,
+    &:focus {
+        outline: none;
     }
 }
 
@@ -298,12 +244,13 @@
     }
 
     md-select-menu md-content {
-        min-width: 36px;
+        min-width: calc($table-control-height * 3.0);
     }
 
     md-option {
-        padding: 0 5px;
-        height: 24px;
+        padding: $table-control-padding;
+        height: $table-control-height;
+        color: $table-control-font-color;
     }
 }
 
@@ -318,5 +265,62 @@
 
     h2 {
         margin: 15px;
+    }
+}
+
+ngb-tags.ngb-target-diseases,
+ngb-tags.ngb-target-products {
+    margin-top: 5px;
+    font-size: $tag-font-size;
+    @include ngb-tags($tag-size, $tag-background, $tag-color, none, $tag-border-radius, $form-horizontal-offset);
+
+    .ngb-tags-title {
+        font-weight: $table-header-cell-font-weight;
+        font-size: $table-header-cell-font-size;
+        color: $table-header-cell-color;
+        min-width: $main-section-title-width;
+    }
+}
+
+.ngb-targets-form-section {
+    margin: 2px 2px 8px;
+
+    .ngb-targets-form-section-header {
+        padding: 7px $form-horizontal-offset;
+        color: $section-header-color;
+        background: $section-header-background;
+        font-size: $section-header-font-size;
+    }
+}
+
+.target-name-row {
+    display: flex;
+    align-items: center;
+
+    .target-name-title {
+        padding: 7px $form-horizontal-offset;
+        font-weight: $table-header-cell-font-weight;
+        font-size: $table-header-cell-font-size;
+        color: $table-header-cell-color;
+        min-width: $main-section-title-width;
+    }
+}
+
+.no-genes-info {
+    color: #999999;
+}
+
+.add-gene-link {
+    margin: 5px 0;
+    cursor: not-allowed;
+    font-style: normal;
+
+    &:not(.disabled) {
+        color: rgb(51, 103, 214);
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 }

@@ -1,4 +1,7 @@
 import ngbDiseasesControllerBase from '../ngbDiseases.controler.base';
+import {
+    SourceOptions
+} from '../ngbDiseasesPanel.service';
 
 const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 const PHARM_GKB_COLUMNS = ['target', 'disease'];
@@ -57,13 +60,13 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
 
     getColumnList() {
-        const {OPEN_TARGETS, PHARM_GKB} = this.sourceOptions;
-        if (this.sourceModel === OPEN_TARGETS) {
+        if (this.sourceModel === SourceOptions.OPEN_TARGETS) {
             return this.openTargetsColumnList;
         }
-        if (this.sourceModel === PHARM_GKB) {
+        if (this.sourceModel === SourceOptions.PHARM_GKB) {
             return this.pharmGkbColumnList;
         }
+        return [];
     }
 
     static get UID() {
@@ -75,12 +78,12 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         $timeout,
         dispatcher,
         ngbDiseasesTableService,
-        ngbKnownDrugsPanelService,
+        ngbDiseasesPanelService,
         ngbIdentificationsTabService
     ) {
         super($scope, $timeout, dispatcher);
         this.ngbDiseasesTableService = ngbDiseasesTableService;
-        this.ngbKnownDrugsPanelService = ngbKnownDrugsPanelService;
+        this.ngbDiseasesPanelService = ngbDiseasesPanelService;
         this.ngbIdentificationsTabService = ngbIdentificationsTabService;
     }
 
@@ -125,14 +128,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
 
     get sourceModel () {
-        return this.ngbKnownDrugsPanelService.sourceModel;
-    }
-    get sourceOptions() {
-        return this.ngbKnownDrugsPanelService.sourceOptions;
-    }
-
-    async drugsSourceChanged() {
-        await this.resetDiseasesData();
+        return this.ngbDiseasesPanelService.sourceModel;
     }
 
     resetDiseasesData() {
@@ -141,7 +137,6 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
 
     async initialize() {
-        if (!this.ngbIdentificationsTabService.isOpen.drugs) return;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.getDiseasesTableGridColumns(),
@@ -149,10 +144,17 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
+                this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
             }
         });
-        if (this.sourceModel === this.sourceOptions.OPEN_TARGETS) {
+        await this.loadTableDataIfRequired();
+    }
+
+    async loadTableDataIfRequired() {
+        if (!this.gridOptions) {
+            return;
+        }
+        if (this.sourceModel === SourceOptions.OPEN_TARGETS) {
             this.sortInfo = this.openTargetsDefaultSort;
         }
         if (this.ngbDiseasesTableService.diseasesResults) {
@@ -161,13 +163,14 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
             await this.loadData();
             this.ngbDiseasesTableService.setFieldList();
         }
+        this.gridOptions.columnDefs = this.getDiseasesTableGridColumns();
     }
 
     async sourceChanged() {
         this.resetDiseasesData();
         this.resetSorting();
-        this.initialize();
-        this.$timeout(::this.$scope.$apply);
+        await this.loadTableDataIfRequired();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     resetSorting() {
@@ -234,15 +237,14 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
 
     async loadData () {
         this.loadingData = true;
-        const results = await this.ngbDiseasesTableService.getDiseasesResults()
+        this.gridOptions.data = await this.ngbDiseasesTableService.getDiseasesResults()
             .then(success => {
                 if (success) {
                     return this.ngbDiseasesTableService.diseasesResults;
                 }
                 return [];
             });
-        this.gridOptions.data = results;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async sortChanged(grid, sortColumns) {
@@ -259,7 +261,6 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
             this.sortInfo = null;
         }
         this.currentPage = 1;
-        this.gridOptions.data = [];
         await this.loadData();
     }
 
@@ -269,9 +270,8 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         }
         this.loadingData = true;
         this.currentPage = 1;
-        this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async getDataOnPage(page) {

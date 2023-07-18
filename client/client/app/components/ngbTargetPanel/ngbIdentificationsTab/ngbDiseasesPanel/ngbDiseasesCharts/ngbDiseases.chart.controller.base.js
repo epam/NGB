@@ -103,13 +103,6 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
         await this.loadData();
     }
 
-    async drugsSourceChanged() {
-        if (this.ngbDiseasesTableService) {
-            this.ngbDiseasesTableService.resetDiseasesData();
-        }
-        await this.loadData();
-    }
-
     async loadData() {
         const success = await this.ngbDiseasesChartService.getDiseases();
         if (success) {

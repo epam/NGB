@@ -1,10 +1,30 @@
 collapsible {
   display: block;
-}
-collapsible-panel-title {
-  font-weight: bolder;
-  font-size: 12px;
-  padding-left: 10px;
+
+  .collapsible-panel-title {
+    font-weight: bolder;
+    font-size: 12px;
+    padding-left: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+  .collapsible-trigger {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+
+    .rotated {
+      float: unset;
+    }
+
+    .collapsible-panel-title-container {
+      margin: 0;
+      flex: 1;
+    }
+  }
 }
 
 .animate-show {

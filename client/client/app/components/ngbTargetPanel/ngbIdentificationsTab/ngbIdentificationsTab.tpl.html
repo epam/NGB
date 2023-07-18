@@ -1,165 +1,80 @@
 <md-content flex class="identification-content">
     <div class="identification-header">
-        <div class="header-content">
-            <h3>{{$ctrl.targetName}}</h3>
-            <p>
-                <span class="species-label">Interest</span>:
-                <span class="species-list">{{$ctrl.interest}}</span>
-            </p>
-            <p>
-                <span class="species-label">Translational</span>:
-                <span class="species-list">{{$ctrl.translational}}</span>
-            </p>
+        <span class="identification-title">{{$ctrl.targetName}}</span>
+    </div>
+    <div class="main-info-row">
+        <span class="main-info-title">
+            Interest:
+        </span>
+        <ngb-tags class="main-info" tags="$ctrl.interest"></ngb-tags>
+    </div>
+    <div class="main-info-row">
+        <span class="main-info-title">
+            Translational:
+        </span>
+        <ngb-tags class="main-info" tags="$ctrl.translational"></ngb-tags>
+    </div>
+    <div class="main-info-row" ng-if="$ctrl.descriptions && $ctrl.descriptions.length > 0">
+        <span class="main-info-title">
+            Description:
+        </span>
+        <div class="main-info">
+            <div class="descriptions"
+                 ng-class="{'collapsed': $ctrl.descriptionCollapsed}">
+                <div ng-repeat="description in $ctrl.descriptions |
+                        limitTo : ($ctrl.descriptionCollapsed ? 5 : Infinity)
+                        track by $index"
+                     class="identification-description"
+                >
+                    <b class="identification-description-title">
+                        {{description.title}}
+                    </b>
+                    <span ng-bind-html="description.html"
+                          class="identification-description-text"
+                    >
+                    </span>
+                </div>
+            </div>
+            <div>
+                <a ng-click="$ctrl.toggleDescriptionCollapsed()">
+                    {{$ctrl.descriptionCollapsed ? 'Show more' : 'Show less'}}
+                </a>
+            </div>
         </div>
-        <md-button type="button"
-                   class="md-raised md-accent store-report-button"
-                   aria-label="Store report"
-                   ng-click="$ctrl.storeReport()">
-            Store report
-        </md-button>
     </div>
-    <div class="pivot-container"
-        layout-padding
-        ng-cloak>
-        <md-whiteframe>
-            <h5>DESCRIPTION</h5>
-            <div class="whiteframe-content">
-                <span class="description-span">
-                    <span class="element-wrapper"
-                          ng-repeat="element in $ctrl.shortDescription track by $index"
-                          ng-class="{'inline-block': element.type === 'link'}">
-                        <span ng-if="element.type === 'text'">
-                            {{element.value}}
-                        </span>
-                        <a ng-if="element.type === 'link'"
-                            ng-href="{{element.value.href}}"
-                            target="_blank">
-                            {{element.value.text}}
-                        </a>
-                    </span><span>...</span>
-                </span>
-            </div>
-        </md-whiteframe>
-        <md-whiteframe>
-            <h5>KNOWN DRUGS</h5>
-            <div class="whiteframe-content">
-                <span>Diseases: <b>{{$ctrl.diseasesCount}}</b></span>
-                <span>Drugs: <b>{{$ctrl.knownDrugsCount}}</b></span>
-            </div>
-        </md-whiteframe>
-        <md-whiteframe>
-            <h5>SEQUENCES</h5>
-            <div class="whiteframe-content">
-                <span>DNA: <b>1</b></span>
-                <span>RNA: <b>0</b></span>
-                <span>Proteins: <b>3</b></span>
-            </div>
-        </md-whiteframe>
-        <md-whiteframe>
-            <h5>COMPARATIVE GENOMICS</h5>
-            <div class="whiteframe-content">
-                <span>Paralogs: <b>2</b></span>
-                <span>Orthologs: <b>26</b></span>
-            </div>
-        </md-whiteframe>
-        <md-whiteframe>
-            <h5>STRUCTURE</h5>
-            <div class="whiteframe-content">
-                <span>3D models: <b>112</b></span>
-            </div>
-        </md-whiteframe>
-        <md-whiteframe>
-            <h5>BIBLIOGRAPHY</h5>
-            <div class="whiteframe-content">
-                <span>Publications: <b>8083</b></span>
-            </div>
-        </md-whiteframe>
-    </div>
-    <div class="collapsible-container">
-        <collapsible>
-            <collapsible-panel is-open="$ctrl.isOpen.description"
-                               ng-class="{'open-panel': $ctrl.isOpen.description}">
-                <collapsible-panel-title>
-                    DESCRIPTION
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div class="description-content"
-                         layout="column"
-                         layout-align="stretch middle"
-                         flex="100">
-                        <div ng-repeat="item in $ctrl.descriptions track by $index">
-                            <h5>{{item.title}}</h5>
-                            <div class="description-value">
-                                <span class="element-wrapper"
-                                      ng-repeat="element in item.value track by $index">
-                                    <span ng-if="element.type === 'text'">
-                                        {{element.value}}
-                                    </span>
-                                    <a ng-if="element.type === 'link'"
-                                       ng-href="{{element.value.href}}"
-                                       target="_blank">
-                                       {{element.value.text}}
-                                    </a>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-            <collapsible-panel is-open="$ctrl.isOpen.drugs"
-                               ng-class="{'open-panel': $ctrl.isOpen.drugs}">
-                <collapsible-panel-title>
-                    KNOWN DRUGS
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                        <ngb-known-drugs-panel ng-if="$ctrl.isOpen.drugs">
-                        </ngb-known-drugs-panel>
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-            <collapsible-panel is-open="$ctrl.isOpen.sequences"
-                               ng-class="{'open-panel': $ctrl.isOpen.sequences}">
-                <collapsible-panel-title>
-                    SEQUENCES
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-            <collapsible-panel is-open="$ctrl.isOpen.genomics"
-                               ng-class="{'open-panel': $ctrl.isOpen.genomics}">
-                <collapsible-panel-title>
-                    COMPARATIVE GENOMICS
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-            <collapsible-panel is-open="$ctrl.isOpen.structure"
-                               ng-class="{'open-panel': $ctrl.isOpen.structure}">
-                <collapsible-panel-title>
-                    STRUCTURE
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-            <collapsible-panel is-open="$ctrl.isOpen.bibliography"
-                               ng-class="{'open-panel': $ctrl.isOpen.bibliography}">
-                <collapsible-panel-title>
-                    BIBLIOGRAPHY
-                </collapsible-panel-title>
-                <collapsible-panel-content>
-                    <div layout="column"  layout-align="stretch middle" flex="100">
-                        <ngb-bibliography-panel ng-if="$ctrl.isOpen.bibliography">
-                        </ngb-bibliography-panel>
-                    </div>
-                </collapsible-panel-content>
-            </collapsible-panel>
-        </collapsible>
-    </div>
+    <collapsible>
+        <collapsible-panel ng-repeat="mainInfoBlock in $ctrl.mainInfo track by $index"
+                           is-open="$ctrl.openedPanels[mainInfoBlock.key]"
+                           ng-class="{'open-panel': $ctrl.openedPanels[mainInfoBlock.key]}">
+            <collapsible-panel-title class="section">
+                <span class="section-title">{{mainInfoBlock.title}}</span>
+                <md-progress-circular ng-if="mainInfoBlock.loading"
+                                      md-mode="indeterminate"
+                                      style="margin-left: auto"
+                                      md-diameter="12">
+                </md-progress-circular>
+                <span class="section-title-part"
+                      ng-repeat="part in mainInfoBlock.items track by $index"
+                      ng-if="part.count > 0 && !mainInfoBlock.loading">
+                        <span class="section-title-part-count">{{part.count}}</span>
+                        <ngb-plural-text text="part.item"
+                                         count="part.single ? 1 : part.count"
+                                         class="section-title-part-item"
+                        />
+                    </span>
+            </collapsible-panel-title>
+            <collapsible-panel-content>
+                <ngb-known-drugs-panel ng-if="mainInfoBlock.key === 'drugs'">
+                </ngb-known-drugs-panel>
+                <ngb-diseases-panel ng-if="mainInfoBlock.key === 'diseases'">
+                </ngb-diseases-panel>
+                <ngb-bibliography-panel ng-if="mainInfoBlock.key === 'bibliography'">
+                </ngb-bibliography-panel>
+                <div style="margin: 5px 0; color:#999999"
+                     ng-if="!['bibliography', 'drugs', 'diseases'].includes(mainInfoBlock.key)">
+                    &nbsp;
+                </div>
+            </collapsible-panel-content>
+        </collapsible-panel>
+    </collapsible>
 </md-content>

@@ -1,0 +1,33 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.tableLoading || $ctrl.chartsLoading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<md-nav-bar class="associated-diseases-nav-bar"
+            aria-label="Associated diseases nav bar"
+            md-selected-nav-item="$ctrl.selectedTab">
+    <md-nav-item ng-repeat="tab in $ctrl.tabs track by tab"
+                 name="{{tab}}"
+                 class="associated-diseases-tab"
+                 ng-class="{'selected': tab === $ctrl.selectedTab}"
+                 md-nav-click="$ctrl.onChangeTab(tab)">
+        {{$ctrl.getTabName(tab)}}
+    </md-nav-item>
+    <div class="diseases-source-select">
+        <label>Source:</label>
+        <md-input-container>
+            <md-select ng-model="$ctrl.source"
+                       aria-label="Diseases source"
+                       md-container-class="diseases-source-select-container">
+                <md-option ng-repeat="item in $ctrl.sources"
+                           ng-value="item">
+                    {{$ctrl.getSourceName(item)}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+</md-nav-bar>
+<md-content class="_md associated-diseases-content">
+    <ngb-diseases-table ng-if="$ctrl.selectedTab === $ctrl.tableTab"></ngb-diseases-table>
+    <ngb-diseases-bubbles ng-if="$ctrl.selectedTab === $ctrl.bubblesTab"></ngb-diseases-bubbles>
+    <ngb-diseases-graph ng-if="$ctrl.selectedTab === $ctrl.graphTab"></ngb-diseases-graph>
+</md-content>

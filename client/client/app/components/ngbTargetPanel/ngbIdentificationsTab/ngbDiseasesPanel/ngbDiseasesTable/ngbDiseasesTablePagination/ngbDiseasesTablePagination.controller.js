@@ -28,7 +28,7 @@ export default class ngbDiseasesTablePaginationController {
 
     refresh() {
         this.pages = this.getPages();
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async setPage(page) {

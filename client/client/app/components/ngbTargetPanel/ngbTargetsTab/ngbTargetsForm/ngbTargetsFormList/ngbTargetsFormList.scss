@@ -1,43 +1,58 @@
+@import "../ngbTargetsForm.variables";
+
 ngb-targets-form-list {
-    md-autocomplete {
+    md-autocomplete.ngb-targets-form-autocomplete {
         min-width: 50px;
-        border-radius: 5px;
-        border: 1px solid #cacaca;
-        height: 21px;
+        border-radius: $table-control-border-radius;
+        background: $table-control-background;
+        border: $table-control-border;
+        height: $table-control-height;
+        color: $table-control-font-color;
+        box-sizing: border-box;
+        &:hover {
+            background: $table-control-hover-background;
+        }
     }
 
     .md-whiteframe-1dp, .md-whiteframe-z1 {
         box-shadow: none;
     }
 
-    md-autocomplete input:not(.md-input) {
-        font-size: 14px;
+    md-autocomplete.ngb-targets-form-autocomplete input:not(.md-input) {
+        font-size: $table-control-font-size;
         box-sizing: border-box;
         border: none;
         box-shadow: none;
         outline: none;
         background: transparent;
         width: 100%;
-        padding: 0 5px;
-        line-height: 20px;
-        height: 20px;
+        padding: $table-control-padding;
+        line-height: $table-control-height;
+        height: $table-control-height;
+        color: $table-control-font-color;
     }
 
-    md-autocomplete md-autocomplete-wrap {
-        height: 20px;
+    md-autocomplete.ngb-targets-form-autocomplete md-autocomplete-wrap {
+        height: $table-control-height;
+        box-sizing: border-box;
     }
 
-    md-autocomplete button {
+    md-autocomplete.ngb-targets-form-autocomplete button {
         display: none;
     }
 }
 
+.ngb-targets-form-autocomplete-menu-container {
+    min-width: max(300px, 25vw)!important;
+}
+
 .autocomplete-list.md-autocomplete-suggestions {
     li {
-        padding: 0 5px;
-        line-height: 24px;
-        height: 24px;
+        padding: $table-control-padding;
+        line-height: $table-control-height;
+        height: $table-control-height;
         overflow: visible;
         width: auto;
+        color: $table-control-font-color;
     }
 }

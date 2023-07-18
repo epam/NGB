@@ -14,8 +14,15 @@ const SOURCE_OPTIONS = {
 };
 
 export default class ngbKnownDrugsPanelService {
+    static instance () {
+        return new ngbKnownDrugsPanelService();
+    }
 
-    _sourceModel = this.sourceOptions.OPEN_TARGETS;
+    constructor() {
+        Object.assign(this, {});
+        this._loading = false;
+        this._sourceModel = this.sourceOptions.OPEN_TARGETS;
+    }
 
     get sourceOptions () {
         return SOURCE_OPTIONS;
@@ -28,11 +35,11 @@ export default class ngbKnownDrugsPanelService {
         this._sourceModel = value;
     }
 
-    static instance () {
-        return new ngbKnownDrugsPanelService();
+    get loading() {
+        return this._loading;
     }
 
-    constructor() {
-        Object.assign(this, {});
+    set loading(loading) {
+        this._loading = !!loading;
     }
 }
