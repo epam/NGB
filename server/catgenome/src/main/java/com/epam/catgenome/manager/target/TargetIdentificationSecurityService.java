@@ -25,8 +25,10 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
+import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -140,5 +142,10 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_USER)
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
         return manager.getPublications(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
+        return manager.getStructures(request);
     }
 }

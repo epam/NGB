@@ -30,6 +30,8 @@ import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
+import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -355,5 +357,17 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request) {
         return Result.success(targetIdentificationSecurityService.getPublications(request));
+    }
+
+    @PostMapping(value = "/target/structures")
+    @ApiOperation(
+            value = "Loads structures entities from RCSB PDB",
+            notes = "Loads structures entities from RCSB PDB",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request) {
+        return Result.success(targetIdentificationSecurityService.getStructures(request));
     }
 }
