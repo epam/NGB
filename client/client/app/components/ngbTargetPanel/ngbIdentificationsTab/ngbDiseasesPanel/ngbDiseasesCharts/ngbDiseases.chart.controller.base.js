@@ -14,6 +14,11 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
         ngbDiseasesChartService
     ) {
         super($scope, $timeout, dispatcher);
+        const sourceChanged = this.sourceChanged.bind(this);
+        dispatcher.on('target:identification:charts:gene:changed', sourceChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:charts:gene:changed', sourceChanged);
+        });
         this.ngbDiseasesChartService = ngbDiseasesChartService;
         this.element = $element[0];
         this.svgContainer = $element.find('.ngb-diseases-chart-svg-container')[0];
@@ -65,6 +70,18 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
             this.ngbDiseasesChartService.scoreFilter = value;
             this.draw();
         }
+    }
+
+    get selectedGeneId() {
+        return this.ngbDiseasesChartService.selectedGeneId;
+    }
+
+    set selectedGeneId(selectedGeneId) {
+        this.ngbDiseasesChartService.selectedGeneId = selectedGeneId;
+    }
+
+    get genes() {
+        return this.ngbDiseasesChartService.genes || [];
     }
 
     async initialize() {

@@ -7,11 +7,13 @@ export default class ngbDiseasesChartService {
     static instance (
         dispatcher,
         ngbTargetPanelService,
+        ngbDiseasesPanelService,
         targetDataService
     ) {
         return new ngbDiseasesChartService(
             dispatcher,
             ngbTargetPanelService,
+            ngbDiseasesPanelService,
             targetDataService
         )
     }
@@ -19,16 +21,20 @@ export default class ngbDiseasesChartService {
     constructor(
         dispatcher,
         ngbTargetPanelService,
+        ngbDiseasesPanelService,
         targetDataService
     ) {
         this.dispatcher = dispatcher;
         this.ngbTargetPanelService = ngbTargetPanelService;
+        this.ngbDiseasesPanelService = ngbDiseasesPanelService;
         this.targetDataService = targetDataService;
         this._error = false;
         this._errorMessageList = null;
         this._diseasesResults = null;
         this._diseases = null;
         this._ontologyRequest = undefined;
+        this._selectedGeneId = undefined;
+        this._genes = [];
         this._ontology = [];
         this.minScore = 0;
         this.maxScore = 1;
@@ -36,6 +42,20 @@ export default class ngbDiseasesChartService {
         this.scoreFilter = 0;
         this.minColor = {r: 246, g: 252, b: 255};
         this.maxColor = {r: 15, g: 100, b: 150};
+        dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
+        this.updateGenes();
+    }
+
+    get selectedGeneId() {
+        return this._selectedGeneId;
+    }
+
+    set selectedGeneId(selectedGeneId) {
+        if (
+            this._selectedGeneId !== !!selectedGeneId) {
+            this._selectedGeneId = selectedGeneId;
+            this.dispatcher.emit('target:identification:charts:gene:changed');
+        }
     }
 
     get identificationTarget() {
@@ -43,19 +63,28 @@ export default class ngbDiseasesChartService {
     }
 
     get geneIds() {
-        const {interest, translational} = this.identificationTarget;
-        return [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        const {
+            interest = [],
+            translational = []
+        } = this.identificationTarget;
+        const allIds = [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
+        return [...new Set(allIds)];
+    }
+
+
+    get genes() {
+        return this._genes;
     }
 
     get loading() {
-        return this.ngbTargetPanelService
-            ? this.ngbTargetPanelService.chartsLoading
+        return this.ngbDiseasesPanelService
+            ? this.ngbDiseasesPanelService.chartsLoading
             : false;
     }
 
     set loading(loading) {
-        if (this.ngbTargetPanelService) {
-            this.ngbTargetPanelService.chartsLoading = loading;
+        if (this.ngbDiseasesPanelService) {
+            this.ngbDiseasesPanelService.chartsLoading = loading;
         }
     }
 
@@ -93,11 +122,27 @@ export default class ngbDiseasesChartService {
         return `rgb(${r}, ${g}, ${b})`;
     }
 
+    updateGenes() {
+        const genes = this.ngbTargetPanelService.allGenes || [];
+        const geneIds = this.geneIds;
+        this._genes = geneIds.map((id) => {
+            const item = genes.find((o) => o.geneId === id);
+            if (item) {
+                return {
+                    id,
+                    name: item.chip
+                };
+            }
+            return undefined;
+        }).filter(Boolean);
+        this.selectedGeneId = geneIds[0];
+    }
+
     getRequest() {
         return {
             page: 1,
             pageSize: 10,
-            geneIds: this.geneIds,
+            geneIds: [this.selectedGeneId].filter(Boolean),
         };
     }
 

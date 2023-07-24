@@ -1,4 +1,20 @@
 <div class="ngb-diseases-chart-controls">
+    <div class="diseases-chart-gene-select"
+         ng-if="$ctrl.genes.length > 1">
+        <label>
+            Gene:
+        </label>
+        <md-input-container>
+            <md-select ng-model="$ctrl.selectedGeneId"
+                       aria-label="Gene"
+                       md-container-class="diseases-chart-gene-select-container">
+                <md-option ng-repeat="item in $ctrl.genes"
+                           ng-value="item.id">
+                    {{item.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
     <md-slider
             ng-model="$ctrl.scoreFilter"
             min="{{$ctrl.minScore}}"
