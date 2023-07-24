@@ -5,8 +5,8 @@ export default class ngbTargetPanelService {
 
     _identificationData = null;
     _identificationTarget = null;
-    _descriptions;
-    _shortDescription;
+    _descriptions = null;
+    _shortDescription = null;
 
     get shortDescriptionLength() {
         return SHORT_DESCRIPTION_LENGTH;
@@ -57,6 +57,8 @@ export default class ngbTargetPanelService {
         this.dispatcher.emit('reset:identification:data');
         this._identificationData = null;
         this._identificationTarget = null;
+        this._descriptions = null;
+        this._shortDescription = null;
     }
 
     setIdentificationData(data, info) {
