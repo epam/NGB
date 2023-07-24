@@ -255,9 +255,9 @@ export default class ngbDiseasesTableService {
     }
 
     setFieldList() {
-        const {interest, translational} = this.identificationTarget;
+        const allGenes = this.ngbTargetPanelService.allGenes;
         this.fieldList = {
-            target: [...interest.map(i => i.chip), ...translational.map(t => t.chip)],
+            target: [...allGenes.map(i => i.chip)],
             disease: []
         };
         this.dispatcher.emitSimpleEvent('diseases:filters:list');

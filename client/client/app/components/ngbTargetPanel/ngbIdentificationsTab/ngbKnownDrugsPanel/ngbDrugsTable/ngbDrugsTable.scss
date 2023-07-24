@@ -47,6 +47,31 @@ ngb-drugs-table {
     .ui-grid-container .ui-grid-cell-contents.md-button {
         min-height: unset;
         height: 100%;
+        display: grid;
+        grid-template-columns: repeat(50, 1fr);
+    }
+
+    .ui-grid-header-cell-label-container {
+        display: flex;
+        justify-content: center;
+        min-width: 0;
+        grid-column: 1 / 49;
+        grid-row: 1;
+    }
+
+    .ui-grid-header-cell-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sort-icon {
+        grid-column: 50 / 50;
+        grid-row: 1;
+
+        ng-md-icon {
+            margin-right: 3px;
+        }
     }
 
     .with-pagination .ui-grid-row:last-child .ui-grid-cell {

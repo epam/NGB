@@ -62,16 +62,6 @@ export default class ngbDiseasesChartService {
         return this.ngbTargetPanelService.identificationTarget || {};
     }
 
-    get geneIds() {
-        const {
-            interest = [],
-            translational = []
-        } = this.identificationTarget;
-        const allIds = [...interest.map(i => i.geneId), ...translational.map(t => t.geneId)];
-        return [...new Set(allIds)];
-    }
-
-
     get genes() {
         return this._genes;
     }
@@ -123,19 +113,9 @@ export default class ngbDiseasesChartService {
     }
 
     updateGenes() {
-        const genes = this.ngbTargetPanelService.allGenes || [];
-        const geneIds = this.geneIds;
-        this._genes = geneIds.map((id) => {
-            const item = genes.find((o) => o.geneId === id);
-            if (item) {
-                return {
-                    id,
-                    name: item.chip
-                };
-            }
-            return undefined;
-        }).filter(Boolean);
-        this.selectedGeneId = geneIds[0];
+        this._genes = this.ngbTargetPanelService.allGenes.slice();
+        const gene = this._genes[0];
+        this.selectedGeneId = gene ? gene.geneId : undefined;
     }
 
     getRequest() {

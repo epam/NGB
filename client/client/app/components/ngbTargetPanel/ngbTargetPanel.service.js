@@ -13,12 +13,21 @@ export default class NgbTargetPanelService {
         return this._identificationTarget;
     }
 
+    get genesIds() {
+        const {
+            interest = [],
+            translational = []
+        } = this.identificationTarget || {};
+        return [...new Set([...interest.map((o) => o.geneId), ...translational.map((o) => o.geneId)])];
+    }
+
     get allGenes() {
         const {
             interest = [],
             translational = []
         } = this.identificationTarget || {};
-        return [...interest, ...translational];
+        const allGenes = [...interest, ...translational];
+        return this.genesIds.map((id) => allGenes.find((o) => o.geneId === id)).filter(Boolean);
     }
 
     get descriptions() {
@@ -40,17 +49,11 @@ export default class NgbTargetPanelService {
         this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
     }
 
-    panelCloseTargetPanel() {
-        this.resetData();
-        const layoutChange = this.appLayout.Panels.target;
-        layoutChange.displayed = false;
-        this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
-    }
-
     resetIdentificationData() {
         this.dispatcher.emit('target:identification:reset');
         this._identificationData = null;
         this._identificationTarget = null;
+        this._descriptions = null;
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
     }
 

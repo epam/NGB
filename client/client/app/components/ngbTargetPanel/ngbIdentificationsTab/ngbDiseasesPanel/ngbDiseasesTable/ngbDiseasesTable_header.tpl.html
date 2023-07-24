@@ -9,11 +9,14 @@
             <md-button tabindex="0"
                        col-index="renderIndex"
                        class="ui-grid-cell-contents ui-grid-header-cell-primary-focus">
-                <span class="ui-grid-header-cell-label"
-                      ui-grid-one-bind-id-grid="col.uid + '-header-text'">
-                    {{ col.displayName }}
-                </span>
-                <span ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"
+                <div class="ui-grid-header-cell-label-container">
+                    <span class="ui-grid-header-cell-label"
+                        ui-grid-one-bind-id-grid="col.uid + '-header-text'">
+                        {{ col.displayName }}
+                    </span>
+                </div>
+                <span class="sort-icon"
+                      ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"
                       ui-grid-visible="col.sort.direction"
                       aria-label="{{getSortDirectionAriaLabel()}}">
                     <ng-md-icon icon="arrow_downward"

@@ -362,7 +362,7 @@ export default class ngbDrugsTableService {
             }
         }
         const allGenes = this.ngbTargetPanelService.allGenes;
-        this.fieldList.target = [...allGenes.map(i => i.chip)]
+        this.fieldList.target = [...allGenes.map(i => i.chip)];
         this.dispatcher.emitSimpleEvent('target:identification:drugs:filters:list');
     }
 
