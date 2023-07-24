@@ -155,7 +155,8 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
             doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-            doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getName().toLowerCase(), Field.Store.YES));
+            doc.add(new StringField(IndexFields.DRUG_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.name(),
                     new BytesRef(entry.getName())));
 
@@ -189,7 +190,8 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
             Query query = IndexFields.DRUG_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(filter.getField(), term) : buildTermQuery(filter.getField(), term);
+                    buildPrefixQuery(IndexFields.DRUG_NAME_FLTR.name(), term) :
+                    buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
@@ -204,6 +206,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
     private enum IndexFields {
         GENE_ID,
         DRUG_NAME,
+        DRUG_NAME_FLTR,
         INTERACTION_TYPES,
         INTERACTION_CLAIM_SOURCE;
     }
