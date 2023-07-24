@@ -21,7 +21,7 @@ export default class ngbTargetPanelService {
 
     get allGenes() {
         const {interest, translational} = this.identificationTarget;
-        return [...interest, ...translational];
+        return new Set([...interest, ...translational]);
     }
 
     get descriptions() {
