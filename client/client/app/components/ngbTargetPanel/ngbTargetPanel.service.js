@@ -157,5 +157,8 @@ export default class ngbTargetPanelService {
                 }
             }
         }
+        if (short.length) {
+            this._shortDescription = short;
+        }
     }
 }
