@@ -15,7 +15,6 @@ export default class NgbBibliographyPanelService {
     _emptySummary = false;
 
     _publications = [];
-    _publicationsPage = [];
     _totalPages = 0;
     _currentPage = 1;
 
@@ -53,10 +52,6 @@ export default class NgbBibliographyPanelService {
 
     get publications() {
         return this._publications || [];
-    }
-
-    get publicationsPage() {
-        return this._publicationsPage || [];
     }
 
     get totalPages() {
@@ -100,18 +95,9 @@ export default class NgbBibliographyPanelService {
         (this.getPublicationsResults)();
     }
 
-    setPublications() {
-        const data = this._publications;
-        const start = (this.currentPage - 1) * this.pageSize;
-        const end = this.currentPage * this.pageSize;
-        this._publicationsPage = data.slice(start, end);
-        this._loadingPublications = false;
-    }
-
     async getDataOnPage(page) {
         this.currentPage = page;
-        this.setPublications();
-        this.dispatcher.emit('target:identification:publications:page:changed');
+        this.getPublicationsResults();
     }
 
     getPublicationsResults() {
@@ -127,7 +113,9 @@ export default class NgbBibliographyPanelService {
         this._loadingPublications = true;
         return new Promise(resolve => {
             this.targetDataService.getPublications({
-                geneIds: this.genes
+                geneIds: this.genes,
+                page: this.currentPage,
+                pageSize: this.pageSize
             })
                 .then(([data, totalCount]) => {
                     this._failedPublications = false;
@@ -135,7 +123,6 @@ export default class NgbBibliographyPanelService {
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyPublications = totalCount === 0;
                     this._publications = data;
-                    this.setPublications();
                     this._loadingPublications = false;
                     this.dispatcher.emit('target:identification:publications:loaded');
                     this.dispatcher.emit('target:identification:publications:page:changed');

@@ -78,7 +78,7 @@ export default function buildMainInfoBlocks (identificationData, bibliographySer
             items: [
                 {
                     item: 'publication',
-                    count: publications.length
+                    count: identificationData.publicationsCount || 0
                 }
             ]
         }
