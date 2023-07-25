@@ -13,12 +13,7 @@ const LLM_MODELS = [
 
 export default class ngbBibliographyPanelController {
 
-    _publications = [];
     llmModelValue = this.llmModels[0].value;
-
-    get publications() {
-        return this._publications;
-    }
 
     get llmModels() {
         return LLM_MODELS;
@@ -37,8 +32,11 @@ export default class ngbBibliographyPanelController {
         });
     }
 
+    get publications() {
+        return this.ngbBibliographyPanelService.publications;
+    }
+
     refresh() {
-        this._publications = this.ngbBibliographyPanelService.publicationsPage;
         this.$timeout(() => this.$scope.$apply());
     }
 
