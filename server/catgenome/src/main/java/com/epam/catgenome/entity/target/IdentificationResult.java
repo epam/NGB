@@ -40,4 +40,5 @@ public class IdentificationResult {
     private Map<String, String> description;
     private Long diseasesCount;
     private Long knownDrugsCount;
+    private Long publicationsCount;
 }

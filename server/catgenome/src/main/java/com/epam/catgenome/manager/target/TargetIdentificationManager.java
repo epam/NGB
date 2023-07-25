@@ -106,13 +106,19 @@ public class TargetIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final Map<String, String> description = getDescriptions(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<String> entrezGeneIds = ncbiGeneIds.stream()
+                .map(g -> g.getEntrezId().toString())
+                .collect(Collectors.toList());
+        final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
+        final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
                 .knownDrugsCount(drugsCount)
+                .publicationsCount(publicationsCount)
                 .build();
     }
 
@@ -197,12 +203,12 @@ public class TargetIdentificationManager {
     }
 
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
-        return pudMedService.fetchPubMedArticles(request.getGeneIds());
+        return pudMedService.fetchPubMedArticles(request);
     }
 
-    private Map<String, String> getDescriptions(final List<String> geneIds)
+    private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<String> geneIds = ncbiGeneIds.stream().map(GeneId::getEnsembleId).collect(Collectors.toList());
         final Map<GeneId, String> ncbiSummary = geneManager.fetchGeneSummaryByIds(ncbiGeneIds);
         final List<TargetDetails> openTargetDetails = targetDetailsManager.search(geneIds);
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
