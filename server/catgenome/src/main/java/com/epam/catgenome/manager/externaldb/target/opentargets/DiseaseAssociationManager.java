@@ -163,11 +163,15 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Override
     public void addDoc(final IndexWriter writer, final DiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
-        addStringField(entry.getGeneId(), doc, IndexFields.GENE_ID);
+        doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
         doc.add(new StringField(IndexFields.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
 
-        addStringField(entry.getDiseaseName(), doc, IndexFields.DISEASE_NAME);
+        doc.add(new StringField(IndexFields.DISEASE_NAME_FLTR.name(),
+                entry.getDiseaseName().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), entry.getDiseaseName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.name(), new BytesRef(entry.getDiseaseName())));
 
         addFloatField(entry.getOverallScore(), doc, IndexFields.OVERALL_SCORE);
         addFloatField(entry.getGeneticAssociationScore(), doc, IndexFields.GENETIC_ASSOCIATIONS_SCORE);
@@ -239,7 +243,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
             Query query = IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(filter.getField(), term) : buildTermQuery(filter.getField(), term);
+                    buildPrefixQuery(IndexFields.DISEASE_NAME_FLTR.name(), term) :
+                    buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
@@ -319,13 +324,6 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         }
     }
 
-    private static void addStringField(final String entry, final Document doc, final IndexFields field) {
-        if (entry != null) {
-            doc.add(new StringField(field.name(), entry.toLowerCase(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(field.name(), new BytesRef(entry)));
-        }
-    }
-
     private static void addFloatField(final Float entry, final Document doc, final IndexFields field) {
         if (entry != null) {
             doc.add(new FloatPoint(field.name(), entry));
@@ -342,6 +340,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     private enum IndexFields {
         GENE_ID,
         DISEASE_ID,
+        DISEASE_NAME_FLTR,
         DISEASE_NAME,
         OVERALL_SCORE,
         GENETIC_ASSOCIATIONS_SCORE,
