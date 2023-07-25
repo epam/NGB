@@ -113,7 +113,7 @@ public class TargetIdentificationManager {
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
-        final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds, "");
+        final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)

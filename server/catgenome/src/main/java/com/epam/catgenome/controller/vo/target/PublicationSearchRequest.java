@@ -33,5 +33,4 @@ public class PublicationSearchRequest {
     private List<String> geneIds;
     private Integer page;
     private Integer pageSize;
-    private String term;
 }
