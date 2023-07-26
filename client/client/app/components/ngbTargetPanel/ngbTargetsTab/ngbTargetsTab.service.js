@@ -12,6 +12,8 @@ const NEW_GENE = {
     priority: ''
 };
 
+const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
+
 export default class ngbTargetsTabService {
 
     _targetMode = this.mode.TABLE;
@@ -32,6 +34,10 @@ export default class ngbTargetsTabService {
 
     get mode () {
         return MODE;
+    }
+
+    get geneModelProperties() {
+        return GENE_MODEL_PROPERTIES;
     }
 
     get isTableMode() {
@@ -222,13 +228,16 @@ export default class ngbTargetsTabService {
             ));
         };
         const genesChanged = () => {
-            if (this.originalModel.targetGenes.length !== this.targetModel.genes.length) {
+            const originalModel = this.originalModel.targetGenes;
+            const targetModel = this.targetModel.genes;
+            if (originalModel.length !== targetModel.length) {
                 return true;
             }
-            return this.targetModel.genes.some((gene, index) => (
-                Object.entries(gene).some(([key, value]) => (
-                    value !== this.originalModel.targetGenes[index][key]
-                ))
+            return targetModel.some((gene, index) => (
+                Object.entries(gene).some(([key, value]) => {
+                    if (!this.geneModelProperties.includes(key)) return false;
+                    return String(value) !== String(originalModel[index][key]);
+                })
             ));
         };
         return nameChanged || changed('diseases') || changed('products') || genesChanged();
