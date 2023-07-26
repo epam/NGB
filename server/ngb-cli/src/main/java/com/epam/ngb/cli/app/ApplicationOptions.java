@@ -128,6 +128,7 @@ public class ApplicationOptions {
     private boolean sendContent;
     private boolean alias;
     private String description;
+    private String metadata;
 
     /**
      * Option for BAM file coverage registration, specifies a coverage interval size.

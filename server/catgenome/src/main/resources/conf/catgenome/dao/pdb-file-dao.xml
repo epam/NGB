@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.pdb.PdbFileDao" id="pdbFileDao" autowire="byName">
+        <property name="pdbFileSequenceName" value="catgenome.s_pdb_file"/>
+        <property name="insertPdbFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.pdb_file (
+                        pdb_file_id,
+                        bio_data_item_id,
+                        gene_id,
+                        metadata
+                    ) VALUES (
+                        :PDB_FILE_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :GENE_ID,
+                        :METADATA
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="deletePdbFileQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.pdb_file WHERE pdb_file_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPdbFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.pretty_name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.owner,
+
+                        t.pdb_file_id,
+                        t.bio_data_item_id,
+                        t.gene_id,
+                        t.metadata
+                    FROM catgenome.pdb_file t join
+                    catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                        WHERE t.pdb_file_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPdbFilesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name name,
+                        b.pretty_name pretty_name,
+                        b.type,
+                        b.path,
+                        b.source,
+                        b.format,
+                        b.created_date,
+                        b.owner,
+
+                        t.pdb_file_id pdb_file_id,
+                        t.bio_data_item_id,
+                        t.gene_id gene_id,
+                        t.metadata
+                    FROM catgenome.pdb_file t join
+                    catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
+                ]]>
+            </value>
+        </property>
+        <property name="updatePdbFileMetadataQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.pdb_file SET metadata = :METADATA
+                    WHERE pdb_file_id = :PDB_FILE_ID
+                ]]>
+            </value>
+        </property>
+        <property name="totalCountQuery">
+            <value>
+                <![CDATA[
+                    select count(*) as count from catgenome.pdb_file
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>
