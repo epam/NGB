@@ -125,6 +125,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     enum TargetParameters {
         TARGET_ID,
         TARGET_NAME,
+        OWNER,
         DISEASES,
         PRODUCTS;
 
@@ -132,6 +133,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(TARGET_ID.name(), target.getTargetId());
             params.addValue(TARGET_NAME.name(), target.getTargetName());
+            params.addValue(OWNER.name(), target.getOwner());
             params.addValue(DISEASES.name(), listToData(target.getDiseases()));
             params.addValue(PRODUCTS.name(), listToData(target.getProducts()));
             return params;
@@ -145,6 +147,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
             return Target.builder()
                     .targetId(rs.getLong(TARGET_ID.name()))
                     .targetName(rs.getString(TARGET_NAME.name()))
+                    .owner(rs.getString(OWNER.name()))
                     .diseases(dataToList(rs.getString(DISEASES.name())))
                     .products(dataToList(rs.getString(PRODUCTS.name())))
                     .build();

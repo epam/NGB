@@ -37,6 +37,7 @@ import java.util.List;
 public class Target extends AbstractSecuredEntity {
     private Long targetId;
     private String targetName;
+    private String owner;
     private List<String> diseases;
     private List<String> products;
     private List<TargetGene> targetGenes;

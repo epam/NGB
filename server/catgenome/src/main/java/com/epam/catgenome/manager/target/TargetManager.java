@@ -58,6 +58,7 @@ public class TargetManager {
     private static final String LIKE_CLAUSE = "UPPER(%s) like UPPER('%%%s%%')";
     private static final String EQUAL_CLAUSE = "UPPER(%s) = UPPER('%s')";
     private static final String TARGET_NAME = "target_name";
+    private static final String OWNER = "owner";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
     private static final String GENE_ID = "gene_id";
@@ -154,6 +155,9 @@ public class TargetManager {
         final List<String> clauses = new ArrayList<>();
         if (StringUtils.isNotBlank(targetQueryParams.getTargetName())) {
             clauses.add(String.format(LIKE_CLAUSE, TARGET_NAME, targetQueryParams.getTargetName()));
+        }
+        if (StringUtils.isNotBlank(targetQueryParams.getOwner())) {
+            clauses.add(String.format(EQUAL_CLAUSE, OWNER, targetQueryParams.getOwner()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
             clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts(), LIKE_CLAUSE));
