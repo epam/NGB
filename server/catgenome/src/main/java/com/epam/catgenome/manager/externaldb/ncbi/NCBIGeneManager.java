@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -119,7 +120,9 @@ public class NCBIGeneManager {
         try {
             String pubmedHistoryQuery = historyQuery.getLeft();
             String pubmedHistoryWebenv = historyQuery.getRight();
-
+            if (TextUtils.isBlank(pubmedHistoryQuery) || TextUtils.isBlank(pubmedHistoryWebenv)) {
+                return 0;
+            }
             final String xml = ncbiAuxiliaryManager.searchWithHistory(pubmedHistoryQuery, pubmedHistoryWebenv,
                     NCBIDatabase.PUBMED, "0");
 
