@@ -22,7 +22,7 @@ Test verifies that
 | 6 | Set coordinate `12584341` and click Enter | |
 | 7 | Zoom in to ~100bp using +/- buttons located in the right part of the track view | |
 | 8 | On the Coverage track hover over under the coordinate `12584341` | The tooltip with the following basic information appears: <br> <code> Count 171 <br> A: 8(4.68%) <br> C: 160(93.57%) <br> G: 0(0%) <br> T: 3(1.76%) <br> N: 0(0%) <br> DEL: 3 <br> INS: 33</code> <br> |
-| 9 | Check bar for coordinate `12586062` on the Coverage track | Corresponding bar has default colour only |
+| 9 | Check bar for coordinate `12584341` on the Coverage track | Corresponding bar has default colour only |
 | 10 | Check coordinate `12584341` on the _REFERENCE_ track | Letter **`C`** is shown |
 | 11 | Set coordinate `12586062` and click Enter | |
 | 12 | On the Coverage track hover over under the coordinate `12586062` | The tooltip with the following basic information appears: <br> <code> Count 341 <br> A: 166(48.69%) <br> C: 174(51.03%) <br> G: 0(0%) <br> T: 1(0.3%) <br> N: 0(0%) <br> DEL: 0 <br> INS: 0</code> <br> |
