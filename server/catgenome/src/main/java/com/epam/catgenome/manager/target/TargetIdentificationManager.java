@@ -36,7 +36,9 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.manager.externaldb.PudMedService;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.target.IdentificationRequest;
@@ -97,6 +99,7 @@ public class TargetIdentificationManager {
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final DiseaseManager diseaseManager;
     private final PudMedService pudMedService;
+    private final NCBIGeneSequencesManager geneSequencesManager;
 
     public IdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -204,6 +207,16 @@ public class TargetIdentificationManager {
 
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
         return pudMedService.fetchPubMedArticles(request);
+    }
+
+    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        if (CollectionUtils.isEmpty(ncbiGeneIds)) {
+            return Collections.emptyList();
+        }
+        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
+                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
+        return geneSequencesManager.fetchGeneSequences(entrezMap);
     }
 
     private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
