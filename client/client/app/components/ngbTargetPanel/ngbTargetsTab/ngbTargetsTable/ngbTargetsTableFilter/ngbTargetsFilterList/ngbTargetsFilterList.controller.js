@@ -109,9 +109,13 @@ export default class ngbTargetsFilterList {
             this.hideListTimeout = null;
         }
         this.input.focus();
-        const index = this.selectedItems.indexOf(item);
-        if (index >= 0) {
-            this.selectedItems.splice(index, 1);
+        const indexes = this.selectedItems
+            .map((el, ind) => el.toLowerCase() === item.toLowerCase() ? ind : null)
+            .filter(i => i || i === 0);
+        if (indexes.length) {
+            this.selectedItems = this.selectedItems.filter((el, ind) => (
+                !indexes.includes(ind)
+            ));
         } else {
             this.selectedItems.push(item);
         }
