@@ -33,30 +33,33 @@ export default class ngbDrugsTableController {
         return 'ngbDrugsTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbDrugsTableService, ngbKnownDrugsPanelService});
-
-        const drugsSourceChanged = this.sourceChanged.bind(this);
-        const diseasesSourceChanged = this.resetDrugsData.bind(this);
-        const filterChanged = this.filterChanged.bind(this);
-        dispatcher.on('drugs:source:changed', drugsSourceChanged);
-        dispatcher.on('diseases:source:changed', diseasesSourceChanged);
-        dispatcher.on('drugs:filters:changed', filterChanged);
-        $scope.$on('$destroy', () => {
-            dispatcher.removeListener('drugs:source:changed', drugsSourceChanged);
-            dispatcher.removeListener('diseases:source:changed', diseasesSourceChanged);
-            dispatcher.removeListener('drugs:filters:changed', filterChanged);
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbDrugsTableService,
+        ngbKnownDrugsPanelService,
+        ngbIdentificationsTabService
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbDrugsTableService,
+            ngbKnownDrugsPanelService,
+            ngbIdentificationsTabService
         });
-    }
 
-    get openTargetsColumnList () {
-        return this.ngbDrugsTableService.openTargetsColumns;
-    }
-    get pharmGkbColumnList () {
-        return this.ngbDrugsTableService.pharmGkbColumns;
-    }
-    get dgiDbColumnList () {
-        return this.ngbDrugsTableService.dgiDbColumns;
+        const sourceChanged = this.sourceChanged.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
+        dispatcher.on('target:identification:changed', sourceChanged);
+        dispatcher.on('target:identification:drugs:source:changed', sourceChanged);
+        dispatcher.on('target:identification:drugs:filters:changed', filterChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:changed', sourceChanged);
+            dispatcher.removeListener('target:identification:drugs:source:changed', sourceChanged);
+            dispatcher.removeListener('target:identification:drugs:filters:changed', filterChanged);
+        });
     }
 
     get totalPages() {
@@ -101,37 +104,41 @@ export default class ngbDrugsTableController {
 
     resetDrugsData() {
         this.ngbDrugsTableService.resetDrugsData();
-        this.dispatcher.emit('drugs:filters:reset');
+        this.dispatcher.emit('target:identification:drugs:filters:reset');
     }
 
     $onInit() {
-        this.initialize();
-    }
-
-    async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
-            columnDefs: this.getDrugsTableGridColumns(),
+            columnDefs: [],
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
+                this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
             }
         });
+        (this.initialize)();
+    }
+
+    async initialize() {
+        if (!this.gridOptions) {
+            return;
+        }
         if (this.ngbDrugsTableService.drugsResults) {
             this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
         } else {
             await this.loadData();
-            await this.ngbDrugsTableService.setFieldList();
         }
+        this.gridOptions.columnDefs = this.getDrugsTableGridColumns();
+        await this.ngbDrugsTableService.setFieldList();
     }
 
     async sourceChanged() {
         this.resetDrugsData();
         this.resetSorting();
-        this.initialize();
-        this.$timeout(::this.$scope.$apply);
+        await this.initialize();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     resetSorting() {
@@ -220,16 +227,15 @@ export default class ngbDrugsTableController {
 
     async loadData () {
         this.loadingData = true;
-        const results = await this.ngbDrugsTableService.getDrugsResults()
+        this.gridOptions.data = await this.ngbDrugsTableService.getDrugsResults()
             .then(success => {
                 if (success) {
                     return this.ngbDrugsTableService.drugsResults;
                 }
                 return [];
             });
-        this.gridOptions.data = results;
-        this.dispatcher.emit('drugs:results:updated');
-        this.$timeout(::this.$scope.$apply);
+        this.dispatcher.emit('target:identification:drugs:results:updated');
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async sortChanged(grid, sortColumns) {
@@ -246,7 +252,6 @@ export default class ngbDrugsTableController {
             this.sortInfo = null;
         }
         this.currentPage = 1;
-        this.gridOptions.data = [];
         await this.loadData();
     }
 
@@ -256,9 +261,8 @@ export default class ngbDrugsTableController {
         }
         this.loadingData = true;
         this.currentPage = 1;
-        this.gridOptions.data = [];
         await this.loadData();
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async getDataOnPage(page) {

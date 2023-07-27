@@ -195,18 +195,21 @@ export default class ngbOrthoParaTableService extends ClientPaginationService {
     }
 
     _formatServerToClient(orthoPara) {
-        const targetInfo = {
-            geneName: orthoPara.geneName,
-            geneId: orthoPara.ensemblId,
-            taxId: orthoPara.taxId,
-            speciesName: orthoPara.speciesScientificName
-        }
+        const targetGenes = orthoPara.homologs.map(h => ({
+            geneName: h.symbol,
+            geneId: h.ensemblId,
+            taxId: h.taxId,
+            speciesName: h.speciesScientificName
+        }));
         return {
             groupId: orthoPara.groupId,
             gene: orthoPara.geneName,
             protein: orthoPara.proteinName,
             info: orthoPara.homologDatabase,
-            targetInfo: [targetInfo]
+            targetInfo: {
+                targetName: orthoPara.geneName,
+                genes: targetGenes
+            }
         };
     }
 

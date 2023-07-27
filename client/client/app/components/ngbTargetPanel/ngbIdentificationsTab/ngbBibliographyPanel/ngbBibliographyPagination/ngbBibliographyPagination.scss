@@ -1,13 +1,7 @@
 ngb-bibliography-pagination {
-    font-size: 14px;
-    align-self: center;
-    height: auto;
-    margin-right: 10px;
-    float: right;
-
-    .pagination {
-        margin-right: 5px;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 
     .pagination-item {
         float: left;
@@ -18,7 +12,7 @@ ngb-bibliography-pagination {
         margin: 0 2px;
         line-height: 24px;
         color: rgb(102, 153, 255);
-        
+
         ng-md-icon {
             fill: rgb(102, 153, 255);
             min-height: 24px;

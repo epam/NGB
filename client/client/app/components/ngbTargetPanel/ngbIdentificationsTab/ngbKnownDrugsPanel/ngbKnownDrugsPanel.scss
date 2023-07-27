@@ -1,103 +1,94 @@
+$known-drugs-nav-height: 28px;
+$known-drugs-border: 1px solid #dddddd;
+$known-drugs-color: #444444;
+$known-drugs-font-size: 13px;
+
 ngb-known-drugs-panel {
-    md-nav-bar.known-drugs-nav-bar {
-        .md-nav-bar {
-            height: 30px;
-        }
+    padding: 5px 0 0;
+    position: relative;
 
-        .md-nav-item:first-of-type {
-            margin-left: 0;
-        }
+    .known-drugs-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
 
-        nav, ._md-nav-bar-list {
-            height: 100%;
-        }
+        .drugs-source-select {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
 
-        .md-nav-item ._md-nav-button {
-            font-size: 12px;
-            margin: 0 0 0 0;
-            padding: 0 12px;
-            min-height: 30px;
-            border: 1px solid #cacaca;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-        }
+            md-input-container,
+            label {
+                margin: 0;
+                padding: 0;
+                line-height: $known-drugs-nav-height;
+                height: $known-drugs-nav-height;
+                color: $known-drugs-color;
+                font-size: $known-drugs-font-size;
+            }
 
-        .md-button.md-default-theme.md-accent,
-        .md-button.md-accent {
-            color: rgba(0,0,0,0.54);
-        }
+            label {
+                margin-right: 5px;
+            }
 
-        .md-nav-item .md-active {
-            background-color: rgba(102,153,255, 0.54);;
-            color: rgba(0,0,0,0.74);
-        }
+            md-input-container md-select {
+                &:not([disabled]):focus .md-select-value {
+                    border-bottom: none;
+                }
 
-        .md-nav-bar.md-default-theme md-nav-ink-bar,
-        .md-nav-bar md-nav-ink-bar {
-            display: none;
+                md-select-value {
+                    border: none;
+                    min-height: $known-drugs-nav-height;
+                    padding: 0;
+                    font-size: $known-drugs-font-size;
+                    display: flex;
+                    align-items: center;
+
+                    .md-select-icon {
+                        margin: 0 4px 0 0;
+                        width: 20px;
+                    }
+
+                    > span,
+                    > span > div {
+                        line-height: $known-drugs-nav-height;
+                        height: $known-drugs-nav-height;
+                        transform: none !important;
+                    }
+                }
+            }
         }
     }
 
-    md-content.known-drugs-content {
-        border: 1px solid #cacaca;
-        border-top: none;
-        border-radius: 0 0 10px 10px;
+    ngb-drugs-table .ui-grid {
+        border-top: $known-drugs-border;
     }
 
-    .source-select {
-        width: 100%;
-        align-self: center;
-        font-size: 14px;
-
-        md-input-container {
-            margin: 1px 0;
-            float: right;
-        }
-
-        label {
-            float: right;
-            margin-top: 8px;
-            margin-right: 6px;
-        }
-
-        md-select-value {
-            border: 1px solid #cacaca;
-            border-radius: 10px;
-            min-height: 20px;
-            padding: 1px 2px 1px 6px;
-        }
-
-        .md-select-value .md-select-icon {
-            width: 14px;
-            margin: 4px 4px 0 4px;
-        }
-
-        md-select.md-default-theme:not([disabled]):focus .md-select-value,
-        md-select:not([disabled]):focus .md-select-value {
-            border-bottom-color: #cacaca;
-        }
-
-        md-select:not([disabled]):focus .md-select-value {
-            border-bottom-width: 1px;
-        }
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
     }
 }
 
-.drugs-source-select {
+.drugs-source-select-container {
     md-select-menu:not(.md-overflow) md-content {
         padding: 0;
     }
 
     md-option {
         padding: 0 8px;
-        height: 24px;
+        height: calc($known-drugs-nav-height + 2px);
+
+        &[selected],
+        &:not([disabled]):focus {
+            color: $known-drugs-color;
+        }
     }
 
-    md-select-menu {
-        min-height: 24px;
-    }
-
+    md-select-menu,
     md-select-menu md-content {
-        min-height: 24px;
+        min-height: calc($known-drugs-nav-height + 2px);
     }
 }

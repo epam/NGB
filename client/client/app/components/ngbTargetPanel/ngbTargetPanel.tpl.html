@@ -1,4 +1,4 @@
-<div class="u-height__full">
+<div class="u-height__full" style="position: relative">
     <md-nav-bar class="target-nav-bar"
                 md-selected-nav-item="$ctrl.tabSelected">
         <md-nav-item name="TARGETS"
@@ -21,4 +21,18 @@
                                  ng-if="$ctrl.tabSelected === $ctrl.targetState.IDENTIFICATIONS">
         </ngb-identifications-tab>
     </md-content>
+    <md-button type="button"
+               class="md-raised md-accent ngb-target-panel-extra-button"
+               ng-if="$ctrl.isTableMode"
+               aria-label="Add target"
+               ng-click="$ctrl.addTarget()">
+        CREATE TARGET
+    </md-button>
+    <md-button type="button"
+               class="md-raised md-accent ngb-target-panel-extra-button"
+               ng-if="$ctrl.isIdentificationsMode"
+               aria-label="Store report"
+               ng-click="$ctrl.storeReport()">
+        STORE REPORT
+    </md-button>
 </div>

@@ -19,8 +19,4 @@ export default class ngbTargetsTabController {
     get isEditMode() {
         return this.ngbTargetsTabService.isEditMode;
     }
-
-    addTarget() {
-        this.ngbTargetsTabService.setAddMode();
-    }
 }

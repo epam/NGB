@@ -27,3 +27,16 @@
     }
   }
 }
+
+.ngb-target-panel-extra-button {
+  position: absolute;
+  z-index: 2;
+  right: 15px;
+  top: 6px;
+  min-height: 25px;
+  height: 25px;
+  line-height: 25px;
+  min-width: unset;
+  width: unset;
+  margin: 0;
+}

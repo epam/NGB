@@ -19,7 +19,7 @@ ngb-targets-table {
         text-align: center;
         z-index: 1000;
         padding-top: 10px;
-    
+
         .no-records-warning {
             color: #999;
         }
@@ -38,8 +38,8 @@ ngb-targets-table {
     .target-name {
         color: rgb(102, 153, 255);
         font-size: 14px;
-        line-height: 30px;
-        padding-left: 4px;
+        margin: 10px 4px 10px 4px;
+        display: block;
     }
 
     .cell-content {
@@ -146,5 +146,9 @@ ngb-targets-table {
             overflow: hidden;
             font-size: 14px;
         }
+    }
+
+    .ui-grid-column-menu-button.sorting-button {
+        top: 5px;
     }
 }

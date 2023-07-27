@@ -130,7 +130,8 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
 
         doc.add(new StringField(IndexFields.DISEASE_ID.name(), entry.getId(), Field.Store.YES));
 
-        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), entry.getName().toLowerCase(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.DISEASE_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.name(), new BytesRef(entry.getName())));
         writer.addDocument(doc);
     }
@@ -151,7 +152,8 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
             Query query = IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(filter.getField(), term) : buildTermQuery(filter.getField(), term);
+                    buildPrefixQuery(IndexFields.DISEASE_NAME_FLTR.name(), term) :
+                    buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
@@ -161,6 +163,7 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     private enum IndexFields {
         GENE_ID,
         DISEASE_NAME,
+        DISEASE_NAME_FLTR,
         DISEASE_ID;
     }
 }

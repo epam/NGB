@@ -1,0 +1,139 @@
+$diseases-nav-height: 28px;
+$diseases-nav-color: #333333;
+$diseases-nav-background: #fafafa;
+$diseases-nab-border: 1px solid #f0f0f0;
+$diseases-nav-selected-background: #dddddd;
+$diseases-nab-selected-border: 1px solid #dddddd;
+$diseases-nav-border-radius: 3px;
+$diseases-font-size: 13px;
+
+ngb-diseases-panel {
+  display: block;
+  padding: 5px 0 0 0;
+  position: relative;
+
+  md-nav-bar.associated-diseases-nav-bar {
+    nav,
+    ul,
+    .md-nav-bar,
+    .diseases-source-select {
+      color: $diseases-nav-color;
+      height: $diseases-nav-height;
+      line-height: $diseases-nav-height;
+    }
+
+    .md-nav-bar {
+      border-bottom: 1px solid $diseases-nab-border;
+    }
+
+    md-nav-ink-bar {
+      display: none;
+    }
+
+    .md-nav-item:first-of-type {
+      margin-left: 2px;
+    }
+
+    .associated-diseases-tab {
+      >button.md-button {
+        border-radius: $diseases-nav-border-radius $diseases-nav-border-radius 0 0;
+        line-height: $diseases-nav-height;
+        height: $diseases-nav-height;
+        min-height: $diseases-nav-height;
+        padding: 0 4px;
+        margin: 0 2px;
+        color: $diseases-nav-color;
+        font-size: $diseases-font-size;
+        font-weight: normal;
+        background: $diseases-nav-background;
+        border: $diseases-nab-border;
+      }
+
+      &.selected > button.md-button {
+        background: $diseases-nav-selected-background;
+        border: $diseases-nab-selected-border;
+      }
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .diseases-source-select {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+
+    md-input-container,
+    label {
+      margin: 0;
+      padding: 0;
+      line-height: $diseases-nav-height;
+      height: $diseases-nav-height;
+      color: $diseases-nav-color;
+      font-size: $diseases-font-size;
+    }
+
+    label {
+      margin-right: 5px;
+    }
+
+    md-input-container md-select {
+      &:not([disabled]):focus .md-select-value {
+        border-bottom: none;
+      }
+
+      md-select-value {
+        border: none;
+        min-height: $diseases-nav-height;
+        padding: 0;
+        font-size: $diseases-font-size;
+        display: flex;
+        align-items: center;
+
+        .md-select-icon {
+          margin: 0 4px 0 0;
+          width: 20px;
+        }
+
+        > span,
+        > span > div {
+          line-height: $diseases-nav-height;
+          height: $diseases-nav-height;
+          transform: none!important;
+        }
+      }
+    }
+  }
+
+  .loading-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+}
+
+.diseases-source-select-container {
+  md-select-menu:not(.md-overflow) md-content {
+    padding: 0;
+  }
+
+  md-option {
+    padding: 0 8px;
+    height: calc($diseases-nav-height + 2px);
+
+    &[selected],
+    &:not([disabled]):focus {
+      color: $diseases-nav-color;
+    }
+  }
+
+  md-select-menu,
+  md-select-menu md-content {
+    min-height: calc($diseases-nav-height + 2px);
+  }
+}

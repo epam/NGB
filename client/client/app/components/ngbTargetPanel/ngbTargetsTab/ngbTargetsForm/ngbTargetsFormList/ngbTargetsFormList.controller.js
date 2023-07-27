@@ -22,11 +22,20 @@ export default class ngbTargetsFormListController{
 
     refresh() {
         this.searchText = this.geneModel;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     get geneModel() {
-        return this.ngbTargetsTabService.targetModel.genes[this.index][this.model];
+        if (
+            this.model &&
+            this.ngbTargetsTabService &&
+            this.ngbTargetsTabService.targetModel &&
+            this.ngbTargetsTabService.targetModel.genes &&
+            this.ngbTargetsTabService.targetModel.genes[this.index]
+        ) {
+            return this.ngbTargetsTabService.targetModel.genes[this.index][this.model];
+        }
+        return undefined;
     }
 
     async getList (text) {

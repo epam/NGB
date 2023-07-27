@@ -1,0 +1,26 @@
+<span ng-if="!!$ctrl.tagTitle"
+      class="ngb-tags-title"
+>
+    {{$ctrl.tagTitle}}
+</span>
+<ngb-tag ng-repeat="aTag in $ctrl.items"
+         tag="aTag"
+         removable="$ctrl.editable"
+         ng-class="{'removable': $ctrl.editable}"
+         on-remove="$ctrl.onRemoveTagCallback"
+>
+</ngb-tag>
+<div ng-if="!$ctrl.addInputVisible && $ctrl.editable"
+     class="ngb-tags-add-link"
+>
+    <a ng-click="$ctrl.onAddClick()">{{$ctrl.addTagLabel}}</a>
+</div>
+<input ng-if="$ctrl.addInputVisible && $ctrl.editable"
+       class="ngb-tags-add-input"
+       ng-class="{'error': $ctrl.newTagValueIsDuplicate}"
+       ng-auto-focus="true"
+       ng-model="$ctrl.newValue"
+       ng-blur="$ctrl.onBlur($event)"
+       ng-keydown="$ctrl.onKeyPress($event)"
+       placeholder="{{$ctrl.addTagLabel}}"
+/>

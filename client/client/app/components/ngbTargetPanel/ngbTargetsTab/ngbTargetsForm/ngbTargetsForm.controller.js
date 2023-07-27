@@ -96,9 +96,15 @@ export default class ngbTargetsFormController{
             targetName: name,
             diseases,
             products,
-            targetGenes: genes.map(gene => {
-                if (gene.priority === 'None' || gene.priority === '') {
-                    delete gene.priority;
+            targetGenes: genes.map(g => {
+                const gene = {
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    taxId: g.taxId,
+                    speciesName: g.speciesName,
+                };
+                if (g.priority && g.priority !== 'None') {
+                    gene.priority = g.priority;
                 }
                 return gene;
             })
@@ -123,11 +129,13 @@ export default class ngbTargetsFormController{
         } else if (this.isEditMode) {
             await this.updateTarget();
         }
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     addGene() {
-        this.ngbTargetsTabService.addNewGene();
+        if (!this.isAddGeneDisabled) {
+            this.ngbTargetsTabService.addNewGene();
+        }
     }
 
     isGenesEmpty() {
@@ -141,7 +149,8 @@ export default class ngbTargetsFormController{
         return genesEmpty.length;
     }
 
-    isAddGeneDisabled() {
+    get isAddGeneDisabled () {
+        if (this.loading) return true;
         const block = this.targetModel.genes;
         if (!block || !block.length) {
             return false;
@@ -178,7 +187,7 @@ export default class ngbTargetsFormController{
 
         this.dispatcher.on('target:delete', async () => {
             await this.ngbTargetsTabService.deleteTarget();
-            this.$timeout(::this.$scope.$apply);
+            this.$timeout(() => this.$scope.$apply());
         });
     }
 }

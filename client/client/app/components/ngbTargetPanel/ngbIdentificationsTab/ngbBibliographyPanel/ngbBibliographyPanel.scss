@@ -1,4 +1,12 @@
+$font-size: 12px;
+
+$summary-button-size: 24px;
+$summary-option-size: 30px;
+
 ngb-bibliography-panel {
+    display: block;
+    padding: 5px;
+
     ngb-panel-error-list {
         .layout-padding,
         .layout-padding > * {
@@ -13,8 +21,16 @@ ngb-bibliography-panel {
         }
     }
 
+    a {
+        margin: 0;
+        display: inline-block;
+        text-decoration: none;
+        color: rgb(51, 103, 214);
+        cursor: pointer;
+    }
+
     .empty-container {
-        font-size: 12pt;
+        font-size: $font-size;
         width: 100%;
         text-align: center;
         z-index: 0;
@@ -27,92 +43,99 @@ ngb-bibliography-panel {
     }
 
     .publication-container {
-        font-size: 14px;
+        font-size: $font-size;
 
-        .publication-title {
-            margin: 20px 20px 10px 20px;
-
-            a {
-                margin: 0;
-                display: inline-block;
-                text-decoration: none;
-                color: rgb(102, 153, 255);
-                cursor: pointer;
-            }
+        &:not(:last-child) {
+            margin: 10px 0;
+            border-bottom: 1px solid #dddddd;
         }
 
-        .publication-author {
-            margin: 0 20px;
+        .publication-title,
+        .publication-authors,
+        .publication-source {
+            margin: 5px 0;
         }
 
-        .publication-authors {
+        .publication-authors,
+        .publication-source {
             display: flex;
             flex-direction: row;
-            margin: 5px 20px;
             flex-wrap: wrap;
 
             span {
                 white-space: nowrap;
-            }
 
-            span:not(:last-child):after {
-                content: ',';
-                margin-right: 5px;
-            }
-        }
-
-        .publication-source {
-            margin: 5px 20px;
-
-            span {
-                margin-right: 15px;
+                &:not(:last-child):after {
+                    content: ',';
+                    margin-right: 5px;
+                }
             }
         }
     }
 
     .summary-button {
-        position: relative;
-        top: -36px;
-        float: right;
-        margin-bottom: -36px;
-
         .md-button {
-            height: 36px;
-            min-height: 36px;
-            margin: 0 30px 0 0;
+            height: $summary-button-size;
+            min-height: $summary-button-size;
             display: flex;
+            align-items: center;
             text-transform: none;
-            font-size: 12px;
-            border-radius: 10px
-        }
-
-        .button-text {
-            padding-left: 22px;
-        }
-
-        md-select {
+            font-size: $font-size;
+            border-radius: 10px;
             margin: 0;
+            padding: 0;
 
-            .md-select-value {
-                padding: 0 10px;
-                font-size: 12px;
+            background: transparent;
+
+            &:hover,
+            &:visited,
+            &:active,
+            &:focus {
+                background: transparent;
             }
 
-            .md-select-value .md-select-icon {
-                width: 14px;
+            &:hover .button-text,
+            &:hover .md-select-value > span:not(.md-select-icon) {
+                text-decoration: underline;
+            }
+
+            md-select {
+                margin: 0;
+
+                .md-select-value {
+                    font-size: $font-size;
+                }
+
+                .md-select-value .md-select-icon {
+                    width: 14px;
+                }
+            }
+
+            md-select[disabled] .md-select-value {
+                background: none;
             }
         }
+    }
 
-        md-select[disabled] .md-select-value {
-            background: none;
+    .ngb-bibliography-section {
+        margin: 5px 0 10px;
+
+        .ngb-bibliography-section-title {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            .section-name {
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-right: auto;
+            }
         }
     }
 
     .summary-container {
-        border: 1px solid rgb(102, 153, 255);
-        border-radius: 10px;
-        margin: 10px;
-        padding: 20px;
+        margin: 5px 0;
+        font-size: calc($font-size + 1px);
 
         p {
             margin: 0;
@@ -123,5 +146,11 @@ ngb-bibliography-panel {
 .llm-model-select {
     md-select-menu:not(.md-overflow) md-content {
         padding: 0;
+
+        md-option {
+            height: $summary-option-size;
+            min-height: $summary-option-size;
+            line-height: $summary-option-size;
+        }
     }
 }

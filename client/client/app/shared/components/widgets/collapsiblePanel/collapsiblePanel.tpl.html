@@ -1,16 +1,16 @@
-<md-button class="md-button_block md-button__icon-left"
+<md-button class="md-button_block md-button__icon-left collapsible-trigger"
            ng-click="$ctrl.onClick()"
            ng-disabled="$ctrl.disabled">
     <ng-md-icon size="18"
                 ng-class="{'rotate' :  !$ctrl.open, 'rotate-back' :  $ctrl.open}"
-                class="rotated"
+                class="rotated collapsible-panel-icon"
                 icon="keyboard_arrow_down">
     </ng-md-icon>
-    <span class="control-label">
-        <div ng-transclude="title"></div>
+    <div class="control-label collapsible-panel-title-container">
+        <div class="collapsible-panel-title" ng-transclude="title"></div>
         <md-tooltip md-delay="500" ng-show="$ctrl.tooltip && $ctrl.tooltip.length > 0">{{$ctrl.tooltip}}</md-tooltip>
-    </span>
+    </div>
 </md-button>
-<div class="animate-show u-column-padding" ng-show="$ctrl.open">
+<div class="animate-show u-column-padding collapsible-panel-body" ng-show="$ctrl.open">
     <div ng-transclude="body"></div>
 </div>

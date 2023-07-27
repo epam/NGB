@@ -5,17 +5,15 @@ const LLM_MODELS = [
     }, {
         name: 'ChatGPT 4.0',
         value: 'OPENAI_GPT_40'
+    }, {
+        name: 'Google PaLM2',
+        value: 'GOOGLE_PALM_2'
     }
 ];
 
 export default class ngbBibliographyPanelController {
 
-    _publications = null;
     llmModelValue = this.llmModels[0].value;
-
-    get publications() {
-        return this._publications;
-    }
 
     get llmModels() {
         return LLM_MODELS;
@@ -28,22 +26,22 @@ export default class ngbBibliographyPanelController {
     constructor($scope, $timeout, dispatcher, ngbBibliographyPanelService) {
         Object.assign(this, {$scope, $timeout, ngbBibliographyPanelService});
         const refresh = this.refresh.bind(this);
-        dispatcher.on('publication:page:changed', refresh)
+        dispatcher.on('target:identification:publications:page:changed', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('drugs:source:changed', refresh);
+            dispatcher.removeListener('target:identification:drugs:source:changed', refresh);
         });
     }
 
+    get publications() {
+        return this.ngbBibliographyPanelService.publications;
+    }
+
     refresh() {
-        this._publications = this.ngbBibliographyPanelService.publicationsResults;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     get loadingPublications() {
         return this.ngbBibliographyPanelService.loadingPublications;
-    }
-    set loadingPublications(value) {
-        this.ngbBibliographyPanelService.loadingPublications = value;
     }
     get failedPublications() {
         return this.ngbBibliographyPanelService.failedPublications;
@@ -79,23 +77,7 @@ export default class ngbBibliographyPanelController {
     }
 
     $onInit() {
-        this.initialize();
-    }
-
-    async initialize() {
-        await this.getPublications();
-    }
-
-    async getPublications () {
-        this.loadingPublications = true;
-        this._publications = await this.ngbBibliographyPanelService.getPublicationsResults()
-            .then(success => {
-                if (success) {
-                    return this.ngbBibliographyPanelService.publicationsResults;
-                }
-                return [];
-            });
-        this.$timeout(::this.$scope.$apply);
+        (this.refresh)();
     }
 
     async generateSummary(event) {
@@ -111,7 +93,7 @@ export default class ngbBibliographyPanelController {
                 }
                 return null;
             });
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onClickSelect(event) {

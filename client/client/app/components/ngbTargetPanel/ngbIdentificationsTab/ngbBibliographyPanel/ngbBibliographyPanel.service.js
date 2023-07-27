@@ -1,6 +1,8 @@
+import processLinks from '../../utilities/process-links';
+
 const PAGE_SIZE = 5;
 
-export default class ngbBibliographyPanelService {
+export default class NgbBibliographyPanelService {
 
     _loadingPublications = false;
     _failedPublications = false;
@@ -12,8 +14,7 @@ export default class ngbBibliographyPanelService {
     _summaryError = null;
     _emptySummary = false;
 
-    _publicationsResults = null;
-    _allPublications = null;
+    _publications = [];
     _totalPages = 0;
     _currentPage = 1;
 
@@ -25,9 +26,6 @@ export default class ngbBibliographyPanelService {
 
     get loadingPublications() {
         return this._loadingPublications;
-    }
-    set loadingPublications(value) {
-        this._loadingPublications = value;
     }
     get failedPublications() {
         return this._failedPublications;
@@ -52,8 +50,8 @@ export default class ngbBibliographyPanelService {
         return this._summaryError;
     }
 
-    get publicationsResults() {
-        return this._publicationsResults;
+    get publications() {
+        return this._publications || [];
     }
 
     get totalPages() {
@@ -69,58 +67,65 @@ export default class ngbBibliographyPanelService {
     get summaryResult() {
         return this._summaryResult;
     }
-    
+
     static instance ($sce, dispatcher, ngbTargetPanelService, targetDataService) {
-        return new ngbBibliographyPanelService($sce, dispatcher, ngbTargetPanelService, targetDataService);
+        return new NgbBibliographyPanelService($sce, dispatcher, ngbTargetPanelService, targetDataService);
     }
 
     constructor($sce, dispatcher, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {$sce, dispatcher, ngbTargetPanelService, targetDataService});
+        this._genes = [];
+        dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
+        this.updateGenes(ngbTargetPanelService.identificationTarget);
     }
 
-    get geneIds() {
-        return this.ngbTargetPanelService.allGenes.map(g => g.geneId);
+    get genes() {
+        return this._genes;
     }
 
-    setPublications() {
-        const data = this._allPublications;
-        const start = (this.currentPage - 1) * this.pageSize;
-        const end = this.currentPage * this.pageSize;
-        this._publicationsResults = data.slice(start, end);
-        this._loadingPublications = false;
+    updateGenes (targetIdentificationData) {
+        const {
+            interest = [],
+            translational = []
+        } = targetIdentificationData || {};
+        this._genes = [...new Set([
+            ...interest.map(g => g.geneId),
+            ...translational.map(g => g.geneId),
+        ])];
+        (this.getPublicationsResults)();
     }
 
     async getDataOnPage(page) {
-        this._loadingPublications = true;
         this.currentPage = page;
-        this.setPublications();
-        this.dispatcher.emit('publication:page:changed');
-    }
-
-    getRequest() {
-        return {
-            geneIds: this.geneIds
-        }
+        this.getPublicationsResults();
     }
 
     getPublicationsResults() {
-        const request = this.getRequest();
-        if (!request.geneIds || !request.geneIds.length) {
+        if (!this.genes.length) {
             return new Promise(resolve => {
                 this._loadingPublications = false;
+                this.dispatcher.emit('target:identification:publications:loaded');
+                this.dispatcher.emit('target:identification:publications:page:changed');
                 resolve(true);
             });
         }
+        this.dispatcher.emit('target:identification:publications:loading');
+        this._loadingPublications = true;
         return new Promise(resolve => {
-            this.targetDataService.getPublications(request)
+            this.targetDataService.getPublications({
+                geneIds: this.genes,
+                page: this.currentPage,
+                pageSize: this.pageSize
+            })
                 .then(([data, totalCount]) => {
                     this._failedPublications = false;
                     this._publicationsError = null;
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyPublications = totalCount === 0;
-                    this._allPublications = data;
-                    this.setPublications();
+                    this._publications = data;
                     this._loadingPublications = false;
+                    this.dispatcher.emit('target:identification:publications:loaded');
+                    this.dispatcher.emit('target:identification:publications:page:changed');
                     resolve(true);
                 })
                 .catch(err => {
@@ -129,13 +134,15 @@ export default class ngbBibliographyPanelService {
                     this._totalPages = 0;
                     this._emptyPublications = false;
                     this._loadingPublications = false;
+                    this.dispatcher.emit('target:identification:publications:loaded');
+                    this.dispatcher.emit('target:identification:publications:page:changed');
                     resolve(false);
                 });
         });
     }
 
     getLlmSummary(provider) {
-        const request = this._allPublications.slice(0, 10).map(p => p.uid);
+        const request = (this._publications || []).slice(0, 10).map(p => p.uid);
         return new Promise(resolve => {
             this.targetDataService.getLlmSummary(request, provider)
                 .then((data) => {
@@ -155,22 +162,9 @@ export default class ngbBibliographyPanelService {
     }
 
     setSummaryResults(summary) {
-        const getSummaryElements = (summary) => {
-            const html = this.$sce.trustAsHtml(summary);
-            const breakRegex = /[\n]/gi;
-            let match;
-            let startIndex = 0;
-            const elements = [];
-
-            while ((match = breakRegex.exec(html)) !== null) {
-                elements.push(match.input.substring(startIndex, match.index));
-                startIndex = match.index + match[0].length;
-            }
-            if (match === null && startIndex < summary.length) {
-                elements.push(summary.substring(startIndex));
-            }
-            return elements;
+        this._summaryResult = {
+            html: this.$sce.trustAsHtml(processLinks(summary)),
+            summary
         };
-        this._summaryResult = getSummaryElements(summary);
     }
 }

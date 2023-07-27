@@ -1,0 +1,36 @@
+$main-action-button-height: 25px;
+
+$common-font-size: 13px;
+$form-horizontal-offset: 5px;
+
+$common-accent-font-color: #333333;
+$common-font-color: #444444;
+
+$main-section-title-width: 60px;
+
+$section-header-color: $common-accent-font-color;
+$section-header-background: #f3f3f3;
+$section-header-font-size: $common-font-size;
+
+$table-control-height: 28px;
+$table-control-border: none;
+$table-control-border-radius: 0;
+$table-control-font-size: $common-font-size;
+$table-control-font-color: $common-font-color;
+$table-control-background: #fafafa;
+$table-control-hover-background: #f0f0f0;
+$table-control-padding: 0 calc($form-horizontal-offset - 1px);
+
+$tag-border-radius: 5px;
+$tag-font-size: $table-control-font-size;
+$tag-color: $common-font-color;
+$tag-background: #eeeeee;
+$tag-size: calc($table-control-height - 2px);
+
+$table-header-cell-color: $common-accent-font-color;
+$table-header-cell-font-weight: bold;
+$table-header-cell-padding: 0 $form-horizontal-offset;
+$table-header-cell-font-size: $common-font-size;
+$table-header-cell-height: calc($table-control-height + 2px);
+$table-cell-padding: 3px 1px 0;
+$table-cell-full-width-padding: 3px $form-horizontal-offset;

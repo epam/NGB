@@ -24,16 +24,6 @@
 
 package com.epam.catgenome.entity.llm;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
-@Getter
 public enum LLMProvider {
-    OPENAI_GPT_35("gpt-3.5-turbo"),
-    OPENAI_GPT_40("gpt-4"),
-    GOOGLE_PALM_2(""),
-    GOOGLE_MED_PALM2("");
-
-    private final String model;
+    OPENAI_GPT_35, OPENAI_GPT_40, GOOGLE_PALM_2, GOOGLE_MED_PALM2;
 }

@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.externaldb;
 
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
@@ -33,6 +34,8 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -58,25 +61,36 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PudMedService {
 
+    @Value("${pubmed.search.context:}")
+    private String pubMedSearchContext;
+
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
     private final NCBIDataManager ncbiDataManager;
 
     @SneakyThrows
-    public SearchResult<NCBISummaryVO> fetchPubMedArticles(final List<String> geneIds) {
-        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+    public SearchResult<NCBISummaryVO> fetchPubMedArticles(final PublicationSearchRequest request) {
+        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.searchByEnsemblIds(request.getGeneIds());
         final List<String> entrezIds = ncbiGenes.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
+        final String retStart = String.valueOf(((request.getPage() - 1) * request.getPageSize()));
+        final String retMax = String.valueOf(request.getPageSize());
 
-        final List<NCBISummaryVO> articles = entrezIds.stream()
-                .map(ncbiGeneManager::fetchPubmedData)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        final List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery, retStart, retMax);
+        final int totalCount = ncbiGeneManager.pubmedDataCount(historyQuery);
+
         final SearchResult<NCBISummaryVO> result = new SearchResult<>();
         result.setItems(articles);
-        result.setTotalCount(articles.size());
+        result.setTotalCount(totalCount);
         return result;
+    }
+
+    @SneakyThrows
+    public int getPublicationsCount(final List<String> entrezIds) {
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        return ncbiGeneManager.pubmedDataCount(historyQuery);
     }
 
     @SneakyThrows
@@ -98,7 +112,7 @@ public class PudMedService {
         final StringBuilder result = new StringBuilder();
         for (int i = 0; i < abstracts.getLength(); i++) {
             if (result.length() != 0) {
-                result.append("\n");
+                result.append('\n');
             }
             result.append(abstracts.item(i).getTextContent());
         }

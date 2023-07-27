@@ -193,6 +193,22 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
         return fetchData(NCBI_SERVER + NCBI_SEARCH, parameterNameValues);
     }
 
+    public String searchWithHistory(final String queryKey, final String webEnv,
+                                    final NCBIDatabase db, final String retmax) throws ExternalDbUnavailableException {
+
+        List<ParameterNameValue> parametersList = new ArrayList<>();
+
+        parametersList.add(new ParameterNameValue("db", db.name()));
+        parametersList.add(new ParameterNameValue("query_key", queryKey));
+        parametersList.add(new ParameterNameValue("retmax", retmax));
+        parametersList.add(new ParameterNameValue("WebEnv", webEnv));
+
+        ParameterNameValue[] parameterNameValues = parametersList.toArray(
+                new ParameterNameValue[parametersList.size()]);
+
+        return fetchData(NCBI_SERVER + NCBI_SEARCH, parameterNameValues);
+    }
+
     /**
      * Fetch summary info for NCBI annotation database
      * <p>

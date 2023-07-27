@@ -1,3 +1,15 @@
+$md-chip-size: 26px;
+$md-chip-background: #eeeeee;
+$md-chip-color: #444444;
+$md-chip-font-size: 13px;
+$md-chip-border-radius: 3px;
+
+$md-chip-option-size: calc($md-chip-size + 4px);
+
+$md-label-font-size: $md-chip-font-size + 2px;
+
+$md-chip-remove-width: $md-chip-size - 4px;
+
 md-dialog.launch-dialog {
     max-width: 50%;
 
@@ -5,21 +17,37 @@ md-dialog.launch-dialog {
         background-color: rgb(102,153,255);
     }
 
-    .input-label {
-        margin: 10px;
-        align-self: center;
+    .input-container {
+        margin: 5px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+
+        .input-label {
+            line-height: calc($md-chip-size + 2px);
+            height: calc($md-chip-size + 2px);
+            font-size: $md-label-font-size;
+            min-width: 150px;
+        }
     }
 
     md-chips-wrap {
-        border: 1px solid rgba(0,0,0,0.38);
-        border-radius: 5px;
-        min-height: 30px;
+        border-bottom: 1px solid #cccccc;
+        border-radius: 0;
+        min-height: calc($md-chip-size + 2px);
         height: auto;
+        padding: 0;
+
+        &:hover {
+            background: #fafafa;
+            border-bottom: 1px solid #aaaaaa;
+        }
     }
 
     md-chips li {
-        height: 30px;
-        line-height: 30px;
+        height: $md-chip-option-size;
+        line-height: $md-chip-option-size;
     }
 
     md-autocomplete-wrap {
@@ -37,67 +65,84 @@ md-dialog.launch-dialog {
         box-shadow: none;
     }
 
-    .input-container {
-        margin: 10px 0;
-        width: 100%;
-    }
-
     .content {
         margin: 20px;
         padding: 0;
     }
 
-    md-chip-template span {
-        font-size: 12px;
-    }
+    md-chips {
+        .md-chips.md-removable md-chip {
+            padding: 0 $md-chip-remove-width 0 calc($md-chip-remove-width / 2.0);
+        }
 
-    md-icon {
-        height: 12px;
-        min-height: 12px;
-        width: 12px;
-        min-width: 12px;
-    }
+        .md-chips md-chip,
+        .md-chips .md-chip-input-container {
+            margin: 2px 3px;
+        }
 
-    .md-chips md-chip .md-chip-remove {
-        width: 12px;
-        height: 12px;
-    }
+        md-chip {
+            display: flex;
+            align-items: center;
+            height: $md-chip-size;
+            line-height: $md-chip-size;
+            border-radius: $md-chip-border-radius;
+            padding: 0 $md-chip-border-radius;
+            font-size: $md-chip-font-size;
 
-    .md-chips md-chip .md-chip-remove-container {
-        line-height: 24px;
-        right: 4px;
-    }
+            .md-chip-content {
+                display: flex;
+                align-items: center;
+                height: $md-chip-size;
+                line-height: $md-chip-size;
+                padding: 0;
+                margin: 0;
+            }
 
-    .md-chips.md-removable md-chip {
-        padding-right: 14px;
-    }
+            .md-chip-remove-container {
+                width: $md-chip-remove-width;
+                height: $md-chip-size;
+                line-height: $md-chip-size;
+                right: 2px;
 
-    .md-chips md-chip {
-        height: 24px;
-        line-height: 21px;
-    }
+                ng-md-icon {
+                    width: $md-chip-remove-width;
+                    height: $md-chip-size;
+                    text-align: center;
+                    cursor: pointer;
 
-    .launch-dialog .md-chips md-chip .md-chip-remove-container {
-        line-height: 14px;
-        right: 4px;
-    }
+                    svg {
+                        width: calc($md-chip-remove-width / 2.0);
+                        height: calc($md-chip-remove-width / 2.0);
+                        fill: $md-chip-color;
+                    }
 
-    .md-chips .md-chip-input-container md-autocomplete,
-    .md-chips .md-chip-input-container md-autocomplete-wrap {
-        height: 22px;
-    }
+                    &:hover svg {
+                        fill: darken($md-chip-color, 50%);
+                    }
+                }
+            }
+        }
 
-    md-input-container {
-        margin: 15px 0;
-        height: 32px;
+        .md-chips .md-chip-input-container {
+            line-height: $md-chip-size;
+            height: $md-chip-size;
+
+            md-autocomplete,
+            md-autocomplete-wrap,
+            input {
+                line-height: $md-chip-size;
+                height: $md-chip-size;
+                font-size: $md-chip-font-size;
+            }
+        }
     }
 }
 
 .genes-md-autocomplete.md-autocomplete-suggestions li {
-    font-size: 12px;
+    font-size: $md-chip-font-size;
     padding: 0 5px;
-    line-height: 32px;
-    height: 32px;
+    line-height: $md-chip-option-size;
+    height: $md-chip-option-size;
 }
 
 .genes-md-autocomplete.md-autocomplete-suggestions li .span-padding {

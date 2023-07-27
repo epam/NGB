@@ -62,8 +62,13 @@ export default class ngbProjectInfoSectionsController extends baseController {
         $mdOpenMenu($event);
     }
 
-    summaryFalseValue () {
-        if (this.projects.length === 1 && this.descriptionList.length) {
+    get summaryFalseValue () {
+        if (
+            this.projects &&
+            this.projects.length === 1 &&
+            this.descriptionList &&
+            this.descriptionList.length
+        ) {
             return [
                 this.ngbProjectInfoService.projectInfoModeList.DESCRIPTION,
                 this.descriptionList[0].id

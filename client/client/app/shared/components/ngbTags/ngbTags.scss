@@ -1,0 +1,109 @@
+$ngb-tag-height: 28px;
+$ngb-tag-background: #f0f0f0;
+$ngb-tag-color: #333333;
+$ngb-tag-border: none;
+$ngb-tag-border-radius: 4px;
+$ngb-tag-horizontal-padding: 5px;
+
+@mixin ngb-tags($height: $ngb-tag-height, $background: $ngb-tag-background, $color: $ngb-tag-color, $border: $ngb-tag-border, $border-radius: $ngb-tag-border-radius, $horizontal-padding: $ngb-tag-horizontal-padding) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  line-height: $height;
+  min-height: $height;
+  color: $ngb-tag-color;
+
+  .ngb-tags-title {
+    font-weight: bold;
+  }
+
+  > * {
+    margin: 0 5px 5px 0;
+
+    &.ngb-tags-title {
+      margin-left: $horizontal-padding;
+    }
+  }
+
+  .ngb-tags-add-link,
+  input.ngb-tags-add-input {
+    display: inline-block;
+    width: 100px;
+    height: $height;
+    line-height: $height;
+    box-sizing: content-box;
+    padding: 0 $horizontal-padding;
+    border: $border;
+  }
+
+  .ngb-tags-add-link {
+    border-color: transparent;
+    &:first-child {
+      padding-left: 4px;
+    }
+
+    a {
+      color: rgb(51, 103, 214);
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  input.ngb-tags-add-input {
+    outline: none;
+    background: $background;
+    border-radius: $border-radius;
+
+    &.error {
+      color: red;
+      border-color: currentColor;
+    }
+  }
+
+  ngb-tag {
+    box-sizing: content-box;
+    background: $background;
+    border: $border;
+    border-radius: $border-radius;
+    padding: 0 $horizontal-padding;
+    color: $color;
+
+    &.removable {
+      padding: 0 0 0 $horizontal-padding;
+    }
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > .remove-tag {
+      box-sizing: border-box;
+      min-width: $height;
+      width: $height;
+      min-height: $height;
+      height: $height;
+      line-height: $height;
+      margin: 0!important;
+      background: transparent!important;
+
+      svg {
+        width: calc($height / 2.0);
+        height: calc($height / 2.0);
+        fill: currentColor!important;
+      }
+
+      &:hover {
+        background: transparent!important;
+        svg {
+          fill: darken($color, 30%)!important;
+        }
+      }
+    }
+  }
+}
+
+ngb-tags {
+  @include ngb-tags();
+}

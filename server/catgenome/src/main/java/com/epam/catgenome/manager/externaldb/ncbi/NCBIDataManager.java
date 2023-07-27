@@ -42,6 +42,7 @@ import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
@@ -70,6 +71,7 @@ public class NCBIDataManager extends HttpDataManager {
     // entrez/eutils/esummary can return maximum 500 results. If we need to fetch more, we'll have to do pagination.
     // But perhaps it doesn't make sense to fetch more...
     protected static final String MAX_RESULTS_PARAM = "retmax";
+    protected static final String START_PARAM = "retstart";
     private static final int MAX_RESULTS_PARAM_VALUE = 500;
 
     @Value("#{catgenome['externaldb.ncbi.max.results'] ?: 100}")
@@ -98,16 +100,25 @@ public class NCBIDataManager extends HttpDataManager {
      */
     public String link(final String id, final String dbfrom, final String targetdb, final String linkname)
             throws ExternalDbUnavailableException {
+        return link(id, dbfrom, targetdb, linkname, null);
+    }
 
-        List<ParameterNameValue> parametersList = new ArrayList<>();
+    public String link(final String id, final String dbfrom, final String targetdb,
+                       final String linkname, final String term)
+            throws ExternalDbUnavailableException {
+
+        final List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("dbfrom", dbfrom));
         parametersList.add(new ParameterNameValue("db", targetdb));
         parametersList.add(new ParameterNameValue("linkname", linkname));
         parametersList.add(new ParameterNameValue("id", id));
         parametersList.add(new ParameterNameValue("cmd", "neighbor_history"));
+        if (!TextUtils.isBlank(term)) {
+            parametersList.add(new ParameterNameValue("term", term));
+        }
 
-        ParameterNameValue[] parameterNameValues = parametersList.toArray(
+        final ParameterNameValue[] parameterNameValues = parametersList.toArray(
                 new ParameterNameValue[parametersList.size()]);
 
         return fetchData(NCBI_SERVER + NCBI_LINK, parameterNameValues);
@@ -226,6 +237,23 @@ public class NCBIDataManager extends HttpDataManager {
                 new ParameterNameValue(QUERY_KEY, queryKey),
                 new ParameterNameValue(WEB_ENV, webEnv),
                 new ParameterNameValue(MAX_RESULTS_PARAM, ncbiMaxResultsParamValue.toString())
+            });
+            return mapper.readTree(json);
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
+                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+    }
+
+    public JsonNode summaryWithHistory(final String queryKey, final String webEnv, final String retStart,
+                                       final String retMax) throws ExternalDbUnavailableException {
+        try {
+            final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
+                new ParameterNameValue(RETMODE_PARAM, JSON),
+                new ParameterNameValue(QUERY_KEY, queryKey),
+                new ParameterNameValue(WEB_ENV, webEnv),
+                new ParameterNameValue(MAX_RESULTS_PARAM, retMax),
+                new ParameterNameValue(START_PARAM, retStart)
             });
             return mapper.readTree(json);
         } catch (IOException e) {

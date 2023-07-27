@@ -1,36 +1,21 @@
-<md-nav-bar class="known-drugs-nav-bar"
-            aria-label="Known drugs nav bar"
-            md-selected-nav-item="$ctrl.tabSelected">
-    <md-nav-item name="DISEASES"
-                md-nav-click="$ctrl.onChangeTabState($ctrl.tabState.DISEASES)">
-        Associated diseases
-    </md-nav-item>
-    <md-nav-item name="DRUGS"
-                md-nav-click="$ctrl.onChangeTabState($ctrl.tabState.DRUGS)">
-        Known drugs
-    </md-nav-item>
-    <div class="source-select">
+<div class="loading-indicator"
+     ng-if="$ctrl.loading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="known-drugs-header">
+    <div class="drugs-source-select">
+        <label>Source:</label>
         <md-input-container>
             <md-select ng-model="$ctrl.sourceModel"
-                        aria-label="Source select"
-                        ng-change="$ctrl.onChangeSource()"
-                        md-container-class="drugs-source-select">
+                       aria-label="Source select"
+                       ng-change="$ctrl.onChangeSource()"
+                       md-container-class="drugs-source-select-container">
                 <md-option ng-repeat="item in $ctrl.sourceOptions"
-                            ng-value="item">
+                           ng-value="item">
                     {{item.displayName}}
                 </md-option>
             </md-select>
         </md-input-container>
-        <label>Source:</label>
     </div>
-</md-nav-bar>
-<md-content class="_md known-drugs-content">
-    <div change-state="$ctrl.onChangeTabState(state)"
-         ng-if="$ctrl.tabSelected === $ctrl.tabState.DISEASES">
-        <ngb-diseases-tab></ngb-diseases-tab>
-    </div>
-    <div change-state="$ctrl.onChangeTabState(state)"
-         ng-if="$ctrl.tabSelected === $ctrl.tabState.DRUGS">
-        <ngb-drugs-table></ngb-drugs-table>
-    </div>
-</md-content>
+</div>
+<ngb-drugs-table></ngb-drugs-table>

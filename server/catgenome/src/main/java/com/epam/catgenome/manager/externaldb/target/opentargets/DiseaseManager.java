@@ -48,9 +48,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -99,7 +100,9 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
         String line;
         final ObjectMapper objectMapper = new ObjectMapper();
         for (File f: directory.listFiles()) {
-            try (Reader reader = new FileReader(f); BufferedReader bufferedReader = new BufferedReader(reader)) {
+            try (FileInputStream fis = new FileInputStream(f);
+                 InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+                 BufferedReader bufferedReader = new BufferedReader(isr)) {
                 while ((line = bufferedReader.readLine()) != null) {
                     try {
                         JsonNode jsonNodes = objectMapper.readTree(line);

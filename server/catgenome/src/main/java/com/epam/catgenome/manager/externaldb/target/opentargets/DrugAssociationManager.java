@@ -181,15 +181,16 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         final Document doc = new Document();
         doc.add(new StringField(IndexFields.DRUG_ID.name(), entry.getDrug().getId(), Field.Store.YES));
 
-        doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getDrug().getName().toLowerCase(),
-                Field.Store.YES));
-        doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.name(),
-                new BytesRef(entry.getDrug().getName())));
+        doc.add(new StringField(IndexFields.DRUG_NAME_FLTR.name(), entry.getDrug().getName().toLowerCase(),
+                Field.Store.NO));
+        doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getDrug().getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.name(), new BytesRef(entry.getDrug().getName())));
 
         doc.add(new StringField(IndexFields.DISEASE_ID.name(), entry.getDisease().getId(), Field.Store.YES));
 
         final String diseaseName = Optional.ofNullable(entry.getDisease().getName()).orElse("");
-        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), diseaseName.toLowerCase(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.DISEASE_NAME_FLTR.name(), diseaseName.toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), diseaseName, Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.name(), new BytesRef(diseaseName)));
 
         doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
@@ -253,9 +254,14 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
-            Query query = IndexFields.DRUG_NAME.name().equals(filter.getField()) ||
-                    IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(filter.getField(), term) : buildTermQuery(filter.getField(), term);
+            Query query;
+            if (IndexFields.DRUG_NAME.name().equals(filter.getField())) {
+                query = buildPrefixQuery(IndexFields.DRUG_NAME_FLTR.name(), term);
+            } else if (IndexFields.DISEASE_NAME.name().equals(filter.getField())) {
+                query = buildPrefixQuery(IndexFields.DISEASE_NAME_FLTR.name(), term);
+            } else {
+                query = buildTermQuery(filter.getField(), term);
+            }
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
@@ -292,8 +298,10 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     private enum IndexFields {
         DRUG_ID,
         DRUG_NAME,
+        DRUG_NAME_FLTR,
         DISEASE_ID,
         DISEASE_NAME,
+        DISEASE_NAME_FLTR,
         GENE_ID,
         DRUG_TYPE,
         MECHANISM_OF_ACTION,

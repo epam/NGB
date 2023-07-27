@@ -1,0 +1,12 @@
+<span>
+    {{$ctrl.tag}}
+</span>
+<md-button class="remove-tag"
+           md-no-ink
+           aria-label="Remove"
+           title="Remove"
+           ng-if="$ctrl.isRemovable"
+           ng-click="$ctrl.onRemoveClicked()"
+>
+    <ng-md-icon icon="clear"/>
+</md-button>
