@@ -2,7 +2,7 @@ import controller from './ngbTags.controller';
 
 export default {
     bindings: {
-        title: '<',
+        tagTitle: '<',
         tags: '=',
         editable: '<',
         addLabel: '<'
