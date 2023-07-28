@@ -30,6 +30,8 @@ import com.azure.ai.openai.models.ChatCompletionsOptions;
 import com.azure.ai.openai.models.ChatMessage;
 import com.azure.ai.openai.models.ChatRole;
 import com.azure.ai.openai.models.NonAzureOpenAIKeyCredential;
+import com.epam.catgenome.entity.llm.LLMMessage;
+import com.epam.catgenome.entity.llm.LLMRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +39,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -53,19 +59,32 @@ public class OpenAIClient {
                                     final int maxSize,
                                     final String model,
                                     final double temperature) {
+        return getChatMessage(
+                Collections.singletonList(new LLMMessage(LLMRole.USER, prompt)),
+                maxSize, model, temperature);
+    }
+
+    public String getChatMessage(final List<LLMMessage> messages,
+                                 final int maxSize,
+                                 final String model,
+                                 final double temperature) {
         Assert.isTrue(StringUtils.isNotBlank(openAIKey), "OpenAI API key is not configured.");
         final com.azure.ai.openai.OpenAIClient client = new OpenAIClientBuilder()
                 .credential(new NonAzureOpenAIKeyCredential(openAIKey))
                 .buildClient();
+        LocalDateTime start = LocalDateTime.now();
+        log.debug("Starting request processing {}", LocalDateTime.now());
 
-        final ChatCompletionsOptions options = new ChatCompletionsOptions(
-                Collections.singletonList(new ChatMessage(ChatRole.USER).setContent(prompt)))
+        final ChatCompletionsOptions options = new ChatCompletionsOptions(messages.stream()
+                .map(m -> new ChatMessage(ChatRole.fromString(m.getRole().getRole())).setContent(m.getContent()))
+                .collect(Collectors.toList()))
                 .setMaxTokens(maxSize)
                 .setTemperature(temperature)
                 .setN(1);
         final ChatCompletions completions = client.getChatCompletions(model, options);
-
+        LocalDateTime end = LocalDateTime.now();
         log.debug("Model ID={} is created at {}", completions.getId(), completions.getCreated());
+        log.debug("Time to process request {}", Duration.between(start, end).getSeconds());
         return ListUtils.emptyIfNull(completions.getChoices()).stream().findFirst()
                 .map(c -> c.getMessage().getContent())
                 .orElseThrow(() -> new IllegalArgumentException("Failed to receive result from LLM"));

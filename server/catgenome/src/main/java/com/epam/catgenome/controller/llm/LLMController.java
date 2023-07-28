@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.llm;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.epam.catgenome.manager.llm.LLMSecurityService;
 import com.wordnik.swagger.annotations.Api;
@@ -62,5 +63,21 @@ public class LLMController extends AbstractRESTController {
             @RequestParam(required = false, defaultValue = "500") final int maxSize,
             @RequestParam(required = false, defaultValue = "0.3") final double temperature) {
         return Result.success(llmSecurityService.getArticleSummary(pubMedIDs, provider, maxSize, temperature));
+    }
+
+    @PostMapping(value = "/llm/chat")
+    @ApiOperation(
+            value = "Returns LLM model response for chat",
+            notes = "Returns LLM model response for chat",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> getChatResponse(
+            @RequestBody final List<LLMMessage> messages,
+            @RequestParam(required = false, defaultValue = "OPENAI_GPT_35") final LLMProvider provider,
+            @RequestParam(required = false, defaultValue = "500") final int maxSize,
+            @RequestParam(required = false, defaultValue = "0.3") final double temperature) {
+        return Result.success(llmSecurityService.getChatResponse(messages, provider, maxSize, temperature));
     }
 }

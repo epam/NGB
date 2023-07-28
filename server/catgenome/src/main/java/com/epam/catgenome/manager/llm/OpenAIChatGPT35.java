@@ -24,9 +24,12 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class OpenAIChatGPT35 implements LLMHandler {
@@ -35,23 +38,36 @@ public class OpenAIChatGPT35 implements LLMHandler {
     private final int promptSize;
     private final int responseSize;
     private final String promptTemplate;
+    private final String lastMessagePrefix;
+    private final String firstMessagePrefix;
     private final OpenAIClient openAIClient;
 
     public OpenAIChatGPT35(final @Value("${llm.openai.chatgpt35.model:gpt-3.5-turbo-16k}") String modelName,
                            final @Value("${llm.openai.chatgpt35.prompt.size:16384}") int promptSize,
                            final @Value("${llm.openai.chatgpt35.response.size:500}") int responseSize,
                            final @Value("${llm.openai.chatgpt35.prompt.template:}") String promptTemplate,
+                           final @Value("${llm.openai.chatgpt35.first.message.prefix:}") String firstMessagePrefix,
+                           final @Value("${llm.openai.chatgpt35.last.message.prefix:}") String lastMessagePrefix,
                            final OpenAIClient openAIClient) {
         this.modelName = modelName;
         this.promptSize = promptSize;
         this.responseSize = responseSize;
         this.promptTemplate = promptTemplate;
+        this.firstMessagePrefix = firstMessagePrefix;
+        this.lastMessagePrefix = lastMessagePrefix;
         this.openAIClient = openAIClient;
     }
 
     @Override
     public String getSummary(final String text, final double temperature) {
         return openAIClient.getChatCompletion(buildPrompt(promptTemplate, text, promptSize),
+                responseSize, modelName, temperature);
+    }
+
+    @Override
+    public String getChatResponse(final List<LLMMessage> messages, final double temperature) {
+        return openAIClient.getChatMessage(
+                adjustFirstMessage(adjustLastMessage(messages, lastMessagePrefix), firstMessagePrefix),
                 responseSize, modelName, temperature);
     }
 

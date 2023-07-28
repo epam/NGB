@@ -24,17 +24,45 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 public interface LLMHandler {
 
     int TOKEN_TO_CHAR = 4;
 
     String getSummary(String text, double temperature);
+    String getChatResponse(List<LLMMessage> messages, double temperature);
+
     LLMProvider getProvider();
 
     default String buildPrompt(final String template, final String text, final int maxLength) {
         return StringUtils.left(template + "\n" + text, maxLength * TOKEN_TO_CHAR);
+    }
+
+    default List<LLMMessage> adjustLastMessage(final List<LLMMessage> messages, final String prefix) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return messages;
+        }
+        return adjustMessage(messages, messages.size() - 1, prefix);
+    }
+
+    default List<LLMMessage> adjustFirstMessage(final List<LLMMessage> messages, final String prefix) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return messages;
+        }
+        return adjustMessage(messages, 0, prefix);
+    }
+
+    default List<LLMMessage> adjustMessage(final List<LLMMessage> messages, final int index, final String prefix) {
+        final LLMMessage message = messages.get(index);
+        if (!message.getContent().startsWith(prefix)) {
+            message.setContent(prefix + " " + message.getContent());
+        }
+        return messages;
     }
 }

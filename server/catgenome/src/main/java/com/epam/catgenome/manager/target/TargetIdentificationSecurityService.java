@@ -146,6 +146,11 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public String getArticleAbstracts(final PublicationSearchRequest request) {
+        return manager.getArticlesAbstracts(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
     public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
         return manager.getGeneSequences(geneIds);
     }

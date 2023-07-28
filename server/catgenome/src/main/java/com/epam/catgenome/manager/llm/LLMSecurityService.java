@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,5 +46,13 @@ public class LLMSecurityService {
                                     final int maxSize,
                                     final double temperature) {
         return llmService.getArticleSummary(pubMedIDs, provider, maxSize, temperature);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public String getChatResponse(final List<LLMMessage> messages,
+                                  final LLMProvider provider,
+                                  final int maxSize,
+                                  final double temperature) {
+        return llmService.getChatResponse(messages, provider, maxSize, temperature);
     }
 }

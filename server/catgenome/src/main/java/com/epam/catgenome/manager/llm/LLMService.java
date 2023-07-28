@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,9 +56,26 @@ public class LLMService {
                                     final LLMProvider provider,
                                     final int maxSize,
                                     final double temperature) {
-        final LLMHandler handler = getHandler(provider);
-        return handler.getSummary(pubmedService.getArticleAbstracts(pubMedIDs), temperature);
+        return getHandler(provider)
+                .getSummary(pubmedService.getArticleAbstracts(pubMedIDs), temperature);
     }
+
+    public String getGeneArticleSummary(final List<String> geneIds,
+                                        final LLMProvider provider,
+                                        final int maxSize,
+                                        final double temperature) {
+        final PublicationSearchRequest request = new PublicationSearchRequest();
+        request.setGeneIds(geneIds);
+        return getHandler(provider).getSummary(pubmedService.getArticleAbstracts(request), temperature);
+    }
+
+    public String getChatResponse(final List<LLMMessage> messages,
+                                  final LLMProvider provider,
+                                  final int maxSize,
+                                  final double temperature) {
+        return getHandler(provider).getChatResponse(messages, temperature);
+    }
+
 
     private LLMHandler getHandler(final LLMProvider provider) {
         final LLMHandler handler = handlers.get(provider);

@@ -213,6 +213,10 @@ public class TargetIdentificationManager {
         return pudMedService.fetchPubMedArticles(request);
     }
 
+    public String getArticlesAbstracts(final PublicationSearchRequest request) {
+        return pudMedService.getArticleAbstracts(request);
+    }
+
     public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {

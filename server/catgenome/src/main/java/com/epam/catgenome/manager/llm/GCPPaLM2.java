@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.google.cloud.aiplatform.v1beta1.EndpointName;
 import com.google.cloud.aiplatform.v1beta1.PredictResponse;
@@ -86,6 +87,11 @@ public class GCPPaLM2 implements LLMHandler {
                 .getFieldsMap()
                 .get("content")
                 .getStringValue();
+    }
+
+    @Override
+    public String getChatResponse(List<LLMMessage> messages, double temperature) {
+        throw new UnsupportedOperationException("Chat is not supported for GCP model yet.");
     }
 
     @Override

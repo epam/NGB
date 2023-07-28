@@ -360,6 +360,18 @@ public class TargetController extends AbstractRESTController {
         return Result.success(targetIdentificationSecurityService.getPublications(request));
     }
 
+    @PostMapping(value = "/target/abstracts")
+    @ApiOperation(
+            value = "Returns merged abstracts for specified gene ids",
+            notes = "Returns merged abstracts for specified gene ids",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request) {
+        return Result.success(targetIdentificationSecurityService.getArticleAbstracts(request));
+    }
+
     @GetMapping(value = "/target/sequences")
     @ApiOperation(
             value = "Returns data for Gene Sequences block",

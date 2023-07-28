@@ -34,6 +34,7 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,9 @@ public class PudMedService {
 
     @Value("${pubmed.search.context:}")
     private String pubMedSearchContext;
+
+    @Value("${pubmed.articles.number.for.abstract:20}")
+    private Integer articlesMaxNumber;
 
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
@@ -98,6 +102,17 @@ public class PudMedService {
         final String xml = ncbiDataManager.fetchXmlById(NCBIDatabase.PUBMED.name(),
                 String.join(",", pmcIds), "Abstract");
         return parseAbstract(xml);
+    }
+
+    public String getArticleAbstracts(final PublicationSearchRequest request) {
+        request.setPage(1);
+        request.setPageSize(articlesMaxNumber);
+        final SearchResult<NCBISummaryVO> result = fetchPubMedArticles(request);
+        final List<String> ids = ListUtils.emptyIfNull(result.getItems())
+                .stream()
+                .map(NCBISummaryVO::getUid)
+                .collect(Collectors.toList());
+        return getArticleAbstracts(ids);
     }
 
     private String parseAbstract(final String xml) throws ParserConfigurationException, IOException,
