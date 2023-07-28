@@ -35,6 +35,8 @@ import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
+import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -369,5 +371,17 @@ public class TargetController extends AbstractRESTController {
     public Result<List<GeneSequences>> getGeneSequences(@RequestParam final List<String> geneIds)
             throws IOException, ParseException {
         return Result.success(targetIdentificationSecurityService.getGeneSequences(geneIds));
+    }
+
+    @PostMapping(value = "/target/structures")
+    @ApiOperation(
+            value = "Loads structures entities from RCSB PDB",
+            notes = "Loads structures entities from RCSB PDB",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request) {
+        return Result.success(targetIdentificationSecurityService.getStructures(request));
     }
 }

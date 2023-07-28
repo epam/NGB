@@ -142,12 +142,13 @@ public class TargetManager {
     }
 
     @NotNull
-    public List<String> getTargetGeneIds(final Long targetId, final List<Long> taxIds) {
+    public List<String> getTargetGeneNames(final List<String> geneIds) {
         final List<String> clauses = new ArrayList<>();
-        clauses.add(String.format(EQUAL_CLAUSE, "target_id", targetId));
-        clauses.add(String.format(IN_CLAUSE, "tax_id", join(taxIds, ",")));
+        clauses.add(String.format(IN_CLAUSE, "gene_id", geneIds.stream()
+                .map(g -> "'" + g + "'")
+                .collect(Collectors.joining(","))));
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
-        return targetGenes.stream().map(TargetGene::getGeneId).collect(Collectors.toList());
+        return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
     }
 
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {

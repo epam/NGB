@@ -39,12 +39,15 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
+import com.epam.catgenome.manager.externaldb.PdbEntriesManager;
+import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
+import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
@@ -100,6 +103,7 @@ public class TargetIdentificationManager {
     private final DiseaseManager diseaseManager;
     private final PudMedService pudMedService;
     private final NCBIGeneSequencesManager geneSequencesManager;
+    private final PdbEntriesManager pdbEntriesManager;
 
     public IdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -217,6 +221,11 @@ public class TargetIdentificationManager {
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         return geneSequencesManager.fetchGeneSequences(entrezMap);
+    }
+
+    public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
+        final List<String> geneNames = targetManager.getTargetGeneNames(request.getGeneIds());
+        return pdbEntriesManager.getStructures(request, geneNames);
     }
 
     private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
