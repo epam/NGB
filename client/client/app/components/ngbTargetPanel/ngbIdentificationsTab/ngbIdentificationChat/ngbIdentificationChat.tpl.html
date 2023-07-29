@@ -1,0 +1,14 @@
+<ngb-floating-panel on-close="$ctrl.onClose"
+                    placement="'bottomLeft'">
+    <ngb-floating-panel-title>
+        <div>{{$ctrl.chatName}}</div>
+    </ngb-floating-panel-title>
+    <ngb-floating-panel-content>
+        <ngb-chat messages="$ctrl.messages"
+                  on-send-message="$ctrl.onSendMessageCallback"
+                  placeholder="'Ask a question...'"
+                  message-loading="$ctrl.loading || $ctrl.messagePending"
+                  disabled="$ctrl.loading || $ctrl.messagePending">
+        </ngb-chat>
+    </ngb-floating-panel-content>
+</ngb-floating-panel>

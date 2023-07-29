@@ -1,8 +1,12 @@
 ngb-targets-table {
+    position: relative;
+    padding-top: 3px;
     .loading-indicator {
-        padding-top: 5px;
-        padding-bottom: 5px;
-        height: 6px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
     }
 
     .error-message {
@@ -79,7 +83,7 @@ ngb-targets-table {
     }
 
     .targets-table.ui-grid {
-        height: calc(100% - 39px) !important;
+        height: 100%!important;
     }
 
     .ui-grid-container {

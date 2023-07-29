@@ -1,0 +1,198 @@
+$font-size: 14px;
+$height: 28px;
+$font-color: #333333;
+
+ngb-large-language-model {
+  display: inline;
+  .llm-model {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+      .llm-model-name {
+        text-decoration: underline;
+      }
+    }
+
+    .llm-model-icon {
+      margin-left: 2px;
+      fill: currentColor;
+    }
+  }
+}
+
+md-menu-content.llm-models-menu {
+  padding: 0;
+
+  md-menu-item {
+    line-height: $height;
+    min-height: $height;
+    height: $height;
+
+    > .md-button {
+      line-height: $height;
+      min-height: $height;
+      height: $height;
+      font-size: $font-size;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      ng-md-icon {
+        margin-left: 5px;
+      }
+
+      .selection-icon {
+        display: none;
+      }
+    }
+
+    &.model-selected {
+      .md-button {
+        font-weight: bold;
+        .selection-icon {
+          display: inline-block;
+        }
+      }
+    }
+  }
+
+  md-menu-item.llm-models-divider {
+    line-height: 3px;
+    height: 3px;
+    min-height: 3px;
+  }
+}
+
+md-dialog.llm-model-dialog {
+  font-size: 13px;
+  md-toolbar {
+    min-height: unset;
+    font-size: larger;
+    padding: 10px;
+  }
+
+  md-dialog-content.llm-model-configuration {
+    padding: 10px;
+
+    .row {
+      display: flex;
+      align-items: center;
+      line-height: $height;
+      margin: 2px 0;
+
+      label {
+        font-weight: bold;
+        margin-right: 5px;
+        line-height: $height;
+        height: $height;
+        color: $font-color;
+      }
+
+      &.llm-property {
+        label {
+          min-width: 80px;
+        }
+
+        font-size: $font-size;
+        color: $font-color;
+
+        .llm-property-value {
+          line-height: $height;
+          height: $height;
+          flex: 1;
+        }
+
+        .llm-property-value-description {
+          min-width: 50px;
+          padding: 0 2px;
+        }
+
+        input.llm-property-value {
+          border: none;
+          border-bottom: 1px solid #cccccc;
+          font-size: $font-size;
+          color: $font-color;
+
+          &:hover, &:active, &:focus, &:focus-within {
+            &:not([disabled]) {
+              outline: none;
+              border: none;
+              border-bottom: 1px solid #aaaaaa;
+            }
+          }
+          &:hover:not([disabled]) {
+            &:not(:focus):not(:active):not(:focus-within) {
+              background: #fafafa;
+            }
+          }
+        }
+      }
+
+      md-slider.llm-property-value {
+        margin-left: 5px;
+
+        .md-track-container {
+          top: calc($height / 2.0);
+        }
+        .md-thumb-container {
+          height: calc(($height + 6px) / 2.0);
+        }
+      }
+    }
+
+    md-select.llm-model-configuration-select {
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      height: $height;
+      box-sizing: border-box;
+    }
+
+    .md-select-value {
+      padding: 0 2px;
+      border-bottom-width: 0;
+      min-height: $height;
+      height: $height;
+      font-size: $font-size;
+    }
+
+    md-select-menu {
+      md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+      }
+    }
+
+    md-option {
+      padding: 0 10px;
+      height: $height;
+    }
+
+    .md-select-value .md-select-icon {
+      width: calc(($height - 2px) / 2.0);
+      margin: 0 2px;
+    }
+
+    md-select.llm-model-configuration-select.md-default-theme:not([disabled]):focus .md-select-value,
+    md-select.llm-model-configuration-select:not([disabled]):focus .md-select-value {
+      border-radius: 0;
+      border-bottom: none;
+    }
+  }
+}
+
+.llm-model-configuration-select-container {
+  md-select-menu:not(.md-overflow) md-content {
+    padding: 0;
+  }
+
+  md-select-menu md-content {
+    min-width: calc($height * 3.0);
+  }
+
+  md-option {
+    padding: 5px 10px;
+    height: $height;
+  }
+}

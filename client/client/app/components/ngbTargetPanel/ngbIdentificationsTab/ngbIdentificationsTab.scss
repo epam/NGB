@@ -11,11 +11,72 @@
     -webkit-box-orient: vertical;
 }
 
-ngb-identifications-tab.tab {
+ngb-identifications-tab {
     overflow: auto;
-    height: calc(100% - 40px);
     font-size: $general-font-size;
     color: $general-font-color;
+
+    md-content.identification {
+        padding: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+    }
+
+    .identification-header {
+        $line-height: min(calc(1.5 * $title-font-size), 28px);
+
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+        line-height: $line-height;
+        min-height: $line-height;
+
+
+        .identification-title {
+            font-size: $title-font-size;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .identification-actions {
+            line-height: 1;
+            margin-left: auto;
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+
+            >*:not(:first-child) {
+                margin-left: 10px;
+            }
+
+            .identification-action {
+                color: rgb(51, 103, 214);
+                white-space: nowrap;
+
+                ng-md-icon {
+                    fill: currentColor;
+                }
+
+                &:not([disabled]):hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+
+    .identification-content {
+        flex: 1;
+        overflow: auto;
+    }
+
+    .identification-header,
+    .identification-content {
+        padding: 0 5px;
+    }
 
     a {
         text-decoration: none;
@@ -129,35 +190,6 @@ ngb-identifications-tab.tab {
         a {
             margin-left: 3px;
             margin-right: 3px;
-        }
-    }
-
-    .identification-content {
-        margin: 10px;
-    }
-
-    .identification-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: flex-start;
-        margin-bottom: 10px;
-
-        $line-height: min(calc(1.5 * $title-font-size), 28px);
-
-        .identification-title {
-            margin: 0;
-            font-size: $title-font-size;
-            line-height: $line-height;
-            font-weight: bold;
-        }
-
-        .store-report-button {
-            min-height: $line-height;
-            height: $line-height;
-            line-height: 1;
-            min-width: 120px;
-            width: 120px;
-            margin: 0;
         }
     }
 

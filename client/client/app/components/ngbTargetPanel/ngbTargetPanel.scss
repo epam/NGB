@@ -1,14 +1,21 @@
-.target-flex-column {
+.target-panel {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
+  overflow: auto;
 
-.tab {
-  height: 100%;
+  md-content.target-panel-content {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+  }
 }
 
 .target-nav-bar .md-nav-bar {

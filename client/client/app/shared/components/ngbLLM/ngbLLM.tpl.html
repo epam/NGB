@@ -1,0 +1,34 @@
+<md-menu>
+    <div class="llm-model"
+         ng-click="$mdOpenMenu($event)">
+        <span class="llm-model-name">
+            {{$ctrl.modelName || 'Select LLM model'}}
+        </span>
+        <ng-md-icon ng-if="!$ctrl.hideIcon"
+                    icon="settings"
+                    class="llm-model-icon"
+                    size="{{$ctrl.iconSize || 14}}"></ng-md-icon>
+    </div>
+    <md-menu-content class="llm-models-menu">
+        <md-menu-item ng-repeat="llmModel in $ctrl.llmModels track by $index"
+                      ng-class="{'model-selected': llmModel === $ctrl.modelType}">
+            <md-button ng-click="$ctrl.selectModel(llmModel)">
+                {{$ctrl.getModelName(llmModel)}}
+                <ng-md-icon icon="check"
+                            class="selection-icon"
+                            size="14"></ng-md-icon>
+            </md-button>
+        </md-menu-item>
+        <md-menu-item class="llm-models-divider"
+                      ng-if="$ctrl.hasConfigurableProperties">
+            <md-divider />
+        </md-menu-item>
+        <md-menu-item ng-if="$ctrl.hasConfigurableProperties">
+            <md-button ng-click="$ctrl.configure()">
+                <span>Configure model</span>
+                <ng-md-icon icon="settings"
+                            size="14"></ng-md-icon>
+            </md-button>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>

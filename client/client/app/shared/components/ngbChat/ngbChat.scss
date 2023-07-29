@@ -1,0 +1,131 @@
+$ngb-chat-font-size: 13px;
+$ngb-chat-font-color: #444444;
+$ngb-chat-line-height: calc($ngb-chat-font-size + 2px);
+$ngb-chat-input-line-height: calc($ngb-chat-font-size * 2);
+$ngb-chat-message-background: #f0f0f0;
+$ngb-chat-input-border-color: #cccccc;
+$ngb-chat-my-message-font-color: #fafafa;
+$ngb-chat-my-message-background: #4285f4;
+$ngb-chat-border-radius: 10px;
+
+ngb-chat {
+  font-size: $ngb-chat-font-size;
+  color: $ngb-chat-font-color;
+  line-height: $ngb-chat-line-height;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  position: relative;
+
+  .ngb-chat-messages {
+    margin-top: 5px;
+    display: flex;
+    flex: 0 1 auto;
+    overflow: auto;
+    flex-direction: column;
+
+    .ngb-chat-message {
+      max-width: calc(100% - 50px);
+      align-self: flex-start;
+      line-height: $ngb-chat-line-height;
+
+      margin: 2px 0;
+      padding: 5px 10px;
+      background: $ngb-chat-message-background;
+      border-radius: 0 $ngb-chat-border-radius $ngb-chat-border-radius $ngb-chat-border-radius;
+
+      &.my-message {
+        margin: 2px 5px 2px 0;
+        align-self: flex-end;
+        color: $ngb-chat-my-message-font-color;
+        background: $ngb-chat-my-message-background;
+        border-radius: $ngb-chat-border-radius $ngb-chat-border-radius 0 $ngb-chat-border-radius;
+      }
+
+      &.chat-error-message {
+        background: #ffdede;
+        border-radius: $ngb-chat-border-radius $ngb-chat-border-radius 0 $ngb-chat-border-radius;
+      }
+
+      &.system-message {
+        margin: 2px 5px;
+        align-self: center;
+        background: none;
+        border: none;
+        color: #999999;
+        font-size: smaller;
+      }
+
+      &.message-pending {
+        $circle-size: 5px;
+        display: flex;
+        align-items: center;
+        height: 15px;
+        line-height: 15px;
+        min-height: 15px;
+
+        @keyframes color-transition {
+          0% {
+            background-color: #cccccc;
+          }
+          50% {
+            background-color: #888888;
+          }
+          100% {
+            background-color: #cccccc;
+          }
+        }
+
+        .message-pending-circle {
+          margin-right: calc($circle-size / 2.0);
+          display: inline-block;
+          width: $circle-size;
+          height: $circle-size;
+          border-radius: calc($circle-size / 2.0);
+          background: #999999;
+          animation: color-transition 1s infinite;
+
+          &.circle-2 {
+            animation-delay: 333ms;
+          }
+          &.circle-3 {
+            animation-delay: 666ms;
+          }
+        }
+      }
+
+      &:last-child {
+        margin-bottom: 5px;
+      }
+    }
+  }
+
+  .ngb-chat-input {
+    line-height: $ngb-chat-input-line-height;
+    height: $ngb-chat-input-line-height;
+    font-size: $ngb-chat-font-size;
+    border: none;
+    border-bottom: 1px solid $ngb-chat-message-background;
+
+    &:hover, &:active, &:focus, &:focus-within {
+      &:not([disabled]) {
+        outline: none;
+        border: none;
+        border-bottom: 1px solid $ngb-chat-input-border-color;
+      }
+    }
+    &:hover:not([disabled]) {
+      &:not(:focus):not(:active):not(:focus-within) {
+        background: $ngb-chat-message-background;
+      }
+    }
+  }
+
+  .loading-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+}

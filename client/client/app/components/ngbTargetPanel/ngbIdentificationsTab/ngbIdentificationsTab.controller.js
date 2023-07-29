@@ -11,8 +11,8 @@ export default class ngbIdentificationsTabController {
         $timeout,
         dispatcher,
         ngbIdentificationsTabService,
-        ngbBibliographyPanelService,
-        ngbTargetPanelService
+        ngbTargetPanelService,
+        targetLLMService
     ) {
         Object.assign(
             this,
@@ -21,8 +21,8 @@ export default class ngbIdentificationsTabController {
                 $timeout,
                 dispatcher,
                 ngbIdentificationsTabService,
-                ngbBibliographyPanelService,
-                ngbTargetPanelService
+                ngbTargetPanelService,
+                targetLLMService
             });
         this.dispatcher.on('target:identification:changed', this.identificationChanged.bind(this));
         this.dispatcher.on('target:identification:publications:loading', this.refreshInfoBlocks.bind(this));
@@ -31,6 +31,26 @@ export default class ngbIdentificationsTabController {
         this._interest = [];
         this._translational = [];
         this._mainInfoBlocks = [];
+        this._chatOpened = false;
+        this.closeChatCallback = this.closeChat.bind(this);
+    }
+
+    get llmModels() {
+        return this.targetLLMService ? this.targetLLMService.models : [];
+    }
+
+    get llmModel() {
+        return this.targetLLMService ? this.targetLLMService.model : undefined;
+    }
+
+    set llmModel(llmModel) {
+        if (this.targetLLMService) {
+            this.targetLLMService.model = llmModel;
+        }
+    }
+
+    get chatOpened() {
+        return this._chatOpened;
     }
 
     get descriptionCollapsed() {
@@ -95,13 +115,18 @@ export default class ngbIdentificationsTabController {
     }
 
     refreshInfoBlocks() {
-        this._mainInfoBlocks = buildMainInfoBlocks(
-            this.identificationData,
-            this.ngbBibliographyPanelService
-        );
+        this._mainInfoBlocks = buildMainInfoBlocks(this.identificationData);
     }
 
     toggleDescriptionCollapsed () {
         this.openedPanels.description = !this.openedPanels.description;
+    }
+
+    toggleChat() {
+        this._chatOpened = !this._chatOpened;
+    }
+
+    closeChat() {
+        this._chatOpened = false;
     }
 }

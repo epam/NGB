@@ -15,6 +15,9 @@ import collapsiblePanel from './widgets/collapsiblePanel';
 import textBox from './widgets/TextBox';
 import ngbColorPicker from './widgets/ngbColorPicker';
 import ngbTags from './ngbTags';
+import ngbChat from './ngbChat';
+import ngbLLM from './ngbLLM';
+import ngbFloatingPanel from './ngbFloatingPanel';
 
 export default angular.module('SharedComponents', [
     ngbGoldenLayout,
@@ -30,5 +33,8 @@ export default angular.module('SharedComponents', [
     ngbMarkdown,
     ngbColorPicker,
     ngbHeatmap,
-    ngbTags
+    ngbTags,
+    ngbChat,
+    ngbLLM,
+    ngbFloatingPanel,
 ]).name;

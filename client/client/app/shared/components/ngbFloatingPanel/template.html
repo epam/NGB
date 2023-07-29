@@ -1,0 +1,14 @@
+<div class="ngb-floating-panel-title">
+    <div ng-transclude="title"></div>
+    <md-button
+            ng-if="$ctrl.closable"
+            class="close-button"
+            ng-click="$ctrl.closePanel($event)"
+    >
+        <ng-md-icon class="close-icon"
+                    icon="close"
+                    aria-label="close"
+                    size="16"></ng-md-icon>
+    </md-button>
+</div>
+<div class="ngb-floating-panel-content" ng-transclude="body"></div>

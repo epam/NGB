@@ -1,9 +1,10 @@
 $font-size: 12px;
 
-$summary-button-size: 24px;
+$summary-section-title-height: 24px;
 $summary-option-size: 30px;
 
 ngb-bibliography-panel {
+    position: relative;
     display: block;
     padding: 5px;
 
@@ -15,9 +16,9 @@ ngb-bibliography-panel {
 
         md-list-item,
         md-list-item .md-list-item-inner {
-            min-height: 24px;
-            height: 24px;
-            font-size: 14px;
+            min-height: $summary-section-title-height;
+            line-height: $summary-section-title-height;
+            font-size: $font-size;
         }
     }
 
@@ -75,8 +76,8 @@ ngb-bibliography-panel {
 
     .summary-button {
         .md-button {
-            height: $summary-button-size;
-            min-height: $summary-button-size;
+            height: $summary-section-title-height;
+            min-height: $summary-section-title-height;
             display: flex;
             align-items: center;
             text-transform: none;
@@ -86,6 +87,10 @@ ngb-bibliography-panel {
             padding: 0;
 
             background: transparent;
+
+            &:not([disabled]) {
+                color: rgb(51, 103, 214);
+            }
 
             &:hover,
             &:visited,
@@ -118,17 +123,19 @@ ngb-bibliography-panel {
     }
 
     .ngb-bibliography-section {
-        margin: 5px 0 10px;
+        margin: 5px 0 15px;
 
         .ngb-bibliography-section-title {
             display: flex;
             flex-direction: row;
             align-items: center;
+            line-height: $summary-section-title-height;
 
             .section-name {
                 font-weight: bold;
                 text-transform: uppercase;
-                margin-right: auto;
+                margin-right: 10px;
+                line-height: 1;
             }
         }
     }
@@ -140,6 +147,13 @@ ngb-bibliography-panel {
         p {
             margin: 0;
         }
+    }
+
+    .loading-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
     }
 }
 

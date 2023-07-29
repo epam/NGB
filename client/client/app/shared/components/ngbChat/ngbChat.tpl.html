@@ -1,0 +1,31 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="ngb-chat-messages">
+    <div class="ngb-chat-message"
+         ng-repeat="message in $ctrl.messages track by $index"
+         ng-class="{
+            'my-message': message.my,
+            'system-message': message.system,
+            'chat-error-message': message.error
+         }"
+         ng-bind-html="$ctrl.getMessageHtml(message.content)"
+    >
+    </div>
+    <div class="ngb-chat-message message-pending"
+         ng-if="$ctrl.messageLoading"
+    >
+        <div class="message-pending-circle circle-1"></div>
+        <div class="message-pending-circle circle-2"></div>
+        <div class="message-pending-circle circle-3"></div>
+    </div>
+</div>
+<input class="ngb-chat-input"
+       ng-if="!$ctrl.readOnly"
+       ng-disabled="$ctrl.disabled || $ctrl.loading"
+       ng-model="$ctrl.currentMessage"
+       ng-blur="$ctrl.onBlur($event)"
+       ng-keydown="$ctrl.onKeyPress($event)"
+       placeholder="{{$ctrl.placeholder || 'Your message...'}}"
+/>

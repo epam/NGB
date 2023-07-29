@@ -1,11 +1,7 @@
-export default function buildMainInfoBlocks (identificationData, bibliographyService) {
+export default function buildMainInfoBlocks (identificationData) {
     if (!identificationData) {
         return [];
     }
-    const {
-        loadingPublications = false,
-        publications = []
-    } = bibliographyService || {};
     return [
         {
             key: 'drugs',
@@ -74,7 +70,6 @@ export default function buildMainInfoBlocks (identificationData, bibliographySer
         {
             key: 'bibliography',
             title: 'Bibliography',
-            loading: loadingPublications,
             items: [
                 {
                     item: 'publication',

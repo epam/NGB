@@ -9,6 +9,7 @@ import service from './ngbIdentificationsTab.service';
 import ngbKnownDrugsPanel from './ngbKnownDrugsPanel';
 import ngbDiseasesPanel from './ngbDiseasesPanel';
 import ngbBibliographyPanel from './ngbBibliographyPanel';
+import ngbIdentificationChat from './ngbIdentificationChat';
 import ngbPluralText from './ngbPluralText';
 
 export default angular
@@ -16,7 +17,8 @@ export default angular
         ngbKnownDrugsPanel,
         ngbDiseasesPanel,
         ngbBibliographyPanel,
-        ngbPluralText
+        ngbPluralText,
+        ngbIdentificationChat
     ])
     .controller(controller.UID, controller)
     .component('ngbIdentificationsTab', component)

@@ -1,4 +1,4 @@
-<div ng-if="$ctrl.isTableMode" class="target-flex-column">
-    <ngb-targets-table class="target-flex-column"></ngb-targets-table>
-</div>
-<ngb-targets-form ng-if="$ctrl.isAddMode || $ctrl.isEditMode"></ngb-targets-form>
+<ngb-targets-table ng-if="$ctrl.isTableMode"
+                   class="target-flex-column"></ngb-targets-table>
+<ngb-targets-form ng-if="$ctrl.isAddMode || $ctrl.isEditMode"
+                  class="target-flex-column"></ngb-targets-form>

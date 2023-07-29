@@ -68,13 +68,38 @@ export default class NgbBibliographyPanelService {
         return this._summaryResult;
     }
 
-    static instance ($sce, dispatcher, ngbTargetPanelService, targetDataService) {
-        return new NgbBibliographyPanelService($sce, dispatcher, ngbTargetPanelService, targetDataService);
+    static instance (
+        $sce,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        targetLLMService
+    ) {
+        return new NgbBibliographyPanelService(
+            $sce,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            targetLLMService
+        );
     }
 
-    constructor($sce, dispatcher, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {$sce, dispatcher, ngbTargetPanelService, targetDataService});
+    constructor(
+        $sce,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        targetLLMService
+    ) {
+        Object.assign(this, {
+            $sce,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            targetLLMService
+        });
         this._genes = [];
+
         dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
         this.updateGenes(ngbTargetPanelService.identificationTarget);
     }
@@ -141,10 +166,13 @@ export default class NgbBibliographyPanelService {
         });
     }
 
-    getLlmSummary(provider) {
+    getLlmSummary() {
+        if (!this.targetLLMService || !this.targetLLMService.model) {
+            return Promise.resolve();
+        }
         const request = (this._publications || []).slice(0, 10).map(p => p.uid);
         return new Promise(resolve => {
-            this.targetDataService.getLlmSummary(request, provider)
+            this.targetDataService.getLlmSummary(request, this.targetLLMService.model.type)
                 .then((data) => {
                     this._failedSummary = false;
                     this._summaryError = null;

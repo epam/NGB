@@ -1,0 +1,62 @@
+<md-dialog aria-label="Large Language Model"
+           class="llm-model-dialog">
+  <md-toolbar>
+    Configure model
+  </md-toolbar>
+  <md-dialog-content class="llm-model-configuration">
+    <div class="row">
+      <label for="llm-model">
+        Model:
+      </label>
+      <md-select id="llm-model"
+                 ng-model="model"
+                 ng-change="onChangeModel()"
+                 aria-label="LLM model select"
+                 class="md-no-underline llm-model-configuration-select"
+                 md-container-class="llm-model-configuration-select-container">
+        <md-option ng-repeat="llmModel in models track by $index"
+                   ng-value="llmModel">
+          {{getModelName(llmModel)}}
+        </md-option>
+      </md-select>
+    </div>
+    <div class="row llm-property"
+         ng-repeat="property in properties track by $index">
+      <label class="llm-property-name">{{property.name || property.property}}:</label>
+      <span ng-if="property.type === 'slider'"
+            class="llm-property-value-description"
+      >
+        {{property.value}}
+      </span>
+      <md-slider ng-if="property.type === 'slider'"
+                 min="{{property.min}}"
+                 max="{{property.max}}"
+                 ng-model="property.value"
+                 step="{{(property.max - property.min) / 1000.0}}"
+                 aria-label="{{property.name}}"
+                 class="llm-property-value">
+      </md-slider>
+      <input ng-if="property.type === 'number' || property.type === undefined"
+             class="llm-property-value"
+             type="number"
+             min="{{property.min}}"
+             max="{{property.max}}"
+             aria-label="{{property.name}}"
+             ng-model="property.value"
+      />
+      <input ng-if="property.type === 'text'"
+             class="llm-property-value"
+             aria-label="{{property.name}}"
+             ng-model="property.value"
+      />
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="ok()" class="md-primary" style="margin-right: 5px;">
+      OK
+    </md-button>
+    <md-button ng-click="cancel()" style="margin-right: 5px;">
+      Cancel
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>

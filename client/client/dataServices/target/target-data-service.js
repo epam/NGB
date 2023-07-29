@@ -233,6 +233,32 @@ export class TargetDataService extends DataService {
         });
     }
 
+    getAbstracts(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/abstracts', request)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error generating publications summary';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    llmChat(request, provider) {
+        return new Promise((resolve, reject) => {
+            this.post(`llm/chat?provider=${provider}`, request)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error generating publications summary';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
     getDrugsFieldValues(source, geneIds) {
         return new Promise((resolve) => {
             this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
