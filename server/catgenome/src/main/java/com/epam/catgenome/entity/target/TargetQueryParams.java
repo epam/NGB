@@ -38,6 +38,7 @@ public class TargetQueryParams {
     private PagingInfo pagingInfo;
     private SortInfo sortInfo;
     private String targetName;
+    private String owner;
     private List<String> diseases;
     private List<String> products;
     private List<String> geneIds;
