@@ -21,32 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.manager.externaldb.target.dgidb;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+import java.util.function.Function;
+
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends UrlEntity {
-    public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
-    private String geneId;
-    private String entrezId;
-    private String interactionTypes;
-    private String interactionClaimSource;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url);
-        this.entrezId = entrezId;
-        this.geneId = geneId;
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
+@Getter
+public enum DGIDBField implements AssociationExportField<DGIDBDrugAssociation> {
+    GENE_ID("Target", DGIDBDrugAssociation::getGeneId, true),
+    DRUG_NAME("Drug", DGIDBDrugAssociation::getName, true),
+    DRUG_NAME_FLTR(false),
+    INTERACTION_CLAIM_SOURCE("Interaction Claim Source",
+            DGIDBDrugAssociation::getInteractionClaimSource, true),
+    INTERACTION_TYPES("Interaction Types", DGIDBDrugAssociation::getInteractionTypes, true);
+    private String label;
+    private Function<DGIDBDrugAssociation, String> getter;
+    private final boolean export;
+    DGIDBField(boolean export) {
+        this.export = export;
     }
 }

@@ -27,9 +27,9 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
-import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     }
 
     public long totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<PharmGKBDisease> result = search(ids, IndexFields.GENE_ID.name());
+        final List<PharmGKBDisease> result = searchByGeneIds(ids);
         return result.stream().map(PharmGKBDisease::getId).distinct().count();
     }
 
@@ -101,7 +102,7 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
 
     @Override
     public String getDefaultSortField() {
-        return IndexFields.DISEASE_NAME.name();
+        return PharmGKBDiseaseField.DISEASE_NAME.name();
     }
 
     @Override
@@ -125,24 +126,25 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     @Override
     public void addDoc(final IndexWriter writer, final PharmGKBDisease entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(IndexFields.GENE_ID.name(), new BytesRef(entry.getGeneId())));
+        doc.add(new StringField(PharmGKBDiseaseField.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(PharmGKBDiseaseField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-        doc.add(new StringField(IndexFields.DISEASE_ID.name(), entry.getId(), Field.Store.YES));
+        doc.add(new StringField(PharmGKBDiseaseField.DISEASE_ID.name(), entry.getId(), Field.Store.YES));
 
-        doc.add(new StringField(IndexFields.DISEASE_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
-        doc.add(new StringField(IndexFields.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(IndexFields.DISEASE_NAME.name(), new BytesRef(entry.getName())));
+        doc.add(new StringField(PharmGKBDiseaseField.DISEASE_NAME_FLTR.name(),
+                entry.getName().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(PharmGKBDiseaseField.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(PharmGKBDiseaseField.DISEASE_NAME.name(), new BytesRef(entry.getName())));
         writer.addDocument(doc);
     }
 
     @Override
     public PharmGKBDisease entryFromDoc(final Document doc) {
-        final String id = doc.getField(IndexFields.DISEASE_ID.name()).stringValue();
+        final String id = doc.getField(PharmGKBDiseaseField.DISEASE_ID.name()).stringValue();
         return PharmGKBDisease.builder()
-                .geneId(doc.getField(IndexFields.GENE_ID.name()).stringValue())
+                .geneId(doc.getField(PharmGKBDiseaseField.GENE_ID.name()).stringValue())
                 .id(id)
-                .name(doc.getField(IndexFields.DISEASE_NAME.name()).stringValue())
+                .name(doc.getField(PharmGKBDiseaseField.DISEASE_NAME.name()).stringValue())
                 .url(String.format(PharmGKBDisease.URL_PATTERN, id))
                 .build();
     }
@@ -151,19 +153,16 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
-            Query query = IndexFields.DISEASE_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(IndexFields.DISEASE_NAME_FLTR.name(), term) :
+            Query query = PharmGKBDiseaseField.DISEASE_NAME.name().equals(filter.getField()) ?
+                    buildPrefixQuery(PharmGKBDiseaseField.DISEASE_NAME_FLTR.name(), term) :
                     buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
     }
 
-    @Getter
-    private enum IndexFields {
-        GENE_ID,
-        DISEASE_NAME,
-        DISEASE_NAME_FLTR,
-        DISEASE_ID;
+    @Override
+    public List<AssociationExportField<PharmGKBDisease>> getExportFields() {
+        return Arrays.asList(PharmGKBDiseaseField.values());
     }
 }

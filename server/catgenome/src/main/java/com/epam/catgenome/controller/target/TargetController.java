@@ -47,9 +47,12 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.target.AssociationExportSecurityService;
+import com.epam.catgenome.manager.target.AssociationTable;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
+import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.util.db.Page;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -67,6 +70,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
@@ -77,6 +81,7 @@ public class TargetController extends AbstractRESTController {
 
     private final TargetSecurityService targetSecurityService;
     private final TargetIdentificationSecurityService targetIdentificationSecurityService;
+    private final AssociationExportSecurityService exportSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
     @ApiOperation(
@@ -383,5 +388,23 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request) {
         return Result.success(targetIdentificationSecurityService.getStructures(request));
+    }
+
+    @GetMapping(value = "/target/export")
+    @ApiOperation(
+            value = "Exports data to CSV/TSV file",
+            notes = "Exports data to CSV/TSV file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void export(@RequestParam final List<String> geneIds,
+                       @RequestParam final FileFormat format,
+                       @RequestParam final AssociationTable source,
+                       @RequestParam final boolean includeHeader,
+                       HttpServletResponse response) throws IOException, ParseException {
+        final byte[] bytes = exportSecurityService.export(geneIds, format, source, includeHeader);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
     }
 }

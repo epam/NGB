@@ -93,6 +93,7 @@ public final class Utils {
     public static final String NEW_LINE = "\n";
     public static final String DOT = ".";
     private static final String SEPARATOR = ",";
+    public static final String NULL_STR = "null";
 
     private Utils() {
         // no operations by default

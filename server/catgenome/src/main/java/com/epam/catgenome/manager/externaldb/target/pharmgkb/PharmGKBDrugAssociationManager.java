@@ -27,9 +27,9 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
-import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
     }
 
     public long totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<PharmGKBDrug> result = search(ids, IndexFields.GENE_ID.name());
+        final List<PharmGKBDrug> result = searchByGeneIds(ids);
         return result.stream().map(PharmGKBDrug::getId).distinct().count();
     }
 
@@ -118,7 +119,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
 
     @Override
     public String getDefaultSortField() {
-        return IndexFields.DRUG_NAME.name();
+        return PharmGKBDrugField.DRUG_NAME.name();
     }
 
     @Override
@@ -152,30 +153,31 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
         final String geneId = entry.getGeneId();
         if (geneId != null) {
             final Document doc = new Document();
-            doc.add(new StringField(IndexFields.GENE_ID.name(), geneId.toLowerCase(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.GENE_ID.name(), new BytesRef(geneId)));
+            doc.add(new StringField(PharmGKBDrugField.GENE_ID.name(), geneId.toLowerCase(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(PharmGKBDrugField.GENE_ID.name(), new BytesRef(geneId)));
 
-            doc.add(new StringField(IndexFields.DRUG_ID.name(), entry.getId(), Field.Store.YES));
+            doc.add(new StringField(PharmGKBDrugField.DRUG_ID.name(), entry.getId(), Field.Store.YES));
 
-            doc.add(new StringField(IndexFields.DRUG_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
-            doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.name(), new BytesRef(entry.getName())));
+            doc.add(new StringField(PharmGKBDrugField.DRUG_NAME_FLTR.name(),
+                    entry.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(PharmGKBDrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(PharmGKBDrugField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
-            doc.add(new StringField(IndexFields.SOURCE.name(), entry.getSource(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.SOURCE.name(), new BytesRef(entry.getSource())));
+            doc.add(new StringField(PharmGKBDrugField.SOURCE.name(), entry.getSource(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(PharmGKBDrugField.SOURCE.name(), new BytesRef(entry.getSource())));
             writer.addDocument(doc);
         }
     }
 
     @Override
     public PharmGKBDrug entryFromDoc(final Document doc) {
-        final String id = doc.getField(IndexFields.DRUG_ID.name()).stringValue();
+        final String id = doc.getField(PharmGKBDrugField.DRUG_ID.name()).stringValue();
         return PharmGKBDrug.builder()
                 .id(id)
-                .name(doc.getField(IndexFields.DRUG_NAME.name()).stringValue())
+                .name(doc.getField(PharmGKBDrugField.DRUG_NAME.name()).stringValue())
                 .url(String.format(PharmGKBDrug.URL_PATTERN, id))
-                .geneId(doc.getField(IndexFields.GENE_ID.name()).stringValue())
-                .source(doc.getField(IndexFields.SOURCE.name()).stringValue())
+                .geneId(doc.getField(PharmGKBDrugField.GENE_ID.name()).stringValue())
+                .source(doc.getField(PharmGKBDrugField.SOURCE.name()).stringValue())
                 .build();
     }
 
@@ -183,20 +185,16 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
     public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
-            Query query = IndexFields.DRUG_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(IndexFields.DRUG_NAME_FLTR.name(), term) :
+            Query query = PharmGKBDrugField.DRUG_NAME.name().equals(filter.getField()) ?
+                    buildPrefixQuery(PharmGKBDrugField.DRUG_NAME_FLTR.name(), term) :
                     buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
     }
 
-    @Getter
-    private enum IndexFields {
-        GENE_ID,
-        DRUG_NAME,
-        DRUG_NAME_FLTR,
-        DRUG_ID,
-        SOURCE;
+    @Override
+    public List<AssociationExportField<PharmGKBDrug>> getExportFields() {
+        return Arrays.asList(PharmGKBDrugField.values());
     }
 }
