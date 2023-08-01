@@ -84,6 +84,20 @@ ngb-sequences-panel {
             }
         }
     }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding-top: 30px;
+        padding-bottom: 10px;
+        min-height: 30px;
+
+        .no-records-warning {
+            color: #999;
+        }
+    }
 }
 
 .sequence-gene-select-container {

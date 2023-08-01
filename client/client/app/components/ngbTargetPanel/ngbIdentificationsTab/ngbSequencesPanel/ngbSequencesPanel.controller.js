@@ -52,6 +52,10 @@ export default class ngbSequencesPanelController {
         return SEQUENCE_SECTION_NAME;
     }
 
+    get emptyResults() {
+        return this.data.every(item => !item.value.length);
+    }
+
     static get UID() {
         return 'ngbSequencesPanelController';
     }
@@ -91,6 +95,10 @@ export default class ngbSequencesPanelController {
     }
     set selectedGeneId(selectedGeneId) {
         this.ngbSequencesPanelService.selectedGeneId = selectedGeneId;
+    }
+
+    get selectedGene() {
+        return this.genes.filter(gene => gene.geneId === this.selectedGeneId)[0];
     }
 
     get taxId () {
