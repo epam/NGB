@@ -9,8 +9,19 @@ ngb-sequences-panel {
         .section-content {
             padding: 5px 20px;
 
+            span {
+                padding-right: 10px;
+            }
+
             a {
                 font-weight: 500;
+            }
+
+            span.link {
+                font-weight: 500;
+                cursor: pointer;
+                text-decoration: none;
+                color: rgb(51, 103, 214);
             }
 
             &:last-child {

@@ -296,4 +296,17 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getSequencesResults(geneIds) {
+        return new Promise((resolve) => {
+            this.get(`target/sequences?geneIds=${geneIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
 }

@@ -3,15 +3,15 @@
     <span class="section-title">{{section.name}}</span>
     <div ng-repeat="block in section.value track by $index"
          class="section-content">
-        <span>
-            <a ng-href="{{block.sequenceName.url}}" target="_blank">
-                {{block.sequenceName.name}}
-            </a>
+        <span ng-class="{'link': $ctrl.isRegistered}"
+              ng-click="$ctrl.onClickSequence()"
+        >
+            {{block.id}}
         </span>
-        <span>{{block.sequenceDescription}}</span>
+        <span>{{block.name}}</span>
         <span>
-            <a ng-href="{{genomic.ncbi.url}}" target="_blank">
-                {{block.ncbi.name}}
+            <a ng-href="{{block.url}}" target="_blank">
+                NCBI
             </a>
         </span>
     </div>
