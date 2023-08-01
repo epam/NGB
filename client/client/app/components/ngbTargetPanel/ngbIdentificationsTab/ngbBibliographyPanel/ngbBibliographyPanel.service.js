@@ -20,6 +20,9 @@ export default class NgbBibliographyPanelService {
 
     _summaryResult = null;
 
+    _llmSummaryToken = 0;
+    _publicationsToken = 0;
+
     get pageSize() {
         return PAGE_SIZE;
     }
@@ -117,6 +120,8 @@ export default class NgbBibliographyPanelService {
             ...interest.map(g => g.geneId),
             ...translational.map(g => g.geneId),
         ])];
+        this.clearSummary();
+        this.clearPublications();
         (this.getPublicationsResults)();
     }
 
@@ -136,6 +141,7 @@ export default class NgbBibliographyPanelService {
         }
         this.dispatcher.emit('target:identification:publications:loading');
         this._loadingPublications = true;
+        const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getPublications({
                 geneIds: this.genes,
@@ -143,27 +149,78 @@ export default class NgbBibliographyPanelService {
                 pageSize: this.pageSize
             })
                 .then(([data, totalCount]) => {
-                    this._failedPublications = false;
-                    this._publicationsError = null;
-                    this._totalPages = Math.ceil(totalCount/this.pageSize);
-                    this._emptyPublications = totalCount === 0;
-                    this._publications = data;
-                    this._loadingPublications = false;
-                    this.dispatcher.emit('target:identification:publications:loaded');
-                    this.dispatcher.emit('target:identification:publications:page:changed');
+                    commit(() => {
+                        this._failedPublications = false;
+                        this._publicationsError = null;
+                        this._totalPages = Math.ceil(totalCount/this.pageSize);
+                        this._emptyPublications = totalCount === 0;
+                        this._publications = data;
+                        this._loadingPublications = false;
+                        this.dispatcher.emit('target:identification:publications:loaded');
+                        this.dispatcher.emit('target:identification:publications:page:changed');
+                    });
                     resolve(true);
                 })
                 .catch(err => {
-                    this._failedPublications = true;
-                    this._publicationsError = [err.message];
-                    this._totalPages = 0;
-                    this._emptyPublications = false;
-                    this._loadingPublications = false;
-                    this.dispatcher.emit('target:identification:publications:loaded');
-                    this.dispatcher.emit('target:identification:publications:page:changed');
+                    commit(() => {
+                        this._failedPublications = true;
+                        this._publicationsError = [err.message];
+                        this._totalPages = 0;
+                        this._emptyPublications = false;
+                        this._loadingPublications = false;
+                        this.dispatcher.emit('target:identification:publications:loaded');
+                        this.dispatcher.emit('target:identification:publications:page:changed');
+                    });
                     resolve(false);
                 });
         });
+    }
+
+    _increaseLLMSummaryToken() {
+        this._llmSummaryToken = (this._llmSummaryToken || 0) + 1;
+        return this._llmSummaryToken;
+    }
+
+    _increasePublicationsToken() {
+        this._publicationsToken = (this._publicationsToken || 0) + 1;
+        return this._publicationsToken;
+    }
+
+    _getLLMSummaryCommitPhase() {
+        const token = this._increaseLLMSummaryToken();
+        return (fn) => {
+            if (typeof fn === 'function' && token === this._llmSummaryToken) {
+                fn();
+            }
+        };
+    }
+
+    _getPublicationsCommitPhase() {
+        const token = this._increasePublicationsToken();
+        return (fn) => {
+            if (typeof fn === 'function' && token === this._publicationsToken) {
+                fn();
+            }
+        };
+    }
+
+    clearSummary() {
+        this._increaseLLMSummaryToken();
+        this._failedSummary = false;
+        this._summaryError = null;
+        this._summaryResult = undefined;
+        this._loadingSummary = false;
+    }
+
+    clearPublications() {
+        this._currentPage = 1;
+        this._increasePublicationsToken();
+        this._failedPublications = false;
+        this._publicationsError = null;
+        this._totalPages = 0;
+        this._emptyPublications = false;
+        this._publications = [];
+        this._loadingPublications = false;
     }
 
     getLlmSummary() {
@@ -171,19 +228,24 @@ export default class NgbBibliographyPanelService {
             return Promise.resolve();
         }
         const request = (this._publications || []).slice(0, 10).map(p => p.uid);
+        const commit = this._getLLMSummaryCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getLlmSummary(request, this.targetLLMService.model)
                 .then((data) => {
-                    this._failedSummary = false;
-                    this._summaryError = null;
-                    this.setSummaryResults(data);
-                    this._loadingSummary = false;
+                    commit(() => {
+                        this._failedSummary = false;
+                        this._summaryError = null;
+                        this.setSummaryResults(data);
+                        this._loadingSummary = false;
+                    });
                     resolve(true);
                 })
                 .catch(err => {
-                    this._failedSummary = true;
-                    this._summaryError = [err.message];
-                    this._loadingSummary = false;
+                    commit(() => {
+                        this._failedSummary = true;
+                        this._summaryError = [err.message];
+                        this._loadingSummary = false;
+                    });
                     resolve(false);
                 });
         });

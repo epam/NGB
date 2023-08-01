@@ -18,6 +18,33 @@ export function getModelDefaultOptions(model, models = ALL_MODELS) {
     })
 }
 
+export function mergeUserOptions(modelOptions, userOptions) {
+    const {
+        type: modelType,
+    } = modelOptions || {};
+    const userProperties = userOptions || {};
+    const getSetProperty = (set, property) => set && typeof set[property.property] !== 'undefined'
+        ? set[property.property]
+        : undefined;
+    const getProperty = (property) => {
+        const user = getSetProperty(userProperties, property);
+        if (user !== undefined) {
+            return user;
+        }
+        const current = getSetProperty(modelOptions, property);
+        if (current !== undefined) {
+            return current;
+        }
+        return property.value;
+    };
+    return (LLMProperties[modelType] || []).reduce((result, property) => ({
+        ...result,
+        [property.property]: getProperty(property),
+    }), {
+        ...(modelOptions || {})
+    });
+}
+
 export function getModelParametersDescription(modelOptions) {
     if (!modelOptions || typeof modelOptions !== 'object') {
         return '';

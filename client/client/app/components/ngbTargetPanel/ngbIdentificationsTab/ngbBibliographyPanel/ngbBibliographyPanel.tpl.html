@@ -36,7 +36,7 @@
          ng-bind-html="$ctrl.summary.html">
     </div>
 </div>
-<div class="ngb-bibliography-section">
+<div class="ngb-bibliography-section" ng-if="$ctrl.publications && $ctrl.publications.length > 0">
     <div class="ngb-bibliography-section-title">
         <span class="section-name">
             Publications

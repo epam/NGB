@@ -1,6 +1,6 @@
 import {LLM, LLMName} from './models';
 import {
-    getModelDefaultOptions,
+    getModelDefaultOptions, mergeUserOptions,
     modelsHasConfigurationProperties
 } from './utilities';
 
@@ -67,7 +67,10 @@ class NgbLLMController {
 
     selectModel(modelType) {
         if (this.modelType !== modelType) {
-            this.modelOptions = getModelDefaultOptions(modelType);
+            this.modelOptions = mergeUserOptions(
+                getModelDefaultOptions(modelType, this.llmModels),
+                this.modelOptions,
+            );
             this.reportModelChanged();
         }
     }
