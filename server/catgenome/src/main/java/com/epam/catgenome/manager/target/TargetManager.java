@@ -29,6 +29,7 @@ import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.util.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -66,9 +67,13 @@ public class TargetManager {
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
+    private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Target create(final Target target) {
+        if (StringUtils.isEmpty(target.getOwner())) {
+            target.setOwner(authManager.getAuthorizedUser());
+        }
         final Target createdTarget = targetDao.saveTarget(target);
         final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
                 target.getTargetId());
