@@ -3,6 +3,12 @@ import {ProjectDataService} from '../../../../../dataServices';
 
 const projectDataService = new ProjectDataService();
 
+const SEQUENCE_SECTION_NAME = {
+    reference: 'GENOMIC',
+    mrnas: 'mRNA',
+    proteins: 'PROTEINS'
+}
+
 function findReferenceByName(name, projectContext) {
     if (!name || !projectContext || !projectContext.references || projectContext.references.length === 0) {
         return undefined;
@@ -42,6 +48,10 @@ function findGeneByName(reference, gene) {
 
 export default class ngbSequencesPanelController {
 
+    get sequenceSectionName () {
+        return SEQUENCE_SECTION_NAME;
+    }
+
     static get UID() {
         return 'ngbSequencesPanelController';
     }
@@ -65,30 +75,51 @@ export default class ngbSequencesPanelController {
             ngbTargetPanelService
         });
         this.getSequences();
+        const geneChanged = this.geneChanged.bind(this);
+        dispatcher.on('target:identification:sequence:gene:changed', geneChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:sequence:gene:changed', geneChanged);
+        });
     }
 
-    get interest () {
-        return (this.ngbTargetPanelService.identificationTarget || {}).interest || [];
+    get genes() {
+        return this.ngbSequencesPanelService.genes || [];
     }
 
-    get gene() {
-        return this.interest[0].geneName;
+    get selectedGeneId() {
+        return this.ngbSequencesPanelService.selectedGeneId;
+    }
+    set selectedGeneId(selectedGeneId) {
+        this.ngbSequencesPanelService.selectedGeneId = selectedGeneId;
+    }
+
+    get taxId () {
+        const taxIds = this.ngbTargetPanelService.allGenes
+            .filter(g => g.geneId === this.selectedGeneId)
+            .map(g => g.taxId);
+        return taxIds.length ? taxIds[0] : undefined;
     }
 
     get references () {
-        const interestTaxId = this.interest[0].taxId;
         return this.projectContext.references.filter(r => (
             (r.species && r.species.taxId) ?
-                r.species.taxId === interestTaxId : false
+                r.species.taxId === this.taxId : false
         ));
     }
 
     get data() {
-        return this.ngbSequencesPanelService.seqienceResults;
+        return this.ngbSequencesPanelService.sequenceData;
     }
 
     get isRegistered() {
         return this.references.length;
+    }
+
+    geneChanged() {
+        this.ngbSequencesPanelService.setSequenceData();
+        this.$timeout(() => {
+            this.$scope.$apply();
+        });
     }
 
     async getSequences() {
@@ -173,14 +204,14 @@ export default class ngbSequencesPanelController {
 
     navigateToGene() {
         if (
-            !this.gene ||
+            !this.selectedGeneId ||
             !this.projectContext ||
             !this.projectContext.references ||
             this.projectContext.references.length === 0
         ) {
             return Promise.resolve(false);
         }
-        const request = this.gene.trim();
+        const request = this.selectedGeneId.trim();
         const refGeneGroups = /^(.*):(.*)$/.exec(request);
         const findPromise = (reference, gene) => new Promise((resolve) => {
             if (!reference) {

@@ -1,6 +1,22 @@
+<div class="sequence-gene-select"
+     ng-if="$ctrl.genes.length > 1">
+    <label>
+        Gene:
+    </label>
+    <md-input-container>
+        <md-select ng-model="$ctrl.selectedGeneId"
+                   aria-label="Gene"
+                   md-container-class="sequence-gene-select-container">
+            <md-option ng-repeat="item in $ctrl.genes"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
 <div class="sequence-section"
      ng-repeat="section in $ctrl.data track by $index">
-    <span class="section-title">{{section.name}}</span>
+    <span class="section-title">{{$ctrl.sequenceSectionName[section.name]}}</span>
     <div ng-repeat="block in section.value track by $index"
          class="section-content">
         <span ng-class="{'link': $ctrl.isRegistered}"

@@ -1,3 +1,7 @@
+$select-height: 28px;
+$select-font-size: 13px;
+$select-color: #333333;
+
 ngb-sequences-panel {
     .sequence-section {
         padding: 5px 20px;
@@ -28,5 +32,77 @@ ngb-sequences-panel {
                 padding-bottom: 0;
             }
         }
+    }
+
+    .sequence-gene-select {
+        height: $select-height;
+        line-height: $select-height;
+        display: inline-flex;
+        align-items: center;
+        margin-right: 10px;
+        position: absolute;
+        right: 0;
+
+        md-input-container,
+        label {
+            margin: 0;
+            padding: 0;
+            line-height: $select-height;
+            height: $select-height;
+            color: $select-color;
+            font-size: $select-font-size;
+        }
+
+        label {
+            margin-right: 5px;
+        }
+
+        md-input-container md-select {
+            &:not([disabled]):focus .md-select-value {
+                border-bottom: none;
+            }
+
+            md-select-value {
+                border: none;
+                min-height: $select-height;
+                padding: 0;
+                font-size: $select-font-size;
+                display: flex;
+                align-items: center;
+
+                .md-select-icon {
+                    margin: 0 4px 0 0;
+                    width: 20px;
+                }
+
+                > span,
+                > span > div {
+                    line-height: $select-height;
+                    height: $select-height;
+                    transform: none!important;
+                }
+            }
+        }
+    }
+}
+
+.sequence-gene-select-container {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-option {
+        padding: 0 8px;
+        height: calc($select-height + 2px);
+
+        &[selected],
+        &:not([disabled]):focus {
+            color: $select-color;
+        }
+    }
+
+    md-select-menu,
+    md-select-menu md-content {
+        min-height: calc($select-height + 2px);
     }
 }

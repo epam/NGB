@@ -1,19 +1,22 @@
-const EMPTY_SEQUENCES_RESULT = [
-    {
-        name: 'GENOMIC'
-    }, {
-        name: 'mRNA'
-    }, {
-        name: 'PROTEINS'
-    }
-];
+const EMPTY_SEQUENCES_DATA = {
+    reference: [],
+    mrnas: [],
+    proteins: []
+};
 
 export default class ngbSequencesPanelService {
 
-    _seqienceResults = EMPTY_SEQUENCES_RESULT;
+    get emptySequencesData() {
+        return EMPTY_SEQUENCES_DATA;
+    }
+
+    _sequenceData = null;
     _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
+    _sequenceResults = null;
+    _genes = [];
+    _selectedGeneId;
 
     get loadingData() {
         return this._loadingData;
@@ -35,37 +38,78 @@ export default class ngbSequencesPanelService {
     set errorMessageList(value) {
         this._errorMessageList = value;
     }
-    get seqienceResults() {
-        return this._seqienceResults;
+
+    get sequenceData() {
+        return this._sequenceData;
+    }
+    set sequenceData(value) {
+        this._sequenceData = Object.entries(value)
+            .map(([name, value]) => ({ name, value }));
     }
 
-    static instance (ngbTargetPanelService, targetDataService, projectContext) {
-        return new ngbSequencesPanelService(ngbTargetPanelService, targetDataService, projectContext);
+    get sequenceResults() {
+        return this._sequenceResults;
+    }
+    get genes() {
+        return this._genes;
     }
 
-    constructor(ngbTargetPanelService, targetDataService, projectContext) {
-        Object.assign(this, {ngbTargetPanelService, targetDataService, projectContext});
+    get selectedGeneId() {
+        return this._selectedGeneId;
+    }
+    set selectedGeneId(selectedGeneId) {
+        if (
+            this._selectedGeneId !== !!selectedGeneId) {
+            this._selectedGeneId = selectedGeneId;
+            this.dispatcher.emit('target:identification:sequence:gene:changed');
+        }
+    }
+
+    static instance (dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        return new ngbSequencesPanelService(dispatcher, ngbTargetPanelService, targetDataService, projectContext);
+    }
+
+    constructor(dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, projectContext});
+        dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
+        this.setEmptySequenceData();
+        this.updateGenes();
+    }
+
+    updateGenes() {
+        this._genes = this.ngbTargetPanelService.allGenes.slice();
+        const gene = this._genes[0];
+        this.selectedGeneId = gene ? gene.geneId : undefined;
     }
 
     get geneIds() {
         return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
-    setSeqienceResults(result) {
-        const {reference, mrnas, proteins} = result[0];
-        const [GENOMIC, mRNA, PROTEINS] = this._seqienceResults;
+    setEmptySequenceData() {
+        this.sequenceData = {...this.emptySequencesData};
+    }
+
+    setSequenceData() {
+        this.setEmptySequenceData();
+        const result = this.sequenceResults
+            .filter(item => item.geneId.toLowerCase() === this.selectedGeneId.toLowerCase())[0];
+        if (!result) return;
+        const {reference, mrnas, proteins} = result;
+        const data = {...this.emptySequencesData};
         if (reference) {
-            GENOMIC.value = [{
+            data.reference = [{
                 name: 'reference',
                 ...reference
             }];
         }
         if (mrnas) {
-            mRNA.value = [...mrnas];
+            data.mrnas = [...mrnas];
         }
         if (proteins) {
-            PROTEINS.value = [...proteins];
+            data.proteins = [...proteins];
         }
+        this.sequenceData = data;
     }
 
     getSequencesResults() {
@@ -80,7 +124,8 @@ export default class ngbSequencesPanelService {
                 .then((data) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this.setSeqienceResults(data);
+                    this._sequenceResults = data;
+                    this.setSequenceData();
                     this.loadingData = false;
                     resolve(true);
                 })
@@ -92,5 +137,4 @@ export default class ngbSequencesPanelService {
                 });
         });
     }
-
 }
