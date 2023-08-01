@@ -28,11 +28,12 @@ ngb-diseases-graph {
         top: calc($diseases-chart-height / 2.0);
       }
       .md-thumb-container {
-        height: calc($diseases-chart-height / 2.0);
+        height: calc(($diseases-chart-height + 6px) / 2.0);
       }
     }
     .info {
       white-space: nowrap;
+      margin-left: 10px;
     }
 
     md-slider,
@@ -156,6 +157,24 @@ ngb-diseases-graph {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+  }
+
+  .ngb-diseases-data-is-missing-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    color: #777777;
+
+    > div {
+      text-align: center;
+    }
   }
 }
 

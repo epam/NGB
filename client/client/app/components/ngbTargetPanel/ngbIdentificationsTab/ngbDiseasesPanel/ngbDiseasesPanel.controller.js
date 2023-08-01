@@ -14,12 +14,14 @@ class NgbDiseasesPanelController {
         this.dispatcher = dispatcher;
         this.ngbDiseasesPanelService = ngbDiseasesPanelService;
         this._tabs = [];
+        this._tabsOnlyTable = [];
         this._sources = [];
         this._selectedTab = undefined;
     }
 
     $onInit() {
         this._tabs = Object.values(DiseasesTabs);
+        this._tabsOnlyTable = [DiseasesTabs.table];
         this._sources = Object.values(SourceOptions);
         this._selectedTab = DiseasesTabs.table;
     }
@@ -37,7 +39,7 @@ class NgbDiseasesPanelController {
     }
 
     get tabs() {
-        return this._tabs;
+        return this.chartsVisible ? this._tabs : this._tabsOnlyTable;
     }
 
     get selectedTab() {
@@ -46,6 +48,10 @@ class NgbDiseasesPanelController {
 
     set selectedTab(selectedTab) {
         this._selectedTab = selectedTab;
+    }
+
+    get chartsVisible() {
+        return this.source === SourceOptions.OPEN_TARGETS;
     }
 
     onChangeTab(newTab) {
@@ -62,6 +68,9 @@ class NgbDiseasesPanelController {
     set source(source) {
         if (this.ngbDiseasesPanelService) {
             this.ngbDiseasesPanelService.sourceModel = source;
+            if (source !== SourceOptions.OPEN_TARGETS) {
+                this.selectedTab = DiseasesTabs.table;
+            }
         }
     }
 

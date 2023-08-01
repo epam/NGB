@@ -118,8 +118,7 @@ export default class ngbDiseasesGraphController extends ngbDiseasesChartControll
         }
     }
 
-    draw() {
-        const svg = this.prepareSVG();
+    drawChart(svg) {
         if (!svg || !this.results) {
             return;
         }

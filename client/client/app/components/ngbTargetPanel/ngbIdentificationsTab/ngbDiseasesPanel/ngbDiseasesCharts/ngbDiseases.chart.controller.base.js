@@ -39,7 +39,7 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
     }
 
     get dataLoading() {
-        return this.loading && !this.results;
+        return this.loading;
     }
 
     get results() {
@@ -47,6 +47,18 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
             return this.ngbDiseasesChartService.results;
         }
         return null;
+    }
+
+    get dataNotReady() {
+        return this.ngbDiseasesChartService
+            ? this.ngbDiseasesChartService.dataNotReady
+            : true;
+    }
+
+    get dataIsMissing() {
+        return !this.loading &&
+            (!this.results || !this.results.length) &&
+            !this.dataNotReady;
     }
 
     get minScore() {
@@ -78,6 +90,10 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
 
     set selectedGeneId(selectedGeneId) {
         this.ngbDiseasesChartService.selectedGeneId = selectedGeneId;
+    }
+
+    get selectedGene() {
+        return this.genes.find((o) => o.geneId === this.selectedGeneId);
     }
 
     get genes() {
@@ -121,10 +137,12 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
     }
 
     async loadData() {
-        const success = await this.ngbDiseasesChartService.getDiseases();
-        if (success) {
+        return new Promise((resolve) => {
+            this.ngbDiseasesChartService.getDiseases()
+                .then(() => this.draw())
+                .then(() => resolve());
             this.draw();
-        }
+        });
     }
 
     prepareSVG() {
@@ -195,6 +213,18 @@ export default class ngbDiseasesChartControllerBase extends ngbDiseasesControlle
     }
 
     draw() {
+        const svg = this.prepareSVG();
+        if (!svg || !this.results || !this.results.length) {
+            return;
+        }
+        this.drawChart(svg);
+    }
+
+    drawChart(svg) {
         // to be overridden
+    }
+
+    sliderMouseDown(event) {
+        event.preventDefault();
     }
 }

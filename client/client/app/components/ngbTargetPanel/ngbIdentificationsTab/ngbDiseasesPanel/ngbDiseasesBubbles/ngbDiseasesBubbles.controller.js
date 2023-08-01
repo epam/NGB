@@ -33,8 +33,7 @@ export default class ngbDiseasesBubblesController extends ngbDiseasesChartContro
         return null;
     }
 
-    draw() {
-        const svg = this.prepareSVG();
+    drawChart(svg) {
         if (!svg || !this.results) {
             return;
         }

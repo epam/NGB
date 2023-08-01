@@ -32,18 +32,21 @@ export default class ngbDiseasesChartService {
         this._errorMessageList = null;
         this._diseasesResults = null;
         this._diseases = null;
+        this._diseasesRequest = undefined;
         this._ontologyRequest = undefined;
         this._selectedGeneId = undefined;
+        this._selectedGeneToken = 0;
         this._genes = [];
         this._ontology = [];
+        this._dataNotReady = true;
         this.minScore = 0;
         this.maxScore = 1;
         this.scoreStep = 0.01;
         this.scoreFilter = 0;
         this.minColor = {r: 246, g: 252, b: 255};
         this.maxColor = {r: 15, g: 100, b: 150};
-        dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
-        this.updateGenes();
+        dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
+        this.targetChanged();
     }
 
     get selectedGeneId() {
@@ -54,6 +57,7 @@ export default class ngbDiseasesChartService {
         if (
             this._selectedGeneId !== !!selectedGeneId) {
             this._selectedGeneId = selectedGeneId;
+            this.selectedGeneChanged();
             this.dispatcher.emit('target:identification:charts:gene:changed');
         }
     }
@@ -94,6 +98,10 @@ export default class ngbDiseasesChartService {
         return this._diseases;
     }
 
+    get dataNotReady() {
+        return this._dataNotReady;
+    }
+
     getCurrentOntology() {
         if (!this._ontology) {
             return [];
@@ -110,6 +118,32 @@ export default class ngbDiseasesChartService {
         const g = interpolate('g', ratio, minColor, maxColor);
         const b = interpolate('b', ratio, minColor, maxColor);
         return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    targetChanged() {
+        this.updateGenes();
+        this.selectedGeneChanged();
+    }
+
+    increaseSelectedGeneToken() {
+        this._selectedGeneToken += 1;
+        return this._selectedGeneToken;
+    }
+
+    getRequestCommitPhase() {
+        const token = this.increaseSelectedGeneToken();
+        return (fn) => {
+          if (token === this._selectedGeneToken && typeof fn === 'function') {
+              fn();
+          }
+        };
+    }
+
+    selectedGeneChanged() {
+        this.increaseSelectedGeneToken();
+        this.setDiseasesResult([]);
+        this._dataNotReady = true;
+        this._diseasesRequest = undefined;
     }
 
     updateGenes() {
@@ -165,7 +199,7 @@ export default class ngbDiseasesChartService {
         this.maxScore = Math.max(...scores);
         const therapeuticAreas = [];
         this.scoreStep = (this.maxScore - this.minScore) / 100.0;
-        this.scoreFilter = Math.min(this.maxScore, Math.max(this.minScore, this.scoreFilter || 0));
+        this.scoreFilter = Math.min(this.maxScore, Math.max(this.minScore, this.scoreFilter || 0.1));
         formatted.forEach((disease) => {
             const {
                 therapeuticAreas: areas = [],
@@ -212,27 +246,38 @@ export default class ngbDiseasesChartService {
                 resolve(true);
             });
         }
-        this.loading = true;
-        return new Promise(resolve => {
-            Promise.all([
-                this.getDiseasesOntology(),
-                this.targetDataService.getAllDiseasesResults(request, SourceOptions.OPEN_TARGETS),
-            ])
-                .then(([, data]) => {
-                    this._error = false;
-                    this._errorMessageList = null;
-                    this.setDiseasesResult(data);
-                    this.loading = false;
-                    resolve(true);
-                })
-                .catch((error) => {
-                    console.warn(error.message);
-                    this._error = true;
-                    this._errorMessageList = [error.message];
-                    this.loading = false;
-                    resolve(false);
-                });
-        });
+        if (!this._diseasesRequest) {
+            const commit = this.getRequestCommitPhase();
+            this._diseasesRequest = new Promise((resolve) => {
+                this.loading = true;
+                this.setDiseasesResult([]);
+                Promise.all([
+                    this.getDiseasesOntology(),
+                    this.targetDataService.getAllDiseasesResults(request, SourceOptions.OPEN_TARGETS),
+                ])
+                    .then(([, data]) => {
+                        commit(() => {
+                            this._error = false;
+                            this._errorMessageList = null;
+                            this.setDiseasesResult(data);
+                            this._dataNotReady = false;
+                            this.loading = false;
+                        });
+                        resolve(true);
+                    })
+                    .catch((error) => {
+                        commit(() => {
+                            console.warn(error.message);
+                            this._dataNotReady = false;
+                            this._error = true;
+                            this._errorMessageList = [error.message];
+                            this.loading = false;
+                        });
+                        resolve(false);
+                    });
+            });
+        }
+        return this._diseasesRequest;
     }
 
     resetDiseasesData() {
@@ -240,6 +285,9 @@ export default class ngbDiseasesChartService {
         this._diseases = null;
         this._ontology = [];
         this._ontologyRequest = undefined;
+        this._diseasesRequest = undefined;
+        this._dataNotReady = true;
+        this.increaseSelectedGeneToken();
         this.loading = false;
         this._error = false;
         this._errorMessageList = null;

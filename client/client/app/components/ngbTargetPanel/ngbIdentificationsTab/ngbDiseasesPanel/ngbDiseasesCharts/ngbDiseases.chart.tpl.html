@@ -21,10 +21,11 @@
             max="{{$ctrl.maxScore}}"
             step="{{$ctrl.scoreStep}}"
             aria-label="score filter"
-            ng-if="!$ctrl.dataLoading"
+            ng-if="!$ctrl.dataLoading && !$ctrl.dataIsMissing"
+            ng-mousedown="$ctrl.sliderMouseDown($event)"
     >
     </md-slider>
-    <span class="info" ng-if="!$ctrl.dataLoading">
+    <span class="info" ng-if="!$ctrl.dataLoading && !$ctrl.dataIsMissing">
         Minimum score: {{$ctrl.scoreFilter}}
     </span>
 </div>
@@ -55,4 +56,13 @@
     <md-progress-circular md-diameter="20px"
                           md-mode="indeterminate"
     ></md-progress-circular>
+</div>
+<div class="ngb-diseases-data-is-missing-container"
+     ng-if="$ctrl.dataIsMissing"
+>
+    <div>
+        <span>No disease data found for the selected gene {{$ctrl.selectedGene ? $ctrl.selectedGene.chip : ''}}.</span>
+        <br />
+        <span>Try selecting other genes.</span>
+    </div>
 </div>
