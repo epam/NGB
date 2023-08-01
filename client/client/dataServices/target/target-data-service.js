@@ -27,6 +27,17 @@ const ExternalDBFields = {
     [SOURCE.PHARM_GKB]: 'pharmGKB'
 }
 
+function getQueryString(query = {}) {
+    const params = Object.entries(query)
+        .filter(([, value]) => value !== undefined)
+        .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value)}`)
+        .join('&');
+    if (params.length > 0) {
+        return `?${params}`;
+    }
+    return '';
+}
+
 export class TargetDataService extends DataService {
 
     getTargetsResult(request) {
@@ -220,9 +231,16 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getLlmSummary(request, provider) {
+    getLlmSummary(request, modelOptions) {
+        const {
+            type: provider,
+            ...rest
+        } = modelOptions || {};
+        if (!provider) {
+            return Promise.reject(new Error('LLM provider not specified'));
+        }
         return new Promise((resolve, reject) => {
-            this.post(`llm/summary?provider=${provider}`, request)
+            this.post(`llm/summary${getQueryString({provider, ...rest})}`, request)
                 .then(data => {
                     resolve(data);
                 })
@@ -246,9 +264,16 @@ export class TargetDataService extends DataService {
         });
     }
 
-    llmChat(request, provider) {
+    llmChat(request, modelOptions) {
+        const {
+            type: provider,
+            ...rest
+        } = modelOptions || {};
+        if (!provider) {
+            return Promise.reject(new Error('LLM provider not specified'));
+        }
         return new Promise((resolve, reject) => {
-            this.post(`llm/chat?provider=${provider}`, request)
+            this.post(`llm/chat${getQueryString({provider, ...rest})}`, request)
                 .then(data => {
                     resolve(data);
                 })

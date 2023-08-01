@@ -172,7 +172,7 @@ export default class NgbBibliographyPanelService {
         }
         const request = (this._publications || []).slice(0, 10).map(p => p.uid);
         return new Promise(resolve => {
-            this.targetDataService.getLlmSummary(request, this.targetLLMService.model.type)
+            this.targetDataService.getLlmSummary(request, this.targetLLMService.model)
                 .then((data) => {
                     this._failedSummary = false;
                     this._summaryError = null;

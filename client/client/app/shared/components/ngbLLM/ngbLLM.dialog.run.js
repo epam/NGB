@@ -39,16 +39,17 @@ export default function run($mdDialog, $timeout, dispatcher) {
                     const onChangeModel = (userProperties = {}) => {
                         $scope.properties = getProperties($scope.model, userProperties);
                     };
-                    $scope.onChangeModel = () => onChangeModel();
+                    const gatherProperties = (properties = []) => (properties || []).reduce((r, property) => ({
+                        ...r,
+                        [property.property]: property.value
+                    }), {})
+                    $scope.onChangeModel = () => onChangeModel(gatherProperties($scope.properties));
                     onChangeModel(options);
                     $scope.ok = function () {
                         dispatcher.emit('llm:model:configuration:done', {
                             uuid,
                             options: {
-                                ...($scope.properties || []).reduce((r, property) => ({
-                                    ...r,
-                                    [property.property]: property.value
-                                }), {}),
+                                ...gatherProperties($scope.properties || []),
                                 type: $scope.model,
                             }
                         });

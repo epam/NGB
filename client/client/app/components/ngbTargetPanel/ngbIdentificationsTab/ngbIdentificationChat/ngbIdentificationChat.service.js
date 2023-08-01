@@ -206,7 +206,7 @@ class NgbIdentificationChatService {
         try {
             const answer = await this.targetDataService.llmChat(
                 this._context,
-                this.modelService.model.type
+                this.modelService.model
             );
             commit(() => {
                 this._context.push({
