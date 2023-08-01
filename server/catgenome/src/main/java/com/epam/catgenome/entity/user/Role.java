@@ -31,11 +31,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @EqualsAndHashCode
 @AllArgsConstructor
-public class Role {
+public class Role implements Serializable {
 
     public static final String ROLE_PREFIX = "ROLE_";
 

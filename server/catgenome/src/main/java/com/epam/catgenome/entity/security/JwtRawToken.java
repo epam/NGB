@@ -29,6 +29,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import javax.servlet.http.Cookie;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
@@ -37,7 +38,7 @@ import java.net.URLDecoder;
  */
 @Getter
 @AllArgsConstructor
-public class JwtRawToken {
+public class JwtRawToken implements Serializable {
 
     private static final String HEADER_PREFIX = "Bearer ";
     private String token;

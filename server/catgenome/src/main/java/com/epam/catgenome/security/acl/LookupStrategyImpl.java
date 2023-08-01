@@ -5,7 +5,15 @@ import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +28,9 @@ import org.springframework.util.Assert;
 public class LookupStrategyImpl implements LookupStrategy {
 
     private static final String STUB = "Stub only";
+
+    public static final String START_WHERE_CLAUSE = "where ( ";
+    public static final String END_WHERE_CLAUSE = ") ";
 
     public static final String DEFAULT_SELECT_CLAUSE = "select acl_object_identity.object_id_identity, "
             + "acl_entry.ace_order,  "
@@ -40,16 +51,21 @@ public class LookupStrategyImpl implements LookupStrategy {
             + "left join catgenome.acl_sid acli_sid on acli_sid.id = acl_object_identity.owner_sid "
             + "left join catgenome.acl_class on acl_class.id = acl_object_identity.object_id_class   "
             + "left join catgenome.acl_entry on acl_object_identity.id = acl_entry.acl_object_identity "
-            + "left join catgenome.acl_sid on acl_entry.sid = acl_sid.id  " + "where ( ";
+            + "left join catgenome.acl_sid on acl_entry.sid = acl_sid.id ";
 
     private static final String DEFAULT_LOOKUP_KEYS_WHERE_CLAUSE = "(acl_object_identity.id = ?)";
 
     private static final String DEFAULT_LOOKUP_IDENTITIES_WHERE_CLAUSE =
             "(acl_object_identity.object_id_identity = ? and acl_class.class = ?)";
 
-    public static final String DEFAULT_ORDER_BY_CLAUSE = ") order by acl_object_identity.object_id_identity"
+    public static final String DEFAULT_ORDER_BY_CLAUSE = "order by acl_object_identity.object_id_identity"
             + " asc, acl_entry.ace_order asc";
     private static final int BATCH_SIZE = 1000;
+    private static final int MILLS_IN_SEC = 1000;
+
+    // Ephemeral coefficient to calculate cache reload time point
+    // This coefficient is introduced to start to reload cache before it expires
+    public static final double ACL_CACHE_REFRESH_TIME_RATIO = 0.8d;
 
     // ~ Instance fields
     // ================================================================================================
@@ -58,12 +74,16 @@ public class LookupStrategyImpl implements LookupStrategy {
     private PermissionFactory permissionFactory = new DefaultPermissionFactory();
     private final AclCache aclCache;
     private PermissionGrantingStrategy grantingStrategy;
+    private final long aclSecurityCachePeriod;
+    private final boolean aclSecurityCacheAutoRefresh;
+
     private final JdbcTemplate jdbcTemplate;
     private int batchSize = BATCH_SIZE;
 
     private final Field fieldAces = FieldUtils.getField(AclImpl.class, "aces");
     private final Field fieldAcl = FieldUtils.getField(AccessControlEntryImpl.class,
             "acl");
+    private final AtomicLong cacheRefreshTimestamp = new AtomicLong(-1);
 
     // SQL Customization fields
     private String selectClause = DEFAULT_SELECT_CLAUSE;
@@ -84,14 +104,15 @@ public class LookupStrategyImpl implements LookupStrategy {
     public LookupStrategyImpl(DataSource dataSource, AclCache aclCache,
                               AclAuthorizationStrategy aclAuthorizationStrategy, AuditLogger auditLogger) {
         this(dataSource, aclCache, aclAuthorizationStrategy,
-                new DefaultPermissionGrantingStrategy(auditLogger));
+                new DefaultPermissionGrantingStrategy(auditLogger), -1, false);
     }
 
     public LookupStrategyImpl(DataSource dataSource, AclCache aclCache,
                               AclAuthorizationStrategy aclAuthorizationStrategy, AuditLogger auditLogger,
-                              PermissionFactory permissionFactory, PermissionGrantingStrategy grantingStrategy) {
-        this(dataSource, aclCache, aclAuthorizationStrategy,
-                new DefaultPermissionGrantingStrategy(auditLogger));
+                              PermissionFactory permissionFactory, PermissionGrantingStrategy grantingStrategy,
+                              long aclSecurityCachePeriod, boolean aclSecurityCacheAutoRefresh) {
+        this(dataSource, aclCache, aclAuthorizationStrategy, new DefaultPermissionGrantingStrategy(auditLogger),
+                aclSecurityCachePeriod, aclSecurityCacheAutoRefresh);
         this.permissionFactory = permissionFactory;
         this.grantingStrategy = grantingStrategy;
     }
@@ -106,7 +127,8 @@ public class LookupStrategyImpl implements LookupStrategy {
      */
     public LookupStrategyImpl(DataSource dataSource, AclCache aclCache,
                               AclAuthorizationStrategy aclAuthorizationStrategy,
-                              PermissionGrantingStrategy grantingStrategy) {
+                              PermissionGrantingStrategy grantingStrategy,
+                              long aclSecurityCachePeriod, boolean aclSecurityCacheAutoRefresh) {
         Assert.notNull(dataSource, "DataSource required");
         Assert.notNull(aclCache, "AclCache required");
         Assert.notNull(aclAuthorizationStrategy, "AclAuthorizationStrategy required");
@@ -117,7 +139,10 @@ public class LookupStrategyImpl implements LookupStrategy {
         this.grantingStrategy = grantingStrategy;
         fieldAces.setAccessible(true);
         fieldAcl.setAccessible(true);
-
+        this.aclSecurityCachePeriod = aclSecurityCachePeriod > 0
+                ? (long) (ACL_CACHE_REFRESH_TIME_RATIO * MILLS_IN_SEC * aclSecurityCachePeriod)
+                : aclSecurityCachePeriod;
+        this.aclSecurityCacheAutoRefresh = aclSecurityCacheAutoRefresh;
     }
 
     // ~ Methods
@@ -130,9 +155,9 @@ public class LookupStrategyImpl implements LookupStrategy {
 
         final String endSql = orderByClause;
 
-        StringBuilder sqlStringBldr = new StringBuilder(startSql.length()
-                + endSql.length() + requiredRepetitions * (repeatingSql.length() + 4));
-        sqlStringBldr.append(startSql);
+        StringBuilder sqlStringBldr = new StringBuilder(startSql.length() + START_WHERE_CLAUSE.length() +
+                END_WHERE_CLAUSE.length() + endSql.length() + requiredRepetitions * (repeatingSql.length() + 4));
+        sqlStringBldr.append(startSql).append(START_WHERE_CLAUSE);
 
         for (int i = 1; i <= requiredRepetitions; i++) {
             sqlStringBldr.append(repeatingSql);
@@ -142,8 +167,7 @@ public class LookupStrategyImpl implements LookupStrategy {
             }
         }
 
-        sqlStringBldr.append(endSql);
-
+        sqlStringBldr.append(END_WHERE_CLAUSE).append(endSql);
         return sqlStringBldr.toString();
     }
 
@@ -229,6 +253,9 @@ public class LookupStrategyImpl implements LookupStrategy {
      */
     public final Map<ObjectIdentity, Acl> readAclsById(List<ObjectIdentity> objects,
                                                        List<Sid> sids) {
+        if (aclSecurityCacheAutoRefresh) {
+            refreshCache();
+        }
         Assert.isTrue(batchSize >= 1, "BatchSize must be >= 1");
         Assert.notEmpty(objects, "Objects to lookup required");
 
@@ -365,6 +392,28 @@ public class LookupStrategyImpl implements LookupStrategy {
     }
 
     /**
+     * This method simply loads all ACLs from DB without any clause WHERE, etc.
+     * Useful to reload ACL cache fast in batch mode, instead of doing it one by one.
+     * */
+    private Map<ObjectIdentity, Acl> lookupObjectIdentities() {
+        final Map<Serializable, Acl> acls = new HashMap<Serializable, Acl>();
+        final String loadAllAclsSQL = selectClause + orderByClause;
+        jdbcTemplate.query(loadAllAclsSQL, new LookupStrategyImpl.ProcessResultSet(acls, null));
+
+        Map<ObjectIdentity, Acl> resultMap = new HashMap<ObjectIdentity, Acl>();
+        for (Acl inputAcl : acls.values()) {
+            Assert.isInstanceOf(AclImpl.class, inputAcl,
+                    "Map should have contained an AclImpl");
+            Assert.isInstanceOf(Long.class, ((AclImpl) inputAcl).getId(),
+                    "Acl.getId() must be Long");
+
+            Acl result = convert(acls, (Long) ((AclImpl) inputAcl).getId());
+            resultMap.put(result.getObjectIdentity(), result);
+        }
+        return resultMap;
+    }
+
+    /**
      * The final phase of converting the <code>Map</code> of <code>AclImpl</code>
      * instances which contain <code>StubAclParent</code>s into proper, valid
      * <code>AclImpl</code>s with correct ACL parents.
@@ -483,6 +532,17 @@ public class LookupStrategyImpl implements LookupStrategy {
      */
     public final void setOrderByClause(String orderByClause) {
         this.orderByClause = orderByClause;
+    }
+
+    // Reload all ACL objects in one query and re-populate cache by force
+    private void refreshCache() {
+        final long currentMills = System.currentTimeMillis();
+        if (aclSecurityCachePeriod > 0 && currentMills - cacheRefreshTimestamp.get() > aclSecurityCachePeriod) {
+            cacheRefreshTimestamp.set(currentMills);
+            // Will be done async
+            CompletableFuture.runAsync(
+                    () -> lookupObjectIdentities().forEach((key, value) -> aclCache.putInCache((MutableAcl) value)));
+        }
     }
 
     // ~ Inner Classes

@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import com.epam.catgenome.security.acl.LookupStrategyImpl;
+import com.epam.catgenome.security.acl.PermissionGrantingStrategyImpl;
+import com.epam.catgenome.security.acl.PermissionHelper;
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
 import net.sf.ehcache.config.PinningConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +41,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.ehcache.EhCacheFactoryBean;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -54,7 +60,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 
 import com.epam.catgenome.entity.user.DefaultRoles;
-import com.epam.catgenome.security.acl.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Configuration
@@ -125,8 +130,13 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public LookupStrategy lookupStrategy() {
-        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
-                                      auditLogger(), permissionFactory, permissionGrantingStrategy());
+        int aclSecurityCachePeriodInSeconds = context.getEnvironment()
+                .getProperty("security.acl.cache.period", Integer.class, -1);
+        boolean aclSecurityCacheAutoRefresh = context.getEnvironment()
+                .getProperty("security.acl.cache.autorefresh", Boolean.class, false);
+        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(), auditLogger(),
+                permissionFactory, permissionGrantingStrategy(),
+                aclSecurityCachePeriodInSeconds, aclSecurityCacheAutoRefresh);
     }
 
     @Bean
@@ -152,7 +162,8 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public EhCacheFactoryBean ehCacheFactoryBean() {
-        int aclSecurityCachePeriodInSeconds = context.getEnvironment().getProperty("security.acl.cache.period", Integer.class, -1);
+        int aclSecurityCachePeriodInSeconds = context.getEnvironment()
+                .getProperty("security.acl.cache.period", Integer.class, -1);
         EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
         factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
         factoryBean.setCacheName("aclCache");
