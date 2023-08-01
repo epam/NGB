@@ -40,8 +40,8 @@ ngb-sequences-panel {
         display: inline-flex;
         align-items: center;
         margin-right: 10px;
-        position: absolute;
-        right: 0;
+        position: relative;
+        float: right;
 
         md-input-container,
         label {
