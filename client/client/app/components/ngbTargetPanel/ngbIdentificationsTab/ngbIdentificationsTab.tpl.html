@@ -83,10 +83,12 @@
                     </ngb-known-drugs-panel>
                     <ngb-diseases-panel ng-if="mainInfoBlock.key === 'diseases'">
                     </ngb-diseases-panel>
+                    <ngb-sequences-panel ng-if="mainInfoBlock.key === 'sequences'">
+                    </ngb-sequences-panel>
                     <ngb-bibliography-panel ng-if="mainInfoBlock.key === 'bibliography'">
                     </ngb-bibliography-panel>
                     <div style="margin: 5px 0; color:#999999"
-                         ng-if="!['bibliography', 'drugs', 'diseases'].includes(mainInfoBlock.key)">
+                         ng-if="!['bibliography', 'drugs', 'diseases', 'sequences'].includes(mainInfoBlock.key)">
                         &nbsp;
                     </div>
                 </collapsible-panel-content>

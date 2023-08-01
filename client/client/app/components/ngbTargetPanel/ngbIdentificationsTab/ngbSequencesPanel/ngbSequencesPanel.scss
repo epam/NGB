@@ -1,0 +1,21 @@
+ngb-sequences-panel {
+    .sequence-section {
+        padding: 5px 20px;
+
+        .section-title {
+            font-weight: 500;
+        }
+
+        .section-content {
+            padding: 5px 20px;
+
+            a {
+                font-weight: 500;
+            }
+
+            &:last-child {
+                padding-bottom: 0;
+            }
+        }
+    }
+}

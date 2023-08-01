@@ -1,0 +1,18 @@
+<div class="sequence-section"
+     ng-repeat="section in $ctrl.data track by $index">
+    <span class="section-title">{{section.name}}</span>
+    <div ng-repeat="block in section.value track by $index"
+         class="section-content">
+        <span>
+            <a ng-href="{{block.sequenceName.url}}" target="_blank">
+                {{block.sequenceName.name}}
+            </a>
+        </span>
+        <span>{{block.sequenceDescription}}</span>
+        <span>
+            <a ng-href="{{genomic.ncbi.url}}" target="_blank">
+                {{block.ncbi.name}}
+            </a>
+        </span>
+    </div>
+</div>
