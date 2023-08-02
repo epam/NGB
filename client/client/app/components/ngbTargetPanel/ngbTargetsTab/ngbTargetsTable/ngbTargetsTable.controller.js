@@ -1,4 +1,4 @@
-const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'launch'];
+const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'owner', 'launch'];
 const RESIZE_DELAY = 300;
 export default class ngbTargetsTableController {
 
@@ -211,6 +211,14 @@ export default class ngbTargetsTableController {
                         minWidth: 40,
                         displayName: column,
                         cellTemplate: geneCell
+                    };
+                    break;
+                case 'owner':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                        headerCellTemplate: headerCells,
+                        displayName: column
                     };
                     break;
                 default:

@@ -130,6 +130,9 @@ export default class ngbTargetsTableService {
             if (this._filterInfo.products) {
                 request.products = [...this._filterInfo.products];
             }
+            if (this._filterInfo.owner) {
+                request.owner = this._filterInfo.owner;
+            }
         }
         return request;
     }
@@ -159,7 +162,8 @@ export default class ngbTargetsTableService {
                 products: {
                     value: item.products,
                     limit: 2
-                }
+                },
+                owner: item.owner
             }
         ))];
     }
