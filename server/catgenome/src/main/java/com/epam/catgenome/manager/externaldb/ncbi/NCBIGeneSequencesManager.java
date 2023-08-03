@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.http.util.TextUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -96,30 +97,34 @@ public class NCBIGeneSequencesManager extends HttpDataManager {
                         JsonNode transcriptsNode = transcriptsElements.next();
 
                         String mRNAId = transcriptsNode.at("/accession_version").asText();
-                        Sequence mRNA = new Sequence();
-                        mRNA.setId(mRNAId);
-                        mRNA.setUrl(String.format(NCBI_NUCCORE_LINK, mRNAId));
-                        final JsonNode rangeNodes = transcriptsNode.at("/genomic_range/range");
-                        if (rangeNodes.isArray()) {
-                            final Iterator<JsonNode> rangeElements = rangeNodes.elements();
-                            if (rangeElements.hasNext()) {
-                                JsonNode rangeNode = rangeElements.next();
-                                mRNA.setBegin(rangeNode.at("/begin").asLong());
-                                mRNA.setEnd(rangeNode.at("/end").asLong());
-                                String orientation = rangeNode.at("/orientation").asText();
-                                mRNA.setStrand(parseStrand(orientation));
+                        if (!TextUtils.isBlank(mRNAId)) {
+                            Sequence mRNA = new Sequence();
+                            mRNA.setId(mRNAId);
+                            mRNA.setUrl(String.format(NCBI_NUCCORE_LINK, mRNAId));
+                            final JsonNode rangeNodes = transcriptsNode.at("/genomic_range/range");
+                            if (rangeNodes.isArray()) {
+                                final Iterator<JsonNode> rangeElements = rangeNodes.elements();
+                                if (rangeElements.hasNext()) {
+                                    JsonNode rangeNode = rangeElements.next();
+                                    mRNA.setBegin(rangeNode.at("/begin").asLong());
+                                    mRNA.setEnd(rangeNode.at("/end").asLong());
+                                    String orientation = rangeNode.at("/orientation").asText();
+                                    mRNA.setStrand(parseStrand(orientation));
+                                }
                             }
+                            mRNAs.add(mRNA);
                         }
-                        mRNAs.add(mRNA);
 
                         String proteinId = transcriptsNode.at("/protein/accession_version").asText();
-                        String proteinName= transcriptsNode.at("/protein/name").asText();
-                        String isoformName= transcriptsNode.at("/protein/isoform_name").asText();
-                        UrlEntity protein = new UrlEntity();
-                        protein.setId(proteinId);
-                        protein.setName(proteinName + " " + isoformName);
-                        protein.setUrl(String.format(NCBI_PROTEIN_LINK, proteinId));
-                        proteins.add(protein);
+                        if (!TextUtils.isBlank(proteinId)) {
+                            String proteinName= transcriptsNode.at("/protein/name").asText();
+                            String isoformName= transcriptsNode.at("/protein/isoform_name").asText();
+                            UrlEntity protein = new UrlEntity();
+                            protein.setId(proteinId);
+                            protein.setName(proteinName + " " + isoformName);
+                            protein.setUrl(String.format(NCBI_PROTEIN_LINK, proteinId));
+                            proteins.add(protein);
+                        }
                     }
                     sequences.setMRNAs(mRNAs);
                     sequences.setProteins(proteins);
