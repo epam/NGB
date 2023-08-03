@@ -12,6 +12,10 @@ export default class ngbTargetsTableFilterController {
                 this.isString = true;
                 break;
             }
+            case 'owner': {
+                this.isString = true;
+                break;
+            }
             default:
                 this.isList = true;
                 break;
