@@ -1,0 +1,42 @@
+<div class="sequence-gene-select"
+     ng-if="$ctrl.genes.length > 1">
+    <label>Gene:</label>
+    <md-input-container>
+        <md-select ng-model="$ctrl.selectedGeneId"
+                   aria-label="Gene"
+                   md-container-class="sequence-gene-select-container">
+            <md-option ng-repeat="item in $ctrl.genes"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+<div class="sequence-section"
+     ng-if="!$ctrl.emptyResults"
+     ng-repeat="section in $ctrl.data track by $index">
+    <span class="section-title">{{$ctrl.sequenceSectionName[section.name]}}</span>
+    <div ng-repeat="block in section.value track by $index"
+         class="section-content">
+        <span ng-class="{'link': $ctrl.isRegistered}"
+              ng-click="$ctrl.onClickSequence()"
+        >
+            {{block.id}}
+        </span>
+        <span>{{block.name}}</span>
+        <span>
+            <a ng-href="{{block.url}}" target="_blank">
+                NCBI
+            </a>
+        </span>
+    </div>
+</div>
+<div class="empty-container"
+     ng-if="$ctrl.emptyResults">
+    <md-content class="no-records-warning"
+                flex>
+        <span>No data found for the selected gene {{$ctrl.selectedGene ? $ctrl.selectedGene.chip : ''}}.</span>
+        <br />
+        <span>Try selecting other genes.</span>
+    </md-content>
+</div>

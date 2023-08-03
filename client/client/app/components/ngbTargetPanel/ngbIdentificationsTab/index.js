@@ -8,6 +8,7 @@ import service from './ngbIdentificationsTab.service';
 
 import ngbKnownDrugsPanel from './ngbKnownDrugsPanel';
 import ngbDiseasesPanel from './ngbDiseasesPanel';
+import ngbSequencesPanel from './ngbSequencesPanel';
 import ngbBibliographyPanel from './ngbBibliographyPanel';
 import ngbIdentificationChat from './ngbIdentificationChat';
 import ngbPluralText from './ngbPluralText';
@@ -16,6 +17,7 @@ export default angular
     .module('ngbIdentificationsTab', [
         ngbKnownDrugsPanel,
         ngbDiseasesPanel,
+        ngbSequencesPanel,
         ngbBibliographyPanel,
         ngbPluralText,
         ngbIdentificationChat
