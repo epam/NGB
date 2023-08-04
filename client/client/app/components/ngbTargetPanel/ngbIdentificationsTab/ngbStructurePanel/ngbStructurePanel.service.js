@@ -37,7 +37,6 @@ export default class ngbStructurePanelService {
     _emptyResults = false;
     _structureResults = null;
 
-    _sortInfo = null;
     _filterInfo = null;
 
     get totalPages() {
@@ -76,12 +75,6 @@ export default class ngbStructurePanelService {
         this._sourceModel = value;
     }
 
-    get sortInfo() {
-        return this._sortInfo;
-    }
-    set sortInfo(value) {
-        this._sortInfo = value;
-    }
     get filterInfo() {
         return this._filterInfo;
     }
@@ -111,23 +104,23 @@ export default class ngbStructurePanelService {
             name: item.name,
             source: item.source,
             resolution: item.resolution,
-            chains: item.proteinChains.join('/')
+            chains: (item.proteinChains || []).join('/')
         }))
     }
 
     getStructureRequest () {
         const request = {
             geneIds: this.geneIds,
-            // "entryIds": [],
             page: this.currentPage,
             pageSize: this.pageSize,
+            orderBy: this.fields.id,
+            reverse: false
         };
-        if (this.sortInfo && this.sortInfo.length) {
-            const {field, ascending} = this.sortInfo[0];
-            request.orderBy = this.fields[field];
-            request.reverse = !ascending
+        if (this._filterInfo) {
+            if (this._filterInfo.id) {
+                request.entryIds = [this._filterInfo.id];
+            }
         }
-        // if (this._filterInfo) {}
         return request;
     }
 
@@ -160,6 +153,16 @@ export default class ngbStructurePanelService {
                     resolve(false);
                 });
         });
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        if (value) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
+        this._filterInfo = filter;
     }
 
     resetStructureData() {

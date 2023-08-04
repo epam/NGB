@@ -34,7 +34,7 @@ export default class ngbStructureTableFilterController {
             string = this.value;
         }
         if (shouldUpdate) {
-            this.ngbTargetsTableService.setFilter(this.column.field, string);
+            this.ngbStructurePanelService.setFilter(this.column.field, string);
             this.dispatcher.emit('target:identification:structure:filters:changed');
         }
     }

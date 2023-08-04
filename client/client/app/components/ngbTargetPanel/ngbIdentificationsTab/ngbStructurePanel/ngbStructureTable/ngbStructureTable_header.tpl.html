@@ -2,9 +2,7 @@
     <div flex
          role="columnheader"
          ng-class="{'sortable': sortable, 'filtered': col.colDef.filterApplied()}"
-         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
-         aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ?
-            'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
+         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'">
         <div flex>
             <md-button tabindex="0"
                        col-index="renderIndex"
@@ -15,21 +13,6 @@
                         {{ col.displayName }}
                     </span>
                 </div>
-                <span class="sort-icon"
-                      ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"
-                      ui-grid-visible="col.sort.direction"
-                      aria-label="{{getSortDirectionAriaLabel()}}">
-                    <ng-md-icon icon="arrow_downward"
-                                size="12"
-                                ng-if="col.sort.direction == desc"
-                                title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}">
-                    </ng-md-icon>
-                    <ng-md-icon icon="arrow_upwards"
-                                size="12"
-                                ng-if="col.sort.direction == asc"
-                                title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}">
-                    </ng-md-icon>
-                </span>
             </md-button>
         </div>
     </div>

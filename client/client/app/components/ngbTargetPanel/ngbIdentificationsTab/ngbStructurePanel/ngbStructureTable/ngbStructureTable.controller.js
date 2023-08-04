@@ -1,8 +1,3 @@
-const PROTEIN_DATA_BANK_DEFAULT_SORT = [{
-    field: 'id',
-    ascending: false
-}];
-
 export default class ngbStructureTableController {
 
     gridOptions = {
@@ -33,10 +28,6 @@ export default class ngbStructureTableController {
         saveSelection: false,
         useExternalSorting: true
     };
-
-    get proteinDataBankDefaultSort() {
-        return PROTEIN_DATA_BANK_DEFAULT_SORT;
-    }
 
     static get UID() {
         return 'ngbStructureTableController';
@@ -84,21 +75,11 @@ export default class ngbStructureTableController {
         return this.ngbStructurePanelService.pageSize;
     }
 
-    get sortInfo() {
-        return this.ngbStructurePanelService.sortInfo;
-    }
-    set sortInfo(value) {
-        this.ngbStructurePanelService.sortInfo = value;
-    }
     get filterInfo() {
         return this.ngbStructurePanelService.filterInfo;
     }
     set filterInfo(value) {
         this.ngbStructurePanelService.filterInfo = value;
-    }
-
-    get sourceOptions() {
-        return this.ngbStructurePanelService.sourceOptions;
     }
 
     $onInit() {
@@ -109,7 +90,6 @@ export default class ngbStructureTableController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
             }
         });
         (this.initialize)();
@@ -118,9 +98,6 @@ export default class ngbStructureTableController {
     async initialize() {
         if (!this.gridOptions) {
             return;
-        }
-        if (this.sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
-            this.sortInfo = this.proteinDataBankDefaultSort;
         }
         if (this.ngbStructurePanelService.structureResults) {
             this.gridOptions.data = this.ngbStructurePanelService.structureResults;
@@ -140,7 +117,6 @@ export default class ngbStructureTableController {
 
     async sourceChanged() {
         this.resetStructureData();
-        this.resetSorting();
         await this.initialize();
         this.$timeout(() => this.$scope.$apply());
     }
@@ -171,21 +147,19 @@ export default class ngbStructureTableController {
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: true,
-                        enableSorting: true,
-                        cellTemplate: linkCell,
+                        cellTemplate: linkCell
                     };
                     break;
                 case 'name':
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: true,
-                        enableSorting: true,
                     };
                     break;
-                case 'resolution':
+                case 'chains':
                     columnSettings = {
                         ...columnSettings,
-                        enableSorting: true,
+                        width: 80
                     };
                     break;
                 default:
@@ -199,23 +173,6 @@ export default class ngbStructureTableController {
             }
         }
         return result;
-    }
-
-    async sortChanged(grid, sortColumns) {
-        if (!this.gridApi) {
-            return;
-        }
-        this.loadingData = true;
-        if (sortColumns && sortColumns.length > 0) {
-            this.sortInfo = sortColumns.map(sc => ({
-                ascending: sc.sort.direction === 'asc',
-                field: sc.field
-            }));
-        } else {
-            this.sortInfo = null;
-        }
-        this.currentPage = 1;
-        await this.loadData();
     }
 
     async filterChanged() {
@@ -239,16 +196,6 @@ export default class ngbStructureTableController {
             });
         this.dispatcher.emit('target:identification:structure:results:updated');
         this.$timeout(() => this.$scope.$apply());
-    }
-
-    resetSorting() {
-        if (!this.gridApi) {
-            return;
-        }
-        const columns = this.gridApi.grid.columns;
-        for (let i = 0 ; i < columns.length; i++) {
-            columns[i].sort = {};
-        }
     }
 
     resetStructureData() {

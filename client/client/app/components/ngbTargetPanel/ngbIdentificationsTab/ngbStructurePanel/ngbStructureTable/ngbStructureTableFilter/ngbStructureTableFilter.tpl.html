@@ -2,9 +2,7 @@
     <input class="ui-grid-filter-input ngb-filter-input"
            style="margin-bottom: 1px"
            type="text"
-           ng-model="$ctrl.displayText"
-           ng-change="$ctrl.onChange()"
-           ng-mousedown="$ctrl.displayList()"
-           ng-blur="$ctrl.hideListDelayed()"
+           ng-model="$ctrl.value"
+           ng-blur="$ctrl.apply()"
            ng-key-bind="{enter: '$ctrl.apply()'}">
 </div>
