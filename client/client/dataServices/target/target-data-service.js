@@ -306,6 +306,23 @@ export class TargetDataService extends DataService {
                     } else {
                         resolve([]);
                     }
+            });
+        });
+    }
+
+    getStructureResults(request) {
+        return new Promise((resolve, reject) => {
+            this.post('target/structures', request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting structure data';
+                    reject(new Error((error && error.message) || message));
                 });
         });
     }

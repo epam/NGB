@@ -5,7 +5,13 @@ const SOURCE_OPTIONS = {
 
 const PAGE_SIZE = 10;
 
-const PROTEIN_DATA_BANK_COLUMNS = ['source', 'id', 'method', 'resolution', 'chain', 'positions', 'links'];
+const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'source', 'resolution', 'chains'];
+
+const FIELDS = {
+    id: 'ENTRY_ID',
+    resolution: 'RESOLUTION',
+    name: 'NAME'
+};
 
 export default class ngbStructurePanelService {
 
@@ -19,6 +25,10 @@ export default class ngbStructurePanelService {
         return PROTEIN_DATA_BANK_COLUMNS;
     }
 
+    get fields() {
+        return FIELDS;
+    }
+
     _totalPages = 0;
     _currentPage = 1;
     _loadingData = false;
@@ -26,6 +36,9 @@ export default class ngbStructurePanelService {
     _errorMessageList = null;
     _emptyResults = false;
     _structureResults = null;
+
+    _sortInfo = null;
+    _filterInfo = null;
 
     get totalPages() {
         return this._totalPages;
@@ -63,21 +76,63 @@ export default class ngbStructurePanelService {
         this._sourceModel = value;
     }
 
-    static instance (targetDataService) {
-        return new ngbStructurePanelService(targetDataService);
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
+    }
+    get filterInfo() {
+        return this._filterInfo;
+    }
+    set filterInfo(value) {
+        this._filterInfo = value;
     }
 
-    constructor(targetDataService) {
-        Object.assign(this, {targetDataService});
+    static instance (ngbTargetPanelService, targetDataService) {
+        return new ngbStructurePanelService(ngbTargetPanelService, targetDataService);
+    }
+
+    constructor(ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {ngbTargetPanelService, targetDataService});
         this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
     }
 
-    setStructureResults(data) {
+    get geneIds() {
+        return this.ngbTargetPanelService.genesIds;
+    }
 
+    setStructureResults(data) {
+        this._structureResults = data.map(item => ({
+            id: {
+                name: item.id,
+                url: item.url
+            },
+            name: item.name,
+            source: item.source,
+            resolution: item.resolution,
+            chains: item.proteinChains.join('/')
+        }))
+    }
+
+    getStructureRequest () {
+        const request = {
+            geneIds: this.geneIds,
+            // "entryIds": [],
+            page: this.currentPage,
+            pageSize: this.pageSize,
+        };
+        if (this.sortInfo && this.sortInfo.length) {
+            const {field, ascending} = this.sortInfo[0];
+            request.orderBy = this.fields[field];
+            request.reverse = !ascending
+        }
+        // if (this._filterInfo) {}
+        return request;
     }
 
     getStructureResults() {
-        const request = {};
+        const request = this.getStructureRequest();
         if (!request) {
             return new Promise(resolve => {
                 this._loadingData = false;
