@@ -64,7 +64,6 @@ public class StructureRequest {
         private List<Query> nodes;
         @JsonProperty("logical_operator")
         private String logicalOperator;
-        private String label;
         private String service;
     }
 
@@ -73,12 +72,12 @@ public class StructureRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class GeneNamesQuery extends Query{
-        private GeneNameParameters parameters;
+    public static class FullTextQuery extends Query{
+        private FullTextParameters parameters;
         @Builder
-        public GeneNamesQuery(String type, List<Query> nodes, String logicalOperator, String label,
-                              String service, GeneNameParameters parameters)  {
-            super(type, nodes, logicalOperator, label, service);
+        public FullTextQuery(String type, List<Query> nodes, String logicalOperator, String service,
+                             FullTextParameters parameters)  {
+            super(type, nodes, logicalOperator, service);
             this.parameters = parameters;
         }
     }
@@ -88,12 +87,12 @@ public class StructureRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class EntriesQuery extends Query{
-        private EntryParameters parameters;
+    public static class AttributesQuery extends Query{
+        private AttributeParameters parameters;
         @Builder
-        public EntriesQuery(String type, List<Query> nodes, String logicalOperator, String label,
-                              String service, EntryParameters parameters)  {
-            super(type, nodes, logicalOperator, label, service);
+        public AttributesQuery(String type, List<Query> nodes, String logicalOperator,
+                               String service, AttributeParameters parameters)  {
+            super(type, nodes, logicalOperator, service);
             this.parameters = parameters;
         }
     }
@@ -101,12 +100,31 @@ public class StructureRequest {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class EntryParameters {
+    public static class AttributeParameters {
         private String attribute;
         private String operator;
         private boolean negation;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class AttributeTextParameters extends AttributeParameters{
+        private String value;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class AttributeListParameters extends AttributeParameters{
         private List<String> value;
     }
 
@@ -114,7 +132,7 @@ public class StructureRequest {
     @Setter
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class GeneNameParameters {
+    public static class FullTextParameters {
         private String value;
     }
 
