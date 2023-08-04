@@ -45,14 +45,14 @@ import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 @Service
 public class UniprotDataManager {
 
-    private static final String UNIPROT_TOOL = "uniprot";
+    private static final String UNIPROT_TOOL = "uniprotkb/search";
 
     private Uniprot fetchedUniprotData = null;
 
     @Autowired
     private HttpDataManager httpDataManager;
 
-    @Value("${uniprot.base.url:https://www.uniprot.org/}")
+    @Value("${uniprot.base.url:https://rest.uniprot.org/}")
     private String uniprotServer;
 
     /**
@@ -66,7 +66,7 @@ public class UniprotDataManager {
         ParameterNameValue[] params = new ParameterNameValue[]{new ParameterNameValue("query", geneId),
             new ParameterNameValue("format", "xml")};
 
-        String location = uniprotServer + UNIPROT_TOOL + "/?";
+        String location = uniprotServer + UNIPROT_TOOL + "?";
 
         String uniprotData = httpDataManager.fetchData(location, params);
 
