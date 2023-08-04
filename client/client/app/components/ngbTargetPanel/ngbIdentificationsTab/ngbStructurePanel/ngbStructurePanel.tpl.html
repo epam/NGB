@@ -1,0 +1,19 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="structure-source-select">
+    <label>Source:</label>
+    <md-input-container>
+        <md-select ng-model="$ctrl.sourceModel"
+                   aria-label="Source select"
+                   ng-change="$ctrl.onChangeSource()"
+                   md-container-class="structure-source-select-container">
+            <md-option ng-repeat="item in $ctrl.sourceOptions"
+                       ng-value="item">
+                {{item}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+<ngb-structure-table></ngb-structure-table>

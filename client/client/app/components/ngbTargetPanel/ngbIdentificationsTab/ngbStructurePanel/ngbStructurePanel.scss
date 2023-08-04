@@ -1,0 +1,84 @@
+$structure-nav-height: 28px;
+$structure-font-size: 13px;
+$structure-color: #444444;
+
+ngb-structure-panel {
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    .structure-source-select {
+        height: $structure-nav-height;
+        line-height: $structure-nav-height;
+        display: inline-flex;
+        align-items: center;
+        margin-right: 10px;
+        position: relative;
+        float: right;
+
+        md-input-container,
+        label {
+            margin: 0;
+            padding: 0;
+            line-height: $structure-nav-height;
+            height: $structure-nav-height;
+            color: $structure-color;
+            font-size: $structure-font-size;
+        }
+
+        label {
+            margin-right: 5px;
+        }
+
+        md-input-container md-select {
+            &:not([disabled]):focus .md-select-value {
+                border-bottom: none;
+            }
+
+            md-select-value {
+                border: none;
+                min-height: $structure-nav-height;
+                padding: 0;
+                font-size: $structure-font-size;
+                display: flex;
+                align-items: center;
+
+                .md-select-icon {
+                    margin: 0 4px 0 0;
+                    width: 20px;
+                }
+
+                > span,
+                > span > div {
+                    line-height: $structure-nav-height;
+                    height: $structure-nav-height;
+                    transform: none !important;
+                }
+            }
+        }
+    }
+}
+
+.structure-source-select-container {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-option {
+        padding: 0 8px;
+        height: calc($structure-nav-height + 2px);
+
+        &[selected],
+        &:not([disabled]):focus {
+            color: $structure-color;
+        }
+    }
+
+    md-select-menu,
+    md-select-menu md-content {
+        min-height: calc($structure-nav-height + 2px);
+    }
+}
