@@ -17,3 +17,13 @@
     </md-input-container>
 </div>
 <ngb-structure-table></ngb-structure-table>
+<div>
+    <label class="md-button md-raised structure-upload-button"
+           for="pdb-file-id">{{$ctrl.pdbFile.name || 'Upload'}}</label>
+    <input accept=".pdb" class="ng-hide" file-model
+           id="pdb-file-id"
+           ng-change="$ctrl.onFileUpload()"
+           ng-model="$ctrl.pdbFile"
+           required
+           type="file">
+</div>

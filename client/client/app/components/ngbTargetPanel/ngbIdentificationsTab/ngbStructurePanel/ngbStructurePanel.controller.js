@@ -26,4 +26,6 @@ export default class ngbStructurePanelController {
     onChangeSource() {
         this.dispatcher.emit('target:identification:structure:source:changed');
     }
+
+    onFileUpload() {}
 }
