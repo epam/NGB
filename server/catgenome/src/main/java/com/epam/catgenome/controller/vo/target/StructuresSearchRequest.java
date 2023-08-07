@@ -33,8 +33,9 @@ import java.util.List;
 public class StructuresSearchRequest {
     private List<String> geneIds;
     private List<String> entryIds;
+    private String name;
     private Integer page;
     private Integer pageSize;
     private StructureRequestField orderBy;
-    private boolean reverse;
+    private Boolean reverse;
 }

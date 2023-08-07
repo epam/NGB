@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -54,6 +55,7 @@ public class PdbEntriesManager extends HttpDataManager{
     private static final String RCSB_LINK = "https://www.rcsb.org/structure/%s";
     private static final String GROUP = "group";
     private static final String AND = "and";
+    private static final String STRUCT_TITLE = "struct.title";
 
     @SneakyThrows
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request, final List<String> geneNames) {
@@ -139,6 +141,9 @@ public class PdbEntriesManager extends HttpDataManager{
         if (CollectionUtils.isNotEmpty(geneNames)) {
             nodes.add(getGenesQuery(geneNames));
         }
+        if (!TextUtils.isBlank(structureSearchRequest.getName())) {
+            nodes.add(getNameQuery(structureSearchRequest.getName()));
+        }
         final StructureRequest.Query query = new StructureRequest.Query();
         query.setType(GROUP);
         query.setLogicalOperator(AND);
@@ -149,10 +154,10 @@ public class PdbEntriesManager extends HttpDataManager{
     private static StructureRequest.Query getGenesQuery(final List<String> geneNames) {
         final List<StructureRequest.Query> parametersQueryList = new ArrayList<>();
         for (String geneName : geneNames) {
-            StructureRequest.GeneNameParameters parameters = StructureRequest.GeneNameParameters.builder()
+            StructureRequest.FullTextParameters parameters = StructureRequest.FullTextParameters.builder()
                     .value(geneName)
                     .build();
-            StructureRequest.GeneNamesQuery parametersQuery = StructureRequest.GeneNamesQuery.builder()
+            StructureRequest.FullTextQuery parametersQuery = StructureRequest.FullTextQuery.builder()
                     .type("terminal")
                     .service("full_text")
                     .parameters(parameters)
@@ -167,51 +172,73 @@ public class PdbEntriesManager extends HttpDataManager{
         final StructureRequest.Query genesQuery = new StructureRequest.Query();
         genesQuery.setType(GROUP);
         genesQuery.setLogicalOperator(AND);
-        genesQuery.setLabel("full_text");
         genesQuery.setNodes(Collections.singletonList(query));
 
         return genesQuery;
     }
 
     private static StructureRequest.Query getEntriesQuery(final List<String> entryIds) {
-        final StructureRequest.EntryParameters parameters = StructureRequest.EntryParameters.builder()
-                .attribute(StructureRequestField.ENTRY_ID.getValue())
-                .operator("in")
-                .negation(false)
-                .value(entryIds)
-                .build();
-        final StructureRequest.EntriesQuery parametersQuery = StructureRequest.EntriesQuery.builder()
-                .type("terminal")
-                .service("text")
-                .parameters(parameters)
-                .build();
+        final StructureRequest.AttributeListParameters parameters = new StructureRequest.AttributeListParameters();
+        parameters.setAttribute(StructureRequestField.ENTRY_ID.getValue());
+        parameters.setOperator("in");
+        parameters.setNegation(false);
+        parameters.setValue(entryIds);
+        final StructureRequest.AttributesQuery attributesQuery = getTextAttributesQuery(parameters);
         final StructureRequest.Query query = new StructureRequest.Query();
         query.setType(GROUP);
         query.setLogicalOperator(AND);
-        query.setNodes(Collections.singletonList(parametersQuery));
+        query.setNodes(Collections.singletonList(attributesQuery));
 
         final StructureRequest.Query entriesQuery = new StructureRequest.Query();
         entriesQuery.setType(GROUP);
         entriesQuery.setLogicalOperator(AND);
-        entriesQuery.setLabel("text");
         entriesQuery.setNodes(Collections.singletonList(query));
 
         return entriesQuery;
     }
 
-    private static StructureRequest.RequestOptions getOptions(final StructuresSearchRequest structureSearchRequest) {
-        final int start = ((structureSearchRequest.getPage() - 1) * structureSearchRequest.getPageSize());
+    private static StructureRequest.Query getNameQuery(final String name) {
+        final StructureRequest.AttributeTextParameters parameters = new StructureRequest.AttributeTextParameters();
+        parameters.setAttribute(STRUCT_TITLE);
+        parameters.setOperator("contains_phrase");
+        parameters.setNegation(false);
+        parameters.setValue(name);
+        final StructureRequest.AttributesQuery attributesQuery = getTextAttributesQuery(parameters);
+        final StructureRequest.Query query = new StructureRequest.Query();
+        query.setType(GROUP);
+        query.setLogicalOperator(AND);
+        query.setNodes(Collections.singletonList(attributesQuery));
+
+        final StructureRequest.Query entriesQuery = new StructureRequest.Query();
+        entriesQuery.setType(GROUP);
+        entriesQuery.setLogicalOperator(AND);
+        entriesQuery.setNodes(Collections.singletonList(query));
+
+        return entriesQuery;
+    }
+
+    private static StructureRequest.RequestOptions getOptions(final StructuresSearchRequest request) {
+        final int start = ((request.getPage() - 1) * request.getPageSize());
         final StructureRequest.Paginate paginate = StructureRequest.Paginate.builder()
                 .start(start)
-                .rows(structureSearchRequest.getPageSize())
+                .rows(request.getPageSize())
                 .build();
         final StructureRequest.Sort sort = StructureRequest.Sort.builder()
-                .sortBy(structureSearchRequest.getOrderBy().getValue())
-                .direction(structureSearchRequest.isReverse() ? "desc" : "asc")
+                .sortBy(Optional.ofNullable(request.getOrderBy()).orElse(StructureRequestField.ENTRY_ID).getValue())
+                .direction(Optional.ofNullable(request.getReverse()).orElse(false) ? "desc" : "asc")
                 .build();
         return StructureRequest.RequestOptions.builder()
                 .paginate(paginate)
                 .sort(Collections.singletonList(sort))
+                .build();
+    }
+
+    private static StructureRequest.AttributesQuery getTextAttributesQuery(
+            final StructureRequest.AttributeParameters params) {
+        return StructureRequest.AttributesQuery.builder()
+                .type("terminal")
+                .service("text")
+                .parameters(params)
                 .build();
     }
 }
