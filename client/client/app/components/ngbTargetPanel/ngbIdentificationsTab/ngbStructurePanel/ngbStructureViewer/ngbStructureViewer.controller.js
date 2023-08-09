@@ -8,12 +8,24 @@ export default class ngbStructureViewerController {
         return 'ngbStructureViewerController';
     }
 
-    constructor($scope, $mdMenu, dispatcher, miewSettings, miewContext, ngbStructurePanelService, ngbIdentificationsTabService) {
-        Object.assign(this, {$scope, $mdMenu, miewContext, ngbStructurePanelService, ngbIdentificationsTabService});
+    constructor($mdMenu, miewSettings, ngbStructurePanelService) {
+        Object.assign(this, {ngbStructurePanelService});
 
         this.colorer = miewSettings.displayColors;
         this.modes = miewSettings.displayModes;
         this.menu = $mdMenu;
+    }
+
+    get descriptionDone() {
+        return this.ngbStructurePanelService.descriptionDone;
+    }
+
+    get loading() {
+        return this.ngbStructurePanelService.pdbDescriptionLoading;
+    }
+
+    get pdbDescriptions() {
+        return this.ngbStructurePanelService.pdbDescriptions;
     }
 
     get selectedPdbId() {

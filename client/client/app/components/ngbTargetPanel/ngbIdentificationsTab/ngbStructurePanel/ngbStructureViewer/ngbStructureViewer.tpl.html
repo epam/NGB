@@ -1,9 +1,9 @@
 <div layout="column" flex class="u-height__full">
-    <div class="no-pdb" ng-if="!$ctrl.selectedPdbId">
+    <div class="no-pdb" ng-if="!$ctrl.descriptionDone">
         <span>Try selecting pdb file.</span>
     </div>
     <div layout="column" flex class="u-height__full"
-         ng-if="$ctrl.selectedPdbId">
+         ng-if="$ctrl.descriptionDone">
         <md-content flex layout="row">
             <div layout="column" class="md-padding structure-container">
                 <div class="miew-actions-container">
@@ -73,8 +73,9 @@
                     </div>
                 </div>
                 <div class="ngb-miew-container"
-                    ng-if="$ctrl.selectedPdbId">
+                    ng-if="$ctrl.descriptionDone">
                     <ngb-miew pdb="$ctrl.selectedPdbId"
+                              chains="$ctrl.pdbDescriptions ? $ctrl.pdbDescriptions.entities : []"
                               display-color="$ctrl.currentColor"
                               display-mode="$ctrl.currentMode"
                               camera="$ctrl.camera"

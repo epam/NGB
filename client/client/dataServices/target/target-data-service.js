@@ -326,4 +326,21 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getPdbDescription(pbdID) {
+        return new Promise((resolve, reject) => {
+            this.post(`gene/pbd/${pbdID}/get`, pbdID)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = `Error getting ${pbdID} pdb description`;
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

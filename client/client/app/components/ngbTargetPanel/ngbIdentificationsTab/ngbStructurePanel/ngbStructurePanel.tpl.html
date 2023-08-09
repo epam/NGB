@@ -1,6 +1,9 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loading">
+     ng-if="$ctrl.loading || $ctrl.pdbDescriptionLoading">
     <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.pdbDescriptionFailed || $ctrl.pdbDescriptionLoading}">
+    <ngb-panel-error-list message-list="$ctrl.pdbDescriptionErrorMessageList"></ngb-panel-error-list>
 </div>
 <ngb-structure-viewer></ngb-structure-viewer>
 <div class="structure-source-select">

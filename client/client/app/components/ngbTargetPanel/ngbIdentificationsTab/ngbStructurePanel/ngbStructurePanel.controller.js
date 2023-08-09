@@ -23,6 +23,16 @@ export default class ngbStructurePanelController {
         this.ngbStructurePanelService.sourceModel = value;
     }
 
+    get pdbDescriptionLoading() {
+        return this.ngbStructurePanelService.pdbDescriptionLoading;
+    }
+    get pdbDescriptionFailed() {
+        return this.ngbStructurePanelService.pdbDescriptionFailed;
+    }
+    get pdbDescriptionErrorMessageList() {
+        return this.ngbStructurePanelService.pdbDescriptionErrorMessageList;
+    }
+
     onChangeSource() {
         this.dispatcher.emit('target:identification:structure:source:changed');
     }

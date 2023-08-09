@@ -44,7 +44,6 @@ export default class ngbStructureTableController {
             dispatcher.removeListener('target:identification:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:source:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:filters:changed', filterChanged);
-            this.selectedPdbId = null;
         });
     }
 
@@ -82,8 +81,11 @@ export default class ngbStructureTableController {
     set filterInfo(value) {
         this.ngbStructurePanelService.filterInfo = value;
     }
-    set selectedPdbId(value) {
-        this.ngbStructurePanelService.selectedPdbId = value;
+    set descriptionDone(value) {
+        this.ngbStructurePanelService.descriptionDone = value;
+    }
+    get structureResults() {
+        return this.ngbStructurePanelService.structureResults;
     }
 
     $onInit() {
@@ -104,8 +106,8 @@ export default class ngbStructureTableController {
         if (!this.gridOptions) {
             return;
         }
-        if (this.ngbStructurePanelService.structureResults) {
-            this.gridOptions.data = this.ngbStructurePanelService.structureResults;
+        if (this.structureResults) {
+            this.gridOptions.data = this.structureResults;
         } else {
             await this.loadData();
         }
@@ -127,7 +129,11 @@ export default class ngbStructureTableController {
     }
 
     async rowClick(row) {
-        this.selectedPdbId = row.entity.id.name;
+        this.descriptionDone = false;
+        await this.ngbStructurePanelService.getPdbDescription(row.entity.id.name);
+        this.$timeout(() => {
+            this.descriptionDone = true;
+        });
     }
 
     async sourceChanged() {
@@ -205,7 +211,7 @@ export default class ngbStructureTableController {
         this.gridOptions.data = await this.ngbStructurePanelService.getStructureResults()
             .then(success => {
                 if (success) {
-                    return this.ngbStructurePanelService.structureResults;
+                    return this.structureResults;
                 }
                 return [];
             });

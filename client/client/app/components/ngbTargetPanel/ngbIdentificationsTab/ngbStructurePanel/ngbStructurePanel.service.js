@@ -38,6 +38,11 @@ export default class ngbStructurePanelService {
     _structureResults = null;
     _filterInfo = null;
     _selectedPdbId = null;
+    _pdbDescriptions = null;
+    _pdbDescriptionLoading = false;
+    _pdbDescriptionFailed = false;
+    _pdbDescriptionErrorMessageList = null;
+    _descriptionDone = false;
 
     get totalPages() {
         return this._totalPages;
@@ -88,6 +93,24 @@ export default class ngbStructurePanelService {
     set selectedPdbId(value) {
         this._selectedPdbId = value;
     }
+    get pdbDescriptions() {
+        return this._pdbDescriptions;
+    }
+    get pdbDescriptionLoading() {
+        return this._pdbDescriptionLoading;
+    }
+    get pdbDescriptionFailed() {
+        return this._pdbDescriptionFailed;
+    }
+    get pdbDescriptionErrorMessageList() {
+        return this._pdbDescriptionErrorMessageList;
+    }
+    get descriptionDone() {
+        return this._descriptionDone;
+    }
+    set descriptionDone(value) {
+        this._descriptionDone = value;
+    }
 
     static instance (ngbTargetPanelService, targetDataService) {
         return new ngbStructurePanelService(ngbTargetPanelService, targetDataService);
@@ -127,6 +150,9 @@ export default class ngbStructurePanelService {
             if (this._filterInfo.id) {
                 request.entryIds = [this._filterInfo.id];
             }
+            if (this._filterInfo.name) {
+                request.name = this._filterInfo.name;
+            }
         }
         return request;
     }
@@ -157,6 +183,29 @@ export default class ngbStructurePanelService {
                     this._totalPages = 0;
                     this._emptyResults = false;
                     this._loadingData = false;
+                    resolve(false);
+                });
+        });
+    }
+
+    async getPdbDescription(pdbId) {
+        this._pdbDescriptionLoading = true;
+        return new Promise(resolve => {
+            this.targetDataService.getPdbDescription(pdbId)
+                .then(data => {
+                    this._pdbDescriptionFailed = false;
+                    this._pdbDescriptionErrorMessageList = null;
+                    this._selectedPdbId = pdbId;
+                    this._pdbDescriptions = data;
+                    this._pdbDescriptionLoading = false;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this._selectedPdbId = null;
+                    this._pdbDescriptions = null;
+                    this._pdbDescriptionFailed = true;
+                    this._pdbDescriptionErrorMessageList = [err.message];
+                    this._pdbDescriptionLoading = false;
                     resolve(false);
                 });
         });
