@@ -1,5 +1,5 @@
 <span class="link-cell"
-     ng-click="grid.appScope.$ctrl.onClickLink(row.entity, $event)"
+     ng-click="grid.appScope.$ctrl.onClickLink($event)"
      ng-if="row.entity">
     <a ng-href="{{row.entity[col.field].url}}" target="_blank">
         {{row.entity[col.field].name}}

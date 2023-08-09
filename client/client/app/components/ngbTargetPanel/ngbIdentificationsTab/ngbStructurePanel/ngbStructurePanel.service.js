@@ -36,8 +36,8 @@ export default class ngbStructurePanelService {
     _errorMessageList = null;
     _emptyResults = false;
     _structureResults = null;
-
     _filterInfo = null;
+    _selectedPdbId = null;
 
     get totalPages() {
         return this._totalPages;
@@ -80,6 +80,13 @@ export default class ngbStructurePanelService {
     }
     set filterInfo(value) {
         this._filterInfo = value;
+    }
+
+    get selectedPdbId() {
+        return this._selectedPdbId;
+    }
+    set selectedPdbId(value) {
+        this._selectedPdbId = value;
     }
 
     static instance (ngbTargetPanelService, targetDataService) {

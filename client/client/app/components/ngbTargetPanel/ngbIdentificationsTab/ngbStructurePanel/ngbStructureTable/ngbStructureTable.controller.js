@@ -44,6 +44,7 @@ export default class ngbStructureTableController {
             dispatcher.removeListener('target:identification:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:source:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:filters:changed', filterChanged);
+            this.selectedPdbId = null;
         });
     }
 
@@ -81,6 +82,9 @@ export default class ngbStructureTableController {
     set filterInfo(value) {
         this.ngbStructurePanelService.filterInfo = value;
     }
+    set selectedPdbId(value) {
+        this.ngbStructurePanelService.selectedPdbId = value;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -89,6 +93,7 @@ export default class ngbStructureTableController {
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
                 this.gridApi.core.handleWindowResize();
             }
         });
@@ -113,6 +118,16 @@ export default class ngbStructureTableController {
         }
         this.currentPage = page;
         await this.loadData();
+    }
+
+    onClickLink(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+    }
+
+    async rowClick(row) {
+        this.selectedPdbId = row.entity.id.name;
     }
 
     async sourceChanged() {
