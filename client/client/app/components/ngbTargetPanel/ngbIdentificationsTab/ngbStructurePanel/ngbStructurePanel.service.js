@@ -5,7 +5,7 @@ const SOURCE_OPTIONS = {
 
 const PAGE_SIZE = 10;
 
-const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'source', 'resolution', 'chains'];
+const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'method', 'source', 'resolution', 'chains'];
 
 const FIELDS = {
     id: 'ENTRY_ID',
@@ -132,6 +132,7 @@ export default class ngbStructurePanelService {
                 url: item.url
             },
             name: item.name,
+            method: item.method,
             source: item.source,
             resolution: item.resolution,
             chains: (item.proteinChains || []).join('/')
