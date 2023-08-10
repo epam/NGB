@@ -152,14 +152,16 @@ export default class ngbSequencesPanelController {
     setGeneTrack() {
         const tracks = this.projectContext.tracks;
         const tracksState = this.projectContext.tracksState;
-        for (let i = 0; i < tracksState.length; i++) {
-            const track = tracksState[i];
-            if (track.format === 'GENE') {
-                track.state = track.state || {};
-                track.state.geneTranscript = 'expanded';
+        if (tracksState && tracksState.length) {
+            for (let i = 0; i < tracksState.length; i++) {
+                const track = tracksState[i];
+                if (track.format === 'GENE') {
+                    track.state = track.state || {};
+                    track.state.geneTranscript = 'expanded';
+                }
             }
+            this.projectContext.changeState({tracks, tracksState});
         }
-        this.projectContext.changeState({tracks, tracksState});
     }
 
     navigateToReference() {
@@ -212,14 +214,14 @@ export default class ngbSequencesPanelController {
 
     navigateToGene() {
         if (
-            !this.selectedGeneId ||
+            !this.selectedGene ||
             !this.projectContext ||
             !this.projectContext.references ||
             this.projectContext.references.length === 0
         ) {
             return Promise.resolve(false);
         }
-        const request = this.selectedGeneId.trim();
+        const request = this.selectedGene.geneName.trim();
         const refGeneGroups = /^(.*):(.*)$/.exec(request);
         const findPromise = (reference, gene) => new Promise((resolve) => {
             if (!reference) {
