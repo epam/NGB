@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
+import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
@@ -74,6 +75,7 @@ public class TargetManager {
         if (StringUtils.isEmpty(target.getOwner())) {
             target.setOwner(authManager.getAuthorizedUser());
         }
+        target.setAlignmentStatus(AlignmentStatus.NOT_ALIGNED);
         final Target createdTarget = targetDao.saveTarget(target);
         final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
                 target.getTargetId());
@@ -89,15 +91,21 @@ public class TargetManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    public void updateAlignmentStatus(final Target target) {
+        targetDao.updateAlignment(target);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final long targetId) {
         getTarget(targetId);
         targetGeneDao.deleteTargetGenes(targetId);
         targetDao.deleteTarget(targetId);
     }
 
-    public void getTarget(final long targetId) {
+    public Target getTarget(final long targetId) {
         final Target target = load(targetId);
         Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, targetId));
+        return target;
     }
 
     public Target load(final long targetId) {
@@ -126,6 +134,10 @@ public class TargetManager {
                 .totalCount(totalCount)
                 .items(targets)
                 .build();
+    }
+
+    public List<Target> getTargetsForAlignment() {
+        return targetDao.loadTargetsForAlignment();
     }
 
     public List<String> loadFieldValues(final TargetField field) {

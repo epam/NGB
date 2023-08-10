@@ -23,33 +23,31 @@
  */
 package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class Target extends AbstractSecuredEntity {
-    private Long targetId;
-    private String targetName;
-    private String owner;
-    private AlignmentStatus alignmentStatus;
-    private List<String> diseases;
-    private List<String> products;
-    private List<TargetGene> targetGenes;
+public enum AlignmentStatus {
+    NOT_ALIGNED(0),
+    IN_PROGRESS(1),
+    ALIGNED(2),
+    ERROR(3);
 
-    @Override
-    public AbstractSecuredEntity getParent() {
-        return null;
+    private final int value;
+    private static final Map<Integer, AlignmentStatus> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, NOT_ALIGNED);
+        VALUES_MAP.put(1, IN_PROGRESS);
+        VALUES_MAP.put(2, ALIGNED);
+        VALUES_MAP.put(3, ERROR);
     }
 
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.TARGET;
+    public static AlignmentStatus getByValue(int id) {
+        return VALUES_MAP.get(id);
     }
 }

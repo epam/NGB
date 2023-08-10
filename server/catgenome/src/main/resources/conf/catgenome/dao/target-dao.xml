@@ -11,12 +11,14 @@
                         target_id,
                         target_name,
                         owner,
+                        alignment_status,
                         diseases,
                         products
                     ) VALUES (
                         :TARGET_ID,
                         :TARGET_NAME,
                         :OWNER,
+                        :ALIGNMENT_STATUS,
                         :DISEASES,
                         :PRODUCTS
                     )
@@ -28,8 +30,18 @@
                 <![CDATA[
                     UPDATE catgenome.target SET
                         target_name = :TARGET_NAME,
+                        alignment_status = :ALIGNMENT_STATUS,
                         diseases = :DISEASES,
                         products = :PRODUCTS
+                    WHERE target_id = :TARGET_ID
+                ]]>
+            </value>
+        </property>
+        <property name="updateAlignmentQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.target SET
+                        alignment_status = :ALIGNMENT_STATUS
                     WHERE target_id = :TARGET_ID
                 ]]>
             </value>
@@ -48,6 +60,7 @@
                         target_id,
                         target_name,
                         owner,
+                        alignment_status,
                         diseases,
                         products
                     FROM catgenome.target
@@ -62,6 +75,7 @@
                         t.target_name,
                         t.diseases,
                         t.owner,
+                        t.alignment_status,
                         t.products,
                         g.target_gene_id,
                         g.gene_id,
@@ -74,6 +88,28 @@
                 ]]>
             </value>
         </property>
+        <property name="loadTargetsForAlignmentQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        t.target_id,
+                        t.target_name,
+                        t.diseases,
+                        t.owner,
+                        t.alignment_status,
+                        t.products,
+                        g.target_gene_id,
+                        g.gene_id,
+                        g.gene_name,
+                        g.tax_id,
+                        g.species_name,
+                        g.priority
+                    FROM catgenome.target t left join catgenome.target_gene g on t.target_id = g.target_id
+                    WHERE t.alignment_status = 0
+                    ORDER BY t.target_id
+                ]]>
+            </value>
+        </property>
         <property name="loadTargetsQuery">
             <value>
                 <![CDATA[
@@ -81,6 +117,7 @@
                         t.target_id,
                         t.target_name,
                         t.owner,
+                        t.alignment_status,
                         t.diseases,
                         t.products
                     FROM catgenome.target t left join catgenome.target_gene g on t.target_id = g.target_id

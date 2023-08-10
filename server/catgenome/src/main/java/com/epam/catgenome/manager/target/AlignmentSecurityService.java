@@ -21,35 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.io.IOException;
 
-@Getter
-@Setter
-@Builder
-public class Target extends AbstractSecuredEntity {
-    private Long targetId;
-    private String targetName;
-    private String owner;
-    private AlignmentStatus alignmentStatus;
-    private List<String> diseases;
-    private List<String> products;
-    private List<TargetGene> targetGenes;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
-    @Override
-    public AbstractSecuredEntity getParent() {
-        return null;
-    }
+@Service
+@RequiredArgsConstructor
+public class AlignmentSecurityService {
 
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.TARGET;
+    private final AlignmentManager alignmentManager;
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] getAlignment(final Long targetId, final String firstSequenceId, final String secondSequenceId)
+            throws IOException {
+        return alignmentManager.getAlignment(targetId, firstSequenceId, secondSequenceId);
     }
 }
