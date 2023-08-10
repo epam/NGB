@@ -1,0 +1,33 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loading || $ctrl.pdbDescriptionLoading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.pdbDescriptionFailed || $ctrl.pdbDescriptionLoading}">
+    <ngb-panel-error-list message-list="$ctrl.pdbDescriptionErrorMessageList"></ngb-panel-error-list>
+</div>
+<ngb-structure-viewer></ngb-structure-viewer>
+<div class="structure-source-select">
+    <label>Source:</label>
+    <md-input-container>
+        <md-select ng-model="$ctrl.sourceModel"
+                   aria-label="Source select"
+                   ng-change="$ctrl.onChangeSource()"
+                   md-container-class="structure-source-select-container">
+            <md-option ng-repeat="item in $ctrl.sourceOptions"
+                       ng-value="item">
+                {{item}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+<ngb-structure-table></ngb-structure-table>
+<div>
+    <label class="md-button md-raised structure-upload-button"
+           for="pdb-file-id">{{$ctrl.pdbFile.name || 'Upload'}}</label>
+    <input accept=".pdb" class="ng-hide" file-model
+           id="pdb-file-id"
+           ng-change="$ctrl.onFileUpload()"
+           ng-model="$ctrl.pdbFile"
+           required
+           type="file">
+</div>

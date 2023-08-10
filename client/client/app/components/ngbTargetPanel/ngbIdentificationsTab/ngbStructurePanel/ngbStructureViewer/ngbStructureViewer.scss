@@ -1,0 +1,91 @@
+ngb-structure-viewer {
+    .structure-container {
+        position: relative;
+        min-height: 500px;
+        padding: 0;
+        width: 100%;
+      
+        canvas {
+            min-height: 500px;
+        }
+    }
+
+    .no-pdb {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 50px;
+    }
+    
+    .ngb-miew-container {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .miew-actions-container {
+        display: flex;
+        justify-content: flex-end;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+    }
+    
+    button.miew-action {
+        width: 36px;
+        height: 36px;
+    }
+
+    .modes-content.hidden,
+    .colors-content.hidden {
+        display: none;
+    }
+
+    .thumbnail-button {
+        cursor: pointer;
+        width: 110px;
+        height: 110px;
+        overflow: visible;
+        padding-left: 0;
+      
+        img {
+            width: inherit;
+            height: inherit;
+        }
+      
+        .thumbnail-title {
+            margin: 0;
+            width: 110px;
+            height: 35px;
+            background-color: transparent;
+      
+            h5 {
+                background-color: rgba(0, 0, 0, 0.5);
+                width: 110px;
+                height: 25px;
+                line-height: 25px;
+                white-space: nowrap;
+                display: inline-block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+      
+        .thumbnail-title.selected {
+            h5 {
+                background-color: #4285f4;
+            }
+        }
+      
+        &:hover {
+            .thumbnail-title {
+                width: 110px;
+                transition: all 0.4s ease;
+        
+                h5 {
+                    background-color: #4285f4;
+                }
+            }
+        }
+    }
+}
