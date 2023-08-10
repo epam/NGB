@@ -29,18 +29,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Map;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class IdentificationResult {
-    private Map<String, String> description;
-    private Long diseasesCount;
-    private Long knownDrugsCount;
-    private Long publicationsCount;
-    private SequencesSummary sequencesCount;
-    private Long structuresCount;
+public class SequencesSummary {
+    private Long dNAs;
+    private Long mRNAs;
+    private Long proteins;
 }

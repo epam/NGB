@@ -143,6 +143,8 @@ public class StructureRequest {
     public static class RequestOptions {
         private Paginate paginate;
         private List<Sort> sort;
+        @JsonProperty("return_counts")
+        private boolean returnCounts;
     }
 
     @Getter
