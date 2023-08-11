@@ -73,4 +73,5 @@
     <import resource="classpath:conf/catgenome/dao/bam-coverage-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/target-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/target-gene-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/pdb-file-dao.xml" />
 </beans>

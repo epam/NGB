@@ -91,6 +91,10 @@ public class Application {
             + "rl\treg_lineage\t: registers a lineage tree\t{rl \"nodes_path\" \"edges_path\"}\n"
             + "dl\tdel_lineage\t: deletes a lineage tree \t{dl 2}\n"
             + "ll\tlist_lineage\t: lists all lineage trees, registered on the server\t{ll}\n\n"
+            + "PDB File commands:\n"
+            + "rpdb\treg_pdb\t: registers a pdb file\t{rpdb \"gene_id\" \"path\"}\n"
+            + "dpdb\tdel_pdb\t: deletes a pdb file \t{dpdb 2}\n"
+            + "lpdb\tlist_pdb\t: lists all pdb files, registered on the server\t{lpdb}\n\n"
             + "METABOLIC PATHWAY commands:\n"
             + "rp\treg_pathway\t: registers a metabolic pathway\t{rp \"path\"}\n"
             + "rb\treg_biopax\t: registers metabolic pathways from bioPAX file\t{rb \"path\"}\n"
@@ -275,6 +279,9 @@ public class Application {
     @Option(name = "-desc", usage = "specifies entity description", aliases = "--description")
     private String description;
 
+    @Option(name = "-mtd", usage = "specifies metadata", aliases = "--metadata")
+    private String metadata;
+
     @Argument
     private List<String> arguments;
 
@@ -389,6 +396,7 @@ public class Application {
         options.setAlias(alias);
         options.setStep(step);
         options.setDescription(description);
+        options.setMetadata(metadata);
         return options;
     }
 
