@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.GeneSequences;
+import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
 import com.epam.catgenome.manager.externaldb.PdbEntriesManager;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -121,11 +123,15 @@ public class TargetIdentificationManager {
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds);
+        final SequencesSummary sequencesCount = getSequencesCount(ncbiGeneIds);
+        final long structuresCount = getStructuresCount(geneIds);
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
                 .knownDrugsCount(drugsCount)
                 .publicationsCount(publicationsCount)
+                .sequencesCount(sequencesCount)
+                .structuresCount(structuresCount)
                 .build();
     }
 
@@ -230,6 +236,22 @@ public class TargetIdentificationManager {
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
         final List<String> geneNames = targetManager.getTargetGeneNames(request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
+    }
+
+    private SequencesSummary getSequencesCount(final List<GeneId> ncbiGeneIds) {
+        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
+                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
+        final List<GeneSequences> geneSequences = geneSequencesManager.fetchGeneSequences(entrezMap);
+        return SequencesSummary.builder()
+                .dNAs(geneSequences.stream().map(GeneSequences::getReference).filter(Objects::nonNull).count())
+                .mRNAs(geneSequences.stream().mapToLong(s -> s.getMRNAs().size()).sum())
+                .proteins(geneSequences.stream().mapToLong(s -> s.getProteins().size()).sum())
+                .build();
+    }
+
+    private long getStructuresCount(final List<String> geneIds) {
+        final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
+        return pdbEntriesManager.getStructuresCount(geneNames);
     }
 
     private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)

@@ -67,6 +67,15 @@ public class PdbEntriesManager extends HttpDataManager{
     }
 
     @SneakyThrows
+    public long getStructuresCount(final List<String> geneNames) {
+        final ObjectMapper mapper = new ObjectMapper();
+        final String jsonString = mapper.writeValueAsString(totalCountRequest(geneNames));
+        final JSONObject jsonObject = new JSONObject(jsonString);
+        final String structures = fetchData(LOCATION, jsonObject);
+        return parseTotalCount(structures);
+    }
+
+    @SneakyThrows
     private SearchResult<Structure> parseStructures(final String json) {
         final List<Structure> structures = new ArrayList<>();
         final SearchResult<Structure> searchResult = new SearchResult<>();
@@ -116,9 +125,34 @@ public class PdbEntriesManager extends HttpDataManager{
     }
 
     @SneakyThrows
+    private long parseTotalCount(final String json) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode topNode = objectMapper.readTree(json);
+        return topNode.at("/total_count").asLong();
+    }
+
+    @SneakyThrows
     private StructureRequest convertRequest(final StructuresSearchRequest structureSearchRequest,
                                             final List<String> geneNames) {
         final StructureRequest.RequestOptions options = getOptions(structureSearchRequest);
+        final StructureRequest.Query query = getQuery(structureSearchRequest, geneNames);
+        final StructureRequest.Request request = StructureRequest.Request.builder()
+                .requestOptions(options)
+                .query(query)
+                .returnType("entry")
+                .build();
+        return StructureRequest.builder()
+                .report("search_summary")
+                .request(request)
+                .build();
+    }
+
+    @SneakyThrows
+    private StructureRequest totalCountRequest(final List<String> geneNames) {
+        final StructureRequest.RequestOptions options = StructureRequest.RequestOptions.builder()
+                .returnCounts(true)
+                .build();
+        final StructuresSearchRequest structureSearchRequest = new StructuresSearchRequest();
         final StructureRequest.Query query = getQuery(structureSearchRequest, geneNames);
         final StructureRequest.Request request = StructureRequest.Request.builder()
                 .requestOptions(options)
