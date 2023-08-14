@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
@@ -62,8 +63,8 @@ public class PdbFileManager {
 
     private final PdbFileDao pdbFileDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
-    private static final String ENTITY_ID = "entity_id";
-    private static final String IN_CLAUSE = "%s in ('%s')";
+    private static final String NAME = "name";
+    private static final String IN_CLAUSE = "%s in (%s)";
 
     @Transactional(propagation = Propagation.REQUIRED)
     public PdbFile create(final PdbFile pdbFile) throws IOException {
@@ -103,7 +104,7 @@ public class PdbFileManager {
         final List<SortInfo> sortInfos = CollectionUtils.isNotEmpty(params.getSortInfos()) ?
                 params.getSortInfos() :
                 Collections.singletonList(SortInfo.builder()
-                        .field(ENTITY_ID)
+                        .field(NAME)
                         .ascending(true)
                         .build());
         final List<PdbFile> pdbFiles = pdbFileDao.load(clause, params.getPagingInfo(), sortInfos);
@@ -147,7 +148,9 @@ public class PdbFileManager {
     private static String getFilterClause(final PdbFileQueryParams params) {
         final List<String> clauses = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(params.getGeneIds())) {
-            clauses.add(String.format(IN_CLAUSE, "gene_id", join(params.getGeneIds(), ",")));
+            clauses.add(String.format(IN_CLAUSE, "gene_id", params.getGeneIds().stream()
+                    .map(g -> "'" + g + "'")
+                    .collect(Collectors.joining(","))));
         }
         return join(clauses, Condition.AND.getValue());
     }
