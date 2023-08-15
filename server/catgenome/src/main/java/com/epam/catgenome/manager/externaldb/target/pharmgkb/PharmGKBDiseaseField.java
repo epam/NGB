@@ -21,32 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.manager.externaldb.target.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import java.util.function.Function;
 
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends UrlEntity {
-    public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
-    private String geneId;
-    private String entrezId;
-    private String interactionTypes;
-    private String interactionClaimSource;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url);
-        this.entrezId = entrezId;
-        this.geneId = geneId;
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
+public enum PharmGKBDiseaseField implements AssociationExportField<PharmGKBDisease> {
+    GENE_ID("Target", PharmGKBDisease::getGeneId, true),
+    DISEASE_NAME("Disease", PharmGKBDisease::getName, true),
+    DISEASE_NAME_FLTR(false),
+    DISEASE_ID(false);
+    private String label;
+    private Function<PharmGKBDisease, String> getter;
+    private final boolean export;
+
+    PharmGKBDiseaseField(boolean export) {
+        this.export = export;
     }
 }

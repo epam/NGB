@@ -23,9 +23,12 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
@@ -34,6 +37,7 @@ import org.apache.lucene.search.Query;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
 
@@ -49,9 +53,19 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return search(request, query);
     }
 
-    public static Query getByGeneIdsQuery(final List<String> ids)
-            throws ParseException {
+    public static Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
         return getByIdsQuery(ids, IndexFields.GENE_ID.name());
+    }
+
+    public List<T> searchByGeneIds(final List<String> ids) throws ParseException, IOException {
+        return search(ids, IndexFields.GENE_ID.name());
+    }
+
+    public byte[] export(final List<String> geneIds, final FileFormat format, final boolean includeHeader)
+            throws ParseException, IOException {
+        final List<ExportField<T>> exportFields = getExportFields().stream().filter(AssociationExportField::isExport)
+                .collect(Collectors.toList());
+        return ExportUtils.export(searchByGeneIds(geneIds), exportFields, format, includeHeader);
     }
 
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {
@@ -66,6 +80,7 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
     }
 
     public abstract void addFieldQuery(BooleanQuery.Builder builder, Filter filter);
+    public abstract List<AssociationExportField<T>> getExportFields();
 
     @Getter
     private enum IndexFields {
