@@ -88,6 +88,9 @@ public final class Utils {
     private static final String PAGING_INFO_CLAUSE = " limit %s offset %s";
     private static final String WHERE_CLAUSE = " where %s";
     private static final String ORDER_BY_CLAUSE = " order by %s";
+    public static final String IN_CLAUSE = "%s in (%s)";
+    public static final String EQUAL_CLAUSE = "UPPER(%s) = UPPER('%s')";
+    public static final String LIKE_CLAUSE = "UPPER(%s) like UPPER('%%%s%%')";
     public static final int DEFAULT_PAGE_SIZE = 20;
     private static final int DEFAULT_PAGE_NUM = 0;
     public static final String NEW_LINE = "\n";
