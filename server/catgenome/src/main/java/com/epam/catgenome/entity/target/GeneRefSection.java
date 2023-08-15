@@ -24,25 +24,15 @@
 package com.epam.catgenome.entity.target;
 
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
-import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-public class Sequence extends UrlEntity{
-    private Long begin;
-    private Long end;
-    private StrandSerializable strand;
-    private String genomic;
-
-    public static StrandSerializable parseStrand(final String orientation) {
-        if (orientation.equals("plus")) {
-            return StrandSerializable.POSITIVE;
-        }
-        if (orientation.equals("minus")) {
-            return StrandSerializable.NEGATIVE;
-        }
-        return StrandSerializable.NONE;
-    }
+public class GeneRefSection {
+    private String geneId;
+    private UrlEntity reference;
+    private List<GeneSequence> sequences;
 }

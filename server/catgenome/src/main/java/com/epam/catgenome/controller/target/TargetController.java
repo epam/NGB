@@ -30,11 +30,7 @@ import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
-import com.epam.catgenome.entity.target.GeneSequences;
-import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.IdentificationResult;
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
@@ -383,6 +379,20 @@ public class TargetController extends AbstractRESTController {
     public Result<List<GeneSequences>> getGeneSequences(@RequestParam final List<String> geneIds)
             throws IOException, ParseException {
         return Result.success(targetIdentificationSecurityService.getGeneSequences(geneIds));
+    }
+
+    @GetMapping(value = "/target/sequences/table")
+    @ApiOperation(
+            value = "Returns data for Gene Sequences block as a table",
+            notes = "Returns data for Gene Sequences block as a table",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<GeneRefSection>> getGeneSequencesTable(@RequestParam final List<String> geneIds,
+                                                              @RequestParam final Boolean getComments)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(targetIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments));
     }
 
     @PostMapping(value = "/target/structures")

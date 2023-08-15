@@ -92,6 +92,8 @@ public final class Utils {
     private static final int DEFAULT_PAGE_NUM = 0;
     public static final String NEW_LINE = "\n";
     public static final String DOT = ".";
+    public static final String SPACE = " ";
+    public static final String SPACES = "( )+";
     private static final String SEPARATOR = ",";
 
     private Utils() {
