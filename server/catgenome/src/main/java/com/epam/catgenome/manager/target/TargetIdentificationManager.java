@@ -261,11 +261,24 @@ public class TargetIdentificationManager {
                 .map(GeneRefSection::getSequences)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
-        final long genomic = sequences.stream().map(s -> s.getMRNA().getGenomic()).filter(Objects::nonNull).count();
+        final List<String> genomic = sequences.stream()
+                .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
+                .collect(Collectors.toList());
+        final List<String> references = refSections.stream()
+                .map(s -> s.getReference() == null ? null : s.getReference().getId())
+                .collect(Collectors.toList());
+        genomic.addAll(references);
+        final long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
+        final long mRNAs = sequences.stream()
+                .map(s -> s.getMRNA()).filter(Objects::nonNull)
+                .count();
+        final long proteins = sequences.stream()
+                .map(s -> s.getProtein()).filter(Objects::nonNull)
+                .count();
         return SequencesSummary.builder()
-                .dNAs(refSections.stream().map(s -> s.getReference()).filter(Objects::nonNull).count() + genomic)
-                .mRNAs(sequences.stream().map(s -> s.getMRNA()).filter(Objects::nonNull).count())
-                .proteins(sequences.stream().map(s -> s.getProtein()).filter(Objects::nonNull).count())
+                .dNAs(dNAs)
+                .mRNAs(mRNAs)
+                .proteins(proteins)
                 .build();
     }
 
