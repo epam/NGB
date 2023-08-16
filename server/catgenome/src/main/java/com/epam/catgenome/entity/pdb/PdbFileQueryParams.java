@@ -38,4 +38,7 @@ public class PdbFileQueryParams {
     private PagingInfo pagingInfo;
     private List<SortInfo> sortInfos;
     private List<String> geneIds;
+    private String name;
+    private String prettyName;
+    private String owner;
 }

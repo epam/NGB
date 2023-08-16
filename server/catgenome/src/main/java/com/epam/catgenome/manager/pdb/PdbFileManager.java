@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +55,9 @@ import java.util.stream.Collectors;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static com.epam.catgenome.util.Utils.EQUAL_CLAUSE;
+import static com.epam.catgenome.util.Utils.IN_CLAUSE;
+import static com.epam.catgenome.util.Utils.LIKE_CLAUSE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -64,7 +68,9 @@ public class PdbFileManager {
     private final PdbFileDao pdbFileDao;
     private final BiologicalDataItemManager biologicalDataItemManager;
     private static final String NAME = "name";
-    private static final String IN_CLAUSE = "%s in (%s)";
+    private static final String PRETTY_NAME = "pretty_name";
+    private static final String OWNER = "owner";
+
 
     @Transactional(propagation = Propagation.REQUIRED)
     public PdbFile create(final PdbFile pdbFile) throws IOException {
@@ -151,6 +157,15 @@ public class PdbFileManager {
             clauses.add(String.format(IN_CLAUSE, "gene_id", params.getGeneIds().stream()
                     .map(g -> "'" + g + "'")
                     .collect(Collectors.joining(","))));
+        }
+        if (StringUtils.isNotBlank(params.getOwner())) {
+            clauses.add(String.format(EQUAL_CLAUSE, OWNER, params.getOwner()));
+        }
+        if (StringUtils.isNotBlank(params.getName())) {
+            clauses.add(String.format(EQUAL_CLAUSE, NAME, params.getName()));
+        }
+        if (StringUtils.isNotBlank(params.getPrettyName())) {
+            clauses.add(String.format(LIKE_CLAUSE, PRETTY_NAME, params.getPrettyName()));
         }
         return join(clauses, Condition.AND.getValue());
     }

@@ -49,15 +49,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.Utils.EQUAL_CLAUSE;
+import static com.epam.catgenome.util.Utils.IN_CLAUSE;
+import static com.epam.catgenome.util.Utils.LIKE_CLAUSE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @RequiredArgsConstructor
 public class TargetManager {
 
-    private static final String IN_CLAUSE = "%s in (%s)";
-    private static final String LIKE_CLAUSE = "UPPER(%s) like UPPER('%%%s%%')";
-    private static final String EQUAL_CLAUSE = "UPPER(%s) = UPPER('%s')";
     private static final String TARGET_NAME = "target_name";
     private static final String OWNER = "owner";
     private static final String PRODUCTS = "products";

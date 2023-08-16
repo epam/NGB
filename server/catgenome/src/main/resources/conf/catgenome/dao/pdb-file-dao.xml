@@ -57,8 +57,8 @@
                 <![CDATA[
                     SELECT
                         b.bio_data_item_id,
-                        b.name name,
-                        b.pretty_name pretty_name,
+                        b.name,
+                        b.pretty_name,
                         b.type,
                         b.path,
                         b.source,
@@ -86,7 +86,10 @@
         <property name="totalCountQuery">
             <value>
                 <![CDATA[
-                    select count(*) as count from catgenome.pdb_file
+                    select
+                        count(*) as count
+                    FROM catgenome.pdb_file t join
+                    catgenome.biological_data_item b ON t.bio_data_item_id = b.bio_data_item_id
                 ]]>
             </value>
         </property>
