@@ -36,7 +36,11 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.target.GeneRefSection;
+import com.epam.catgenome.entity.target.GeneSequence;
 import com.epam.catgenome.entity.target.GeneSequences;
+import com.epam.catgenome.entity.target.IdentificationRequest;
+import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PudMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
@@ -46,8 +50,6 @@ import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -63,6 +65,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -233,19 +236,49 @@ public class TargetIdentificationManager {
         return geneSequencesManager.fetchGeneSequences(entrezMap);
     }
 
+    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        if (CollectionUtils.isEmpty(ncbiGeneIds)) {
+            return Collections.emptyList();
+        }
+        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
+                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
+        return geneSequencesManager.getGeneSequencesTable(entrezMap, getComments);
+    }
+
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
         final List<String> geneNames = targetManager.getTargetGeneNames(request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
     }
 
-    private SequencesSummary getSequencesCount(final List<GeneId> ncbiGeneIds) {
+    private SequencesSummary getSequencesCount(final List<GeneId> ncbiGeneIds)
+            throws IOException, ExternalDbUnavailableException {
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        final List<GeneSequences> geneSequences = geneSequencesManager.fetchGeneSequences(entrezMap);
+        final List<GeneRefSection> refSections = geneSequencesManager.getGeneSequencesTable(entrezMap, false);
+        final List<GeneSequence> sequences = refSections.stream()
+                .map(GeneRefSection::getSequences)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        final List<String> genomic = sequences.stream()
+                .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
+                .collect(Collectors.toList());
+        final List<String> references = refSections.stream()
+                .map(s -> s.getReference() == null ? null : s.getReference().getId())
+                .collect(Collectors.toList());
+        genomic.addAll(references);
+        final long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
+        final long mRNAs = sequences.stream()
+                .map(s -> s.getMRNA()).filter(Objects::nonNull)
+                .count();
+        final long proteins = sequences.stream()
+                .map(s -> s.getProtein()).filter(Objects::nonNull)
+                .count();
         return SequencesSummary.builder()
-                .dNAs(geneSequences.stream().map(GeneSequences::getReference).filter(Objects::nonNull).count())
-                .mRNAs(geneSequences.stream().mapToLong(s -> s.getMRNAs().size()).sum())
-                .proteins(geneSequences.stream().mapToLong(s -> s.getProteins().size()).sum())
+                .dNAs(dNAs)
+                .mRNAs(mRNAs)
+                .proteins(proteins)
                 .build();
     }
 
