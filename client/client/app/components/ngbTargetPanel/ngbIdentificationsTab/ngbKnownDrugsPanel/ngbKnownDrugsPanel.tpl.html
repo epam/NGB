@@ -3,19 +3,28 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="known-drugs-header">
-    <div class="drugs-source-select">
-        <label>Source:</label>
-        <md-input-container>
-            <md-select ng-model="$ctrl.sourceModel"
-                       aria-label="Source select"
-                       ng-change="$ctrl.onChangeSource()"
-                       md-container-class="drugs-source-select-container">
-                <md-option ng-repeat="item in $ctrl.sourceOptions"
-                           ng-value="item">
-                    {{item.displayName}}
-                </md-option>
-            </md-select>
-        </md-input-container>
+    <div class="action-container">
+        <md-button type="button"
+                   class="md-raised export-button"
+                   ng-if="$ctrl.tableResults"
+                   aria-label="Export drugs results"
+                   ng-click="$ctrl.exportResults()">
+            EXPORT
+        </md-button>
+        <div class="drugs-source-select">
+            <label>Source:</label>
+            <md-input-container>
+                <md-select ng-model="$ctrl.sourceModel"
+                           aria-label="Source select"
+                           ng-change="$ctrl.onChangeSource()"
+                           md-container-class="drugs-source-select-container">
+                    <md-option ng-repeat="item in $ctrl.sourceOptions"
+                               ng-value="item">
+                        {{item.displayName}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
     </div>
 </div>
 <ngb-drugs-table></ngb-drugs-table>
