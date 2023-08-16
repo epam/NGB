@@ -23,7 +23,6 @@
  */
 package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,5 +31,5 @@ import lombok.Setter;
 public class GeneSequence {
     private String description;
     private Sequence mRNA;
-    private UrlEntity protein;
+    private Sequence protein;
 }

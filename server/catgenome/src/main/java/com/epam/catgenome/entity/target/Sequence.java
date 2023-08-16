@@ -35,6 +35,7 @@ public class Sequence extends UrlEntity{
     private Long end;
     private StrandSerializable strand;
     private String genomic;
+    private Integer length;
 
     public static StrandSerializable parseStrand(final String orientation) {
         if (orientation.equals("plus")) {

@@ -261,6 +261,7 @@ public class NCBIGeneSequencesManager extends HttpDataManager {
                         if (!TextUtils.isBlank(mRNAId)) {
                             Sequence mRNA = new Sequence();
                             mRNA.setId(mRNAId);
+                            mRNA.setLength(transcriptsNode.at("/length").asInt());
                             mRNA.setUrl(String.format(NCBI_NUCCORE_LINK, mRNAId));
                             mRNA.setGenomic(transcriptsNode.at("/genomic_range/accession_version").asText());
                             final JsonNode rangeNodes = transcriptsNode.at("/genomic_range/range");
@@ -281,8 +282,9 @@ public class NCBIGeneSequencesManager extends HttpDataManager {
                         if (!TextUtils.isBlank(proteinId)) {
                             String proteinName= transcriptsNode.at("/protein/name").asText();
                             String isoformName= transcriptsNode.at("/protein/isoform_name").asText();
-                            UrlEntity protein = new UrlEntity();
+                            Sequence protein = new Sequence();
                             protein.setId(proteinId);
+                            protein.setLength(transcriptsNode.at("/protein/length").asInt());
                             protein.setName(proteinName + " " + isoformName);
                             protein.setUrl(String.format(NCBI_PROTEIN_LINK, proteinId));
                             geneSequence.setProtein(protein);
