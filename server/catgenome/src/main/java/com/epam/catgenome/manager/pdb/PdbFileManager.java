@@ -36,17 +36,23 @@ import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +60,7 @@ import java.util.stream.Collectors;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static com.epam.catgenome.util.Utils.NEW_LINE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -61,10 +68,14 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Slf4j
 public class PdbFileManager {
 
-    private final PdbFileDao pdbFileDao;
-    private final BiologicalDataItemManager biologicalDataItemManager;
+    private static final String TITLE = "TITLE";
+    private static final String REMARK = "REMARK";
     private static final String NAME = "name";
     private static final String IN_CLAUSE = "%s in (%s)";
+    private static final int LINE_VALUE_START_INDEX = 11;
+    private static final int LINE_KEY_END_INDEX = 10;
+    private final PdbFileDao pdbFileDao;
+    private final BiologicalDataItemManager biologicalDataItemManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public PdbFile create(final PdbFile pdbFile) throws IOException {
@@ -137,7 +148,14 @@ public class PdbFileManager {
         return null;
     }
 
-    private void setData(final PdbFile pdbFile) {
+    private void setData(final PdbFile pdbFile) throws IOException {
+        final Map<String, String> metadata = parseMetadata(pdbFile.getPath());
+        if (MapUtils.isNotEmpty(metadata)) {
+            pdbFile.setMetadata(metadata);
+        }
+        if (StringUtils.isBlank(pdbFile.getPrettyName())) {
+            pdbFile.setPrettyName(metadata.get(TITLE));
+        }
         pdbFile.setName(getBioDataItemName(pdbFile.getName(), pdbFile.getPath()));
         pdbFile.setType(BiologicalDataItemResourceType.FILE);
         pdbFile.setFormat(BiologicalDataItemFormat.PDB_FILE);
@@ -153,5 +171,36 @@ public class PdbFileManager {
                     .collect(Collectors.joining(","))));
         }
         return join(clauses, Condition.AND.getValue());
+    }
+
+    private Map<String, String> parseMetadata(final String path) throws IOException {
+        String line;
+        String remarkKey;
+        String remarkLine;
+        List<String> remarkLines;
+        final Map<String, List<String>> remarksMetadata = new HashMap<>();
+        final Map<String, String> metadata = new HashMap<>();
+        try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
+            while ((line = bufferedReader.readLine()) != null) {
+                String recordName = line.substring(0, 6).trim();
+                if (recordName.equals(TITLE)) {
+                    metadata.put(TITLE, line.substring(LINE_VALUE_START_INDEX).trim());
+                } else if (recordName.equals(REMARK)) {
+                    remarkKey = line.substring(0, LINE_KEY_END_INDEX);
+                    remarkLine = line.substring(LINE_VALUE_START_INDEX).trim();
+                    if (StringUtils.isNotBlank(remarkLine)) {
+                        if (remarksMetadata.containsKey(remarkKey)) {
+                            remarksMetadata.get(remarkKey).add(remarkLine);
+                        } else {
+                            remarkLines = new ArrayList<>();
+                            remarkLines.add(remarkLine);
+                            remarksMetadata.put(remarkKey, remarkLines);
+                        }
+                    }
+                }
+            }
+        }
+        remarksMetadata.forEach((k, v) -> metadata.put(k, join(v, NEW_LINE)));
+        return metadata;
     }
 }
