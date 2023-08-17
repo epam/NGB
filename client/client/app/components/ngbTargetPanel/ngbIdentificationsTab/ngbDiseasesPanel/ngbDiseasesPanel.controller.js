@@ -10,9 +10,13 @@ class NgbDiseasesPanelController {
         return 'ngbDiseasesPanelController';
     }
 
-    constructor(dispatcher, ngbDiseasesPanelService) {
-        this.dispatcher = dispatcher;
-        this.ngbDiseasesPanelService = ngbDiseasesPanelService;
+    constructor(dispatcher, ngbDiseasesPanelService, ngbDiseasesTableService, ngbTargetPanelService) {
+        Object.assign(this, {
+            dispatcher,
+            ngbDiseasesPanelService,
+            ngbDiseasesTableService,
+            ngbTargetPanelService
+        });
         this._tabs = [];
         this._tabsOnlyTable = [];
         this._sources = [];
@@ -90,12 +94,46 @@ class NgbDiseasesPanelController {
             : false;
     }
 
+    get tableResults() {
+        const results = this.ngbDiseasesTableService.diseasesResults;
+        return results && results.length;
+    }
+
+    get geneChips() {
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+    }
+
     getTabName(tab) {
         return DiseaseTabNames[tab] || tab;
     }
 
     getSourceName(source) {
         return SourceOptionNames[source] || source;
+    }
+
+    exportResults() {
+        this.ngbDiseasesPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.geneChips.join('_')}-${this.source}-diseases.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                }
+            });
     }
 }
 

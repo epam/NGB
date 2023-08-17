@@ -250,8 +250,8 @@ export default class ngbDrugsTableService {
         if (this.sourceModel === DGI_DB) {
             this._drugsResults = result.map(item => ({
                 target: {
-                    geneId: item.entrezId,
-                    value: this.getTarget(item.entrezId)
+                    geneId: item.geneId,
+                    value: this.getTarget(item.geneId)
                 },
                 'drug': {
                     name: item.name,
