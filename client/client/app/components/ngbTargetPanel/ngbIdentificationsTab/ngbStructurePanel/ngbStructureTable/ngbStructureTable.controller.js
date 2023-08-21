@@ -7,7 +7,7 @@ export default class ngbStructureTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: false,
+        enableSorting: true,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
@@ -87,6 +87,19 @@ export default class ngbStructureTableController {
     get structureResults() {
         return this.ngbStructurePanelService.structureResults;
     }
+    get sortInfo() {
+        return this.ngbStructurePanelService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbStructurePanelService.sortInfo = value;
+    }
+
+    get sourceModel() {
+        return this.ngbStructurePanelService.sourceModel;
+    }
+    get sourceOptions() {
+        return this.ngbStructurePanelService.sourceOptions;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -95,8 +108,9 @@ export default class ngbStructureTableController {
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
-                this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
                 this.gridApi.core.handleWindowResize();
+                this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
             }
         });
         (this.initialize)();
@@ -138,11 +152,13 @@ export default class ngbStructureTableController {
 
     async sourceChanged() {
         this.resetStructureData();
+        this.resetSorting();
         await this.initialize();
         this.$timeout(() => this.$scope.$apply());
     }
 
     getStructureTableGridColumns() {
+        this.gridOptions.columnDefs = [];
         const headerCells = require('./ngbStructureTable_header.tpl.html');
         const linkCell = require('./ngbStructureTable_linkCell.tpl.html');
 
@@ -165,16 +181,46 @@ export default class ngbStructureTableController {
             };
             switch (column) {
                 case 'id':
-                    columnSettings = {
-                        ...columnSettings,
-                        enableFiltering: true,
-                        cellTemplate: linkCell
-                    };
+                    if (this.sourceModel === this.sourceOptions.LOCAL_FILES) {
+                        columnSettings = {
+                            ...columnSettings,
+                            enableFiltering: true,
+                            enableSorting: true,
+                            enableColumnMenu: true,
+                            cellTemplate: linkCell
+                        };
+                    }
+                    if (this.sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+                        columnSettings = {
+                            ...columnSettings,
+                            enableFiltering: true,
+                            cellTemplate: linkCell
+                        };
+                    }
                     break;
                 case 'name':
+                    if (this.sourceModel === this.sourceOptions.LOCAL_FILES) {
+                        columnSettings = {
+                            ...columnSettings,
+                            enableFiltering: true,
+                            enableSorting: true,
+                            enableColumnMenu: true,
+                            cellTemplate: linkCell
+                        };
+                    }
+                    if (this.sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+                        columnSettings = {
+                            ...columnSettings,
+                            enableFiltering: true,
+                        };
+                    }
+                    break;
+                case 'owner':
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: true,
+                        enableSorting: true,
+                        enableColumnMenu: true,
                     };
                     break;
                 case 'chains':
@@ -195,6 +241,24 @@ export default class ngbStructureTableController {
         }
         return result;
     }
+
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        this.currentPage = 1;
+        await this.loadData();
+    }
+
 
     async filterChanged() {
         if (!this.gridApi) {
@@ -217,6 +281,16 @@ export default class ngbStructureTableController {
             });
         this.dispatcher.emit('target:identification:structure:results:updated');
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 
     resetStructureData() {

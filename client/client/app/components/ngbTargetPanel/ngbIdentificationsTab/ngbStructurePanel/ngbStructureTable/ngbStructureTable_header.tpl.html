@@ -2,7 +2,9 @@
     <div flex
          role="columnheader"
          ng-class="{'sortable': sortable, 'filtered': col.colDef.filterApplied()}"
-         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'">
+         ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
+         aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ?
+            'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
         <div flex>
             <md-button tabindex="0"
                        col-index="renderIndex"
@@ -13,7 +15,42 @@
                         {{ col.displayName }}
                     </span>
                 </div>
+                <span class="sort-icon"
+                      ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'"
+                      ui-grid-visible="col.sort.direction"
+                      aria-label="{{getSortDirectionAriaLabel()}}">
+                    <ng-md-icon icon="arrow_downward"
+                                size="14"
+                                ng-if="col.sort.direction == desc"
+                                title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}">
+                    </ng-md-icon>
+                    <ng-md-icon icon="arrow_upwards"
+                                size="14"
+                                ng-if="col.sort.direction == asc"
+                                title="{{isSortPriorityVisible() ? i18n.headerCell.priority + ' ' + ( col.sort.priority + 1 )  : null}}">
+                    </ng-md-icon>
+                    <sub ui-grid-visible="isSortPriorityVisible()"
+                         class="ui-grid-sort-priority-number">
+                        {{col.sort.priority + 1}}
+                    </sub>
+                </span>
             </md-button>
+            <div aria-haspopup="true"
+                 class="ui-grid-column-menu-button"
+                 ng-click="toggleMenu($event)"
+                 ng-if="grid.options.enableColumnMenus &&
+                    !col.isRowHeader &&
+                    col.colDef.enableColumnMenu !== false &&
+                    (!col.colDef.enableColumnMenuFn || col.colDef.enableColumnMenuFn())"
+                 role="button"
+                 tabindex="0"
+                 ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel"
+                 ui-grid-one-bind-id-grid="col.uid + '-menu-button'">
+                <i aria-hidden="true"
+                   class="ui-grid-icon-angle-down">
+                    &nbsp;
+                </i>
+            </div>
         </div>
     </div>
     <ngb-structure-table-filter column="col"
