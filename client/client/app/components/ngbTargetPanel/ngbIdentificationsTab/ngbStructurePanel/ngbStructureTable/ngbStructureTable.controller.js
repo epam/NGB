@@ -147,7 +147,7 @@ export default class ngbStructureTableController {
         const linkCell = require('./ngbStructureTable_linkCell.tpl.html');
 
         const result = [];
-        const columnsList = this.ngbStructurePanelService.proteinDataBankColumns;
+        const columnsList = this.ngbStructurePanelService.columnsList;
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];

@@ -19,13 +19,18 @@ const ExternalDBNames = {
     [SOURCE.TXGNN]: 'TxGNN',
     [SOURCE.DGI_DB]: 'DGIdb',
     [SOURCE.PHARM_GKB]: 'PharmGKB'
-}
+};
 
 const ExternalDBFields = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.DGI_DB]: 'dgidb',
     [SOURCE.PHARM_GKB]: 'pharmGKB'
-}
+};
+
+const PDB_SOURCE = {
+    PROTEIN_DATA_BANK: 'Protein Data Bank',
+    LOCAL_FILES: 'Local Files'
+};
 
 function getQueryString(query = {}) {
     const params = Object.entries(query)
@@ -310,9 +315,15 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getStructureResults(request) {
+    getStructureResults(request, source) {
+        const name = (() => {
+            if (source === PDB_SOURCE.PROTEIN_DATA_BANK) { return 'target/structures'; }
+            if (source === PDB_SOURCE.LOCAL_FILES) { return 'pdb/filter'; }
+            return;
+        })();
+        if (!name) return Promise.reject(new Error('Unknown source'));
         return new Promise((resolve, reject) => {
-            this.post('target/structures', request)
+            this.post(name, request)
                 .then(data => {
                     if (data && data.items) {
                         resolve([data.items, data.totalCount]);

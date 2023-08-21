@@ -79,11 +79,10 @@ ngb-structure-table {
         text-overflow: ellipsis;
         text-decoration: none;
         overflow: hidden;
-        color: rgb(102, 153, 255);
-        cursor: pointer;
 
         a {
-            color: inherit;
+            color: rgb(102, 153, 255);
+            cursor: pointer;
             text-decoration: none;
         }
     }

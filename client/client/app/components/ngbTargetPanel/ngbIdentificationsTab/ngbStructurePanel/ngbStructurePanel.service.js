@@ -6,6 +6,7 @@ const SOURCE_OPTIONS = {
 const PAGE_SIZE = 10;
 
 const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'method', 'source', 'resolution', 'chains'];
+const LOCAL_FILES_COLUMNS = ['id', 'name', 'source'];
 
 const FIELDS = {
     id: 'ENTRY_ID',
@@ -23,6 +24,18 @@ export default class ngbStructurePanelService {
     }
     get proteinDataBankColumns() {
         return PROTEIN_DATA_BANK_COLUMNS;
+    }
+    get localFilesColumns() {
+        return LOCAL_FILES_COLUMNS;
+    }
+    get columnsList() {
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            return this.localFilesColumns;
+        }
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            return this.proteinDataBankColumns;
+        }
+        return [];
     }
 
     get fields() {
@@ -126,36 +139,61 @@ export default class ngbStructurePanelService {
     }
 
     setStructureResults(data) {
-        this._structureResults = data.map(item => ({
-            id: {
-                name: item.id,
-                url: item.url
-            },
-            name: item.name,
-            method: item.method,
-            source: item.source,
-            resolution: item.resolution,
-            chains: (item.proteinChains || []).join('/')
-        }))
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            this._structureResults = data.map(item => ({
+                id: {name: item.name},
+                name: item.prettyName,
+                source: item.type,
+            }));
+        }
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            this._structureResults = data.map(item => ({
+                id: {
+                    name: item.id,
+                    url: item.url
+                },
+                name: item.name,
+                method: item.method,
+                source: item.source,
+                resolution: item.resolution,
+                chains: (item.proteinChains || []).join('/')
+            }));
+        }
     }
 
     getStructureRequest () {
-        const request = {
-            geneIds: this.geneIds,
-            page: this.currentPage,
-            pageSize: this.pageSize,
-            orderBy: this.fields.id,
-            reverse: false
-        };
-        if (this._filterInfo) {
-            if (this._filterInfo.id) {
-                request.entryIds = [this._filterInfo.id];
-            }
-            if (this._filterInfo.name) {
-                request.name = this._filterInfo.name;
-            }
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            const request = {
+                pagingInfo: {
+                    pageSize: this.pageSize,
+                    pageNum: this.currentPage
+                },
+                sortInfos: [{
+                    field: "name",
+                    ascending: false
+                }],
+                geneIds: [this.geneIds[0]]
+            };
+            return request;
         }
-        return request;
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            const request = {
+                geneIds: this.geneIds,
+                page: this.currentPage,
+                pageSize: this.pageSize,
+                orderBy: this.fields.id,
+                reverse: false
+            };
+            if (this._filterInfo) {
+                if (this._filterInfo.id) {
+                    request.entryIds = [this._filterInfo.id];
+                }
+                if (this._filterInfo.name) {
+                    request.name = this._filterInfo.name;
+                }
+            }
+            return request;
+        }
     }
 
     getStructureResults() {
