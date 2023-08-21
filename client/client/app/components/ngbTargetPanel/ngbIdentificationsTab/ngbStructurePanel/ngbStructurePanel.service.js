@@ -14,8 +14,8 @@ const FIELDS = {
     name: 'NAME'
 };
 
-const SORT_FIELDS = {
-    name: 'prettyName',
+const LOCAL_FILES_FIELDS = {
+    name: 'pretty_name',
     id: 'name',
     owner: 'owner'
 };
@@ -53,8 +53,8 @@ export default class ngbStructurePanelService {
         return FIELDS;
     }
 
-    get sortFields() {
-        return SORT_FIELDS;
+    get localFilesFields() {
+        return LOCAL_FILES_FIELDS;
     }
 
     get localFilesDefaultSort() {
@@ -199,11 +199,22 @@ export default class ngbStructurePanelService {
             };
             if (this.sortInfo && this.sortInfo.length) {
                 request.sortInfos = this.sortInfo.map(i => ({
-                    field: this.sortFields[i.field],
+                    field: this.localFilesFields[i.field],
                     ascending: i.ascending
                 }))
             } else {
                 request.sortInfos = this.localFilesDefaultSort;
+            }
+            if (this._filterInfo) {
+                if (this._filterInfo.id) {
+                    request[this.localFilesFields.id] = this._filterInfo.id;
+                }
+                if (this._filterInfo.name) {
+                    request[this.localFilesFields.name] = this._filterInfo.name;
+                }
+                if (this._filterInfo.owner) {
+                    request[this.localFilesFields.owner] = this._filterInfo.owner;
+                }
             }
             return request;
         }
