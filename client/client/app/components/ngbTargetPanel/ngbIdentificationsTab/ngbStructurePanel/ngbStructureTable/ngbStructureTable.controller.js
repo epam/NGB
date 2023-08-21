@@ -204,8 +204,7 @@ export default class ngbStructureTableController {
                             ...columnSettings,
                             enableFiltering: true,
                             enableSorting: true,
-                            enableColumnMenu: true,
-                            cellTemplate: linkCell
+                            enableColumnMenu: true
                         };
                     }
                     if (this.sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
@@ -264,10 +263,8 @@ export default class ngbStructureTableController {
         if (!this.gridApi) {
             return;
         }
-        this.loadingData = true;
         this.currentPage = 1;
         await this.loadData();
-        this.$timeout(() => this.$scope.$apply());
     }
 
     async loadData () {
