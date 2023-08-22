@@ -6,12 +6,30 @@ const SOURCE_OPTIONS = {
 const PAGE_SIZE = 10;
 
 const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'method', 'source', 'resolution', 'chains'];
+const LOCAL_FILES_COLUMNS = ['id', 'name', 'owner'];
 
 const FIELDS = {
     id: 'ENTRY_ID',
     resolution: 'RESOLUTION',
     name: 'NAME'
 };
+
+const LOCAL_FILES_FILTER_FIELDS = {
+    name: 'prettyName',
+    id: 'name',
+    owner: 'owner'
+};
+
+const LOCAL_FILES_SORT_FIELDS = {
+    name: 'pretty_name',
+    id: 'name',
+    owner: 'owner'
+};
+
+const LOCAL_FILES_DEFAULT_SORT = [{
+    field: 'name',
+    ascending: true
+}];
 
 export default class ngbStructurePanelService {
 
@@ -24,9 +42,32 @@ export default class ngbStructurePanelService {
     get proteinDataBankColumns() {
         return PROTEIN_DATA_BANK_COLUMNS;
     }
+    get localFilesColumns() {
+        return LOCAL_FILES_COLUMNS;
+    }
+    get columnsList() {
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            return this.localFilesColumns;
+        }
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            return this.proteinDataBankColumns;
+        }
+        return [];
+    }
 
     get fields() {
         return FIELDS;
+    }
+
+    get localFilesFilterFields() {
+        return LOCAL_FILES_FILTER_FIELDS;
+    }
+    get localFilesSortFields() {
+        return LOCAL_FILES_SORT_FIELDS;
+    }
+
+    get localFilesDefaultSort() {
+        return LOCAL_FILES_DEFAULT_SORT;
     }
 
     _totalPages = 0;
@@ -37,6 +78,7 @@ export default class ngbStructurePanelService {
     _emptyResults = false;
     _structureResults = null;
     _filterInfo = null;
+    _sortInfo = null;
     _selectedPdbId = null;
     _pdbDescriptions = null;
     _pdbDescriptionLoading = false;
@@ -87,6 +129,13 @@ export default class ngbStructurePanelService {
         this._filterInfo = value;
     }
 
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
+    }
+
     get selectedPdbId() {
         return this._selectedPdbId;
     }
@@ -126,36 +175,76 @@ export default class ngbStructurePanelService {
     }
 
     setStructureResults(data) {
-        this._structureResults = data.map(item => ({
-            id: {
-                name: item.id,
-                url: item.url
-            },
-            name: item.name,
-            method: item.method,
-            source: item.source,
-            resolution: item.resolution,
-            chains: (item.proteinChains || []).join('/')
-        }))
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            this._structureResults = data.map(item => ({
+                id: {name: item.name},
+                name: item.prettyName,
+                owner: item.owner,
+            }));
+        }
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            this._structureResults = data.map(item => ({
+                id: {
+                    name: item.id,
+                    url: item.url
+                },
+                name: item.name,
+                method: item.method,
+                source: item.source,
+                resolution: item.resolution,
+                chains: (item.proteinChains || []).join('/')
+            }));
+        }
     }
 
     getStructureRequest () {
-        const request = {
-            geneIds: this.geneIds,
-            page: this.currentPage,
-            pageSize: this.pageSize,
-            orderBy: this.fields.id,
-            reverse: false
-        };
-        if (this._filterInfo) {
-            if (this._filterInfo.id) {
-                request.entryIds = [this._filterInfo.id];
+        if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
+            const request = {
+                pagingInfo: {
+                    pageSize: this.pageSize,
+                    pageNum: this.currentPage
+                },
+                geneIds: [this.geneIds[0]]
+            };
+            if (this.sortInfo && this.sortInfo.length) {
+                request.sortInfos = this.sortInfo.map(i => ({
+                    field: this.localFilesSortFields[i.field],
+                    ascending: i.ascending
+                }))
+            } else {
+                request.sortInfos = this.localFilesDefaultSort;
             }
-            if (this._filterInfo.name) {
-                request.name = this._filterInfo.name;
+            if (this._filterInfo) {
+                if (this._filterInfo.id) {
+                    request[this.localFilesFilterFields.id] = this._filterInfo.id;
+                }
+                if (this._filterInfo.name) {
+                    request[this.localFilesFilterFields.name] = this._filterInfo.name;
+                }
+                if (this._filterInfo.owner) {
+                    request[this.localFilesFilterFields.owner] = this._filterInfo.owner;
+                }
             }
+            return request;
         }
-        return request;
+        if (this._sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
+            const request = {
+                geneIds: this.geneIds,
+                page: this.currentPage,
+                pageSize: this.pageSize,
+                orderBy: this.fields.id,
+                reverse: false
+            };
+            if (this._filterInfo) {
+                if (this._filterInfo.id) {
+                    request.entryIds = [this._filterInfo.id];
+                }
+                if (this._filterInfo.name) {
+                    request.name = this._filterInfo.name;
+                }
+            }
+            return request;
+        }
     }
 
     getStructureResults() {
@@ -225,6 +314,8 @@ export default class ngbStructurePanelService {
     resetStructureData() {
         this._totalPages = 0;
         this._currentPage = 1;
+        this._sortInfo = null;
+        this._filterInfo = null;
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;

@@ -1,8 +1,16 @@
 $structure-nav-height: 28px;
 $structure-font-size: 13px;
 $structure-color: #444444;
+$structure-table-border: 1px solid #dddddd;
 
 ngb-structure-panel {
+    padding: 5px 0 0;
+    position: relative;
+
+    ngb-structure-table .ui-grid {
+        border-top: $structure-table-border;
+    }
+
     .loading-indicator {
         position: absolute;
         left: 0;
@@ -10,52 +18,54 @@ ngb-structure-panel {
         top: 0;
     }
 
-    .structure-source-select {
-        height: $structure-nav-height;
-        line-height: $structure-nav-height;
-        display: inline-flex;
+    .structure-table-header {
+        display: flex;
+        flex-direction: row;
         align-items: center;
-        margin-right: 10px;
-        position: relative;
-        float: right;
 
-        md-input-container,
-        label {
-            margin: 0;
-            padding: 0;
-            line-height: $structure-nav-height;
-            height: $structure-nav-height;
-            color: $structure-color;
-            font-size: $structure-font-size;
-        }
+        .structure-source-select {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
 
-        label {
-            margin-right: 5px;
-        }
-
-        md-input-container md-select {
-            &:not([disabled]):focus .md-select-value {
-                border-bottom: none;
+            md-input-container,
+            label {
+                margin: 0;
+                padding: 0;
+                line-height: $structure-nav-height;
+                height: $structure-nav-height;
+                color: $structure-color;
+                font-size: $structure-font-size;
             }
 
-            md-select-value {
-                border: none;
-                min-height: $structure-nav-height;
-                padding: 0;
-                font-size: $structure-font-size;
-                display: flex;
-                align-items: center;
+            label {
+                margin-right: 5px;
+            }
 
-                .md-select-icon {
-                    margin: 0 4px 0 0;
-                    width: 20px;
+            md-input-container md-select {
+                &:not([disabled]):focus .md-select-value {
+                    border-bottom: none;
                 }
 
-                > span,
-                > span > div {
-                    line-height: $structure-nav-height;
-                    height: $structure-nav-height;
-                    transform: none !important;
+                md-select-value {
+                    border: none;
+                    min-height: $structure-nav-height;
+                    padding: 0;
+                    font-size: $structure-font-size;
+                    display: flex;
+                    align-items: center;
+
+                    .md-select-icon {
+                        margin: 0 4px 0 0;
+                        width: 20px;
+                    }
+
+                    > span,
+                    > span > div {
+                        line-height: $structure-nav-height;
+                        height: $structure-nav-height;
+                        transform: none !important;
+                    }
                 }
             }
         }

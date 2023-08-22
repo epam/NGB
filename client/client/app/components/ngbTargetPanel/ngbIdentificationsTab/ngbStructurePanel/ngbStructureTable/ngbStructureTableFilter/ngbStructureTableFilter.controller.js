@@ -1,7 +1,7 @@
 export default class ngbStructureTableFilterController {
 
-    prevValue;
-    value;
+    prevValue = '';
+    value = '';
 
     static get UID() {
         return 'ngbStructureTableFilterController';
@@ -27,7 +27,7 @@ export default class ngbStructureTableFilterController {
         let string = this.prevValue;
         if (this.prevValue !== this.value) {
             if (!this.value || !this.value.length) {
-                this.value = null;
+                this.value = '';
             }
             this.prevValue = this.value;
             shouldUpdate = true;

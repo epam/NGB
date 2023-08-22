@@ -1,8 +1,6 @@
 ngb-structure-table {
     .ui-grid {
-        border-right: none;
-        border-left: none;
-        border-bottom: none;
+        border: none;
         height: auto;
 
         .ui-grid-viewport {
@@ -12,21 +10,25 @@ ngb-structure-table {
         .ui-grid-cell-contents {
             white-space: nowrap;
         }
+
+        .ui-grid-column-menu-button {
+            width: 12px;
+
+            .ui-grid-icon-angle-down {
+                width: 10px;
+            }
+
+            [class^="ui-grid-icon"]:before,
+            [class*=" ui-grid-icon"]:before {
+                width: 0.7em;
+                margin-right: 0.3em;
+                margin-left: 0;
+            }
+        }
     }
 
-    .ui-grid-container {
-        width: 100%;
-
-        .ui-grid-render-container {
-            min-height: 200px;
-        }
-
-        .ui-grid-cell-contents.md-button {
-            min-height: unset;
-            height: 100%;
-            display: grid;
-            grid-template-columns: repeat(50, 1fr);
-        }
+    .ui-grid-container .ui-grid-render-container {
+        min-height: 200px;
     }
 
     .ui-grid-header-cell.ui-grid-clearfix,
@@ -42,11 +44,18 @@ ngb-structure-table {
         }
     }
 
+    .ui-grid-container .ui-grid-cell-contents.md-button {
+        min-height: unset;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(50, 1fr);
+    }
+
     .ui-grid-header-cell-label-container {
         display: flex;
         justify-content: center;
         min-width: 0;
-        grid-column: 1 / 49;
+        grid-column: 1 / 48;
         grid-row: 1;
     }
 
@@ -57,7 +66,7 @@ ngb-structure-table {
     }
 
     .sort-icon {
-        grid-column: 50 / 50;
+        grid-column: 48 / 48;
         grid-row: 1;
 
         ng-md-icon {
@@ -79,11 +88,10 @@ ngb-structure-table {
         text-overflow: ellipsis;
         text-decoration: none;
         overflow: hidden;
-        color: rgb(102, 153, 255);
-        cursor: pointer;
 
         a {
-            color: inherit;
+            color: rgb(102, 153, 255);
+            cursor: pointer;
             text-decoration: none;
         }
     }
