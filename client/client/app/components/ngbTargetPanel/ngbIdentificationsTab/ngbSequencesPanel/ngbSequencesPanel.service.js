@@ -1,78 +1,71 @@
-const EMPTY_SEQUENCES_DATA = {
-    reference: [],
-    mrnas: [],
-    proteins: []
-};
+const PAGE_SIZE = 10;
 
 export default class ngbSequencesPanelService {
 
-    get emptySequencesData() {
-        return EMPTY_SEQUENCES_DATA;
+    get pageSize() {
+        return PAGE_SIZE;
     }
 
-    _sequenceData = null;
     _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
-    _sequenceResults = null;
+    _emptyResults = false;
     _genes = [];
     _selectedGeneId;
+    _sequencesResults = null;
+    _sequencesReference = null;
+    _totalPages = 0;
 
     get loadingData() {
         return this._loadingData;
     }
     set loadingData(value) {
-        this._loadingData = value;
+        this._loadingData = !!value;
     }
-
     get failedResult() {
         return this._failedResult;
     }
-    set failedResult(value) {
-        this._failedResult = value;
-    }
-
     get errorMessageList() {
         return this._errorMessageList;
     }
-    set errorMessageList(value) {
-        this._errorMessageList = value;
-    }
-
-    get sequenceData() {
-        return this._sequenceData;
-    }
-    set sequenceData(value) {
-        this._sequenceData = Object.entries(value)
-            .map(([name, value]) => ({ name, value }));
-    }
-
-    get sequenceResults() {
-        return this._sequenceResults;
+    get emptyResults() {
+        return this._emptyResults;
     }
     get genes() {
         return this._genes;
     }
-
     get selectedGeneId() {
         return this._selectedGeneId;
     }
-    set selectedGeneId(selectedGeneId) {
-        if (
-            this._selectedGeneId !== !!selectedGeneId) {
-            this._selectedGeneId = selectedGeneId;
-            this.dispatcher.emit('target:identification:sequence:gene:changed');
-        }
+    set selectedGeneId(id) {
+        this._selectedGeneId = id;
+    }
+    get sequencesResults() {
+        return this._sequencesResults;
+    }
+    get sequencesReference() {
+        return this._sequencesReference;
+    }
+    get totalPages() {
+        return this._totalPages;
     }
 
-    static instance (dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        return new ngbSequencesPanelService(dispatcher, ngbTargetPanelService, targetDataService, projectContext);
+    get selectedGene() {
+        return this.genes.filter(gene => gene.geneId === this.selectedGeneId)[0];
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, projectContext});
-        dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
-        this.setEmptySequenceData();
+    static instance ($timeout, dispatcher, ngbTargetPanelService, targetDataService) {
+        return new ngbSequencesPanelService($timeout, dispatcher, ngbTargetPanelService, targetDataService);
+    }
+
+    constructor($timeout, dispatcher, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService});
+        this.updateGenes();
+        dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
+    }
+
+    async targetChanged() {
+        this.resetSequencesData();
         this.updateGenes();
     }
 
@@ -82,59 +75,108 @@ export default class ngbSequencesPanelService {
         this.selectedGeneId = gene ? gene.geneId : undefined;
     }
 
-    get geneIds() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
+    getTarget(id) {
+        if (!id) return;
+        return this.ngbTargetPanelService.getChipByGeneId(id);
     }
 
-    setEmptySequenceData() {
-        this.sequenceData = {...this.emptySequencesData};
+    setEmtyResults() {
+        this._sequencesResults = [];
+        this._emptyResults = true;
+        this._totalPages = 0;
     }
 
-    setSequenceData() {
-        this.setEmptySequenceData();
-        const result = this.sequenceResults
-            .filter(item => item.geneId.toLowerCase() === this.selectedGeneId.toLowerCase())[0];
-        if (!result) return;
-        const {reference, mrnas, proteins} = result;
-        const data = {...this.emptySequencesData};
-        if (reference) {
-            data.reference = [{
-                name: 'reference',
-                ...reference
-            }];
+    setSequencesResults(sequences) {
+        if (!sequences) {
+            this.setEmtyResults();
+            return;
         }
-        if (mrnas) {
-            data.mrnas = [...mrnas];
-        }
-        if (proteins) {
-            data.proteins = [...proteins];
-        }
-        this.sequenceData = data;
+        const target = this.getTarget(this.selectedGeneId);
+        const results = sequences.map(sequence => {
+            const {mrna, protein} = sequence;
+            return {
+                target,
+                'transcript': {
+                    id: mrna.id,
+                    url: mrna.url
+                },
+                'length (nt)': mrna.length,
+                'protein': {
+                    id: protein.id,
+                    url: protein.url
+                },
+                'length (aa)': protein.length,
+                'protein name': protein.name
+            }
+        });
+        this._sequencesResults = results;
+        this._emptyResults = !results.length;
+        this._totalPages = Math.ceil(results.length / this.pageSize);
     }
 
-    getSequencesResults() {
-        if (!this.geneIds || !this.geneIds.length) {
+    setSequencesReference (reference) {
+        if (!reference) {
+            this._sequencesReference = null;
+            return;
+        }
+        reference.name = reference.name || 'reference';
+        this._sequencesReference = reference;
+    }
+
+    setSequenceData (value) {
+        const data = value.filter(v => (
+            v.geneId.toLowerCase() === this.selectedGeneId.toLowerCase()
+        ));
+        if (!data.length) {
+            this._sequencesReference = null;
+            this.setEmtyResults();
+            return;
+        }
+        this.setSequencesReference(data[0].reference)
+        this.setSequencesResults(data[0].sequences);
+    }
+
+    getSequencesData() {
+        if (!this.selectedGeneId) {
             return new Promise(resolve => {
                 this.loadingData = false;
                 resolve(true);
             });
         }
         return new Promise(resolve => {
-            this.targetDataService.getSequencesResults(this.geneIds)
+            this.targetDataService.getSequencesTableResults(this.selectedGeneId)
                 .then((data) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this._sequenceResults = data;
-                    this.setSequenceData();
+                    this.setSequenceData(data);
                     this.loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._failedResult = true;
                     this._errorMessageList = [err.message];
+                    this._sequencesReference = null;
+                    this._sequencesResults = null;
+                    this._emptyResults = false;
+                    this._totalPages = 0;
                     this.loadingData = false;
                     resolve(false);
                 });
         });
+    }
+
+    resetSequenceResults() {
+        this._loadingData = false;
+        this._failedResult = false;
+        this._errorMessageList = null;
+        this._emptyResults = false;
+        this._sequencesResults = null;
+        this._totalPages = 0;
+    }
+
+    async resetSequencesData() {
+        this._genes = [];
+        this._selectedGeneId = undefined;
+        this.resetSequenceResults();
     }
 }

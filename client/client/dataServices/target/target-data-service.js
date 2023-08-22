@@ -297,16 +297,21 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getSequencesResults(geneIds) {
-        return new Promise((resolve) => {
-            this.get(`target/sequences?geneIds=${geneIds}`)
+    getSequencesTableResults(geneIds) {
+        const getComments = true;
+        return new Promise((resolve, reject) => {
+            this.get(`target/sequences/table${getQueryString({geneIds, getComments})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
                     } else {
                         resolve([]);
                     }
-            });
+                })
+                .catch(error => {
+                    const message = 'Error getting sequences data';
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
