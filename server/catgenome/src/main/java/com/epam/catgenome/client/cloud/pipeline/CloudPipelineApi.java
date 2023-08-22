@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.client.cloud.pipeline;
 
+import com.epam.catgenome.entity.llm.CustomLLMMessage;
+import com.epam.catgenome.entity.llm.CustomLLMResponse;
 import com.epam.catgenome.entity.notification.NotificationMessageVO;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -34,4 +36,8 @@ public interface CloudPipelineApi {
     @Headers("Content-type: application/json")
     @POST("notification/message")
     Call<Void> sendNotification(@Body NotificationMessageVO notificationMessage);
+
+    @Headers("Content-type: application/json")
+    @POST("chat")
+    Call<CustomLLMResponse> chatMessage(@Body CustomLLMMessage message);
 }
