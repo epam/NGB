@@ -1,3 +1,5 @@
+import ngbConstants from '../../../../../constants';
+
 const SOURCE_OPTIONS = {
     PROTEIN_DATA_BANK: 'Protein Data Bank',
     LOCAL_FILES: 'Local Files'
@@ -30,6 +32,26 @@ const LOCAL_FILES_DEFAULT_SORT = [{
     field: 'name',
     ascending: true
 }];
+
+const serviceA = document.createElement('a');
+
+function getDataServiceEndpointAbsoluteURL(relativeURL = '') {
+    try {
+        let base = ngbConstants.urlPrefix || '';
+        if (base && base.length && !base.endsWith('/')) {
+            base = base.concat('/');
+        }
+        let restapi = 'restapi';
+        if (!relativeURL.startsWith('/')) {
+            restapi = restapi.concat('/');
+        }
+        serviceA.href = `${base}${restapi}${relativeURL}`;
+        return serviceA.href;
+    } catch (_) {
+        // empty
+    }
+    return undefined;
+}
 
 export default class ngbStructurePanelService {
 
@@ -80,6 +102,7 @@ export default class ngbStructurePanelService {
     _filterInfo = null;
     _sortInfo = null;
     _selectedPdbId = null;
+    _selectedPdbReference = null;// identifier or URL
     _pdbDescriptions = null;
     _pdbDescriptionLoading = false;
     _pdbDescriptionFailed = false;
@@ -142,6 +165,12 @@ export default class ngbStructurePanelService {
     set selectedPdbId(value) {
         this._selectedPdbId = value;
     }
+    get selectedPdbReference() {
+        return this._selectedPdbReference;
+    }
+    set selectedPdbReference(reference) {
+        this._selectedPdbReference = reference;
+    }
     get pdbDescriptions() {
         return this._pdbDescriptions;
     }
@@ -177,7 +206,13 @@ export default class ngbStructurePanelService {
     setStructureResults(data) {
         if (this._sourceModel === this.sourceOptions.LOCAL_FILES) {
             this._structureResults = data.map(item => ({
-                id: {name: item.name},
+                id: {
+                    name: item.name,
+                    url: item.pdbFileId
+                        ? getDataServiceEndpointAbsoluteURL(`pdb/content/${item.pdbFileId}`)
+                        : undefined
+                },
+                local: true,
                 name: item.prettyName,
                 owner: item.owner,
             }));
@@ -278,7 +313,18 @@ export default class ngbStructurePanelService {
         });
     }
 
-    async getPdbDescription(pdbId) {
+    async getPdbDescription(entity) {
+        if (!entity) {
+            return;
+        }
+        const {
+            id = {},
+            local = false
+        } = entity;
+        const {
+            name: pdbId,
+            url
+        } = id;
         this._pdbDescriptionLoading = true;
         return new Promise(resolve => {
             this.targetDataService.getPdbDescription(pdbId)
@@ -286,12 +332,14 @@ export default class ngbStructurePanelService {
                     this._pdbDescriptionFailed = false;
                     this._pdbDescriptionErrorMessageList = null;
                     this._selectedPdbId = pdbId;
+                    this._selectedPdbReference = local && url ? url : pdbId;
                     this._pdbDescriptions = data;
                     this._pdbDescriptionLoading = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._selectedPdbId = null;
+                    this._selectedPdbReference = null;
                     this._pdbDescriptions = null;
                     this._pdbDescriptionFailed = true;
                     this._pdbDescriptionErrorMessageList = [err.message];

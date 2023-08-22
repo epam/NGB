@@ -1,3 +1,5 @@
+import ngbConstants from '../../../../../../constants';
+
 export default class ngbStructureViewerController {
 
     camera;
@@ -28,8 +30,8 @@ export default class ngbStructureViewerController {
         return this.ngbStructurePanelService.pdbDescriptions;
     }
 
-    get selectedPdbId() {
-        return this.ngbStructurePanelService.selectedPdbId;
+    get selectedPdbReference() {
+        return this.ngbStructurePanelService.selectedPdbReference;
     }
 
     changeDisplaySettings(name, type) {
@@ -43,5 +45,17 @@ export default class ngbStructureViewerController {
 
     loadImage(imagePath) {
         return require(`../../../../../assets/images/${imagePath}`);
+    }
+
+    goFullscreen() {
+        if (this.selectedPdbReference) {
+            let base = ngbConstants.urlPrefix || '';
+            if (base && base.length) {
+                if (!base.endsWith('/')) {
+                    base = base.concat('/');
+                }
+            }
+            window.open(`${base}miew/index.html?load=${this.selectedPdbReference}`, '_blank');
+        }
     }
 }

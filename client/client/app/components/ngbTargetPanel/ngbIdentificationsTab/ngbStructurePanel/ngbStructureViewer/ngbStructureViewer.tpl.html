@@ -7,6 +7,14 @@
         <md-content flex layout="row">
             <div layout="column" class="md-padding structure-container">
                 <div class="miew-actions-container">
+                    <md-button class="md-icon-button"
+                               aria-label="Open viewer"
+                               ng-click="$ctrl.goFullscreen()">
+                        <ng-md-icon icon="fullscreen"
+                                    style="fill: white"
+                                    class="miew-action">
+                        </ng-md-icon>
+                    </md-button>
                     <div>
                         <md-menu md-position-mode="target-right target"
                                  class="colors-menu">
@@ -74,7 +82,7 @@
                 </div>
                 <div class="ngb-miew-container"
                     ng-if="$ctrl.descriptionDone">
-                    <ngb-miew pdb="$ctrl.selectedPdbId"
+                    <ngb-miew pdb="$ctrl.selectedPdbReference"
                               chains="$ctrl.pdbDescriptions ? $ctrl.pdbDescriptions.entities : []"
                               display-color="$ctrl.currentColor"
                               display-mode="$ctrl.currentMode"

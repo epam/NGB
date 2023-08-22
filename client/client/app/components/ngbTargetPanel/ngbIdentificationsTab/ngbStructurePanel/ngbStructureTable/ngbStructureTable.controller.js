@@ -144,7 +144,7 @@ export default class ngbStructureTableController {
 
     async rowClick(row) {
         this.descriptionDone = false;
-        await this.ngbStructurePanelService.getPdbDescription(row.entity.id.name);
+        await this.ngbStructurePanelService.getPdbDescription(row.entity);
         this.$timeout(() => {
             this.descriptionDone = true;
         });
