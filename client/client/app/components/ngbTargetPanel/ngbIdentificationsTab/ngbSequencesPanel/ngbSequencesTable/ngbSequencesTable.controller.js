@@ -171,6 +171,15 @@ export default class ngbSequencesTableController {
                         cellTemplate: linkCell
                     };
                     break;
+                case 'protein name':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                            <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                            {{row.entity[col.field]}}
+                        </div>`
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
