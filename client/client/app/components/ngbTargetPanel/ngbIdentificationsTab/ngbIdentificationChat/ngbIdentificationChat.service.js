@@ -190,7 +190,7 @@ class NgbIdentificationChatService {
             content: question,
             my: true,
         });
-        if (!this._session) {
+        if (!this._session && this.modelService.model.type !== LLMName.CUSTOM) {
             await this.startSession(false);
             if (!this._session) {
                 this._messagePending = false;
