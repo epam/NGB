@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: Embedding the Viewer - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-miew.css">
+</head>
+
+<body>
+
+<div id="main">
+    <h1 class="page-title">Tutorial: Embedding the Viewer</h1>
+
+    <section>
+
+<header>
+    <h2>Embedding the Viewer</h2>
+
+    
+</header>
+
+<article>
+    <h1>Embedding the Viewer</h1>
+<p>Miew is available as a <a href="https://github.com/umdjs/umd">UMD module</a> thus being compatible with the
+most popular module loading schemes:</p>
+<ul>
+<li><code>&lt;script&gt;</code> tag defining a global variable <code>Miew</code>,</li>
+<li><a href="http://requirejs.org/">Require.js</a> AMD module <code>Miew</code>,</li>
+<li>CommonJS module for <a href="https://nodejs.org/">Node.js</a>, <a href="http://browserify.org/">Browserify</a>, and <a href="https://webpack.js.org/">Webpack</a>,</li>
+<li>ES2015 module for <a href="https://rollupjs.org/">Rollup</a>.</li>
+</ul>
+<p>Please note that Miew does not work under <a href="https://nodejs.org/">Node.js</a> directly since the major viewer requirement
+is WebGL rendering. However, you still can install it via <a href="https://www.npmjs.com/">NPM</a> and <code>require</code> it in your
+browserify or webpack-based projects.</p>
+<h2>Browser Globals</h2>
+<p><em>index.html</em></p>
+<pre class="prettyprint source lang-html"><code>&lt;!DOCTYPE html>
+&lt;html lang=&quot;en&quot;>
+&lt;head>
+  &lt;meta charset=&quot;UTF-8&quot;>
+  &lt;title>Miew via Global&lt;/title>
+  
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/miew@0.9.0/dist/Miew.min.css&quot;>
+  &lt;script src=&quot;https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js&quot;>&lt;/script>
+  &lt;script src=&quot;https://unpkg.com/lodash@4.17.15/lodash.js&quot;>&lt;/script>
+  &lt;script src=&quot;https://unpkg.com/three@0.112.1/build/three.min.js&quot;>&lt;/script>
+  &lt;script src=&quot;https://unpkg.com/miew@0.9.0/dist/Miew.min.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+  &lt;h1>Use Miew via browser globals&lt;/h1>
+  &lt;div class=&quot;miew-container&quot; style=&quot;width:640px; height:480px&quot;>&lt;/div>
+
+  &lt;script>
+    (function() {
+      var viewer = new Miew({ load: '1CRN' });
+      if (viewer.init()) {
+        viewer.run();
+      }
+    })();
+  &lt;/script>
+&lt;/body>
+&lt;/html>
+</code></pre>
+<h2>Require.js Module</h2>
+<p><em>index.html</em></p>
+<pre class="prettyprint source lang-html"><code>&lt;!DOCTYPE html>
+&lt;html lang=&quot;en&quot;>
+&lt;head>
+  &lt;meta charset=&quot;UTF-8&quot;>
+  &lt;title>Miew via Require.js&lt;/title>
+
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/miew@0.9.0/dist/Miew.min.css&quot;>
+  &lt;script src=&quot;https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js&quot;>&lt;/script>
+  &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+  &lt;h1>Use Miew via Require.js&lt;/h1>
+  &lt;div class=&quot;miew-container&quot; style=&quot;width:640px; height:480px&quot;>&lt;/div>
+
+  &lt;script>
+    require.config({
+      paths: {
+        'lodash': 'https://unpkg.com/lodash@^4.17.15/lodash',
+        'three': 'https://unpkg.com/three@0.112.0/build/three.min',
+      }
+    });
+    require(['https://unpkg.com/miew@0.9.0/dist/Miew.min.js'], function(Miew) {
+      var viewer = new Miew({ load: '1CRN' });
+      if (viewer.init()) {
+        viewer.run();
+      }
+    });
+  &lt;/script>
+&lt;/body>
+&lt;/html>
+</code></pre>
+<h2>Node.js Limited Support</h2>
+<p><em>index.js</em></p>
+<pre class="prettyprint source lang-js"><code>var Miew = require('miew');
+console.log(Miew.VERSION);
+</code></pre>
+<p><em>package.json</em></p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;dependencies&quot;: {
+    &quot;miew&quot;: &quot;0.9.0&quot;
+  }
+}
+</code></pre>
+<h2>Browserify</h2>
+<p><em>index.html</em></p>
+<pre class="prettyprint source lang-html"><code>&lt;!DOCTYPE html>
+&lt;html lang=&quot;en&quot;>
+&lt;head>
+  &lt;meta charset=&quot;UTF-8&quot;>
+  &lt;title>Miew via Browserify&lt;/title>
+
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/miew@0.9.0/dist/Miew.min.css&quot;>
+  &lt;script src=&quot;https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js&quot;>&lt;/script>
+  &lt;script src=&quot;bundle.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+  &lt;h1>Use Miew via Browserify&lt;/h1>
+  &lt;div class=&quot;miew-container&quot; style=&quot;width:640px; height:480px&quot;>&lt;/div>
+&lt;/body>
+&lt;/html>
+</code></pre>
+<p><em>index.js</em></p>
+<pre class="prettyprint source lang-js"><code>var Miew = require('miew');
+
+window.onload = function () {
+  var viewer = new Miew({ load: '1CRN' });
+  if (viewer.init()) {
+    viewer.run();
+  }
+};
+</code></pre>
+<p><em>package.json</em></p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;dependencies&quot;: {
+    &quot;miew&quot;: &quot;0.9.0&quot;
+  }
+}
+</code></pre>
+<h2>Webpack</h2>
+<p><em>index.html</em></p>
+<pre class="prettyprint source lang-html"><code>&lt;!DOCTYPE html>
+&lt;html lang=&quot;en&quot;>
+&lt;head>
+  &lt;meta charset=&quot;UTF-8&quot;>
+  &lt;title>Miew via Webpack&lt;/title>
+
+  &lt;script src=&quot;https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js&quot;>&lt;/script>
+  &lt;script src=&quot;dist/main.js&quot;>&lt;/script>
+&lt;/head>
+&lt;body>
+  &lt;h1>Use Miew via Webpack&lt;/h1>
+  &lt;div class=&quot;miew-container&quot; style=&quot;width:640px; height:480px&quot;>&lt;/div>
+&lt;/body>
+&lt;/html>
+</code></pre>
+<p><em>index.js</em></p>
+<pre class="prettyprint source lang-js"><code>import Miew from 'miew';
+import './index.css';
+
+window.onload = function () {
+  var viewer = new Miew({ load: '1CRN' });
+  if (viewer.init()) {
+    viewer.run();
+  }
+};
+</code></pre>
+<p><em>index.css</em></p>
+<pre class="prettyprint source lang-css"><code>@import &quot;miew&quot;;
+</code></pre>
+<p><em>webpack.config.js</em></p>
+<pre class="prettyprint source lang-js"><code>module.exports = {
+  entry: './index.js',
+  module: {
+    rules: [{
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader'],
+    }],
+  },
+};
+</code></pre>
+<p><em>package.json</em></p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;dependencies&quot;: {
+    &quot;css-loader&quot;: &quot;6.8.1&quot;,
+    &quot;miew&quot;: &quot;0.9.0&quot;,
+    &quot;style-loader&quot;: &quot;3.3.3&quot;,
+    &quot;webpack&quot;: &quot;5.88.2&quot;,
+    &quot;webpack-cli&quot;: &quot;5.1.4&quot;
+  }
+}
+</code></pre>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="SettingsObject.html">SettingsObject</a></li></ul><h3>Classes</h3><ul><li><a href="EntityList.html">EntityList</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="GROParser.html">GROParser</a></li><li><a href="GROReader.html">GROReader</a></li><li><a href="Helix.html">Helix</a></li><li><a href="LoaderList.html">LoaderList</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Miew.html">Miew</a></li><li><a href="ParserList.html">ParserList</a></li><li><a href="PDBStream.html">PDBStream</a></li><li><a href="Strand.html">Strand</a></li><li><a href="StructuralElement.html">StructuralElement</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-embed.html">Embedding the Viewer</a></li><li><a href="tutorial-events.html">events</a></li><li><a href="tutorial-selectors.html">Selection Language</a></li><li><a href="tutorial-url.html">URL Query String</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue Aug 22 2023 12:40:06 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

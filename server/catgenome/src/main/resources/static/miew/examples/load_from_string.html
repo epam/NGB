@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Load serotonin from string</title>
+
+  <link rel="stylesheet" href="../dist/Miew.min.css">
+  <script src="https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js"></script>
+  <script src="https://unpkg.com/lodash@^4.17.15/lodash.js"></script>
+  <script src="https://unpkg.com/three@0.125.0/build/three.min.js"></script>
+  <script src="../dist/Miew.js"></script>
+</head>
+<body>
+  <h1>Load serotonin from string in .XYZ format</h1>
+  <div class="miew-container" style="width:640px; height:480px"></div>
+
+  <script>
+    // serotonin in XYZ format
+    var serotoninXYZ = '25\n'
+      + '5202\n'
+      + 'O          2.73520        2.46200        0.09750\n'
+      + 'N          0.11210       -2.34780       -0.11230\n'
+      + 'N         -4.24020        1.56780       -0.28800\n'
+      + 'C         -1.18570       -0.60400        0.33720\n'
+      + 'C          0.14870       -0.13610        0.17810\n'
+      + 'C         -2.37440        0.21670        0.64400\n'
+      + 'C          0.94280       -1.24990       -0.10300\n'
+      + 'C         -1.17610       -1.96730        0.15230\n'
+      + 'C         -3.08730        0.73690       -0.61780\n'
+      + 'C          0.75910        1.13200        0.24660\n'
+      + 'C          2.32230       -1.15860       -0.31980\n'
+      + 'C          2.13790        1.23860        0.03200\n'
+      + 'C          2.90570        0.10960       -0.24680\n'
+      + 'H         -3.08280       -0.37360        1.24060\n'
+      + 'H         -2.08420        1.06540        1.27690\n'
+      + 'H         -1.96880       -2.70180        0.18460\n'
+      + 'H          0.41090       -3.29680       -0.28950\n'
+      + 'H         -3.42250       -0.10740       -1.23120\n'
+      + 'H         -2.38880        1.32120       -1.22840\n'
+      + 'H          0.16350        2.01490        0.46250\n'
+      + 'H          2.92070       -2.03710       -0.53680\n'
+      + 'H          3.97620        0.20860       -0.41110\n'
+      + 'H         -4.64550        1.93950       -1.14610\n'
+      + 'H         -3.93630        2.37340        0.25740\n'
+      + 'H          2.06010        3.13240        0.29950\n';
+
+    (function() {
+      var viewer = new Miew({
+        container: document.getElementsByClassName('miew-container')[0],
+        // required for the molecule data without residues, because default mode, Cartoon, visualizes residues
+        reps: [{
+          mode: 'BS',
+          colorer: 'EL',
+          material: 'DF',
+        }],
+        // optional settings
+        settings: {
+          bg: {color: 0xCCCCCC},
+          fogFarFactor: 2,
+          fps: false,
+          axes: false,
+          resolution: 'high',
+        },
+      });
+
+      if (viewer.init()) {
+        viewer.run();
+        // please, load protein by the function here, not on Miew creation
+        viewer.load(serotoninXYZ, { sourceType: 'immediate', fileType: 'xyz' });
+      }
+    })();
+  </script>
+</body>
+</html>

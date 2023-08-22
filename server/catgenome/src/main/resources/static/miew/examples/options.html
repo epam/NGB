@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Miew options</title>
+
+  <link rel="stylesheet" href="../dist/Miew.min.css">
+  <script src="https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js"></script>
+  <script src="https://unpkg.com/lodash@^4.17.15/lodash.js"></script>
+  <script src="https://unpkg.com/three@0.125.0/build/three.min.js"></script>
+  <script src="../dist/Miew.min.js"></script>
+</head>
+<body>
+  <h1>Specify options during construction</h1>
+  <div class="miew-container" style="width:640px; height:480px"></div>
+
+  <script>
+    (function() {
+      var viewer = new Miew({
+        container: document.getElementsByClassName('miew-container')[0],
+        load: '1CRN',
+        reps: [{
+          mode: 'LC',
+        }, {
+          selector: 'elem S',
+          mode: 'VW',
+          material: 'TR',
+          colorer: ['UN', { color: 0xFFFFFF }],
+        }],
+        settings: {
+          autoRotation: -0.5,
+          bg: { color: 0xCCCCCC },
+          axes: false,
+          fps: false,
+        },
+      });
+
+      if (viewer.init()) {
+        viewer.run();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Class: StructuralElement - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-miew.css">
+</head>
+
+<body>
+
+<div id="main">
+    <h1 class="page-title">Class: StructuralElement</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>StructuralElement</h2>
+        
+            <div class="class-description"><p>An element of protein secondary structure.</p></div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="StructuralElement"><span class="type-signature"></span>new StructuralElement<span class="signature">(type, init, term)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Create a secondary structural element of the specified type.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="StructuralElement.html#.Type">StructuralElement.Type</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Secondary structure type.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>init</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Residue</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Initial residue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>term</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Residue</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Terminal residue.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".Generic"><span class="type-signature">(static) </span>Generic<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    <p>Generic type of a secondary structural element.</p>
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>STRAND</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A strand of a sheet.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>HELIX</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A helix.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>LOOP</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Just a protein section with no particular conformation.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="StructuralElement.html#.Type">StructuralElement.Type</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".genericByType"><span class="type-signature">(static) </span>genericByType<span class="type-signature"> :Object.&lt;<a href="StructuralElement.html#.Type">StructuralElement.Type</a>, <a href="StructuralElement.html#.Generic">StructuralElement.Generic</a>></span></h4>
+
+
+
+
+<div class="description">
+    <p>A mapping from specific types to generic ones.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Type"><span class="type-signature">(static) </span>Type<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    <p>Specific type of a secondary structural element.</p>
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>STRAND</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A strand of a <a href="https://en.wikipedia.org/wiki/Beta_sheet">beta-sheet</a>.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BRIDGE</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An isolated beta-bridge (too small for a beta-sheet).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>HELIX_310</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A <a href="https://en.wikipedia.org/wiki/310_helix">3/10 helix</a> (hydrogen bonding is 3 residues apart).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>HELIX_ALPHA</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An <a href="https://en.wikipedia.org/wiki/Alpha_helix">alpha-helix</a> (hydrogen bonding is 4 residues apart).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>HELIX_PI</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A <a href="https://en.wikipedia.org/wiki/Pi_helix">pi-helix</a> (hydrogen bonding is 5 residues apart).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>HELIX</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A generic helix of unspecified bonding distance.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>TURN_310</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An isolated 3/10-like helical turn.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>TURN_ALPHA</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An isolated alpha-like helical turn.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>TURN_PI</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An isolated pi-like helical turn.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>TURN</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An isolated helical <a href="https://en.wikipedia.org/wiki/Turn_(biochemistry)">turn</a> of unspecified bonding distance.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BEND</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A bend (a region of high curvature).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>COIL</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Just a protein section with no particular conformation.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="StructuralElement.html#.Generic">StructuralElement.Generic</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="generic"><span class="type-signature"></span>generic<span class="type-signature"> :<a href="StructuralElement.html#.Generic">StructuralElement.Generic</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>Generic secondary structure type.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="init"><span class="type-signature"></span>init<span class="type-signature"> :Residue</span></h4>
+
+
+
+
+<div class="description">
+    <p>Initial residue.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="term"><span class="type-signature"></span>term<span class="type-signature"> :Residue</span></h4>
+
+
+
+
+<div class="description">
+    <p>Terminal residue.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="type"><span class="type-signature"></span>type<span class="type-signature"> :<a href="StructuralElement.html#.Type">StructuralElement.Type</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>Secondary structure type.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="SettingsObject.html">SettingsObject</a></li></ul><h3>Classes</h3><ul><li><a href="EntityList.html">EntityList</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="GROParser.html">GROParser</a></li><li><a href="GROReader.html">GROReader</a></li><li><a href="Helix.html">Helix</a></li><li><a href="LoaderList.html">LoaderList</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Miew.html">Miew</a></li><li><a href="ParserList.html">ParserList</a></li><li><a href="PDBStream.html">PDBStream</a></li><li><a href="Strand.html">Strand</a></li><li><a href="StructuralElement.html">StructuralElement</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-embed.html">Embedding the Viewer</a></li><li><a href="tutorial-events.html">events</a></li><li><a href="tutorial-selectors.html">Selection Language</a></li><li><a href="tutorial-url.html">URL Query String</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue Aug 22 2023 12:40:06 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

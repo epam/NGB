@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: events - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-miew.css">
+</head>
+
+<body>
+
+<div id="main">
+    <h1 class="page-title">Tutorial: events</h1>
+
+    <section>
+
+<header>
+    <h2>events</h2>
+
+    
+</header>
+
+<article>
+    <h1>Events</h1>
+<p>Miew allows tracking some important changes inside him.
+Users of the Miew library have a chance to subscribe to Miew events in which they are interested in and create handlers for them.</p>
+<h2>Instruction how to subscribe to Miew event</h2>
+<ol>
+<li>Find an event on which you want to subscribe (you can see all Miew events in next part).</li>
+<li>Use Miew method addEventListner(string eventType, function handler). Usually, it looks like one of the following variants:
+<ul>
+<li><code>*.addEventListner('eventType', () =&gt; { ... });</code> - if in handler you don't need additional event information;</li>
+<li><code>*.addEventListner('eventType', (e) =&gt; { ... e.ArgumentName ... });</code> - if you want to use in handler some additional event information.</li>
+</ul>
+</li>
+</ol>
+<p>Here you can find an example: https://github.com/epam/miew/blob/master/examples/events.js</p>
+<h2>Events list</h2>
+<h3>Rotating, translating and scaling events</h3>
+<p>These events are sent after rotating, translating or scaling molecule (or it's fragment or multiple molecules)</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>rotate</strong></td>
+<td><em>quaternion</em>: last rotation</td>
+<td>On rotation</td>
+</tr>
+<tr>
+<td><strong>zoom</strong></td>
+<td><em>number</em>: previous scale/current scale</td>
+<td>On scaling</td>
+</tr>
+<tr>
+<td><strong>translate</strong></td>
+<td>-</td>
+<td>On component translation in XY plane (parallel to screen)</td>
+</tr>
+<tr>
+<td><strong>translatePivot</strong></td>
+<td>-</td>
+<td>On fragment or all molecules translation in XY plane (parallel to screen)</td>
+</tr>
+<tr>
+<td><strong>transform</strong></td>
+<td>-</td>
+<td>After each of the listed above events changing</td>
+</tr>
+</tbody>
+</table>
+<h3>Representation events</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>repAdded</strong></td>
+<td><em>number</em>: rep index <br> <em>string</em>: molecule's name</td>
+<td>After each representation adding</td>
+</tr>
+<tr>
+<td><strong>repChanged</strong></td>
+<td><em>number</em>: rep index <br> <em>string</em>: molecule's name</td>
+<td>After each representation changing</td>
+</tr>
+<tr>
+<td><strong>repRemoved</strong></td>
+<td><em>number</em>: rep index <br> <em>string</em>: molecule's name</td>
+<td>After each representation removing</td>
+</tr>
+</tbody>
+</table>
+<h3>Miew continuous processes events</h3>
+<h4>Continuous long processes</h4>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>loading</strong></td>
+<td><em>string/file</em>: molecule source to load <br> <em>object</em>: options (data source type, data contents type, etc.)</td>
+<td>On loading</td>
+</tr>
+<tr>
+<td><strong>fetching</strong></td>
+<td>-</td>
+<td>On fetching</td>
+</tr>
+<tr>
+<td><strong>parsing</strong></td>
+<td>-</td>
+<td>On parsing</td>
+</tr>
+<tr>
+<td><strong>rebuilding</strong></td>
+<td>-</td>
+<td>On rebuilding</td>
+</tr>
+<tr>
+<td><strong>exporting</strong></td>
+<td>-</td>
+<td>On exporting to *.fbx</td>
+</tr>
+</tbody>
+</table>
+<h4>Ending of processes</h4>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>loadingDone</strong></td>
+<td>result: name or error</td>
+<td>On loading end</td>
+</tr>
+<tr>
+<td><strong>fetchingDone</strong></td>
+<td>result: data or error</td>
+<td>On fetching end</td>
+</tr>
+<tr>
+<td><strong>parsingDone</strong></td>
+<td>result: data or error</td>
+<td>On parsing end</td>
+</tr>
+<tr>
+<td><strong>buildingDone</strong></td>
+<td>-</td>
+<td>On building end</td>
+</tr>
+<tr>
+<td><strong>exportingDone</strong></td>
+<td>-</td>
+<td>On exporting end</td>
+</tr>
+</tbody>
+</table>
+<h3>Settings changing events</h3>
+<p><strong>Pay attention to these events, they are sent from Miew.settings (not from Miew as others).</strong></p>
+<p>Look at the example: https://github.com/epam/miew/blob/master/examples/miew_via_react/components/ViewerContainer.js</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>change:SettingPath <br> SettingPath - any field of <strong>defaults</strong> in settings.js <br> <br> Example: <strong>change:outline.on</strong></td>
+<td>-</td>
+<td>On changing the value of correspondent setting</td>
+</tr>
+</tbody>
+</table>
+<h3>Other events</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>resize</strong></td>
+<td>-</td>
+<td>On resize work area <br> <ul> <li>During initialization<li>After each resizing<li>on the first time when the stereo mode is set to WEBVR</td>
+</tr>
+<tr>
+<td><strong>newPick</strong></td>
+<td><em>object</em>: empty object or picked object</td>
+<td>On click inside Miew work area</td>
+</tr>
+<tr>
+<td><strong>titleChanged</strong></td>
+<td><em>string</em>: new title</td>
+<td>After title inside Miew was changed</td>
+</tr>
+<tr>
+<td><strong>editModeChanged</strong></td>
+<td><em>boolean</em>: is current mode complex edit mode</td>
+<td>After edit mode was changed</td>
+</tr>
+</tbody>
+</table>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="SettingsObject.html">SettingsObject</a></li></ul><h3>Classes</h3><ul><li><a href="EntityList.html">EntityList</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="GROParser.html">GROParser</a></li><li><a href="GROReader.html">GROReader</a></li><li><a href="Helix.html">Helix</a></li><li><a href="LoaderList.html">LoaderList</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Miew.html">Miew</a></li><li><a href="ParserList.html">ParserList</a></li><li><a href="PDBStream.html">PDBStream</a></li><li><a href="Strand.html">Strand</a></li><li><a href="StructuralElement.html">StructuralElement</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-embed.html">Embedding the Viewer</a></li><li><a href="tutorial-events.html">events</a></li><li><a href="tutorial-selectors.html">Selection Language</a></li><li><a href="tutorial-url.html">URL Query String</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue Aug 22 2023 12:40:06 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
