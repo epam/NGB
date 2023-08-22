@@ -75,6 +75,9 @@ export default class ngbSequencesPanelController {
     set selectedGeneId(id) {
         this.ngbSequencesPanelService.selectedGeneId = id;
     }
+    get selectedGene() {
+        return this.ngbSequencesPanelService.selectedGene;
+    }
 
     get loadingData() {
         return this.ngbSequencesPanelService.loadingData;
