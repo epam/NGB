@@ -47,7 +47,7 @@ public class CustomLLMHandler implements LLMHandler {
     public CustomLLMHandler(final @Value("${llm.custom.url:}") String url,
                             final @Value("${llm.custom.token:}") String token,
                             final @Value("${llm.custom.prompt.template:}") String promptTemplate,
-                            final @Value("${llm.custom.prompt.size:2048}") int promptSize) {
+                            final @Value("${llm.custom.prompt.size:1000}") int promptSize) {
         if (StringUtils.isNotBlank(url)) {
             this.api = new CloudPipelineApiBuilder(0, 0, url, null, token).buildClient();
         }
