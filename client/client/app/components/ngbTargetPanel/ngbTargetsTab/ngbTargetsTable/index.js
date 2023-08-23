@@ -12,10 +12,12 @@ import ngbTargetsTableActions from './ngbTargetsTableActions';
 import ngbTargetsTableFilter from './ngbTargetsTableFilter';
 import ngbTargetsTablePaginate from './ngbTargetsTablePaginate';
 import ngbDisableWheelHandler from './disable-wheel-handler';
+import ngbMdChips from './md-chips-trim';
 
 export default angular
     .module('ngbTargetsTable', [ngbTargetsTableActions, ngbTargetsTableFilter, ngbTargetsTablePaginate])
     .directive('disableWheelHandler', ngbDisableWheelHandler)
+    .directive('mdChipsTrim', ngbMdChips)
     .controller(controller.UID, controller)
     .component('ngbTargetsTable', component)
     .service('ngbTargetsTableService', service.instance)
