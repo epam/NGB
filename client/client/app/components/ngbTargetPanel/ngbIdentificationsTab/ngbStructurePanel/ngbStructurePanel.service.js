@@ -190,17 +190,22 @@ export default class ngbStructurePanelService {
         this._descriptionDone = value;
     }
 
-    static instance (ngbTargetPanelService, targetDataService) {
-        return new ngbStructurePanelService(ngbTargetPanelService, targetDataService);
+    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
+        return new ngbStructurePanelService(dispatcher, ngbTargetPanelService, targetDataService);
     }
 
-    constructor(ngbTargetPanelService, targetDataService) {
+    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {ngbTargetPanelService, targetDataService});
         this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
+        dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
     get geneIds() {
         return this.ngbTargetPanelService.genesIds;
+    }
+
+    async targetChanged() {
+        this.resetStructureData();
     }
 
     setStructureResults(data) {
@@ -369,5 +374,6 @@ export default class ngbStructurePanelService {
         this._errorMessageList = null;
         this._emptyResults = false;
         this._structureResults = null;
+        this._descriptionDone = false;
     }
 }
