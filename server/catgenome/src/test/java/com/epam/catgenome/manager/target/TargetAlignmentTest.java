@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetGenePriority;
 import junit.framework.TestCase;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +53,7 @@ public class TargetAlignmentTest extends TestCase {
     private TargetManager targetManager;
 
 
-//    @Test
+    @Test
     @Ignore
     public void generateAlignmentTest() {
         final Target target = createTarget();

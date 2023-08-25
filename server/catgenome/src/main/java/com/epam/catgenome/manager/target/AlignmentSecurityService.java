@@ -23,11 +23,13 @@
  */
 package com.epam.catgenome.manager.target;
 
+import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
@@ -38,7 +40,9 @@ public class AlignmentSecurityService {
     private final AlignmentManager alignmentManager;
 
     @PreAuthorize(ROLE_USER)
-    public byte[] getAlignment(final Long targetId, final String firstSequenceId, final String secondSequenceId)
+    public List<ReferenceSequence> getAlignment(final Long targetId,
+                                                final String firstSequenceId,
+                                                final String secondSequenceId)
             throws IOException {
         return alignmentManager.getAlignment(targetId, firstSequenceId, secondSequenceId);
     }

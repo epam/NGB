@@ -47,7 +47,8 @@ public class AssociationExportManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     public byte[] export(final List<String> geneIds, final FileFormat format,
-                         final AssociationTable source, final boolean includeHeader) throws IOException, ParseException {
+                         final AssociationTable source, final boolean includeHeader)
+            throws IOException, ParseException {
         byte[] result = null;
         switch (source) {
             case OPEN_TARGETS_DISEASES:

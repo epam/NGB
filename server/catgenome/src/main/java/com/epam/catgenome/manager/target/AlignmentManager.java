@@ -32,6 +32,8 @@ import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.AlignmentException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -48,8 +50,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +66,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 @RequiredArgsConstructor
 public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
-    public static final String ALIGNMENT_FILE_NAME = "%s-%s.msa";
+    public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";
     public static final String EMPTY_LINE = "\n\n";
 
     @Value("${muscle.path}")
@@ -95,19 +97,33 @@ public class AlignmentManager {
         }
     }
 
-    public byte[] getAlignment(final Long targetId, final String firstSequenceId, final String secondSequenceId)
-            throws IOException {
+    public List<ReferenceSequence> getAlignment(final Long targetId,
+                                                final String firstSequenceId,
+                                                final String secondSequenceId) {
         final Target target = targetManager.getTarget(targetId);
-        Assert.isTrue(target.getAlignmentStatus().equals(AlignmentStatus.ALIGNED), "Not aligned");
+        Assert.isTrue(target.getAlignmentStatus().equals(AlignmentStatus.ALIGNED), "Sequences are not aligned yet.");
         final String targetDirectory = getTargetDirectory(target.getTargetId());
         final String outputPath = getOutputPath(targetDirectory, firstSequenceId, secondSequenceId);
         final File file = new File(outputPath);
         Assert.isTrue(file.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, outputPath));
-        return Files.readAllBytes(Paths.get(outputPath));
+        return readFasta(file);
+    }
+
+    private List<ReferenceSequence> readFasta(final File fasta) {
+        try (FastaSequenceFile file = new FastaSequenceFile(fasta, false)) {
+            final List<ReferenceSequence> result = new ArrayList<>();
+            ReferenceSequence sequence = file.nextSequence();
+            while (sequence != null) {
+                result.add(sequence);
+                sequence = file.nextSequence();
+            }
+            return result;
+        }
     }
 
     private void process(final Target target) throws ParseException, IOException,
             InterruptedException, ExternalDbUnavailableException, AlignmentException {
+        log.debug("Generating sequence alignment for target {}", target.getTargetName());
         final List<String> geneIds = target.getTargetGenes().stream()
                 .map(TargetGene::getGeneId)
                 .collect(Collectors.toList());

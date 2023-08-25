@@ -55,6 +55,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
@@ -101,13 +102,11 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void getAlignment(@PathVariable final Long targetId,
-                             @RequestParam final String firstSequenceId,
-                             @RequestParam final String secondSequenceId,
-                             final HttpServletResponse response) throws IOException {
-        byte[] bytes = alignmentSecurityService.getAlignment(targetId, firstSequenceId, secondSequenceId);
-        response.getOutputStream().write(bytes);
-        response.flushBuffer();
+    public Result<List<ReferenceSequence>> getAlignment(@PathVariable final Long targetId,
+                                                        @RequestParam final String firstSequenceId,
+                                                        @RequestParam final String secondSequenceId,
+                                                        final HttpServletResponse response) throws IOException {
+        return Result.success(alignmentSecurityService.getAlignment(targetId, firstSequenceId, secondSequenceId));
     }
 
     @PostMapping(value = "/target/filter")
