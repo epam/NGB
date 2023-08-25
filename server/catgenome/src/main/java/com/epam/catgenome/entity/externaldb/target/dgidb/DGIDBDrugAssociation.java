@@ -41,10 +41,11 @@ public class DGIDBDrugAssociation extends UrlEntity {
     private String interactionTypes;
     private String interactionClaimSource;
     @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String interactionTypes,
-                                String interactionClaimSource) {
+    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
+                                String interactionTypes, String interactionClaimSource) {
         super(id, name, url);
         this.entrezId = entrezId;
+        this.geneId = geneId;
         this.interactionTypes = interactionTypes;
         this.interactionClaimSource = interactionClaimSource;
     }

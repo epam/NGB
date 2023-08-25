@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select residues from sequence</title>
+
+  <link rel="stylesheet" href="../dist/Miew.min.css">
+  <script src="https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js"></script>
+  <script src="https://unpkg.com/lodash@^4.17.15/lodash.js"></script>
+  <script src="https://unpkg.com/three@0.125.0/build/three.min.js"></script>
+  <script src="../dist/Miew.min.js"></script>
+  <style>
+    .miew-container {
+      width: 640px;
+      height: 480px;
+      float: left;
+    }
+
+    #chains {
+      padding: 30px;
+      margin-left: 640px;
+    }
+
+    .sequence a {
+      color: black;
+      text-decoration: none;
+      font-family: monospace;
+    }
+
+    .sequence {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+
+    /* add ZERO WIDTH SPACE for wrapping in IE11, as "break-word" doesn't work between nodes */
+    .sequence a:after { /* stylelint-disable-line selector-pseudo-element-colon-notation */
+      content: "\00200b";
+    }
+
+    .selected {
+      background-color: lime;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select residues from sequence</h1>
+  <div>
+  <div class="miew-container"></div>
+  <div id="chains"></div>
+
+  <script>
+
+    (function() {
+      var viewer = new Miew({ load: '1AID' });
+      var sequences = [];
+      var selectState = true;
+
+      if (viewer.init()) {
+        viewer.run();
+      }
+
+      viewer.addEventListener('buildingDone', function(e) {
+        if (e.error) {
+          return;
+        }
+        var div = document.getElementById('chains');
+
+        viewer._forEachComplexVisual(function(visual) {
+          var complex = visual.getComplex();
+          var chains = complex.getChainNames();
+          for (var i = 0; i < chains.length; ++i) {
+            var elem = createChainElement(complex.getChain(chains[i]));
+            div.appendChild(elem);
+          }
+        });
+
+        function isTarget(event) {
+          var target = event.target;
+          return target.dataset && target.dataset.residx !== undefined;
+        }
+
+        div.addEventListener('click', function(event) {
+          if (!isTarget(event)) return;
+          event.preventDefault();
+        });
+
+        div.addEventListener('mousedown', function(event) {
+          if (!isTarget(event)) return;
+
+          selectState = event.target.classList.toggle('selected');
+          viewer.select(buildSelector(), false);
+          event.preventDefault();
+        });
+
+        div.addEventListener('mouseover', function(event) {
+          if ((event.buttons & 1) === 0) return;
+          if (!isTarget(event)) return;
+
+          var classList = event.target.classList;
+          if (classList.contains('selected') !== selectState) {
+            classList.toggle('selected');
+            viewer.select(buildSelector(), false);
+            event.preventDefault();
+          }
+        });
+      });
+
+      viewer.addEventListener('newpick', function() {
+        // clear everything
+        for (var j = 0, m = sequences.length; j < m; ++j) {
+          var seq = sequences[j];
+          for (var i = 0, n = seq.childNodes.length; i < n; ++i) {
+            var node = seq.childNodes[i];
+            if (node.classList) {
+              node.classList.remove('selected');
+            }
+          }
+        }
+
+        // set only selected
+        viewer._forEachComplexVisual(function(visual) {
+          visual.forSelectedResidues(function(residue) {
+            var node = document.getElementById(String(residue._index));
+            if (node && node.classList) {
+              node.classList.add('selected');
+            }
+          });
+        });
+      });
+
+      function createChainElement(chain) {
+        var elem = document.createElement('div');
+
+        // show chain name
+        var nameElem = document.createElement('h2');
+        nameElem.textContent = 'chain ' + chain.getName();
+        elem.appendChild(nameElem);
+
+        // create div
+        var resDiv = document.createElement('div');
+        resDiv.classList.add('sequence');
+
+        // create nested set of residue names
+        chain.forEachResidue(function(res) {
+          var resType = res.getType();
+
+          // skip water
+          if (resType.flags & Miew.chem.ResidueType.Flags.WATER) return;
+
+          // create residue a-element
+          var resElem = document.createElement('a');
+          resElem.id = String(res._index);
+          resElem.textContent = resType.letterCode;
+          resElem.href = '#';
+          resElem.dataset.residx = res._index;
+          resDiv.appendChild(resElem);
+        });
+        sequences.push(resDiv);
+        elem.appendChild(resDiv);
+        return elem;
+      }
+
+      function buildSelector() {
+        var selected = [];
+        for (var j = 0, m = sequences.length; j < m; ++j) {
+          var seq = sequences[j];
+          for (var i = 0, n = seq.childNodes.length; i < n; ++i) {
+            var node = seq.childNodes[i];
+            if (node.classList && node.classList.contains('selected')) {
+              selected.push(Number(node.dataset.residx));
+            }
+          }
+        }
+        selected.sort(function(a, b) { return a - b; });
+        return asSelector(selected);
+      }
+
+      function asSelector(indices) {
+        var ranges = indices.reduce(function(spans, index) {
+          var range = spans.length > 0 && spans[spans.length - 1];
+          var end = range && range.length > 0 && range[range.length - 1];
+
+          if (range && (end === false || end !== false && end + 1 === index)) {
+            range[1] = index;
+          } else {
+            spans.push([index]);
+          }
+
+          return spans;
+        }, []).map(function(range) {
+          return range.join(':');
+        });
+
+        var selector = !ranges.length ? 'none' : 'residx ' + ranges.join(',');
+        console.log(selector);
+        return selector;
+      }
+
+    })();
+  </script>
+  </div>
+</body>
+</html>

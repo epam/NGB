@@ -3,14 +3,24 @@ $select-font-size: 13px;
 $select-color: #333333;
 
 ngb-sequences-panel {
-    .sequence-section {
+    padding: 5px 0 0;
+    position: relative;
+
+    .sequences-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: end;
+    }
+
+    .sequences-reference {
         padding: 5px 20px;
 
-        .section-title {
+        .reference-title {
             font-weight: 500;
         }
 
-        .section-content {
+        .reference-content {
             padding: 5px 20px;
 
             span {
@@ -34,7 +44,7 @@ ngb-sequences-panel {
         }
     }
 
-    .sequence-gene-select {
+    .sequences-gene-select {
         height: $select-height;
         line-height: $select-height;
         display: inline-flex;
@@ -100,7 +110,7 @@ ngb-sequences-panel {
     }
 }
 
-.sequence-gene-select-container {
+.sequences-gene-select-container {
     md-select-menu:not(.md-overflow) md-content {
         padding: 0;
     }

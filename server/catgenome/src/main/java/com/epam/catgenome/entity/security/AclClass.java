@@ -17,5 +17,6 @@ public enum AclClass {
     HEATMAP,
     LINEAGE,
     PATHWAY,
-    TARGET
+    TARGET,
+    PDB_FILE
 }

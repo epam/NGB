@@ -41,4 +41,6 @@ public class IdentificationResult {
     private Long diseasesCount;
     private Long knownDrugsCount;
     private Long publicationsCount;
+    private SequencesSummary sequencesCount;
+    private Long structuresCount;
 }

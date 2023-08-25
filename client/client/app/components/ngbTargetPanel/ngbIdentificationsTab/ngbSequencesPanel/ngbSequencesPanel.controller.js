@@ -3,12 +3,6 @@ import {ProjectDataService} from '../../../../../dataServices';
 
 const projectDataService = new ProjectDataService();
 
-const SEQUENCE_SECTION_NAME = {
-    reference: 'GENOMIC',
-    mrnas: 'mRNA',
-    proteins: 'PROTEINS'
-}
-
 function findReferenceByName(name, projectContext) {
     if (!name || !projectContext || !projectContext.references || projectContext.references.length === 0) {
         return undefined;
@@ -47,15 +41,6 @@ function findGeneByName(reference, gene) {
 }
 
 export default class ngbSequencesPanelController {
-
-    get sequenceSectionName () {
-        return SEQUENCE_SECTION_NAME;
-    }
-
-    get emptyResults() {
-        return this.data.every(item => !item.value.length);
-    }
-
     static get UID() {
         return 'ngbSequencesPanelController';
     }
@@ -64,25 +49,19 @@ export default class ngbSequencesPanelController {
         $scope,
         $timeout,
         dispatcher,
-        projectContext,
         appLayout,
         ngbSequencesPanelService,
-        ngbTargetPanelService
+        ngbTargetPanelService,
+        projectContext
     ) {
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
-            projectContext,
             appLayout,
             ngbSequencesPanelService,
-            ngbTargetPanelService
-        });
-        this.getSequences();
-        const geneChanged = this.geneChanged.bind(this);
-        dispatcher.on('target:identification:sequence:gene:changed', geneChanged);
-        $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:sequence:gene:changed', geneChanged);
+            ngbTargetPanelService,
+            projectContext
         });
     }
 
@@ -93,12 +72,16 @@ export default class ngbSequencesPanelController {
     get selectedGeneId() {
         return this.ngbSequencesPanelService.selectedGeneId;
     }
-    set selectedGeneId(selectedGeneId) {
-        this.ngbSequencesPanelService.selectedGeneId = selectedGeneId;
+    set selectedGeneId(id) {
+        this.ngbSequencesPanelService.selectedGeneId = id;
     }
 
-    get selectedGene() {
-        return this.genes.filter(gene => gene.geneId === this.selectedGeneId)[0];
+    get loadingData() {
+        return this.ngbSequencesPanelService.loadingData;
+    }
+
+    get sequencesReference() {
+        return this.ngbSequencesPanelService.sequencesReference;
     }
 
     get taxId () {
@@ -115,24 +98,12 @@ export default class ngbSequencesPanelController {
         ));
     }
 
-    get data() {
-        return this.ngbSequencesPanelService.sequenceData;
-    }
-
     get isRegistered() {
         return this.references.length;
     }
 
-    geneChanged() {
-        this.ngbSequencesPanelService.setSequenceData();
-        this.$timeout(() => {
-            this.$scope.$apply();
-        });
-    }
-
-    async getSequences() {
-        await this.ngbSequencesPanelService.getSequencesResults();
-        this.$timeout(() => this.$scope.$apply());
+    onChangeGene() {
+        this.dispatcher.emit('target:identification:sequence:gene:changed');
     }
 
     panelAddBrowserPanel() {
@@ -152,14 +123,16 @@ export default class ngbSequencesPanelController {
     setGeneTrack() {
         const tracks = this.projectContext.tracks;
         const tracksState = this.projectContext.tracksState;
-        for (let i = 0; i < tracksState.length; i++) {
-            const track = tracksState[i];
-            if (track.format === 'GENE') {
-                track.state = track.state || {};
-                track.state.geneTranscript = 'expanded';
+        if (tracksState && tracksState.length) {
+            for (let i = 0; i < tracksState.length; i++) {
+                const track = tracksState[i];
+                if (track.format === 'GENE') {
+                    track.state = track.state || {};
+                    track.state.geneTranscript = 'expanded';
+                }
             }
+            this.projectContext.changeState({tracks, tracksState});
         }
-        this.projectContext.changeState({tracks, tracksState});
     }
 
     navigateToReference() {
@@ -212,14 +185,14 @@ export default class ngbSequencesPanelController {
 
     navigateToGene() {
         if (
-            !this.selectedGeneId ||
+            !this.selectedGene ||
             !this.projectContext ||
             !this.projectContext.references ||
             this.projectContext.references.length === 0
         ) {
             return Promise.resolve(false);
         }
-        const request = this.selectedGeneId.trim();
+        const request = this.selectedGene.geneName.trim();
         const refGeneGroups = /^(.*):(.*)$/.exec(request);
         const findPromise = (reference, gene) => new Promise((resolve) => {
             if (!reference) {

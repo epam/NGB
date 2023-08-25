@@ -315,4 +315,19 @@
         <type>PUT</type>
         <url>/restapi/project/%s/rename</url>
     </rename_dataset>
+    <reg_pdb>
+        <name>reg_pdb</name>
+        <type>POST</type>
+        <url>/restapi/pdb</url>
+    </reg_pdb>
+    <del_pdb>
+        <name>del_pdb</name>
+        <type>DELETE</type>
+        <url>/restapi/pdb/%d</url>
+    </del_pdb>
+    <list_pdb>
+        <name>list_pdb</name>
+        <type>GET</type>
+        <url>/restapi/pdb</url>
+    </list_pdb>
 </config>

@@ -28,9 +28,9 @@ import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.Document;
@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +75,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
     }
 
     public long totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<DGIDBDrugAssociation> result = search(ids, IndexFields.GENE_ID.name());
+        final List<DGIDBDrugAssociation> result = search(ids, DGIDBField.GENE_ID.name());
         return result.stream().map(DGIDBDrugAssociation::getName).distinct().count();
     }
 
@@ -126,7 +127,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
 
     @Override
     public String getDefaultSortField() {
-        return IndexFields.DRUG_NAME.name();
+        return DGIDBField.DRUG_NAME.name();
     }
 
     @SneakyThrows
@@ -152,22 +153,22 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
         if (entry.getGeneId() != null && !TextUtils.isBlank(entry.getName())) {
             final Document doc = new Document();
 
-            doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.GENE_ID.name(), new BytesRef(entry.getGeneId())));
+            doc.add(new StringField(DGIDBField.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-            doc.add(new StringField(IndexFields.DRUG_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
-            doc.add(new StringField(IndexFields.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.DRUG_NAME.name(),
+            doc.add(new StringField(DGIDBField.DRUG_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(),
                     new BytesRef(entry.getName())));
 
-            doc.add(new StringField(IndexFields.INTERACTION_TYPES.name(),
+            doc.add(new StringField(DGIDBField.INTERACTION_TYPES.name(),
                     entry.getInteractionTypes(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.INTERACTION_TYPES.name(),
+            doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_TYPES.name(),
                     new BytesRef(entry.getInteractionTypes())));
 
-            doc.add(new StringField(IndexFields.INTERACTION_CLAIM_SOURCE.name(),
+            doc.add(new StringField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     entry.getInteractionClaimSource(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(IndexFields.INTERACTION_CLAIM_SOURCE.name(),
+            doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     new BytesRef(entry.getInteractionClaimSource())));
             writer.addDocument(doc);
         }
@@ -175,13 +176,13 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
 
     @Override
     public DGIDBDrugAssociation entryFromDoc(final Document doc) {
-        final String drugName = doc.getField(IndexFields.DRUG_NAME.name()).stringValue();
+        final String drugName = doc.getField(DGIDBField.DRUG_NAME.name()).stringValue();
         return DGIDBDrugAssociation.builder()
-                .entrezId(doc.getField(IndexFields.GENE_ID.name()).stringValue())
+                .geneId(doc.getField(DGIDBField.GENE_ID.name()).stringValue())
                 .name(drugName)
                 .url(String.format(DGIDBDrugAssociation.URL_PATTERN, drugName))
-                .interactionTypes(doc.getField(IndexFields.INTERACTION_TYPES.name()).stringValue())
-                .interactionClaimSource(doc.getField(IndexFields.INTERACTION_CLAIM_SOURCE.name()).stringValue())
+                .interactionTypes(doc.getField(DGIDBField.INTERACTION_TYPES.name()).stringValue())
+                .interactionClaimSource(doc.getField(DGIDBField.INTERACTION_CLAIM_SOURCE.name()).stringValue())
                 .build();
     }
 
@@ -189,25 +190,22 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
     public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
         final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
         for (String term: filter.getTerms()) {
-            Query query = IndexFields.DRUG_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(IndexFields.DRUG_NAME_FLTR.name(), term) :
+            Query query = DGIDBField.DRUG_NAME.name().equals(filter.getField()) ?
+                    buildPrefixQuery(DGIDBField.DRUG_NAME_FLTR.name(), term) :
                     buildTermQuery(filter.getField(), term);
             fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
         }
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
     }
 
+    @Override
+    public List<AssociationExportField<DGIDBDrugAssociation>> getExportFields() {
+        return Arrays.asList(DGIDBField.values());
+    }
+
+
     @Nullable
     private static String getCellValue(final String[] cells, final int x) {
         return cells.length >= x + 1 ? cells[x].trim() : null;
-    }
-
-    @Getter
-    private enum IndexFields {
-        GENE_ID,
-        DRUG_NAME,
-        DRUG_NAME_FLTR,
-        INTERACTION_TYPES,
-        INTERACTION_CLAIM_SOURCE;
     }
 }

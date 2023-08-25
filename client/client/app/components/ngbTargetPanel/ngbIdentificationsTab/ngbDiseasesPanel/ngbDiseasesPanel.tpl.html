@@ -12,18 +12,27 @@
                  md-nav-click="$ctrl.onChangeTab(tab)">
         {{$ctrl.getTabName(tab)}}
     </md-nav-item>
-    <div class="diseases-source-select">
-        <label>Source:</label>
-        <md-input-container>
-            <md-select ng-model="$ctrl.source"
-                       aria-label="Diseases source"
-                       md-container-class="diseases-source-select-container">
-                <md-option ng-repeat="item in $ctrl.sources"
-                           ng-value="item">
-                    {{$ctrl.getSourceName(item)}}
-                </md-option>
-            </md-select>
-        </md-input-container>
+    <div class="action-container">
+        <md-button type="button"
+                   class="md-raised export-button"
+                   ng-if="$ctrl.selectedTab === $ctrl.tableTab && $ctrl.tableResults"
+                   aria-label="Export diseases results"
+                   ng-click="$ctrl.exportResults()">
+            EXPORT
+        </md-button>
+        <div class="diseases-source-select">
+            <label>Source:</label>
+            <md-input-container>
+                <md-select ng-model="$ctrl.source"
+                           aria-label="Diseases source"
+                           md-container-class="diseases-source-select-container">
+                    <md-option ng-repeat="item in $ctrl.sources"
+                               ng-value="item">
+                        {{$ctrl.getSourceName(item)}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
     </div>
 </md-nav-bar>
 <md-content class="_md associated-diseases-content">

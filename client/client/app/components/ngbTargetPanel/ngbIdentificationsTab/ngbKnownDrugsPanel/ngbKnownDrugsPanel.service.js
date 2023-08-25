@@ -13,13 +13,24 @@ const SOURCE_OPTIONS = {
     }
 };
 
+const EXPORT_SOURCE = {
+    OPEN_TARGETS: 'OPEN_TARGETS_DRUGS',
+    PHARM_GKB: 'PHARM_GKB_DRUGS',
+    DGI_DB: 'DGIDB_DRUGS'
+};
+
 export default class ngbKnownDrugsPanelService {
-    static instance () {
-        return new ngbKnownDrugsPanelService();
+
+    get exportSource () {
+        return EXPORT_SOURCE;
     }
 
-    constructor() {
-        Object.assign(this, {});
+    static instance (ngbTargetPanelService, targetDataService) {
+        return new ngbKnownDrugsPanelService(ngbTargetPanelService, targetDataService);
+    }
+
+    constructor(ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {ngbTargetPanelService, targetDataService});
         this._loading = false;
         this._sourceModel = this.sourceOptions.OPEN_TARGETS;
     }
@@ -41,5 +52,19 @@ export default class ngbKnownDrugsPanelService {
 
     set loading(loading) {
         this._loading = !!loading;
+    }
+
+    get geneIds() {
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
+    }
+
+    exportResults() {
+        const source = this.exportSource[this.sourceModel.name];
+        if (!this.geneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIds, source);
     }
 }

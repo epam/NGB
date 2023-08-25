@@ -13,7 +13,6 @@ ngb-known-drugs-panel {
         align-items: center;
 
         .drugs-source-select {
-            margin-left: auto;
             display: inline-flex;
             align-items: center;
 
@@ -69,6 +68,18 @@ ngb-known-drugs-panel {
         left: 0;
         right: 0;
         top: 0;
+    }
+
+    .action-container {
+        margin-left: auto;
+    }
+
+    .md-button.export-button {
+        min-height: 24px;
+        line-height: 24px;
+        color: #333333;
+        font-size: 13px;
+        font-weight: normal;
     }
 }
 

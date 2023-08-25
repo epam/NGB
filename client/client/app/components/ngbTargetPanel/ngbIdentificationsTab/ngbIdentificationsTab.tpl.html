@@ -4,7 +4,7 @@
         <div class="identification-actions">
             <a class="identification-action"
                ng-click="$ctrl.toggleChat()">
-                <span>{{$ctrl.chatOpened ? 'Close AI chat' : 'Open AI chat'}}</span>
+                <span>{{$ctrl.chatOpened ? 'Close Generative AI chat' : 'Open Generative AI chat'}}</span>
                 <ng-md-icon icon="message"
                             size="12"></ng-md-icon>
             </a>
@@ -85,10 +85,12 @@
                     </ngb-diseases-panel>
                     <ngb-sequences-panel ng-if="mainInfoBlock.key === 'sequences'">
                     </ngb-sequences-panel>
+                    <ngb-structure-panel ng-if="mainInfoBlock.key === 'structure'">
+                    </ngb-structure-panel>
                     <ngb-bibliography-panel ng-if="mainInfoBlock.key === 'bibliography'">
                     </ngb-bibliography-panel>
                     <div style="margin: 5px 0; color:#999999"
-                         ng-if="!['bibliography', 'drugs', 'diseases', 'sequences'].includes(mainInfoBlock.key)">
+                         ng-if="!['bibliography', 'drugs', 'diseases', 'sequences', 'structure'].includes(mainInfoBlock.key)">
                         &nbsp;
                     </div>
                 </collapsible-panel-content>

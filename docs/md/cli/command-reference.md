@@ -1025,6 +1025,57 @@ Deletes a specified pathway from NGB server.
 $ ngb del_pathway 2
 ```
 
+## PDB file commands
+### Register PDB file
+```
+ngb reg_pdb|rpdb [<GENE_ID>][<PATH>] [options]
+//Options:
+//-n (--name)                   PDB file name
+//-pt (--pretty)                PDB file pretty name
+//-mtd (--metadata)             PDB file metadata (string in json format)
+
+```
+*Description*
+
+Registers a PDB file. Two arguments have to be specified:
+* Ensemble gene Id
+* PDB file path
+
+*Example*
+```bash
+# Create new PDB file with path "pdb.cif"
+$ ngb reg_pdb "GENE_ID" "pdb.cif"
+```
+
+### List PDB files
+```
+ngb list_pdb|lpdb
+```
+
+*Description*
+
+List all PDB files registered on NGB server.
+
+*Example*
+```bash
+# List all PDB files registered on NGB server
+$ ngb list_pdb
+```
+
+### Delete PDB file
+```
+ngb del_pdb|dpdb [<ID>]
+```
+*Description*
+
+Deletes a specified PDB file from NGB server.
+
+*Example*
+```bash
+# Delete PDB file with id 2
+$ ngb del_pdb 2
+```
+
 ## Bam coverage commands
 ### Register coverage
 ```

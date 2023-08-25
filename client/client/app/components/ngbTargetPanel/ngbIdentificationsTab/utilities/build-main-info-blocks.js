@@ -2,6 +2,9 @@ export default function buildMainInfoBlocks (identificationData) {
     if (!identificationData) {
         return [];
     }
+    if (!identificationData.sequencesCount) {
+        identificationData.sequencesCount = {};
+    }
     return [
         {
             key: 'drugs',
@@ -30,16 +33,16 @@ export default function buildMainInfoBlocks (identificationData) {
                 {
                     item: 'DNA',
                     single: true,
-                    count: identificationData.sequencesDNACount || 0
+                    count: identificationData.sequencesCount.dnas || 0
                 },
                 {
                     item: 'RNA',
                     single: true,
-                    count: identificationData.sequencesRNACount || 0
+                    count: identificationData.sequencesCount.mrnas || 0
                 },
                 {
                     item: 'protein',
-                    count: identificationData.sequencesProteinsCount || 0
+                    count: identificationData.sequencesCount.proteins || 0
                 }
             ]
         },
@@ -63,7 +66,7 @@ export default function buildMainInfoBlocks (identificationData) {
             items: [
                 {
                     item: 'model',
-                    count: identificationData.modelsCount || 0
+                    count: identificationData.structuresCount || 0
                 }
             ]
         },

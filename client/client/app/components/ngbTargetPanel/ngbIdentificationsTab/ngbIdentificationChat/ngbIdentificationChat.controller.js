@@ -29,9 +29,9 @@ class NgbIdentificationChatController {
             this.ngbTargetPanelService.identificationTarget.target &&
             this.ngbTargetPanelService.identificationTarget.target.name
         ) {
-            return `${this.ngbTargetPanelService.identificationTarget.target.name} - AI Chat`;
+            return `${this.ngbTargetPanelService.identificationTarget.target.name} - Generative AI Chat`;
         }
-        return 'AI Chat';
+        return 'Generative AI Chat';
     }
 
     get loading() {

@@ -1,0 +1,95 @@
+<div layout="column" flex class="u-height__full">
+    <div class="no-pdb" ng-if="!$ctrl.descriptionDone">
+        <span>Select a molecule.</span>
+    </div>
+    <div layout="column" flex class="u-height__full"
+         ng-if="$ctrl.descriptionDone">
+        <md-content flex layout="row">
+            <div layout="column" class="md-padding structure-container">
+                <div class="miew-actions-container">
+                    <md-button class="md-icon-button"
+                               aria-label="Open viewer"
+                               ng-click="$ctrl.goFullscreen()">
+                        <ng-md-icon icon="fullscreen"
+                                    style="fill: white"
+                                    class="miew-action">
+                        </ng-md-icon>
+                    </md-button>
+                    <div>
+                        <md-menu md-position-mode="target-right target"
+                                 class="colors-menu">
+                            <md-button class="md-icon-button"
+                                    aria-label="Open color menu"
+                                    ng-click="$mdOpenMenu($event)">
+                                <ng-md-icon icon="invert_colors"
+                                            style="fill: white"
+                                            class="miew-action">
+                                </ng-md-icon>
+                            </md-button>
+                            <md-menu-content style="width: 750px; height: 400px"
+                                             class="colors-content">
+                                <md-subheader class="md-primary">Display color</md-subheader>
+                                <md-grid-list md-cols="6" md-row-height="110px" md-gutter="5px">
+                                    <md-grid-tile ng-repeat="color in $ctrl.colorer">
+                                        <md-button ng-click="$ctrl.changeDisplaySettings(color.id, 'color')"
+                                                   aria-label="Change color"
+                                                   class="thumbnail-button">
+                                            <img ng-src="{{$ctrl.loadImage(color.img)}}"
+                                                 style="width: 110px; height:110px;"/>
+                                            <md-grid-tile-footer ng-class="{selected: $ctrl.currentColor === color.id,
+                                                                           'thumbnail-title': true, color: true}">
+                                                <h5 style="text-transform: capitalize;">{{color.name}}</h5>
+                                            </md-grid-tile-footer>
+                                        </md-button>
+                                    </md-grid-tile>
+                                </md-grid-list>
+                            </md-menu-content>
+                        </md-menu>
+                    </div>
+                    <div>
+                        <md-menu md-position-mode="target-right target"
+                                 class="modes-menu">
+                            <md-button class="md-icon-button"
+                                       aria-label="Open mode menu"
+                                       ng-click="$mdOpenMenu($event)">
+                                <ng-md-icon icon="texture"
+                                            style="fill: white"
+                                            class="miew-action"
+                                ></ng-md-icon>
+                            </md-button>
+                            <md-menu-content style="width: 750px; height: 320px"
+                                             class="modes-content">
+                                <md-subheader class="md-primary">Display mode</md-subheader>
+                                <md-grid-list md-cols="6" md-row-height="110px" md-gutter="5px">
+                                        <md-grid-tile ng-repeat="mode in $ctrl.modes"
+                                                      style="width: 110px; height:110px;">
+                                            <md-button ng-click="$ctrl.changeDisplaySettings(mode.id, 'mode')"
+                                                       aria-label="Change mode"
+                                                       class="thumbnail-button">
+                                                <img ng-src="{{$ctrl.loadImage(mode.img)}}" />
+                                                <md-grid-tile-footer ng-class="{selected: $ctrl.currentMode === mode.id,
+                                                                               'thumbnail-title': true, mode: true}">
+                                                    <h5 style="text-transform: capitalize; margin: 0;">
+                                                        {{mode.name}}
+                                                    </h5>
+                                                </md-grid-tile-footer>
+                                            </md-button>
+                                        </md-grid-tile>
+                                </md-grid-list>
+                            </md-menu-content>
+                        </md-menu>
+                    </div>
+                </div>
+                <div class="ngb-miew-container"
+                    ng-if="$ctrl.descriptionDone">
+                    <ngb-miew pdb="$ctrl.selectedPdbReference"
+                              chains="$ctrl.pdbDescriptions ? $ctrl.pdbDescriptions.entities : []"
+                              display-color="$ctrl.currentColor"
+                              display-mode="$ctrl.currentMode"
+                              camera="$ctrl.camera"
+                    ></ngb-miew>
+                </div>
+            </div>
+        </md-content>
+    </div>
+</div>

@@ -25,5 +25,5 @@
 package com.epam.catgenome.entity.llm;
 
 public enum LLMProvider {
-    OPENAI_GPT_35, OPENAI_GPT_40, GOOGLE_PALM_2, GOOGLE_MED_PALM2;
+    OPENAI_GPT_35, OPENAI_GPT_40, GOOGLE_PALM_2, GOOGLE_MED_PALM2, CUSTOM;
 }

@@ -132,7 +132,9 @@ public enum BiologicalDataItemFormat {
 
     LINEAGE_TREE(21),
 
-    PATHWAY(22);
+    PATHWAY(22),
+
+    PDB_FILE(23);
 
     private long id;
     private boolean index = false;
@@ -161,6 +163,7 @@ public enum BiologicalDataItemFormat {
         idMap.put(HEATMAP.id, HEATMAP);
         idMap.put(LINEAGE_TREE.id, LINEAGE_TREE);
         idMap.put(PATHWAY.id, PATHWAY);
+        idMap.put(PDB_FILE.id, PDB_FILE);
     }
 
     BiologicalDataItemFormat(long id) {

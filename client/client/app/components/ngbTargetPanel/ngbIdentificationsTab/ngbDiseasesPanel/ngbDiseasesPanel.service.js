@@ -20,13 +20,23 @@ const SourceOptionNames = {
     [SourceOptions.PHARM_GKB]: 'PharmGKB'
 };
 
+const EXPORT_SOURCE = {
+    OPEN_TARGETS: 'OPEN_TARGETS_DISEASES',
+    PHARM_GKB: 'PHARM_GKB_DISEASES'
+};
+
 class NgbDiseasesPanelService {
-    static instance (dispatcher) {
-        return new NgbDiseasesPanelService(dispatcher);
+
+    get exportSource () {
+        return EXPORT_SOURCE;
     }
 
-    constructor(dispatcher) {
-        this.dispatcher = dispatcher;
+    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
+        return new NgbDiseasesPanelService(dispatcher, ngbTargetPanelService, targetDataService);
+    }
+
+    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
         this._sourceModel = SourceOptions.OPEN_TARGETS;
         this._tableLoading = false;
         this._chartsLoading = false;
@@ -57,6 +67,20 @@ class NgbDiseasesPanelService {
 
     set chartsLoading(chartsLoading) {
         this._chartsLoading = chartsLoading;
+    }
+
+    get geneIds() {
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
+    }
+
+    exportResults() {
+        const source = this.exportSource[this.sourceModel];
+        if (!this.geneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIds, source);
     }
 }
 

@@ -19,13 +19,18 @@ const ExternalDBNames = {
     [SOURCE.TXGNN]: 'TxGNN',
     [SOURCE.DGI_DB]: 'DGIdb',
     [SOURCE.PHARM_GKB]: 'PharmGKB'
-}
+};
 
 const ExternalDBFields = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.DGI_DB]: 'dgidb',
     [SOURCE.PHARM_GKB]: 'pharmGKB'
-}
+};
+
+const PDB_SOURCE = {
+    PROTEIN_DATA_BANK: 'Protein Data Bank',
+    LOCAL_FILES: 'Local Files'
+};
 
 function getQueryString(query = {}) {
     const params = Object.entries(query)
@@ -297,16 +302,82 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getSequencesResults(geneIds) {
-        return new Promise((resolve) => {
-            this.get(`target/sequences?geneIds=${geneIds}`)
+    getSequencesTableResults(geneIds) {
+        const getComments = true;
+        return new Promise((resolve, reject) => {
+            this.get(`target/sequences/table${getQueryString({geneIds, getComments})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
                     } else {
                         resolve([]);
                     }
+                })
+                .catch(error => {
+                    const message = 'Error getting sequences data';
+                    reject(new Error((error && error.message) || message));
                 });
+        });
+    }
+
+    getStructureResults(request, source) {
+        const name = (() => {
+            if (source === PDB_SOURCE.PROTEIN_DATA_BANK) { return 'target/structures'; }
+            if (source === PDB_SOURCE.LOCAL_FILES) { return 'pdb/filter'; }
+            return;
+        })();
+        if (!name) return Promise.reject(new Error('Unknown source'));
+        return new Promise((resolve, reject) => {
+            this.post(name, request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting structure data';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getPdbDescription(pbdID) {
+        return new Promise((resolve, reject) => {
+            this.post(`gene/pbd/${pbdID}/get`, pbdID)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = `Error getting ${pbdID} pdb description`;
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getTargetExport(geneIds, source) {
+        const format = 'CSV';
+        const includeHeader = true;
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/export${getQueryString({geneIds, format, source, includeHeader})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
         });
     }
 }

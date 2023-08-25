@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: Selection Language - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-miew.css">
+</head>
+
+<body>
+
+<div id="main">
+    <h1 class="page-title">Tutorial: Selection Language</h1>
+
+    <section>
+
+<header>
+    <h2>Selection Language</h2>
+
+    
+</header>
+
+<article>
+    <h1>Selection Language</h1>
+<p>Miew allows to view different molecule parts (subsets of atoms) using specific visualizations.
+To select these subsets one should use a <em>Selection Language</em>; find the description of its syntax below.</p>
+<h2>Quick Examples</h2>
+<ul>
+<li><code>chain A and not hetatm</code><br>
+select all atoms in chain A except for HETATM PDB records.</li>
+<li><code>residue ALA</code><br>
+select all residues named <code>ALA</code> (alanine).</li>
+<li><code>serial 1:10, 20:30 and type C, N</code><br>
+select Carbon and Nitrogen atoms with atom indices in range 1 through 10 or
+20 through 30 inclusively.</li>
+</ul>
+<h2>Syntax</h2>
+<p>An <em>Expression</em> in Miew selection language consists of a <em>Selector</em> or a set of <em>Expressions</em>
+joined with logical operations <code>AND</code>, <code>OR</code>, <code>NOT</code> and brackets for grouping.</p>
+<pre><code>Expression ::=
+  Selector |
+  Expression 'AND' Expression |
+  Expression 'OR' Expression |
+  'NOT' Expression |
+  '(' Expression ')'
+</code></pre>
+<p><em>Selector</em> consists of a keyword followed by an optional comma separated parameter list.
+Some keywords accept integer parameters (e.g. atom or residue indices), others accept strings
+(e.g. atom or residue names). Keywords are <strong>case insensitive</strong>.</p>
+<p>Integer parameter can be a single value or range of values, where colon delimits range borders.
+Example: <code>3:7</code> defines an integer range: 3, 4, 5, 6, and 7).</p>
+<p>There should be quotation marks for string parameters unless the string consists of letters,
+digits and underscores only.</p>
+<pre><code>Selector ::=
+  Keyword |
+  Keyword IntegerList |
+  Keyword StringList
+
+IntegerList ::= Range | IntegerList ',' Range
+Range ::= Number | Number ':' Number
+
+StringList ::= String | StringList ',' String
+String ::= AlphaNumericString | QuotedString
+</code></pre>
+<h2>Keywords list</h2>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>all</strong></td>
+<td>all atoms</td>
+<td>all</td>
+</tr>
+<tr>
+<td><strong>none</strong></td>
+<td>empty subset</td>
+<td>none</td>
+</tr>
+<tr>
+<td><strong>hetatm</strong></td>
+<td>atoms defined as HETATM in PDB-file</td>
+<td>not hetatm</td>
+</tr>
+<tr>
+<td><strong>water</strong></td>
+<td>water residues (WAT, HOH, H2O)</td>
+<td>hetatm and not water</td>
+</tr>
+<tr>
+<td><strong>serial</strong> <em>int</em></td>
+<td>atoms by serial numbers</td>
+<td>serial 1:10, 13, 25:37</td>
+</tr>
+<tr>
+<td><strong>name</strong> <em>str</em></td>
+<td>atoms by names</td>
+<td>name CA, CB</td>
+</tr>
+<tr>
+<td><strong>elem</strong> <em>str</em></td>
+<td>atoms by chemical elements</td>
+<td>elem O, N, H</td>
+</tr>
+<tr>
+<td><strong>type</strong> <em>str</em></td>
+<td><em>deprecated!</em> superseded by <strong>elem</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>altloc</strong> <em>str</em></td>
+<td>atoms by alternative location (conformation)</td>
+<td>altloc &quot; &quot;, A</td>
+</tr>
+<tr>
+<td><strong>residue</strong> <em>str</em></td>
+<td>residues by names</td>
+<td>residue ALA, CYS</td>
+</tr>
+<tr>
+<td><strong>sequence</strong> <em>int</em></td>
+<td>residues by indices in a sequence</td>
+<td>sequence 35:37</td>
+</tr>
+<tr>
+<td><strong>residx</strong> <em>int</em></td>
+<td>residues by ordinal index</td>
+<td>residx 1327</td>
+</tr>
+<tr>
+<td><strong>icode</strong> <em>str</em></td>
+<td>residues by insertion code</td>
+<td>sequence 409 and icode B</td>
+</tr>
+<tr>
+<td><strong>protein</strong></td>
+<td>one of 22 common amino acid residues</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>basic</strong></td>
+<td>basic amino acid residue: ARG, HIS, LYS</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>acidic</strong></td>
+<td>acidic amino acid residue: ASP, GLU</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>charged</strong></td>
+<td>basic or acidic residue</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>polar</strong></td>
+<td>polar amino acid residue: ASN, CYS, GLN, SER, THR, TYR</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>nonpolar</strong></td>
+<td>non-polar amino acid residue: ALA, ILE, LEU, MET, PHE, PRO, TRP, VAL</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>aromatic</strong></td>
+<td>aromatic amino acid residue: PHE, TRP, TYR</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>nucleic</strong></td>
+<td>nucleic residue</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>purine</strong></td>
+<td>purine nucleic residue: A, G, I and variations</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>pyrimidine</strong></td>
+<td>pyrimidine nucleic residue: C, T, U and variations</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>polarh</strong></td>
+<td>polar hydrogens are hydrogens that are boud to anything other than carbon, e.g. nitrogen, oxygen, sulphur</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>nonpolarh</strong></td>
+<td>non-polar hydrogens are hydrogens that are bonded to carbon</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>chain</strong> <em>str</em></td>
+<td>chain by name</td>
+<td>chain A, C, E</td>
+</tr>
+</tbody>
+</table>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="SettingsObject.html">SettingsObject</a></li></ul><h3>Classes</h3><ul><li><a href="EntityList.html">EntityList</a></li><li><a href="EventDispatcher.html">EventDispatcher</a></li><li><a href="GROParser.html">GROParser</a></li><li><a href="GROReader.html">GROReader</a></li><li><a href="Helix.html">Helix</a></li><li><a href="LoaderList.html">LoaderList</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Miew.html">Miew</a></li><li><a href="ParserList.html">ParserList</a></li><li><a href="PDBStream.html">PDBStream</a></li><li><a href="Strand.html">Strand</a></li><li><a href="StructuralElement.html">StructuralElement</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-embed.html">Embedding the Viewer</a></li><li><a href="tutorial-events.html">events</a></li><li><a href="tutorial-selectors.html">Selection Language</a></li><li><a href="tutorial-url.html">URL Query String</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue Aug 22 2023 12:40:06 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
