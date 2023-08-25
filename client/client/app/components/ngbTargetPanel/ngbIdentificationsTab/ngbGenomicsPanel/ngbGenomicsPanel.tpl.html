@@ -1,0 +1,109 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>
+<div class="genomics-block">
+    <md-button type="button"
+               class="md-raised md-accent genomics-button align"
+               ng-if="$ctrl.showAlignButton"
+               aria-label="Align comparison"
+               ng-click="$ctrl.alignComparison()">
+        Align
+    </md-button>
+    <md-button type="button"
+               class="md-raised genomics-button track"
+               ng-if="$ctrl.showTrackButton"
+               aria-label="View on track"
+               ng-click="$ctrl.viewOnTrack()">
+        View on track
+    </md-button>
+</div>
+<div class="genomics-block">
+    <label>Target:</label>
+    <md-input-container class="gene-select">
+        <md-select ng-model="$ctrl.targetModel.gene"
+                   placeholder="Select gene"
+                   aria-label="Target gene"
+                   md-container-class="genomics-select-container">
+            <md-option ng-repeat="item in $ctrl.targetOptions"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <md-input-container class="protein-select"
+                        ng-if="$ctrl.targetModel.gene">
+        <md-select ng-model="$ctrl.targetModel.protein"
+                   placeholder="Select protein"
+                   aria-label="Target protein"
+                   md-container-class="genomics-select-container">
+            <md-option ng-repeat="item in $ctrl.targetOptions"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+<div class="genomics-block">
+    <label>Query:</label>
+    <md-input-container class="gene-select">
+        <md-select ng-model="$ctrl.queryModel.gene"
+                   placeholder="Select gene"
+                   aria-label="Query gene"
+                   md-container-class="genomics-select-container">
+            <md-option ng-repeat="item in $ctrl.queryOptions"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <md-input-container class="protein-select"
+                        ng-if="$ctrl.queryModel.gene">
+        <md-select ng-model="$ctrl.queryModel.protein"
+                   placeholder="Select protein"
+                   aria-label="Query protein"
+                   md-container-class="genomics-select-container">
+            <md-option ng-repeat="item in $ctrl.queryOptions"
+                       ng-value="item.geneId">
+                {{item.chip}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+<div class="genomic-query-container" layout="column">
+    <div layout="row" ng-repeat="alignment in $ctrl.alignments">
+        <div layout="column" class="alignment-query-title">
+            <span></span>
+            <span class="alignment-field-name">Target</span>
+            <span></span>
+            <span class="alignment-field-name">Query</span>
+            <span></span>
+        </div>
+        <div layout="row" flex>
+            <div class="right alignment-start-pos" layout="column">
+                <span>{{alignment.queryStart}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{alignment.sequenceStart}}</span>
+            </div>
+            <div class="mono alignment-sequence" layout="column">
+                <span></span>
+                <span>{{alignment.querySequence}}</span>
+                <span>{{alignment.diff}}</span>
+                <span>{{alignment.sequence}}</span>
+                <span></span>
+            </div>
+            <div class="left alignment-end-pos" layout="column">
+                <span>{{alignment.queryEnd}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{alignment.sequenceEnd}}</span>
+            </div>
+        </div>
+    </div>
+</div>

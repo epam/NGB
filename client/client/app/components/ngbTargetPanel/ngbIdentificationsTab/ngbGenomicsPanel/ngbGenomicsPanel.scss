@@ -1,0 +1,180 @@
+$genomics-select-height: 28px;
+$genomics-color: #333333;
+$genomics-border: 1px solid #dddddd;
+$genomics-border-radius: 5px;
+$genomics-font-size: 13px;
+
+ngb-genomics-panel {
+    padding: 5px 0 0;
+    position: relative;
+
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
+    .genomic-query-container {
+        margin: 10px 20px;
+        display: flex;
+        padding: 10px;
+        border: $genomics-border;
+        border-radius: $genomics-border-radius;
+    
+        div > span {
+          line-height: 20px;
+          height: 20px;
+          min-height: 20px;
+          white-space: pre;
+        }
+    
+        div.left > span {
+          text-align: left;
+          margin-right: 10px;
+        }
+    
+        div.right > span {
+          text-align: right;
+          margin-left: 14px;
+        }
+    
+        div.center > span {
+          text-align: center;
+        }
+    
+        div.mono > span {
+          font-family: monospace;
+          font-size: 18px;
+        }
+    }
+
+    .alignment-field-name {
+        font-weight: bold;
+        display: inline-block;
+        line-height: 20px;
+        font-size: 14px;
+    }
+
+    .genomics-block {
+        margin-top: 5px;
+        display: grid;
+        grid-template-columns: repeat(20, 1fr);
+        align-items: center;
+        color: $genomics-color;
+        height: $genomics-select-height;
+        line-height: $genomics-select-height;
+
+        label {
+            grid-column: 2 / 4;
+            grid-row: 1;
+            display: flex;
+            justify-content: right;
+            font-size: 13px;
+            color: $genomics-color;
+            margin-right: 10px;
+        }
+
+        md-input-container {
+            margin: 0;
+            padding: 0;
+            color: $genomics-color;
+            line-height: $genomics-select-height;
+            height: $genomics-select-height;
+            color: $genomics-color;
+            font-size: $genomics-font-size;
+        }
+
+        md-input-container.gene-select {
+            grid-column: 5 / 11;
+            grid-row: 1;
+        }
+
+        md-input-container.protein-select {
+            grid-column: 12 / 18;
+            grid-row: 1;
+        }
+
+        md-input-container md-select {
+            &:not([disabled]):focus .md-select-value {
+                border-bottom: none;
+            }
+    
+            md-select-value {
+                border: none;
+                // min-height: $genomics-select-height;
+                padding: 0;
+                // font-size: $genomics-font-size;
+                // display: flex;
+                // align-items: center;
+        
+                .md-select-icon {
+                    // margin: 0 4px 0 0;
+                    // width: 20px;
+                }
+        
+                > span,
+                > span > div {
+                    line-height: $genomics-select-height;
+                    height: $genomics-select-height;
+                    transform: none!important;
+                }
+            }
+        }
+    }
+
+    .genomics-button {
+        min-height: 25px;
+        height: 25px;
+        line-height: 25px;
+        min-width: unset;
+        width: unset;
+        margin: 0;
+        grid-row: 1;
+        font-weight: 400;
+        font-size: 13px;
+    }
+
+    .genomics-button.align {
+        grid-column: 11 / 14;
+    }
+
+    .genomics-button.track {
+        grid-column: 15 / 18;
+    }
+}
+
+.genomics-select-container{
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+  
+    md-option {
+        padding: 0 8px;
+        height: calc($genomics-select-height + 2px);
+  
+        &[selected],
+        &:not([disabled]):focus {
+            color: $genomics-color;
+        }
+    }
+  
+    md-select-menu,
+    md-select-menu md-content {
+        min-height: calc($genomics-select-height + 2px);
+    }
+}
