@@ -93,7 +93,7 @@ export default class ngbSequencesPanelService {
         }
         const target = this.getTarget(this.selectedGeneId);
         const results = sequences.map(sequence => {
-            const {mrna, protein} = sequence;
+            const {mrna = {}, protein = {}} = sequence;
             return {
                 target,
                 'transcript': {
