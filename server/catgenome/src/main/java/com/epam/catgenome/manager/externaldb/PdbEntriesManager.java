@@ -49,6 +49,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("PMD.UnusedPrivateMethod")
 public class PdbEntriesManager extends HttpDataManager{
 
     private static final String LOCATION = "https://www.rcsb.org/search/data";
