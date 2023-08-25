@@ -100,12 +100,12 @@ export default class ngbSequencesPanelService {
                     id: mrna.id,
                     url: mrna.url
                 },
-                'length (nt)': mrna.length,
+                'mrna length': mrna.length,
                 'protein': {
                     id: protein.id,
                     url: protein.url
                 },
-                'length (aa)': protein.length,
+                'protein length': protein.length,
                 'protein name': protein.name
             }
         });

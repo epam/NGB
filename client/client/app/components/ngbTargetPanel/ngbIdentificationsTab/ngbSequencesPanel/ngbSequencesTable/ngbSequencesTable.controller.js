@@ -1,4 +1,22 @@
-const SEQUENCES_TABLE_COLUMNS = ['target', 'transcript', 'length (nt)', 'protein', 'length (aa)', 'protein name'];
+const SEQUENCES_TABLE_COLUMNS = [{
+    name: 'target',
+    displayName: 'Target'
+}, {
+    name: 'transcript',
+    displayName: 'Transcript'
+}, {
+    name: 'mrna length',
+    displayName: 'Length (nt)'
+}, {
+    name: 'protein',
+    displayName: 'Protein'
+}, {
+    name: 'protein length',
+    displayName: 'Length (aa)'
+}, {
+    name: 'protein name',
+    displayName: 'Protein name'
+}];
 
 export default class ngbSequencesTableController {
 
@@ -128,18 +146,19 @@ export default class ngbSequencesTableController {
             let columnSettings = null;
             const column = columnsList[i];
             columnSettings = {
-                name: column,
+                name: column.name,
+                displayName: column.displayName,
                 enableHiding: false,
                 enableColumnMenu: false,
                 enableSorting: false,
                 enableFiltering: false,
-                field: column,
-                headerTooltip: column,
+                field: column.name,
+                headerTooltip: column.name,
                 headerCellTemplate: headerCells,
                 minWidth: 40,
                 width: '*'
             };
-            switch (column) {
+            switch (column.name) {
                 case 'transcript':
                     columnSettings = {
                         ...columnSettings,
@@ -150,6 +169,15 @@ export default class ngbSequencesTableController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell
+                    };
+                    break;
+                case 'protein name':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                            <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                            {{row.entity[col.field]}}
+                        </div>`
                     };
                     break;
                 default:
