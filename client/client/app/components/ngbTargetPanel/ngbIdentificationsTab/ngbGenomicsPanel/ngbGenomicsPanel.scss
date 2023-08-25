@@ -1,7 +1,5 @@
 $genomics-select-height: 28px;
 $genomics-color: #333333;
-$genomics-border: 1px solid #dddddd;
-$genomics-border-radius: 5px;
 $genomics-font-size: 13px;
 
 ngb-genomics-panel {
@@ -27,47 +25,6 @@ ngb-genomics-panel {
             height: 24px;
             font-size: 14px;
         }
-    }
-
-    .genomic-query-container {
-        margin: 10px 20px;
-        display: flex;
-        padding: 10px;
-        border: $genomics-border;
-        border-radius: $genomics-border-radius;
-    
-        div > span {
-          line-height: 20px;
-          height: 20px;
-          min-height: 20px;
-          white-space: pre;
-        }
-    
-        div.left > span {
-          text-align: left;
-          margin-right: 10px;
-        }
-    
-        div.right > span {
-          text-align: right;
-          margin-left: 14px;
-        }
-    
-        div.center > span {
-          text-align: center;
-        }
-    
-        div.mono > span {
-          font-family: monospace;
-          font-size: 18px;
-        }
-    }
-
-    .alignment-field-name {
-        font-weight: bold;
-        display: inline-block;
-        line-height: 20px;
-        font-size: 14px;
     }
 
     .genomics-block {

@@ -8,14 +8,14 @@
 <div class="genomics-block">
     <md-button type="button"
                class="md-raised md-accent genomics-button align"
-               ng-if="$ctrl.showAlignButton"
+               ng-disabled="!$ctrl.targetModel.protein || !$ctrl.queryModel.protein"
                aria-label="Align comparison"
                ng-click="$ctrl.alignComparison()">
         Align
     </md-button>
     <md-button type="button"
                class="md-raised genomics-button track"
-               ng-if="$ctrl.showTrackButton"
+               ng-disabled="true"
                aria-label="View on track"
                ng-click="$ctrl.viewOnTrack()">
         View on track
@@ -27,8 +27,9 @@
         <md-select ng-model="$ctrl.targetModel.gene"
                    placeholder="Select gene"
                    aria-label="Target gene"
+                   ng-change="$ctrl.onChangeGene('target', $ctrl.targetModel.gene)"
                    md-container-class="genomics-select-container">
-            <md-option ng-repeat="item in $ctrl.targetOptions"
+            <md-option ng-repeat="item in $ctrl.targetGeneOptions"
                        ng-value="item.geneId">
                 {{item.chip}}
             </md-option>
@@ -40,9 +41,9 @@
                    placeholder="Select protein"
                    aria-label="Target protein"
                    md-container-class="genomics-select-container">
-            <md-option ng-repeat="item in $ctrl.targetOptions"
-                       ng-value="item.geneId">
-                {{item.chip}}
+            <md-option ng-repeat="item in $ctrl.targetProteinOptions"
+                       ng-value="item">
+                {{item}}
             </md-option>
         </md-select>
     </md-input-container>
@@ -53,8 +54,9 @@
         <md-select ng-model="$ctrl.queryModel.gene"
                    placeholder="Select gene"
                    aria-label="Query gene"
+                   ng-change="$ctrl.onChangeGene('query', $ctrl.queryModel.gene)"
                    md-container-class="genomics-select-container">
-            <md-option ng-repeat="item in $ctrl.queryOptions"
+            <md-option ng-repeat="item in $ctrl.queryGeneOptions"
                        ng-value="item.geneId">
                 {{item.chip}}
             </md-option>
@@ -66,44 +68,11 @@
                    placeholder="Select protein"
                    aria-label="Query protein"
                    md-container-class="genomics-select-container">
-            <md-option ng-repeat="item in $ctrl.queryOptions"
-                       ng-value="item.geneId">
-                {{item.chip}}
+            <md-option ng-repeat="item in $ctrl.queryProteinOptions"
+                       ng-value="item">
+                {{item}}
             </md-option>
         </md-select>
     </md-input-container>
 </div>
-<div class="genomic-query-container" layout="column">
-    <div layout="row" ng-repeat="alignment in $ctrl.alignments">
-        <div layout="column" class="alignment-query-title">
-            <span></span>
-            <span class="alignment-field-name">Target</span>
-            <span></span>
-            <span class="alignment-field-name">Query</span>
-            <span></span>
-        </div>
-        <div layout="row" flex>
-            <div class="right alignment-start-pos" layout="column">
-                <span>{{alignment.queryStart}}</span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span>{{alignment.sequenceStart}}</span>
-            </div>
-            <div class="mono alignment-sequence" layout="column">
-                <span></span>
-                <span>{{alignment.querySequence}}</span>
-                <span>{{alignment.diff}}</span>
-                <span>{{alignment.sequence}}</span>
-                <span></span>
-            </div>
-            <div class="left alignment-end-pos" layout="column">
-                <span>{{alignment.queryEnd}}</span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span>{{alignment.sequenceEnd}}</span>
-            </div>
-        </div>
-    </div>
-</div>
+<ngb-genomics-alignment></ngb-genomics-alignment>

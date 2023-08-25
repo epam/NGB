@@ -1,0 +1,40 @@
+<div class="genomic-query-container" layout="column">
+    <div layout="row" ng-repeat="alignment in $ctrl.alignments">
+        <div layout="column" class="alignment-query-title">
+            <span></span>
+            <span class="alignment-field-name">{{alignment.name}}</span>
+            <span></span>
+            <span class="alignment-field-name">Query</span>
+            <span></span>
+        </div>
+        <div layout="row" flex>
+            <div class="right alignment-start-pos" layout="column">
+                <span>{{alignment.queryStart}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{alignment.sequenceStart}}</span>
+            </div>
+            <div class="mono alignment-sequence" layout="column">
+                <span></span>
+                <span>{{alignment.querySequence}}</span>
+                <span>{{alignment.diff}}</span>
+                <span>{{alignment.sequence}}</span>
+                <span></span>
+            </div>
+            <div class="left alignment-end-pos" layout="column">
+                <span>{{alignment.queryEnd}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{alignment.sequenceEnd}}</span>
+            </div>
+        </div>
+    </div>
+    <div layout="row" class="empty-container" ng-if="!$ctrl.alignments">
+        <md-content class="no-records-warning"
+                    flex>
+            <span>Select gene and protein for target and query.</span>
+        </md-content>
+    </div>
+</div>

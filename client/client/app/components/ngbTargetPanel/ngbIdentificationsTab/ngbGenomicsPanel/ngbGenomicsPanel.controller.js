@@ -1,42 +1,45 @@
 export default class ngbGenomicsPanelController {
 
-    _loadingData = false;
-    _failedResult = false;
-    _errorMessageList = null;
     targetModel = {};
     queryModel = {};
-    showAlignButton = true;
-    showTrackButton = true;
-
-    get loadingData() {
-        return this._loadingData;
-    }
-    get failedResult() {
-        return this._failedResult;
-    }
-    get errorMessageList() {
-        return this._errorMessageList;
-    }
+    geneOptions = [];
+    proteinOptions = {
+        target: [],
+        query: []
+    };
 
     static get UID() {
         return 'ngbGenomicsPanelController';
     }
 
-    constructor(ngbTargetPanelService) {
-        Object.assign(this, {ngbTargetPanelService});
-        this.alignments = [{
-            queryStart: 0,
-            sequenceStart: 0,
-            queryEnd: 10,
-            sequenceEnd: 10,
-            querySequence: 'AAA',
-            diff: 'diff',
-            sequence: 'TTT'
-        }];
+    constructor($scope, $timeout, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService) {
+        Object.assign(this, {$scope, $timeout, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService});
+    }
+
+    get loadingData() {
+        return this.ngbGenomicsPanelService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbGenomicsPanelService.loadingData = value;
+    }
+    get failedResult() {
+        return this.ngbGenomicsPanelService.failedResult;
+    }
+    get errorMessageList() {
+        return this.ngbGenomicsPanelService.errorMessageList;
     }
 
     get genesIds() {
         return this.ngbTargetPanelService.genesIds;
+    }
+
+    get allSequences () {
+        return this.ngbSequencesPanelService.allSequences;
+    }
+
+    get targetId() {
+        const {target} = this.ngbTargetPanelService.identificationTarget || {};
+        return target.id;
     }
 
     getChipByGeneId (id) {
@@ -49,24 +52,56 @@ export default class ngbGenomicsPanelController {
 
     async initialize() {
         if (this.genesIds) {
-            this.options = this.genesIds.map(id => ({
+            this.geneOptions = this.genesIds.map(id => ({
                 geneId: id,
                 chip: this.getChipByGeneId(id)
             }));
         }
     }
 
-    get targetOptions() {
-        const arr = this.options.filter(o => this.queryModel.gene !== o.geneId);
-        return arr;
+    get targetGeneOptions() {
+        return this.geneOptions.filter(o => this.queryModel.gene !== o.geneId);
     }
 
-    get queryOptions() {
-        const arr = this.options.filter(o => this.targetModel.gene !== o.geneId);
-        return arr;
+    get queryGeneOptions() {
+        return this.geneOptions.filter(o => this.targetModel.gene !== o.geneId);
     }
 
-    alignComparison() {}
+    onChangeGene(name, geneId) {
+        if (!geneId) {
+            this.proteinOptions[name] = [];
+        } else {
+            const data = this.allSequences[geneId.toLowerCase()] || {};
+            const proteins = (data.sequences || [])
+                .map(s => (s.protein || {}).id)
+                .filter(p => p);
+            this.proteinOptions[name] = proteins;
+        }
+    }
+
+    get targetProteinOptions() {
+        return this.proteinOptions.target.filter(o => o !== this.queryModel.protein);
+    }
+
+    get queryProteinOptions() {
+        return this.proteinOptions.query.filter(o => o !== this.targetModel.protein);
+    }
+
+    async alignComparison() {
+        this.loadingData = true;
+        const targetProtein = this.targetModel.protein;
+        const queryProtein = this.queryModel.protein;
+        if (!this.targetId || !targetProtein || !queryProtein) {
+            this._loadingData = false;
+            return;
+        }
+        const sequenceIds = {
+            firstSequenceId: targetProtein,
+            secondSequenceId: queryProtein
+        };
+        await this.ngbGenomicsPanelService.getTargetAlignment(this.targetId, sequenceIds);
+        this.$timeout(() => this.$scope.$apply());
+    }
 
     viewOnTrack() {}
 }
