@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.entity.target.Sequence.parseStrand;
@@ -85,6 +86,7 @@ public class NCBIGeneSequencesManager extends HttpDataManager {
         if (getComments) {
             final List<String> proteinIds = geneRefSections.stream()
                     .map(sec -> sec.getSequences().stream()
+                            .filter(s -> Objects.nonNull(s.getProtein()))
                             .map(s -> s.getProtein().getId())
                             .collect(Collectors.toList()))
                     .flatMap(List::stream)

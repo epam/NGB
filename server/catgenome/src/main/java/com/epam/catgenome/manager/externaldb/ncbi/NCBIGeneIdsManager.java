@@ -28,6 +28,9 @@ import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -43,9 +46,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class NCBIGeneIdsManager extends AbstractIndexManager<GeneId> {
@@ -62,7 +67,13 @@ public class NCBIGeneIdsManager extends AbstractIndexManager<GeneId> {
     }
 
     public List<GeneId> searchByEnsemblIds(final List<String> ids) throws ParseException, IOException {
-        return search(ids, IndexFields.ENSEMBL_ID.name());
+        final List<String> filtered = ListUtils.emptyIfNull(ids).stream()
+                .filter(StringUtils::isAlphanumeric)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(filtered)) {
+            return Collections.emptyList();
+        }
+        return search(filtered, IndexFields.ENSEMBL_ID.name());
     }
 
     public List<GeneId> readEntries(final String path) throws IOException {
