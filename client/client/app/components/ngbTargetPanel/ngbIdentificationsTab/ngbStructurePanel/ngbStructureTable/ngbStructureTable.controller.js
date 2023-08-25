@@ -37,11 +37,9 @@ export default class ngbStructureTableController {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbStructurePanelService});
         const sourceChanged = this.sourceChanged.bind(this);
         const filterChanged = this.filterChanged.bind(this);
-        dispatcher.on('target:identification:changed', sourceChanged);
         dispatcher.on('target:identification:structure:source:changed', sourceChanged);
         dispatcher.on('target:identification:structure:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:source:changed', sourceChanged);
             dispatcher.removeListener('target:identification:structure:filters:changed', filterChanged);
         });
