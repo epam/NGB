@@ -18,6 +18,7 @@
                           md-autocomplete-snap
                           md-require-match="true"
                           md-removable="true"
+                          md-chips-trim
                           flex="70">
                     <md-autocomplete
                         md-search-text="searchText"
@@ -27,6 +28,7 @@
                         md-items="gene in getGenesOfInterest(searchText)"
                         md-item-text="gene.span"
                         md-delay="100"
+                        md-min-length="0"
                         md-selected-item-change="genesOfInterestChanged(gene)"
                         md-match-case-insensitive="true">
                         <md-item-template>
@@ -54,6 +56,7 @@
                 <md-chips ng-model="translationalGenes"
                         md-autocomplete-snap
                         md-require-match="true"
+                        md-chips-trim
                         flex="70">
                     <md-autocomplete
                         md-search-text="searchText"
@@ -63,6 +66,7 @@
                         md-items="gene in getTranslationalGenes(searchText)"
                         md-item-text="gene.span"
                         md-delay="100"
+                        md-min-length="0"
                         md-selected-item-change="translationalGenesChanged(gene)"
                         md-match-case-insensitive="true">
                         <md-item-template>

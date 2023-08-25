@@ -81,19 +81,21 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                     };
                 }
                 
-                $scope.getGenesOfInterest = (text) => text
-                    ? $scope.genes
+                $scope.getGenesOfInterest = (text) => {
+                    const genes = $scope.genes
                         .filter(s => !$scope.genesOfInterest.includes(s))
-                        .filter(filterGroupHead($scope.genesOfInterest))
-                        .filter(createFilterFor(text))
-                    : [];
+                        .filter(filterGroupHead($scope.genesOfInterest));
+                    if (!text) return genes;
+                    return genes.filter(createFilterFor(text));
+                }
 
-                $scope.getTranslationalGenes = (text) => text
-                    ? $scope.genes
+                $scope.getTranslationalGenes = (text) => {
+                    const genes = $scope.genes
                         .filter(s => !$scope.translationalGenes.includes(s))
-                        .filter(filterGroupHead($scope.translationalGenes))
-                        .filter(createFilterFor(text))
-                    : [];
+                        .filter(filterGroupHead($scope.translationalGenes));
+                    if (!text) return genes;
+                    return genes.filter(createFilterFor(text));
+                }
 
                 function getGroupItems (item, list) {
                     return $scope.genes
