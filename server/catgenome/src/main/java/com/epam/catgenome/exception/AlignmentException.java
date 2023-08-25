@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2018 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,35 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.exception;
 
-import java.util.List;
+/**
+ * A generic business RuntimeException
+ */
+public class AlignmentException extends Exception {
 
-@Getter
-@Setter
-@Builder
-public class Target extends AbstractSecuredEntity {
-    private Long targetId;
-    private String targetName;
-    private String owner;
-    private AlignmentStatus alignmentStatus;
-    private List<String> diseases;
-    private List<String> products;
-    private List<TargetGene> targetGenes;
-
-    @Override
-    public AbstractSecuredEntity getParent() {
-        return null;
-    }
-
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.TARGET;
+    public AlignmentException(final String message) {
+        super(message);
     }
 }

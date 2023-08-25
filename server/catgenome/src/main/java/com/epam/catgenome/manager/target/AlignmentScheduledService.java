@@ -21,35 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
+@Service
+@RequiredArgsConstructor
+public class AlignmentScheduledService {
 
-@Getter
-@Setter
-@Builder
-public class Target extends AbstractSecuredEntity {
-    private Long targetId;
-    private String targetName;
-    private String owner;
-    private AlignmentStatus alignmentStatus;
-    private List<String> diseases;
-    private List<String> products;
-    private List<TargetGene> targetGenes;
+    private final AlignmentManager manager;
 
-    @Override
-    public AbstractSecuredEntity getParent() {
-        return null;
-    }
-
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.TARGET;
+    @Scheduled(fixedRateString = "${targets.generate.alignment.rate:60000}")
+    public void generateAlignment() {
+        manager.generateAlignment();
     }
 }

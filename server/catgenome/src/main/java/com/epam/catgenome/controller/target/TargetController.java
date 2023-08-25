@@ -43,6 +43,7 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.target.AlignmentSecurityService;
 import com.epam.catgenome.manager.target.AssociationExportSecurityService;
 import com.epam.catgenome.manager.target.AssociationTable;
 import com.epam.catgenome.manager.target.TargetField;
@@ -76,6 +77,7 @@ import java.util.List;
 public class TargetController extends AbstractRESTController {
 
     private final TargetSecurityService targetSecurityService;
+    private final AlignmentSecurityService alignmentSecurityService;
     private final TargetIdentificationSecurityService targetIdentificationSecurityService;
     private final AssociationExportSecurityService exportSecurityService;
 
@@ -89,6 +91,23 @@ public class TargetController extends AbstractRESTController {
             })
     public Result<Target> loadTarget(@PathVariable final long targetId) {
         return Result.success(targetSecurityService.loadTarget(targetId));
+    }
+
+    @GetMapping(value = "/target/alignment/{targetId}")
+    @ApiOperation(
+            value = "Returns target alignment by sequence ids",
+            notes = "Returns target alignment by sequence ids",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void getAlignment(@PathVariable final Long targetId,
+                             @RequestParam final String firstSequenceId,
+                             @RequestParam final String secondSequenceId,
+                             final HttpServletResponse response) throws IOException {
+        byte[] bytes = alignmentSecurityService.getAlignment(targetId, firstSequenceId, secondSequenceId);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
     }
 
     @PostMapping(value = "/target/filter")

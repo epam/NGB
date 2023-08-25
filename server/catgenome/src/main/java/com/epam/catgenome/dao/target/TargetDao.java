@@ -24,6 +24,7 @@
 package com.epam.catgenome.dao.target;
 
 import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.util.db.PagingInfo;
@@ -62,9 +63,11 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     private String targetSequenceName;
     private String insertTargetQuery;
     private String updateTargetQuery;
+    private String updateAlignmentQuery;
     private String deleteTargetQuery;
     private String loadTargetQuery;
     private String loadTargetsQuery;
+    private String loadTargetsForAlignmentQuery;
     private String loadAllTargetsQuery;
     private String totalCountQuery;
     private String productsQuery;
@@ -82,6 +85,11 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
             getNamedParameterJdbcTemplate().update(updateTargetQuery, TargetParameters.getParameters(target));
         }
         return target;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateAlignment(final Target target) {
+        getNamedParameterJdbcTemplate().update(updateAlignmentQuery, TargetParameters.getParameters(target));
     }
 
     /**
@@ -113,6 +121,10 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
     }
 
+    public List<Target> loadTargetsForAlignment() {
+        return getJdbcTemplate().query(loadTargetsForAlignmentQuery, TargetParameters.getExtendedRowExtractor());
+    }
+
     public long getTotalCount(final String clause) {
         final String query = addClauseToQuery(totalCountQuery, clause);
         return getJdbcTemplate().queryForObject(query, Long.class);
@@ -126,6 +138,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         TARGET_ID,
         TARGET_NAME,
         OWNER,
+        ALIGNMENT_STATUS,
         DISEASES,
         PRODUCTS;
 
@@ -134,6 +147,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
             params.addValue(TARGET_ID.name(), target.getTargetId());
             params.addValue(TARGET_NAME.name(), target.getTargetName());
             params.addValue(OWNER.name(), target.getOwner());
+            params.addValue(ALIGNMENT_STATUS.name(), target.getAlignmentStatus().getValue());
             params.addValue(DISEASES.name(), listToData(target.getDiseases()));
             params.addValue(PRODUCTS.name(), listToData(target.getProducts()));
             return params;
@@ -148,6 +162,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
                     .targetId(rs.getLong(TARGET_ID.name()))
                     .targetName(rs.getString(TARGET_NAME.name()))
                     .owner(rs.getString(OWNER.name()))
+                    .alignmentStatus(AlignmentStatus.getByValue(rs.getInt(ALIGNMENT_STATUS.name())))
                     .diseases(dataToList(rs.getString(DISEASES.name())))
                     .products(dataToList(rs.getString(PRODUCTS.name())))
                     .build();
