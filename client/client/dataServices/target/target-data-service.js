@@ -303,7 +303,7 @@ export class TargetDataService extends DataService {
     }
 
     getSequencesTableResults(geneIds) {
-        const getComments = true;
+        const getComments = false;
         return new Promise((resolve, reject) => {
             this.get(`target/sequences/table${getQueryString({geneIds, getComments})}`)
                 .then(data => {
