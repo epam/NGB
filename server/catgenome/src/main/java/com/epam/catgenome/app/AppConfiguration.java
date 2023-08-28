@@ -19,11 +19,11 @@ import org.springframework.context.annotation.PropertySource;
 @Import({AppMVCConfiguration.class, SecurityConfiguration.class})
 @PropertySource(value = {
         "classpath:catgenome.properties",
-        "file:///${CATGENOME_CONF_DIR}/catgenome.properties",
+        "file:///${CATGENOME_CONF_DIR:./config}/catgenome.properties",
         "file:./config/catgenome.properties",
-        "file:${conf}/catgenome.properties",
+        "file:${conf:./config}/catgenome.properties",
         "classpath:version.properties",
-        "file:///${CATGENOME_CONF_DIR}/version.properties"},
+        "file:///${CATGENOME_CONF_DIR:./config}/version.properties"},
         ignoreResourceNotFound = true)
 public class AppConfiguration {
 }

@@ -11,11 +11,11 @@
         <property name="locations">
             <list>
                 <value>classpath:catgenome.properties</value>
-                <value>file:///${CATGENOME_CONF_DIR}/catgenome.properties</value>
+                <value>file:///${CATGENOME_CONF_DIR:./config}/catgenome.properties</value>
                 <value>file:./config/catgenome.properties</value>
-                <value>file:${conf}/catgenome.properties</value>
+                <value>file:${conf:./config}/catgenome.properties</value>
                 <value>classpath:version.properties</value>
-                <value>file:///${CATGENOME_CONF_DIR}/version.properties</value>
+                <value>file:///${CATGENOME_CONF_DIR:./config}/version.properties</value>
             </list>
         </property>
     </bean>
