@@ -30,6 +30,7 @@
                    ng-change="$ctrl.onChangeGene('target', $ctrl.targetModel.gene)"
                    md-container-class="genomics-select-container">
             <md-option ng-repeat="item in $ctrl.targetGeneOptions"
+                       ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
                        ng-value="item.geneId">
                 {{item.chip}}
             </md-option>
@@ -57,6 +58,7 @@
                    ng-change="$ctrl.onChangeGene('query', $ctrl.queryModel.gene)"
                    md-container-class="genomics-select-container">
             <md-option ng-repeat="item in $ctrl.queryGeneOptions"
+                       ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
                        ng-value="item.geneId">
                 {{item.chip}}
             </md-option>

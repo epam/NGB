@@ -1,3 +1,8 @@
+const MODEL = {
+    TARGET: 'target',
+    QUERY: 'query'
+};
+
 export default class ngbGenomicsPanelController {
 
     targetModel = {};
@@ -7,6 +12,7 @@ export default class ngbGenomicsPanelController {
         target: [],
         query: []
     };
+    allProteins = [];
 
     static get UID() {
         return 'ngbGenomicsPanelController';
@@ -14,6 +20,10 @@ export default class ngbGenomicsPanelController {
 
     constructor($scope, $timeout, dispatcher, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService});
+        dispatcher.on('target:identification:sequences:results:updated', this.setAllProteinOptions.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:sequences:results:updated', this.setAllProteinOptions.bind(this));
+        });
     }
 
     get loadingData() {
@@ -53,9 +63,10 @@ export default class ngbGenomicsPanelController {
     async initialize() {
         if (this.genesIds) {
             this.geneOptions = this.genesIds.map(id => ({
-                geneId: id,
+                geneId: id.toLowerCase(),
                 chip: this.getChipByGeneId(id)
             }));
+            this.setAllProteinOptions();
         }
     }
 
@@ -67,15 +78,39 @@ export default class ngbGenomicsPanelController {
         return this.geneOptions.filter(o => this.targetModel.gene !== o.geneId);
     }
 
+    isProteinOptionDisabled(geneId) {
+        return !this.allProteins[geneId] || !this.allProteins[geneId].length;
+    }
+
+    getProteins(geneId) {
+        if (!this.allSequences) return;
+        const data = this.allSequences[geneId.toLowerCase()] || {};
+        const proteins = (data.sequences || [])
+            .map(s => (s.protein || {}).id)
+            .filter(p => p);
+        return proteins;
+    }
+
+    setAllProteinOptions() {
+        this.allProteins = this.geneOptions.reduce((acc, gene) => {
+            const {geneId} = gene;
+            acc[geneId.toLowerCase()] = this.getProteins(geneId);
+            return acc;
+        }, {});
+        this.$timeout(() => this.$scope.$apply());
+    }
+
     onChangeGene(name, geneId) {
+        if (name === MODEL.TARGET) {
+            this.targetModel.protein = undefined;
+        }
+        if (name === MODEL.QUERY) {
+            this.queryModel.protein = undefined;
+        }
         if (!geneId) {
             this.proteinOptions[name] = [];
         } else {
-            const data = this.allSequences[geneId.toLowerCase()] || {};
-            const proteins = (data.sequences || [])
-                .map(s => (s.protein || {}).id)
-                .filter(p => p);
-            this.proteinOptions[name] = proteins;
+            this.proteinOptions[name] = this.allProteins[geneId.toLowerCase()];
         }
     }
 

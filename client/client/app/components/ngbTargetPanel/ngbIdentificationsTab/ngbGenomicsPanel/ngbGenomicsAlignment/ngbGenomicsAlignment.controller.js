@@ -2,7 +2,7 @@ import angular from 'angular';
 
 const MONOSPACE_RATIO = 1.75;
 const MIN_SEQ_PART_LENGTH = 10;
-const SEQUENCE_RIGHT_MARGIN = 20;
+const SEQUENCE_MARGINS = 30;
 const DEFAULT_SYMBOL_WIDTH = 7;
 const CONTAINER_MARGIN_AND_PADDING = (20 + 10) * 2;
 const ADDITIONAL_TITLE_SIGNS = 4;
@@ -119,7 +119,7 @@ export default class ngbGenomicsAlignmentController {
         if (!element.width() || !this.alignment) return;
         this.sequence = element.find('.genomics_alignment_sequence');
         const titleCollection = document.getElementsByClassName('genomics_alignment_query_title');
-        const containerWidth = element.width() - CONTAINER_MARGIN_AND_PADDING - SEQUENCE_RIGHT_MARGIN;
+        const containerWidth = element.width() - CONTAINER_MARGIN_AND_PADDING - SEQUENCE_MARGINS;
         let newWidth;
         if (titleCollection && titleCollection.length) {
             newWidth = containerWidth
