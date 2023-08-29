@@ -242,8 +242,11 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     public List<NgbSecurityGroup> loadExistingGroupsFromList(List<String> groups) {
-        String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
-        return getJdbcTemplate().query(query, GroupParameters.getGroupRowMapper(), groups.toArray());
+        if (CollectionUtils.isNotEmpty(groups)){
+            String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
+            return getJdbcTemplate().query(query, GroupParameters.getGroupRowMapper(), groups.toArray());
+        }
+        return Collections.emptyList();
     }
 
     public boolean isUserInGroup(String userName, String group) {

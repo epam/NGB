@@ -42,7 +42,7 @@
             <value>
                 <![CDATA[
                         SELECT NEXTVAL(:SEQUENCE_NAME)
-                        FROM (VALUES @in@)
+                        FROM (VALUES @in@) AS ids
                 ]]>
             </value>
         </property>
