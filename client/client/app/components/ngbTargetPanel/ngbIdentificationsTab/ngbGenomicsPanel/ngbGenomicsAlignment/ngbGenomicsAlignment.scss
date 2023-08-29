@@ -2,37 +2,17 @@ $genomics-border: 1px solid #dddddd;
 $genomics-border-radius: 5px;
 
 ngb-genomics-alignment {
-    .genomic-query-container {
-        margin: 10px 20px;
-        display: flex;
-        padding: 10px;
-        border: $genomics-border;
-        border-radius: $genomics-border-radius;
+    .genomics-alignment {
+        margin: 10px 0;
+    }
+
+    .genomics-alignment-params {
+        justify-content: flex-end;
+        flex-flow: wrap;
+        margin-right: 25px;
     
-        div > span {
-          line-height: 20px;
-          height: 20px;
-          min-height: 20px;
-          white-space: pre;
-        }
-    
-        div.left > span {
-          text-align: left;
-          margin-right: 10px;
-        }
-    
-        div.right > span {
-          text-align: right;
-          margin-left: 14px;
-        }
-    
-        div.center > span {
-          text-align: center;
-        }
-    
-        div.mono > span {
-          font-family: monospace;
-          font-size: 18px;
+        .layout-row {
+            margin: 0 5px
         }
     }
 
@@ -40,7 +20,42 @@ ngb-genomics-alignment {
         font-weight: bold;
         display: inline-block;
         line-height: 20px;
-        font-size: 14px;
+        font-size: 12px;
+    }
+
+    .alignment-field-value {
+        display: inline-block;
+        line-height: 20px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .genomics-alignment-query-container {
+        display: flex;
+        margin: 10px 20px;
+        padding: 10px;
+        border: $genomics-border;
+        border-radius: $genomics-border-radius;
+
+        div {
+            display: flex;
+            justify-content: start;
+        }
+
+        div > span {
+            line-height: 20px;
+            height: 20px;
+            min-height: 20px;
+            white-space: nowrap;
+            margin: 0 10px;
+        }
+    
+        div.mono > span {
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0 10px 0 0;
+            white-space: pre;
+        }
     }
 
     .empty-container {

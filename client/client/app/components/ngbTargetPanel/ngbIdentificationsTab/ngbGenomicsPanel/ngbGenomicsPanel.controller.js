@@ -12,8 +12,8 @@ export default class ngbGenomicsPanelController {
         return 'ngbGenomicsPanelController';
     }
 
-    constructor($scope, $timeout, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService) {
-        Object.assign(this, {$scope, $timeout, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService});
+    constructor($scope, $timeout, dispatcher, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbGenomicsPanelService, ngbTargetPanelService, ngbSequencesPanelService});
     }
 
     get loadingData() {
@@ -100,6 +100,7 @@ export default class ngbGenomicsPanelController {
             secondSequenceId: queryProtein
         };
         await this.ngbGenomicsPanelService.getTargetAlignment(this.targetId, sequenceIds);
+        this.dispatcher.emit('target:identification:alignment:updated', true);
         this.$timeout(() => this.$scope.$apply());
     }
 

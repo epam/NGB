@@ -28,7 +28,7 @@ ngb-genomics-panel {
     }
 
     .genomics-block {
-        margin-top: 5px;
+        padding-top: 5px;
         display: grid;
         grid-template-columns: repeat(20, 1fr);
         align-items: center;

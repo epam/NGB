@@ -22,19 +22,32 @@ export default class ngbGenomicsPanelService {
         return this._errorMessageList;
     }
 
-    static instance (targetDataService) {
-        return new ngbGenomicsPanelService(targetDataService);
+    static instance (dispatcher, targetDataService) {
+        return new ngbGenomicsPanelService(dispatcher, targetDataService);
     }
 
-    constructor(targetDataService) {
+    constructor(dispatcher, targetDataService) {
         Object.assign(this, {targetDataService});
+        dispatcher.on('target:identification:changed', this.resetData.bind(this));
     }
 
     setAlignment(data) {
-        this._alignment = data.map(item => ({
-            name: item.name,
-            bases: item.bases
-        }));
+        const [target, query] = data;
+        const getName = (item) => {
+            return item.split(' ')[0];
+        };
+        this._alignment = {
+            targetName: getName(target.name),
+            targetTooltip: target.name,
+            targetSequence: target.baseString,
+            targetStart: 1,
+            targetEnd: target.baseString.length,
+            queryName: getName(query.name),
+            queryTooltip: query.name,
+            querySequence: query.baseString,
+            queryStart: 1,
+            queryEnd: query.baseString.length,
+        };
     }
 
     getTargetAlignment(targetId, sequenceIds) {
@@ -43,17 +56,28 @@ export default class ngbGenomicsPanelService {
                 .then(data => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this.setAlignment(data);
+                    if (data && data.length === 2) {
+                        this.setAlignment(data);
+                    } else {
+                        this._alignment = null;
+                    }
                     this._loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._failedResult = true;
                     this._errorMessageList = [err.message];
-                    this._alignments = null;
+                    this._alignment = null;
                     this._loadingData = false;
                     resolve(false);
                 });
         });
+    }
+
+    resetData() {
+        this._loadingData = false;
+        this._failedResult = false;
+        this._errorMessageList = null;
+        this._alignment = null;
     }
 }

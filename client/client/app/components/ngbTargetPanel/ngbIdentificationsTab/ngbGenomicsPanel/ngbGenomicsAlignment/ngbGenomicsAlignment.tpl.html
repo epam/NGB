@@ -1,40 +1,54 @@
-<div class="genomic-query-container" layout="column">
-    <div layout="row" ng-repeat="alignment in $ctrl.alignments">
-        <div layout="column" class="alignment-query-title">
-            <span></span>
-            <span class="alignment-field-name">{{alignment.name}}</span>
-            <span></span>
-            <span class="alignment-field-name">Query</span>
-            <span></span>
+<div layout="column"
+     class="genomics-alignment">
+    <div layout="row"
+         class="genomics-alignment-params"
+         ng-if="$ctrl.partedAlignment && $ctrl.partedAlignment.length">
+        <div layout="row">
+            <span class="alignment-field-name">Identities:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.numIdentity}}/{{$ctrl.alignment.length}}
+                ({{$ctrl.alignment.numIdentity / $ctrl.alignment.length | percentage:0}})</span>
         </div>
-        <div layout="row" flex>
-            <div class="right alignment-start-pos" layout="column">
-                <span>{{alignment.queryStart}}</span>
+        <div layout="row">
+            <span class="alignment-field-name">Gaps:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.gaps}}/{{$ctrl.alignment.length}}
+                ({{$ctrl.alignment.gaps / $ctrl.alignment.length | percentage:0}})</span>
+        </div>
+    </div>
+    <div layout="column"
+         class="genomics-alignment-query-container"
+         ng-if="$ctrl.partedAlignment && $ctrl.partedAlignment.length">
+        <div layout="row"
+             ng-repeat="alignment in $ctrl.partedAlignment">
+            <div layout="column"
+                 class="genomics_alignment_query_title">
                 <span></span>
+                <span class="alignment-field-name">
+                    <md-tooltip>{{alignment.targetTooltip}}</md-tooltip>
+                    {{alignment.targetName}} / {{alignment.targetStart}}-{{alignment.targetEnd}}
+                </span>
                 <span></span>
+                <span class="alignment-field-name">
+                    <md-tooltip>{{alignment.queryTooltip}}</md-tooltip>
+                    {{alignment.queryName}} / {{alignment.queryStart}}-{{alignment.queryEnd}}
+                </span>
                 <span></span>
-                <span>{{alignment.sequenceStart}}</span>
             </div>
-            <div class="mono alignment-sequence" layout="column">
+            <div layout="column"
+                    class="mono genomics_alignment_sequence">
                 <span></span>
-                <span>{{alignment.querySequence}}</span>
+                <span>{{alignment.targetSequence}}</span>
                 <span>{{alignment.diff}}</span>
-                <span>{{alignment.sequence}}</span>
+                <span>{{alignment.querySequence}}</span>
                 <span></span>
-            </div>
-            <div class="left alignment-end-pos" layout="column">
-                <span>{{alignment.queryEnd}}</span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span>{{alignment.sequenceEnd}}</span>
             </div>
         </div>
     </div>
-    <div layout="row" class="empty-container" ng-if="!$ctrl.alignments">
+    <div layout="row"
+         class="empty-container"
+         ng-if="!$ctrl.partedAlignment || !$ctrl.partedAlignment.length">
         <md-content class="no-records-warning"
                     flex>
-            <span>Select gene and protein for target and query.</span>
+            <span>{{$ctrl.warningMessage}}</span>
         </md-content>
     </div>
 </div>
