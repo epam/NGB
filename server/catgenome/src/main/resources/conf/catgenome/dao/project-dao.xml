@@ -559,7 +559,7 @@
                         count(b.bio_data_item_id) as bio_data_item_count,
 
                         min(pi.project_item_id) as project_item_id,
-                        min(pi.hidden) as hidden,
+                        bool_and(pi.hidden) as hidden,
                         min(pi.ordinal_number) as ordinal_number,
 
                         b.format as format,
@@ -581,7 +581,7 @@
                         min(rgb.format) as reference_gene_format,
                         min(rgb.created_date) as reference_gene_created_date,
                         min(rg.reference_genome_id) as reference_gene_reference_genome_id,
-                        min(rg.compressed) as reference_gene_compressed
+                        bool_and(rg.compressed) as reference_gene_compressed
                     FROM catgenome.project p
                         JOIN catgenome.project_item pi ON pi.referred_project_id = p.project_id
                         JOIN catgenome.biological_data_item b ON pi.referred_bio_data_item_id = b.bio_data_item_id
