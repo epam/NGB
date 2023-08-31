@@ -1,0 +1,73 @@
+$genomics-border: 1px solid #dddddd;
+$genomics-border-radius: 5px;
+
+ngb-genomics-alignment {
+    .genomics-alignment {
+        margin: 10px 0;
+    }
+
+    .genomics-alignment-params {
+        justify-content: flex-end;
+        flex-flow: wrap;
+        margin-right: 25px;
+    
+        .layout-row {
+            margin: 0 5px
+        }
+    }
+
+    .alignment-field-name {
+        font-weight: bold;
+        display: inline-block;
+        line-height: 20px;
+        font-size: 12px;
+    }
+
+    .alignment-field-value {
+        display: inline-block;
+        line-height: 20px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .genomics-alignment-query-container {
+        display: flex;
+        margin: 10px 20px;
+        padding: 10px;
+        border: $genomics-border;
+        border-radius: $genomics-border-radius;
+
+        div {
+            display: flex;
+            justify-content: start;
+        }
+
+        div > span {
+            line-height: 20px;
+            height: 20px;
+            min-height: 20px;
+            white-space: nowrap;
+            margin: 0 10px;
+        }
+    
+        div.mono > span {
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0 10px 0 0;
+            white-space: pre;
+        }
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding: 10px 0;
+        min-height: 30px;
+
+        .no-records-warning {
+            color: #999;
+        }
+    }
+}

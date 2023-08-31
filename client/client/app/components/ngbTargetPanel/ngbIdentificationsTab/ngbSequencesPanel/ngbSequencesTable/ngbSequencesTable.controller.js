@@ -195,13 +195,19 @@ export default class ngbSequencesTableController {
 
     async loadData () {
         this.loadingData = true;
-        this.gridOptions.data = await this.ngbSequencesPanelService.getSequencesData()
+        if (this.ngbSequencesPanelService.allSequences) {
+            await this.ngbSequencesPanelService.setSequenceData();
+            this.gridOptions.data = this.ngbSequencesTableService.getSequencesResults();
+            this.loadingData = false;
+        } else {
+            this.gridOptions.data = await this.ngbSequencesPanelService.getSequencesData()
             .then(success => {
                 if (success) {
                     return this.ngbSequencesTableService.getSequencesResults();
                 }
                 return [];
             });
+        }
         this.dispatcher.emit('target:identification:sequences:results:updated');
         this.$timeout(() => this.$scope.$apply());
     }

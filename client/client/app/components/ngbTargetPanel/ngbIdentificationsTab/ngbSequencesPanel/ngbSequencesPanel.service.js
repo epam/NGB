@@ -12,6 +12,7 @@ export default class ngbSequencesPanelService {
     _emptyResults = false;
     _genes = [];
     _selectedGeneId;
+    _allSequences = null;
     _sequencesResults = null;
     _sequencesReference = null;
     _totalPages = 0;
@@ -40,6 +41,9 @@ export default class ngbSequencesPanelService {
     set selectedGeneId(id) {
         this._selectedGeneId = id;
     }
+    get allSequences() {
+        return this._allSequences;
+    }
     get sequencesResults() {
         return this._sequencesResults;
     }
@@ -62,6 +66,10 @@ export default class ngbSequencesPanelService {
         Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService});
         this.updateGenes();
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
+    }
+
+    get genesIds() {
+        return this.ngbTargetPanelService.genesIds;
     }
 
     async targetChanged() {
@@ -123,38 +131,49 @@ export default class ngbSequencesPanelService {
         this._sequencesReference = reference;
     }
 
-    setSequenceData (value) {
-        const data = value.filter(v => (
-            v.geneId.toLowerCase() === this.selectedGeneId.toLowerCase()
-        ));
-        if (!data.length) {
+    setAllSequences(result) {
+        this._allSequences = this.genesIds.reduce((acc, id) => {
+            const data = result.filter(item => item.geneId.toLowerCase() === id.toLowerCase())[0] || {};
+            acc[id.toLowerCase()] = {
+                reference: data.reference || null,
+                sequences: data.sequences || null
+            };
+            return acc;
+        }, {});
+        this.setSequenceData();
+    }
+
+    setSequenceData () {
+        const data = this.allSequences[this.selectedGeneId.toLowerCase()];
+        if (!data) {
             this._sequencesReference = null;
             this.setEmtyResults();
             return;
         }
-        this.setSequencesReference(data[0].reference)
-        this.setSequencesResults(data[0].sequences);
+        this.setSequencesReference(data.reference)
+        this.setSequencesResults(data.sequences);
     }
 
     getSequencesData() {
-        if (!this.selectedGeneId) {
+        if (!this.genesIds || !this.genesIds.length) {
             return new Promise(resolve => {
                 this.loadingData = false;
                 resolve(true);
             });
         }
         return new Promise(resolve => {
-            this.targetDataService.getSequencesTableResults(this.selectedGeneId)
+            this.targetDataService.getSequencesTableResults(this.genesIds)
                 .then((data) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this.setSequenceData(data);
+                    this.setAllSequences(data);
                     this.loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._failedResult = true;
                     this._errorMessageList = [err.message];
+                    this._allSequences = null;
                     this._sequencesReference = null;
                     this._sequencesResults = null;
                     this._emptyResults = false;
@@ -177,6 +196,7 @@ export default class ngbSequencesPanelService {
     async resetSequencesData() {
         this._genes = [];
         this._selectedGeneId = undefined;
+        this._allSequences = null;
         this.resetSequenceResults();
     }
 }

@@ -380,4 +380,17 @@ export class TargetDataService extends DataService {
                 }, reject);
         });
     }
+
+    getTargetAlignment (targetId, sequenceIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/alignment/${targetId}${getQueryString({...sequenceIds})}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting alignmment result';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
 }
