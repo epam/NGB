@@ -43,8 +43,8 @@
                    aria-label="Target protein"
                    md-container-class="genomics-select-container">
             <md-option ng-repeat="item in $ctrl.targetProteinOptions"
-                       ng-value="item">
-                {{item}}
+                       ng-value="item.value">
+                {{item.name}}
             </md-option>
         </md-select>
     </md-input-container>
@@ -71,8 +71,8 @@
                    aria-label="Query protein"
                    md-container-class="genomics-select-container">
             <md-option ng-repeat="item in $ctrl.queryProteinOptions"
-                       ng-value="item">
-                {{item}}
+                       ng-value="item.value">
+                {{item.name}}
             </md-option>
         </md-select>
     </md-input-container>

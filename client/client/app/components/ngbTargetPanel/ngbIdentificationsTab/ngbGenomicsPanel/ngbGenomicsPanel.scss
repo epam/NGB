@@ -73,16 +73,7 @@ ngb-genomics-panel {
     
             md-select-value {
                 border: none;
-                // min-height: $genomics-select-height;
                 padding: 0;
-                // font-size: $genomics-font-size;
-                // display: flex;
-                // align-items: center;
-        
-                .md-select-icon {
-                    // margin: 0 4px 0 0;
-                    // width: 20px;
-                }
         
                 > span,
                 > span > div {
@@ -107,10 +98,11 @@ ngb-genomics-panel {
     }
 
     .genomics-button.align {
-        grid-column: 11 / 14;
+        grid-column: 15 / 18;// 11 / 14
     }
 
     .genomics-button.track {
+        display: none;
         grid-column: 15 / 18;
     }
 }

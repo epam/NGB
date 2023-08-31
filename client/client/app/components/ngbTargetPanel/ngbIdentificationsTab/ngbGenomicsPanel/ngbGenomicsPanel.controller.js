@@ -85,9 +85,18 @@ export default class ngbGenomicsPanelController {
     getProteins(geneId) {
         if (!this.allSequences) return;
         const data = this.allSequences[geneId.toLowerCase()] || {};
+        const getName = (protein = {}) => {
+            if (protein.name && protein.name !== ' ' && protein.id) {
+                return `${protein.name} (${protein.id})`;
+            }
+            return protein.id;
+        };
         const proteins = (data.sequences || [])
-            .map(s => (s.protein || {}).id)
-            .filter(p => p);
+            .map(s => ({
+                name: getName(s.protein),
+                value: (s.protein || {}).id
+            }))
+            .filter(p => p.value);
         return proteins;
     }
 
