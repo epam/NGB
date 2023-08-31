@@ -55,6 +55,79 @@ ngb-genomics-alignment {
             font-size: 12px;
             margin: 0 10px 0 0;
             white-space: pre;
+
+            .A {
+                background-color: rgb(145, 175, 252);
+            }
+            .R {
+                background-color: rgb(252, 145, 145);
+            }
+            .N {
+                background-color: rgb(151, 255, 124);
+            }
+            .D {
+                background-color: rgb(252, 180, 97);
+            }
+            .B {
+                background-color: rgb(121, 245, 254);
+            }
+            .C {
+                background-color: rgb(113 205 212);
+            }
+            .E {
+                background-color: rgb(255, 134, 233);
+            }
+            .Q {
+                background-color: rgb(235, 78, 141);
+            }
+            .Z {
+                background-color: rgb(59 158 224);
+            }
+            .G {
+                background-color: rgb(158 192 136);
+            }
+            .H {
+                background-color: rgb(179 77 77);
+            }
+            .I {
+                background-color: rgb(255 169 169);
+            }
+            .L {
+                background-color: rgb(228, 199, 109);
+            }
+            .K {
+                background-color: rgb(180 99 145);
+            }
+            .M {
+                background-color: rgb(214, 253, 122);
+            }
+            .F {
+                background-color: rgb(125, 106, 250);
+            }
+            .P {
+                background-color: rgb(55, 71, 252);
+            }
+            .S {
+                background-color: rgb(251, 249, 113);
+            }
+            .T {
+                background-color: rgb(213, 116, 251);
+            }
+            .W {
+                background-color: rgb(198 134 55);
+            }
+            .Y {
+                background-color: rgb(251 147 70);
+            }
+            .V {
+                background-color: rgb(42, 187, 13);
+            }
+            .U {
+                background-color: rgb(208, 208, 7);
+            }
+            .O {
+                background-color: rgb(5, 146, 185);
+            }
         }
     }
 

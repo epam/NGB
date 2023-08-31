@@ -36,9 +36,13 @@
             <div layout="column"
                     class="mono genomics_alignment_sequence">
                 <span></span>
-                <span>{{alignment.targetSequence}}</span>
+                <span><span ng-repeat="base in alignment.targetSequence.split('') track by $index"
+                            ng-class="$ctrl.getColor($index, base, alignment)"
+                    >{{base}}</span></span>
                 <span>{{alignment.diff}}</span>
-                <span>{{alignment.querySequence}}</span>
+                <span><span ng-repeat="base in alignment.querySequence.split('') track by $index"
+                            ng-class="$ctrl.getColor($index, base, alignment)"
+                    >{{base}}</span></span>
                 <span></span>
             </div>
         </div>

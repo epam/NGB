@@ -114,6 +114,12 @@ export default class ngbGenomicsAlignmentController {
         return (alignment.diff.match(/[^\* ]/g) || []).length;
     }
 
+    getColor(index, base, alignment) {
+        if (alignment.diff[index] === '*') {
+            return {[base]: true};
+        }
+    }
+
     onResize(isUpdated) {
         const element = angular.element(this.$element);
         if (!element.width() || !this.alignment) return;
