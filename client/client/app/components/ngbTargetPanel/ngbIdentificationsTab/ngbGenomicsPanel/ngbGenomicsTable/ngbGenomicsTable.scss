@@ -1,0 +1,44 @@
+ngb-genomics-table {
+    .ui-grid {
+        border: none;
+        height: auto;
+        border-top: 1px solid #dddddd;
+        border-bottom: 1px solid #dddddd;
+
+        .ui-grid-viewport {
+            height: 100% !important;
+        }
+
+        .ui-grid-cell-contents {
+            white-space: nowrap;
+        }
+
+        .ui-grid-column-menu-button {
+            width: 12px;
+
+            .ui-grid-icon-angle-down {
+                width: 10px;
+            }
+
+            [class^="ui-grid-icon"]:before,
+            [class*=" ui-grid-icon"]:before {
+                width: 0.7em;
+                margin-right: 0.3em;
+                margin-left: 0;
+            }
+        }
+    }
+
+    .ui-grid-header-cell.ui-grid-clearfix,
+    .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
+        height: 100%;
+
+        .layout-column {
+            height: 100%;
+
+            div.flex {
+                height: 100%;
+            }
+        }
+    }
+}
