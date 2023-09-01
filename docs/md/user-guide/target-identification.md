@@ -328,12 +328,37 @@ The table includes columns:
 
 ### Sequences block
 
-This block contains list of sequence(s) corresponding to the target and its _species of interest_.  
-Separately, block shows:
+This block contains list of sequence(s) corresponding to the target - DNA, RNA, proteins.
 
-- DNA sequences
-- RNA sequences
-- protein sequences  
+When the block is collapsed - its header contains short summary info about the number of found related sequences to the target gene(s):  
+  ![NGB GUI](images/targets-62.png)
+
+When the block is expanded - it contains list of sequences related to the specific target gene, e.g.:  
+  ![NGB GUI](images/targets-63.png)
+
+Switching between target genes is being performed by the corresponding dropdown list in the right upper corner of the block:  
+  ![NGB GUI](images/targets-64.png)
+
+In the top of the block, there is an info about DNA sequence of the gene (if it is found), e.g.:  
+  ![NGB GUI](images/targets-65.png)
+
+Such block includes:
+
+- gene DNA accession. If this gene is presented in any dataset of the current NGB deployment - accession is shown as a hyperlink, user may click such link - the gene track will be opened for that gene, e.g.:  
+  ![NGB GUI](images/targets-66.png)
+- reference to the corresponding NCBI page
+
+List of transcripts related to the specific target gene is presented as a table:  
+  ![NGB GUI](images/targets-67.png)
+
+Such table includes columns:
+
+- _Target_ - gene/transcript name
+- _Transcript_ - transcript accession. Each transcript is the hyperlink to the corresponding page in NCBI platform
+- _Length (nt)_ - transcript length (number of nucleotides in the sequence)
+- _Protein_ - protein accession. Each protein is the hyperlink to the corresponding page in NCBI platform
+- _Length (aa)_ - protein length (number of amino acid items in the sequence)
+- _Protein name_ - name of the protein
 
 ### Comparative genomics block
 
@@ -344,7 +369,38 @@ This block contains information about homologous genes for the target genes:
 
 ### Structure block
 
-This block contains information about the structure of the target gene(s)/transcription(s) and links to found structure models.
+This block contains structures related to the target gene(s)/transcription(s) and allows to view found structure models.
+
+When the block is collapsed - its header contains short summary info about the number of found structures related to the target gene(s):  
+  ![NGB GUI](images/targets-68.png)
+
+When the block is expanded - it contains list of structures related to the target:  
+  ![NGB GUI](images/targets-69.png)
+
+Information for this block is obtained from different sources (databases), local sources are also supported.  
+Switching between sources is being performed by the corresponding dropdown list in the right upper corner of the block:  
+  ![NGB GUI](images/targets-70.png)
+
+List of structures related to the target is presented as a table:  
+  ![NGB GUI](images/targets-71.png)
+
+Such table includes columns (set of columns may vary due to selected source):
+
+- _ID_ - structure ID in a database. It is presented as a hyperlink to the corresponding page of the structure in the selected database (e.g., [PDB](https://www.rcsb.org/))
+- _Name_ - structure name
+- _Method_ - method by which the structure is obtained
+- _Source_ - source database of the structure
+- _Resolution_ - a measure of the quality of the data (level of details presented in the diffraction pattern)
+- _Chains_ - name of macromolecule's polymeric chain of the current gene/protein
+- _Owner_ - owner user name of the structure file (_only for local sources_)
+
+Table supports filtering by _ID_ and _Name_ columns. To filter by any of these columns - specify the filter text to the field under the header of the column, e.g.:  
+  ![NGB GUI](images/targets-72.png)
+
+To open the structure model in a viewer - click its row in the table, e.g.:  
+  ![NGB GUI](images/targets-73.png)  
+Structure model is being opened in the 3D viewer.  
+This viewer is identical to the one using as NGB [Molecular Viewer](overview.md#molecular-viewer-panel).
 
 ### Bibliography block
 
