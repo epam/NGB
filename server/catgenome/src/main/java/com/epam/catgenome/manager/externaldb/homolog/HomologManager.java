@@ -148,6 +148,43 @@ public class HomologManager {
         return searchResult;
     }
 
+    public List<HomologGroup> searchHomolog(final List<String> geneIds) throws IOException, ParseException {
+        Assert.isTrue(!CollectionUtils.isEmpty(geneIds), "Gene ids are required");
+        List<HomologGroup> homologGroups = new ArrayList<>();
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<Long> entrezGeneIds = ncbiGeneIds.stream().map(GeneId::getEntrezId).collect(Collectors.toList());
+        final List<String> groupIds = homologGroupGeneDao.loadGroupsByGeneIds(entrezGeneIds);
+        if (!CollectionUtils.isEmpty(groupIds)) {
+            final Filter groupIdsFilter = Filter.builder()
+                    .field("group_id")
+                    .operator("in")
+                    .value("(" + join(groupIds, ",") + ")")
+                    .build();
+            final QueryParameters queryParams = QueryParameters.builder()
+                    .filters(Collections.singletonList(groupIdsFilter))
+                    .build();
+            homologGroups = homologGroupDao.load(queryParams);
+            final List<Gene> genes = homologGroupGeneDao.load(queryParams);
+            setSpeciesNames(homologGroups, genes);
+
+            final List<GeneId> allGeneIds = getGeneIds(homologGroups, genes);
+            final Map<Long, GeneId> genesMap = allGeneIds.stream()
+                    .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+            setEnsemblIds(genes, allGeneIds);
+
+            for (HomologGroup group: homologGroups) {
+                List<Gene> groupGenes = genes.stream()
+                        .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
+                        .collect(Collectors.toList());
+                group.setHomologs(groupGenes);
+                Long groupGeneId = group.getGeneId();
+                String ensembleGeneId = genesMap.get(groupGeneId).getEnsembleId();
+                group.setEnsemblId(ensembleGeneId);
+            }
+        }
+        return homologGroups;
+    }
+
     public void importHomologData(final String databaseName, final String databasePath)
             throws IOException {
         Assert.isTrue(!TextUtils.isBlank(databaseName), "Database name is required");

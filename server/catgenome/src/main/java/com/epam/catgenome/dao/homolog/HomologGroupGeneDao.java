@@ -50,8 +50,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.epam.catgenome.util.Utils.IN_CLAUSE;
+import static com.epam.catgenome.util.Utils.addClauseToQuery;
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Getter
 @Setter
@@ -118,6 +121,12 @@ public class HomologGroupGeneDao extends NamedParameterJdbcDaoSupport {
     public List<Long> loadAllGroupIds(final List<Filter> filters) {
         String query = addFiltersToQuery(loadGroupIdsQuery, filters);
         return getJdbcTemplate().queryForList(query, Long.class);
+    }
+
+    public List<String> loadGroupsByGeneIds(final List<Long> geneIds) {
+        final String clause = String.format(IN_CLAUSE, "gene_id", join(geneIds, ","));
+        final String query = addClauseToQuery(loadGroupIdsQuery, clause);
+        return getJdbcTemplate().queryForList(query, String.class);
     }
 
     enum GroupGeneParameters {

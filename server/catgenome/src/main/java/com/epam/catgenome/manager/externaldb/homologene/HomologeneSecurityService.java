@@ -31,6 +31,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
@@ -42,9 +43,13 @@ public class HomologeneSecurityService {
     private HomologeneManager homologeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
-            throws IOException, ParseException {
+    public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query) throws IOException {
         return homologeneManager.searchHomologenes(query);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<HomologeneEntry> searchHomologenes(final List<String> geneIds) throws IOException {
+        return homologeneManager.searchHomologenes(geneIds);
     }
 
     @PreAuthorize(ROLE_ADMIN)

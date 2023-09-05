@@ -36,13 +36,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(value = "homologene", description = "Homologene Data Management")
@@ -63,6 +60,18 @@ public class HomologeneController extends AbstractRESTController {
             @RequestBody final HomologeneSearchRequest query)
             throws IOException, ParseException {
         return Result.success(homologeneSecurityService.searchHomologenes(query));
+    }
+
+    @GetMapping(value = "/homologene/search")
+    @ApiOperation(
+            value = "Returns list of Homologenes by gene ids",
+            notes = "Returns list of Homologenes by gene ids",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<HomologeneEntry>> search(@RequestParam final List<String> geneIds) throws IOException {
+        return Result.success(homologeneSecurityService.searchHomologenes(geneIds));
     }
 
     @PutMapping(value = "/homologene/import")
