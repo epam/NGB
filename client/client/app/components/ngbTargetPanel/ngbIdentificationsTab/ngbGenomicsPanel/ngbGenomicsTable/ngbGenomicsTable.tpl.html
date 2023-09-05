@@ -16,3 +16,6 @@
         </md-content>
     </div>
 </div>
+<ngb-genomics-table-pagination ng-if="$ctrl.totalPages > 1"
+                               on-change-page="$ctrl.getDataOnPage(page)">
+</ngb-genomics-table-pagination>
