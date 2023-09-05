@@ -26,7 +26,7 @@ package com.epam.catgenome.manager.externaldb.target.dgidb;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
@@ -65,13 +65,13 @@ import java.util.stream.Collectors;
 public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGIDBDrugAssociation> {
 
     private static final int COLUMNS = 11;
-    private final NCBIGeneIdsManager ncbiGeneIdsManager;
+    private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
     public DGIDBDrugAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
                                        final @Value("${targets.top.hits:10000}") int targetsTopHits,
-                                       final NCBIGeneIdsManager ncbiGeneIdsManager) {
+                                       final NCBIEnsemblIdsManager ncbiEnsemblIdsManager) {
         super(Paths.get(indexDirectory, "dgidb.drug.association").toString(), targetsTopHits);
-        this.ncbiGeneIdsManager = ncbiGeneIdsManager;
+        this.ncbiEnsemblIdsManager = ncbiEnsemblIdsManager;
     }
 
     public long totalCount(final List<String> ids) throws ParseException, IOException {
@@ -136,13 +136,13 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
         final Set<String> entrezIds = entries.stream()
                 .map(DGIDBDrugAssociation::getEntrezId)
                 .collect(Collectors.toSet());
-        final List<GeneId> geneIds = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
+        final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
         final Map<String, GeneId> genesMap = geneIds.stream()
                 .collect(Collectors.toMap(g -> g.getEntrezId().toString(), Function.identity()));
         for (DGIDBDrugAssociation entry: entries) {
             GeneId geneId = genesMap.getOrDefault(entry.getEntrezId(), null);
             if (geneId != null) {
-                entry.setGeneId(geneId.getEnsembleId());
+                entry.setGeneId(geneId.getEnsemblId());
             }
         }
         return entries;

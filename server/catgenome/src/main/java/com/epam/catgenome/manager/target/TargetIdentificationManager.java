@@ -42,7 +42,8 @@ import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
-import com.epam.catgenome.manager.externaldb.PudMedService;
+import com.epam.catgenome.manager.externaldb.PubMedService;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
 import com.epam.catgenome.manager.externaldb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -53,7 +54,6 @@ import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
@@ -105,7 +105,7 @@ public class TargetIdentificationManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final DiseaseManager diseaseManager;
-    private final PudMedService pudMedService;
+    private final PubMedService pubMedService;
     private final NCBIGeneSequencesManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
 
@@ -117,14 +117,14 @@ public class TargetIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezGeneIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final long drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
-        final long publicationsCount = pudMedService.getPublicationsCount(entrezGeneIds);
+        final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
         final SequencesSummary sequencesCount = getSequencesCount(ncbiGeneIds);
         final long structuresCount = getStructuresCount(geneIds);
         return IdentificationResult.builder()
@@ -218,15 +218,15 @@ public class TargetIdentificationManager {
     }
 
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
-        return pudMedService.fetchPubMedArticles(request);
+        return pubMedService.fetchPubMedArticles(request);
     }
 
     public String getArticlesAbstracts(final PublicationSearchRequest request) {
-        return pudMedService.getArticleAbstracts(request);
+        return pubMedService.getArticleAbstracts(request);
     }
 
     public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return Collections.emptyList();
         }
@@ -237,7 +237,7 @@ public class TargetIdentificationManager {
 
     public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.searchByEnsemblIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return Collections.emptyList();
         }
@@ -288,7 +288,7 @@ public class TargetIdentificationManager {
 
     private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
-        final List<String> geneIds = ncbiGeneIds.stream().map(GeneId::getEnsembleId).collect(Collectors.toList());
+        final List<String> geneIds = ncbiGeneIds.stream().map(GeneId::getEnsemblId).collect(Collectors.toList());
         final Map<GeneId, String> ncbiSummary = geneManager.fetchGeneSummaryByIds(ncbiGeneIds);
         final List<TargetDetails> openTargetDetails = targetDetailsManager.search(geneIds);
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
@@ -328,7 +328,7 @@ public class TargetIdentificationManager {
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
                                                          final List<TargetDetails> openTargetDetails) {
         final Map<String, String> ncbiDescriptions = new HashMap<>();
-        ncbiSummary.forEach((key1, value1) -> ncbiDescriptions.put(key1.getEnsembleId().toLowerCase(), value1));
+        ncbiSummary.forEach((key1, value1) -> ncbiDescriptions.put(key1.getEnsemblId().toLowerCase(), value1));
 
         final Map<String, String> openTargetDescriptionMap = openTargetDetails.stream()
                 .collect(Collectors.toMap(t -> t.getId().toLowerCase(), TargetDetails::getDescription));

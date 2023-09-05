@@ -27,7 +27,7 @@ package com.epam.catgenome.manager.llm;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
-import com.epam.catgenome.manager.externaldb.PudMedService;
+import com.epam.catgenome.manager.externaldb.PubMedService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -42,11 +42,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LLMService {
 
-    private final PudMedService pubmedService;
+    private final PubMedService pubmedService;
     private final Map<LLMProvider, LLMHandler> handlers;
 
     public LLMService(final List<LLMHandler> handlers,
-                      final PudMedService pubmedService) {
+                      final PubMedService pubmedService) {
         this.pubmedService = pubmedService;
         this.handlers = ListUtils.emptyIfNull(handlers).stream()
                 .collect(Collectors.toMap(LLMHandler::getProvider, Function.identity()));

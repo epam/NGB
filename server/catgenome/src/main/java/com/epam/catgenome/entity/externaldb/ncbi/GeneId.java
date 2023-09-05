@@ -34,7 +34,7 @@ import java.util.Objects;
 @Builder
 public class GeneId {
     private Long entrezId;
-    private String ensembleId;
+    private String ensemblId;
 
     @Override public int hashCode() {
         return entrezId.hashCode();

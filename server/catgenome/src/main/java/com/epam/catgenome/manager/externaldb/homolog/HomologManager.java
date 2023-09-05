@@ -33,7 +33,7 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -92,7 +92,7 @@ public class HomologManager {
     @Autowired
     private NCBIGeneManager ncbiGeneManager;
     @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
+    private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
 
     public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest request)
@@ -135,8 +135,8 @@ public class HomologManager {
                             .collect(Collectors.toList());
                     group.setHomologs(groupGenes);
                     Long groupGeneId = group.getGeneId();
-                    String ensembleGeneId = genesMap.get(groupGeneId).getEnsembleId();
-                    group.setEnsemblId(ensembleGeneId);
+                    String ensemblGeneId = genesMap.get(groupGeneId).getEnsemblId();
+                    group.setEnsemblId(ensemblGeneId);
                 }
                 searchResult.setItems(homologGroups);
                 List<Long> allGroupIds = homologGroupGeneDao.loadAllGroupIds(geneIdFilters);
@@ -281,6 +281,6 @@ public class HomologManager {
                 .map(g -> g.getGeneId().toString())
                 .collect(Collectors.toSet());
         allGeneIds.addAll(groupGeneIds);
-        return ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        return ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
     }
 }

@@ -31,7 +31,7 @@ import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -105,7 +105,7 @@ public class HomologeneManager {
     @Autowired
     private HomologGeneDescDao geneDescDao;
     @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
+    private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
     public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException, ParseException {
@@ -139,7 +139,7 @@ public class HomologeneManager {
             final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
                     : taxonomyManager.searchOrganismsByIds(taxIds);
 
-            final List<GeneId> geneIds = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+            final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
 
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
@@ -371,8 +371,8 @@ public class HomologeneManager {
                 .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
         for (Gene gene: genes) {
             if (genesMap.containsKey(gene.getGeneId())) {
-                final String ensembleId = genesMap.get(gene.getGeneId()).getEnsembleId();
-                gene.setEnsemblId(ensembleId);
+                final String ensemblId = genesMap.get(gene.getGeneId()).getEnsemblId();
+                gene.setEnsemblId(ensemblId);
             }
         }
     }

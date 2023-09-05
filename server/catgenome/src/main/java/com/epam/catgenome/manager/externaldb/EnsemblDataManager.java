@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +48,7 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
  * </p>
  */
 @Service
+@Slf4j
 public class EnsemblDataManager {
 
     private static final String ENSEMBL_TOOL = "lookup/id";
@@ -87,6 +90,25 @@ public class EnsemblDataManager {
             throw new ExternalDbUnavailableException("Unexpected result format", e);
         }
         return ensemblEntryVO;
+    }
+
+    public String fetchNcbiId(final String geneId) {
+        final ParameterNameValue[] params = new ParameterNameValue[]{
+            new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON)};
+
+        final String location = ensemblServer + ENSEMBL_TOOL + "/" + geneId + "?";
+        try {
+            final String geneData = httpDataManager.fetchData(location, params);
+            final EnsemblEntryVO ensemblEntryVO;
+            ensemblEntryVO = objectMapper.readValue(geneData, EnsemblEntryVO.class);
+            String[] desc = ensemblEntryVO.getDescription().split("Acc:");
+            if (desc.length > 1) {
+                return desc[1].replace("]", "");
+            }
+        } catch (ExternalDbUnavailableException | JsonProcessingException e) {
+            log.error(e.getMessage());
+        }
+        return null;
     }
 
     /**

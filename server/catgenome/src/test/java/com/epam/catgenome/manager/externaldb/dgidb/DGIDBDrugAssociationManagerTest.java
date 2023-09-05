@@ -24,7 +24,7 @@
 package com.epam.catgenome.manager.externaldb.dgidb;
 
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
@@ -53,7 +53,7 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
     @Autowired
     private DGIDBDrugAssociationManager manager;
     @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
+    private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
 
     @Autowired
@@ -62,7 +62,7 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
     @Before
     public void setUp() throws IOException, ParseException {
         String geneIdsFileName = context.getResource("classpath:ncbi//gene2ensembl").getFile().getPath();
-        ncbiGeneIdsManager.importData(geneIdsFileName);
+        ncbiEnsemblIdsManager.importData(geneIdsFileName);
         String fileName = context.getResource("classpath:dgidb//interactions.tsv").getFile().getPath();
         manager.importData(fileName);
     }
