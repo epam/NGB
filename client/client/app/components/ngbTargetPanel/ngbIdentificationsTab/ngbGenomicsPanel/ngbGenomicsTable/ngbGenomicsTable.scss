@@ -70,4 +70,18 @@ ngb-genomics-table {
             text-decoration: none;
         }
     }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        min-height: 80px;
+
+        .no-records-warning {
+            color: #999;
+        }
+    }
 }

@@ -2,8 +2,6 @@ const GENOMICS_TABLE_COLUMNS = ['target', 'species', 'homology type', 'homologue
 
 export default class ngbGenomicsTableController {
 
-    pageSize = 10;
-
     get genomicsTableColumns () {
         return GENOMICS_TABLE_COLUMNS;
     }
@@ -43,6 +41,11 @@ export default class ngbGenomicsTableController {
 
     constructor($scope, $timeout, dispatcher, ngbGenomicsPanelService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbGenomicsPanelService});
+        const filterChanged = this.filterChanged.bind(this);
+        dispatcher.on('target:identification:genomics:filters:changed', filterChanged);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:genomics:filters:changed', filterChanged);
+        });
     }
 
     get loadingData () {
@@ -64,6 +67,15 @@ export default class ngbGenomicsTableController {
     get emptyResults() {
         return this.ngbGenomicsPanelService.emptyResults;
     }
+    get pageSize() {
+        return this.ngbGenomicsPanelService.pageSize;
+    }
+    set filterInfo(value) {
+        this.ngbGenomicsPanelService.filterInfo = value;
+    }
+    get defaultFilter() {
+        return this.ngbGenomicsPanelService.defaultFilter;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -83,6 +95,7 @@ export default class ngbGenomicsTableController {
             return;
         }
         this.gridOptions.columnDefs = this.getGenomicsTableGridColumns();
+        this.filterInfo = this.defaultFilter;
         await this.loadData();
     }
 
@@ -107,6 +120,27 @@ export default class ngbGenomicsTableController {
                 width: '*'
             };
             switch (column) {
+                case 'target': {
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                    };
+                    break;
+                }
+                case 'species': {
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                    };
+                    break;
+                }
+                case 'homology type': {
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: true,
+                    };
+                    break;
+                }
                 case 'domains': {
                     columnSettings = {
                         ...columnSettings,
@@ -141,17 +175,18 @@ export default class ngbGenomicsTableController {
 
     async loadData () {
         this.loadingData = true;
-        if (this.ngbGenomicsPanelService.homologsData) {
-            this.gridOptions.data = this.ngbGenomicsPanelService.getGenomicsResults();
+        if (this.ngbGenomicsPanelService.genomicsData) {
+            await this.ngbGenomicsPanelService.setGenomicsResults();
+            await this.getDataOnPage(1);
             this.loadingData = false;
         } else {
-            this.gridOptions.data = await this.ngbGenomicsPanelService.getData()
-            .then(success => {
-                if (success) {
-                    return this.ngbGenomicsPanelService.getGenomicsResults();
-                }
-                return [];
-            });
+            await this.ngbGenomicsPanelService.getGenomicsData()
+                .then(success => {
+                    if (success) {
+                        this.getDataOnPage(1);
+                    }
+                    this.gridOptions.data = [];
+                });
         }
         this.dispatcher.emit('target:identification:genomics:results:updated');
         this.$timeout(() => this.$scope.$apply());
@@ -159,7 +194,17 @@ export default class ngbGenomicsTableController {
 
     async getDataOnPage(page) {
         this.currentPage = page;
-        this.gridOptions.data = this.ngbGenomicsPanelService.getGenomicsResults();
+        this.gridOptions.data = await this.ngbGenomicsPanelService.getGenomicsResults();
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        this.currentPage = 1;
+        await this.loadData();
         this.$timeout(() => this.$scope.$apply());
     }
 }

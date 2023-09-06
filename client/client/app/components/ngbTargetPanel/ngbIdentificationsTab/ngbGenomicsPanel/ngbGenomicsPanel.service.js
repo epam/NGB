@@ -17,10 +17,13 @@ export default class ngbGenomicsPanelService {
     _errorMessageList = null;
     _alignment = null;
     _totalCount = 0;
-    _homologsData = null;
+    _genomicsData = null;
+    _genomicsResults = null;
     _currentPage = 1;
     _totalPages = 0;
     _emptyResults = false;
+    _filterInfo = null;
+    fieldList = {};
 
     get alignment() {
         return this._alignment;
@@ -41,8 +44,8 @@ export default class ngbGenomicsPanelService {
     get totalCount() {
         return this._totalCount;
     }
-    get homologsData() {
-        return this._homologsData;
+    get genomicsData() {
+        return this._genomicsData;
     }
     get currentPage () {
         return this._currentPage;
@@ -56,30 +59,41 @@ export default class ngbGenomicsPanelService {
     get emptyResults() {
         return this._emptyResults;
     }
+    get filterInfo() {
+        return this._filterInfo;
+    }
+    set filterInfo(value) {
+        this._filterInfo = value;
+    }
+    get defaultFilter() {
+        return {
+            target: this.interestGenes,
+            species: this.translationalSpecies
+        };
+    }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService, genomeDataService) {
         return new ngbGenomicsPanelService(dispatcher, ngbTargetPanelService, targetDataService, genomeDataService);
     }
 
     constructor(dispatcher, ngbTargetPanelService, targetDataService, genomeDataService) {
-        Object.assign(this, {ngbTargetPanelService, targetDataService, genomeDataService});
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, genomeDataService});
         dispatcher.on('target:identification:changed', this.resetData.bind(this));
-        this.getHomologene();
+    }
+
+    get interestGenes() {
+        const { interest = [] } = this.ngbTargetPanelService.identificationTarget || {};
+        return interest.map(g => g.chip);
+    }
+
+    get translationalSpecies() {
+        const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
+        return translational.map(s => s.speciesName);
     }
 
     get allGenes() {
         const { interest = [], translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
         return [...interest, ...translational];
-    }
-
-    get genesOfInterest () {
-        const { interest = [] } = this.ngbTargetPanelService.identificationTarget || {};
-        return [...interest];
-    }
-
-    get translationalGenes () {
-        const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
-        return [...translational];
     }
 
     setAlignment(data) {
@@ -125,16 +139,47 @@ export default class ngbGenomicsPanelService {
         });
     }
 
-    getGenomicsResults() {
-        const genomicsResults = this._homologsData;
-        if (!genomicsResults || !genomicsResults.length) return [];
-        const start = (this.currentPage - 1) * this.pageSize;
-        const end = this.currentPage * this.pageSize;
-        const results = genomicsResults.slice(start, end);
-        return results;
+    setGenomicsResults () {
+        let data = [...this._genomicsData];
+        if (!data || !data.length) {
+            this._genomicsResults = [];
+            this.setTotalPages();
+            return;
+        }
+        if (this._filterInfo) {
+            Object.entries(this._filterInfo).map(([key, value]) => {
+                const speciesValue = key === 'species'
+                    ? value.map(v => v.replace('_', ' '))
+                    : undefined;
+                const isInclude = (item) => {
+                    if (speciesValue) {
+                        return (
+                            value.some(v => item[key].toLowerCase().includes(v.toLowerCase())) ||
+                            speciesValue.some(v => item[key].toLowerCase().includes(v.toLowerCase()))
+                        );
+                    }
+                    return value.some(v => item[key].toLowerCase().includes(v.toLowerCase()));
+                };
+                data = data.filter(item => {
+                    return (
+                        value.includes(item[key]) ||
+                        isInclude(item)
+                    );
+                })
+            })
+        }
+        this._genomicsResults = data;
+        this.setTotalPages();
     }
 
-    setHomologsData(data) {
+    getGenomicsResults() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        const result = this._genomicsResults.slice(start, end);
+        return result;
+    }
+
+    setHomologsData(data, chip) {
         const totalCount = (data.totalCount || 0);
         this._totalCount = this._totalCount ? (this._totalCount + totalCount) : data.totalCount;
         const items = data.items || [];
@@ -145,7 +190,7 @@ export default class ngbGenomicsPanelService {
             }, {});
             const getHomologData = (item) => {
                 return (item.homologs || []).map(h => ({
-                    target: this.genesOfInterest[0].chip,
+                    target: chip,
                     species: h.speciesScientificName,
                     'homology type': capitalize(item.type),
                     homologue: h.symbol || `id: ${h.geneId}`,
@@ -170,14 +215,14 @@ export default class ngbGenomicsPanelService {
             const homologsData = items.reduce((acc, item) => (
                 [...acc, ...getHomologData(item)]
             ), []);
-            this._homologsData = [
-                ...(this._homologsData || []),
+            this._genomicsData = [
+                ...(this._genomicsData || []),
                 ...homologsData
             ];
         }
     }
 
-    setHomologeneData(data) {
+    setHomologeneData(data, chip) {
         const totalCount = (data.totalCount || 0);
         this._totalCount = this._totalCount ? (this._totalCount + totalCount) : data.totalCount;
         const items = data.items || [];
@@ -188,7 +233,7 @@ export default class ngbGenomicsPanelService {
             }, {});
             const getHomologData = (item) => {
                 return (item.genes || []).map((g, i) => ({
-                    target: this.genesOfInterest[0].chip,
+                    target: chip,
                     species: g.speciesScientificName,
                     'homology type': capitalize('HOMOLOG'),
                     homologue: g.symbol,
@@ -213,43 +258,44 @@ export default class ngbGenomicsPanelService {
             const homologsData = items.reduce((acc, item) => (
                 [...acc, ...getHomologData(item)]
             ), []);
-            this._homologsData = [
-                ...(this._homologsData || []),
+            this._genomicsData = [
+                ...(this._genomicsData || []),
                 ...homologsData
             ];
         }
     }
 
-    async getData() {
+    async getGenomicsData() {
         this.loadingData = true;
         const results = [];
         results.push(await this.getAllHomologs());
         results.push(await this.getAllHomologenes());
-        this.setTotalPages();
+        this.setGenomicsResults();
         this.loadingData = false;
+        this.setFieldList();
         return results.some(v => v);
     }
 
     async getAllHomologs() {
         return Promise.all(this.allGenes.map(async (gene) => (
-            await this.getHomologs(gene.geneId)
+            await this.getHomologs(gene.geneId, gene.chip)
         )))
             .then(values => values.some(v => v));
     }
 
     async getAllHomologenes() {
         return Promise.all(this.allGenes.map(async (gene) => (
-            await this.getHomologene(gene.geneName)
+            await this.getHomologene(gene.geneName, gene.chip)
         )))
             .then(values => values.some(v => v));
     }
 
     setTotalPages() {
-        this._totalPages = Math.ceil(this._homologsData.length / this.pageSize);
-        this._emptyResults = !this._homologsData.length;
+        this._totalPages = Math.ceil(this._genomicsResults.length / this.pageSize);
+        this._emptyResults = !this._genomicsResults.length;
     }
 
-    async getHomologs(id) {
+    async getHomologs(id, chip) {
         if (!id) {
             return new Promise.resolve(true);
         }
@@ -261,7 +307,7 @@ export default class ngbGenomicsPanelService {
         return new Promise(resolve => {
             this.genomeDataService.getOrthoParaLoad(request)
                 .then(data => {
-                    this.setHomologsData(data);
+                    this.setHomologsData(data, chip);
                     resolve(true);
                 })
                 .catch(err => {
@@ -274,7 +320,7 @@ export default class ngbGenomicsPanelService {
         });
     }
 
-    async getHomologene(name) {
+    async getHomologene(name, chip) {
         if (!name) {
             return Promise.resolve(true);
         }
@@ -286,7 +332,7 @@ export default class ngbGenomicsPanelService {
         return new Promise(resolve => {
             this.genomeDataService.getHomologeneLoad(request)
                 .then(data => {
-                    this.setHomologeneData(data);
+                    this.setHomologeneData(data, chip);
                     resolve(data);
                 })
                 .catch(err => {
@@ -299,14 +345,35 @@ export default class ngbGenomicsPanelService {
         });
     }
 
+    setFieldList() {
+        this.fieldList = {
+            target: this.allGenes.map(g => g.chip),
+            species: this.translationalSpecies,
+            'homology type': Array.from(new Set(this._genomicsResults.map(g => g['homology type'])))
+        };
+        this.dispatcher.emitSimpleEvent('genomics:filters:list');
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
+        this._filterInfo = filter;
+    }
+
     resetData() {
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;
         this._alignment = null;
-        this._homologsData = null;
+        this._genomicsData = null;
+        this._genomicsResults = null;
         this._currentPage = 1;
         this._totalPages = 0;
         this._emptyResults = false;
+        this._filterInfo = null;
     }
 }
