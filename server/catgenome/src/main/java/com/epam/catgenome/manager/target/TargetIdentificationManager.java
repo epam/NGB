@@ -43,7 +43,7 @@ import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.IdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PudMedService;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneSequencesManager;
+import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.externaldb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
@@ -106,7 +106,7 @@ public class TargetIdentificationManager {
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final DiseaseManager diseaseManager;
     private final PudMedService pudMedService;
-    private final NCBIGeneSequencesManager geneSequencesManager;
+    private final NCBISequenceManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
 
     public IdentificationResult launchIdentification(final IdentificationRequest request)
