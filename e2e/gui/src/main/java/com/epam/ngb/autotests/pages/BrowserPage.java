@@ -169,8 +169,8 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         }
 
         public ResizeMenu selectOptionWithAdditionalMenu(String option) {
-            $(byId(menuID)).should(cssClass("md-clickable"));
-            $(byId(menuID)).$(byText(option)).parent().parent().click();
+            $(byId(menuID)).should(cssClass("md-clickable"))
+                    .$(byText(option)).parent().parent().click();
             $(byId(menuID)).should(cssClass("md-leave")).shouldNot(cssClass("md-active"));
             return new ResizeMenu(new BrowserPage());
         }
