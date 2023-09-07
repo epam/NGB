@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+}
+
+group 'com.epam.ngb.autotests'
+version '1.0'
+
+ext {
+    testngVersion = '7.5'
+    seleniumVersion = '3.8.1'
+    selenideVersion = '6.12.3'
+    logVersion = '1.2'
+    jacksonVersion = '2.14.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //Selenium
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: seleniumVersion
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-api', version: seleniumVersion
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: seleniumVersion
+
+    implementation group: 'commons-logging', name: 'commons-logging', version: logVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+    implementation group: 'com.codeborne', name: 'selenide-core', version: selenideVersion
+
+    // https://mvnrepository.com/artifact/org.testng/testng
+    implementation group: 'org.testng', name: 'testng', version: testngVersion
+
+    implementation group: 'com.codeborne', name: 'selenide', version: selenideVersion
+
+    implementation group: 'com.assertthat', name: 'selenium-shutterbug', version: '1.6'
+}
+
+test() {
+    testLogging.showStandardStreams = true
+    useTestNG() {
+        suites 'testng.xml'
+    }
+}
