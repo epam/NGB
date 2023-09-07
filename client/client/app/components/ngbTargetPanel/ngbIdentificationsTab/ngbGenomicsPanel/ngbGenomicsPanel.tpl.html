@@ -15,7 +15,7 @@
     </md-button>
     <md-button type="button"
                class="md-raised genomics-button track"
-               ng-disabled="true"
+               ng-disabled="$ctrl.isTrackButtonDisabled"
                aria-label="View on track"
                ng-click="$ctrl.viewOnTrack()">
         View on track
