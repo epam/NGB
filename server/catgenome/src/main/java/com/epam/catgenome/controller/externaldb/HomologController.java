@@ -37,13 +37,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(value = "homolog", description = "Homolog Data Management")
@@ -63,6 +60,19 @@ public class HomologController extends AbstractRESTController {
     public Result<SearchResult<HomologGroup>> search(@RequestBody final HomologSearchRequest searchRequest)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return Result.success(homologSecurityService.searchHomolog(searchRequest));
+    }
+
+    @GetMapping(value = "/homolog/search")
+    @ApiOperation(
+            value = "Searches homologs by gene IDs",
+            notes = "Searches homologs by gene IDs",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<HomologGroup>> search(@RequestParam final List<String> geneIds)
+            throws IOException, ParseException {
+        return Result.success(homologSecurityService.searchHomolog(geneIds));
     }
 
     @PutMapping(value = "/homolog/import")

@@ -70,4 +70,8 @@ public class NCBIGeneIdsManager {
         }
         return ncbiGenes;
     }
+
+    public static List<Long> getEntrezGeneIds(final List<GeneId> ncbiGeneIds) {
+        return ncbiGeneIds.stream().map(GeneId::getEntrezId).collect(Collectors.toList());
+    }
 }

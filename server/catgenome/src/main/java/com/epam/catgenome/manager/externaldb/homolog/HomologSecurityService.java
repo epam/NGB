@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb.homolog;
 
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
@@ -44,13 +44,18 @@ public class HomologSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public SearchResult<HomologGroup> searchHomolog(final HomologSearchRequest searchRequest)
-            throws IOException, ParseException, ExternalDbUnavailableException {
+            throws IOException, ParseException {
         return homologManager.searchHomolog(searchRequest);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<HomologGroup> searchHomolog(final List<String> geneIds) throws IOException, ParseException {
+        return homologManager.searchHomolog(geneIds);
     }
 
     @PreAuthorize(ROLE_ADMIN)
     public void importHomologData(final String databaseName, final String databasePath)
-            throws IOException, ParseException {
+            throws IOException {
         homologManager.importHomologData(databaseName, databasePath);
     }
 }

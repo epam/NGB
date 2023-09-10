@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -81,6 +82,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager.getEntrezGeneIds;
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -96,6 +99,9 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
+    @Value("${homologene.top.hits:10000}")
+    private int topHits;
+
     @Autowired
     private TaxonomyManager taxonomyManager;
     @Autowired
@@ -106,6 +112,8 @@ public class HomologeneManager {
     private HomologGeneDescDao geneDescDao;
     @Autowired
     private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
+    @Autowired
+    private NCBIGeneIdsManager geneIdsManager;
 
     public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException, ParseException {
@@ -160,6 +168,61 @@ public class HomologeneManager {
             searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
+    }
+
+    public List<HomologeneEntry> searchHomologenes(final List<String> geneIds) throws IOException, ParseException {
+        final List<GeneId> ncbiGeneIds = geneIdsManager.getNcbiGeneIds(geneIds);
+        final List<Long> entrezGeneIds = getEntrezGeneIds(ncbiGeneIds);
+        final List<HomologeneEntry> entries = new ArrayList<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            final IndexSearcher searcher = new IndexSearcher(indexReader);
+            final Query query = buildSearchQuery(entrezGeneIds);
+            final TopDocs topDocs = searcher.search(query, topHits);
+
+            final Set<Long> taxIds = new HashSet<>();
+            final Set<String> allGeneIds = new HashSet<>();
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                List<Gene> genes = getGenes(doc);
+                List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
+                taxIds.addAll(geneTaxIds);
+            }
+
+            final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                    : taxonomyManager.searchOrganismsByIds(taxIds);
+            final List<GeneId> allNcbiGeneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                List<Gene> genes = getGenes(doc);
+                setGeneSpeciesNames(genes, organisms);
+                setEnsemblIds(genes, allNcbiGeneIds);
+                entries.add(
+                        HomologeneEntry.builder()
+                                .groupId(getGroupId(doc))
+                                .taxId(getTaxId(doc))
+                                .version(getVersion(doc))
+                                .caption(getCaption(doc))
+                                .genes(genes)
+                                .build()
+                );
+            }
+        }
+        return entries;
+    }
+
+    private Query buildSearchQuery(final List<Long> geneIds) {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        for (Long id: geneIds) {
+            mainBuilder.add(
+                    new BooleanQuery.Builder()
+                            .add(buildTermQuery(id.toString(), IndexFields.GENES.getFieldName()),
+                                    BooleanClause.Occur.SHOULD)
+                            .build(),
+                    BooleanClause.Occur.SHOULD
+            );
+        }
+        return mainBuilder.build();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
