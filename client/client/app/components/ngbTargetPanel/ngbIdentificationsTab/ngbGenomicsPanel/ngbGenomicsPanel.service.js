@@ -42,11 +42,13 @@ export default class ngbGenomicsPanelService {
             targetSequence: target.baseString,
             targetStart: 1,
             targetEnd: target.baseString.length,
+            targetLength: target.baseString.length - 1,
             queryName: getName(query.name),
             queryTooltip: query.name,
             querySequence: query.baseString,
             queryStart: 1,
             queryEnd: query.baseString.length,
+            queryLength: query.baseString.length - 1
         };
     }
 

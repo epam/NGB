@@ -14,6 +14,7 @@ import {SEGTrack as SEG} from './seg';
 import {VCFTrack as VCF} from './vcf';
 import {WIGTrack as WIG} from './wig';
 import {MOTIFSTrack as MOTIFS} from './motifs';
+import {ComparisonTrack as COMPARISON} from './comparison';
 
 export default {
     BAM,
@@ -29,5 +30,6 @@ export default {
     MultiSampleVCF,
     WIG,
     HEATMAP,
-    MOTIFS
+    MOTIFS,
+    COMPARISON
 };

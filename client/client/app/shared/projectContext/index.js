@@ -1458,6 +1458,12 @@ export default class projectContext {
             this._tracks = (this.tracks || [])
                 .filter(track => track.format !== 'BLAST');
         }
+        if (chromosomeDidChange) {
+            this.tracksState = (this.tracksState || [])
+                .filter(track => track.format !== 'COMPARISON');
+            this._tracks = (this.tracks || [])
+                .filter(track => track.format !== 'COMPARISON');
+        }
         if (referenceDidChange) {
             this.tracksState = (this.tracksState || [])
                 .filter(track => track.format !== 'MOTIFS');

@@ -68,7 +68,8 @@ export default class ngbGenomicsPanelController {
         ngbGenomicsPanelService,
         ngbTargetPanelService,
         ngbSequencesPanelService,
-        projectContext
+        projectContext,
+        targetContext
     ) {
         Object.assign(this, {
             $scope,
@@ -78,7 +79,8 @@ export default class ngbGenomicsPanelController {
             ngbGenomicsPanelService,
             ngbTargetPanelService,
             ngbSequencesPanelService,
-            projectContext
+            projectContext,
+            targetContext
         });
         dispatcher.on('target:identification:sequences:results:updated', this.setAllProteinOptions.bind(this));
         $scope.$on('$destroy', () => {
@@ -136,7 +138,7 @@ export default class ngbGenomicsPanelController {
     }
 
     get isTrackButtonDisabled() {
-        return !this.targetModel.protein || !this.queryModel.protein || !this.isRegistered;
+        return !this.targetModel.protein || !this.queryModel.protein || !this.isRegistered || !this.alignment;
     }
 
     $onInit() {
@@ -159,6 +161,10 @@ export default class ngbGenomicsPanelController {
 
     get queryGeneOptions() {
         return this.geneOptions.filter(o => this.targetModel.gene !== o.geneId);
+    }
+
+    get alignment() {
+        return this.ngbGenomicsPanelService.alignment;
     }
 
     isProteinOptionDisabled(geneId) {
@@ -334,6 +340,8 @@ export default class ngbGenomicsPanelController {
                         ) {
                             this.navigateToCoordinates(`${reference.name}:${chromosome.name}:${startIndex}-${endIndex}`)
                                 .then(resolve);
+                            this.targetContext.featureCoords = {startIndex, endIndex};
+                            this.setArtificialTrack();
                             return;
                         }
                     }
@@ -393,6 +401,52 @@ export default class ngbGenomicsPanelController {
                 }
             }
             this.projectContext.changeState({tracks, tracksState});
+        }
+    }
+
+    setArtificialTrack() {
+        const tracks = this.projectContext.tracks;
+        const tracksState = this.projectContext.tracksState;
+        if (tracksState && tracksState.length) {
+            let comparisonTrackIndex;
+            const comparisonTrack = (tracksState || []).filter((track, index) => {
+                if (track.format === 'COMPARISON') {
+                    comparisonTrackIndex = index;
+                    return track;
+                }
+            });
+            const name = this.getChipByGeneId(this.queryModel.gene);
+            const trackPattern = {
+                name: name,
+                format: 'COMPARISON',
+                isLocal: true,
+                projectId: '',
+                bioDataItemId: 'Comparison results',
+                id: 0,
+                reference: 'reference',
+                referenceId: '1'
+            };
+            const trackStatePattern = {
+                bioDataItemId: name,
+                duplicateId: undefined,
+                projectId: '',
+                format: 'COMPARISON',
+                isLocal: true,
+                state: {}
+            }
+            if (!comparisonTrack.length) {
+                tracks.push(trackPattern);
+                tracksState.push(trackStatePattern);
+            } else {
+                tracks.splice(comparisonTrackIndex, 0, trackPattern);
+                tracksState.splice(comparisonTrackIndex, 0, trackStatePattern);
+            }
+            setTimeout(() => {
+                this.projectContext.changeState({tracks, tracksState},
+                false,
+                () => this.targetContext.setAlignments([this.ngbGenomicsPanelService.alignment]));
+            }, 0);
+            
         }
     }
 }
