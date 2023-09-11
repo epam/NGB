@@ -67,7 +67,7 @@ export default class ngbGenomicsPanelService {
     }
     get defaultFilter() {
         return {
-            target: this.interestGenes,
+            target: this.interestGenes.map(g => g.chip),
             species: this.translationalSpecies
         };
     }
@@ -81,19 +81,18 @@ export default class ngbGenomicsPanelService {
         dispatcher.on('target:identification:changed', this.resetData.bind(this));
     }
 
-    get interestGenes() {
-        const { interest = [] } = this.ngbTargetPanelService.identificationTarget || {};
-        return interest.map(g => g.chip);
-    }
-
     get translationalSpecies() {
         const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
         return translational.map(s => s.speciesName);
     }
 
-    get allGenes() {
-        const { interest = [], translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
-        return [...interest, ...translational];
+    get interestGenes() {
+        const { interest = [] } = this.ngbTargetPanelService.identificationTarget || {};
+        return [...interest];
+    }
+
+    get interestTaxIds() {
+        return this.interestGenes.map(g => g.taxId);
     }
 
     setAlignment(data) {
@@ -189,28 +188,30 @@ export default class ngbGenomicsPanelService {
                 return lengths;
             }, {});
             const getHomologData = (item) => {
-                return (item.homologs || []).map(h => ({
-                    target: chip,
-                    species: h.speciesScientificName,
-                    'homology type': capitalize(item.type),
-                    homologue: h.symbol || `id: ${h.geneId}`,
-                    geneId: h.geneId,
-                    'homology group': item.groupId,
-                    'protein': h.title,
-                    aa: h.protLen,
-                    domains: {
-                        domains: (h.domains || []).map(d => ({
-                            id: d.pssmId,
-                            start: d.begin,
-                            end: d.end,
-                            name: d.cddName,
-                            color: calculateColor(d.cddName)
-                        })),
-                        homologLength: h.protLen,
-                        maxHomologLength: maxGroupLengths[item.groupId],
-                        accession_id: h.accession_id
-                    }
-                }));
+                return (item.homologs || [])
+                    .filter(h => !this.interestTaxIds.includes(h.taxId))
+                    .map(h => ({
+                        target: chip,
+                        species: h.speciesScientificName,
+                        'homology type': capitalize(item.type),
+                        homologue: h.symbol || `id: ${h.geneId}`,
+                        geneId: h.geneId,
+                        'homology group': item.proteinName,
+                        'protein': h.title,
+                        aa: h.protLen,
+                        domains: {
+                            domains: (h.domains || []).map(d => ({
+                                id: d.pssmId,
+                                start: d.begin,
+                                end: d.end,
+                                name: d.cddName,
+                                color: calculateColor(d.cddName)
+                            })),
+                            homologLength: h.protLen,
+                            maxHomologLength: maxGroupLengths[item.groupId],
+                            accession_id: h.accession_id
+                        }
+                    }));
             };
             const homologsData = items.reduce((acc, item) => (
                 [...acc, ...getHomologData(item)]
@@ -232,28 +233,30 @@ export default class ngbGenomicsPanelService {
                 return lengths;
             }, {});
             const getHomologData = (item) => {
-                return (item.genes || []).map((g, i) => ({
-                    target: chip,
-                    species: g.speciesScientificName,
-                    'homology type': capitalize('HOMOLOG'),
-                    homologue: g.symbol,
-                    geneId: g.geneId,
-                    'homology group': item.groupId,
-                    'protein': g.title,
-                    aa: g.protLen,
-                    domains: {
-                        domains: (g.domains || []).map(d => ({
-                            id: d.pssmId,
-                            start: d.begin,
-                            end: d.end,
-                            name: d.cddName,
-                            color: calculateColor(d.cddName)
-                        })),
-                        homologLength: g.protLen,
-                        maxHomologLength: maxGroupLengths[item.groupId],
-                        accession_id: g.accession_id
-                    }
-                }));
+                return (item.genes || [])
+                    .filter(g => !this.interestTaxIds.includes(g.taxId))
+                    .map(g => ({
+                        target: chip,
+                        species: g.speciesScientificName,
+                        'homology type': capitalize('HOMOLOG'),
+                        homologue: g.symbol,
+                        geneId: g.geneId,
+                        'homology group': item.caption,
+                        'protein': g.title,
+                        aa: g.protLen,
+                        domains: {
+                            domains: (g.domains || []).map(d => ({
+                                id: d.pssmId,
+                                start: d.begin,
+                                end: d.end,
+                                name: d.cddName,
+                                color: calculateColor(d.cddName)
+                            })),
+                            homologLength: g.protLen,
+                            maxHomologLength: maxGroupLengths[item.groupId],
+                            accession_id: g.accession_id
+                        }
+                    }));
             };
             const homologsData = items.reduce((acc, item) => (
                 [...acc, ...getHomologData(item)]
@@ -277,14 +280,14 @@ export default class ngbGenomicsPanelService {
     }
 
     async getAllHomologs() {
-        return Promise.all(this.allGenes.map(async (gene) => (
+        return Promise.all(this.interestGenes.map(async (gene) => (
             await this.getHomologs(gene.geneId, gene.chip)
         )))
             .then(values => values.some(v => v));
     }
 
     async getAllHomologenes() {
-        return Promise.all(this.allGenes.map(async (gene) => (
+        return Promise.all(this.interestGenes.map(async (gene) => (
             await this.getHomologene(gene.geneName, gene.chip)
         )))
             .then(values => values.some(v => v));
@@ -347,7 +350,7 @@ export default class ngbGenomicsPanelService {
 
     setFieldList() {
         this.fieldList = {
-            target: this.allGenes.map(g => g.chip),
+            target: this.interestGenes.map(g => g.chip),
             species: this.translationalSpecies,
             'homology type': Array.from(new Set(this._genomicsResults.map(g => g['homology type'])))
         };
