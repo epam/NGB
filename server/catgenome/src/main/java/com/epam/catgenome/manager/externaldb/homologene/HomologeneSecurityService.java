@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
@@ -49,7 +50,8 @@ public class HomologeneSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<HomologeneEntry> searchHomologenes(final List<String> geneIds) throws IOException, ParseException {
+    public Map<String, List<HomologeneEntry>> searchHomologenes(final List<String> geneIds)
+            throws IOException, ParseException {
         return homologeneManager.searchHomologenes(geneIds);
     }
 

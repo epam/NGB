@@ -75,6 +75,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +83,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager.getEntrezGeneIds;
 import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -170,59 +170,58 @@ public class HomologeneManager {
         return searchResult;
     }
 
-    public List<HomologeneEntry> searchHomologenes(final List<String> geneIds) throws IOException, ParseException {
+    public Map<String, List<HomologeneEntry>> searchHomologenes(final List<String> geneIds)
+            throws IOException, ParseException {
         final List<GeneId> ncbiGeneIds = geneIdsManager.getNcbiGeneIds(geneIds);
-        final List<Long> entrezGeneIds = getEntrezGeneIds(ncbiGeneIds);
+        final Map<String, List<HomologeneEntry>> result = new HashMap<>();
         final List<HomologeneEntry> entries = new ArrayList<>();
+        final Set<Long> taxIds = new HashSet<>();
+        final Set<String> allGeneIds = new HashSet<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
-            final Query query = buildSearchQuery(entrezGeneIds);
-            final TopDocs topDocs = searcher.search(query, topHits);
+            for (GeneId geneId: ncbiGeneIds) {
+                final Query query = buildSearchQuery(geneId.getEntrezId());
+                final TopDocs topDocs = searcher.search(query, topHits);
 
-            final Set<Long> taxIds = new HashSet<>();
-            final Set<String> allGeneIds = new HashSet<>();
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                List<Gene> genes = getGenes(doc);
-                List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
-                taxIds.addAll(geneTaxIds);
-            }
-
-            final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
-                    : taxonomyManager.searchOrganismsByIds(taxIds);
-            final List<GeneId> allNcbiGeneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                List<Gene> genes = getGenes(doc);
-                setGeneSpeciesNames(genes, organisms);
-                setEnsemblIds(genes, allNcbiGeneIds);
-                entries.add(
-                        HomologeneEntry.builder()
-                                .groupId(getGroupId(doc))
-                                .taxId(getTaxId(doc))
-                                .version(getVersion(doc))
-                                .caption(getCaption(doc))
-                                .genes(genes)
-                                .build()
-                );
+                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    List<Gene> genes = getGenes(doc);
+                    List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
+                    taxIds.addAll(geneTaxIds);
+                    List<String> groupGeneIds = genes.stream()
+                            .map(g -> g.getGeneId().toString())
+                            .collect(Collectors.toList());
+                    allGeneIds.addAll(groupGeneIds);
+                }
+                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    List<Gene> genes = getGenes(doc);
+                    entries.add(
+                            HomologeneEntry.builder()
+                                    .groupId(getGroupId(doc))
+                                    .taxId(getTaxId(doc))
+                                    .version(getVersion(doc))
+                                    .caption(getCaption(doc))
+                                    .genes(genes)
+                                    .build()
+                    );
+                }
+                result.put(geneId.getEnsemblId(), entries);
             }
         }
-        return entries;
+        final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(taxIds);
+        final List<GeneId> allNcbiGeneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        setGeneSpeciesNames(result, organisms);
+        setEnsemblIds(result, allNcbiGeneIds);
+        return result;
     }
 
-    private Query buildSearchQuery(final List<Long> geneIds) {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        for (Long id: geneIds) {
-            mainBuilder.add(
-                    new BooleanQuery.Builder()
-                            .add(buildTermQuery(id.toString(), IndexFields.GENES.getFieldName()),
-                                    BooleanClause.Occur.SHOULD)
-                            .build(),
-                    BooleanClause.Occur.SHOULD
-            );
-        }
-        return mainBuilder.build();
+    private Query buildSearchQuery(final Long geneId) {
+        return new BooleanQuery.Builder()
+                .add(buildTermQuery(geneId.toString(), IndexFields.GENES.getFieldName()), BooleanClause.Occur.SHOULD)
+                .build();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -415,7 +414,7 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
-    public static void setGeneSpeciesNames(final List<Gene> genes, List<Taxonomy> organisms) {
+    public static void setGeneSpeciesNames(final List<Gene> genes, final List<Taxonomy> organisms) {
         for (Gene gene: genes) {
             Taxonomy organism = organisms
                     .stream()
@@ -429,6 +428,13 @@ public class HomologeneManager {
         }
     }
 
+    public static void setGeneSpeciesNames(final Map<String, List<HomologeneEntry>> result,
+                                           final List<Taxonomy> organisms) {
+        for (Map.Entry<String, List<HomologeneEntry>> entry : result.entrySet()) {
+            entry.getValue().forEach(v -> setGeneSpeciesNames(v.getGenes(), organisms));
+        }
+    }
+
     public static void setEnsemblIds(final List<Gene> genes, final List<GeneId> geneIds) {
         final Map<Long, GeneId> genesMap = geneIds.stream()
                 .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
@@ -437,6 +443,12 @@ public class HomologeneManager {
                 final String ensemblId = genesMap.get(gene.getGeneId()).getEnsemblId();
                 gene.setEnsemblId(ensemblId);
             }
+        }
+    }
+
+    public static void setEnsemblIds(final Map<String, List<HomologeneEntry>> result, final List<GeneId> geneIds) {
+        for (Map.Entry<String, List<HomologeneEntry>> entry : result.entrySet()) {
+            entry.getValue().forEach(v -> setEnsemblIds(v.getGenes(), geneIds));
         }
     }
 
