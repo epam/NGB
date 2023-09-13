@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Api(value = "homolog", description = "Homolog Data Management")
@@ -70,7 +71,7 @@ public class HomologController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<HomologGroup>> search(@RequestParam final List<String> geneIds)
+    public Result<Map<String, List<HomologGroup>>> search(@RequestParam final List<String> geneIds)
             throws IOException, ParseException {
         return Result.success(homologSecurityService.searchHomolog(geneIds));
     }

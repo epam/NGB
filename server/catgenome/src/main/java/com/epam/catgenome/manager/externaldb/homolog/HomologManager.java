@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,6 @@ import java.util.stream.Collectors;
 
 import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setEnsemblIds;
 import static com.epam.catgenome.manager.externaldb.homologene.HomologeneManager.setGeneSpeciesNames;
-import static com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager.getEntrezGeneIds;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -106,7 +106,7 @@ public class HomologManager {
         final SearchResult<HomologGroup> searchResult = new SearchResult<>();
 
         try {
-            String geneId = ncbiGeneManager.fetchExternalId(request.getGeneId());
+            final String geneId = ncbiGeneManager.fetchExternalId(request.getGeneId());
             final QueryParameters groupQueryParams = buildSearchQuery(request);
             final List<Filter> geneIdFilters = Collections.singletonList(Filter.builder()
                     .field("gene_id")
@@ -126,24 +126,17 @@ public class HomologManager {
                         .build();
                 final List<HomologGroup> homologGroups = homologGroupDao.load(queryParams);
                 final List<Gene> genes = homologGroupGeneDao.load(queryParams);
-                setSpeciesNames(homologGroups, genes);
-
-                final List<GeneId> geneIds = getGeneIds(homologGroups, genes);
-                final Map<Long, GeneId> genesMap = geneIds.stream()
-                        .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
-                setEnsemblIds(genes, geneIds);
 
                 for (HomologGroup group: homologGroups) {
                     List<Gene> groupGenes = genes.stream()
                             .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
                             .collect(Collectors.toList());
                     group.setHomologs(groupGenes);
-                    Long groupGeneId = group.getGeneId();
-                    String ensemblGeneId = genesMap.get(groupGeneId).getEnsemblId();
-                    group.setEnsemblId(ensemblGeneId);
                 }
+                setSpeciesNames(homologGroups);
+                setGeneIds(homologGroups);
                 searchResult.setItems(homologGroups);
-                List<Long> allGroupIds = homologGroupGeneDao.loadAllGroupIds(geneIdFilters);
+                final List<Long> allGroupIds = homologGroupGeneDao.loadAllGroupIds(geneIdFilters);
                 searchResult.setTotalCount(allGroupIds.size());
             }
         } catch (ExternalDbUnavailableException e) {
@@ -152,41 +145,38 @@ public class HomologManager {
         return searchResult;
     }
 
-    public List<HomologGroup> searchHomolog(final List<String> geneIds) throws IOException, ParseException {
+    public Map<String, List<HomologGroup>> searchHomolog(final List<String> geneIds)
+            throws IOException, ParseException {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds), "Gene ids are required");
-        List<HomologGroup> homologGroups = new ArrayList<>();
+        final Map<String, List<HomologGroup>> result = new HashMap<>();
+        List<HomologGroup> homologGroups;
         final List<GeneId> ncbiGeneIds = geneIdsManager.getNcbiGeneIds(geneIds);
-        final List<Long> entrezGeneIds = getEntrezGeneIds(ncbiGeneIds);
-        final List<String> groupIds = homologGroupGeneDao.loadGroupsByGeneIds(entrezGeneIds);
-        if (!CollectionUtils.isEmpty(groupIds)) {
-            final Filter groupIdsFilter = Filter.builder()
-                    .field("group_id")
-                    .operator("in")
-                    .value("(" + join(groupIds, ",") + ")")
-                    .build();
-            final QueryParameters queryParams = QueryParameters.builder()
-                    .filters(Collections.singletonList(groupIdsFilter))
-                    .build();
-            homologGroups = homologGroupDao.load(queryParams);
-            final List<Gene> genes = homologGroupGeneDao.load(queryParams);
-            setSpeciesNames(homologGroups, genes);
-
-            final List<GeneId> allGeneIds = getGeneIds(homologGroups, genes);
-            final Map<Long, GeneId> genesMap = allGeneIds.stream()
-                    .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
-            setEnsemblIds(genes, allGeneIds);
-
-            for (HomologGroup group: homologGroups) {
-                List<Gene> groupGenes = genes.stream()
-                        .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
-                        .collect(Collectors.toList());
-                group.setHomologs(groupGenes);
-                Long groupGeneId = group.getGeneId();
-                String ensembleGeneId = genesMap.get(groupGeneId).getEnsemblId();
-                group.setEnsemblId(ensembleGeneId);
+        for (GeneId geneId: ncbiGeneIds) {
+            List<String> groupIds = homologGroupGeneDao.loadGroupsByGeneIds(
+                    Collections.singletonList(geneId.getEntrezId()));
+            if (!CollectionUtils.isEmpty(groupIds)) {
+                final Filter groupIdsFilter = Filter.builder()
+                        .field("group_id")
+                        .operator("in")
+                        .value("(" + join(groupIds, ",") + ")")
+                        .build();
+                final QueryParameters queryParams = QueryParameters.builder()
+                        .filters(Collections.singletonList(groupIdsFilter))
+                        .build();
+                homologGroups = homologGroupDao.load(queryParams);
+                List<Gene> genes = homologGroupGeneDao.load(queryParams);
+                for (HomologGroup group: homologGroups) {
+                    List<Gene> groupGenes = genes.stream()
+                            .filter(gn -> gn.getGroupId().equals(group.getGroupId()))
+                            .collect(Collectors.toList());
+                    group.setHomologs(groupGenes);
+                }
+                result.put(geneId.getEnsemblId(), homologGroups);
             }
         }
-        return homologGroups;
+        setSpeciesNames(result);
+        setGeneIds(result);
+        return result;
     }
 
     public void importHomologData(final String databaseName, final String databasePath)
@@ -294,12 +284,14 @@ public class HomologManager {
                 .build();
     }
 
-    private void setSpeciesNames(final List<HomologGroup> homologGroups, final List<Gene> genes) {
-        final List<Long> taxIds = homologGroups.stream().map(HomologGroup::getTaxId).collect(Collectors.toList());
-        taxIds.addAll(genes.stream().map(Gene::getTaxId).collect(Collectors.toList()));
+    private void setSpeciesNames(final List<HomologGroup> homologGroups) {
+        final Set<Long> taxIds = new HashSet<>();
+        homologGroups.forEach(group -> {
+            taxIds.add(group.getTaxId());
+            taxIds.addAll(group.getHomologs().stream().map(Gene::getTaxId).collect(Collectors.toList()));
+        });
         final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
                 : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
-        setGeneSpeciesNames(genes, organisms);
         for (HomologGroup group: homologGroups) {
             Taxonomy organism = organisms
                     .stream()
@@ -310,18 +302,66 @@ public class HomologManager {
                 group.setSpeciesCommonName(organism.getCommonName());
                 group.setSpeciesScientificName(organism.getScientificName());
             }
+            setGeneSpeciesNames(group.getHomologs(), organisms);
         }
     }
 
-    private List<GeneId> getGeneIds(final List<HomologGroup> homologGroups, final List<Gene> genes)
-            throws ParseException, IOException {
-        final Set<String> groupGeneIds = homologGroups.stream()
-                .map(g -> g.getGeneId().toString())
-                .collect(Collectors.toSet());
-        final Set<String> allGeneIds = genes.stream()
-                .map(g -> g.getGeneId().toString())
-                .collect(Collectors.toSet());
-        allGeneIds.addAll(groupGeneIds);
-        return ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+    private void setSpeciesNames(final Map<String, List<HomologGroup>> homologGroups) {
+        final Set<Long> taxIds = new HashSet<>();
+        homologGroups.forEach((key, value) -> value.forEach(group -> {
+            taxIds.add(group.getTaxId());
+            taxIds.addAll(group.getHomologs().stream().map(Gene::getTaxId).collect(Collectors.toList()));
+        }));
+        final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+        homologGroups.forEach((key, value) -> value.forEach(group -> {
+            Taxonomy organism = organisms
+                    .stream()
+                    .filter(o -> o.getTaxId().equals(group.getTaxId()))
+                    .findFirst()
+                    .orElse(null);
+            if (organism != null) {
+                group.setSpeciesCommonName(organism.getCommonName());
+                group.setSpeciesScientificName(organism.getScientificName());
+            }
+            setGeneSpeciesNames(group.getHomologs(), organisms);
+        }));
+    }
+
+    private void setGeneIds(final List<HomologGroup> homologGroups) throws ParseException, IOException {
+        final Set<String> allGeneIds = new HashSet<>();
+        homologGroups.forEach(group -> {
+            allGeneIds.add(group.getGeneId().toString());
+            allGeneIds.addAll(group.getHomologs().stream()
+                    .map(g -> g.getGeneId().toString())
+                    .collect(Collectors.toList()));
+        });
+        final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        final Map<Long, GeneId> genesMap = geneIds.stream()
+                .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+        for (HomologGroup group: homologGroups) {
+            Long groupGeneId = group.getGeneId();
+            String ensembleGeneId = genesMap.get(groupGeneId).getEnsemblId();
+            group.setEnsemblId(ensembleGeneId);
+            setEnsemblIds(group.getHomologs(), geneIds);
+        }
+    }
+
+    private void setGeneIds(final Map<String, List<HomologGroup>> homologGroups) throws ParseException, IOException {
+        final Set<String> allGeneIds = new HashSet<>();
+        homologGroups.forEach((key, value) -> value.forEach(group -> {
+            allGeneIds.add(group.getGeneId().toString());
+            allGeneIds.addAll(group.getHomologs().stream()
+                    .map(g -> g.getGeneId().toString()).collect(Collectors.toList()));
+        }));
+        final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        final Map<Long, GeneId> genesMap = geneIds.stream()
+                .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+        homologGroups.forEach((key, value) -> value.forEach(group -> {
+            Long groupGeneId = group.getGeneId();
+            String ensembleGeneId = genesMap.get(groupGeneId).getEnsemblId();
+            group.setEnsemblId(ensembleGeneId);
+            setEnsemblIds(group.getHomologs(), geneIds);
+        }));
     }
 }
