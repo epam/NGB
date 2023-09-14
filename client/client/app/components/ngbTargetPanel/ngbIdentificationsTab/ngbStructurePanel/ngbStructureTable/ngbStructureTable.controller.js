@@ -202,15 +202,32 @@ export default class ngbStructureTableController {
                             ...columnSettings,
                             enableFiltering: true,
                             enableSorting: true,
-                            enableColumnMenu: true
+                            enableColumnMenu: true,
+                            cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                {{row.entity[col.field]}}
+                            </div>`
                         };
                     }
                     if (this.sourceModel === this.sourceOptions.PROTEIN_DATA_BANK) {
                         columnSettings = {
                             ...columnSettings,
                             enableFiltering: true,
+                            cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                {{row.entity[col.field]}}
+                            </div>`
                         };
                     }
+                    break;
+                case 'method':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                            <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                            {{row.entity[col.field]}}
+                        </div>`
+                    };
                     break;
                 case 'owner':
                     columnSettings = {
