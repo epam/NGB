@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.externaldb.ncbi;
+package com.epam.catgenome.manager.externaldb.sequence;
 
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
@@ -32,6 +32,8 @@ import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.Sequence;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import com.epam.catgenome.manager.externaldb.ncbi.util.NCBISequenceDatabase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,7 +64,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @RequiredArgsConstructor
-public class NCBIGeneSequencesManager extends HttpDataManager {
+public class NCBISequenceManager extends HttpDataManager {
 
     private static final String NCBI_GENE_INFO_LINK = "https://api.ncbi.nlm.nih.gov/datasets/v1/gene/id/%s";
     private static final String NCBI_PROTEIN_LINK = "https://www.ncbi.nlm.nih.gov/protein/%s";
@@ -102,6 +104,10 @@ public class NCBIGeneSequencesManager extends HttpDataManager {
             }
         }
         return geneRefSections;
+    }
+
+    public String getFasta(final NCBISequenceDatabase database, final String id) throws ExternalDbUnavailableException {
+        return ncbiDataManager.fetchTextById(database.getName(), id, "fasta");
     }
 
     private Map<String, String> getTranscriptDescriptions(final List<String> proteinIds)
