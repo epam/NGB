@@ -107,7 +107,7 @@ public class PdbEntriesManager extends HttpDataManager{
                         }
                     }
                 }
-                final JsonNode proteinChainsNode = node.at("/data/proteinChains");
+                final JsonNode proteinChainsNode = node.at("/data/entity/chains");
                 if (proteinChainsNode.isArray()) {
                     final Iterator<JsonNode> proteinChainsElements = proteinChainsNode.elements();
                     final List<String> proteinChains = new ArrayList<>();
@@ -140,7 +140,7 @@ public class PdbEntriesManager extends HttpDataManager{
         final StructureRequest.Request request = StructureRequest.Request.builder()
                 .requestOptions(options)
                 .query(query)
-                .returnType("entry")
+                .returnType("polymer_entity")
                 .build();
         return StructureRequest.builder()
                 .report("search_summary")
@@ -158,7 +158,7 @@ public class PdbEntriesManager extends HttpDataManager{
         final StructureRequest.Request request = StructureRequest.Request.builder()
                 .requestOptions(options)
                 .query(query)
-                .returnType("entry")
+                .returnType("polymer_entity")
                 .build();
         return StructureRequest.builder()
                 .report("search_summary")
