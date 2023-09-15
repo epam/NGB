@@ -71,42 +71,37 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                     return (gene) => gene.hidden.toLowerCase().includes(text.toLowerCase());
                 }
 
-                function filterGroupHead(list) {
+                function filterGroupHead() {
                     return (gene) => {
                         if (gene.group) {
-                            const items = getGroupItems(gene, list);
+                            const items = getGroupItems(gene);
                             return items.length;
                         }
                         return true;
                     };
                 }
                 
-                $scope.getGenesOfInterest = (text) => {
+                $scope.getFilteredGenes = (text) => {
                     const genes = $scope.genes
                         .filter(s => !$scope.genesOfInterest.includes(s))
-                        .filter(filterGroupHead($scope.genesOfInterest));
-                    if (!text) return genes;
-                    return genes.filter(createFilterFor(text));
-                }
-
-                $scope.getTranslationalGenes = (text) => {
-                    const genes = $scope.genes
                         .filter(s => !$scope.translationalGenes.includes(s))
-                        .filter(filterGroupHead($scope.translationalGenes));
+                        .filter(filterGroupHead());
                     if (!text) return genes;
                     return genes.filter(createFilterFor(text));
                 }
 
-                function getGroupItems (item, list) {
+                function getGroupItems (item) {
+                    const { genesOfInterest = [], translationalGenes = [] } = $scope;
                     return $scope.genes
                         .filter(s => s.item
                             && s.speciesName === item.speciesName
-                            && !list.includes(s));
+                            && !genesOfInterest.includes(s)
+                            && !translationalGenes.includes(s));
                 }
 
                 $scope.genesOfInterestChanged = (item) => {
                     if (item && item.group) {
-                        const items = getGroupItems(item, $scope.genesOfInterest);
+                        const items = getGroupItems(item);
                         for (let i = 0; i < items.length; i++) {
                             $scope.genesOfInterest.push(items[i]);
                         }
@@ -121,7 +116,7 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
 
                 $scope.translationalGenesChanged = (item) => {
                     if (item && item.group) {
-                        const items = getGroupItems(item, $scope.translationalGenes);
+                        const items = getGroupItems(item);
                         for (let i = 0; i < items.length; i++) {
                             $scope.translationalGenes.push(items[i]);
                         }
