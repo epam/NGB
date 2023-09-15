@@ -53,14 +53,14 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PudMedService {
+public class PubMedService {
 
     @Value("${pubmed.search.context:}")
     private String pubMedSearchContext;
@@ -74,7 +74,7 @@ public class PudMedService {
 
     @SneakyThrows
     public SearchResult<NCBISummaryVO> fetchPubMedArticles(final PublicationSearchRequest request) {
-        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.searchByEnsemblIds(request.getGeneIds());
+        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.getNcbiGeneIds(request.getGeneIds());
         final List<String> entrezIds = ncbiGenes.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());

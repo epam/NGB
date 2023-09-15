@@ -97,7 +97,7 @@ public class ExternalDBController extends AbstractRESTController {
     private NCBIGeneManager ncbiGeneManager;
 
     @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
+    private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
     @Autowired
     private NCBIShortVarManager ncbiShortVarManager;
@@ -399,7 +399,7 @@ public class ExternalDBController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException, ParseException {
-        ncbiGeneIdsManager.importData(path);
+        ncbiEnsemblIdsManager.importData(path);
         return Result.success(null);
     }
 }

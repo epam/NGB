@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.externaldb.homologene.Domain;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
@@ -74,6 +75,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +83,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -96,6 +99,9 @@ public class HomologeneManager {
     @Value("${homologene.index.directory}")
     private String indexDirectory;
 
+    @Value("${homologene.top.hits:10000}")
+    private int topHits;
+
     @Autowired
     private TaxonomyManager taxonomyManager;
     @Autowired
@@ -105,7 +111,9 @@ public class HomologeneManager {
     @Autowired
     private HomologGeneDescDao geneDescDao;
     @Autowired
-    private NCBIGeneIdsManager ncbiGeneIdsManager;
+    private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
+    @Autowired
+    private NCBIGeneIdsManager geneIdsManager;
 
     public SearchResult<HomologeneEntry> searchHomologenes(final HomologeneSearchRequest query)
             throws IOException, ParseException {
@@ -126,26 +134,9 @@ public class HomologeneManager {
             final int from = (page - 1) * pageSize;
             final int to = Math.min(from + pageSize, scoreDocs.length);
 
-            final Set<Long> taxIds = new HashSet<>();
-            final Set<String> allGeneIds = new HashSet<>();
             for (int i = from; i < to; i++) {
                 Document doc = searcher.doc(scoreDocs[i].doc);
                 List<Gene> genes = getGenes(doc);
-                List<Long> geneTaxIds = genes.stream().map(Gene::getTaxId).collect(Collectors.toList());
-                List<String> geneIds = genes.stream().map(g -> g.getGeneId().toString()).collect(Collectors.toList());
-                allGeneIds.addAll(geneIds);
-                taxIds.addAll(geneTaxIds);
-            }
-            final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
-                    : taxonomyManager.searchOrganismsByIds(taxIds);
-
-            final List<GeneId> geneIds = ncbiGeneIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
-
-            for (int i = from; i < to; i++) {
-                Document doc = searcher.doc(scoreDocs[i].doc);
-                List<Gene> genes = getGenes(doc);
-                setGeneSpeciesNames(genes, organisms);
-                setEnsemblIds(genes, geneIds);
                 entries.add(
                     HomologeneEntry.builder()
                         .groupId(getGroupId(doc))
@@ -156,10 +147,52 @@ public class HomologeneManager {
                         .build()
                 );
             }
+            setGeneSpeciesNames(entries);
+            setEnsemblIds(entries);
             searchResult.setItems(entries);
             searchResult.setTotalCount(topDocs.totalHits);
         }
         return searchResult;
+    }
+
+    public Map<String, List<HomologeneEntry>> searchHomologenes(final List<String> geneIds)
+            throws IOException, ParseException {
+        final List<GeneId> ncbiGeneIds = geneIdsManager.getNcbiGeneIds(geneIds);
+        final Map<String, List<HomologeneEntry>> result = new HashMap<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            final IndexSearcher searcher = new IndexSearcher(indexReader);
+            for (GeneId geneId: ncbiGeneIds) {
+                List<HomologeneEntry> entries = new ArrayList<>();
+                Query query = buildSearchQuery(geneId.getEntrezId());
+                TopDocs topDocs = searcher.search(query, topHits);
+                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                    Document doc = searcher.doc(scoreDoc.doc);
+                    List<Gene> genes = getGenes(doc);
+                    entries.add(
+                            HomologeneEntry.builder()
+                                    .groupId(getGroupId(doc))
+                                    .taxId(getTaxId(doc))
+                                    .version(getVersion(doc))
+                                    .caption(getCaption(doc))
+                                    .genes(genes)
+                                    .build()
+                    );
+                }
+                if (topDocs.totalHits > 0) {
+                    result.put(geneId.getEnsemblId(), entries);
+                }
+            }
+        }
+        setGeneSpeciesNames(result);
+        setEnsemblIds(result);
+        return result;
+    }
+
+    private Query buildSearchQuery(final Long geneId) {
+        return new BooleanQuery.Builder()
+                .add(buildTermQuery(geneId.toString(), IndexFields.GENES.getFieldName()), BooleanClause.Occur.SHOULD)
+                .build();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -352,7 +385,7 @@ public class HomologeneManager {
         return homologeneEntries;
     }
 
-    public static void setGeneSpeciesNames(final List<Gene> genes, List<Taxonomy> organisms) {
+    public static void setGeneSpeciesNames(final List<Gene> genes, final List<Taxonomy> organisms) {
         for (Gene gene: genes) {
             Taxonomy organism = organisms
                     .stream()
@@ -366,14 +399,60 @@ public class HomologeneManager {
         }
     }
 
+    public void setGeneSpeciesNames(final Map<String, List<HomologeneEntry>> result) {
+        final Set<Long> taxIds = new HashSet<>();
+        result.forEach((key, value) -> value.forEach(entry -> {
+            taxIds.addAll(entry.getGenes().stream().map(Gene::getTaxId).collect(Collectors.toSet()));
+        }));
+        final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+        for (Map.Entry<String, List<HomologeneEntry>> entry : result.entrySet()) {
+            entry.getValue().forEach(v -> setGeneSpeciesNames(v.getGenes(), organisms));
+        }
+    }
+
+    public void setGeneSpeciesNames(final List<HomologeneEntry> result) {
+        final Set<Long> taxIds = new HashSet<>();
+        result.forEach(r -> taxIds.addAll(r.getGenes().stream().map(Gene::getTaxId).collect(Collectors.toSet())));
+        final List<Taxonomy> organisms = taxIds.isEmpty() ? Collections.emptyList()
+                : taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+        for (HomologeneEntry entry : result) {
+            setGeneSpeciesNames(entry.getGenes(), organisms);
+        }
+    }
+
     public static void setEnsemblIds(final List<Gene> genes, final List<GeneId> geneIds) {
         final Map<Long, GeneId> genesMap = geneIds.stream()
                 .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
         for (Gene gene: genes) {
             if (genesMap.containsKey(gene.getGeneId())) {
-                final String ensembleId = genesMap.get(gene.getGeneId()).getEnsembleId();
-                gene.setEnsemblId(ensembleId);
+                final String ensemblId = genesMap.get(gene.getGeneId()).getEnsemblId();
+                gene.setEnsemblId(ensemblId);
             }
+        }
+    }
+
+    public void setEnsemblIds(final Map<String, List<HomologeneEntry>> result) throws ParseException, IOException {
+        final Set<String> allGeneIds = new HashSet<>();
+        result.forEach((key, value) -> value.forEach(entry -> {
+            allGeneIds.addAll(entry.getGenes().stream().map(g -> g.getGeneId().toString()).collect(Collectors.toSet()));
+        }));
+        final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        for (Map.Entry<String, List<HomologeneEntry>> entry : result.entrySet()) {
+            entry.getValue().forEach(v -> setEnsemblIds(v.getGenes(), geneIds));
+        }
+    }
+
+    public void setEnsemblIds(final List<HomologeneEntry> result) throws ParseException, IOException {
+        final Set<String> allGeneIds = new HashSet<>();
+        result.forEach(group -> {
+            allGeneIds.addAll(group.getGenes().stream()
+                    .map(g -> g.getGeneId().toString())
+                    .collect(Collectors.toList()));
+        });
+        final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(allGeneIds));
+        for (HomologeneEntry entry : result) {
+            setEnsemblIds(entry.getGenes(), geneIds);
         }
     }
 

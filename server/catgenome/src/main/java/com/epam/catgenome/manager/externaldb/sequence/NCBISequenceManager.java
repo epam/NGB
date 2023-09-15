@@ -166,7 +166,7 @@ public class NCBISequenceManager extends HttpDataManager {
                 final GeneSequences sequences = new GeneSequences();
                 final JsonNode node = elements.next();
                 final String entrezId = node.at("/gene/gene_id").asText();
-                sequences.setGeneId(entrezMap.get(entrezId).getEnsembleId());
+                sequences.setGeneId(entrezMap.get(entrezId).getEnsemblId());
 
                 final JsonNode referenceNodes = node.at("/gene/reference_standards");
                 if (referenceNodes.isArray()) {
@@ -241,7 +241,7 @@ public class NCBISequenceManager extends HttpDataManager {
                 final JsonNode node = elements.next();
 
                 final String entrezId = node.at("/gene/gene_id").asText();
-                geneRefSection.setGeneId(entrezMap.get(entrezId).getEnsembleId());
+                geneRefSection.setGeneId(entrezMap.get(entrezId).getEnsemblId());
 
                 final JsonNode referenceNodes = node.at("/gene/reference_standards");
                 if (referenceNodes.isArray()) {

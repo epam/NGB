@@ -40,7 +40,7 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class NCBIGeneIdsManagerTest extends TestCase {
+public class NCBIEnsemblIdsManagerTest extends TestCase {
 
     private static final int ENSEMBL_COUNT = 1;
     private static final int ENTREZ_COUNT = 2;
@@ -49,7 +49,7 @@ public class NCBIGeneIdsManagerTest extends TestCase {
 
 
     @Autowired
-    private NCBIGeneIdsManager manager;
+    private NCBIEnsemblIdsManager manager;
 
     @Autowired
     private ApplicationContext context;
