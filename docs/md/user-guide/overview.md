@@ -275,8 +275,8 @@ To launch a new identifying process, find the target in the **Targets** table an
   ![NGB GUI](images/overview-56.png)  
 In the appeared pop-up, specify:
 
-- _species of interest_ - list of species of interest. Corresponds to species for which gene (target) the identification will be performed
-- _translational species_ - list of species to which the gene comparison shall be performed during the identification  
+- _genes of interest_ - list of genes of interest. Corresponds to species for which gene (target) the identification will be performed
+- _translational genes_ - list of genes in species to which the gene comparison shall be performed during the identification  
   ![NGB GUI](images/overview-57.png)
 
 Once the identifying process is finished, the **Identifications** sub-tab will be automatically opened with the identification results (report):  
