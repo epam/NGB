@@ -36,6 +36,7 @@ import MiewContext from './shared/miewContext';
 import MotifsContext from './shared/motifsContext';
 import NotificationsContext from './shared/notificationsContext';
 import BisulfiteModeContext from './shared/bisulfiteModeContext';
+import TargetContext from './shared/targetContext';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
@@ -80,4 +81,5 @@ export default angular.module('NGB', [
     .service('bamCoverageContext', BamCoverageContext.instance)
     .service('ngbPathwaysService', PathwaysService.instance)
     .service('bisulfiteModeContext', BisulfiteModeContext.instance)
+    .service('targetContext', TargetContext.instance)
     .name;

@@ -3,6 +3,7 @@ import SelectionContext, {SelectionEvents} from '../../../shared/selectionContex
 import BLASTContext from '../../../shared/blastContext';
 import MotifsContext from '../../../shared/motifsContext';
 import BisulfiteModeContext from '../../../shared/bisulfiteModeContext';
+import TargetContext from '../../../shared/targetContext';
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -21,6 +22,7 @@ export default class ngbTrackController {
     blastContext: BLASTContext;
     motifsContext: MotifsContext;
     bisulfiteModeContext: BisulfiteModeContext;
+    targetContext: TargetContext;
 
     static get UID() {
         return 'ngbTrackController';
@@ -74,7 +76,8 @@ export default class ngbTrackController {
         motifsContext,
         bamCoverageContext,
         appearanceContext,
-        bisulfiteModeContext
+        bisulfiteModeContext,
+        targetContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
@@ -85,6 +88,7 @@ export default class ngbTrackController {
         this.motifsContext = motifsContext;
         this.bamCoverageContext = bamCoverageContext;
         this.bisulfiteModeContext = bisulfiteModeContext;
+        this.targetContext = targetContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
         this.appearanceContext = appearanceContext;
         this.fcSourcesManager = fcSourcesManager;
@@ -468,6 +472,7 @@ export default class ngbTrackController {
             motifsContext: this.motifsContext,
             bamCoverageContext: this.bamCoverageContext,
             bisulfiteModeContext: this.bisulfiteModeContext,
+            targetContext: this.targetContext,
             reloadScope: () => this.$timeout(() => this.scope.$apply()),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,
