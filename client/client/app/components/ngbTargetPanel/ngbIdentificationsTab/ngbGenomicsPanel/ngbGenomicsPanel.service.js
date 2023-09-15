@@ -3,7 +3,10 @@ import {calculateColor} from '../../../../shared/utils/calculateColor';
 const PAGE_SIZE = 10;
 
 const capitalize = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    if (string) {
+        return string.slice(0, 1).toUpperCase().concat(string.slice(1).toLowerCase());
+    }
+    return '';
 };
 
 export default class ngbGenomicsPanelService {
@@ -174,8 +177,7 @@ export default class ngbGenomicsPanelService {
     getGenomicsResults() {
         const start = (this.currentPage - 1) * this.pageSize;
         const end = this.currentPage * this.pageSize;
-        const result = this._genomicsResults.slice(start, end);
-        return result;
+        return this._genomicsResults.slice(start, end);
     }
 
     setHomologsData(data, chip) {
