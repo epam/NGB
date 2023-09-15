@@ -116,7 +116,6 @@ export default class ngbSequencesTableController {
             appScopeProvider: this.$scope,
             columnDefs: [],
             paginationPageSize: this.pageSize,
-            rowTemplate: require('./ngbSequencesTable_row.tpl.html'),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();

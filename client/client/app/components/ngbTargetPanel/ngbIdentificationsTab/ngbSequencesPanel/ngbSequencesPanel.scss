@@ -108,6 +108,13 @@ ngb-sequences-panel {
             color: #999;
         }
     }
+
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
 }
 
 .sequences-gene-select-container {

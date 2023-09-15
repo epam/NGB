@@ -393,4 +393,17 @@ export class TargetDataService extends DataService {
             });
         });
     }
+
+    getSequence (db, id) {
+        return new Promise((resolve, reject) => {
+            this.get(`sequence/${id}?database=${db}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting sequence';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
 }

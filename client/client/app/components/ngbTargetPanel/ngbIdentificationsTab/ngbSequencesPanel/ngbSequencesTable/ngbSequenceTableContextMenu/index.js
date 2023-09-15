@@ -1,4 +1,4 @@
-import './styles.scss';
+import './ngbSequenceTableContextMenu.scss';
 
 import angular from 'angular';
 
