@@ -70,11 +70,11 @@ ngb-genomics-panel {
             &:not([disabled]):focus .md-select-value {
                 border-bottom: none;
             }
-    
+
             md-select-value {
                 border: none;
                 padding: 0;
-        
+
                 > span,
                 > span > div {
                     line-height: $genomics-select-height;
@@ -98,11 +98,10 @@ ngb-genomics-panel {
     }
 
     .genomics-button.align {
-        grid-column: 15 / 18;// 11 / 14
+        grid-column: 11 / 14
     }
 
     .genomics-button.track {
-        display: none;
         grid-column: 15 / 18;
     }
 }
@@ -111,17 +110,17 @@ ngb-genomics-panel {
     md-select-menu:not(.md-overflow) md-content {
         padding: 0;
     }
-  
+
     md-option {
         padding: 0 8px;
         height: calc($genomics-select-height + 2px);
-  
+
         &[selected],
         &:not([disabled]):focus {
             color: $genomics-color;
         }
     }
-  
+
     md-select-menu,
     md-select-menu md-content {
         min-height: calc($genomics-select-height + 2px);
