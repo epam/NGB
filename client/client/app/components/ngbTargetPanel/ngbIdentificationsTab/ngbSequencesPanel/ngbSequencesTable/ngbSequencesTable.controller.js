@@ -175,9 +175,9 @@ export default class ngbSequencesTableController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                            <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                            {{row.entity[col.field]}}
-                        </div>`
+                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                        {{row.entity[col.field]}}
+                                    </div>`
                     };
                     break;
                 default:

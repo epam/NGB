@@ -9,12 +9,12 @@ export default class ngbSequencesTableService {
         this._currentPage = value ;
     }
 
-    static instance (dispatcher, ngbSequencesPanelService) {
-        return new ngbSequencesTableService(dispatcher, ngbSequencesPanelService);
+    static instance (dispatcher, ngbSequencesPanelService, targetDataService) {
+        return new ngbSequencesTableService(dispatcher, ngbSequencesPanelService, targetDataService);
     }
 
-    constructor(dispatcher, ngbSequencesPanelService) {
-        Object.assign(this, {dispatcher, ngbSequencesPanelService});
+    constructor(dispatcher, ngbSequencesPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbSequencesPanelService, targetDataService});
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
@@ -33,5 +33,13 @@ export default class ngbSequencesTableService {
 
     targetChanged() {
         this._currentPage = 1;
+    }
+
+    async getSequence(db, id) {
+        return new Promise(resolve => {
+            this.targetDataService.getSequence(db, id)
+                .then(data => resolve(data))
+                .catch(err => resolve(false));
+        });
     }
 }

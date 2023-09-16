@@ -1,5 +1,8 @@
 <span class="link-cell"
-      ng-if="row.entity">
+      ng-if="row.entity"
+      data-target="ngbSequenceTableContextMenu"
+      locals="row, col"
+      ngb-context-menu>
     <a ng-href="{{row.entity[col.field].url}}" target="_blank">
         {{row.entity[col.field].id}}
     </a>

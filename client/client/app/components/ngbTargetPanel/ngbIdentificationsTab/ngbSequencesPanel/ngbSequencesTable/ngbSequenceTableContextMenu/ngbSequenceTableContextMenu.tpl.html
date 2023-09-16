@@ -1,0 +1,11 @@
+<div class="ngb-sequence-table-context-menu">
+    <md-list class="md-dense">
+        <md-list-item>
+            <md-button class="copy-to-clipboard-button"
+                       data-clipboard-text="{{$ctrl.sequence}}"
+                       ng-click="copyToClipboard($event)">
+                Copy to clipboard
+            </md-button>
+        </md-list-item>
+    </md-list>
+</div>
