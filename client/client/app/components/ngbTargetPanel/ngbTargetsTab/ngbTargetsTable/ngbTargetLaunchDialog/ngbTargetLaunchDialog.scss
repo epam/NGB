@@ -1,14 +1,4 @@
-$md-chip-size: 26px;
-$md-chip-background: #eeeeee;
-$md-chip-color: #444444;
-$md-chip-font-size: 13px;
-$md-chip-border-radius: 3px;
-
-$md-chip-option-size: calc($md-chip-size + 4px);
-
-$md-label-font-size: $md-chip-font-size + 2px;
-
-$md-chip-remove-width: $md-chip-size - 4px;
+@import "../../ngbTargetsTab.variables.scss";
 
 md-dialog.launch-dialog {
     max-width: 50%;
@@ -52,7 +42,7 @@ md-dialog.launch-dialog {
 
     md-autocomplete-wrap {
         input {
-            font-size: 12px;
+            font-size: $tab-font-size;
             height: 22px;
             align-self: center;
         }

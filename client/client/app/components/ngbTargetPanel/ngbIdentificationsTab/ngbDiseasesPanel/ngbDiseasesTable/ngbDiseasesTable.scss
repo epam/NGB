@@ -1,3 +1,5 @@
+@import "../ngbDiseasesPanel.variables.scss";
+
 ngb-diseases-table {
     .ui-grid {
         border: none;
@@ -137,7 +139,7 @@ ngb-diseases-table {
         min-height: 200px;
 
         .no-records-warning {
-            color: #999;
+            color: $diseases-warning-color;
         }
     }
 }

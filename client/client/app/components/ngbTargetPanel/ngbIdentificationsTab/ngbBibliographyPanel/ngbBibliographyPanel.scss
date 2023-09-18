@@ -1,7 +1,4 @@
-$font-size: 12px;
-
-$summary-section-title-height: 24px;
-$summary-option-size: 30px;
+@import "./ngbBibliographyPanel.variables.scss";
 
 ngb-bibliography-panel {
     position: relative;
@@ -39,7 +36,7 @@ ngb-bibliography-panel {
         padding-bottom: 10px;
 
         .no-records-warning {
-            color: #999;
+            color: $bibliography-warning-color;
         }
     }
 

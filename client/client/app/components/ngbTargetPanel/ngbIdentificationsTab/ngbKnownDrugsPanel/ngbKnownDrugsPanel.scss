@@ -1,7 +1,4 @@
-$known-drugs-nav-height: 28px;
-$known-drugs-border: 1px solid #dddddd;
-$known-drugs-color: #444444;
-$known-drugs-font-size: 13px;
+@import "./ngbKnownDrugsPanel.variables.scss";
 
 ngb-known-drugs-panel {
     padding: 5px 0 0;
@@ -77,8 +74,8 @@ ngb-known-drugs-panel {
     .md-button.export-button {
         min-height: 24px;
         line-height: 24px;
-        color: #333333;
-        font-size: 13px;
+        color: $known-drugs-font-color;
+        font-size: $known-drugs-font-size;
         font-weight: normal;
     }
 }

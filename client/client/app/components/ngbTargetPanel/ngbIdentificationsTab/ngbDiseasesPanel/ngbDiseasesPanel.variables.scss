@@ -1,0 +1,16 @@
+@import "../../ngbTargetPanel.variables.scss";
+
+$diseases-nav-height: $general-control-height;
+$diseases-nav-color: $general-font-color;
+$diseases-nav-background: #fafafa;
+$diseases-nab-border: 1px solid #f0f0f0;
+$diseases-nav-selected-background: #dddddd;
+$diseases-nab-selected-border: $general-border;
+$diseases-nav-border-radius: 3px;
+$diseases-font-size: $general-font-size;
+
+$diseases-chart-height: 18px;
+$diseases-chart-font-size: $general-font-size;
+$diseases-chart-color: $general-font-color;
+
+$diseases-warning-color: $general-warning-color;

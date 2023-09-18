@@ -1,8 +1,10 @@
+@import "../ngbSequencesPanel.variables.scss";
+
 ngb-sequences-table {
     .ui-grid {
         border: none;
         height: auto;
-        border-top: 1px solid #dddddd;
+        border-top: $sequences-table-border;
 
         .ui-grid-viewport {
             height: 100% !important;
@@ -118,7 +120,7 @@ ngb-sequences-table {
         padding-bottom: 10px;
 
         .no-records-warning {
-            color: #999;
+            color: $sequences-warning-color;
         }
     }
 

@@ -13,7 +13,7 @@
 
 ngb-identifications-tab {
     overflow: auto;
-    font-size: $general-font-size;
+    font-size: $tab-font-size;
     color: $general-font-color;
 
     md-content.identification {
@@ -101,7 +101,7 @@ ngb-identifications-tab {
             @include ngb-tags($main-info-row-height);
         }
 
-        $main-info-descriptions-line-height: calc($general-font-size * 1.3);
+        $main-info-descriptions-line-height: calc($tab-font-size * 1.3);
 
         .main-info {
             flex: 1;

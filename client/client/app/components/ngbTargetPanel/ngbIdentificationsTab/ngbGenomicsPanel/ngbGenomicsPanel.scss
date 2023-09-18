@@ -1,6 +1,4 @@
-$genomics-select-height: 28px;
-$genomics-color: #333333;
-$genomics-font-size: 13px;
+@import "./ngbGenomicsPanel.variables.scss";
 
 ngb-genomics-panel {
     padding: 5px 0 0;
@@ -32,7 +30,7 @@ ngb-genomics-panel {
         display: grid;
         grid-template-columns: repeat(20, 1fr);
         align-items: center;
-        color: $genomics-color;
+        color: $genomics-font-color;
         height: $genomics-select-height;
         line-height: $genomics-select-height;
 
@@ -41,18 +39,17 @@ ngb-genomics-panel {
             grid-row: 1;
             display: flex;
             justify-content: right;
-            font-size: 13px;
-            color: $genomics-color;
+            font-size: $genomics-font-size;
+            color: $genomics-font-color;
             margin-right: 10px;
         }
 
         md-input-container {
             margin: 0;
             padding: 0;
-            color: $genomics-color;
+            color: $genomics-font-color;
             line-height: $genomics-select-height;
             height: $genomics-select-height;
-            color: $genomics-color;
             font-size: $genomics-font-size;
         }
 
@@ -94,7 +91,7 @@ ngb-genomics-panel {
         margin: 0;
         grid-row: 1;
         font-weight: 400;
-        font-size: 13px;
+        font-size: $genomics-font-size;
     }
 
     .genomics-button.align {
@@ -117,7 +114,7 @@ ngb-genomics-panel {
 
         &[selected],
         &:not([disabled]):focus {
-            color: $genomics-color;
+            color: $genomics-font-color;
         }
     }
 

@@ -1,3 +1,5 @@
+@import "../../ngbSequencesPanel.variables.scss";
+
 .ngb-sequence-table-context-menu {
     background-color: white;
     box-shadow: 0 0 1em #999;
@@ -10,7 +12,7 @@
         text-align: left;
         margin: 0;
         border-radius: 0;
-        font-size: 13px;
+        font-size: $sequences-font-size;
         min-height: 36px;
         line-height: 36px;
         text-align: center;

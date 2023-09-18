@@ -1,9 +1,11 @@
+@import "../ngbGenomicsPanel.variables.scss";
+
 ngb-genomics-table {
     .ui-grid {
         border: none;
         height: auto;
-        border-top: 1px solid #dddddd;
-        border-bottom: 1px solid #dddddd;
+        border-top: $genomics-table-border;
+        border-bottom: $genomics-table-border;
 
         .ui-grid-viewport {
             height: 100% !important;
@@ -81,7 +83,7 @@ ngb-genomics-table {
         min-height: 80px;
 
         .no-records-warning {
-            color: #999;
+            color: $genomics-warning-color;
         }
     }
 }

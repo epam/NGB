@@ -1,3 +1,5 @@
+@import "../ngbTargetsTab.variables.scss";
+
 ngb-targets-table {
     position: relative;
     padding-top: 3px;
@@ -25,7 +27,7 @@ ngb-targets-table {
         padding-top: 10px;
 
         .no-records-warning {
-            color: #999;
+            color: $targets-warning-color;
         }
     }
 
