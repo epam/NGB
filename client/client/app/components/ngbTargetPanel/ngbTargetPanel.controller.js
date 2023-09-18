@@ -1,6 +1,7 @@
 const TARGET_STATE = {
     TARGETS: 'TARGETS',
-    IDENTIFICATIONS: 'IDENTIFICATIONS'
+    IDENTIFICATIONS: 'IDENTIFICATIONS',
+    DISEASES: 'DISEASES'
 };
 
 export default class ngbTargetPanelController {

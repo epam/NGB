@@ -1,0 +1,17 @@
+<div class="diseases-header">
+    <input class="ngb-diseases-tab-input"
+           spellcheck="false"
+           ng-auto-focus
+           ng-class="{'error': !$ctrl.diseaseModel}"
+           required
+           placeholder="Disease name"
+           ng-model="$ctrl.diseaseModel"
+    />
+    <md-button type="button"
+               class="md-primary md-raised md-accent diseases-search-button"
+               aria-label="search disease"
+               ng-click="$ctrl.searchDisease()"
+               ng-disabled="!$ctrl.diseaseModel">
+        SEARCH
+    </md-button>
+</div>

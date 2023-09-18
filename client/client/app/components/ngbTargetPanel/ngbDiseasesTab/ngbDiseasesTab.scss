@@ -1,0 +1,61 @@
+$common-font-color: #444444;
+$common-font-size: 13px;
+$form-horizontal-offset: 5px;
+
+$diseases-tab-border-radius: 0;
+$diseases-tab-background: #fafafa;
+$diseases-tab-control-height: 36px;
+$diseases-tab-control-font-color: $common-font-color;
+$diseases-tab-control-padding: 0 calc($form-horizontal-offset - 1px);
+$diseases-tab-control-font-size: $common-font-size;
+$diseases-tab-control-hover-background: #f0f0f0;
+
+$main-action-button-height: 33px;
+
+.diseases-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 0 5px;
+    padding: 0 calc($form-horizontal-offset - 4px);
+    box-sizing: border-box;
+    width: 100%;
+    line-height: 32px;
+}
+
+.ngb-diseases-tab-input {
+    flex: 1;
+    margin: 2px 0;
+    border-radius: $diseases-tab-border-radius;
+    border: none;
+    background: $diseases-tab-background;
+    height: $diseases-tab-control-height;
+    color: $diseases-tab-control-font-color;
+    padding: $diseases-tab-control-padding;
+    font-size: $diseases-tab-control-font-size;
+    box-sizing: border-box;
+    border-bottom: 1px solid darken($diseases-tab-background, 20%);
+
+    &.error {
+        border-color: red;
+    }
+
+    &:hover:not(:focus) {
+        background: $diseases-tab-control-hover-background;
+    }
+    &:hover,
+    &:active,
+    &:focus {
+        outline: none;
+    }
+}
+
+.diseases-search-button {
+    min-height: $main-action-button-height;
+    height: $main-action-button-height;
+    line-height: $main-action-button-height;
+    min-width: 60px;
+    margin: 5px;
+}
