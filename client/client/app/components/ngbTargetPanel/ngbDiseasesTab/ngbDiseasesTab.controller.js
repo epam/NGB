@@ -1,8 +1,13 @@
+const DISEASES_LIST = ['Lung Carcinoma', 'Non-small cell lung carcinoma', 'Lung Cancer'];
 export default class ngbDiseasesTabController {
 
     searchText;
     diseaseModel;
-    diseasesList = [];
+    descriptionCollapsed = true;
+
+    get diseasesList() {
+        return DISEASES_LIST;
+    }
 
     static get UID() {
         return 'ngbDiseasesTabController';
@@ -23,7 +28,16 @@ export default class ngbDiseasesTabController {
         this.searchText = this.diseaseModel;
     }
 
-    searchDisease() {}
+    searchDisease() {
+        this.diseasesResults = true;
+        this.title = this.diseaseModel;
+        this.synonyms = ['malignant neoplasm of lung', 'cancer of lung', 'malignant lung neoplasm'];
+        this.description = 'a malignant neoplasm involving the lung.';
+    }
+
+    toggleDescriptionCollapsed () {
+        this.descriptionCollapsed = !this.descriptionCollapsed;
+    }
 
     onBlur () {
         if (this.searchText) {

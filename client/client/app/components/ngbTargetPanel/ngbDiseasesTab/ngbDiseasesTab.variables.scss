@@ -16,3 +16,9 @@ $main-action-button-height: 33px;
 $diseases-tab-font-size: $general-font-size;
 $diseases-tab-line-height: 30px;
 $diseases-tab-height: 30px;
+
+$main-info-row-height: calc(2.0 * $tab-font-size);
+$main-info-descriptions-line-height: calc($tab-font-size * 1.3);
+$main-info-description-max-lines: 3;
+
+$title-font-size: calc($tab-font-size * 1.5);

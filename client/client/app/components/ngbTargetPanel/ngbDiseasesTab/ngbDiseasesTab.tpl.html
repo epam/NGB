@@ -1,33 +1,65 @@
-<div class="diseases-header">
-    <md-autocomplete class="autocomplete"
-                     placeholder="Disease name"
-                     md-autofocus
-                     md-search-text="$ctrl.searchText"
-                     md-clear-button="true"
-                     md-menu-class="diseases-md-autocomplete"
-                     md-no-cache="true"
-                     md-items="disease in $ctrl.getFilteredDiseases()"
-                     md-item-text="disease"
-                     md-delay="100"
-                     md-min-length="1"
-                     md-input-minlength="1"
-                     md-selected-item-change="$ctrl.diseaseChanged(disease)"
-                     ng-blur="$ctrl.onBlur($event)"
-                     ng-keydown="$ctrl.onKeyPress($event)"
-                     md-match-case-insensitive="true">
-        <md-item-template>
-            <span md-highlight-text="$ctrl.searchText"
-                  md-highlight-flags="gi">
-                {{disease}}
+<md-content flex class="diseases">
+    <div class="diseases-header">
+        <md-autocomplete class="autocomplete"
+                         placeholder="Disease name"
+                         md-autofocus
+                         md-search-text="$ctrl.searchText"
+                         md-clear-button="true"
+                         md-menu-class="diseases-md-autocomplete"
+                         md-no-cache="true"
+                         md-items="disease in $ctrl.getFilteredDiseases()"
+                         md-item-text="disease"
+                         md-delay="100"
+                         md-min-length="1"
+                         md-input-minlength="1"
+                         md-selected-item-change="$ctrl.diseaseChanged(disease)"
+                         ng-blur="$ctrl.onBlur($event)"
+                         ng-keydown="$ctrl.onKeyPress($event)"
+                         md-match-case-insensitive="true">
+            <md-item-template>
+                <span md-highlight-text="$ctrl.searchText"
+                      md-highlight-flags="gi">
+                    {{disease}}
+                </span>
+            </md-item-template>
+                <md-not-found>Not found.</md-not-found>
+            </md-autocomplete>
+        <md-button type="button"
+                   class="md-primary md-raised md-accent diseases-search-button"
+                   aria-label="search disease"
+                   ng-click="$ctrl.searchDisease()"
+                   ng-disabled="!$ctrl.diseaseModel">
+            SEARCH
+        </md-button>
+    </div>
+    <div class="diseases-content"
+         ng-if="$ctrl.diseasesResults">
+         <div>
+            <span class="content-title">{{$ctrl.title}}</span>
+         </div>
+        <div class="main-info-row">
+            <span class="main-info-title">
+                Synonyms:
             </span>
-        </md-item-template>
-            <md-not-found>Not found.</md-not-found>
-        </md-autocomplete>
-    <md-button type="button"
-               class="md-primary md-raised md-accent diseases-search-button"
-               aria-label="search disease"
-               ng-click="$ctrl.searchDisease()"
-               ng-disabled="!$ctrl.diseaseModel">
-        SEARCH
-    </md-button>
-</div>
+            <ngb-tags class="main-info" tags="$ctrl.synonyms"></ngb-tags>
+        </div>
+        <div class="main-info-row" ng-if="$ctrl.description">
+            <span class="main-info-title">
+                Description:
+            </span>
+            <div class="main-info">
+                <div class="description"
+                     ng-class="{'collapsed': $ctrl.descriptionCollapsed}">
+                    <span class="description-text">
+                        {{$ctrl.description}}
+                    </span>
+                </div>
+                <div>
+                    <a ng-click="$ctrl.toggleDescriptionCollapsed()">
+                        {{$ctrl.descriptionCollapsed ? 'Show more' : 'Show less'}}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</md-content>

@@ -1,6 +1,29 @@
 @import "./ngbDiseasesTab.variables.scss";
+@import "../../../shared/components/ngbTags/ngbTags";
+
+@mixin maxLines ($line-height, $lines-count: 3) {
+    max-height: $lines-count * $line-height;
+
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: $lines-count;
+    line-clamp: $lines-count;
+    -webkit-box-orient: vertical;
+}
 
 ngb-diseases-tab {
+    overflow: auto;
+    font-size: $tab-font-size;
+    color: $general-font-color;
+
+    md-content.diseases {
+        padding: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+    }
+
     .diseases-header {
         display: flex;
         flex-direction: row;
@@ -38,6 +61,59 @@ ngb-diseases-tab {
             line-height: $main-action-button-height;
             min-width: 60px;
             margin: 5px;
+        }
+    }
+
+    .diseases-content {
+        flex: 1;
+        overflow: auto;
+        padding: 0 5px;
+
+        .content-title {
+            font-size: $title-font-size;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .main-info-row {
+            min-height: $main-info-row-height;
+            line-height: $main-info-row-height;
+            display: flex;
+            align-items: flex-start;
+            margin: 1px 0;
+        }
+
+        .main-info-title {
+            min-width: 90px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        ngb-tags.main-info {
+            @include ngb-tags($main-info-row-height);
+        }
+
+        .main-info {
+            flex: 1;
+
+            .description {
+                line-height: $main-info-descriptions-line-height;
+                margin-top: max(0, calc(($main-info-row-height - $main-info-descriptions-line-height) / 2.0));
+
+                &.collapsed {
+                    @include maxLines($main-info-descriptions-line-height, $main-info-description-max-lines);
+                }
+
+                &:not(:last-child) {
+                    margin-bottom: 5px;
+                }
+            }
+
+            a {
+                text-decoration: none;
+                color: rgb(51, 103, 214);
+                cursor: pointer;
+            }
         }
     }
 }
