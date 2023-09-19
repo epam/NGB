@@ -88,7 +88,7 @@ public class PdbEntriesManager extends HttpDataManager{
             final Iterator<JsonNode> elements = resultSet.elements();
             while (elements.hasNext()) {
                 JsonNode node = elements.next();
-                String id = node.at("/identifier").asText();
+                String id = node.at("/data/entryId").asText();
                 Structure structure = Structure.builder()
                         .id(id)
                         .name(node.at("/data/title").asText())
