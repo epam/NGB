@@ -85,13 +85,23 @@ ngb-genomics-panel {
         }
     }
 
+    .genomics-button-block {
+        padding-top: 5px;
+        display: flex;
+        justify-content: end;
+        color: $genomics-color;
+        height: $genomics-select-height;
+        line-height: $genomics-select-height;
+        margin-right: 30px;
+    }
+
     .genomics-button {
         min-height: 25px;
         height: 25px;
         line-height: 25px;
-        min-width: unset;
+        min-width: 80px;
         width: unset;
-        margin: 0;
+        margin: 0 10px;
         grid-row: 1;
         font-weight: 400;
         font-size: 13px;
