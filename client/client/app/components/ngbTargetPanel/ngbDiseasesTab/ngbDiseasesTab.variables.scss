@@ -1,0 +1,18 @@
+@import "../ngbTargetPanel.variables.scss";
+
+$common-font-color: #444444;
+$form-horizontal-offset: 5px;
+
+$diseases-tab-border-radius: 0;
+$diseases-tab-background: #fafafa;
+$diseases-tab-control-height: 36px;
+$diseases-tab-control-font-color: $common-font-color;
+$diseases-tab-control-padding: 0 calc($form-horizontal-offset - 1px);
+$diseases-tab-control-font-size: $general-font-size;
+$diseases-tab-control-hover-background: #f0f0f0;
+
+$main-action-button-height: 33px;
+
+$diseases-tab-font-size: $general-font-size;
+$diseases-tab-line-height: 30px;
+$diseases-tab-height: 30px;

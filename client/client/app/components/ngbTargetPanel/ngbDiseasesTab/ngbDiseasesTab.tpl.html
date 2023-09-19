@@ -1,12 +1,28 @@
 <div class="diseases-header">
-    <input class="ngb-diseases-tab-input"
-           spellcheck="false"
-           ng-auto-focus
-           ng-class="{'error': !$ctrl.diseaseModel}"
-           required
-           placeholder="Disease name"
-           ng-model="$ctrl.diseaseModel"
-    />
+    <md-autocomplete class="autocomplete"
+                     placeholder="Disease name"
+                     md-autofocus
+                     md-search-text="$ctrl.searchText"
+                     md-clear-button="true"
+                     md-menu-class="diseases-md-autocomplete"
+                     md-no-cache="true"
+                     md-items="disease in $ctrl.getFilteredDiseases()"
+                     md-item-text="disease"
+                     md-delay="100"
+                     md-min-length="1"
+                     md-input-minlength="1"
+                     md-selected-item-change="$ctrl.diseaseChanged(disease)"
+                     ng-blur="$ctrl.onBlur($event)"
+                     ng-keydown="$ctrl.onKeyPress($event)"
+                     md-match-case-insensitive="true">
+        <md-item-template>
+            <span md-highlight-text="$ctrl.searchText"
+                  md-highlight-flags="gi">
+                {{disease}}
+            </span>
+        </md-item-template>
+            <md-not-found>Not found.</md-not-found>
+        </md-autocomplete>
     <md-button type="button"
                class="md-primary md-raised md-accent diseases-search-button"
                aria-label="search disease"
