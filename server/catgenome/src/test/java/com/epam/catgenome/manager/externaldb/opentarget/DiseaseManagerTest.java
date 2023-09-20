@@ -38,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -61,5 +62,13 @@ public class DiseaseManagerTest extends TestCase {
         final List<Disease> diseases = diseaseManager.search(diseasesIds);
         assertNotNull(diseases);
         assertEquals(2, diseases.size());
+    }
+
+    @Test
+    public void searchDiseasesByNameTest() throws IOException, ParseException {
+        final String name = "Progressive";
+        final Map<String, String> diseases = diseaseManager.search(name);
+        assertNotNull(diseases);
+        assertEquals(3, diseases.size());
     }
 }

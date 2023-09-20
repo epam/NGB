@@ -602,12 +602,15 @@ public final class IndexUtils {
         return Arrays.asList(encoded.split(LINE_DELIMITER_PATTERN));
     }
 
-    public static Query getByIdsQuery(final List<String> ids, final String fieldName)
-            throws ParseException {
+    public static Query getByTermQuery(final String term, final String fieldName) throws ParseException {
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final QueryParser queryParser = new QueryParser(fieldName, analyzer);
         queryParser.setDefaultOperator(QueryParser.Operator.OR);
-        return queryParser.parse(join(ids, TERM_SPLIT_TOKEN));
+        return queryParser.parse(term);
+    }
+
+    public static Query getByIdsQuery(final List<String> ids, final String fieldName) throws ParseException {
+        return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
     }
 
     public static Query buildTermQuery(final String term, final String fieldName) {

@@ -36,30 +36,43 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.deserialize;
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getField;
 import static com.epam.catgenome.util.IndexUtils.serialize;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
@@ -90,6 +103,40 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
             }
         }
         return diseases;
+    }
+
+    public Disease searchById(final String diseaseId) throws IOException, ParseException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            Query query = getByTermQuery(diseaseId, IndexFields.DISEASE_ID.name());
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, 1);
+            if (topDocs.totalHits > 0) {
+                ScoreDoc scoreDoc = topDocs.scoreDocs[0];
+                Document doc = searcher.doc(scoreDoc.doc);
+                return fullEntryFromDoc(doc);
+            }
+        }
+        return null;
+    }
+
+    public Map<String, String> search(final String name) throws IOException, ParseException {
+        final Map<String, String> entries = new LinkedHashMap<>();
+        final List<SortField> sortFields = Collections.singletonList(new SortField(IndexFields.NAME.name(),
+                SortField.Type.STRING, false));
+        final Sort sort = new Sort(sortFields.toArray(new SortField[1]));
+        final Query query = getByTermQuery(name, IndexFields.NAME.name());
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, topHits, sort);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                entries.put(getField(doc, IndexFields.DISEASE_ID.name()), getField(doc, IndexFields.NAME.name()));
+            }
+        }
+        return entries;
     }
 
     @Override
@@ -145,16 +192,33 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
                 .build();
     }
 
+    private Disease fullEntryFromDoc(final Document doc) {
+        final List<String> synonyms = deserialize(getField(doc, IndexFields.SYNONYMS.name()));
+        return Disease.builder()
+                .id(getField(doc, IndexFields.DISEASE_ID.name()))
+                .name(getField(doc, IndexFields.NAME.name()))
+                .url(String.format(Disease.URL_PATTERN, getField(doc, IndexFields.DISEASE_ID.name())))
+                .description(getField(doc, IndexFields.DESCRIPTION.name()))
+                .synonyms(synonyms)
+                .build();
+    }
+
     @Override
     public void addDoc(final IndexWriter writer, final Disease entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.DISEASE_ID.name(), String.valueOf(entry.getId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.NAME.name(), String.valueOf(entry.getName()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.PARENTS.name(), serialize(entry.getParents()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.DISEASE_ID.name(), entry.getId(), Field.Store.YES));
+
+        doc.add(new TextField(IndexFields.NAME.name(), entry.getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexFields.NAME.name(), new BytesRef(entry.getName())));
+
+        doc.add(new StringField(IndexFields.DESCRIPTION.name(), entry.getDescription(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.SYNONYMS.name(), serialize(entry.getSynonyms()), Field.Store.YES));
+
+        doc.add(new StringField(IndexFields.PARENTS.name(), serialize(entry.getParents()), Field.Store.YES));
         final List<String> therapeuticAreaIds = entry.getTherapeuticAreas().stream()
                 .map(UrlEntity::getId)
                 .collect(Collectors.toList());
-        doc.add(new TextField(IndexFields.THERAPEUTIC_AREA_IDS.name(),
+        doc.add(new StringField(IndexFields.THERAPEUTIC_AREA_IDS.name(),
                 serialize(therapeuticAreaIds), Field.Store.YES));
         writer.addDocument(doc);
     }
@@ -178,9 +242,26 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
                 parents.add(node.next().asText());
             }
         }
+        final List<String> synonyms = new ArrayList<>();
+        final JsonNode exactSynonymsNode = jsonNodes.at("/synonyms/hasExactSynonym");
+        if (exactSynonymsNode.isArray()) {
+            Iterator<JsonNode> node = exactSynonymsNode.elements();
+            while (node.hasNext()) {
+                synonyms.add(node.next().asText());
+            }
+        }
+        final JsonNode relatedSynonymsNode = jsonNodes.at("/synonyms/hasRelatedSynonym");
+        if (relatedSynonymsNode.isArray()) {
+            Iterator<JsonNode> node = relatedSynonymsNode.elements();
+            while (node.hasNext()) {
+                synonyms.add(node.next().asText());
+            }
+        }
         return Disease.builder()
                 .id(jsonNodes.at("/id").asText())
                 .name(jsonNodes.at("/name").asText())
+                .description(jsonNodes.at("/description").asText())
+                .synonyms(synonyms)
                 .therapeuticAreas(therapeuticAreas)
                 .parents(parents)
                 .build();
@@ -197,6 +278,8 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
     private enum IndexFields {
         DISEASE_ID,
         NAME,
+        DESCRIPTION,
+        SYNONYMS,
         THERAPEUTIC_AREA_IDS,
         PARENTS;
     }
