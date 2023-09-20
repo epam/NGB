@@ -116,6 +116,52 @@ ngb-diseases-tab {
             }
         }
     }
+
+    collapsible-panel .collapsible-trigger {
+        margin: 5px 0 0;
+        background: $header-background;
+        border-radius: $border-radius;
+    }
+
+    collapsible-panel.open-panel .collapsible-trigger {
+        border-radius: $border-radius $border-radius 0 0;
+    }
+
+    collapsible-panel .collapsible-panel-body {
+        border: 1px solid $header-background;
+        border-radius: 0 0 $border-radius $border-radius;
+        border-top: 0;
+        padding: 0;
+    }
+
+    .section {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .section-title {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .section-title-part {
+            font-weight: normal;
+            text-transform: none;
+            display: inline-block;
+
+            &:not(:last-child) {
+                margin-right: 5px;
+
+                &::after {
+                    content: ',';
+                }
+            }
+
+            .section-title-part-count {
+                font-weight: bold;
+            }
+        }
+    }
 }
 
 .diseases-md-autocomplete.md-autocomplete-suggestions {

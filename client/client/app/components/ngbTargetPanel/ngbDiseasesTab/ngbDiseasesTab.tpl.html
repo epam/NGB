@@ -61,5 +61,33 @@
                 </div>
             </div>
         </div>
+        <collapsible>
+            <collapsible-panel ng-repeat="mainInfoBlock in $ctrl.mainInfo track by $index"
+                               is-open="$ctrl.openedPanels[mainInfoBlock.key]"
+                               ng-class="{'open-panel': $ctrl.openedPanels[mainInfoBlock.key]}">
+                <collapsible-panel-title class="section">
+                    <span class="section-title">{{mainInfoBlock.title}}</span>
+                    <md-progress-circular ng-if="mainInfoBlock.loading"
+                                          md-mode="indeterminate"
+                                          style="margin-left: auto"
+                                          md-diameter="12">
+                    </md-progress-circular>
+                    <span class="section-title-part"
+                          ng-repeat="part in mainInfoBlock.items track by $index"
+                          ng-if="part.count > 0 && !mainInfoBlock.loading">
+                        <span class="section-title-part-count">{{part.count}}</span>
+                        <ngb-plural-text text="part.item"
+                                         count="part.single ? 1 : part.count"
+                                         class="section-title-part-item"/>
+                    </span>
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div ng-if="mainInfoBlock.key === 'drugs'">
+                    </div>
+                    <div ng-if="mainInfoBlock.key === 'targets'">
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
     </div>
 </md-content>
