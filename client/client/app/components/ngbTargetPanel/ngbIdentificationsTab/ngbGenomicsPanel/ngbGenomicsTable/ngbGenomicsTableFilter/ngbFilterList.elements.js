@@ -55,7 +55,7 @@ export default class ListElements {
                 } else if (searchString && searchString.length > 0) {
                     if (this.fullList && this.fullList.length) {
                         items = this.fullList.filter(i => (
-                            i.toLowerCase().indexOf(searchString.toLowerCase()) === 0
+                            (i.name || i).toLowerCase().indexOf(searchString.toLowerCase()) === 0
                         ));
                         shouldUpdateScope = false;
                     } else {
