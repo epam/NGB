@@ -59,6 +59,7 @@ public class VcfTrackTests  extends AbstractNgbTest {
                 .saveIfNeeded()
                 .openTrackMenu(track, VARIANTS_VIEW.value)
                 .selectOptionWithCheckbox("Expanded", true)
+                .waitTrackDownloaded(browserPage.getTrack(track))
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
                         browserPage.getTrack(track), vcfTrackTC01_2, 0)
         ;

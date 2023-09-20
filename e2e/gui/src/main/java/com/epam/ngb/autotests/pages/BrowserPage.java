@@ -85,6 +85,9 @@ public class BrowserPage implements AccessObject<BrowserPage> {
                                          SelenideElement trackPanel,
                                          String resultImage,
                                          double deviation) {
+        if (!shootElement(getWebDriver(), trackPanel).equals(expectedImage,deviation)) {
+            sleep(1, SECONDS);
+        }
         assertTrue(shootElement(getWebDriver(), trackPanel)
                 .equalsWithDiff(expectedImage, format("%s%s", RESULTS_PATH, resultImage), deviation),
                 format("Screenshot doesn't match expected with deviation = %s", deviation));
@@ -96,7 +99,7 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         int maxAttempts = 10;
         BufferedImage screen = trackPanel.screenshotAsImage();
         while (shootElement(getWebDriver(), trackPanel).equals(screen,0) && attempt < maxAttempts) {
-            Utils.sleep(1, SECONDS);
+            sleep(1, SECONDS);
             attempt += 1;
         }
         return this;

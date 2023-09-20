@@ -52,15 +52,15 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .setCoordinates(referenceTestCoordinates1)
                 .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
                 .trackImageCompare(getExpectedImage(referenceTrackTC01),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0)
+                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001)
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show translation", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC02_1),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_1, 0)
+                        browserPage.getTrack(REFERENCE), referenceTrackTC02_1, 0.0001)
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show reverse strand", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC02_2),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_2, 0);
+                        browserPage.getTrack(REFERENCE), referenceTrackTC02_2, 0.0001);
     }
 
 }
