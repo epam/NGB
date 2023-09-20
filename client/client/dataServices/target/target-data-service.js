@@ -406,4 +406,32 @@ export class TargetDataService extends DataService {
             });
         });
     }
+
+    getHomologeneLoad(geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`homologene/search${getQueryString({...geneIds})}`)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('Error getting homologene'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
+    getOrthoParaLoad(geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`homolog/search${getQueryString({...geneIds})}`)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('Error getting orthologs or paralogs'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }

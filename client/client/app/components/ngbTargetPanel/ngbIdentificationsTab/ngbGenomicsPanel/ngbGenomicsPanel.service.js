@@ -19,7 +19,6 @@ export default class ngbGenomicsPanelService {
     _failedResult = false;
     _errorMessageList = null;
     _alignment = null;
-    _totalCount = 0;
     _genomicsData = null;
     _genomicsResults = null;
     _currentPage = 1;
@@ -43,9 +42,6 @@ export default class ngbGenomicsPanelService {
     }
     get errorMessageList() {
         return this._errorMessageList;
-    }
-    get totalCount() {
-        return this._totalCount;
     }
     get genomicsData() {
         return this._genomicsData;
@@ -96,6 +92,10 @@ export default class ngbGenomicsPanelService {
 
     get interestTaxIds() {
         return this.interestGenes.map(g => g.taxId);
+    }
+
+    getChipByGeneId(id) {
+        return this.ngbTargetPanelService.getChipByGeneId(id);
     }
 
     setAlignment(data) {
@@ -182,119 +182,108 @@ export default class ngbGenomicsPanelService {
         return this._genomicsResults.slice(start, end);
     }
 
-    setHomologsData(data, chip) {
-        const totalCount = (data.totalCount || 0);
-        this._totalCount = this._totalCount ? (this._totalCount + totalCount) : data.totalCount;
-        const items = data.items || [];
-        if (items.length) {
-            const maxGroupLengths = items.reduce((lengths, item) => {
-                lengths[item.groupId] = item.homologs.reduce((max, homolog) => Math.max(max, homolog.protLen), 0);
-                return lengths;
-            }, {});
-            const getHomologData = (item) => {
-                return (item.homologs || [])
-                    .filter(h => !this.interestTaxIds.includes(h.taxId))
-                    .map(h => ({
-                        target: chip,
-                        species: h.speciesScientificName,
-                        'homology type': capitalize(item.type),
-                        homologue: h.symbol || `id: ${h.geneId}`,
-                        geneId: h.geneId,
-                        'homology group': item.proteinName,
-                        'protein': h.title,
-                        aa: h.protLen,
-                        domains: {
-                            domains: (h.domains || []).map(d => ({
-                                id: d.pssmId,
-                                start: d.begin,
-                                end: d.end,
-                                name: d.cddName,
-                                color: calculateColor(d.cddName)
-                            })),
-                            homologLength: h.protLen,
-                            maxHomologLength: maxGroupLengths[item.groupId],
-                            accession_id: h.accession_id
-                        }
-                    }));
-            };
-            const homologsData = items.reduce((acc, item) => (
-                [...acc, ...getHomologData(item)]
-            ), []);
-            this._genomicsData = [
-                ...(this._genomicsData || []),
-                ...homologsData
-            ];
-        }
+    setHomologsData(data) {
+        Object.entries(data).map(([id, value]) => {
+            const items = value || [];
+            if (items.length) {
+                const maxGroupLengths = items.reduce((lengths, item) => {
+                    lengths[item.groupId] = item.homologs.reduce(
+                        (max, homolog) => Math.max(max, homolog.protLen),
+                        0);
+                    return lengths;
+                }, {});
+                const getHomologData = (item) => {
+                    return (item.homologs || [])
+                        .filter(h => !this.interestTaxIds.includes(h.taxId))
+                        .map(h => ({
+                            target: this.getChipByGeneId(id),
+                            species: h.speciesScientificName,
+                            'homology type': capitalize(item.type),
+                            homologue: h.symbol || `id: ${h.geneId}`,
+                            geneId: h.geneId,
+                            'homology group': item.proteinName,
+                            'protein': h.title,
+                            aa: h.protLen,
+                            domains: {
+                                domains: (h.domains || []).map(d => ({
+                                    id: d.pssmId,
+                                    start: d.begin,
+                                    end: d.end,
+                                    name: d.cddName,
+                                    color: calculateColor(d.cddName)
+                                })),
+                                homologLength: h.protLen,
+                                maxHomologLength: maxGroupLengths[item.groupId],
+                                accession_id: h.accession_id
+                            }
+                        }));
+                };
+                const homologsData = items.reduce((acc, item) => (
+                    [...acc, ...getHomologData(item)]
+                ), [])
+                this._genomicsData = [
+                    ...(this._genomicsData || []),
+                    ...homologsData
+                ];
+            }
+        });
     }
 
-    setHomologeneData(data, chip) {
-        const totalCount = (data.totalCount || 0);
-        this._totalCount = this._totalCount ? (this._totalCount + totalCount) : data.totalCount;
-        const items = data.items || [];
-        if (items.length) {
-            const maxGroupLengths = items.reduce((lengths, item) => {
-                lengths[item.groupId] = item.genes.reduce((max, gene) => Math.max(max, gene.protLen), 0);
-                return lengths;
-            }, {});
-            const getHomologData = (item) => {
-                return (item.genes || [])
-                    .filter(g => !this.interestTaxIds.includes(g.taxId))
-                    .map(g => ({
-                        target: chip,
-                        species: g.speciesScientificName,
-                        'homology type': capitalize('HOMOLOG'),
-                        homologue: g.symbol,
-                        geneId: g.geneId,
-                        'homology group': item.caption,
-                        'protein': g.title,
-                        aa: g.protLen,
-                        domains: {
-                            domains: (g.domains || []).map(d => ({
-                                id: d.pssmId,
-                                start: d.begin,
-                                end: d.end,
-                                name: d.cddName,
-                                color: calculateColor(d.cddName)
-                            })),
-                            homologLength: g.protLen,
-                            maxHomologLength: maxGroupLengths[item.groupId],
-                            accession_id: g.accession_id
-                        }
-                    }));
-            };
-            const homologsData = items.reduce((acc, item) => (
-                [...acc, ...getHomologData(item)]
-            ), []);
-            this._genomicsData = [
-                ...(this._genomicsData || []),
-                ...homologsData
-            ];
-        }
+    setHomologeneData(data) {
+        Object.entries(data).map(([id, value]) => {
+            const items = value || [];
+            if (items.length) {
+                const maxGroupLengths = items.reduce((lengths, item) => {
+                    lengths[item.groupId] = item.genes.reduce(
+                        (max, gene) => Math.max(max, gene.protLen),
+                        0);
+                    return lengths;
+                }, {});
+                const getHomologData = (item) => {
+                    return (item.genes || [])
+                        .filter(g => !this.interestTaxIds.includes(g.taxId))
+                        .map(g => ({
+                            target: this.getChipByGeneId(id),
+                            species: g.speciesScientificName,
+                            'homology type': capitalize('HOMOLOG'),
+                            homologue: g.symbol,
+                            geneId: g.geneId,
+                            'homology group': item.caption,
+                            'protein': g.title,
+                            aa: g.protLen,
+                            domains: {
+                                domains: (g.domains || []).map(d => ({
+                                    id: d.pssmId,
+                                    start: d.begin,
+                                    end: d.end,
+                                    name: d.cddName,
+                                    color: calculateColor(d.cddName)
+                                })),
+                                homologLength: g.protLen,
+                                maxHomologLength: maxGroupLengths[item.groupId],
+                                accession_id: g.accession_id
+                            }
+                        }));
+                };
+                const homologsData = items.reduce((acc, item) => (
+                    [...acc, ...getHomologData(item)]
+                ), []);
+                this._genomicsData = [
+                    ...(this._genomicsData || []),
+                    ...homologsData
+                ];
+            }
+        });
     }
 
     async getGenomicsData() {
         this.loadingData = true;
-        const results = [];
-        results.push(await this.getAllHomologs());
-        results.push(await this.getAllHomologenes());
+        const ids = this.interestGenes.map(g => g.geneId);
+        const results = await Promise.allSettled([this.getHomologs(ids), this.getHomologene(ids)]);
         this.setGenomicsResults();
         this.loadingData = false;
         this.setFieldList();
         return results.some(v => v);
-    }
-
-    async getAllHomologs() {
-        return Promise.all(this.interestGenes.map(async (gene) => (
-            await this.getHomologs(gene.geneId, gene.chip)
-        )))
-            .then(values => values.some(v => v));
-    }
-
-    async getAllHomologenes() {
-        return Promise.all(this.interestGenes.map(async (gene) => (
-            await this.getHomologene(gene.geneName, gene.chip)
-        )))
-            .then(values => values.some(v => v));
     }
 
     setTotalPages() {
@@ -302,19 +291,14 @@ export default class ngbGenomicsPanelService {
         this._emptyResults = !this._genomicsResults.length;
     }
 
-    async getHomologs(id, chip) {
-        if (!id) {
+    async getHomologs(ids) {
+        if (!ids || !ids.length) {
             return new Promise.resolve(true);
         }
-        const request = {
-            geneId: id,
-            page: 1,
-            pageSize: 10
-        }
         return new Promise(resolve => {
-            this.genomeDataService.getOrthoParaLoad(request)
+            this.targetDataService.getOrthoParaLoad({geneIds: ids})
                 .then(data => {
-                    this.setHomologsData(data, chip);
+                    this.setHomologsData(data);
                     resolve(true);
                 })
                 .catch(err => {
@@ -327,19 +311,14 @@ export default class ngbGenomicsPanelService {
         });
     }
 
-    async getHomologene(name, chip) {
-        if (!name) {
+    async getHomologene(ids) {
+        if (!ids || !ids.length) {
             return Promise.resolve(true);
         }
-        const request = {
-            query: name,
-            page: 1,
-            pageSize: 10
-        }
         return new Promise(resolve => {
-            this.genomeDataService.getHomologeneLoad(request)
+            this.targetDataService.getHomologeneLoad({geneIds: ids})
                 .then(data => {
-                    this.setHomologeneData(data, chip);
+                    this.setHomologeneData(data);
                     resolve(data);
                 })
                 .catch(err => {
