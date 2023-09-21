@@ -41,13 +41,17 @@ public class Disease extends UrlEntity{
     private List<UrlEntity> therapeuticAreas;
     private boolean isTherapeuticArea;
     private List<String> parents;
+    private String description;
+    private List<String> synonyms;
 
     @Builder
-    public Disease(String id, String name, String url, List<UrlEntity> therapeuticAreas,
-                   boolean isTherapeuticArea, List<String> parents) {
+    public Disease(String id, String name, String url, List<UrlEntity> therapeuticAreas, String description,
+                   List<String> synonyms, boolean isTherapeuticArea, List<String> parents) {
         super(id, name, url);
         this.therapeuticAreas = therapeuticAreas;
         this.isTherapeuticArea = isTherapeuticArea;
         this.parents = parents;
+        this.description = description;
+        this.synonyms = synonyms;
     }
 }

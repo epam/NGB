@@ -27,10 +27,12 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
+import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +45,7 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -76,6 +79,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
@@ -123,6 +127,18 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return result.stream().map(DiseaseAssociation::getDiseaseId).distinct().count();
     }
 
+    public SearchResult<DiseaseAssociation> search(final SearchRequest request, final String diseaseId)
+            throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
+        if (request.getFilters() != null) {
+            for (Filter filter: request.getFilters()) {
+                addFieldQuery(mainBuilder, filter);
+            }
+        }
+        return search(request, mainBuilder.build());
+    }
+
     @Override
     public List<DiseaseAssociation> processEntries(final List<DiseaseAssociation> entries)
             throws ParseException, IOException {
@@ -164,10 +180,10 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Override
     public void addDoc(final IndexWriter writer, final DiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(DiseaseField.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+        doc.add(new TextField(DiseaseField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DiseaseField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-        doc.add(new StringField(DiseaseField.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
+        doc.add(new TextField(DiseaseField.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
 
         doc.add(new StringField(DiseaseField.DISEASE_NAME_FLTR.name(),
                 entry.getDiseaseName().toLowerCase(), Field.Store.NO));

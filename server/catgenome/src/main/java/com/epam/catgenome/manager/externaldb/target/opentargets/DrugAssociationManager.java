@@ -27,9 +27,11 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,6 +66,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
@@ -83,6 +86,18 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         final List<DrugAssociation> result = searchByGeneIds(ids);
         return result.stream().map(r -> r.getDrug().getId()).distinct().count();
+    }
+
+    public SearchResult<DrugAssociation> search(final SearchRequest request, final String diseaseId)
+            throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
+        if (request.getFilters() != null) {
+            for (Filter filter: request.getFilters()) {
+                addFieldQuery(mainBuilder, filter);
+            }
+        }
+        return search(request, mainBuilder.build());
     }
 
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
@@ -187,14 +202,14 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new StringField(DrugField.DRUG_NAME.name(), entry.getDrug().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_NAME.name(), new BytesRef(entry.getDrug().getName())));
 
-        doc.add(new StringField(DrugField.DISEASE_ID.name(), entry.getDisease().getId(), Field.Store.YES));
+        doc.add(new TextField(DrugField.DISEASE_ID.name(), entry.getDisease().getId(), Field.Store.YES));
 
         final String diseaseName = Optional.ofNullable(entry.getDisease().getName()).orElse("");
         doc.add(new StringField(DrugField.DISEASE_NAME_FLTR.name(), diseaseName.toLowerCase(), Field.Store.NO));
         doc.add(new StringField(DrugField.DISEASE_NAME.name(), diseaseName, Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DISEASE_NAME.name(), new BytesRef(diseaseName)));
 
-        doc.add(new StringField(DrugField.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+        doc.add(new TextField(DrugField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
         doc.add(new StringField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
@@ -217,7 +232,7 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new StringField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.SOURCE.name(), new BytesRef(entry.getSource().getName())));
 
-        doc.add(new TextField(DrugField.SOURCE_URL.name(), entry.getSource().getUrl(), Field.Store.YES));
+        doc.add(new StringField(DrugField.SOURCE_URL.name(), entry.getSource().getUrl(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
