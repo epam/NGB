@@ -49,6 +49,7 @@ public class AbstractNgbTest implements ITest {
 
         System.setProperty("webdriver.chrome.driver","/usr/local/bin/chromedriver");
         ChromeOptions chromeOptions=new ChromeOptions();
+        chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--window-size=1920,1080");
         chromeOptions.addArguments("--remote-allow-origins=*");
         chromeOptions.setCapability(CapabilityType.PAGE_LOAD_STRATEGY, "normal");
