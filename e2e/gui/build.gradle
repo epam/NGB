@@ -5,6 +5,10 @@ plugins {
 group 'com.epam.ngb.autotests'
 version '1.0'
 
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
 ext {
     testngVersion = '7.5'
     seleniumVersion = '3.8.1'
