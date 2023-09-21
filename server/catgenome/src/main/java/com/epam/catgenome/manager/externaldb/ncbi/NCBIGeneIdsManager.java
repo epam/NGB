@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NCBIGeneIdsManager {
 
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
@@ -58,7 +60,11 @@ public class NCBIGeneIdsManager {
             if (!ensemblGenes.contains(geneId.toLowerCase())) {
                 ncbiGeneId = ensemblDataManager.fetchNcbiId(geneId);
                 if (!TextUtils.isBlank(ncbiGeneId)) {
-                    ncbiGenes.add(GeneId.builder().ensemblId(geneId).entrezId(Long.parseLong(ncbiGeneId)).build());
+                    try {
+                        ncbiGenes.add(GeneId.builder().ensemblId(geneId).entrezId(Long.parseLong(ncbiGeneId)).build());
+                    } catch (NumberFormatException e) {
+                        log.error(e.getMessage());
+                    }
                 }
             }
         }
