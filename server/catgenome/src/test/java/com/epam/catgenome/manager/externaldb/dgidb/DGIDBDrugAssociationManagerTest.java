@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -69,8 +70,9 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final long totalCount = manager.totalCount(GENE_IDS);
-        assertEquals(ENTRIES_TOTAL_COUNT, totalCount);
+        final Pair<Long, Long> totalCount = manager.totalCount(GENE_IDS);
+        assertEquals(ENTRIES_COUNT, totalCount.first().intValue());
+        assertEquals(ENTRIES_TOTAL_COUNT, totalCount.second().intValue());
     }
 
     @Test

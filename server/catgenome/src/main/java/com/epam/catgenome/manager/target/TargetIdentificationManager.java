@@ -71,6 +71,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.apache.commons.collections4.CollectionUtils;
+import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -122,7 +123,7 @@ public class TargetIdentificationManager {
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
-        final long drugsCount = getDrugsCount(geneIds);
+        final Pair<Long, Long> drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
         final SequencesSummary sequencesCount = getSequencesCount(ncbiGeneIds);
@@ -130,7 +131,8 @@ public class TargetIdentificationManager {
         return IdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
-                .knownDrugsCount(drugsCount)
+                .knownDrugsRecordsCount(drugsCount.first())
+                .knownDrugsCount(drugsCount.second())
                 .publicationsCount(publicationsCount)
                 .sequencesCount(sequencesCount)
                 .structuresCount(structuresCount)
@@ -312,11 +314,12 @@ public class TargetIdentificationManager {
         return newText;
     }
 
-    private long getDrugsCount(final List<String> ensemblIds) throws IOException, ParseException {
-        final long pharmGKBDrugsCount = pharmGKBDrugAssociationManager.totalCount(ensemblIds);
-        final long dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(ensemblIds);
-        final long openTargetDrugs = drugAssociationManager.totalCount(ensemblIds);
-        return pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs;
+    private Pair<Long, Long> getDrugsCount(final List<String> ensemblIds) throws IOException, ParseException {
+        final Pair<Long, Long> pharmGKBDrugsCount = pharmGKBDrugAssociationManager.totalCount(ensemblIds);
+        final Pair<Long, Long> dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(ensemblIds);
+        final Pair<Long, Long> openTargetDrugs = drugAssociationManager.totalCount(ensemblIds);
+        return Pair.of(pharmGKBDrugsCount.first() + dgidbDrugsCount.first() + openTargetDrugs.first(),
+                pharmGKBDrugsCount.second() + dgidbDrugsCount.second() + openTargetDrugs.second());
     }
 
     private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
