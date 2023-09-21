@@ -1,19 +1,22 @@
 # CLI installation
+
 There are two options to install NGB CLI, depending on NGB Server installation scenario:
-* NGB Docker image installation
-* NGB Manual installation
+
+- NGB Docker image installation
+- NGB Manual installation
 
 ## NGB Docker image installation
+
 CLI is already installed inside a Docker image and is added to $PATH variable.
 
 To access CLI, console should be attached to a running docker container and ngb command could be used immediately.
 
-For details on running docker image and attaching to a container - see description at https://hub.docker.com/r/lifescience/ngb
+For details on running docker image and attaching to a container - see description at [https://hub.docker.com/r/lifescience/ngb](https://hub.docker.com/r/lifescience/ngb).
 
 ## NGB Manual installation
-To manually install NGB CLI one can use the following script:
 
-(replace the value for CLI_HOME variable, if needed)
+To manually install NGB CLI one can use the following script (**Note**: replace the value for CLI_HOME variable, if needed):
+
 ```bash
 # Create a directory for ngb-cli
 $ CLI_HOME=/opt/catgenome

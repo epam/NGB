@@ -152,7 +152,7 @@ These details are defined by additional files that can be registered simultaneou
 
 #### Cell annotations
 
-For each cell in a histogram, may be set an additional info - it can be some notes or additional label/mark.
+For each cell in a heatmap, may be set an additional info - it can be some notes or additional label/mark.
 
 File with cell annotations should contain the matrix of the same size as the original heatmap matrix:
 
@@ -176,7 +176,7 @@ If the current heatmap has a linked cell annotations file - the corresponding an
 
 #### Row/column annotations
 
-For each row/column in a histogram, may be set an additional info - it can be some notes or additional label/mark.
+For each row/column in a heatmap, may be set an additional info - it can be some notes or additional label/mark.
 
 File with row/column annotations should contain only two columns:
 
@@ -204,7 +204,7 @@ You can manually hide/show annotations by click the **ANNOTATIONS** control in t
 
 #### Dendrograms
 
-For each side of the histogram (rows/columns), may be set a dendrogram (phylogenetic tree).  
+For each side of the heatmap (rows/columns), may be set a dendrogram (phylogenetic tree).  
 File with a dendogram should be presented as plain `txt` file that content tree-date in [`Newick`](http://wiki.christophchamp.com/index.php?title=Newick_phylogenetic_tree_format) format.
 
 Example:
