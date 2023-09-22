@@ -52,7 +52,6 @@ public class BamTrackTests  extends AbstractNgbTest {
         sleep(2, SECONDS);
         BrowserPage browserPage = new BrowserPage();
         browserPage
-                .maximazeBrowser()
                 .setChromosome(testChromosome)
                 .setCoordinates(bamTestCoordinate1)
                 .waitTrackDownloaded(browserPage.getTrack(track))
