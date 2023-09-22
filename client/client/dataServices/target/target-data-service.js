@@ -406,4 +406,30 @@ export class TargetDataService extends DataService {
             });
         });
     }
+
+    getDisease(name) {
+        return new Promise((resolve, reject) => {
+            this.get(`disease?name=${name}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases list';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDiseaseData(diseaseId) {
+        return new Promise((resolve, reject) => {
+            this.get(`disease/${diseaseId}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting disease data';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
 }

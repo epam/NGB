@@ -2,6 +2,7 @@
 
 $common-font-color: #444444;
 $form-horizontal-offset: 5px;
+$title-font-size: calc($tab-font-size * 1.5);
 
 $diseases-tab-border-radius: 0;
 $diseases-tab-background: #fafafa;
@@ -10,6 +11,7 @@ $diseases-tab-control-font-color: $common-font-color;
 $diseases-tab-control-padding: 0 calc($form-horizontal-offset - 1px);
 $diseases-tab-control-font-size: $general-font-size;
 $diseases-tab-control-hover-background: #f0f0f0;
+$diseases-tab-line-height: min(calc(1.5 * $title-font-size), 28px);
 
 $main-action-button-height: 33px;
 
@@ -20,8 +22,6 @@ $diseases-tab-height: 30px;
 $main-info-row-height: calc(2.0 * $tab-font-size);
 $main-info-descriptions-line-height: calc($tab-font-size * 1.3);
 $main-info-description-max-lines: 3;
-
-$title-font-size: calc($tab-font-size * 1.5);
 
 $border-radius: 3px;
 $header-background: #eeeeee;

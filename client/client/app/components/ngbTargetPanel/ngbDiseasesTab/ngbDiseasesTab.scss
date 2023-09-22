@@ -64,10 +64,38 @@ ngb-diseases-tab {
         }
     }
 
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
     .diseases-content {
         flex: 1;
         overflow: auto;
         padding: 0 5px;
+
+        .content-header {
+            margin-bottom: 10px;
+            line-height: $diseases-tab-line-height;
+            min-height: $diseases-tab-line-height;
+            padding: 0 5px;
+        }
 
         .content-title {
             font-size: $title-font-size;

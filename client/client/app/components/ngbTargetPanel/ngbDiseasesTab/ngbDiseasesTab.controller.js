@@ -1,16 +1,12 @@
 import buildMainInfoBlocks from './utilities/build-main-info-blocks';
 
-const DISEASES_LIST = ['Lung Carcinoma', 'Non-small cell lung carcinoma', 'Lung Cancer'];
 export default class ngbDiseasesTabController {
 
-    searchText;
-    diseaseModel;
     descriptionCollapsed = true;
     _mainInfoBlocks = [];
-
-    get diseasesList() {
-        return DISEASES_LIST;
-    }
+    title;
+    description;
+    synonyms;
 
     get mainInfo () {
         return this._mainInfoBlocks;
@@ -20,46 +16,71 @@ export default class ngbDiseasesTabController {
         return 'ngbDiseasesTabController';
     }
 
-    constructor(ngbDiseasesTabService) {
-        Object.assign(this, {ngbDiseasesTabService});
+    constructor($scope, $timeout, ngbDiseasesTabService) {
+        Object.assign(this, {$scope, $timeout, ngbDiseasesTabService});
+        if (this.diseasesData) {
+            this.refreshData();
+        }
     }
 
+    refreshData() {
+        this.setDiseasesData();
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    get diseaseModel() {
+        return this.ngbDiseasesTabService.diseaseModel;
+    }
+    set diseaseModel(value) {
+        this.ngbDiseasesTabService.diseaseModel = value;
+    }
+    get searchText() {
+        return this.ngbDiseasesTabService.searchText;
+    }
+    set searchText(value) {
+        this.ngbDiseasesTabService.searchText = value;
+    }
+    get diseasesList() {
+        return this.ngbDiseasesTabService.diseasesList;
+    }
+    get loadingData() {
+        return this.ngbDiseasesTabService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbDiseasesTabService.loadingData = value;
+    }
+    get failedResult () {
+        return this.ngbDiseasesTabService.failedResult;
+    }
+    get errorMessageList () {
+        return this.ngbDiseasesTabService.errorMessageList;
+    }
     get diseasesData () {
         return this.ngbDiseasesTabService.diseasesData;
     }
 
-    getFilteredDiseases() {
-        return this.diseasesList.filter(disease => {
-            return (new RegExp(`${this.searchText}`, 'i')).test(disease);
+    async getDiseasesList() {
+        return new Promise(resolve => {
+            this.ngbDiseasesTabService.getDisease(this.searchText)
+                .then(data => resolve(data))
+                .catch(err => resolve([]))
         });
     }
 
     diseaseChanged(disease) {
         this.diseaseModel = disease;
-        this.searchText = this.diseaseModel;
-    }
-
-    searchDisease() {
-        this.diseasesResults = true;
-        this.title = this.diseaseModel;
-        this.synonyms = ['malignant neoplasm of lung', 'cancer of lung', 'malignant lung neoplasm'];
-        this.description = 'a malignant neoplasm involving the lung.';
-        this.refreshInfoBlocks();
-    }
-
-    refreshInfoBlocks() {
-        this._mainInfoBlocks = buildMainInfoBlocks(this.diseasesData);
-    }
-
-    toggleDescriptionCollapsed () {
-        this.descriptionCollapsed = !this.descriptionCollapsed;
+        this.searchText = disease.name;
     }
 
     onBlur () {
-        if (this.searchText) {
-            this.diseaseChanged(this.getFilteredDiseases()[0])
+        if (this.searchText && this.diseasesList.length) {
+            if (this.searchText !== this.diseaseModel.name) {
+                this.diseaseChanged(this.diseasesList[0]);
+            } else {
+                this.diseaseChanged(this.diseaseModel);
+            }
         } else {
-            this.diseaseModel = undefined;
+            this.diseaseModel = {};
         }
     }
 
@@ -71,5 +92,28 @@ export default class ngbDiseasesTabController {
             default:
                 break;
         }
+    }
+
+    async searchDisease() {
+        this.loadingData = true;
+        await this.ngbDiseasesTabService.getDiseaseData(this.diseaseModel.id);
+        this.setDiseasesData();
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    setDiseasesData() {
+        const {name, description, synonyms} = this.diseasesData;
+        this.title = name;
+        this.description = description;
+        this.synonyms = synonyms;
+        this.refreshInfoBlocks();
+    }
+
+    refreshInfoBlocks() {
+        this._mainInfoBlocks = buildMainInfoBlocks(this.diseasesData);
+    }
+
+    toggleDescriptionCollapsed () {
+        this.descriptionCollapsed = !this.descriptionCollapsed;
     }
 }

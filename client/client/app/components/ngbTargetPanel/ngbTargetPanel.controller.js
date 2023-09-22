@@ -56,7 +56,6 @@ export default class ngbTargetPanelController {
     }
 
     showIdentificationTab() {
-        this.currentTargetState = this.targetState.IDENTIFICATIONS;
         this.tabSelected = this.targetState.IDENTIFICATIONS;
         this.$timeout(() => this.$scope.$apply());
     }
