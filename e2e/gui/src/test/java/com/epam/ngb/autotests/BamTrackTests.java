@@ -52,12 +52,14 @@ public class BamTrackTests  extends AbstractNgbTest {
         sleep(2, SECONDS);
         BrowserPage browserPage = new BrowserPage();
         browserPage
+                .maximazeBrowser()
                 .setChromosome(testChromosome)
                 .setCoordinates(bamTestCoordinate1)
                 .waitTrackDownloaded(browserPage.getTrack(track))
                 .clickOnZoomInButtonNumberOfTimes(2)
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
+//        takeScreenshot(browserPage.getTrack(track), bamTrackTC01);
                 .trackImageCompare(getExpectedImage(bamTrackTC01),
                         browserPage.getTrack(track), bamTrackTC01, 0.0001)
                 .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo1));

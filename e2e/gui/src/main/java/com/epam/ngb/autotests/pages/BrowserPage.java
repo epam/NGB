@@ -24,6 +24,7 @@ import static com.codeborne.selenide.Condition.visible;
 import com.codeborne.selenide.HoverOptions;
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.Selenide.actions;
 import com.codeborne.selenide.SelenideElement;
@@ -145,6 +146,12 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         getTrack(track).shouldBe(visible).shouldBe(enabled)
                 .hover(HoverOptions.withOffset(+ coordX, + coordY));
         return $("table").shouldBe(exist);
+    }
+
+    public BrowserPage maximazeBrowser() {
+        $$(className("lm_stack")).first()
+                .$(className("lm_maximise")).$(className("ngb-maximize")).shouldBe(exist).click();
+        return this;
     }
 
     public class TrackMenu extends PopupMenu<TrackMenu, BrowserPage> {
