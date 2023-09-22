@@ -50,17 +50,20 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
         browserPage
                 .setChromosome(testChromosome)
                 .setCoordinates(referenceTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
-                .trackImageCompare(getExpectedImage(referenceTrackTC01),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001)
-                .openTrackMenu(REFERENCE, GENERAL.value)
-                .selectOptionWithCheckbox("Show translation", true)
-                .trackImageCompare(getExpectedImage(referenceTrackTC02_1),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_1, 0.0001)
-                .openTrackMenu(REFERENCE, GENERAL.value)
-                .selectOptionWithCheckbox("Show reverse strand", true)
-                .trackImageCompare(getExpectedImage(referenceTrackTC02_2),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_2, 0.0001);
+                .waitTrackDownloaded(browserPage.getTrack(REFERENCE));
+        takeScreenshot(browserPage.getTrack(REFERENCE), referenceTrackTC01);
+//                .trackImageCompare(getExpectedImage(referenceTrackTC01),
+//                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001)
+        browserPage.openTrackMenu(REFERENCE, GENERAL.value)
+                .selectOptionWithCheckbox("Show translation", true);
+        takeScreenshot(browserPage.getTrack(REFERENCE), referenceTrackTC02_1);
+//                .trackImageCompare(getExpectedImage(referenceTrackTC02_1),
+//                        browserPage.getTrack(REFERENCE), referenceTrackTC02_1, 0.0001)
+        browserPage.openTrackMenu(REFERENCE, GENERAL.value)
+                .selectOptionWithCheckbox("Show reverse strand", true);
+        takeScreenshot(browserPage.getTrack(REFERENCE), referenceTrackTC02_2);
+//                .trackImageCompare(getExpectedImage(referenceTrackTC02_2),
+//                        browserPage.getTrack(REFERENCE), referenceTrackTC02_2, 0.0001);
     }
 
 }

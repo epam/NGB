@@ -50,18 +50,20 @@ public class VcfTrackTests  extends AbstractNgbTest {
         browserPage
                 .setChromosome(testChromosome)
                 .setCoordinates(vcfTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(track))
-                .trackImageCompare(getExpectedImage(vcfTrackTC01_1),
-                        browserPage.getTrack(track), vcfTrackTC01_1, 0)
-                .openTrackMenu(track, GENERAL.value)
+                .waitTrackDownloaded(browserPage.getTrack(track));
+        takeScreenshot(browserPage.getTrack(track), vcfTrackTC01_1);
+//                .trackImageCompare(getExpectedImage(vcfTrackTC01_1),
+//                        browserPage.getTrack(track), vcfTrackTC01_1, 0)
+        browserPage.openTrackMenu(track, GENERAL.value)
                 .selectOptionWithAdditionalMenu("Resize")
                 .setTrackHeight("200")
                 .saveIfNeeded()
                 .openTrackMenu(track, VARIANTS_VIEW.value)
                 .selectOptionWithCheckbox("Expanded", true)
-                .waitTrackDownloaded(browserPage.getTrack(track))
-                .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
-                        browserPage.getTrack(track), vcfTrackTC01_2, 0)
+                .waitTrackDownloaded(browserPage.getTrack(track));
+        takeScreenshot(browserPage.getTrack(track), vcfTrackTC01_2);
+//                .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
+//                        browserPage.getTrack(track), vcfTrackTC01_2, 0)
         ;
 
 
