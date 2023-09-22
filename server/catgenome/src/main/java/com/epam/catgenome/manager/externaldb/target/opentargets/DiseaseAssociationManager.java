@@ -24,9 +24,11 @@
 package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
+import com.epam.catgenome.manager.externaldb.OpenTargetsManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
@@ -61,6 +63,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -90,6 +93,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Value("${targets.opentargets.scoresDir:associationByDatatypeDirect}")
     private String scoresDir;
     private final DiseaseManager diseaseManager;
+    @Autowired
+    private OpenTargetsManager openTargetsManager;
 
     public DiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
                                      final @Value("${targets.top.hits:10000}") int targetsTopHits,
@@ -136,7 +141,9 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
                 addFieldQuery(mainBuilder, filter);
             }
         }
-        return search(request, mainBuilder.build());
+        final SearchResult<DiseaseAssociation> result = search(request, mainBuilder.build());
+        fillHomologues(result);
+        return result;
     }
 
     @Override
@@ -267,6 +274,11 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
     }
 
+    @Override
+    public List<AssociationExportField<DiseaseAssociation>> getExportFields() {
+        return Arrays.asList(DiseaseField.values());
+    }
+
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
         return DiseaseAssociation.builder()
                 .geneId(jsonNodes.at("/targetId").asText())
@@ -353,8 +365,13 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return  doc.getField(field.name()).numericValue().floatValue();
     }
 
-    @Override
-    public List<AssociationExportField<DiseaseAssociation>> getExportFields() {
-        return Arrays.asList(DiseaseField.values());
+    private void fillHomologues(final SearchResult<DiseaseAssociation> result) {
+        final List<String> targetIds = result.getItems().stream()
+                .map(DiseaseAssociation::getGeneId)
+                .collect(Collectors.toList());
+        final Map<String, List<HomologGroup>> homologuesMap = openTargetsManager.getHomologues(targetIds);
+        result.getItems().forEach(i -> {
+            i.setHomologues(homologuesMap.get(i.getGeneId()));
+        });
     }
 }

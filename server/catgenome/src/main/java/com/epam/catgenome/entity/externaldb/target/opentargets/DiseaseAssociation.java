@@ -23,11 +23,14 @@
  */
 package com.epam.catgenome.entity.externaldb.target.opentargets;
 
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -48,4 +51,5 @@ public class DiseaseAssociation {
     private Float literatureScore;
     private Float rnaExpressionScore;
     private Float animalModelScore;
+    private List<HomologGroup> homologues;
 }
