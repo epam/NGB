@@ -24,9 +24,12 @@
 package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
+import com.epam.catgenome.manager.externaldb.OpenTargetsManager;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.export.ExportField;
@@ -36,6 +39,7 @@ import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
+import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -95,15 +99,18 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Value("${targets.opentargets.scoresDir:associationByDatatypeDirect}")
     private String scoresDir;
     private final DiseaseManager diseaseManager;
+    private final OpenTargetsManager openTargetsManager;
     private final TargetDetailsManager targetDetailsManager;
 
     public DiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
                                      final @Value("${targets.top.hits:10000}") int targetsTopHits,
                                      final DiseaseManager diseaseManager,
-                                     final TargetDetailsManager targetDetailsManager) {
+                                     final TargetDetailsManager targetDetailsManager,
+                                     final OpenTargetsManager openTargetsManager) {
         super(Paths.get(indexDirectory, "opentargets.disease.association").toString(), targetsTopHits);
         this.diseaseManager = diseaseManager;
         this.targetDetailsManager = targetDetailsManager;
+        this.openTargetsManager = openTargetsManager;
     }
 
 
@@ -138,6 +145,20 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     public long totalCount(final String diseaseId) throws ParseException, IOException {
         final List<DiseaseAssociation> result = search(diseaseId);
         return result.stream().map(DiseaseAssociation::getGeneId).distinct().count();
+    }
+
+    public SearchResult<DiseaseAssociation> search(final SearchRequest request, final String diseaseId)
+            throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
+        if (request.getFilters() != null) {
+            for (Filter filter: request.getFilters()) {
+                addFieldQuery(mainBuilder, filter);
+            }
+        }
+        final SearchResult<DiseaseAssociation> result = search(request, mainBuilder.build());
+        fillHomologues(result);
+        return result;
     }
 
     @Override
@@ -424,5 +445,15 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Override
     public List<AssociationExportField<DiseaseAssociation>> getExportFields() {
         return Arrays.asList(DiseaseField.values());
+    }
+
+    private void fillHomologues(final SearchResult<DiseaseAssociation> result) {
+        final List<String> targetIds = result.getItems().stream()
+                .map(DiseaseAssociation::getGeneId)
+                .collect(Collectors.toList());
+        final Map<String, List<HomologGroup>> homologuesMap = openTargetsManager.getHomologues(targetIds);
+        result.getItems().forEach(i -> {
+            i.setHomologues(homologuesMap.get(i.getGeneId()));
+        });
     }
 }
