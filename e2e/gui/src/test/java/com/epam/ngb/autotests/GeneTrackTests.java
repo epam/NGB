@@ -15,10 +15,14 @@
  */
 package com.epam.ngb.autotests;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
+import static com.epam.ngb.autotests.enums.TrackMenus.TRANSCRIPT_VIEW;
 import com.epam.ngb.autotests.pages.BrowserPage;
 import com.epam.ngb.autotests.pages.DatasetsPage;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
+import static com.epam.ngb.autotests.utils.Utils.getExpectedImage;
 import static com.epam.ngb.autotests.utils.Utils.sleep;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import org.testng.annotations.Test;
@@ -28,9 +32,16 @@ import java.io.IOException;
 public class GeneTrackTests  extends AbstractNgbTest {
 
     private static final String bamTrack = "CantonS.09-28.trim.dm606.realign.bam";
-    private static final String REFERENCE_TRACK = "REFERENCE";
+    private static final String geneTrackTC01_1 = "geneTrackTC01_1";
+    private static final String geneTrackTC01_2 = "geneTrackTC01_2";
+    private static final String GENE_TRACK = "GENE";
     private static final String testChromosome = "X";
-    private static final String referenceTestCoordinates1 = "12585901 - 12585934";
+    private static final String geneTestCoordinates = "124135 - 126948";
+    private static final String geneInfo1 = "gene CG17636\nStart 124370\nEnd 126714\n" +
+            "Strand NEGATIVE\nScore -1\ngene_symbol CG17636\ngene_id FBgn0025837";
+    private static final String geneInfo2 = "CG17636-RB";
+    private static final String geneInfo3 = "CG17636-RC";
+    private static final String geneInfo4 = "CG17636-RA";
 
     @Test(invocationCount = 1)
     @TestCase({"TC-GENE_TRACKS_TEST-01"})
@@ -44,7 +55,22 @@ public class GeneTrackTests  extends AbstractNgbTest {
         BrowserPage browserPage = new BrowserPage();
         browserPage
                 .setChromosome(testChromosome)
-                .setCoordinates(referenceTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE_TRACK));
+                .setCoordinates(geneTestCoordinates)
+                .waitTrackDownloaded(browserPage.getTrack(GENE_TRACK))
+                .trackImageCompare(getExpectedImage(geneTrackTC01_1),
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_1, 0.0001);
+        browserPage
+                .openTrackMenu(GENE_TRACK, GENERAL.value)
+                .selectOptionWithAdditionalMenu("Resize")
+                .setTrackHeight("400")
+                .saveIfNeeded()
+                .openTrackMenu(GENE_TRACK, TRANSCRIPT_VIEW.value)
+                .selectOptionWithCheckbox("Expanded", true)
+                .trackImageCompare(getExpectedImage(geneTrackTC01_2),
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_2, 0.0001)
+                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -90), text(geneInfo4))
+                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -120), text(geneInfo3))
+                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -140), text(geneInfo1))
+                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -150), text(geneInfo2));
     }
 }

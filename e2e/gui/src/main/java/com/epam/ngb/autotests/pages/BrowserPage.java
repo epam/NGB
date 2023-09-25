@@ -91,7 +91,8 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         }
         assertTrue(shootElement(getWebDriver(), trackPanel)
                 .equalsWithDiff(expectedImage, format("%s%s", RESULTS_PATH, resultImage), deviation),
-                format("Screenshot doesn't match expected with deviation = %s", deviation));
+                format("Screenshot doesn't match expected with deviation = %s. See screenshot: %s%s",
+                        deviation, RESULTS_PATH, resultImage));
         return this;
     }
 
