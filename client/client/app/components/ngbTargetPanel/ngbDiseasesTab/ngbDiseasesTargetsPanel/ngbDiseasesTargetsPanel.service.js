@@ -82,12 +82,13 @@ export default class ngbDiseasesTargetsPanelService {
         return this._targetsResults;
     }
 
-    static instance (ngbDiseasesTabService, targetDataService) {
-        return new ngbDiseasesTargetsPanelService(ngbDiseasesTabService, targetDataService);
+    static instance (dispatcher, ngbDiseasesTabService, targetDataService) {
+        return new ngbDiseasesTargetsPanelService(dispatcher, ngbDiseasesTabService, targetDataService);
     }
 
-    constructor(ngbDiseasesTabService, targetDataService) {
+    constructor(dispatcher, ngbDiseasesTabService, targetDataService) {
         Object.assign(this, {ngbDiseasesTabService, targetDataService});
+        dispatcher.on('target:diseases:details:finished', this.resetData.bind(this));
     }
 
     get diseaseId() {
@@ -165,5 +166,18 @@ export default class ngbDiseasesTargetsPanelService {
                     resolve(false);
                 });
         });
+    }
+
+    resetData() {
+        this._loadingData = false;
+        this._failedResult = false;
+        this._errorMessageList = null;
+        this._emptyResults = false;
+        this._totalPages = 0;
+        this._currentPage = 1;
+        this._sortInfo = null;
+        this._filterInfo = null;
+        this.fieldList = {};
+        this._targetsResults = null;
     }
 }

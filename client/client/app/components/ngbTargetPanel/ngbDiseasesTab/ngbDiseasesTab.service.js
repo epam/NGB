@@ -40,12 +40,12 @@ export default class ngbDiseasesTabService {
         return this._openedPanels;
     }
 
-    static instance (targetDataService) {
-        return new ngbDiseasesTabService(targetDataService);
+    static instance ($timeout, dispatcher, targetDataService) {
+        return new ngbDiseasesTabService($timeout, dispatcher, targetDataService);
     }
 
-    constructor(targetDataService) {
-        Object.assign(this, {targetDataService});
+    constructor($timeout, dispatcher, targetDataService) {
+        Object.assign(this, {$timeout, dispatcher, targetDataService});
     }
 
     setDiseasesList(list) {
@@ -100,10 +100,30 @@ export default class ngbDiseasesTabService {
         });
     }
 
+    async viewDiseaseFromTable(disease) {
+        this.resetData();
+        this._loadingData = true;
+        const {id, name} = disease;
+        this._searchText = name;
+        this._diseaseModel = disease;
+        await this.getDiseaseData(id);
+        this.$timeout(() => this.dispatcher.emit('target:diseases:details:finished'));
+    }
+
     closeAll() {
         this._openedPanels = {
             drugs: false,
             targets: false,
         };
+    }
+
+    resetData() {
+        this._searchText = '';
+        this._diseaseModel = {};
+        this.diseasesList = [];
+        this._loadingData = false;
+        this._failedResult = false;
+        this._errorMessageList = null;
+        this.diseasesData = null;
     }
 }

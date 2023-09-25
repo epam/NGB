@@ -8,9 +8,14 @@ import service from './ngbDiseasesTable.service';
 
 import ngbDiseasesTablePagination from './ngbDiseasesTablePagination';
 import ngbDiseasesTableFilter from './ngbDiseasesTableFilter';
+import ngbDiseasesTableContextMenu from './ngbDiseasesTableContextMenu';
 
 export default angular
-    .module('ngbDiseasesTable', [ngbDiseasesTablePagination, ngbDiseasesTableFilter])
+    .module('ngbDiseasesTable', [
+        ngbDiseasesTablePagination,
+        ngbDiseasesTableFilter,
+        ngbDiseasesTableContextMenu
+    ])
     .controller(controller.UID, controller)
     .component('ngbDiseasesTable', component)
     .service('ngbDiseasesTableService', service.instance)

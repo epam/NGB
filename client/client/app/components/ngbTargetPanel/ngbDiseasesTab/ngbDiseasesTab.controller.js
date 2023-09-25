@@ -16,11 +16,12 @@ export default class ngbDiseasesTabController {
         return 'ngbDiseasesTabController';
     }
 
-    constructor($scope, $timeout, ngbDiseasesTabService) {
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTabService) {
         Object.assign(this, {$scope, $timeout, ngbDiseasesTabService});
         if (this.diseasesData) {
             this.refreshData();
         }
+        dispatcher.on('target:diseases:details:finished', this.refreshData.bind(this));
     }
 
     refreshData() {

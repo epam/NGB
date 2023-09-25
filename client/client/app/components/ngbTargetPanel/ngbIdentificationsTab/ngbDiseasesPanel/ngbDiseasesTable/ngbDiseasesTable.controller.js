@@ -139,6 +139,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbDiseasesTable_row.tpl.html'),
             columnDefs: this.getDiseasesTableGridColumns(),
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {

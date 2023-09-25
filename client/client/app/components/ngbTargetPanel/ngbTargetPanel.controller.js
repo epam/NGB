@@ -21,11 +21,12 @@ export default class ngbTargetPanelController {
         return 'ngbTargetPanelController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetPanelService, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, ngbTargetPanelService, ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, ngbTargetPanelService, ngbTargetsTabService, ngbDiseasesTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetPanelService, ngbTargetsTabService, ngbDiseasesTabService});
         this.tabSelected = this.targetState.TARGETS;
         dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
+        dispatcher.on('target:diseases:view:details', this.showDiseasesTab.bind(this));
     }
 
     get isTableMode() {
@@ -44,9 +45,7 @@ export default class ngbTargetPanelController {
         }
     }
 
-    storeReport () {
-
-    }
+    storeReport () {}
 
     changeState(state) {
         if (this.targetState.hasOwnProperty(state)) {
@@ -62,5 +61,13 @@ export default class ngbTargetPanelController {
 
     createTargetFromHomologs() {
         this.changeState(this.targetState.TARGETS);
+    }
+
+    showDiseasesTab(disease) {
+        this.tabSelected = this.targetState.DISEASES;
+        this.$timeout(() => {
+            this.$scope.$apply();
+            this.ngbDiseasesTabService.viewDiseaseFromTable(disease);
+        });
     }
 }
