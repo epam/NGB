@@ -66,9 +66,9 @@ public class DiseaseManagerTest extends TestCase {
 
     @Test
     public void searchDiseasesByNameTest() throws IOException, ParseException {
-        final String name = "Progressive";
+        final String name = "EsPo sur";
         final Map<String, String> diseases = diseaseManager.search(name);
         assertNotNull(diseases);
-        assertEquals(3, diseases.size());
+        assertEquals(1, diseases.size());
     }
 }
