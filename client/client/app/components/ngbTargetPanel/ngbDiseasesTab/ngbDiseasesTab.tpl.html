@@ -92,8 +92,8 @@
                 <collapsible-panel-content>
                     <div ng-if="mainInfoBlock.key === 'drugs'">
                     </div>
-                    <div ng-if="mainInfoBlock.key === 'targets'">
-                    </div>
+                    <ngb-diseases-targets-panel ng-if="mainInfoBlock.key === 'targets'">
+                    </ngb-diseases-targets-panel>
                 </collapsible-panel-content>
             </collapsible-panel>
         </collapsible>

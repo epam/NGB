@@ -36,12 +36,8 @@ export default class ngbDiseasesTabService {
     get errorMessageList () {
         return this._errorMessageList;
     }
-
     get openedPanels() {
         return this._openedPanels;
-    }
-    set openedPanels(value) {
-        this._openedPanels = value;
     }
 
     static instance (targetDataService) {

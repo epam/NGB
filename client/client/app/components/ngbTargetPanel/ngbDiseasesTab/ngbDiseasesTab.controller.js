@@ -58,6 +58,9 @@ export default class ngbDiseasesTabController {
     get diseasesData () {
         return this.ngbDiseasesTabService.diseasesData;
     }
+    get openedPanels() {
+        return this.ngbDiseasesTabService.openedPanels;
+    }
 
     async getDiseasesList() {
         return new Promise(resolve => {
