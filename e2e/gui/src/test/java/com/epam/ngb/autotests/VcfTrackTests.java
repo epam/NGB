@@ -32,9 +32,9 @@ public class VcfTrackTests  extends AbstractNgbTest {
 
     private static final String vcfTrackTC01_1 = "vcfTrackTC01_1";
     private static final String vcfTrackTC01_2 = "vcfTrackTC01_2";
-    private static final String vcfTrack = "agnX1.09-28.trim.dm606.realign.vcf";
+    private static final String vcfTrack = "CantonS.09-28.trim.dm606.realign.vcf";
     private static final String testChromosome = "X";
-    private static final String vcfTestCoordinates1 = "12585814 - 12589558";
+    private static final String vcfTestCoordinates1 = "X: 12586452 - 12587309";
     private static final String vcfTestCoordinate1 = "12591700";
     private static final String vcfTestCoordinate2 = "12590807";
 
@@ -61,20 +61,10 @@ public class VcfTrackTests  extends AbstractNgbTest {
                 .selectOptionWithCheckbox("Expanded", true)
                 .waitTrackDownloaded(browserPage.getTrack(track))
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
-                        browserPage.getTrack(track), vcfTrackTC01_2, 0.0001)
-        ;
+                        browserPage.getTrack(track), vcfTrackTC01_2, 0.0001);
 
 
 //        takeScreenshot(browserPage.getTrack(track), vcfTrackTC01_2);
-
-//                .setCoordinates(vcfTestCoordinate1)
-//                .waitTrackDownloaded(browserPage.getTrack(track))
-//                .trackImageCompare(getExpectedImage("vcfTrackTest2"),
-//                        browserPage.getTrack(track), "vcfTrackTest2", 0)
-//                .setCoordinates(vcfTestCoordinate2)
-//                .waitTrackDownloaded(browserPage.getTrack(track))
-//                .trackImageCompare(getExpectedImage("vcfTrackTest3"),
-//                        browserPage.getTrack(track), "vcfTrackTest3", 0);
     }
 
 }
