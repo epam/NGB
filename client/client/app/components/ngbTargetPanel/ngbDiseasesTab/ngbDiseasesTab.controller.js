@@ -16,12 +16,16 @@ export default class ngbDiseasesTabController {
         return 'ngbDiseasesTabController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDiseasesTabService) {
-        Object.assign(this, {$scope, $timeout, ngbDiseasesTabService});
+    constructor($scope, $timeout, dispatcher, ngbDiseasesTabService, ngbDiseasesTargetsPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbDiseasesTabService, ngbDiseasesTargetsPanelService});
         if (this.diseasesData) {
             this.refreshData();
         }
-        dispatcher.on('target:diseases:details:finished', this.refreshData.bind(this));
+        const refreshData = this.refreshData.bind(this);
+        dispatcher.on('target:diseases:details:finished', refreshData);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:diseases:details:finished', refreshData);
+        });
     }
 
     refreshData() {
@@ -72,9 +76,11 @@ export default class ngbDiseasesTabController {
     }
 
     diseaseChanged(disease) {
+        if (!disease) return;
         this.diseaseModel = disease;
         this.searchText = disease.name;
     }
+
 
     onBlur () {
         if (this.searchText && this.diseasesList.length) {
@@ -102,7 +108,10 @@ export default class ngbDiseasesTabController {
         this.loadingData = true;
         await this.ngbDiseasesTabService.getDiseaseData(this.diseaseModel.id);
         this.setDiseasesData();
-        this.$timeout(() => this.$scope.$apply());
+        this.$timeout(() => {
+            this.$scope.$apply();
+            this.dispatcher.emit('target:diseases:updated');
+        });
     }
 
     setDiseasesData() {

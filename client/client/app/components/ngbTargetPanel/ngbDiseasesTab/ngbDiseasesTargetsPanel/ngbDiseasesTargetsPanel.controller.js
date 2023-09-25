@@ -1,4 +1,4 @@
-const COLUMN_LIST = ['target', 'target name', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const COLUMN_LIST = ['geneId', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
 export default class ngbDiseasesTargetsPanelController {
 
@@ -56,6 +56,11 @@ export default class ngbDiseasesTargetsPanelController {
             $timeout,
             dispatcher,
             ngbDiseasesTargetsPanelService
+        });
+        const initialize = this.initialize.bind(this);
+        this.dispatcher.on('target:diseases:targets:updated', initialize);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:diseases:targets:updated', initialize);
         });
     }
 
