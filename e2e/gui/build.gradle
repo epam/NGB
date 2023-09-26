@@ -41,7 +41,6 @@ dependencies {
 
 test() {
     testLogging.showStandardStreams = true
-    ignoreFailures = false
     useTestNG() {
         suites 'testng.xml'
     }
