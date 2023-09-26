@@ -18,7 +18,7 @@ export default class ngbGenomicsTableFilterController {
         Object.assign(this, {$scope, dispatcher, ngbGenomicsPanelService});
         this.input = $element.find('.ngb-filter-input')[0];
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
-        this.displayText = [...this.selectedItems].join(', ');
+        this.setDisplayText();
 
         this.dispatcher.on('genomics:filters:list', this.setList.bind(this));
         this.dispatcher.on('genomics:filters:reset', this.resetFilters.bind(this));
@@ -27,6 +27,14 @@ export default class ngbGenomicsTableFilterController {
             dispatcher.removeListener('genomics:filters:reset', this.resetFilters.bind(this));
         });
         this.setList();
+    }
+
+    setDisplayText() {
+        if (this.column.field === 'species') {
+            this.displayText = this.selectedItems.map(i => i.name).join(', ');
+        } else {
+            this.displayText = [...this.selectedItems].join(', ');
+        }
     }
 
     get filterInfo() {
@@ -96,9 +104,12 @@ export default class ngbGenomicsTableFilterController {
 
     itemIsSelected(item) {
         if (this.selectedItems) {
-            const selectedItems = [...this.selectedItems].filter(listItem => (
-                listItem.toLowerCase() === item.toLowerCase()
-            ));
+            const selectedItems = this.selectedItems.filter(listItem => {
+                if (this.column.field === 'species') {
+                    return listItem.taxId === item.taxId;
+                }
+                return listItem.toLowerCase() === item.toLowerCase();
+            });
             return selectedItems.length > 0;
         }
         return false;
@@ -117,7 +128,7 @@ export default class ngbGenomicsTableFilterController {
             this.selectedItems.push(item);
         }
         if (this.selectedItems.length) {
-            this.displayText = this.selectedItems.join(', ');
+            this.setDisplayText();
         } else {
             this.displayText = '';
         }
@@ -133,12 +144,18 @@ export default class ngbGenomicsTableFilterController {
         }
         const fullList = this.listElements.fullList;
         if (fullList && fullList.length > 0) {
-            this.selectedItems = fullList.filter(item => (
-                parts.indexOf(item.toLowerCase()) >= 0
-            ));
-            const [fullMatch] = fullList.filter(item => (
-                item.toLowerCase() === last.toLowerCase()
-            ));
+            this.selectedItems = fullList.filter(item => {
+                if (this.column.field === 'species') {
+                    return parts.indexOf(item.name.toLowerCase()) >= 0;
+                }
+                return parts.indexOf(item.toLowerCase()) >= 0;
+            });
+            const [fullMatch] = fullList.filter(item => {
+                if (this.column.field === 'species') {
+                    return item.name.toLowerCase() === last.toLowerCase();
+                }
+                return item.toLowerCase() === last.toLowerCase();
+            });
             if (fullMatch) {
                 this.selectedItems.push(fullMatch);
             }
@@ -149,10 +166,27 @@ export default class ngbGenomicsTableFilterController {
     }
 
     apply() {
-        const parts = this.displayText.split(',')
+        const parts = this.displayText.toLowerCase()
+            .split(',')
             .map(part => part.trim());
-        this.selectedItems = parts.filter(part => part !== '');
-        this.displayText = this.selectedItems.join(', ');
+        switch (this.column.field) {
+            case 'species': {
+                if (this.listElements.fullList && this.listElements.fullList.length > 0) {
+                    this.listElements.fullList.forEach((item, index) => {
+                        if (parts.indexOf(item.name.toLowerCase()) >= 0) {
+                            if (!this.selectedItems.includes(this.listElements.fullList[index])) {
+                                this.selectedItems.push(this.listElements.fullList[index]);
+                            }
+                        }
+                    });
+                }
+                break;
+            }
+            default: {
+                this.selectedItems = parts.filter(part => part !== '');
+            }
+        }
+        this.setDisplayText();
         this.listIsDisplayed = false;
         const prevValue = (this.filterInfo || {})[this.column.field] || [];
         prevValue.sort();

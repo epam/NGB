@@ -82,7 +82,10 @@ export default class ngbGenomicsPanelService {
 
     get translationalSpecies() {
         const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
-        return translational.map(s => s.speciesName);
+        return translational.map(s => ({
+            taxId: s.taxId,
+            name: s.speciesName
+        }));
     }
 
     get interestGenes() {
@@ -152,15 +155,9 @@ export default class ngbGenomicsPanelService {
         }
         if (this._filterInfo) {
             Object.entries(this._filterInfo).map(([key, value]) => {
-                const speciesValue = key === 'species'
-                    ? value.map(v => v.replace('_', ' '))
-                    : undefined;
                 const isInclude = (item) => {
-                    if (speciesValue) {
-                        return (
-                            value.some(v => item[key].toLowerCase().includes(v.toLowerCase())) ||
-                            speciesValue.some(v => item[key].toLowerCase().includes(v.toLowerCase()))
-                        );
+                    if (key === 'species') {
+                        return value.some(v => item[key].taxId === v.taxId);
                     }
                     return value.some(v => item[key].toLowerCase().includes(v.toLowerCase()));
                 };
@@ -197,7 +194,10 @@ export default class ngbGenomicsPanelService {
                         .filter(h => !this.interestTaxIds.includes(h.taxId))
                         .map(h => ({
                             target: this.getChipByGeneId(id),
-                            species: h.speciesScientificName,
+                            species: {
+                                taxId: h.taxId,
+                                name: h.speciesScientificName
+                            },
                             'homology type': capitalize(item.type),
                             homologue: h.symbol || `id: ${h.geneId}`,
                             geneId: h.geneId,
@@ -244,7 +244,10 @@ export default class ngbGenomicsPanelService {
                         .filter(g => !this.interestTaxIds.includes(g.taxId))
                         .map(g => ({
                             target: this.getChipByGeneId(id),
-                            species: g.speciesScientificName,
+                            species: {
+                                taxId: g.taxId,
+                                name: g.speciesScientificName
+                            },
                             'homology type': capitalize('HOMOLOG'),
                             homologue: g.symbol,
                             geneId: g.geneId,
