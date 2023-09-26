@@ -44,7 +44,17 @@ function unRomanize(phase) {
     return num;
 }
 
-const FIELDS = {};
+const FIELDS = {
+    'disease': 'DISEASE_NAME',
+    'drug': 'DRUG_NAME',
+    'type': 'DRUG_TYPE',
+    'mechanism of action': 'MECHANISM_OF_ACTION',
+    'action type': 'ACTION_TYPE',
+    'target': 'TARGET',
+    'phase': 'PHASE',
+    'status': 'STATUS',
+    'source': 'SOURCE'
+};
 
 export default class ngbDiseasesDrugsPanelService {
 
@@ -140,6 +150,12 @@ export default class ngbDiseasesDrugsPanelService {
             page: this.currentPage,
             pageSize: this.pageSize,
         };
+        if (this.sortInfo && this.sortInfo.length) {
+            request.orderInfos = this.sortInfo.map(i => ({
+                orderBy: this.fields[i.field],
+                reverse: !i.ascending
+            }));
+        }
         return request;
     }
 

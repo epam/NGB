@@ -116,6 +116,7 @@ export default class ngbDiseasesDrugsPanelController {
         if (!this.gridOptions) {
             return;
         }
+        this.resetSorting();
         if (this.ngbDiseasesDrugsPanelService.drugsResults) {
             this.gridOptions.data = this.ngbDiseasesDrugsPanelService.drugsResults;
         } else {
@@ -138,7 +139,7 @@ export default class ngbDiseasesDrugsPanelController {
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: true,
+                enableFiltering: false,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -217,5 +218,15 @@ export default class ngbDiseasesDrugsPanelController {
 
     onClickLink(row, event) {
         event.stopPropagation();
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 }

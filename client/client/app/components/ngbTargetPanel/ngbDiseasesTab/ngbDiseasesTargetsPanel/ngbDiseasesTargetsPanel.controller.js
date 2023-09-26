@@ -122,6 +122,7 @@ export default class ngbDiseasesTargetsPanelController {
         if (!this.gridOptions) {
             return;
         }
+        this.resetSorting();
         if (this.ngbDiseasesTargetsPanelService.targetsResults) {
             this.gridOptions.data = this.ngbDiseasesTargetsPanelService.targetsResults;
         } else {
@@ -217,5 +218,15 @@ export default class ngbDiseasesTargetsPanelController {
         }
         this.currentPage = page;
         await this.loadData();
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 }
