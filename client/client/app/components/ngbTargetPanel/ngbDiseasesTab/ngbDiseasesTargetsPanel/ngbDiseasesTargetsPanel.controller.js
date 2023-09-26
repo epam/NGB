@@ -1,5 +1,10 @@
 const COLUMN_LIST = ['geneId', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
+const DEFAULT_SORT = [{
+    field: 'overall score',
+    ascending: false
+}];
+
 export default class ngbDiseasesTargetsPanelController {
 
     get columnList () {
@@ -39,6 +44,10 @@ export default class ngbDiseasesTargetsPanelController {
         return alpha
             ? {'background-color': `rgb(102, 153, 255, ${alpha})`}
             : undefined;
+    }
+
+    get defaultSort() {
+        return DEFAULT_SORT;
     }
 
     static get UID() {
@@ -123,6 +132,7 @@ export default class ngbDiseasesTargetsPanelController {
             return;
         }
         this.resetSorting();
+        this.sortInfo = this.defaultSort;
         if (this.ngbDiseasesTargetsPanelService.targetsResults) {
             this.gridOptions.data = this.ngbDiseasesTargetsPanelService.targetsResults;
         } else {
