@@ -15,8 +15,11 @@
  */
 package com.epam.ngb.autotests.utils;
 
+import com.assertthat.selenium_shutterbug.core.Shutterbug;
+import static com.assertthat.selenium_shutterbug.core.Shutterbug.shootElement;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.epam.ngb.autotests.utils.AppProperties.TEMPLATES_PATH;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -38,7 +41,7 @@ public class Utils {
     }
 
     public static void takeScreenshot(SelenideElement track, String fileName) throws IOException {
-        File outputfile = new File(format("%s%s.png", TEMPLATES_PATH, fileName));
-        ImageIO.write(track.screenshotAsImage(), "png", outputfile);
+        shootElement(getWebDriver(), track)
+                .withName(fileName).save(TEMPLATES_PATH);
     }
 }
