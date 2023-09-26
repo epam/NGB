@@ -43,6 +43,7 @@ import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.testng.internal.collections.Pair;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -72,9 +73,9 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
         this.pharmGKBDrugManager = pharmGKBDrugManager;
     }
 
-    public long totalCount(final List<String> ids) throws ParseException, IOException {
+    public Pair<Long, Long> totalCount(final List<String> ids) throws ParseException, IOException {
         final List<PharmGKBDrug> result = searchByGeneIds(ids);
-        return result.stream().map(PharmGKBDrug::getId).distinct().count();
+        return Pair.of(Long.valueOf(result.size()), result.stream().map(PharmGKBDrug::getId).distinct().count());
     }
 
     public PharmGKBDrugFieldValues getFieldValues(final List<String> geneIds)
