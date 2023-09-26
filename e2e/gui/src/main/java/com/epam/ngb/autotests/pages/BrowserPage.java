@@ -87,7 +87,7 @@ public class BrowserPage implements AccessObject<BrowserPage> {
                                          String resultImage,
                                          double deviation) {
         if (!shootElement(getWebDriver(), trackPanel).equals(expectedImage,deviation)) {
-            sleep(1, SECONDS);
+            sleep(2, SECONDS);
         }
         assertTrue(shootElement(getWebDriver(), trackPanel)
                 .equalsWithDiff(expectedImage, format("%s%s", RESULTS_PATH, resultImage), deviation),

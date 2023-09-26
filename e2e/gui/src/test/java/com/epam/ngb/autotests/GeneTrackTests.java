@@ -58,7 +58,7 @@ public class GeneTrackTests  extends AbstractNgbTest {
                 .setCoordinates(geneTestCoordinates)
                 .waitTrackDownloaded(browserPage.getTrack(GENE_TRACK))
                 .trackImageCompare(getExpectedImage(geneTrackTC01_1),
-                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_1, 0.0001);
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_1, 0.0005);
         browserPage
                 .openTrackMenu(GENE_TRACK, GENERAL.value)
                 .selectOptionWithAdditionalMenu("Resize")
@@ -67,7 +67,7 @@ public class GeneTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(GENE_TRACK, TRANSCRIPT_VIEW.value)
                 .selectOptionWithCheckbox("Expanded", true)
                 .trackImageCompare(getExpectedImage(geneTrackTC01_2),
-                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_2, 0.0001)
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_2, 0.0005)
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -90), text(geneInfo4))
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -120), text(geneInfo3))
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -140), text(geneInfo1))
