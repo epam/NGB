@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.externaldb;
 
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
+import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.StructureRequest;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.StructureRequestField;
@@ -43,6 +44,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 
@@ -57,6 +61,7 @@ public class PdbEntriesManager extends HttpDataManager{
     private static final String GROUP = "group";
     private static final String AND = "and";
     private static final String STRUCT_TITLE = "struct.title";
+    private static final int MAX_PAGE_SIZE = 1000;
 
     @SneakyThrows
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request, final List<String> geneNames) {
@@ -64,7 +69,9 @@ public class PdbEntriesManager extends HttpDataManager{
         final String jsonString = mapper.writeValueAsString(convertRequest(request, geneNames));
         final JSONObject jsonObject = new JSONObject(jsonString);
         final String structures = fetchData(LOCATION, jsonObject);
-        return parseStructures(structures);
+        final SearchResult<Structure> result = parseStructures(structures);
+        setProteinChains(result);
+        return result;
     }
 
     @SneakyThrows
@@ -74,6 +81,15 @@ public class PdbEntriesManager extends HttpDataManager{
         final JSONObject jsonObject = new JSONObject(jsonString);
         final String structures = fetchData(LOCATION, jsonObject);
         return parseTotalCount(structures);
+    }
+
+    @SneakyThrows
+    private Map<String, List<String>> getProteinChains(final List<String> entryIds) {
+        final ObjectMapper mapper = new ObjectMapper();
+        final String jsonString = mapper.writeValueAsString(getProteinChainsRequest(entryIds));
+        final JSONObject jsonObject = new JSONObject(jsonString);
+        final String structures = fetchData(LOCATION, jsonObject);
+        return parseProteinChains(structures);
     }
 
     @SneakyThrows
@@ -107,6 +123,33 @@ public class PdbEntriesManager extends HttpDataManager{
                         }
                     }
                 }
+                structures.add(structure);
+            }
+        }
+        searchResult.setItems(structures);
+        searchResult.setTotalCount(totalCount);
+        return searchResult;
+    }
+
+    private void setProteinChains(final SearchResult<Structure> result) {
+        final List<String> entryIds = result.getItems().stream()
+                .map(UrlEntity::getId)
+                .collect(Collectors.toList());
+        final Map<String, List<String>> chainsMap = getProteinChains(entryIds);
+        result.getItems().forEach(s -> s.setProteinChains(chainsMap.get(s.getId())));
+    }
+
+    @SneakyThrows
+    private Map<String, List<String>> parseProteinChains(final String json) {
+        final Map<String, List<String>> chainsMap = new HashMap<>();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode topNode = objectMapper.readTree(json);
+        final JsonNode resultSet = topNode.at("/result_set");
+        if (resultSet.isArray()) {
+            final Iterator<JsonNode> elements = resultSet.elements();
+            while (elements.hasNext()) {
+                JsonNode node = elements.next();
+                String id = node.at("/data/entryId").asText();
                 final JsonNode proteinChainsNode = node.at("/data/entity/chains");
                 if (proteinChainsNode.isArray()) {
                     final Iterator<JsonNode> proteinChainsElements = proteinChainsNode.elements();
@@ -115,14 +158,15 @@ public class PdbEntriesManager extends HttpDataManager{
                         JsonNode proteinChainsElement = proteinChainsElements.next();
                         proteinChains.add(proteinChainsElement.asText());
                     }
-                    structure.setProteinChains(proteinChains);
+                    if (chainsMap.containsKey(id)) {
+                        chainsMap.get(id).addAll(proteinChains);
+                    } else {
+                        chainsMap.put(id, proteinChains);
+                    }
                 }
-                structures.add(structure);
             }
         }
-        searchResult.setItems(structures);
-        searchResult.setTotalCount(totalCount);
-        return searchResult;
+        return chainsMap;
     }
 
     @SneakyThrows
@@ -137,6 +181,21 @@ public class PdbEntriesManager extends HttpDataManager{
                                             final List<String> geneNames) {
         final StructureRequest.RequestOptions options = getOptions(structureSearchRequest);
         final StructureRequest.Query query = getQuery(structureSearchRequest, geneNames);
+        final StructureRequest.Request request = StructureRequest.Request.builder()
+                .requestOptions(options)
+                .query(query)
+                .returnType("entry")
+                .build();
+        return StructureRequest.builder()
+                .report("search_summary")
+                .request(request)
+                .build();
+    }
+
+    @SneakyThrows
+    private StructureRequest getProteinChainsRequest(final List<String> entryIds) {
+        final StructureRequest.RequestOptions options = getEntryIdsOptions();
+        final StructureRequest.Query query = getEntryIdsQuery(entryIds);
         final StructureRequest.Request request = StructureRequest.Request.builder()
                 .requestOptions(options)
                 .query(query)
@@ -158,7 +217,7 @@ public class PdbEntriesManager extends HttpDataManager{
         final StructureRequest.Request request = StructureRequest.Request.builder()
                 .requestOptions(options)
                 .query(query)
-                .returnType("polymer_entity")
+                .returnType("entry")
                 .build();
         return StructureRequest.builder()
                 .report("search_summary")
@@ -178,6 +237,18 @@ public class PdbEntriesManager extends HttpDataManager{
         }
         if (!TextUtils.isBlank(structureSearchRequest.getName())) {
             nodes.add(getNameQuery(structureSearchRequest.getName()));
+        }
+        final StructureRequest.Query query = new StructureRequest.Query();
+        query.setType(GROUP);
+        query.setLogicalOperator(AND);
+        query.setNodes(nodes);
+        return query;
+    }
+
+    private static StructureRequest.Query getEntryIdsQuery(final List<String> entryIds) {
+        final List<StructureRequest.Query> nodes = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(entryIds)) {
+            nodes.add(getEntriesQuery(entryIds));
         }
         final StructureRequest.Query query = new StructureRequest.Query();
         query.setType(GROUP);
@@ -265,6 +336,16 @@ public class PdbEntriesManager extends HttpDataManager{
         return StructureRequest.RequestOptions.builder()
                 .paginate(paginate)
                 .sort(Collections.singletonList(sort))
+                .build();
+    }
+
+    private static StructureRequest.RequestOptions getEntryIdsOptions() {
+        final StructureRequest.Paginate paginate = StructureRequest.Paginate.builder()
+                .start(0)
+                .rows(MAX_PAGE_SIZE)
+                .build();
+        return StructureRequest.RequestOptions.builder()
+                .paginate(paginate)
                 .build();
     }
 
