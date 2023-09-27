@@ -118,7 +118,7 @@ export default class ngbDiseasesTabController {
         const {name, description, synonyms} = this.diseasesData;
         this.title = name;
         this.description = description;
-        this.synonyms = synonyms;
+        this.synonyms = synonyms.filter(s => s);
         this.refreshInfoBlocks();
     }
 

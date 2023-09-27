@@ -6,10 +6,11 @@ import component from './ngbDiseasesDrugsPanel.component';
 import controller from './ngbDiseasesDrugsPanel.controller';
 import service from './ngbDiseasesDrugsPanel.service';
 
-import ngbDrugsTablePagination from './ngbDrugsTablePagination';
+import ngbDiseasesDrugsTablePagination from './ngbDiseasesDrugsTablePagination';
+import ngbDiseasesDrugsTableFilter from './ngbDiseasesDrugsTableFilter';
 
 export default angular
-    .module('ngbDiseasesDrugsPanel', [ngbDrugsTablePagination])
+    .module('ngbDiseasesDrugsPanel', [ngbDiseasesDrugsTablePagination, ngbDiseasesDrugsTableFilter])
     .controller(controller.UID, controller)
     .component('ngbDiseasesDrugsPanel', component)
     .service('ngbDiseasesDrugsPanelService', service.instance)

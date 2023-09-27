@@ -110,13 +110,6 @@ export default class ngbDiseasesTabService {
         this.$timeout(() => this.dispatcher.emit('target:diseases:details:finished'));
     }
 
-    closeAll() {
-        this._openedPanels = {
-            drugs: false,
-            targets: false,
-        };
-    }
-
     resetData() {
         this._searchText = '';
         this._diseaseModel = {};

@@ -96,7 +96,15 @@ export default class ngbDiseasesTargetsPanelService {
         return this.ngbDiseasesTabService.diseasesData.id;
     }
 
-    setFieldList() {}
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
+        this._filterInfo = filter;
+    }
 
     setTargetsResults(results) {
         this._targetsResults = results.map(item => {

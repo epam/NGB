@@ -1,10 +1,10 @@
 const PAGE_DEEPNESS = 3;
 
-export default class ngbDrugsTablePaginationController {
+export default class ngbDiseasesDrugsTablePaginationController {
 
 
     static get UID() {
-        return 'ngbDrugsTablePaginationController';
+        return 'ngbDiseasesDrugsTablePaginationController';
     }
 
     constructor($scope, $timeout, dispatcher, ngbDiseasesDrugsPanelService, ) {

@@ -14,7 +14,7 @@ export default class ngbDiseasesTableContextMenuController {
     viewDiseaseDetails(event) {
         event.preventDefault();
         event.stopPropagation();
-        this.dispatcher.emit('target:diseases:view:details', this.entity.disease);
+        this.dispatcher.emit('target:identification:show:diseases:tab', this.entity.disease);
         if (this.ngbDiseasesTableContextMenu.visible()) {
             this.ngbDiseasesTableContextMenu.close();
         }

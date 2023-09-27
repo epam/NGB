@@ -51,10 +51,13 @@ export default class ngbDiseasesDrugsPanelController {
             dispatcher,
             ngbDiseasesDrugsPanelService
         });
+        const filterChanged = this.filterChanged.bind(this);
         const initialize = this.initialize.bind(this);
         this.dispatcher.on('target:diseases:drugs:updated', initialize);
+        dispatcher.on('target:diseases:drugs:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:diseases:drugs:updated', initialize);
+            dispatcher.removeListener('target:diseases:drugs:filters:changed', filterChanged);
         });
     }
 
@@ -139,7 +142,7 @@ export default class ngbDiseasesDrugsPanelController {
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: false,
+                enableFiltering: true,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -228,5 +231,15 @@ export default class ngbDiseasesDrugsPanelController {
         for (let i = 0 ; i < columns.length; i++) {
             columns[i].sort = {};
         }
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        this.currentPage = 1;
+        await this.loadData();
+        this.$timeout(() => this.$scope.$apply());
     }
 }

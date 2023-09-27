@@ -26,7 +26,7 @@ export default class ngbTargetPanelController {
         this.tabSelected = this.targetState.TARGETS;
         dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
-        dispatcher.on('target:diseases:view:details', this.showDiseasesTab.bind(this));
+        dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
     }
 
     get isTableMode() {

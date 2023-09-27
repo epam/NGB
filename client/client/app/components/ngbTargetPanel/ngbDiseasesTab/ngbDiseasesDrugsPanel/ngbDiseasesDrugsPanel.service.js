@@ -131,6 +131,16 @@ export default class ngbDiseasesDrugsPanelService {
         return this.ngbDiseasesTabService.diseasesData.id;
     }
 
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
+        this._filterInfo = filter;
+    }
+
     setDrugsResult(result) {
         this._drugsResults = result.map(item => ({
             disease: item.disease,
@@ -155,6 +165,25 @@ export default class ngbDiseasesDrugsPanelService {
                 orderBy: this.fields[i.field],
                 reverse: !i.ascending
             }));
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    return {
+                        field: this.fields[key],
+                        terms: values.map(v => {
+                            if (key === 'phase') {
+                                const number = unRomanize(v);
+                                return number ? number : '';
+                            }
+                            return v;
+                        })
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
         }
         return request;
     }
