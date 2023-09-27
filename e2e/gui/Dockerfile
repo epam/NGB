@@ -20,7 +20,14 @@ USER 0
 # Install common
 RUN apt-get update && \
     apt-get install -y wget \
-                   openjdk-8-jre
+                           unzip \
+                           default-jdk \
+                           fonts-liberation \
+                           libcurl3-gnutls \
+                           libcurl3-nss \
+                           libcurl4 \
+                           libgbm1 \
+                           libu2f-udev
 
 RUN apt-get install fonts-liberation libcurl3-gnutls libcurl3-nss libcurl4 libgbm1 libu2f-udev -y
 
