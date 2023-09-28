@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseSecurityService;
+import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -94,6 +95,19 @@ public class DiseaseController extends AbstractRESTController {
                                                              @PathVariable final String diseaseId)
             throws IOException, ParseException {
         return Result.success(diseaseSecurityService.searchDrugs(request, diseaseId));
+    }
+
+    @GetMapping(value = "/disease/drugs/fieldValues/{diseaseId}")
+    @ApiOperation(
+            value = "Returns filed values for Open Targets drugs data",
+            notes = "Returns filed values for Open Targets drugs data",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<DrugFieldValues> getDrugFieldValues(@PathVariable final String diseaseId)
+            throws IOException, ParseException {
+        return Result.success(diseaseSecurityService.getDrugFieldValues(diseaseId));
     }
 
     @PostMapping(value = "/disease/targets/{diseaseId}")

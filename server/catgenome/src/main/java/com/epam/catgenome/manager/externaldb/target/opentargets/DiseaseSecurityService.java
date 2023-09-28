@@ -67,4 +67,9 @@ public class DiseaseSecurityService {
             throws IOException, ParseException {
         return diseaseAssociationManager.search(request, diseaseId);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public DrugFieldValues getDrugFieldValues(final String diseaseId) throws IOException, ParseException {
+        return drugAssociationManager.getFieldValues(diseaseId);
+    }
 }
