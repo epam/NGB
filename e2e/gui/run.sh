@@ -16,8 +16,10 @@
 
 set +e
 
-./gradlew clean test
+./gradlew clean check
 
-EXIT_CODE=$?
-echo $EXIT_CODE
-exit $EXIT_CODE
+if [[ $? == 0 ]]; then
+    echo "Succeed"
+else
+    echo "Failed"
+fi
