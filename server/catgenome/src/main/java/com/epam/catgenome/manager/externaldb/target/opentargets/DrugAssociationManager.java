@@ -69,6 +69,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
