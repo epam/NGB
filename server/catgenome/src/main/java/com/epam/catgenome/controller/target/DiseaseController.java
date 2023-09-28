@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseSecurityService;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.util.FileFormat;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
@@ -112,5 +114,39 @@ public class DiseaseController extends AbstractRESTController {
                                                                   @PathVariable final String diseaseId)
             throws IOException, ParseException {
         return Result.success(diseaseSecurityService.searchTargets(request, diseaseId));
+    }
+
+    @GetMapping(value = "/disease/drugs/export")
+    @ApiOperation(
+            value = "Exports drugs data to CSV/TSV file",
+            notes = "Exports drugs data to CSV/TSV file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void exportDrugs(@RequestParam final String diseaseId,
+                            @RequestParam final FileFormat format,
+                            @RequestParam final boolean includeHeader,
+                            HttpServletResponse response) throws IOException, ParseException {
+        final byte[] bytes = diseaseSecurityService.exportDrugs(diseaseId, format, includeHeader);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
+    }
+
+    @GetMapping(value = "/disease/targets/export")
+    @ApiOperation(
+            value = "Exports targets data to CSV/TSV file",
+            notes = "Exports targets data to CSV/TSV file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void exportTargets(@RequestParam final String diseaseId,
+                              @RequestParam final FileFormat format,
+                              @RequestParam final boolean includeHeader,
+                              HttpServletResponse response) throws IOException, ParseException {
+        final byte[] bytes = diseaseSecurityService.exportTargets(diseaseId, format, includeHeader);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
     }
 }

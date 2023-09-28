@@ -102,6 +102,25 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return searchResult;
     }
 
+    public List<T> search(final String diseaseId)
+            throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name()), BooleanClause.Occur.MUST);
+        final List<T> entries = new ArrayList<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(mainBuilder.build(), topHits);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                T entry = entryFromDocDiseaseView(doc);
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
     public T entryFromDocDiseaseView(Document doc) {
         return null;
     };

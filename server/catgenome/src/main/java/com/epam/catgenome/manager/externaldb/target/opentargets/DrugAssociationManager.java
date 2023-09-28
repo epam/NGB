@@ -29,9 +29,13 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -320,6 +324,14 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
                 getByTermsQuery(filter.getTerms(), filter.getField());
         builder.add(query, BooleanClause.Occur.MUST);
+    }
+
+    public byte[] export(final String diseaseId, final FileFormat format, final boolean includeHeader)
+            throws ParseException, IOException {
+        final List<ExportField<DrugAssociation>> exportFields = Arrays.stream(DrugField.values())
+                .filter(AssociationExportFieldDiseaseView::isExportDiseaseView)
+                .collect(Collectors.toList());
+        return ExportUtils.export(search(diseaseId), exportFields, format, includeHeader);
     }
 
     private DrugAssociation entryFromJson(final JsonNode jsonNodes) {

@@ -25,7 +25,7 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.index.FilterType;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -33,32 +33,39 @@ import java.util.function.Function;
 
 @Getter
 @AllArgsConstructor
-public enum DiseaseField implements AssociationExportField<DiseaseAssociation> {
-    GENE_ID("Target ID", DiseaseAssociation::getGeneId, FilterType.TERMS, true),
-    GENE_SYMBOL("Target", DiseaseAssociation::getGeneSymbol,  FilterType.TERMS, false),
+public enum DiseaseField implements AssociationExportFieldDiseaseView<DiseaseAssociation> {
+    GENE_ID("Target ID", DiseaseAssociation::getGeneId, FilterType.TERMS, true, false),
+    GENE_SYMBOL("Target", DiseaseAssociation::getGeneSymbol,  FilterType.TERMS, false, true),
 
-    GENE_NAME("Target Description", DiseaseAssociation::getGeneName,  FilterType.NONE, false),
-    DISEASE_ID(false),
-    DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, FilterType.PHRASE, true),
-    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.NONE, true),
+    GENE_NAME("Target Description", DiseaseAssociation::getGeneName,  FilterType.NONE,
+            false, true),
+    DISEASE_ID(false, false),
+    DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, FilterType.PHRASE,
+            true, false),
+    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.NONE,
+            true, true),
     GENETIC_ASSOCIATIONS_SCORE("Genetic associations", o -> String.valueOf(o.getGeneticAssociationScore()),
-            FilterType.NONE, true),
+            FilterType.NONE, true, true),
     SOMATIC_MUTATIONS_SCORE("Somatic mutations", o -> String.valueOf(o.getSomaticMutationScore()),
-            FilterType.NONE, true),
-    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), FilterType.NONE, true),
+            FilterType.NONE, true, true),
+    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), FilterType.NONE,
+            true, true),
     PATHWAYS_SCORE("Pathways systems", o -> String.valueOf(o.getAffectedPathwayScore()),
-            FilterType.NONE, true),
-    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), FilterType.NONE, true),
+            FilterType.NONE, true, true),
+    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), FilterType.NONE,
+            true, true),
     ANIMAL_MODELS_SCORE("Animal models", o -> String.valueOf(o.getAnimalModelScore()),
-            FilterType.NONE, true),
+            FilterType.NONE, true, true),
     RNA_EXPRESSION_SCORE("RNA expression", o -> String.valueOf(o.getRnaExpressionScore()),
-            FilterType.NONE, true);
+            FilterType.NONE, true, true);
     private String label;
     private Function<DiseaseAssociation, String> getter;
     private FilterType type;
     private final boolean export;
+    private final boolean exportDiseaseView;
 
-    DiseaseField(boolean export) {
+    DiseaseField(boolean export, boolean exportDiseaseView) {
         this.export = export;
+        this.exportDiseaseView = exportDiseaseView;
     }
 }

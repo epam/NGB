@@ -31,15 +31,12 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
@@ -154,14 +151,6 @@ public abstract class AbstractIndexManager<T> {
             }
         }
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
-    }
-
-    public static PrefixQuery buildPrefixQuery(final String fieldName, final String term) {
-        return new PrefixQuery(new Term(fieldName, term.toLowerCase()));
-    }
-
-    public static TermQuery buildTermQuery(final String fieldName, final String term) {
-        return new TermQuery(new Term(fieldName, term));
     }
 
     public abstract List<T> readEntries(String path) throws IOException;

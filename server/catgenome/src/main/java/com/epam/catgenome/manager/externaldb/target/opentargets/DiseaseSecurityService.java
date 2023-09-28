@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,5 +67,18 @@ public class DiseaseSecurityService {
     public SearchResult<DiseaseAssociation> searchTargets(final SearchRequest request, final String diseaseId)
             throws IOException, ParseException {
         return diseaseAssociationManager.search(request, diseaseId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportDrugs(final String diseaseId, final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException {
+        return drugAssociationManager.export(diseaseId, format, includeHeader);
+    }
+
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportTargets(final String diseaseId, final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException {
+        return diseaseAssociationManager.export(diseaseId, format, includeHeader);
     }
 }
