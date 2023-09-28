@@ -121,6 +121,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                     DGIDBDrugAssociation entry = DGIDBDrugAssociation.builder()
                             .name(name)
                             .entrezId(entrezId)
+                            .claimName(getCellValue(cells, 5))
                             .interactionClaimSource(getCellValue(cells, 3))
                             .interactionTypes(getCellValue(cells, 4))
                             .build();
@@ -165,6 +166,9 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
             doc.add(new TextField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
+            doc.add(new TextField(DGIDBField.DRUG_CLAIM_NAME.name(), entry.getClaimName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBField.DRUG_CLAIM_NAME.name(), new BytesRef(entry.getClaimName())));
+
             doc.add(new TextField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_TYPES.name(),
                     new BytesRef(entry.getInteractionTypes())));
@@ -184,6 +188,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                 .geneId(doc.getField(DGIDBField.GENE_ID.name()).stringValue())
                 .name(drugName)
                 .url(String.format(DGIDBDrugAssociation.URL_PATTERN, drugName))
+                .claimName(doc.getField(DGIDBField.DRUG_CLAIM_NAME.name()).stringValue())
                 .interactionTypes(doc.getField(DGIDBField.INTERACTION_TYPES.name()).stringValue())
                 .interactionClaimSource(doc.getField(DGIDBField.INTERACTION_CLAIM_SOURCE.name()).stringValue())
                 .build();

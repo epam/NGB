@@ -38,14 +38,16 @@ public class DGIDBDrugAssociation extends UrlEntity {
     public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
     private String geneId;
     private String entrezId;
+    private String claimName;
     private String interactionTypes;
     private String interactionClaimSource;
     @Builder
     public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String interactionTypes, String interactionClaimSource) {
+                                String claimName, String interactionTypes, String interactionClaimSource) {
         super(id, name, url);
         this.entrezId = entrezId;
         this.geneId = geneId;
+        this.claimName = claimName;
         this.interactionTypes = interactionTypes;
         this.interactionClaimSource = interactionClaimSource;
     }
