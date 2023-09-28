@@ -609,8 +609,17 @@ public final class IndexUtils {
         return queryParser.parse(term);
     }
 
-    public static Query getByIdsQuery(final List<String> ids, final String fieldName) throws ParseException {
+    public static Query getByTermsQuery(final List<String> ids, final String fieldName) throws ParseException {
         return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
+    }
+
+    public static Query getByPhraseFieldQuery(final String phrase, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String term : phrase.split(TERM_SPLIT_TOKEN)) {
+            builder.add(new WildcardQuery(new Term(fieldName, "*" + term.toLowerCase() + "*")),
+                    BooleanClause.Occur.MUST);
+        }
+        return builder.build();
     }
 
     public static Query buildTermQuery(final String term, final String fieldName) {

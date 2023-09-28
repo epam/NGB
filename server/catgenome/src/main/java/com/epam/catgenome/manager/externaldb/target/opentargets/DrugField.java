@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,22 +34,23 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum DrugField implements AssociationExportField<DrugAssociation> {
-    GENE_ID("Target", DrugAssociation::getGeneId, true),
+    GENE_ID("Target ID", DrugAssociation::getGeneId, FilterType.TERMS, true),
+    GENE_SYMBOL("Target", DrugAssociation::getGeneSymbol,  FilterType.TERMS, false),
+    GENE_NAME("Target Description", DrugAssociation::getGeneName,  FilterType.NONE, false),
     DRUG_ID(false),
-    DRUG_NAME("Drug", o -> String.valueOf(o.getDrug().getName()), true),
-    DRUG_NAME_FLTR(false),
-    DRUG_TYPE("Type", DrugAssociation::getDrugType, true),
-    MECHANISM_OF_ACTION("Mechanism Of Action", DrugAssociation::getMechanismOfAction, true),
-    ACTION_TYPE("Action Type", DrugAssociation::getActionType, true),
+    DRUG_NAME("Drug", o -> String.valueOf(o.getDrug().getName()), FilterType.PHRASE, true),
+    DRUG_TYPE("Type", DrugAssociation::getDrugType, FilterType.TERMS, true),
+    MECHANISM_OF_ACTION("Mechanism Of Action", DrugAssociation::getMechanismOfAction, FilterType.TERMS, true),
+    ACTION_TYPE("Action Type", DrugAssociation::getActionType, FilterType.TERMS, true),
     DISEASE_ID(false),
-    DISEASE_NAME("Disease", o -> String.valueOf(o.getDisease().getName()), true),
-    DISEASE_NAME_FLTR(false),
-    PHASE("Phase", DrugAssociation::getPhase, true),
-    STATUS("Status", DrugAssociation::getStatus, true),
-    SOURCE("Source", o -> String.valueOf(o.getSource().getName()), true),
+    DISEASE_NAME("Disease", o -> String.valueOf(o.getDisease().getName()), FilterType.PHRASE, true),
+    PHASE("Phase", DrugAssociation::getPhase, FilterType.TERMS, true),
+    STATUS("Status", DrugAssociation::getStatus, FilterType.TERMS, true),
+    SOURCE("Source", o -> String.valueOf(o.getSource().getName()), FilterType.TERMS, true),
     SOURCE_URL(false);
     private String label;
     private Function<DrugAssociation, String> getter;
+    private FilterType type;
     private final boolean export;
 
     DrugField(boolean export) {

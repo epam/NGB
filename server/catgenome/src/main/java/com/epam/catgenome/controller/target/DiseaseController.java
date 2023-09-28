@@ -84,7 +84,7 @@ public class DiseaseController extends AbstractRESTController {
     @ApiOperation(
             value = "Returns a disease drugs",
             notes = "Returns a disease drugs" +
-                    "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, DISEASE_NAME, DRUG_TYPE, " +
+                    "Available field names for sorting and filtering: GENE_ID, GENE_SYMBOL, DRUG_NAME, DRUG_TYPE, " +
                     "MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
@@ -100,7 +100,7 @@ public class DiseaseController extends AbstractRESTController {
     @ApiOperation(
             value = "Returns a disease targets",
             notes = "Returns a disease targets" +
-                    "Available field names for sorting: GENE_ID, DISEASE_NAME, OVERALL_SCORE, " +
+                    "Available field names for sorting: GENE_ID, GENE_SYMBOL, OVERALL_SCORE, " +
                     "GENETIC_ASSOCIATIONS_SCORE, SOMATIC_MUTATIONS_SCORE, DRUGS_SCORE, PATHWAYS_SCORE, " +
                     "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.\n" +
                     "Available field names for filtering: GENE_ID, DISEASE_NAME.",

@@ -36,5 +36,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TargetDetails {
     private String id;
+    private String symbol;
+    private String name;
     private String description;
 }

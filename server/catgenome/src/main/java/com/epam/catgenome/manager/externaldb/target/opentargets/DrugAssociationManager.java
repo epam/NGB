@@ -26,15 +26,16 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
-import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -66,7 +67,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseFieldQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
@@ -75,29 +77,20 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     @Value("${targets.opentargets.drugsDir:knownDrugsAggregated}")
     private String drugsDir;
     private final DiseaseManager diseaseManager;
+    private final TargetDetailsManager targetDetailsManager;
 
     public DrugAssociationManager(final DiseaseManager diseaseManager,
+                                  final TargetDetailsManager targetDetailsManager,
                                   final @Value("${targets.index.directory}") String indexDirectory,
                                   final @Value("${targets.top.hits:10000}") int targetsTopHits) {
         super(Paths.get(indexDirectory, "opentargets.drug.association").toString(), targetsTopHits);
         this.diseaseManager = diseaseManager;
+        this.targetDetailsManager = targetDetailsManager;
     }
 
     public long totalCount(final List<String> ids) throws ParseException, IOException {
         final List<DrugAssociation> result = searchByGeneIds(ids);
         return result.stream().map(r -> r.getDrug().getId()).distinct().count();
-    }
-
-    public SearchResult<DrugAssociation> search(final SearchRequest request, final String diseaseId)
-            throws ParseException, IOException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
-        if (request.getFilters() != null) {
-            for (Filter filter: request.getFilters()) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        return search(request, mainBuilder.build());
     }
 
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
@@ -146,6 +139,30 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     @Override
     public List<DrugAssociation> processEntries(final List<DrugAssociation> entries)
             throws ParseException, IOException {
+        fillDiseases(entries);
+        fillGenes(entries);
+        return entries;
+    }
+
+    private void fillGenes(final List<DrugAssociation> entries) throws ParseException, IOException {
+        final List<String> geneIds = entries.stream()
+                .map(DrugAssociation::getGeneId)
+                .distinct()
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(geneIds)) {
+            final List<TargetDetails> genes = targetDetailsManager.search(geneIds);
+            final Map<String, TargetDetails> genesMap = genes.stream()
+                    .collect(Collectors.toMap(TargetDetails::getId, Function.identity()));
+            for (DrugAssociation r : entries) {
+                if (genesMap.containsKey(r.getGeneId())) {
+                    r.setGeneSymbol(genesMap.get(r.getGeneId()).getSymbol());
+                    r.setGeneName(genesMap.get(r.getGeneId()).getName());
+                }
+            }
+        }
+    }
+
+    private void fillDiseases(final List<DrugAssociation> entries) throws ParseException, IOException {
         final List<String> diseaseIds = entries.stream()
                 .map(r -> r.getDisease().getId())
                 .distinct()
@@ -161,7 +178,6 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 }
             }
         }
-        return entries;
     }
 
     @Override
@@ -197,39 +213,41 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         final Document doc = new Document();
         doc.add(new StringField(DrugField.DRUG_ID.name(), entry.getDrug().getId(), Field.Store.YES));
 
-        doc.add(new StringField(DrugField.DRUG_NAME_FLTR.name(), entry.getDrug().getName().toLowerCase(),
-                Field.Store.NO));
-        doc.add(new StringField(DrugField.DRUG_NAME.name(), entry.getDrug().getName(), Field.Store.YES));
+        doc.add(new TextField(DrugField.DRUG_NAME.name(), entry.getDrug().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_NAME.name(), new BytesRef(entry.getDrug().getName())));
 
         doc.add(new TextField(DrugField.DISEASE_ID.name(), entry.getDisease().getId(), Field.Store.YES));
 
         final String diseaseName = Optional.ofNullable(entry.getDisease().getName()).orElse("");
-        doc.add(new StringField(DrugField.DISEASE_NAME_FLTR.name(), diseaseName.toLowerCase(), Field.Store.NO));
-        doc.add(new StringField(DrugField.DISEASE_NAME.name(), diseaseName, Field.Store.YES));
+        doc.add(new TextField(DrugField.DISEASE_NAME.name(), diseaseName, Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DISEASE_NAME.name(), new BytesRef(diseaseName)));
 
         doc.add(new TextField(DrugField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-        doc.add(new StringField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
+        doc.add(new TextField(DrugField.GENE_SYMBOL.name(), entry.getGeneSymbol(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(DrugField.GENE_SYMBOL.name(), new BytesRef(entry.getGeneSymbol())));
+
+        doc.add(new StringField(DrugField.GENE_NAME.name(), entry.getGeneName(), Field.Store.YES));
+
+        doc.add(new TextField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_TYPE.name(), new BytesRef(entry.getDrugType())));
 
-        doc.add(new StringField(DrugField.MECHANISM_OF_ACTION.name(),
+        doc.add(new TextField(DrugField.MECHANISM_OF_ACTION.name(),
                 entry.getMechanismOfAction(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.MECHANISM_OF_ACTION.name(),
                 new BytesRef(entry.getMechanismOfAction())));
 
-        doc.add(new StringField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
+        doc.add(new TextField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.ACTION_TYPE.name(), new BytesRef(entry.getActionType())));
 
-        doc.add(new StringField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
+        doc.add(new TextField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.PHASE.name(), new BytesRef(entry.getPhase())));
 
-        doc.add(new StringField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
+        doc.add(new TextField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.STATUS.name(), new BytesRef(entry.getStatus())));
 
-        doc.add(new StringField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
+        doc.add(new TextField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.SOURCE.name(), new BytesRef(entry.getSource().getName())));
 
         doc.add(new StringField(DrugField.SOURCE_URL.name(), entry.getSource().getUrl(), Field.Store.YES));
@@ -267,20 +285,37 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     }
 
     @Override
-    public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
-        final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
-        for (String term: filter.getTerms()) {
-            Query query;
-            if (DrugField.DRUG_NAME.name().equals(filter.getField())) {
-                query = buildPrefixQuery(DrugField.DRUG_NAME_FLTR.name(), term);
-            } else if (DrugField.DISEASE_NAME.name().equals(filter.getField())) {
-                query = buildPrefixQuery(DrugField.DISEASE_NAME_FLTR.name(), term);
-            } else {
-                query = buildTermQuery(filter.getField(), term);
-            }
-            fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
-        }
-        builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
+    public DrugAssociation entryFromDocDiseaseView(final Document doc) {
+        final UrlEntity source = new UrlEntity();
+        source.setName(doc.getField(DrugField.SOURCE.name()).stringValue());
+        source.setUrl(doc.getField(DrugField.SOURCE_URL.name()).stringValue());
+
+        final String drugId = doc.getField(DrugField.DRUG_ID.name()).stringValue();
+        final UrlEntity drug = new UrlEntity(drugId);
+        drug.setName(doc.getField(DrugField.DRUG_NAME.name()).stringValue());
+        drug.setUrl(String.format(DrugAssociation.URL_PATTERN, drugId));
+
+        return DrugAssociation.builder()
+                .geneId(doc.getField(DrugField.GENE_ID.name()).stringValue())
+                .geneSymbol(doc.getField(DrugField.GENE_SYMBOL.name()).stringValue())
+                .geneName(doc.getField(DrugField.GENE_NAME.name()).stringValue())
+                .drug(drug)
+                .drugType(doc.getField(DrugField.DRUG_TYPE.name()).stringValue())
+                .mechanismOfAction(doc.getField(DrugField.MECHANISM_OF_ACTION.name()).stringValue())
+                .actionType(doc.getField(DrugField.ACTION_TYPE.name()).stringValue())
+                .phase(doc.getField(DrugField.PHASE.name()).stringValue())
+                .status(doc.getField(DrugField.STATUS.name()).stringValue())
+                .source(source)
+                .build();
+    }
+
+    @SneakyThrows
+    @Override
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
+        final Query query = DrugField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
+                getByPhraseFieldQuery(filter.getTerms().get(0), filter.getField()) :
+                getByTermsQuery(filter.getTerms(), filter.getField());
+        builder.add(query, BooleanClause.Occur.MUST);
     }
 
     private DrugAssociation entryFromJson(final JsonNode jsonNodes) {
