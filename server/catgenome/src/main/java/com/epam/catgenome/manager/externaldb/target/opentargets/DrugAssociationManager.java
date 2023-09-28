@@ -97,45 +97,12 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
 
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
         final Query query = buildQuery(geneIds, null);
-        final List<DrugAssociation> result = search(query, null);
-        final List<String> drugTypes = result.stream()
-            .map(DrugAssociation::getDrugType)
-            .distinct()
-            .sorted()
-            .collect(Collectors.toList());
-        final List<String> mechanismOfActions = result.stream()
-                .map(DrugAssociation::getMechanismOfAction)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        final List<String> actionTypes = result.stream()
-                .map(DrugAssociation::getActionType)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        final List<String> phases = result.stream()
-                .map(DrugAssociation::getPhase)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        final List<String> statuses = result.stream()
-                .map(DrugAssociation::getStatus)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        final List<String> sources = result.stream()
-                .map(d -> d.getSource().getName())
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        return DrugFieldValues.builder()
-                .drugTypes(drugTypes)
-                .mechanismOfActions(mechanismOfActions)
-                .actionTypes(actionTypes)
-                .phases(phases)
-                .statuses(statuses)
-                .sources(sources)
-                .build();
+        return getFieldValues(query);
+    }
+
+    public DrugFieldValues getFieldValues(final String diseaseId) throws IOException, ParseException {
+        final Query query = getByTermQuery(diseaseId, DrugField.DISEASE_ID.name());
+        return getFieldValues(query);
     }
 
     @Override
@@ -320,6 +287,48 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
                 getByTermsQuery(filter.getTerms(), filter.getField());
         builder.add(query, BooleanClause.Occur.MUST);
+    }
+
+    private DrugFieldValues getFieldValues(final Query query) throws IOException, ParseException {
+        final List<DrugAssociation> result = search(query, null);
+        final List<String> drugTypes = result.stream()
+                .map(DrugAssociation::getDrugType)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> mechanismOfActions = result.stream()
+                .map(DrugAssociation::getMechanismOfAction)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> actionTypes = result.stream()
+                .map(DrugAssociation::getActionType)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> phases = result.stream()
+                .map(DrugAssociation::getPhase)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> statuses = result.stream()
+                .map(DrugAssociation::getStatus)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> sources = result.stream()
+                .map(d -> d.getSource().getName())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        return DrugFieldValues.builder()
+                .drugTypes(drugTypes)
+                .mechanismOfActions(mechanismOfActions)
+                .actionTypes(actionTypes)
+                .phases(phases)
+                .statuses(statuses)
+                .sources(sources)
+                .build();
     }
 
     private DrugAssociation entryFromJson(final JsonNode jsonNodes) {
