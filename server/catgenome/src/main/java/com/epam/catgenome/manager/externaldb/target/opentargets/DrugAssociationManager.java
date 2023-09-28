@@ -31,7 +31,6 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.export.ExportField;
 import com.epam.catgenome.manager.export.ExportUtils;
-import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
@@ -301,6 +300,48 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 .filter(AssociationExportFieldDiseaseView::isExportDiseaseView)
                 .collect(Collectors.toList());
         return ExportUtils.export(search(diseaseId), exportFields, format, includeHeader);
+    }
+
+    private DrugFieldValues getFieldValues(final Query query) throws IOException, ParseException {
+        final List<DrugAssociation> result = search(query, null);
+        final List<String> drugTypes = result.stream()
+                .map(DrugAssociation::getDrugType)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> mechanismOfActions = result.stream()
+                .map(DrugAssociation::getMechanismOfAction)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> actionTypes = result.stream()
+                .map(DrugAssociation::getActionType)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> phases = result.stream()
+                .map(DrugAssociation::getPhase)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> statuses = result.stream()
+                .map(DrugAssociation::getStatus)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        final List<String> sources = result.stream()
+                .map(d -> d.getSource().getName())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        return DrugFieldValues.builder()
+                .drugTypes(drugTypes)
+                .mechanismOfActions(mechanismOfActions)
+                .actionTypes(actionTypes)
+                .phases(phases)
+                .statuses(statuses)
+                .sources(sources)
+                .build();
     }
 
     private DrugAssociation entryFromJson(final JsonNode jsonNodes) {

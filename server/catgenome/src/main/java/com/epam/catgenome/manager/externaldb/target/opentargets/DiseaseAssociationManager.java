@@ -31,8 +31,6 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.export.ExportField;
 import com.epam.catgenome.manager.export.ExportUtils;
-import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
-import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
