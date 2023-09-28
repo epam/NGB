@@ -36,6 +36,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class DiseaseAssociation {
     private String geneId;
+    private String geneSymbol;
+    private String geneName;
     private String diseaseId;
     private String diseaseName;
     private AssociationType type;

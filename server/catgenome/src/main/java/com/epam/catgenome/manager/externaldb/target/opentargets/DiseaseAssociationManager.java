@@ -27,15 +27,16 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
-import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
@@ -76,10 +77,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
@@ -90,12 +92,15 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Value("${targets.opentargets.scoresDir:associationByDatatypeDirect}")
     private String scoresDir;
     private final DiseaseManager diseaseManager;
+    private final TargetDetailsManager targetDetailsManager;
 
     public DiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
                                      final @Value("${targets.top.hits:10000}") int targetsTopHits,
-                                     final DiseaseManager diseaseManager) {
+                                     final DiseaseManager diseaseManager,
+                                     final TargetDetailsManager targetDetailsManager) {
         super(Paths.get(indexDirectory, "opentargets.disease.association").toString(), targetsTopHits);
         this.diseaseManager = diseaseManager;
+        this.targetDetailsManager = targetDetailsManager;
     }
 
 
@@ -127,23 +132,12 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return result.stream().map(DiseaseAssociation::getDiseaseId).distinct().count();
     }
 
-    public SearchResult<DiseaseAssociation> search(final SearchRequest request, final String diseaseId)
-            throws ParseException, IOException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
-        if (request.getFilters() != null) {
-            for (Filter filter: request.getFilters()) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        return search(request, mainBuilder.build());
-    }
-
     @Override
     public List<DiseaseAssociation> processEntries(final List<DiseaseAssociation> entries)
             throws ParseException, IOException {
         final List<DiseaseAssociation> processedEntries = convertEntries(entries);
-        fillDiseaseNames(processedEntries);
+        fillDiseases(processedEntries);
+        fillGenes(processedEntries);
         return processedEntries;
     }
 
@@ -183,11 +177,16 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         doc.add(new TextField(DiseaseField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DiseaseField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
+        final String geneSymbol = Optional.ofNullable(entry.getGeneSymbol()).orElse("");
+        doc.add(new TextField(DiseaseField.GENE_SYMBOL.name(), geneSymbol, Field.Store.YES));
+        doc.add(new SortedDocValuesField(DiseaseField.GENE_SYMBOL.name(), new BytesRef(geneSymbol)));
+
+        final String geneName = Optional.ofNullable(entry.getGeneName()).orElse("");
+        doc.add(new StringField(DiseaseField.GENE_NAME.name(), geneName, Field.Store.YES));
+
         doc.add(new TextField(DiseaseField.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
 
-        doc.add(new StringField(DiseaseField.DISEASE_NAME_FLTR.name(),
-                entry.getDiseaseName().toLowerCase(), Field.Store.NO));
-        doc.add(new StringField(DiseaseField.DISEASE_NAME.name(), entry.getDiseaseName(), Field.Store.YES));
+        doc.add(new TextField(DiseaseField.DISEASE_NAME.name(), entry.getDiseaseName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DiseaseField.DISEASE_NAME.name(), new BytesRef(entry.getDiseaseName())));
 
         addFloatField(entry.getOverallScore(), doc, DiseaseField.OVERALL_SCORE);
@@ -238,6 +237,41 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     }
 
     @Override
+    public DiseaseAssociation entryFromDocDiseaseView(final Document doc) {
+        final DiseaseAssociation d = DiseaseAssociation.builder()
+                .geneId(doc.getField(DiseaseField.GENE_ID.name()).stringValue())
+                .geneSymbol(doc.getField(DiseaseField.GENE_SYMBOL.name()).stringValue())
+                .geneName(doc.getField(DiseaseField.GENE_NAME.name()).stringValue())
+                .diseaseId(doc.getField(DiseaseField.DISEASE_ID.name()).stringValue())
+                .build();
+        if (doc.getField(DiseaseField.OVERALL_SCORE.name()) != null) {
+            d.setOverallScore(getScore(doc, DiseaseField.OVERALL_SCORE));
+        }
+        if (doc.getField(DiseaseField.GENETIC_ASSOCIATIONS_SCORE.name()) != null) {
+            d.setGeneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE));
+        }
+        if (doc.getField(DiseaseField.SOMATIC_MUTATIONS_SCORE.name()) != null) {
+            d.setSomaticMutationScore(getScore(doc, DiseaseField.SOMATIC_MUTATIONS_SCORE));
+        }
+        if (doc.getField(DiseaseField.DRUGS_SCORE.name()) != null) {
+            d.setKnownDrugScore(getScore(doc, DiseaseField.DRUGS_SCORE));
+        }
+        if (doc.getField(DiseaseField.PATHWAYS_SCORE.name()) != null) {
+            d.setAffectedPathwayScore(getScore(doc, DiseaseField.PATHWAYS_SCORE));
+        }
+        if (doc.getField(DiseaseField.TEXT_MINING_SCORE.name()) != null) {
+            d.setLiteratureScore(getScore(doc, DiseaseField.TEXT_MINING_SCORE));
+        }
+        if (doc.getField(DiseaseField.RNA_EXPRESSION_SCORE.name()) != null) {
+            d.setRnaExpressionScore(getScore(doc, DiseaseField.RNA_EXPRESSION_SCORE));
+        }
+        if (doc.getField(DiseaseField.ANIMAL_MODELS_SCORE.name()) != null) {
+            d.setAnimalModelScore(getScore(doc, DiseaseField.ANIMAL_MODELS_SCORE));
+        }
+        return d;
+    }
+
+    @Override
     public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
         if (orderInfos == null) {
@@ -245,7 +279,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         } else {
             for (OrderInfo orderInfo : orderInfos) {
                 final SortField.Type sortType = orderInfo.getOrderBy().equals(DiseaseField.DISEASE_NAME.name())
-                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_ID.name()) ?
+                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_ID.name())
+                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_SYMBOL.name()) ?
                         SortField.Type.STRING : SortField.Type.FLOAT;
                 final SortField sortField = new SortField(orderInfo.getOrderBy(),
                         sortType, orderInfo.isReverse());
@@ -255,16 +290,13 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
 
+    @SneakyThrows
     @Override
-    public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
-        final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
-        for (String term: filter.getTerms()) {
-            Query query = DiseaseField.DISEASE_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(DiseaseField.DISEASE_NAME_FLTR.name(), term) :
-                    buildTermQuery(filter.getField(), term);
-            fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
-        }
-        builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
+        final Query query = DiseaseField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
+                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
+                getByTermsQuery(filter.getTerms(), filter.getField());
+        builder.add(query, BooleanClause.Occur.MUST);
     }
 
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
@@ -324,7 +356,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return results;
     }
 
-    private void fillDiseaseNames(final List<DiseaseAssociation> entries) throws ParseException, IOException {
+    private void fillDiseases(final List<DiseaseAssociation> entries) throws ParseException, IOException {
         final List<String> diseaseIds = entries.stream()
                 .map(DiseaseAssociation::getDiseaseId)
                 .distinct()
@@ -336,6 +368,24 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
             for (DiseaseAssociation r : entries) {
                 if (diseasesMap.containsKey(r.getDiseaseId())) {
                     r.setDiseaseName(diseasesMap.get(r.getDiseaseId()).getName());
+                }
+            }
+        }
+    }
+
+    private void fillGenes(final List<DiseaseAssociation> entries) throws ParseException, IOException {
+        final List<String> geneIds = entries.stream()
+                .map(DiseaseAssociation::getGeneId)
+                .distinct()
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(geneIds)) {
+            final List<TargetDetails> genes = targetDetailsManager.search(geneIds);
+            final Map<String, TargetDetails> genesMap = genes.stream()
+                    .collect(Collectors.toMap(TargetDetails::getId, Function.identity()));
+            for (DiseaseAssociation r : entries) {
+                if (genesMap.containsKey(r.getGeneId())) {
+                    r.setGeneSymbol(genesMap.get(r.getGeneId()).getSymbol());
+                    r.setGeneName(genesMap.get(r.getGeneId()).getName());
                 }
             }
         }

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -104,6 +105,8 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
     public TargetDetails entryFromDoc(final Document doc) {
         return TargetDetails.builder()
                 .id(IndexUtils.getField(doc, IndexFields.TARGET_ID.name()))
+                .symbol(IndexUtils.getField(doc, IndexFields.TARGET_SYMBOL.name()))
+                .name(IndexUtils.getField(doc, IndexFields.TARGET_NAME.name()))
                 .description(IndexUtils.getField(doc, IndexFields.DESCRIPTION.name()))
                 .build();
     }
@@ -111,8 +114,10 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
     @Override
     public void addDoc(final IndexWriter writer, final TargetDetails entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(IndexFields.TARGET_ID.name(), String.valueOf(entry.getId()), Field.Store.YES));
-        doc.add(new TextField(IndexFields.DESCRIPTION.name(), String.valueOf(entry.getDescription()), Field.Store.YES));
+        doc.add(new TextField(IndexFields.TARGET_ID.name(), entry.getId(), Field.Store.YES));
+        doc.add(new TextField(IndexFields.TARGET_SYMBOL.name(), entry.getSymbol(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.TARGET_NAME.name(), entry.getName(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.DESCRIPTION.name(), entry.getDescription(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
@@ -127,6 +132,8 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
         }
         return TargetDetails.builder()
                 .id(jsonNodes.at("/id").asText())
+                .symbol(jsonNodes.at("/approvedSymbol").asText())
+                .name(jsonNodes.at("/approvedName").asText())
                 .description(description.toString())
                 .build();
     }
@@ -134,6 +141,8 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
     @Getter
     private enum IndexFields {
         TARGET_ID,
+        TARGET_SYMBOL,
+        TARGET_NAME,
         DESCRIPTION;
     }
 }

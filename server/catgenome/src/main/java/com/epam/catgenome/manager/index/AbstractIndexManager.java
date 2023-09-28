@@ -49,7 +49,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.epam.catgenome.util.IndexUtils.getByIdsQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 public abstract class AbstractIndexManager<T> {
@@ -113,7 +113,7 @@ public abstract class AbstractIndexManager<T> {
         final List<T> result = new ArrayList<>();
         final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
         for (List<String> subIds : subSets) {
-            Query query = getByIdsQuery(subIds, fieldName);
+            Query query = getByTermsQuery(subIds, fieldName);
             try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
                  IndexReader indexReader = DirectoryReader.open(index)) {
                 IndexSearcher searcher = new IndexSearcher(indexReader);

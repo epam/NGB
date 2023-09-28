@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,20 +34,28 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum DiseaseField implements AssociationExportField<DiseaseAssociation> {
-    GENE_ID("Target", DiseaseAssociation::getGeneId, true),
+    GENE_ID("Target ID", DiseaseAssociation::getGeneId, FilterType.TERMS, true),
+    GENE_SYMBOL("Target", DiseaseAssociation::getGeneSymbol,  FilterType.TERMS, false),
+
+    GENE_NAME("Target Description", DiseaseAssociation::getGeneName,  FilterType.NONE, false),
     DISEASE_ID(false),
-    DISEASE_NAME_FLTR(false),
-    DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, true),
-    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), true),
-    GENETIC_ASSOCIATIONS_SCORE("Genetic associations", o -> String.valueOf(o.getGeneticAssociationScore()), true),
-    SOMATIC_MUTATIONS_SCORE("Somatic mutations", o -> String.valueOf(o.getSomaticMutationScore()), true),
-    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), true),
-    PATHWAYS_SCORE("Pathways systems", o -> String.valueOf(o.getAffectedPathwayScore()), true),
-    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), true),
-    ANIMAL_MODELS_SCORE("Animal models", o -> String.valueOf(o.getAnimalModelScore()), true),
-    RNA_EXPRESSION_SCORE("RNA expression", o -> String.valueOf(o.getRnaExpressionScore()), true);
+    DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, FilterType.PHRASE, true),
+    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.NONE, true),
+    GENETIC_ASSOCIATIONS_SCORE("Genetic associations", o -> String.valueOf(o.getGeneticAssociationScore()),
+            FilterType.NONE, true),
+    SOMATIC_MUTATIONS_SCORE("Somatic mutations", o -> String.valueOf(o.getSomaticMutationScore()),
+            FilterType.NONE, true),
+    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), FilterType.NONE, true),
+    PATHWAYS_SCORE("Pathways systems", o -> String.valueOf(o.getAffectedPathwayScore()),
+            FilterType.NONE, true),
+    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), FilterType.NONE, true),
+    ANIMAL_MODELS_SCORE("Animal models", o -> String.valueOf(o.getAnimalModelScore()),
+            FilterType.NONE, true),
+    RNA_EXPRESSION_SCORE("RNA expression", o -> String.valueOf(o.getRnaExpressionScore()),
+            FilterType.NONE, true);
     private String label;
     private Function<DiseaseAssociation, String> getter;
+    private FilterType type;
     private final boolean export;
 
     DiseaseField(boolean export) {

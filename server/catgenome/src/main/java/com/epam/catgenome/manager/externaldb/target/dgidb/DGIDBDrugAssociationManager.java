@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.target.dgidb;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
@@ -36,7 +37,7 @@ import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
@@ -61,6 +62,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 
 @Service
 public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGIDBDrugAssociation> {
@@ -155,20 +159,17 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
         if (entry.getGeneId() != null && !TextUtils.isBlank(entry.getName())) {
             final Document doc = new Document();
 
-            doc.add(new StringField(DGIDBField.GENE_ID.name(), entry.getGeneId().toLowerCase(), Field.Store.YES));
+            doc.add(new TextField(DGIDBField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-            doc.add(new StringField(DGIDBField.DRUG_NAME_FLTR.name(), entry.getName().toLowerCase(), Field.Store.NO));
-            doc.add(new StringField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
-            doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(),
-                    new BytesRef(entry.getName())));
+            doc.add(new TextField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
-            doc.add(new StringField(DGIDBField.INTERACTION_TYPES.name(),
-                    entry.getInteractionTypes(), Field.Store.YES));
+            doc.add(new TextField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_TYPES.name(),
                     new BytesRef(entry.getInteractionTypes())));
 
-            doc.add(new StringField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
+            doc.add(new TextField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     entry.getInteractionClaimSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     new BytesRef(entry.getInteractionClaimSource())));
@@ -188,23 +189,19 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                 .build();
     }
 
+    @SneakyThrows
     @Override
-    public void addFieldQuery(final BooleanQuery.Builder builder, final Filter filter) {
-        final BooleanQuery.Builder fieldBuilder = new BooleanQuery.Builder();
-        for (String term: filter.getTerms()) {
-            Query query = DGIDBField.DRUG_NAME.name().equals(filter.getField()) ?
-                    buildPrefixQuery(DGIDBField.DRUG_NAME_FLTR.name(), term) :
-                    buildTermQuery(filter.getField(), term);
-            fieldBuilder.add(query, BooleanClause.Occur.SHOULD);
-        }
-        builder.add(fieldBuilder.build(), BooleanClause.Occur.MUST);
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
+        final Query query = DGIDBField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
+                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
+                getByTermsQuery(filter.getTerms(), filter.getField());
+        builder.add(query, BooleanClause.Occur.MUST);
     }
 
     @Override
     public List<AssociationExportField<DGIDBDrugAssociation>> getExportFields() {
         return Arrays.asList(DGIDBField.values());
     }
-
 
     @Nullable
     private static String getCellValue(final String[] cells, final int x) {

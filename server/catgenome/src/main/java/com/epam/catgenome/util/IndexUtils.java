@@ -609,23 +609,22 @@ public final class IndexUtils {
         return queryParser.parse(term);
     }
 
-    public static Query getByIdsQuery(final List<String> ids, final String fieldName) throws ParseException {
+    public static Query getByTermsQuery(final List<String> ids, final String fieldName) throws ParseException {
         return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
     }
 
-    public static Query buildTermQuery(final String term, final String fieldName) {
-        return new TermQuery(new Term(fieldName, term));
-    }
-
-    public static Query buildByNameQuery(final String name, final String fieldName) {
+    public static Query getByPhraseQuery(final String phrase, final String fieldName) {
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String term : name.split(TERM_SPLIT_TOKEN)) {
+        for (String term : phrase.split(TERM_SPLIT_TOKEN)) {
             builder.add(new WildcardQuery(new Term(fieldName, "*" + term.toLowerCase() + "*")),
                     BooleanClause.Occur.MUST);
         }
         return builder.build();
     }
 
+    public static Query buildTermQuery(final String term, final String fieldName) {
+        return new TermQuery(new Term(fieldName, term));
+    }
 
     public static List<String> getFieldValues(final String fieldName, final String indexDirectory) throws IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));

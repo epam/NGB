@@ -34,6 +34,8 @@ public class DrugAssociation {
     public static final String URL_PATTERN = "https://platform.opentargets.org/drug/%s";
     private UrlEntity drug;
     private String geneId;
+    private String geneSymbol;
+    private String geneName;
     private UrlEntity disease;
     private String drugType;
     private String mechanismOfAction;

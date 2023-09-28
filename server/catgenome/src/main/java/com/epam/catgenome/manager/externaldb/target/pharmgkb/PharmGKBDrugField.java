@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.target.pharmgkb;
 
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,13 +34,13 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum PharmGKBDrugField implements AssociationExportField<PharmGKBDrug> {
-    GENE_ID("Target", PharmGKBDrug::getGeneId, true),
-    DRUG_NAME("Drug", PharmGKBDrug::getName, true),
-    DRUG_NAME_FLTR(false),
+    GENE_ID("Target ID", PharmGKBDrug::getGeneId, FilterType.TERMS, true),
+    DRUG_NAME("Drug", PharmGKBDrug::getName, FilterType.PHRASE, true),
     DRUG_ID(false),
-    SOURCE("Source", PharmGKBDrug::getSource, true);
+    SOURCE("Source", PharmGKBDrug::getSource, FilterType.TERMS, true);
     private String label;
     private Function<PharmGKBDrug, String> getter;
+    private FilterType type;
     private final boolean export;
 
     PharmGKBDrugField(boolean export) {
