@@ -71,8 +71,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.buildByNameQuery;
 import static com.epam.catgenome.util.IndexUtils.deserialize;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getField;
 import static com.epam.catgenome.util.IndexUtils.serialize;
@@ -126,7 +126,7 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
         final List<SortField> sortFields = Collections.singletonList(new SortField(IndexFields.NAME.name(),
                 SortField.Type.STRING, false));
         final Sort sort = new Sort(sortFields.toArray(new SortField[1]));
-        final Query query = buildByNameQuery(name, IndexFields.NAME.name());
+        final Query query = getByPhraseQuery(name, IndexFields.NAME.name());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);

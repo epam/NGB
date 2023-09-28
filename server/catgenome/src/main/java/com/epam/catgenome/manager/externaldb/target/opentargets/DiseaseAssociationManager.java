@@ -294,7 +294,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Override
     public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
         final Query query = DiseaseField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseFieldQuery(filter.getTerms().get(0), filter.getField()) :
+                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
                 getByTermsQuery(filter.getTerms(), filter.getField());
         builder.add(query, BooleanClause.Occur.MUST);
     }

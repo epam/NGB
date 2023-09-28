@@ -68,7 +68,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByPhraseFieldQuery;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
@@ -315,7 +315,7 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     @Override
     public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
         final Query query = DrugField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseFieldQuery(filter.getTerms().get(0), filter.getField()) :
+                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
                 getByTermsQuery(filter.getTerms(), filter.getField());
         builder.add(query, BooleanClause.Occur.MUST);
     }
