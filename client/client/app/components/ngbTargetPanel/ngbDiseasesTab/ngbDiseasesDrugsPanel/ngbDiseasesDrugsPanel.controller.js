@@ -1,4 +1,4 @@
-const COLUMN_LIST = ['disease', 'drug', 'type', 'mechanism of action', 'action type', 'target', 'phase', 'status', 'source'];
+const COLUMN_LIST = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'target name', 'phase', 'status', 'source'];
 
 export default class ngbDiseasesDrugsPanelController {
 
@@ -150,12 +150,6 @@ export default class ngbDiseasesDrugsPanelController {
                 width: '*'
             };
             switch (column) {
-                case 'disease':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: linkCell,
-                    };
-                    break;
                 case 'drug':
                     columnSettings = {
                         ...columnSettings,

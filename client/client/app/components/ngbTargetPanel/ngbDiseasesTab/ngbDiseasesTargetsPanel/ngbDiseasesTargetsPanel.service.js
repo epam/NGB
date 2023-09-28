@@ -9,8 +9,8 @@ const fixedNumber = (num) => {
 };
 
 const FIELDS = {
-    'target': 'GENE_ID',
-    'target name': 'DISEASE_NAME',
+    'target': 'TARGET',
+    'target name': 'TARGET_NAME',
     'overall score': 'OVERALL_SCORE',
     'genetic association': 'GENETIC_ASSOCIATIONS_SCORE',
     'somatic mutations': 'SOMATIC_MUTATIONS_SCORE',
@@ -119,7 +119,8 @@ export default class ngbDiseasesTargetsPanelService {
                 rnaExpressionScore
             } = item;
             return {
-                'geneId': item.geneId,
+                'target': item.geneSymbol,
+                'target name': item.geneName,
                 'overall score': fixedNumber(overallScore),
                 'genetic association': fixedNumber(geneticAssociationScore),
                 'somatic mutations': fixedNumber(somaticMutationScore),

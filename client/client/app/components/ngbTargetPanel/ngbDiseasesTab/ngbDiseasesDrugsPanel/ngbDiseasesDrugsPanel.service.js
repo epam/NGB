@@ -45,12 +45,12 @@ function unRomanize(phase) {
 }
 
 const FIELDS = {
-    'disease': 'DISEASE_NAME',
+    'target': 'TARGET',
     'drug': 'DRUG_NAME',
     'type': 'DRUG_TYPE',
     'mechanism of action': 'MECHANISM_OF_ACTION',
     'action type': 'ACTION_TYPE',
-    'target': 'TARGET',
+    'target name': 'TARGET_NAME',
     'phase': 'PHASE',
     'status': 'STATUS',
     'source': 'SOURCE'
@@ -143,12 +143,12 @@ export default class ngbDiseasesDrugsPanelService {
 
     setDrugsResult(result) {
         this._drugsResults = result.map(item => ({
-            disease: item.disease,
+            target: item.geneSymbol,
             drug: item.drug,
             type: item.drugType,
             'mechanism of action': item.mechanismOfAction,
             'action type': item.actionType,
-            target: item.target,
+            'target name': item.geneName,
             phase: romanize(item.phase),
             status: item.status,
             source: item.source
