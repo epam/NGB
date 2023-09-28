@@ -30,8 +30,8 @@ import java.io.IOException;
 public class ReferenceTrackTests  extends AbstractNgbTest {
 
     private static final String referenceTrackTC01 = "referenceTrackTC01";
-    private static final String referenceTrackTC02_1 = "referenceTrackTC02_1";
-    private static final String referenceTrackTC02_2 = "referenceTrackTC02_2";
+    private static final String referenceTrackTC02 = "referenceTrackTC02";
+    private static final String referenceTrackTC03 = "referenceTrackTC03";
     private static final String bamTrack = "CantonS.09-28.trim.dm606.realign.bam";
     private static final String REFERENCE = "REFERENCE";
     private static final String testChromosome = "X";
@@ -39,7 +39,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
 
     @Test(invocationCount = 1)
     @TestCase({"TC-REFERENCE_TRACKS_TEST-01"})
-    public void referenceTrackTest() throws IOException {
+    public void referenceTrackTestShowForwardStrand() throws IOException {
         DatasetsPage datasetsPage = new DatasetsPage();
         datasetsPage.expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true)
@@ -52,15 +52,47 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .setCoordinates(referenceTestCoordinates1)
                 .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
                 .trackImageCompare(getExpectedImage(referenceTrackTC01),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001)
+                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001);
+    }
+
+    @Test(invocationCount = 1)
+    @TestCase({"TC-REFERENCE_TRACKS_TEST-02"})
+    public void referenceTrackTestShowTranslation() throws IOException {
+        DatasetsPage datasetsPage = new DatasetsPage();
+        datasetsPage.expandDataset(TEST_DATASET)
+                .setTrackCheckbox(bamTrack, true)
+                .sleep(1, SECONDS)
+                .setTrackCheckbox(bamTrack, false);
+        sleep(2, SECONDS);
+        BrowserPage browserPage = new BrowserPage();
+        browserPage
+                .setChromosome(testChromosome)
+                .setCoordinates(referenceTestCoordinates1)
+                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show translation", true)
-                .trackImageCompare(getExpectedImage(referenceTrackTC02_1),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_1, 0.0001)
+                .trackImageCompare(getExpectedImage(referenceTrackTC02),
+                        browserPage.getTrack(REFERENCE), referenceTrackTC02, 0.0001);
+    }
+
+    @Test(invocationCount = 1)
+    @TestCase({"TC-REFERENCE_TRACKS_TEST-03"})
+    public void referenceTrackTestShowReverseStrand() throws IOException {
+        DatasetsPage datasetsPage = new DatasetsPage();
+        datasetsPage.expandDataset(TEST_DATASET)
+                .setTrackCheckbox(bamTrack, true)
+                .sleep(1, SECONDS)
+                .setTrackCheckbox(bamTrack, false);
+        sleep(2, SECONDS);
+        BrowserPage browserPage = new BrowserPage();
+        browserPage
+                .setChromosome(testChromosome)
+                .setCoordinates(referenceTestCoordinates1)
+                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show reverse strand", true)
-                .trackImageCompare(getExpectedImage(referenceTrackTC02_2),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02_2, 0.0001);
+                .trackImageCompare(getExpectedImage(referenceTrackTC03),
+                        browserPage.getTrack(REFERENCE), referenceTrackTC03, 0.0001);
     }
 
 }
