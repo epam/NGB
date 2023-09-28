@@ -131,6 +131,9 @@ export default class ngbGenomicsTableController {
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: true,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                        {{row.entity[col.field].name}}
+                                    </div>`
                     };
                     break;
                 }

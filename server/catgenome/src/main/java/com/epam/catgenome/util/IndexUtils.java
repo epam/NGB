@@ -626,6 +626,16 @@ public final class IndexUtils {
         return new TermQuery(new Term(fieldName, term));
     }
 
+    public static Query buildByNameQuery(final String name, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String term : name.split(TERM_SPLIT_TOKEN)) {
+            builder.add(new WildcardQuery(new Term(fieldName, "*" + term.toLowerCase() + "*")),
+                    BooleanClause.Occur.MUST);
+        }
+        return builder.build();
+    }
+
+
     public static List<String> getFieldValues(final String fieldName, final String indexDirectory) throws IOException {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
