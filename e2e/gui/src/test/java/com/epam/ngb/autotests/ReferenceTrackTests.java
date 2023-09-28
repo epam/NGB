@@ -18,6 +18,7 @@ package com.epam.ngb.autotests;
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
 import com.epam.ngb.autotests.pages.BrowserPage;
 import com.epam.ngb.autotests.pages.DatasetsPage;
+import static com.epam.ngb.autotests.utils.AppProperties.REFERENCE_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
 import static com.epam.ngb.autotests.utils.Utils.sleep;
@@ -52,7 +53,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .setCoordinates(referenceTestCoordinates1)
                 .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
                 .trackImageCompare(getExpectedImage(referenceTrackTC01),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC01, 0.0001);
+                        browserPage.getTrack(REFERENCE), referenceTrackTC01, REFERENCE_DEVIATION);
     }
 
     @Test(invocationCount = 1)
@@ -72,7 +73,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show translation", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC02),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02, 0.0001);
+                        browserPage.getTrack(REFERENCE), referenceTrackTC02, REFERENCE_DEVIATION);
     }
 
     @Test(invocationCount = 1)
@@ -92,7 +93,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show reverse strand", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC03),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC03, 0.0001);
+                        browserPage.getTrack(REFERENCE), referenceTrackTC03, REFERENCE_DEVIATION);
     }
 
 }

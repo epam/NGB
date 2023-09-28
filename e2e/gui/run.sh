@@ -16,10 +16,4 @@
 
 set +e
 
-./gradlew clean check
-
-if [[ $? == 0 ]]; then
-    echo "Succeed"
-else
-    echo "Failed"
-fi
+./gradlew clean test

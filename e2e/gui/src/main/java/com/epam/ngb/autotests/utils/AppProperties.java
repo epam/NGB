@@ -40,6 +40,10 @@ public class AppProperties {
         TEST_REFERENCE = conf.getProperty("e2e.ui.test.reference");
         TEMPLATES_PATH = conf.getProperty("e2e.ui.root.templates.path");
         RESULTS_PATH = conf.getProperty("e2e.ui.root.results.path");
+        BAM_DEVIATION = Double.parseDouble(conf.getProperty("e2e.ui.root.bam.deviation"));
+        VCF_DEVIATION = Double.parseDouble(conf.getProperty("e2e.ui.root.vcf.deviation"));
+        GENE_DEVIATION = Double.parseDouble(conf.getProperty("e2e.ui.root.gene.deviation"));
+        REFERENCE_DEVIATION = Double.parseDouble(conf.getProperty("e2e.ui.root.reference.deviation"));
     }
 
     public static final String ROOT_ADDRESS;
@@ -48,4 +52,8 @@ public class AppProperties {
     public static final String TEST_REFERENCE;
     public static final String TEMPLATES_PATH;
     public static final String RESULTS_PATH;
+    public static final Double BAM_DEVIATION;
+    public static final Double VCF_DEVIATION;
+    public static final Double GENE_DEVIATION;
+    public static final Double REFERENCE_DEVIATION;
 }

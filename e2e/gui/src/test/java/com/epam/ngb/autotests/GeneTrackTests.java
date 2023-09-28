@@ -20,6 +20,7 @@ import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
 import static com.epam.ngb.autotests.enums.TrackMenus.TRANSCRIPT_VIEW;
 import com.epam.ngb.autotests.pages.BrowserPage;
 import com.epam.ngb.autotests.pages.DatasetsPage;
+import static com.epam.ngb.autotests.utils.AppProperties.GENE_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
 import static com.epam.ngb.autotests.utils.Utils.getExpectedImage;
@@ -58,7 +59,7 @@ public class GeneTrackTests  extends AbstractNgbTest {
                 .setCoordinates(geneTestCoordinates)
                 .waitTrackDownloaded(browserPage.getTrack(GENE_TRACK))
                 .trackImageCompare(getExpectedImage(geneTrackTC01_1),
-                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_1, 0.0005);
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_1, GENE_DEVIATION);
         browserPage
                 .openTrackMenu(GENE_TRACK, GENERAL.value)
                 .selectOptionWithAdditionalMenu("Resize")
@@ -67,7 +68,7 @@ public class GeneTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(GENE_TRACK, TRANSCRIPT_VIEW.value)
                 .selectOptionWithCheckbox("Expanded", true)
                 .trackImageCompare(getExpectedImage(geneTrackTC01_2),
-                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_2, 0.0005)
+                        browserPage.getTrack(GENE_TRACK), geneTrackTC01_2, GENE_DEVIATION)
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -90), text(geneInfo4))
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -120), text(geneInfo3))
                 .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -140), text(geneInfo1))

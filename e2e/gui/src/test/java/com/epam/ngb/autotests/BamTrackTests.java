@@ -19,6 +19,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
 import com.epam.ngb.autotests.pages.BrowserPage;
 import com.epam.ngb.autotests.pages.DatasetsPage;
+import static com.epam.ngb.autotests.utils.AppProperties.BAM_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
 import static com.epam.ngb.autotests.utils.Utils.sleep;
@@ -59,7 +60,7 @@ public class BamTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC01),
-                        browserPage.getTrack(track), bamTrackTC01, 0.0001)
+                        browserPage.getTrack(track), bamTrackTC01, BAM_DEVIATION)
                 .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo1));
     }
 
@@ -80,7 +81,7 @@ public class BamTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC02),
-                        browserPage.getTrack(track), bamTrackTC02, 0.0001)
+                        browserPage.getTrack(track), bamTrackTC02, BAM_DEVIATION)
                 .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo2));
     }
 
