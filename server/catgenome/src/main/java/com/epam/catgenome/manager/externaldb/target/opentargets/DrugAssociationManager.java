@@ -227,10 +227,12 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new TextField(DrugField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.GENE_ID.name(), new BytesRef(entry.getGeneId())));
 
-        doc.add(new TextField(DrugField.GENE_SYMBOL.name(), entry.getGeneSymbol(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(DrugField.GENE_SYMBOL.name(), new BytesRef(entry.getGeneSymbol())));
+        final String geneSymbol = Optional.ofNullable(entry.getGeneSymbol()).orElse("");
+        doc.add(new TextField(DrugField.GENE_SYMBOL.name(), geneSymbol, Field.Store.YES));
+        doc.add(new SortedDocValuesField(DrugField.GENE_SYMBOL.name(), new BytesRef(geneSymbol)));
 
-        doc.add(new StringField(DrugField.GENE_NAME.name(), entry.getGeneName(), Field.Store.YES));
+        final String geneName = Optional.ofNullable(entry.getGeneName()).orElse("");
+        doc.add(new StringField(DrugField.GENE_NAME.name(), geneName, Field.Store.YES));
 
         doc.add(new TextField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_TYPE.name(), new BytesRef(entry.getDrugType())));
