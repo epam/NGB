@@ -110,7 +110,7 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(mainBuilder.build(), topHits);
+            TopDocs topDocs = searcher.search(mainBuilder.build(), topHits, getDefaultSort());
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
@@ -137,7 +137,8 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
             throws ParseException, IOException {
         final List<ExportField<T>> exportFields = getExportFields().stream().filter(AssociationExportField::isExport)
                 .collect(Collectors.toList());
-        return ExportUtils.export(searchByGeneIds(geneIds), exportFields, format, includeHeader);
+        return ExportUtils.export(search(getByGeneIdsQuery(geneIds), getDefaultSort()),
+                exportFields, format, includeHeader);
     }
 
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {

@@ -41,6 +41,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -106,8 +107,8 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     }
 
     @Override
-    public String getDefaultSortField() {
-        return PharmGKBDiseaseField.DISEASE_NAME.name();
+    public SortField getDefaultSortField() {
+        return new SortField(PharmGKBDiseaseField.DISEASE_NAME.name(), SortField.Type.STRING, false);
     }
 
     @Override
