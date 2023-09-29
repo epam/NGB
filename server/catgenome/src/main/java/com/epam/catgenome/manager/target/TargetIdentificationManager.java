@@ -40,7 +40,7 @@ import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.GeneSequence;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.IdentificationResult;
+import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
@@ -110,7 +110,7 @@ public class TargetIdentificationManager {
     private final NCBISequenceManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
 
-    public IdentificationResult launchIdentification(final IdentificationRequest request)
+    public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
         targetManager.getTarget(request.getTargetId());
         final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
@@ -128,7 +128,7 @@ public class TargetIdentificationManager {
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
         final SequencesSummary sequencesCount = getSequencesCount(ncbiGeneIds);
         final long structuresCount = getStructuresCount(geneIds);
-        return IdentificationResult.builder()
+        return TargetIdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
                 .knownDrugsRecordsCount(drugsCount.first())

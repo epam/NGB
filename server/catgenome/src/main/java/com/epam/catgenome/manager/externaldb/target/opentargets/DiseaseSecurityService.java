@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.target.DiseaseIdentificationResult;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.util.FileFormat;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.Map;
@@ -85,5 +87,15 @@ public class DiseaseSecurityService {
     public byte[] exportTargets(final String diseaseId, final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
         return diseaseAssociationManager.export(diseaseId, format, includeHeader);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public DiseaseIdentificationResult launchIdentification(final String diseaseId) throws ParseException, IOException {
+        final Pair<Long, Long> drugsCount = drugAssociationManager.totalCount(diseaseId);
+        return DiseaseIdentificationResult.builder()
+                .targetsCount(diseaseAssociationManager.totalCount(diseaseId))
+                .knownDrugsRecordsCount(drugsCount.first())
+                .knownDrugsCount(drugsCount.second())
+                .build();
     }
 }

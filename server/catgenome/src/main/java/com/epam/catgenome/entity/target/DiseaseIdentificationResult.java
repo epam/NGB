@@ -24,6 +24,7 @@
 package com.epam.catgenome.entity.target;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,7 +33,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IdentificationResult {
-    private Long knownDrugsCount;
-    private Long knownDrugsRecordsCount;
+public class DiseaseIdentificationResult extends IdentificationResult{
+    private Long targetsCount;
+
+    @Builder
+    public DiseaseIdentificationResult(Long targetsCount, Long knownDrugsCount, Long knownDrugsRecordsCount) {
+        super(knownDrugsCount, knownDrugsRecordsCount);
+        this.targetsCount = targetsCount;
+    }
 }

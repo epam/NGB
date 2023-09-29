@@ -100,6 +100,12 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 result.stream().map(r -> r.getDrug().getId()).distinct().count());
     }
 
+    public Pair<Long, Long>  totalCount(final String diseaseId) throws ParseException, IOException {
+        final List<DrugAssociation> result = search(diseaseId);
+        return Pair.of(Long.valueOf(result.size()),
+                result.stream().map(r -> r.getDrug().getId()).distinct().count());
+    }
+
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
         final Query query = buildQuery(geneIds, null);
         return getFieldValues(query);

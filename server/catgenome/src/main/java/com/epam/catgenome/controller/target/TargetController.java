@@ -178,7 +178,7 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<IdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
+    public Result<TargetIdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
         return Result.success(targetIdentificationSecurityService.launchIdentification(request));
     }
