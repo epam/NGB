@@ -67,9 +67,12 @@ export default class ngbDiseasesTargetsPanelController {
             ngbDiseasesTargetsPanelService
         });
         const initialize = this.initialize.bind(this);
-        this.dispatcher.on('target:diseases:targets:updated', initialize);
+        const filterChanged = this.filterChanged.bind(this);
+        dispatcher.on('target:diseases:targets:updated', initialize);
+        dispatcher.on('target:diseases:targets:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:diseases:targets:updated', initialize);
+            dispatcher.removeListener('target:diseases:targets:filters:changed', filterChanged);
         });
     }
 

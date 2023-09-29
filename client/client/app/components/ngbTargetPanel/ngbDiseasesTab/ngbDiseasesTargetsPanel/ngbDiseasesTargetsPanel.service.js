@@ -9,8 +9,8 @@ const fixedNumber = (num) => {
 };
 
 const FIELDS = {
-    'target': 'TARGET',
-    'target name': 'TARGET_NAME',
+    'target': 'GENE_SYMBOL',
+    'target name': 'GENE_NAME',
     'overall score': 'OVERALL_SCORE',
     'genetic association': 'GENETIC_ASSOCIATIONS_SCORE',
     'somatic mutations': 'SOMATIC_MUTATIONS_SCORE',
@@ -143,6 +143,19 @@ export default class ngbDiseasesTargetsPanelService {
                 orderBy: this.fields[i.field],
                 reverse: !i.ascending
             }));
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => {
+                    return {
+                        field: this.fields[key],
+                        terms: values.map(v => v)
+                    };
+                });
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
         }
         return request;
     }
