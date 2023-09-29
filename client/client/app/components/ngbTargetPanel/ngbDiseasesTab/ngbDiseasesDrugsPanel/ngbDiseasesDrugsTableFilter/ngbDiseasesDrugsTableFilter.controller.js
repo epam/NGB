@@ -20,10 +20,14 @@ export default class ngbDiseasesDrugsTableFilterController {
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
         this.displayText = [...this.selectedItems].join(', ');
 
-        this.dispatcher.on('diseases:drugs:filters:reset', this.resetFilters.bind(this));
+        this.dispatcher.on('target:diseases:drugs:filters:list', this.setList.bind(this));
+        this.dispatcher.on('target:diseases:drugs:filters:reset', this.resetFilters.bind(this));
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:drugs:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('target:diseases:drugs:filters:list', this.setList.bind(this));
+            dispatcher.removeListener('target:diseases:drugs:filters:reset', this.resetFilters.bind(this));
         });
+
+
         this.setList();
     }
 

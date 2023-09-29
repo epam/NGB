@@ -21,10 +21,10 @@ export default class ngbDiseasesTabController {
         if (this.diseasesData) {
             this.refreshData();
         }
-        const refreshData = this.refreshData.bind(this);
-        dispatcher.on('target:diseases:details:finished', refreshData);
+        const setDiseasesData = this.setDiseasesData.bind(this);
+        dispatcher.on('target:diseases:disease:changed', setDiseasesData);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:diseases:details:finished', refreshData);
+            dispatcher.removeListener('target:diseases:disease:changed', setDiseasesData);
         });
     }
 
@@ -81,13 +81,13 @@ export default class ngbDiseasesTabController {
         this.searchText = disease.name;
     }
 
-
     onBlur () {
         if (this.searchText && this.diseasesList.length) {
             if (this.searchText !== this.diseaseModel.name) {
-                this.diseaseChanged(this.diseasesList[0]);
+                this.diseaseModel = this.diseasesList[0];
+                this.searchText = this.diseasesList[0].name;
             } else {
-                this.diseaseChanged(this.diseaseModel);
+                this.searchText = this.diseaseModel.name;
             }
         } else {
             this.diseaseModel = {};
@@ -105,21 +105,18 @@ export default class ngbDiseasesTabController {
     }
 
     async searchDisease() {
-        this.loadingData = true;
-        await this.ngbDiseasesTabService.getDiseaseData(this.diseaseModel.id);
-        this.setDiseasesData();
-        this.$timeout(() => {
-            this.$scope.$apply();
-            this.dispatcher.emit('target:diseases:updated');
-        });
+        await this.ngbDiseasesTabService.searchDisease(this.diseaseModel.id);
     }
 
     setDiseasesData() {
-        const {name, description, synonyms} = this.diseasesData;
+        const {name, description, synonyms} = this.diseasesData || {};
         this.title = name;
         this.description = description;
         this.synonyms = synonyms.filter(s => s);
         this.refreshInfoBlocks();
+        this.$timeout(() => {
+            this.$scope.$apply();
+        });
     }
 
     refreshInfoBlocks() {

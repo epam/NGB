@@ -466,4 +466,17 @@ export class TargetDataService extends DataService {
             });
         });
     }
+
+    getDiseasesDrugsFieldValues(diseaseId) {
+        return new Promise((resolve) => {
+            this.get(`disease/drugs/fieldValues/${diseaseId}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
 }

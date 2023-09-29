@@ -66,12 +66,12 @@ export default class ngbDiseasesTargetsPanelController {
             dispatcher,
             ngbDiseasesTargetsPanelService
         });
-        const initialize = this.initialize.bind(this);
+        const diseaseChanged = this.diseaseChanged.bind(this);
         const filterChanged = this.filterChanged.bind(this);
-        dispatcher.on('target:diseases:targets:updated', initialize);
+        dispatcher.on('target:diseases:disease:changed', diseaseChanged);
         dispatcher.on('target:diseases:targets:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:diseases:targets:updated', initialize);
+            dispatcher.removeListener('target:diseases:disease:changed', diseaseChanged);
             dispatcher.removeListener('target:diseases:targets:filters:changed', filterChanged);
         });
     }
@@ -134,7 +134,6 @@ export default class ngbDiseasesTargetsPanelController {
         if (!this.gridOptions) {
             return;
         }
-        this.resetSorting();
         this.sortInfo = this.defaultSort;
         if (this.ngbDiseasesTargetsPanelService.targetsResults) {
             this.gridOptions.data = this.ngbDiseasesTargetsPanelService.targetsResults;
@@ -232,16 +231,6 @@ export default class ngbDiseasesTargetsPanelController {
         await this.loadData();
     }
 
-    resetSorting() {
-        if (!this.gridApi) {
-            return;
-        }
-        const columns = this.gridApi.grid.columns;
-        for (let i = 0 ; i < columns.length; i++) {
-            columns[i].sort = {};
-        }
-    }
-
     async filterChanged() {
         if (!this.gridApi) {
             return;
@@ -250,5 +239,27 @@ export default class ngbDiseasesTargetsPanelController {
         this.currentPage = 1;
         await this.loadData();
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    async diseaseChanged() {
+        this.resetDrugsData();
+        this.resetSorting();
+        await this.initialize();
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    resetDrugsData() {
+        this.ngbDiseasesTargetsPanelService.resetData();
+        this.dispatcher.emit('target:diseases:targets:filters:reset');
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 }

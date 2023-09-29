@@ -80,6 +80,14 @@ export default class ngbDiseasesTabService {
         });
     }
 
+    async searchDisease(id) {
+        this._loadingData = true;
+        await this.getDiseaseData(id)
+            .then(() => {
+                this.dispatcher.emit('target:diseases:disease:changed')
+            });
+    }
+
     getDiseaseData(id) {
         return new Promise(resolve => {
             this.targetDataService.getDiseaseData(id)
@@ -105,9 +113,11 @@ export default class ngbDiseasesTabService {
         this._loadingData = true;
         const {id, name} = disease;
         this._searchText = name;
-        this._diseaseModel = disease;
-        await this.getDiseaseData(id);
-        this.$timeout(() => this.dispatcher.emit('target:diseases:details:finished'));
+        this._diseaseModel = {
+            id: disease.id,
+            name: disease
+        };
+        await this.searchDisease(id);
     }
 
     resetData() {

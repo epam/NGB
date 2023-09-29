@@ -51,12 +51,12 @@ export default class ngbDiseasesDrugsPanelController {
             dispatcher,
             ngbDiseasesDrugsPanelService
         });
+        const diseaseChanged = this.diseaseChanged.bind(this);
         const filterChanged = this.filterChanged.bind(this);
-        const initialize = this.initialize.bind(this);
-        this.dispatcher.on('target:diseases:drugs:updated', initialize);
+        dispatcher.on('target:diseases:disease:changed', diseaseChanged);
         dispatcher.on('target:diseases:drugs:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:diseases:drugs:updated', initialize);
+            dispatcher.removeListener('target:diseases:disease:changed', diseaseChanged);
             dispatcher.removeListener('target:diseases:drugs:filters:changed', filterChanged);
         });
     }
@@ -119,11 +119,11 @@ export default class ngbDiseasesDrugsPanelController {
         if (!this.gridOptions) {
             return;
         }
-        this.resetSorting();
         if (this.ngbDiseasesDrugsPanelService.drugsResults) {
             this.gridOptions.data = this.ngbDiseasesDrugsPanelService.drugsResults;
         } else {
             await this.loadData();
+            this.ngbDiseasesDrugsPanelService.setFieldList();
         }
         this.gridOptions.columnDefs = this.getDrugsTableGridColumns();
     }
@@ -217,16 +217,6 @@ export default class ngbDiseasesDrugsPanelController {
         event.stopPropagation();
     }
 
-    resetSorting() {
-        if (!this.gridApi) {
-            return;
-        }
-        const columns = this.gridApi.grid.columns;
-        for (let i = 0 ; i < columns.length; i++) {
-            columns[i].sort = {};
-        }
-    }
-
     async filterChanged() {
         if (!this.gridApi) {
             return;
@@ -235,5 +225,30 @@ export default class ngbDiseasesDrugsPanelController {
         this.currentPage = 1;
         await this.loadData();
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    async diseaseChanged() {
+        this.resetDrugsData();
+        this.resetSorting();
+        await this.initialize();
+        if (this.$scope.gridApi) {
+            this.$scope.gridApi.grid.modifyRows(this.$scope.gridOptions.data);
+            this.$scope.gridApi.core.refresh();
+        }
+    }
+
+    resetDrugsData() {
+        this.ngbDiseasesDrugsPanelService.resetData();
+        this.dispatcher.emit('target:diseases:drugs:filters:reset');
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 }

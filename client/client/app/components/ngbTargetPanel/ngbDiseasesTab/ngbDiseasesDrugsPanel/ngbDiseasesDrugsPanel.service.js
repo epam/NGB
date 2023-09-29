@@ -45,15 +45,24 @@ function unRomanize(phase) {
 }
 
 const FIELDS = {
-    'target': 'TARGET',
+    'target': 'GENE_SYMBOL',
     'drug': 'DRUG_NAME',
     'type': 'DRUG_TYPE',
     'mechanism of action': 'MECHANISM_OF_ACTION',
     'action type': 'ACTION_TYPE',
-    'target name': 'TARGET_NAME',
+    'target name': 'GENE_NAME',
     'phase': 'PHASE',
     'status': 'STATUS',
     'source': 'SOURCE'
+};
+
+const FILTER_FIELDS = {
+    'drugTypes': 'type',
+    'mechanismOfActions': 'mechanism of action',
+    'actionTypes': 'action type',
+    'phases': 'phase',
+    'statuses': 'status',
+    'sources': 'source'
 };
 
 export default class ngbDiseasesDrugsPanelService {
@@ -64,6 +73,10 @@ export default class ngbDiseasesDrugsPanelService {
 
     get fields() {
         return FIELDS;
+    }
+
+    get filterFields() {
+        return FILTER_FIELDS;
     }
 
     _loadingData = false;
@@ -123,12 +136,11 @@ export default class ngbDiseasesDrugsPanelService {
 
     constructor(dispatcher, ngbDiseasesTabService, targetDataService) {
         Object.assign(this, {dispatcher, ngbDiseasesTabService, targetDataService});
-        dispatcher.on('target:diseases:details:finished', this.resetData.bind(this));
-        dispatcher.on('target:diseases:updated', this.updateData.bind(this));
+        dispatcher.on('target:diseases:disease:changed', this.resetData.bind(this));
     }
 
     get diseaseId() {
-        return this.ngbDiseasesTabService.diseasesData.id;
+        return (this.ngbDiseasesTabService.diseasesData || {}).id;
     }
 
     setFilter(field, value) {
@@ -218,9 +230,42 @@ export default class ngbDiseasesDrugsPanelService {
         });
     }
 
-    updateData() {
-        this.resetData();
-        this.dispatcher.emit('target:diseases:drugs:updated');
+    async setFieldList() {
+        const result = await this.getDrugsFieldValues();
+        if (!result) {
+            this.fieldList = {};
+            this.dispatcher.emitSimpleEvent('target:diseases:drugs:filters:list');
+        }
+        const entries = Object.entries(result);
+        const list = this.filterFields;
+        for (let i = 0; i < entries.length; i++) {
+            const key = entries[i][0];
+            const values = entries[i][1].filter(v => v);
+            const field = list[key]
+            if (field === 'phase') {
+                this.fieldList[field] = values.map(v => romanize(v));
+            } else {
+                this.fieldList[field] = values;
+            }
+        }
+        this.dispatcher.emitSimpleEvent('target:diseases:drugs:filters:list');
+    }
+
+    getDrugsFieldValues() {
+        if (!this.diseaseId) {
+            return new Promise(resolve => {
+                resolve(null);
+            });
+        }
+        return new Promise(resolve => {
+            this.targetDataService.getDiseasesDrugsFieldValues(this.diseaseId)
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch(err => {
+                    resolve(null);
+                });
+        });
     }
 
     resetData() {

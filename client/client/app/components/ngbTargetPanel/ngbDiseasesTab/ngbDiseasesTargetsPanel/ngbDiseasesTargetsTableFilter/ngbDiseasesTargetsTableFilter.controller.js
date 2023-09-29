@@ -19,12 +19,10 @@ export default class ngbDiseasesTargetsTableFilterController {
         this.input = $element.find('.ngb-filter-input')[0];
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
         this.displayText = [...this.selectedItems].join(', ');
-
-        this.dispatcher.on('diseases:targets:filters:reset', this.resetFilters.bind(this));
+        this.dispatcher.on('target:diseases:targets:filters:reset', this.resetFilters.bind(this));
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:targets:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('target:diseases:targets:filters:reset', this.resetFilters.bind(this));
         });
-        this.setList();
     }
 
     get filterInfo() {

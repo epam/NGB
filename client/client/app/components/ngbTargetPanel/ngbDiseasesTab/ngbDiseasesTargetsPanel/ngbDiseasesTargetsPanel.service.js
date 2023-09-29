@@ -88,8 +88,7 @@ export default class ngbDiseasesTargetsPanelService {
 
     constructor(dispatcher, ngbDiseasesTabService, targetDataService) {
         Object.assign(this, {dispatcher, ngbDiseasesTabService, targetDataService});
-        dispatcher.on('target:diseases:details:finished', this.resetData.bind(this));
-        dispatcher.on('target:diseases:updated', this.updateData.bind(this));
+        dispatcher.on('target:diseases:disease:changed', this.resetData.bind(this));
     }
 
     get diseaseId() {
@@ -188,11 +187,6 @@ export default class ngbDiseasesTargetsPanelService {
                     resolve(false);
                 });
         });
-    }
-
-    updateData() {
-        this.resetData();
-        this.dispatcher.emit('target:diseases:targets:updated');
     }
 
     resetData() {
