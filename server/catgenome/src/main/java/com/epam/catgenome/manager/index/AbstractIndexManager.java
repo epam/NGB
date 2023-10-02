@@ -44,6 +44,7 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
@@ -142,7 +143,7 @@ public abstract class AbstractIndexManager<T> {
     public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
         if (orderInfos == null) {
-            sortFields.add(new SortField(getDefaultSortField(), SortField.Type.STRING, false));
+            sortFields.add(getDefaultSortField());
         } else {
             for (OrderInfo orderInfo : orderInfos) {
                 final SortField sortField = new SortField(orderInfo.getOrderBy(),
@@ -153,8 +154,13 @@ public abstract class AbstractIndexManager<T> {
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
 
+    public Sort getDefaultSort() {
+        final List<SortField> sortFields = Collections.singletonList(getDefaultSortField());
+        return new Sort(sortFields.toArray(new SortField[1]));
+    }
+
     public abstract List<T> readEntries(String path) throws IOException;
-    public abstract String getDefaultSortField();
+    public abstract SortField getDefaultSortField();
     public abstract List<T> processEntries(List<T> entries) throws IOException, ParseException;
     public abstract void addDoc(IndexWriter writer, T entry) throws IOException;
     public abstract T entryFromDoc(Document doc);

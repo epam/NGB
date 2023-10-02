@@ -171,8 +171,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     }
 
     @Override
-    public String getDefaultSortField() {
-        return DiseaseField.DISEASE_NAME.name();
+    public SortField getDefaultSortField() {
+        return new SortField(DiseaseField.OVERALL_SCORE.name(), SortField.Type.FLOAT, true);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
         if (orderInfos == null) {
-            sortFields.add(new SortField(getDefaultSortField(), SortField.Type.STRING, false));
+            sortFields.add(getDefaultSortField());
         } else {
             for (OrderInfo orderInfo : orderInfos) {
                 final SortField.Type sortType = orderInfo.getOrderBy().equals(DiseaseField.DISEASE_NAME.name())
