@@ -39,7 +39,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.IdentificationResult;
+import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
@@ -61,7 +61,7 @@ public class TargetIdentificationSecurityService {
     private final TargetIdentificationManager manager;
 
     @PreAuthorize(ROLE_USER)
-    public IdentificationResult launchIdentification(final IdentificationRequest request)
+    public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
         return manager.launchIdentification(request);
     }

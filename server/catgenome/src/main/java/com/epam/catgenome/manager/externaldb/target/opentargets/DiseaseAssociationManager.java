@@ -136,6 +136,11 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return result.stream().map(DiseaseAssociation::getDiseaseId).distinct().count();
     }
 
+    public long totalCount(final String diseaseId) throws ParseException, IOException {
+        final List<DiseaseAssociation> result = search(diseaseId);
+        return result.stream().map(DiseaseAssociation::getGeneId).distinct().count();
+    }
+
     @Override
     public List<DiseaseAssociation> processEntries(final List<DiseaseAssociation> entries)
             throws ParseException, IOException {
