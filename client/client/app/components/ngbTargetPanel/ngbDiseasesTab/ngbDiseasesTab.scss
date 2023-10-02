@@ -1,0 +1,205 @@
+@import "./ngbDiseasesTab.variables.scss";
+@import "../../../shared/components/ngbTags/ngbTags";
+
+@mixin maxLines ($line-height, $lines-count: 3) {
+    max-height: $lines-count * $line-height;
+
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: $lines-count;
+    line-clamp: $lines-count;
+    -webkit-box-orient: vertical;
+}
+
+ngb-diseases-tab {
+    overflow: auto;
+    font-size: $tab-font-size;
+    color: $general-font-color;
+
+    md-content.diseases {
+        padding: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+    }
+
+    .diseases-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 0 calc($form-horizontal-offset - 4px);
+        box-sizing: border-box;
+        width: 100%;
+        line-height: 32px;
+
+        .autocomplete {
+            flex: 1;
+            background: $diseases-tab-background;
+            color: $diseases-tab-control-font-color;
+            padding: 0;
+            font-size: $diseases-tab-control-font-size;
+            border-bottom: 1px solid darken($diseases-tab-background, 20%);
+            height: $diseases-tab-control-height;
+
+            md-autocomplete-wrap {
+                box-shadow: none;
+                height: $diseases-tab-control-height;
+            }
+
+            input {
+                line-height: $diseases-tab-control-height;
+                height: $diseases-tab-control-height;
+            }
+        }
+
+        .diseases-search-button {
+            min-height: $main-action-button-height;
+            height: $main-action-button-height;
+            line-height: $main-action-button-height;
+            min-width: 60px;
+            margin: 5px;
+        }
+    }
+
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
+    .diseases-content {
+        flex: 1;
+        overflow: auto;
+        padding: 0 5px;
+
+        .content-header {
+            margin-bottom: 10px;
+            line-height: $diseases-tab-line-height;
+            min-height: $diseases-tab-line-height;
+            padding: 0 5px;
+        }
+
+        .content-title {
+            font-size: $title-font-size;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .main-info-row {
+            min-height: $main-info-row-height;
+            line-height: $main-info-row-height;
+            display: flex;
+            align-items: flex-start;
+            margin: 1px 0;
+        }
+
+        .main-info-title {
+            min-width: 90px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        ngb-tags.main-info {
+            @include ngb-tags($main-info-row-height);
+        }
+
+        .main-info {
+            flex: 1;
+
+            .description {
+                line-height: $main-info-descriptions-line-height;
+                margin-top: max(0, calc(($main-info-row-height - $main-info-descriptions-line-height) / 2.0));
+
+                &.collapsed {
+                    @include maxLines($main-info-descriptions-line-height, $main-info-description-max-lines);
+                }
+
+                &:not(:last-child) {
+                    margin-bottom: 5px;
+                }
+            }
+
+            a {
+                text-decoration: none;
+                color: rgb(51, 103, 214);
+                cursor: pointer;
+            }
+        }
+    }
+
+    collapsible-panel .collapsible-trigger {
+        margin: 5px 0 0;
+        background: $header-background;
+        border-radius: $border-radius;
+    }
+
+    collapsible-panel.open-panel .collapsible-trigger {
+        border-radius: $border-radius $border-radius 0 0;
+    }
+
+    collapsible-panel .collapsible-panel-body {
+        border: 1px solid $header-background;
+        border-radius: 0 0 $border-radius $border-radius;
+        border-top: 0;
+        padding: 0;
+    }
+
+    .section {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .section-title {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .section-title-part {
+            font-weight: normal;
+            text-transform: none;
+            display: inline-block;
+
+            &:not(:last-child) {
+                margin-right: 5px;
+
+                &::after {
+                    content: ',';
+                }
+            }
+
+            .section-title-part-count {
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.diseases-md-autocomplete.md-autocomplete-suggestions {
+    min-height: $diseases-tab-height;
+
+    li {
+        font-size: $diseases-tab-font-size;
+        padding: 0 5px;
+        line-height: $diseases-tab-line-height;
+        height: $diseases-tab-height;
+        min-height: $diseases-tab-height;
+    }
+}

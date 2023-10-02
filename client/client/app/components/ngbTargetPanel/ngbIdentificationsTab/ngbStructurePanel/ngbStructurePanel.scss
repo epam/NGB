@@ -1,7 +1,4 @@
-$structure-nav-height: 28px;
-$structure-font-size: 13px;
-$structure-color: #444444;
-$structure-table-border: 1px solid #dddddd;
+@import "./ngbStructurePanel.variables.scss";
 
 ngb-structure-panel {
     padding: 5px 0 0;
@@ -34,7 +31,7 @@ ngb-structure-panel {
                 padding: 0;
                 line-height: $structure-nav-height;
                 height: $structure-nav-height;
-                color: $structure-color;
+                color: $structure-font-color;
                 font-size: $structure-font-size;
             }
 
@@ -97,7 +94,7 @@ ngb-structure-panel {
 
         &[selected],
         &:not([disabled]):focus {
-            color: $structure-color;
+            color: $structure-font-color;
         }
     }
 

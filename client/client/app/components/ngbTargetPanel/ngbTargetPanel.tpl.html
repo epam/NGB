@@ -5,6 +5,10 @@
                      md-nav-click="$ctrl.changeState($ctrl.targetState.TARGETS)">
             TARGETS
         </md-nav-item>
+        <md-nav-item name="DISEASES"
+                     md-nav-click="$ctrl.changeState($ctrl.targetState.DISEASES)">
+            DISEASES
+        </md-nav-item>
         <md-nav-item name="IDENTIFICATIONS"
                      md-nav-click="$ctrl.changeState($ctrl.targetState.IDENTIFICATIONS)"
                      ng-if="$ctrl.identificationTabIsShown">
@@ -16,6 +20,10 @@
                          class="tab"
                          ng-if="$ctrl.tabSelected === $ctrl.targetState.TARGETS">
         </ngb-targets-tab>
+        <ngb-diseases-tab change-state="$ctrl.changeState(state)"
+                          class="tab"
+                          ng-if="$ctrl.tabSelected === $ctrl.targetState.DISEASES">
+        </ngb-diseases-tab>
         <ngb-identifications-tab change-state="$ctrl.changeState(state)"
                                  class="tab"
                                  ng-if="$ctrl.tabSelected === $ctrl.targetState.IDENTIFICATIONS">

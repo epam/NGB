@@ -129,9 +129,9 @@ export default class ngbDrugsTableController {
             this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
         } else {
             await this.loadData();
+            this.ngbDrugsTableService.setFieldList();
         }
         this.gridOptions.columnDefs = this.getDrugsTableGridColumns();
-        await this.ngbDrugsTableService.setFieldList();
     }
 
     async sourceChanged() {

@@ -434,4 +434,98 @@ export class TargetDataService extends DataService {
                 .catch(reject);
         });
     }
+
+    getDisease(name) {
+        return new Promise((resolve, reject) => {
+            this.get(`disease?name=${name}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting diseases list';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDiseaseData(diseaseId) {
+        return new Promise((resolve, reject) => {
+            this.get(`disease/${diseaseId}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting disease data';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getTargetsResults(diseaseId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`disease/targets/${diseaseId}`, request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting targets results';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDiseasesDrugsResults(diseaseId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`disease/drugs/${diseaseId}`, request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting drugs results';
+                    reject(new Error((error && error.message) || message));
+            });
+        });
+    }
+
+    getDiseasesDrugsFieldValues(diseaseId) {
+        return new Promise((resolve) => {
+            this.get(`disease/drugs/fieldValues/${diseaseId}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                });
+        });
+    }
+
+    getDiseasesExport(diseaseId, source) {
+        const format = 'CSV';
+        const includeHeader = true;
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `disease/${source}/export${getQueryString({diseaseId, format, includeHeader})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
 }

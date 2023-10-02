@@ -10,8 +10,6 @@ const PRIORITY_LIST = [{
 
 export default class ngbTargetsFormController{
 
-    diseaseModel;
-
     get genesColumns () {
         return GENES_COLUMNS;
     }

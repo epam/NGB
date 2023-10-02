@@ -1,6 +1,4 @@
-$select-height: 28px;
-$select-font-size: 13px;
-$select-color: #333333;
+@import "./ngbSequencesPanel.variables.scss";
 
 ngb-sequences-panel {
     padding: 5px 0 0;
@@ -45,8 +43,8 @@ ngb-sequences-panel {
     }
 
     .sequences-gene-select {
-        height: $select-height;
-        line-height: $select-height;
+        height: $sequences-select-height;
+        line-height: $sequences-line-height;
         display: inline-flex;
         align-items: center;
         margin-right: 10px;
@@ -57,10 +55,10 @@ ngb-sequences-panel {
         label {
             margin: 0;
             padding: 0;
-            line-height: $select-height;
-            height: $select-height;
-            color: $select-color;
-            font-size: $select-font-size;
+            line-height: $sequences-line-height;
+            height: $sequences-select-height;
+            color: $sequences-font-color;
+            font-size: $sequences-font-size;
         }
 
         label {
@@ -74,9 +72,9 @@ ngb-sequences-panel {
 
             md-select-value {
                 border: none;
-                min-height: $select-height;
+                min-height: $sequences-select-height;
                 padding: 0;
-                font-size: $select-font-size;
+                font-size: $sequences-font-size;
                 display: flex;
                 align-items: center;
 
@@ -87,8 +85,8 @@ ngb-sequences-panel {
 
                 > span,
                 > span > div {
-                    line-height: $select-height;
-                    height: $select-height;
+                    line-height: $sequences-line-height;
+                    height: $sequences-select-height;
                     transform: none!important;
                 }
             }
@@ -105,7 +103,7 @@ ngb-sequences-panel {
         min-height: 30px;
 
         .no-records-warning {
-            color: #999;
+            color: $sequences-warning-color;
         }
     }
 
@@ -124,16 +122,16 @@ ngb-sequences-panel {
 
     md-option {
         padding: 0 8px;
-        height: calc($select-height + 2px);
+        height: calc($sequences-select-height + 2px);
 
         &[selected],
         &:not([disabled]):focus {
-            color: $select-color;
+            color: $sequences-font-color;
         }
     }
 
     md-select-menu,
     md-select-menu md-content {
-        min-height: calc($select-height + 2px);
+        min-height: calc($sequences-select-height + 2px);
     }
 }

@@ -1,6 +1,4 @@
-$diseases-chart-height: 28px;
-$diseases-chart-font-size: 13px;
-$diseases-chart-color: #333333;
+@import "../ngbDiseasesPanel.variables.scss";
 
 ngb-diseases-bubbles,
 ngb-diseases-graph {
