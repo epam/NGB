@@ -49,7 +49,6 @@ import org.apache.lucene.document.FloatDocValuesField;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -191,7 +190,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         doc.add(new SortedDocValuesField(DiseaseField.GENE_SYMBOL.name(), new BytesRef(geneSymbol)));
 
         final String geneName = Optional.ofNullable(entry.getGeneName()).orElse("");
-        doc.add(new StringField(DiseaseField.GENE_NAME.name(), geneName, Field.Store.YES));
+        doc.add(new TextField(DiseaseField.GENE_NAME.name(), geneName, Field.Store.YES));
+        doc.add(new SortedDocValuesField(DiseaseField.GENE_NAME.name(), new BytesRef(geneName)));
 
         doc.add(new TextField(DiseaseField.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
 
@@ -289,7 +289,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
             for (OrderInfo orderInfo : orderInfos) {
                 final SortField.Type sortType = orderInfo.getOrderBy().equals(DiseaseField.DISEASE_NAME.name())
                         || orderInfo.getOrderBy().equals(DiseaseField.GENE_ID.name())
-                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_SYMBOL.name()) ?
+                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_SYMBOL.name())
+                        || orderInfo.getOrderBy().equals(DiseaseField.GENE_NAME.name()) ?
                         SortField.Type.STRING : SortField.Type.FLOAT;
                 final SortField sortField = new SortField(orderInfo.getOrderBy(),
                         sortType, orderInfo.isReverse());
