@@ -13,6 +13,10 @@ export default function buildMainInfoBlocks (identificationData) {
                 {
                     item: 'drug',
                     count: identificationData.knownDrugsCount || 0
+                },
+                {
+                    item: 'record',
+                    count: identificationData.knownDrugsRecordsCount || 0
                 }
             ]
         },
