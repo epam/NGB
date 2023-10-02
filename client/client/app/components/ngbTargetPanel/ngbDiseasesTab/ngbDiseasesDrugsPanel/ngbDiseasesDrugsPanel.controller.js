@@ -43,13 +43,15 @@ export default class ngbDiseasesDrugsPanelController {
         $scope,
         $timeout,
         dispatcher,
-        ngbDiseasesDrugsPanelService
+        ngbDiseasesDrugsPanelService,
+        ngbDiseasesTabService
     ) {
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
-            ngbDiseasesDrugsPanelService
+            ngbDiseasesDrugsPanelService,
+            ngbDiseasesTabService
         });
         const diseaseChanged = this.diseaseChanged.bind(this);
         const filterChanged = this.filterChanged.bind(this);
@@ -100,6 +102,12 @@ export default class ngbDiseasesDrugsPanelController {
     set filterInfo(value) {
         this.ngbDiseasesDrugsPanelService.filterInfo = value;
     }
+    get drugsResults() {
+        return this.ngbDiseasesDrugsPanelService.drugsResults;
+    }
+    get diseaseName() {
+        return (this.ngbDiseasesTabService.diseasesData || {}).name;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -119,8 +127,8 @@ export default class ngbDiseasesDrugsPanelController {
         if (!this.gridOptions) {
             return;
         }
-        if (this.ngbDiseasesDrugsPanelService.drugsResults) {
-            this.gridOptions.data = this.ngbDiseasesDrugsPanelService.drugsResults;
+        if (this.drugsResults) {
+            this.gridOptions.data = this.drugsResults;
         } else {
             await this.loadData();
             this.ngbDiseasesDrugsPanelService.setFieldList();
@@ -180,7 +188,7 @@ export default class ngbDiseasesDrugsPanelController {
         this.gridOptions.data = await this.ngbDiseasesDrugsPanelService.getDrugsResults()
             .then(success => {
                 if (success) {
-                    return this.ngbDiseasesDrugsPanelService.drugsResults;
+                    return this.drugsResults;
                 }
                 return [];
             });
@@ -250,5 +258,30 @@ export default class ngbDiseasesDrugsPanelController {
         for (let i = 0 ; i < columns.length; i++) {
             columns[i].sort = {};
         }
+    }
+
+    exportResults() {
+        this.ngbDiseasesDrugsPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.diseaseName}-drugs.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                }
+            });
     }
 }

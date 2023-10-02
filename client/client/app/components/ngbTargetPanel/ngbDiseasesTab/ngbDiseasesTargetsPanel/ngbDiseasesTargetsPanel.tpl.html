@@ -5,7 +5,7 @@
 <div class="action-container">
     <md-button type="button"
                class="md-raised export-button"
-               ng-if="false"
+               ng-if="$ctrl.targetsResults && $ctrl.targetsResults.length"
                aria-label="Export targets results"
                ng-click="$ctrl.exportResults()">
         EXPORT

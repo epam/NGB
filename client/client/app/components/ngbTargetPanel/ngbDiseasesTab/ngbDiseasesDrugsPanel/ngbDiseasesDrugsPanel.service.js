@@ -280,4 +280,14 @@ export default class ngbDiseasesDrugsPanelService {
         this.fieldList = {};
         this._drugsResults = null;
     }
+
+    exportResults() {
+        if (!this.diseaseId) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        const source = 'drugs';
+        return this.targetDataService.getDiseasesExport(this.diseaseId, source);
+    }
 }

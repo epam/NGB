@@ -201,4 +201,14 @@ export default class ngbDiseasesTargetsPanelService {
         this.fieldList = {};
         this._targetsResults = null;
     }
+
+    exportResults() {
+        if (!this.diseaseId) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        const source = 'targets';
+        return this.targetDataService.getDiseasesExport(this.diseaseId, source);
+    }
 }

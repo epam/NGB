@@ -479,4 +479,25 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getDiseasesExport(diseaseId, source) {
+        const format = 'CSV';
+        const includeHeader = true;
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `disease/${source}/export${getQueryString({diseaseId, format, includeHeader})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
 }

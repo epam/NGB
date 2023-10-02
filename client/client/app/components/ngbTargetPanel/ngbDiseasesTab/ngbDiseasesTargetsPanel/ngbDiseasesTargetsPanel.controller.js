@@ -58,13 +58,15 @@ export default class ngbDiseasesTargetsPanelController {
         $scope,
         $timeout,
         dispatcher,
-        ngbDiseasesTargetsPanelService
+        ngbDiseasesTargetsPanelService,
+        ngbDiseasesTabService
     ) {
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
-            ngbDiseasesTargetsPanelService
+            ngbDiseasesTargetsPanelService,
+            ngbDiseasesTabService
         });
         const diseaseChanged = this.diseaseChanged.bind(this);
         const filterChanged = this.filterChanged.bind(this);
@@ -115,6 +117,12 @@ export default class ngbDiseasesTargetsPanelController {
     set filterInfo(value) {
         this.ngbDiseasesTargetsPanelService.filterInfo = value;
     }
+    get targetsResults() {
+        return this.ngbDiseasesTargetsPanelService.targetsResults;
+    }
+    get diseaseName() {
+        return (this.ngbDiseasesTabService.diseasesData || {}).name;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -135,8 +143,8 @@ export default class ngbDiseasesTargetsPanelController {
             return;
         }
         this.sortInfo = this.defaultSort;
-        if (this.ngbDiseasesTargetsPanelService.targetsResults) {
-            this.gridOptions.data = this.ngbDiseasesTargetsPanelService.targetsResults;
+        if (this.targetsResults) {
+            this.gridOptions.data = this.targetsResults;
         } else {
             await this.loadData();
         }
@@ -198,7 +206,7 @@ export default class ngbDiseasesTargetsPanelController {
         this.gridOptions.data = await this.ngbDiseasesTargetsPanelService.getTargetsResults()
             .then(success => {
                 if (success) {
-                    return this.ngbDiseasesTargetsPanelService.targetsResults;
+                    return this.targetsResults;
                 }
                 return [];
             });
@@ -261,5 +269,30 @@ export default class ngbDiseasesTargetsPanelController {
         for (let i = 0 ; i < columns.length; i++) {
             columns[i].sort = {};
         }
+    }
+
+    exportResults() {
+        this.ngbDiseasesTargetsPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.diseaseName}-targets.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                }
+            });
     }
 }
