@@ -60,7 +60,7 @@ public final class ExportUtils {
             List<String> fieldValues = new ArrayList<>();
             for (ExportField<T> exportField: exportFields) {
                 String value = exportField.getGetter().apply(indexEntry);
-                fieldValues.add(value == null || value.equals(NULL_STR) ? DOT : value);
+                fieldValues.add(value == null || value.equals(NULL_STR) ? DOT : '"' + value + '"');
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
             outputStream.write(line.getBytes());
