@@ -30,18 +30,16 @@ import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import lombok.SneakyThrows;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
@@ -64,8 +62,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 
 @Service
 public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGIDBDrugAssociation> {
@@ -166,11 +162,11 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
             doc.add(new TextField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
-            doc.add(new TextField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
+            doc.add(new StringField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_TYPES.name(),
                     new BytesRef(entry.getInteractionTypes())));
 
-            doc.add(new TextField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
+            doc.add(new StringField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     entry.getInteractionClaimSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     new BytesRef(entry.getInteractionClaimSource())));
@@ -190,13 +186,9 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                 .build();
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DGIDBField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DGIDBField.valueOf(fieldName).getType();
     }
 
     @Override

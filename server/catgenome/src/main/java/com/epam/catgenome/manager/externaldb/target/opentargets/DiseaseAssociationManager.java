@@ -34,13 +34,11 @@ import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
-import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
 import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
@@ -54,8 +52,6 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -84,7 +80,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service
@@ -300,13 +295,9 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DiseaseField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DiseaseField.valueOf(fieldName).getType();
     }
 
     public byte[] export(final String diseaseId, final FileFormat format, final boolean includeHeader)

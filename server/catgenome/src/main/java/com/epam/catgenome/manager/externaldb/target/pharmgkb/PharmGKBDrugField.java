@@ -34,10 +34,10 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum PharmGKBDrugField implements AssociationExportField<PharmGKBDrug> {
-    GENE_ID("Target ID", PharmGKBDrug::getGeneId, FilterType.TERMS, true),
+    GENE_ID("Target ID", PharmGKBDrug::getGeneId, FilterType.TERM, true),
     DRUG_NAME("Drug", PharmGKBDrug::getName, FilterType.PHRASE, true),
     DRUG_ID(false),
-    SOURCE("Source", PharmGKBDrug::getSource, FilterType.TERMS, true);
+    SOURCE("Source", PharmGKBDrug::getSource, FilterType.OPTIONS, true);
     private String label;
     private Function<PharmGKBDrug, String> getter;
     private FilterType type;
