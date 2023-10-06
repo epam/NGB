@@ -70,13 +70,13 @@ public class BedSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
-    public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws FeatureFileReadingException {
+    public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws IOException {
         return bedManager.loadFeatures(track);
     }
 
     @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
-    public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
+    public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException, IOException {
         return bedManager.reindexBedFile(bedFileId);
     }
 

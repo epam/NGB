@@ -68,7 +68,8 @@ public class VcfSecurityService {
 
     @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
-    public VcfFile reindexVcfFile(final long vcfFileId, final boolean createTabixIndex) throws FeatureIndexException {
+    public VcfFile reindexVcfFile(final long vcfFileId, final boolean createTabixIndex)
+            throws FeatureIndexException, IOException {
         return vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
     }
 
@@ -79,7 +80,7 @@ public class VcfSecurityService {
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_TRACK_ID)
     public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, final boolean loadInfo,
-                                 final boolean collapsed) throws VcfReadingException {
+                                 final boolean collapsed) throws IOException {
         return vcfManager.loadVariations(track, sampleId, loadInfo, collapsed);
     }
 
@@ -91,7 +92,7 @@ public class VcfSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_QUERY_ID)
-    public Variation loadVariation(final VariationQuery query) throws FeatureFileReadingException {
+    public Variation loadVariation(final VariationQuery query) throws IOException {
         return vcfManager.loadVariation(query);
     }
 
@@ -105,7 +106,7 @@ public class VcfSecurityService {
     public Variation getNextOrPreviousVariation(final int fromPosition, final Long trackId, final Long sampleId,
                                                 final long chromosomeId, final boolean loadInfo, final String fileUrl,
                                                 final String indexUrl, final Long projectId)
-            throws VcfReadingException, AccessDeniedException {
+            throws IOException {
         return vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
                                                      loadInfo, fileUrl, indexUrl);
     }

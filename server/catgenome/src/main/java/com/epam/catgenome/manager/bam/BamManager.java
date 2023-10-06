@@ -68,6 +68,7 @@ import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
 import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 
 /**
  * Source:      BamManager
@@ -238,6 +239,7 @@ public class BamManager {
         } else {
             bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }
+        checkResource(bamFile.getPath());
         return getReadFromBamFile(query, chromosome, bamFile);
     }
 

@@ -30,7 +30,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -51,9 +50,7 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.VcfTrackQuery;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.VcfReadingException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -125,7 +122,7 @@ public class VcfController extends AbstractRESTController {
             notes = "Rebuilds a VCF feature index", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> reindexVcf(@PathVariable final long vcfFileId,
                                       @RequestParam(defaultValue = "false") final boolean createTabixIndex)
-            throws FeatureIndexException {
+            throws FeatureIndexException, IOException {
         final VcfFile file = vcfSecurityService.reindexVcfFile(vcfFileId, createTabixIndex);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                 file.getName()));
@@ -191,7 +188,7 @@ public class VcfController extends AbstractRESTController {
     public Result<Variation> loadVariation(@RequestBody final VariationQuery query,
                                            @RequestParam(required = false) final String fileUrl,
                                            @RequestParam(required = false) final String indexUrl)
-            throws FeatureFileReadingException, AccessDeniedException {
+            throws IOException {
         if (fileUrl == null) {
             return Result.success(vcfSecurityService.loadVariation(query));
         } else {
@@ -216,7 +213,7 @@ public class VcfController extends AbstractRESTController {
                                             @RequestParam(required = false) final String fileUrl,
                                             @RequestParam(required = false) final String indexUrl,
                                             @RequestParam(required = false) final Long projectId)
-            throws VcfReadingException, AccessDeniedException {
+            throws IOException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                 chromosomeId, true, fileUrl,
                 indexUrl, projectId));
@@ -239,7 +236,7 @@ public class VcfController extends AbstractRESTController {
                                             @RequestParam(required = false) final String fileUrl,
                                             @RequestParam(required = false) final String indexUrl,
                                             @RequestParam(required = false) final Long projectId)
-            throws VcfReadingException, AccessDeniedException {
+            throws IOException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
                 chromosomeId, false, fileUrl, indexUrl, projectId));
     }

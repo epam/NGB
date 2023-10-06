@@ -67,6 +67,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 
 /**
  * Source:      FacadeWigManager.java
@@ -205,6 +206,7 @@ public class FacadeWigManager {
         track.setType(TrackType.WIG);
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
         final WigFile wigFile = wigFileManager.load(track.getId());
+        checkResource(wigFile.getPath());
         return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome, indexCache);
     }
 

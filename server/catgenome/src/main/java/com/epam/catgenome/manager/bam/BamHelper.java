@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.bam;
 
 import static com.epam.catgenome.component.MessageCode.RESOURCE_NOT_FOUND;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
@@ -172,6 +173,7 @@ public class BamHelper {
 
         final BamFile bamFile = bamFileManager.load(track.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
+        checkResource(bamFile.getPath());
         ConsensusSequenceUtils.calculateConsensusSequence(track,
                 getReadsFromFile(chromosome, track, bamFile, track.getBlocks()));
 
@@ -192,6 +194,7 @@ public class BamHelper {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
+        checkResource(bamFile.getPath());
 
         fillEmitterByReads(bamFile, bamTrack, options, emitter);
     }
@@ -225,6 +228,7 @@ public class BamHelper {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
+        checkResource(bamFile.getPath());
 
         Chromosome chromosome = bamTrack.getChromosome();
         bamTrack.setRegions(getRegions(bamFile, chromosome, track.getStartIndex(), track.getEndIndex()));

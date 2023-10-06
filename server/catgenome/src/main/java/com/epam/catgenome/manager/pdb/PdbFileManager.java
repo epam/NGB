@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.pdb.PdbFileQueryParams;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.util.Condition;
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -38,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,9 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -139,9 +141,10 @@ public class PdbFileManager {
 
     private byte[] readFileContent(final String path) {
         if (path != null) {
-            final File file = getFile(path);
             try {
-                return  FileUtils.readFileToByteArray(file);
+                checkResource(path);
+                InputStream is = IOHelper.openStream(path);
+                return IOUtils.toByteArray(is);
             } catch (IOException e) {
                 log.debug(e.getMessage(), e);
             }

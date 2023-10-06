@@ -352,7 +352,7 @@ public class BedManagerTest extends AbstractManagerTest {
         return loadedBedFile;
     }
 
-    private boolean testLoadBedRecords(BedFile bedFile) throws FeatureFileReadingException {
+    private boolean testLoadBedRecords(BedFile bedFile) throws IOException {
         Track<BedRecord> track = new Track<>();
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         track.setStartIndex(1);
@@ -375,7 +375,7 @@ public class BedManagerTest extends AbstractManagerTest {
     }
 
     private boolean testLoadMultiFormatBedRecords(BedFile bedFile, Predicate<BedRecord> check)
-            throws FeatureFileReadingException {
+            throws IOException {
         Track<BedRecord> track = new Track<>();
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         track.setStartIndex(1);

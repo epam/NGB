@@ -25,6 +25,8 @@
 package com.epam.catgenome.manager.bed;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.checkResource;
+import static com.epam.catgenome.util.IOHelper.resourceExists;
 
 import java.io.File;
 import java.io.IOException;
@@ -188,10 +190,11 @@ public class BedManager {
      * @return a {@code Track}, filled with BED features
      * @throws IOException
      */
-    public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws FeatureFileReadingException {
+    public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws IOException {
         double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
         final BedFile bedFile = bedFileManager.load(track.getId());
+        checkResource(bedFile.getPath());
         double time2 = Utils.getSystemTimeMilliseconds();
         log.debug("Track request took {} ms", time2 - time1);
         return loadTrackFromFile(track, bedFile, chromosome);
@@ -606,8 +609,10 @@ public class BedManager {
         }
     }
 
-    public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
+    public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException, IOException {
         BedFile bedFile = bedFileManager.load(bedFileId);
+        Assert.isTrue(resourceExists(bedFile.getPath()),
+                getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, bedFile.getPath()));
         Reference reference = referenceGenomeManager.load(bedFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));

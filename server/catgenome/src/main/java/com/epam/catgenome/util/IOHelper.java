@@ -25,9 +25,11 @@
 package com.epam.catgenome.util;
 
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.tribble.util.ParsingUtils;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +38,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Source:      IOHelper.java
@@ -109,5 +113,9 @@ public final class IOHelper {
         } else {
             return ParsingUtils.openInputStream(path);
         }
+    }
+
+    public static void checkResource(final String path) throws IOException {
+        Assert.isTrue(resourceExists(path), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, path));
     }
 }

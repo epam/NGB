@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.seg;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -129,6 +130,7 @@ public class SegManager {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
         SegFile segFile = segFileManager.load(track.getId());
+        checkResource(segFile.getPath());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<SegFeature, LineIterator> reader = fileManager.makeSegReader(segFile)) {
@@ -275,10 +277,7 @@ public class SegManager {
                 writer.write(f.toString());
                 writer.newLine();
             }
-
             writer.flush();
         }
     }
-
-
 }

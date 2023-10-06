@@ -58,10 +58,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.gene.GeneUtils.DBXREF_ATTR;
-import static com.epam.catgenome.manager.gene.GeneUtils.ID_ATTR;
-import static com.epam.catgenome.manager.gene.GeneUtils.NAME_ATTR;
-import static com.epam.catgenome.manager.gene.GeneUtils.NOTE_ATTR;
+import static com.epam.catgenome.manager.gene.GeneUtils.*;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 import static com.epam.catgenome.util.Utils.DOT;
 
 @Service
@@ -84,7 +82,7 @@ public class GenbankManager {
 
     @SneakyThrows
     public Map<String, DNASequence> readGenbankFile(final String genbankFilePath) {
-        Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        checkResource(genbankFilePath);
         try (InputStream genbankStream = IOHelper.openStream(genbankFilePath)) {
             return GenbankUtils.readGenbankDNASequence(genbankStream);
         }

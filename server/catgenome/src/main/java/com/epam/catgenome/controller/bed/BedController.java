@@ -28,7 +28,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 
 import com.epam.catgenome.manager.bed.BedSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,6 @@ import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.bed.BedRecord;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
-import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.wordnik.swagger.annotations.Api;
@@ -123,7 +121,7 @@ public class BedController extends AbstractRESTController {
     public Result<Track<BedRecord>> loadTrack(@RequestBody final TrackQuery trackQuery,
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
-            throws FeatureFileReadingException, AccessDeniedException {
+            throws IOException {
         final Track<BedRecord> track = convertToTrack(trackQuery);
         if (fileUrl == null) {
             return Result.success(bedSecurityService.loadFeatures(track));
@@ -161,7 +159,7 @@ public class BedController extends AbstractRESTController {
     @RequestMapping(value = "/bed/{bedFileId}/index", method = RequestMethod.GET)
     @ApiOperation(value = "Rebuilds a BED feature index",
             notes = "Rebuilds a BED feature index", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexBed(@PathVariable long bedFileId) throws FeatureIndexException {
+    public Result<Boolean> reindexBed(@PathVariable long bedFileId) throws FeatureIndexException, IOException {
         BedFile file = bedSecurityService.reindexBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                 file.getName()));

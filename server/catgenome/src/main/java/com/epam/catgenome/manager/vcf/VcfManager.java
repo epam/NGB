@@ -28,6 +28,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_ID_INVALID;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_INDEX;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -261,12 +262,13 @@ public class VcfManager {
      * @return a {@code Track} with variations
      */
     public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, final boolean loadInfo,
-                                           final boolean collapse) throws VcfReadingException {
+                                           final boolean collapse) throws IOException {
         final double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
 
         final VcfFile vcfFile = vcfFileManager.load(track.getId());
         Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, track.getId()));
+        checkResource(vcfFile.getPath());
         final Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
         Assert.notNull(vcfFile.getIndex(), getMessage(ERROR_VCF_INDEX, track.getId()));
         if (track.getType() == null) {
@@ -322,7 +324,7 @@ public class VcfManager {
      * @param query {@code VariationQuery}, defining variation to load
      * @return desired {@code Variation} from VCF file
      */
-    public Variation loadVariation(final VariationQuery query) throws FeatureFileReadingException {
+    public Variation loadVariation(final VariationQuery query) throws IOException {
         // converts query to a simple track corresponded to a single nucleotide position, where a particular
         // variation should be presented
 
@@ -395,7 +397,7 @@ public class VcfManager {
     public Variation getNextOrPreviousVariation(final int fromPosition, final Long vcfFileId, final Long sampleId,
                                                 final long chromosomeId, final boolean forward, final String fileUrl,
                                                 final String indexUrl)
-            throws VcfReadingException, AccessDeniedException {
+            throws IOException {
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.isTrue(vcfFileId != null ||
                       (StringUtils.isNotBlank(fileUrl) && StringUtils.isNotBlank(indexUrl)),
@@ -415,6 +417,7 @@ public class VcfManager {
         } else {
             vcfFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
         }
+        checkResource(vcfFile.getPath());
         final VcfReader vcfReader = AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
                 referenceGenomeManager);
         final Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
@@ -437,6 +440,7 @@ public class VcfManager {
         for (Long fileId : vcfFileIds) {
             VcfFile vcfFile = vcfFileManager.load(fileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, fileId));
+            checkResource(vcfFile.getPath());
 
             try (FeatureReader<VariantContext> reader =
                     AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
@@ -483,8 +487,10 @@ public class VcfManager {
      * @param rewriteTabixIndex
      * @throws FeatureIndexException if an error occurred while writing index
      */
-    public VcfFile reindexVcfFile(final long vcfFileId, final Boolean rewriteTabixIndex) throws FeatureIndexException {
+    public VcfFile reindexVcfFile(final long vcfFileId, final Boolean rewriteTabixIndex)
+            throws FeatureIndexException, IOException {
         final VcfFile vcfFile = vcfFileManager.load(vcfFileId);
+        checkResource(vcfFile.getPath());
         final Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         final Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream()
                 .collect(Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));

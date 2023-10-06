@@ -92,6 +92,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 import static com.epam.catgenome.util.IndexUtils.addFloatIntervalFilter;
 import static com.epam.catgenome.util.IndexUtils.addIntIntervalFilter;
 import static com.epam.catgenome.util.IndexUtils.deleteIndexDocument;
@@ -124,6 +125,7 @@ public class BamCoverageManager {
         final Map<String, Chromosome> chromosomeMap = referenceGenomeManager.loadChromosomes(bamFile.getReferenceId())
                 .stream().collect(Collectors.toMap(BaseEntity::getName, c -> c));
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND, coverage.getBamId()));
+        checkResource(bamFile.getPath());
         Assert.isTrue(bamCoverageDao.load(coverage.getBamId(), coverage.getStep()).isEmpty(),
                 getMessage(MessagesConstants.ERROR_BAM_COVERAGE_NOT_UNIQUE, coverage.getStep(), coverage.getBamId()));
         coverage.setCoverageId(bamCoverageDao.createId());

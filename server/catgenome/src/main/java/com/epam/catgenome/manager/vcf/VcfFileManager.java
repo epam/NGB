@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.vcf;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,13 +33,13 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.metadata.MetadataManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.project.ProjectDao;
@@ -50,6 +51,10 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IOHelper.resourceExists;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Source:      VcfFileManager.java
@@ -64,6 +69,7 @@ import com.epam.catgenome.security.acl.aspect.AclSync;
 @AclSync
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VcfFileManager implements SecuredEntityManager {
 
     private final VcfFileDao vcfFileDao;
@@ -120,15 +126,13 @@ public class VcfFileManager implements SecuredEntityManager {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
-
-        List<VcfFile> files = vcfFileDao.loadVcfFiles(ids);
+        final List<VcfFile> files = vcfFileDao.loadVcfFiles(ids);
         if (files.size() != ids.size()) {
-            List<Long> notFound = new ArrayList<>(ids);
+            final List<Long> notFound = new ArrayList<>(ids);
             notFound.removeAll(files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
-            Assert.isTrue(notFound.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
-                                                                       notFound.stream()
-                                                                           .map(Object::toString)
-                                                                           .collect(Collectors.joining(", "))));
+            Assert.isTrue(notFound.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
+                    notFound.stream().map(Object::toString).collect(Collectors.joining(", "))));
+            checkResources(files);
         }
         return files;
     }
@@ -144,7 +148,7 @@ public class VcfFileManager implements SecuredEntityManager {
         Assert.notNull(vcfFile.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(vcfFile.getBioDataItemId());
-        Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
+        Assert.isTrue(projectsWhereFileInUse.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 vcfFile.getName(), vcfFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
                         .collect(Collectors.joining(", "))));
 
@@ -170,5 +174,20 @@ public class VcfFileManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Long createVcfFileId() {
         return vcfFileDao.createVcfFileId();
+    }
+
+    private static void checkResources(final List<VcfFile> files) {
+        final List<String> notExists = new ArrayList<>();
+        for (VcfFile f : files) {
+            try {
+                if (!resourceExists(f.getPath())) {
+                    notExists.add(f.getPath());
+                }
+            } catch (IOException e) {
+                log.debug(e.getMessage());
+            }
+        }
+        Assert.isTrue(notExists.isEmpty(),
+                getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, join(notExists, ", ")));
     }
 }

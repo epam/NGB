@@ -88,7 +88,6 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
@@ -851,7 +850,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     private Track<Variation> testLoadGA4GH(final VcfFile vcfFile, final Double scaleFactor, final boolean checkBlocks,
-                                           final Long sampleIndex) throws VcfReadingException {
+                                           final Long sampleIndex) throws IOException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChrGA4GH.getId());
         vcfTrackQuery.setEndIndex(end);

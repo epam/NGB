@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.maf;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_EMPTY_FOLDER;
+import static com.epam.catgenome.util.IOHelper.checkResource;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -203,6 +204,7 @@ public class MafManager {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
         MafFile mafFile = mafFileManager.load(track.getId());
+        checkResource(mafFile.getPath());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<MafFeature, LineIterator> reader = fileManager.makeMafReader(mafFile)) {
