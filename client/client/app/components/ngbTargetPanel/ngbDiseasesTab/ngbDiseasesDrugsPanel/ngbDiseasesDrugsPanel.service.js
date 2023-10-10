@@ -235,6 +235,7 @@ export default class ngbDiseasesDrugsPanelService {
         if (!result) {
             this.fieldList = {};
             this.dispatcher.emitSimpleEvent('target:diseases:drugs:filters:list');
+            return;
         }
         const entries = Object.entries(result);
         const list = this.filterFields;

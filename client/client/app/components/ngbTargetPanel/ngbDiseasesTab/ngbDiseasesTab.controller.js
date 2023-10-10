@@ -92,6 +92,7 @@ export default class ngbDiseasesTabController {
         } else {
             this.diseaseModel = {};
         }
+        this.searchDisease();
     }
 
     onKeyPress (event) {
@@ -105,6 +106,7 @@ export default class ngbDiseasesTabController {
     }
 
     async searchDisease() {
+        if (!this.diseaseModel) return;
         await this.ngbDiseasesTabService.searchDisease(this.diseaseModel.id);
     }
 
@@ -112,7 +114,7 @@ export default class ngbDiseasesTabController {
         const {name, description, synonyms} = this.diseasesData || {};
         this.title = name;
         this.description = description;
-        this.synonyms = synonyms.filter(s => s);
+        this.synonyms = (synonyms || []).filter(s => s);
         this.refreshInfoBlocks();
         this.$timeout(() => {
             this.$scope.$apply();
