@@ -17,12 +17,12 @@ package com.epam.ngb.autotests.pages;
 
 import static com.codeborne.selenide.Selenide.$x;
 
-public abstract class PopupMenu<ELEMENT_AO extends PopupMenu<ELEMENT_AO, PARENT_AO>, PARENT_AO>
+public abstract class PopupForm<ELEMENT_AO extends PopupForm<ELEMENT_AO, PARENT_AO>, PARENT_AO>
         implements AccessObject<ELEMENT_AO> {
 
     private final PARENT_AO parentAO;
 
-    public PopupMenu(PARENT_AO parentAO) {
+    public PopupForm(PARENT_AO parentAO) {
         this.parentAO = parentAO;
     }
 
@@ -32,6 +32,10 @@ public abstract class PopupMenu<ELEMENT_AO extends PopupMenu<ELEMENT_AO, PARENT_
         }else{
             $x("//span[contains(normalize-space(),'Cancel')]").click();
         }
+        return parentAO;
+    }
+
+    public PARENT_AO parent() {
         return parentAO;
     }
 }

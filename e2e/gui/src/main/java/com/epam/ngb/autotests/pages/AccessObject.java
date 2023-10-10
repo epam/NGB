@@ -22,22 +22,55 @@ import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
-import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
-import static com.epam.ngb.autotests.utils.AppProperties.DEFAULT_TIMEOUT;
+import com.epam.ngb.autotests.enums.Primitive;
 import com.epam.ngb.autotests.utils.Utils;
-import static java.time.Duration.ofSeconds;
+import static java.util.stream.Collectors.toMap;
 import org.openqa.selenium.By;
 import static org.openqa.selenium.By.tagName;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.Keys;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public interface AccessObject <ELEMENT_TYPE extends AccessObject>{
 
+    default Map<Primitive, SelenideElement> elements() {
+        return Collections.emptyMap();
+    }
+
     default SelenideElement context() {
         return $(tagName("body"));
+    }
+
+    default SelenideElement get(Primitive primitive) {
+        return Optional.ofNullable(elements().get(primitive))
+                .orElseThrow(() ->
+                        new NoSuchElementException(String.format(
+                                "Primitive %s is not defined in %s.", primitive, this.getClass().getSimpleName())));
+    }
+
+    default Entry entry(Primitive primitive, SelenideElement element) {
+        return new Entry(primitive, element);
+    }
+
+    default Map<Primitive, SelenideElement> initialiseElements(Entry... entries) {
+        return Arrays.stream(entries).collect(toMap(Entry::getPrimitive, Entry::getElement));
+    }
+
+    default Map<Primitive, SelenideElement> initialiseElements(Map<Primitive, SelenideElement> elements, Entry... entries) {
+        Map<Primitive, SelenideElement> map = new HashMap<>(elements);
+        Arrays.stream(entries).forEach(entry -> map.put(entry.getPrimitive(), entry.getElement()));
+        return map;
+    }
+
+    default ELEMENT_TYPE click(Primitive primitive) {
+        get(primitive).shouldBe(visible, enabled).click();
+        return (ELEMENT_TYPE) this;
     }
 
     default ELEMENT_TYPE click(final By qualifier) {
@@ -60,7 +93,17 @@ public interface AccessObject <ELEMENT_TYPE extends AccessObject>{
         return (ELEMENT_TYPE) this;
     }
 
+    default ELEMENT_TYPE ensure(final Primitive primitive, final Condition... conditions) {
+        get(primitive).should(conditions);
+        return (ELEMENT_TYPE) this;
+    }
+
     default ELEMENT_TYPE ensureVisible(final SelenideElement... elements) {
+        Arrays.stream(elements).forEach(el -> ensure(el, visible));
+        return (ELEMENT_TYPE) this;
+    }
+
+    default ELEMENT_TYPE ensureVisible(final Primitive... elements) {
         Arrays.stream(elements).forEach(el -> ensure(el, visible));
         return (ELEMENT_TYPE) this;
     }
@@ -70,8 +113,23 @@ public interface AccessObject <ELEMENT_TYPE extends AccessObject>{
         return (ELEMENT_TYPE) this;
     }
 
+    default ELEMENT_TYPE ensureNotVisible(final Primitive... elements) {
+        Arrays.stream(elements).forEach(el -> ensure(el, not(visible)));
+        return (ELEMENT_TYPE) this;
+    }
+
     default ELEMENT_TYPE ensureDisable(final SelenideElement... elements) {
         Arrays.stream(elements).forEach(el -> ensure(el, disabled));
+        return (ELEMENT_TYPE) this;
+    }
+
+    default ELEMENT_TYPE ensureDisable(final Primitive... elements) {
+        Arrays.stream(elements).forEach(el -> ensure(el, disabled));
+        return (ELEMENT_TYPE) this;
+    }
+
+    default ELEMENT_TYPE ensureAll(final Condition condition, final Primitive... elements) {
+        Arrays.stream(elements).forEach(el -> ensure(el, condition));
         return (ELEMENT_TYPE) this;
     }
 
@@ -80,33 +138,35 @@ public interface AccessObject <ELEMENT_TYPE extends AccessObject>{
         return (ELEMENT_TYPE) this;
     }
 
-    default ELEMENT_TYPE waitForReady() {
-        new WebDriverWait(getWebDriver(), ofSeconds(DEFAULT_TIMEOUT)).until(
-                webDriver -> ((JavascriptExecutor) webDriver)
-                        .executeScript("return document.readyState").equals("complete"));
+    default ELEMENT_TYPE setValue(final By qualifier, final String value) {
+        return setValue($(qualifier), value);
+    }
+
+    default ELEMENT_TYPE setValue(Primitive primitive, String value) {
+        return setValue(get(primitive), value);
+    }
+
+    default ELEMENT_TYPE setValue(final SelenideElement element, final String value) {
+        element.shouldBe(visible, enabled)
+                .sendKeys(Keys.chord(Keys.CONTROL, "a"), value);
         return (ELEMENT_TYPE) this;
     }
 
-    default ELEMENT_TYPE waitForLoad() {
-//        ExpectedCondition<Boolean> pageLoadCondition = new
-//                ExpectedCondition<Boolean>() {
-//                    public Boolean apply(WebDriver driver) {
-//                        return ((JavascriptExecutor)getWebDriver()).executeScript("return document.readyState").equals("complete");
-//                    }
-//                };
-//        WebDriverWait wait = new WebDriverWait(getWebDriver(), ofSeconds(DEFAULT_TIMEOUT));
-//        wait.until(pageLoadCondition);
+    class Entry {
+        private final Primitive primitive;
+        private final SelenideElement selenideElement;
 
-        try{
-            // Javascript Executor for ready state
-            JavascriptExecutor j = (JavascriptExecutor)getWebDriver();
-            if (j.executeScript("return document.readyState").toString().equals("complete")){
-                System.out.println("Page in ready state"); }
-        } catch(Exception exe) {
-            System.out.println("Page not in ready state");
+        public Entry(Primitive primitive, SelenideElement selenideElement) {
+            this.primitive = primitive;
+            this.selenideElement = selenideElement;
         }
 
+        public Primitive getPrimitive() {
+            return primitive;
+        }
 
-        return (ELEMENT_TYPE) this;
+        public SelenideElement getElement() {
+            return selenideElement;
+        }
     }
 }

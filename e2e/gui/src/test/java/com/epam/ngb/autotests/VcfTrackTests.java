@@ -53,7 +53,7 @@ public class VcfTrackTests  extends AbstractNgbTest {
                 .setCoordinates(vcfTestCoordinates1)
                 .waitTrackDownloaded(browserPage.getTrack(track))
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_1),
-                        browserPage.getTrack(track), vcfTrackTC01_1, VCF_DEVIATION)
+                        track, vcfTrackTC01_1, VCF_DEVIATION)
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithAdditionalMenu("Resize")
                 .setTrackHeight("200")
@@ -62,7 +62,7 @@ public class VcfTrackTests  extends AbstractNgbTest {
                 .selectOptionWithCheckbox("Expanded", true)
                 .waitTrackDownloaded(browserPage.getTrack(track))
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
-                        browserPage.getTrack(track), vcfTrackTC01_2, VCF_DEVIATION);
+                        track, vcfTrackTC01_2, VCF_DEVIATION);
     }
 
 }

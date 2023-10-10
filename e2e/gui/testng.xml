@@ -7,19 +7,28 @@
             <class name="com.epam.ngb.autotests.BamTrackTests"/>
         </classes>
     </test>
+
     <test name="GeneTrackTests">
         <classes>
             <class name="com.epam.ngb.autotests.GeneTrackTests"/>
         </classes>
     </test>
+
     <test name="ReferenceTrackTests">
         <classes>
             <class name="com.epam.ngb.autotests.ReferenceTrackTests"/>
         </classes>
     </test>
+
     <test name="VcfTrackTests">
         <classes>
             <class name="com.epam.ngb.autotests.VcfTrackTests"/>
+        </classes>
+    </test>
+
+    <test name="VcfTrackTests">
+        <classes>
+            <class name="com.epam.ngb.autotests.DatasetsTests"/>
         </classes>
     </test>
 </suite>

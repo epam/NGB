@@ -28,9 +28,10 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-public class ReferenceTrackTests  extends AbstractNgbTest {
+public class ReferenceTrackTests extends AbstractNgbTest {
 
-    private static final String referenceTrackTC01 = "referenceTrackTC01";
+    private static final String referenceTrackTC01_1 = "referenceTrackTC01_1";
+    private static final String referenceTrackTC01_2 = "referenceTrackTC01_2";
     private static final String referenceTrackTC02 = "referenceTrackTC02";
     private static final String referenceTrackTC03 = "referenceTrackTC03";
     private static final String bamTrack = "CantonS.09-28.trim.dm606.realign.bam";
@@ -38,7 +39,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
     private static final String testChromosome = "X";
     private static final String referenceTestCoordinates1 = "12585901 - 12585934";
 
-    @Test(invocationCount = 1)
+    @Test
     @TestCase({"TC-REFERENCE_TRACKS_TEST-01"})
     public void referenceTrackTestShowForwardStrand() throws IOException {
         DatasetsPage datasetsPage = new DatasetsPage();
@@ -50,13 +51,16 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
         BrowserPage browserPage = new BrowserPage();
         browserPage
                 .setChromosome(testChromosome)
+                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
+                .trackImageCompare(getExpectedImage(referenceTrackTC01_1),
+                        REFERENCE, referenceTrackTC01_1, REFERENCE_DEVIATION)
                 .setCoordinates(referenceTestCoordinates1)
                 .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
-                .trackImageCompare(getExpectedImage(referenceTrackTC01),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC01, REFERENCE_DEVIATION);
+                .trackImageCompare(getExpectedImage(referenceTrackTC01_2),
+                        REFERENCE, referenceTrackTC01_2, REFERENCE_DEVIATION);
     }
 
-    @Test(invocationCount = 1)
+    @Test
     @TestCase({"TC-REFERENCE_TRACKS_TEST-02"})
     public void referenceTrackTestShowTranslation() throws IOException {
         DatasetsPage datasetsPage = new DatasetsPage();
@@ -73,7 +77,7 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show translation", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC02),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC02, REFERENCE_DEVIATION);
+                        REFERENCE, referenceTrackTC02, REFERENCE_DEVIATION);
     }
 
     @Test(invocationCount = 1)
@@ -93,7 +97,6 @@ public class ReferenceTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show reverse strand", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC03),
-                        browserPage.getTrack(REFERENCE), referenceTrackTC03, REFERENCE_DEVIATION);
+                        REFERENCE, referenceTrackTC03, REFERENCE_DEVIATION);
     }
-
 }

@@ -16,9 +16,16 @@
 package com.epam.ngb.autotests.pages;
 
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Selenide.$x;
 import com.codeborne.selenide.SelenideElement;
+import com.epam.ngb.autotests.menus.MetadataForm;
 import static java.lang.String.format;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Arrays;
 
 public class DatasetsPage implements AccessObject<DatasetsPage> {
 
@@ -29,8 +36,12 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return this;
     }
 
+    private SelenideElement getTrack(String trackName) {
+        return $x(format(".//span[contains(normalize-space(),'%s')]", trackName));
+    }
+
     public DatasetsPage setTrackCheckbox(String trackName, boolean isChecked) {
-        SelenideElement checkbox = $x(format(".//span[contains(normalize-space(),'%s')]", trackName))
+        SelenideElement checkbox = getTrack(trackName)
                 .parent().$x(".//input[@type='checkbox']");
         if (checkbox.isSelected() == isChecked) {
             return this;
@@ -38,4 +49,21 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         checkbox.click();
         return this;
     }
+
+    public MetadataForm openMetadataForm(String trackName) {
+        getTrack(trackName).shouldBe(exist).contextClick();
+        $x(".//span[contains(normalize-space(),'Edit attributes')]").click();
+        return new MetadataForm(this);
+    }
+
+    public DatasetsPage checkTrackTooltipContains(String trackName, Boolean isContains, String ... tooltips) {
+        SelenideElement track =
+                $x(format(".//div[contains(@class,'ivh-treeview-node-content') and contains(@title, '%s')]", trackName));
+        Arrays.stream(tooltips)
+                .forEach(tooltip -> assertEquals(track.getAttribute("title")
+                        .contains(tooltip.toUpperCase()), isContains,
+                        format("Attribute %s should be exist - %s", tooltip, isContains)));
+        return this;
+    }
+
 }

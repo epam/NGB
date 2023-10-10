@@ -16,6 +16,7 @@
 package com.epam.ngb.autotests.pages;
 
 import static com.assertthat.selenium_shutterbug.core.Shutterbug.shootElement;
+import com.codeborne.selenide.Condition;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -30,18 +31,19 @@ import static com.codeborne.selenide.Selenide.actions;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import com.epam.ngb.autotests.menus.TrackMenuForm;
 import static com.epam.ngb.autotests.utils.AppProperties.DEFAULT_TIMEOUT;
 import static com.epam.ngb.autotests.utils.AppProperties.RESULTS_PATH;
-import com.epam.ngb.autotests.utils.Utils;
-import static java.lang.Boolean.valueOf;
 import static java.lang.String.format;
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.openqa.selenium.By.className;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class BrowserPage implements AccessObject<BrowserPage> {
@@ -50,6 +52,8 @@ public class BrowserPage implements AccessObject<BrowserPage> {
     private static final SelenideElement chromosomeInputField = chromosomeBlock.$x("./md-input-container//input");
     private static final SelenideElement coordinatesBlock = $(className("coordinates-block"));
     private static final SelenideElement coordinatesInputField = coordinatesBlock.$x("./md-input-container/input");
+
+    // Track Coordinates
 
     public BrowserPage setChromosome(String chromosome) {
         chromosomeBlock.shouldBe(exist, ofSeconds(DEFAULT_TIMEOUT)).click();
@@ -64,6 +68,17 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         coordinatesBlock.shouldBe(visible, enabled).click();
         coordinatesInputField.shouldBe(visible, enabled).sendKeys(coordinates);
         coordinatesInputField.shouldBe(visible, enabled).pressEnter();
+        return this;
+    }
+
+    public BrowserPage checkTrackAttributes(String trackName, Boolean isExist, String ... attributes) {
+        SelenideElement track =
+                $x(format(".//div[contains(@class,'summary-item') and contains(., '%s')]", trackName))
+                        .shouldBe(exist);
+        Arrays.stream(attributes)
+                .forEach(attribute -> assertEquals(track.$$x("./div/span")
+                        .filter(Condition.matchText(attribute.toUpperCase())).size() == 1, isExist,
+                        format("Attribute %s should be exist - %s", attribute, isExist)));
         return this;
     }
 
@@ -83,13 +98,13 @@ public class BrowserPage implements AccessObject<BrowserPage> {
     }
 
     public BrowserPage trackImageCompare(BufferedImage expectedImage,
-                                         SelenideElement trackPanel,
+                                         String trackName,
                                          String resultImage,
                                          double deviation) {
-        if (!shootElement(getWebDriver(), trackPanel).equals(expectedImage,deviation)) {
+        if (!shootElement(getWebDriver(), getTrack(trackName)).equals(expectedImage,deviation)) {
             sleep(2, SECONDS);
         }
-        assertTrue(shootElement(getWebDriver(), trackPanel)
+        assertTrue(shootElement(getWebDriver(), getTrack(trackName))
                 .equalsWithDiff(expectedImage, format("%s%s", RESULTS_PATH, resultImage), deviation),
                 format("Screenshot doesn't match expected with deviation = %s. See screenshot: %s%s",
                         deviation, RESULTS_PATH, resultImage));
@@ -107,9 +122,9 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         return this;
     }
 
-    public TrackMenu openTrackMenu(String track, String menu) {
+    public TrackMenuForm openTrackMenu(String track, String menu) {
         trackMenu(track, menu).click();
-        return new TrackMenu(this, getMenuID(track, menu));
+        return new TrackMenuForm(this, getMenuID(track, menu));
     }
 
     private SelenideElement trackMenu(String track, String menu) {
@@ -155,49 +170,6 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         return this;
     }
 
-    public class TrackMenu extends PopupMenu<TrackMenu, BrowserPage> {
 
-        private String menuID = "";
-        private SelenideElement trackElement;
-
-        public TrackMenu(BrowserPage parentAO, String menuID) {
-            super(parentAO);
-            this.menuID = menuID;
-        }
-
-        public BrowserPage selectOptionWithCheckbox(String option, boolean isChecked) {
-            $(byId(menuID)).should(cssClass("md-clickable"));
-            SelenideElement menuOption = $(byId(menuID)).$(byText(option)).parent().parent();
-            if(valueOf(menuOption.getAttribute("aria-checked")) != isChecked) {
-                menuOption.click();
-            } else {
-                actions().moveToElement(trackElement, 0, 0)
-                        .click().build().perform();
-            }
-            $(byId(menuID)).should(cssClass("md-leave"))
-                    .shouldNot(cssClass("md-active"));
-            return new BrowserPage();
-        }
-
-        public ResizeMenu selectOptionWithAdditionalMenu(String option) {
-            $(byId(menuID)).should(cssClass("md-clickable"))
-                    .$(byText(option)).parent().parent().click();
-            $(byId(menuID)).should(cssClass("md-leave")).shouldNot(cssClass("md-active"));
-            return new ResizeMenu(new BrowserPage());
-        }
-    }
-
-    public class ResizeMenu extends PopupMenu<ResizeMenu, BrowserPage> {
-
-        SelenideElement dialog = $x("//md-dialog[@aria-label='track resize settings']");
-        public ResizeMenu(BrowserPage parentAO) {
-            super(parentAO);
-        }
-
-        public ResizeMenu setTrackHeight(String height) {
-            dialog.$x(".//input[@name='height']").setValue(height);
-            return this;
-        }
-    }
 
 }

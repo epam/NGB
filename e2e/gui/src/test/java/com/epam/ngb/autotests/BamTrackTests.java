@@ -60,7 +60,7 @@ public class BamTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC01),
-                        browserPage.getTrack(track), bamTrackTC01, BAM_DEVIATION)
+                        track, bamTrackTC01, BAM_DEVIATION)
                 .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo1));
     }
 
@@ -81,7 +81,7 @@ public class BamTrackTests  extends AbstractNgbTest {
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC02),
-                        browserPage.getTrack(track), bamTrackTC02, BAM_DEVIATION)
+                        track, bamTrackTC02, BAM_DEVIATION)
                 .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo2));
     }
 
