@@ -268,6 +268,7 @@ Via the **Target Identification** panel users can collect identification informa
 
 - **Targets** (_opened by default_) - sub-panel where user can manage targets
 - **Identifications** - sub-panel where user can view and manage target identification reports
+- **Diseases** - sub-panel where user can search for drugs and targets associated with a specific disease
 
 ![NGB GUI](images/overview-55.png)
 
@@ -282,7 +283,16 @@ In the appeared pop-up, specify:
 Once the identifying process is finished, the **Identifications** sub-tab will be automatically opened with the identification results (report):  
   ![NGB GUI](images/overview-58.png)
 
-For more details about identification process and report see [here](target-identification.md).
+To separately search for drugs and targets associated with a specific disease, use the sub-tab **Diseases**:  
+  ![NGB GUI](images/overview-59.png)
+
+To start the search, specify the disease name or its part to the input field:  
+  ![NGB GUI](images/overview-60.png)
+
+Once the desired disease is found, the form with disease info will appear:  
+  ![NGB GUI](images/overview-61.png)
+
+For more details about identification process, identification report and diseases search see [here](target-identification.md).
 
 ## Taking screenshots
 

@@ -16,13 +16,17 @@
     - [Bibliography block](#bibliography-block)
     - [Chat with AI](#chat-with-ai)
         - [AI model settings](#ai-model-settings)
+- [Diseases search](#diseases-search)
+    - [Associated drugs](#associated-drugs)
+    - [Associated targets](#associated-targets)
 
 Via the **Target Identification** panel users can collect identification information about targets of interest (genes), store this information and use it for their own research purposes.
 
 **Target identification** panel can be opened via the **VIEWS** menu and includes sub-tabs:
 
-- **Targets** (_opened by default_) - sub-panel where user can manage targets
-- **Identifications** - sub-panel where user can view and manage target identification reports
+- [**Targets**](#manage-targets) (_opened by default_) - sub-panel where user can manage targets
+- [**Identifications**](#identification-results) - sub-panel where user can view and manage target identification reports
+- [**Diseases**](#diseases-search) - sub-panel where user can search for drugs and targets associated with a specific disease
 
 ![NGB GUI](images/targets-01.png)
 
@@ -477,3 +481,106 @@ Also, you can configure each AI model used here:
     - **Temperature** - defines the degree of randomness in model responses. A higher temperature makes the model's answers more varied and creative. A lower temperature makes the answers more focused and consistent.
     - **Max size** - defines the maximum size of tokens that can be used for model responses. Refers to the limit on the number of words, characters, or chunks of text that the language model can handle at once.
 4. Once options are configured - click the **OK** button to save them and apply new config.
+
+***
+
+## Diseases search
+
+**Diseases** sub-tab allows users:
+
+- to search for a disease
+- to view the following information for the found disease:
+    - name, synonyms, description
+    - known drugs associated with this disease
+    - targets associated with this disease
+
+By default, **Diseases** sub-tab is empty and contains:
+
+- Search input field - to specify the desired disease name
+- **Search** button - to perform the search
+
+![NGB GUI](images/targets-74.png)
+
+To start the search, user shall specify disease name or its part to the input field.  
+Search results will be suggested in the Google-like manner - with appearing of suitable values during the disease name input, e.g.:  
+  ![NGB GUI](images/targets-75.png)
+
+User can select one of the suggested values by click it or continue to specify the own value.  
+To perform the search, user shall click the corresponding button.  
+
+> **_Note_**: additionally, users have the ability to search for disease's associated drugs and targets from the **Target Identification** results - namely from the [**Associated diseases**](#associated-diseases-block) section.  
+> To search for a disease from that section, user shall open the context menu (mouse right-click) for the desired disease in the **Associated diseases** table and select the corresponding item, e.g.:  
+>   ![NGB GUI](images/targets-79.png)
+
+Once the desired disease is found, the following form with results will appear, e.g.:  
+  ![NGB GUI](images/targets-76.png)
+
+Report form of the found disease contains:
+
+- search input field and the **Search** button - to perform another disease search
+- current disease info block:
+    - name
+    - list of synonyms of the found disease
+    - description
+- set of expandable sections. There are:
+    - **Known drugs** - section with the information about drugs with investigational or approved indications for the current disease
+    - **Associated targets** - section with the information about targets associated with the current disease
+
+Below, there are details by each expandable section.
+
+### Associated drugs
+
+This section contains:
+
+- table for investigational or approved drugs indicated for the current disease
+- button to export table content to the local workstation in CSV format
+
+![NGB GUI](images/targets-77.png)
+
+Information for this section is obtained from [**Open Targets**](https://platform.opentargets.org/) platform.  
+Table includes columns:
+
+- _Target_ - symbol of the associated target
+- drug details columns:
+    - _Drug_ - drug name. It is a hyperlink to the corresponding page in **Open Targets** platform
+    - _Type_ - drug type (antibody, cell, enzyme, molecule, protein, etc.)
+    - _Mechanism of action_ - drug action to the target (includes action type and target name)
+    - _Action type_ - drug action type
+- _Target name_ - name of the associated target
+- clinical trials info columns:
+    - _Phase_ - current stage of a clinical trial studying the drug
+    - _Status_ - state of the current clinical trial phase
+    - _Source_ - hyperlink to the corresponding page of the clinical trial
+
+By default, table is sorted by the _Target_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+
+### Associated targets
+
+This section contains:
+
+- table for targets associated with the current disease
+- button to export the table content to the local workstation in CSV format
+
+![NGB GUI](images/targets-78.png)
+
+Information for this section is obtained from [**Open Targets**](https://platform.opentargets.org/) platform.  
+Table includes columns:
+
+- _Target_ - symbol of the associated target
+- _Target name_ - name of the associated target
+- _Overall score_ - summary score of all disease-target association scores
+- other columns - specific disease-target association scores. For more details see [Associations info page](https://platform-docs.opentargets.org/associations).
+
+Table itself is colorized as a heatmap - according to the score value in each cell.
+
+By default, table is sorted by the _Overall score_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering by columns _Target_ and _Target name_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
