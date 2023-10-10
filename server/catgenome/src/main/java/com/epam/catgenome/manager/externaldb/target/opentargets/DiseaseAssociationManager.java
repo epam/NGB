@@ -148,14 +148,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     public SearchResult<DiseaseAssociation> search(final SearchRequest request, final String diseaseId)
             throws ParseException, IOException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(getByTermQuery(diseaseId, DrugField.DISEASE_ID.name()), BooleanClause.Occur.MUST);
-        if (request.getFilters() != null) {
-            for (Filter filter: request.getFilters()) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        final SearchResult<DiseaseAssociation> result = search(request, mainBuilder.build());
+        final SearchResult<DiseaseAssociation> result = super.search(request, diseaseId);
         fillHomologues(result);
         return result;
     }
