@@ -29,17 +29,14 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
-import lombok.SneakyThrows;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
@@ -61,8 +58,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 
 @Service
 public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<PharmGKBDrug> {
@@ -168,7 +163,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
             doc.add(new TextField(PharmGKBDrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(PharmGKBDrugField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
-            doc.add(new TextField(PharmGKBDrugField.SOURCE.name(), entry.getSource(), Field.Store.YES));
+            doc.add(new StringField(PharmGKBDrugField.SOURCE.name(), entry.getSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(PharmGKBDrugField.SOURCE.name(), new BytesRef(entry.getSource())));
             writer.addDocument(doc);
         }
@@ -186,13 +181,9 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
                 .build();
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = PharmGKBDrugField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return PharmGKBDrugField.valueOf(fieldName).getType();
     }
 
     @Override

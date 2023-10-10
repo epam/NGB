@@ -21,30 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.target.dgidb;
+package com.epam.catgenome.manager.index;
 
-import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
-import com.epam.catgenome.entity.index.FilterType;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 
-import java.util.function.Function;
-
-@AllArgsConstructor
-@Getter
-public enum DGIDBField implements AssociationExportField<DGIDBDrugAssociation> {
-    GENE_ID("Target ID", DGIDBDrugAssociation::getGeneId, FilterType.TERM, true),
-    DRUG_NAME("Drug", DGIDBDrugAssociation::getName, FilterType.PHRASE, true),
-    INTERACTION_CLAIM_SOURCE("Interaction Claim Source",
-            DGIDBDrugAssociation::getInteractionClaimSource, FilterType.OPTIONS, true),
-    INTERACTION_TYPES("Interaction Types", DGIDBDrugAssociation::getInteractionTypes,
-            FilterType.OPTIONS, true);
-    private String label;
-    private Function<DGIDBDrugAssociation, String> getter;
-    private FilterType type;
-    private final boolean export;
-    DGIDBField(boolean export) {
-        this.export = export;
+public class CaseInsensitiveWhitespaceAnalyzer extends Analyzer {
+    @Override
+    protected TokenStreamComponents createComponents(String fieldName) {
+        final Tokenizer tokenizer = new WhitespaceTokenizer();
+        final TokenStream filter = new LowerCaseFilter(tokenizer);
+        return new TokenStreamComponents(tokenizer, filter);
     }
 }

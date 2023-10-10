@@ -34,12 +34,10 @@ import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
-import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -48,8 +46,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
@@ -73,8 +69,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
@@ -214,24 +208,24 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new TextField(DrugField.GENE_NAME.name(), geneName, Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.GENE_NAME.name(), new BytesRef(geneName)));
 
-        doc.add(new TextField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
+        doc.add(new StringField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_TYPE.name(), new BytesRef(entry.getDrugType())));
 
-        doc.add(new TextField(DrugField.MECHANISM_OF_ACTION.name(),
+        doc.add(new StringField(DrugField.MECHANISM_OF_ACTION.name(),
                 entry.getMechanismOfAction(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.MECHANISM_OF_ACTION.name(),
                 new BytesRef(entry.getMechanismOfAction())));
 
-        doc.add(new TextField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
+        doc.add(new StringField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.ACTION_TYPE.name(), new BytesRef(entry.getActionType())));
 
-        doc.add(new TextField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
+        doc.add(new StringField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.PHASE.name(), new BytesRef(entry.getPhase())));
 
-        doc.add(new TextField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
+        doc.add(new StringField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.STATUS.name(), new BytesRef(entry.getStatus())));
 
-        doc.add(new TextField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
+        doc.add(new StringField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.SOURCE.name(), new BytesRef(entry.getSource().getName())));
 
         doc.add(new StringField(DrugField.SOURCE_URL.name(), entry.getSource().getUrl(), Field.Store.YES));
@@ -293,13 +287,9 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 .build();
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DrugField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DrugField.valueOf(fieldName).getType();
     }
 
     public byte[] export(final String diseaseId, final FileFormat format, final boolean includeHeader)

@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.index;
 
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.google.common.collect.Lists;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -131,7 +130,7 @@ public abstract class AbstractIndexManager<T> {
         final List<T> processedEntries = processEntries(entries);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
-                     index, new IndexWriterConfig(new StandardAnalyzer())
+                     index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
             for (T entry: processedEntries) {
