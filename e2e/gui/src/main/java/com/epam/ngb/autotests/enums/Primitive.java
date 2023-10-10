@@ -5,5 +5,6 @@ public enum Primitive {
     CANCEL,
     TITLE,
     ADD,
-    SAVE
+    SAVE,
+    SEARCH
 }

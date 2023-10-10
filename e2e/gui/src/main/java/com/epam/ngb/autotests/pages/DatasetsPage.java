@@ -17,17 +17,26 @@ package com.epam.ngb.autotests.pages;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$x;
+import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
+import com.epam.ngb.autotests.enums.Primitive;
+import static com.epam.ngb.autotests.enums.Primitive.SEARCH;
 import com.epam.ngb.autotests.menus.MetadataForm;
 import static java.lang.String.format;
+import static org.openqa.selenium.By.className;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class DatasetsPage implements AccessObject<DatasetsPage> {
+
+    private final Map<Primitive, SelenideElement> elements = initialiseElements(
+            entry(SEARCH, $x("//input[@ng-model='$ctrl.searchPattern']"))
+    );
 
     public DatasetsPage expandDataset(String datasetName) {
         $x(format("//span[contains(text(),'%s')]/../../span/ng-md-icon/..", datasetName))
@@ -36,7 +45,7 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return this;
     }
 
-    private SelenideElement getTrack(String trackName) {
+    public SelenideElement getTrack(String trackName) {
         return $x(format(".//span[contains(normalize-space(),'%s')]", trackName));
     }
 
@@ -66,4 +75,22 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return this;
     }
 
+    public DatasetsPage inputSearchValue(String searchValue) {
+        return setValue(SEARCH, searchValue);
+    }
+
+    public DatasetsPage checkTracksNumber(int number) {
+        assertTrue($(className("md-virtual-repeat-offsetter")).$$x("./div").size() == number);
+        return this;
+    }
+
+    public DatasetsPage checkTrackMetadataAtSearch(String metadata) {
+        return ensure(getTrack("CantonS.09-28.trim.dm606.realign.bam").parent()
+                .$x(".//span[@class='metadata-info-row']"), text(metadata));
+    }
+
+    @Override
+    public Map<Primitive, SelenideElement> elements() {
+        return elements;
+    }
 }
