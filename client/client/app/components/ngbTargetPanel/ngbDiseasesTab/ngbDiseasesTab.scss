@@ -54,14 +54,6 @@ ngb-diseases-tab {
                 height: $diseases-tab-control-height;
             }
         }
-
-        .diseases-search-button {
-            min-height: $main-action-button-height;
-            height: $main-action-button-height;
-            line-height: $main-action-button-height;
-            min-width: 60px;
-            margin: 5px;
-        }
     }
 
     .loading-indicator {

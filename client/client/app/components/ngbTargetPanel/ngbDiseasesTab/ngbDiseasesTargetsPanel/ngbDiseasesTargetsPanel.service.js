@@ -92,7 +92,7 @@ export default class ngbDiseasesTargetsPanelService {
     }
 
     get diseaseId() {
-        return this.ngbDiseasesTabService.diseasesData.id;
+        return (this.ngbDiseasesTabService.diseasesData || {}).id;
     }
 
     setFilter(field, value) {
