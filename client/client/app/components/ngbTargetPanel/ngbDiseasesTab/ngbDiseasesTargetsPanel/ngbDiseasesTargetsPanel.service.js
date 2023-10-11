@@ -108,6 +108,9 @@ export default class ngbDiseasesTargetsPanelService {
     setTargetsResults(results) {
         this._targetsResults = results.map(item => {
             const {
+                geneSymbol,
+                geneName,
+                homologues,
                 overallScore,
                 geneticAssociationScore,
                 somaticMutationScore,
@@ -118,8 +121,12 @@ export default class ngbDiseasesTargetsPanelService {
                 rnaExpressionScore
             } = item;
             return {
-                'target': item.geneSymbol,
-                'target name': item.geneName,
+                'target': geneSymbol,
+                'target name': geneName,
+                'homologues': {
+                    value: Array.from(new Set(homologues.map(h => h.speciesCommonName))),
+                    limit: 2
+                },
                 'overall score': fixedNumber(overallScore),
                 'genetic association': fixedNumber(geneticAssociationScore),
                 'somatic mutations': fixedNumber(somaticMutationScore),
