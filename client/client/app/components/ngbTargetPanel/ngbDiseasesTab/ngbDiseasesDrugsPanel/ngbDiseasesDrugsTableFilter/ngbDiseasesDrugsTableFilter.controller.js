@@ -18,7 +18,7 @@ export default class ngbDiseasesDrugsTableFilterController {
         Object.assign(this, {$scope, dispatcher, ngbDiseasesDrugsPanelService});
         this.input = $element.find('.ngb-filter-input')[0];
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
-        this.displayText = [...this.selectedItems].join(', ');
+        this.displayText = [...this.selectedItems].join('; ');
 
         this.dispatcher.on('target:diseases:drugs:filters:list', this.setList.bind(this));
         this.dispatcher.on('target:diseases:drugs:filters:reset', this.resetFilters.bind(this));
@@ -81,7 +81,7 @@ export default class ngbDiseasesDrugsTableFilterController {
     }
 
     onChange() {
-        const textParts = (this.displayText || '').split(',');
+        const textParts = (this.displayText || '').split(';');
         const lastPart = textParts[textParts.length - 1].trim().toLowerCase();
         if (this.listElements) {
             this.listElements.refreshList(lastPart);
@@ -119,7 +119,7 @@ export default class ngbDiseasesDrugsTableFilterController {
             this.selectedItems.push(item);
         }
         if (this.selectedItems.length) {
-            this.displayText = this.selectedItems.join(', ');
+            this.displayText = this.selectedItems.join('; ');
         } else {
             this.displayText = '';
         }
@@ -127,7 +127,7 @@ export default class ngbDiseasesDrugsTableFilterController {
     }
 
     searchFinished(searchString, shouldUpdateScope) {
-        const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
+        const parts = this.displayText.split(';').map(part => part.trim().toLowerCase());
         let last = '';
         if (parts.length) {
             last = parts[parts.length - 1];
@@ -151,10 +151,10 @@ export default class ngbDiseasesDrugsTableFilterController {
     }
 
     apply() {
-        const parts = this.displayText.split(',')
+        const parts = this.displayText.split(';')
             .map(part => part.trim());
         this.selectedItems = parts.filter(part => part !== '');
-        this.displayText = this.selectedItems.join(', ');
+        this.displayText = this.selectedItems.join('; ');
         this.listIsDisplayed = false;
         const prevValue = (this.filterInfo || {})[this.column.field] || [];
         prevValue.sort();

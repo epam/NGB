@@ -22,10 +22,20 @@ export default class ngbDiseasesTabController {
             this.refreshData();
         }
         const setDiseasesData = this.setDiseasesData.bind(this);
+        const refreshTotalCounts = this.refreshTotalCounts.bind(this);
         dispatcher.on('target:diseases:disease:changed', setDiseasesData);
+        dispatcher.on('target:diseases:targets:count:updated', refreshTotalCounts);
+        dispatcher.on('target:diseases:drugs:count:updated', refreshTotalCounts);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:diseases:disease:changed', setDiseasesData);
+            dispatcher.removeListener('target:diseases:targets:count:updated', refreshTotalCounts);
+            dispatcher.removeListener('target:diseases:drugs:count:updated', refreshTotalCounts);
         });
+    }
+
+    refreshTotalCounts() {
+        this.refreshInfoBlocks();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     refreshData() {
