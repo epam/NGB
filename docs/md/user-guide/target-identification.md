@@ -12,6 +12,7 @@
     - [Associated diseases block](#associated-diseases-block)
     - [Sequences block](#sequences-block)
     - [Comparative genomics block](#comparative-genomics-block)
+        - [Alignment panel](#alignment-panel)
     - [Structure block](#structure-block)
     - [Bibliography block](#bibliography-block)
     - [Chat with AI](#chat-with-ai)
@@ -191,7 +192,7 @@ Example of view:
 
 This block contains info about _drugs_ with investigational or approved indications targeting the current target gene(s) according to their curated mechanism of action.
 
-When the block is collapsed - its header contains short info about the count of associated drugs to the target gene(s):  
+When the block is collapsed - its header contains short info about the count of unique drugs associated to the target gene(s) and the total count of records with these drugs in databases:  
   ![NGB GUI](images/targets-33.png)
 
 When the block is expanded - it contains a table with known drugs that treat diseases associated with the current target:  
@@ -241,6 +242,8 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
 
+To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+
 ### Associated diseases block
 
 This block contains info about _diseases associated_ with the current target gene(s).
@@ -275,6 +278,10 @@ Table itself is colorized as a heatmap - according to the score value in each ce
 
 By default, table is sorted descending by the _Overall score_ column.  
 Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering by columns _Target_ and _Disease_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
 
 **Bubbles view**
 
@@ -330,6 +337,13 @@ The table includes columns:
 
 ![NGB GUI](images/targets-48.png)
 
+By default, table is sorted descending by the _Target_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+
 ### Sequences block
 
 This block contains list of sequence(s) corresponding to the target - DNA, RNA, proteins.
@@ -366,10 +380,60 @@ Such table includes columns:
 
 ### Comparative genomics block
 
-This block contains information about homologous genes for the target genes:
+This block contains:
 
-- paralogs of the current target gene(s)/transcrition(s) in the _species of interest_
-- orthologs of the current target gene(s) in the _translational species_
+- list of homologous genes for the target genes:
+    - in the _species of interest_
+    - in the _translational species_
+- alignment panel that allows to align genes in species of interest to genes in translational species
+
+![NGB GUI](images/targets-80.png)
+
+Table with homologous genes includes columns:
+
+- _Target_ - target gene name
+- _Species_ - species name of homologous gene (by default, it is selected from species of interest or translational species of the current identification)
+- _Homology type_ - type of homology (ortholog/paralog/homolog)
+- _Homologue_ - homologous gene name. It is a hyperlink to the corresponding gene page in NCBI
+- _Homology group_ - feature of gene homology
+- coding protein info:
+    - _Protein_ - protein name
+    - _Aa_ - protein sequence length
+    - _Domains_ - for an approximate image of the conserved protein domains. Each image contains:
+        - a line for a full protein length
+        - one or several color rectangles - each for the specific conserved domain. Different domains are drawn by different colors, the same domains are drawn in the same colors
+
+Table supports filtering by columns _Target_, _Species_ and _Homology Type_. To filter the displayed list - specify the desired value(s) to the filter field(s) under headers row.
+
+#### Alignment panel
+
+Under homologs table, there is the **Alignment panel** that allows to align protein sequences of genes in species of interest to homologous genes in translational species and vice versa.
+
+To perform an alignment:
+
+1. Select the target gene from the dropdown list - to which the alignment will be performed, e.g.:  
+  ![NGB GUI](images/targets-81.png)
+2. Select the specific protein of the target gene for the alignment, e.g.:  
+  ![NGB GUI](images/targets-82.png)
+3. In a similar way, select the query gene (which will be aligned) from the dropdown list - and its specific protein for the alignment.
+4. Click the **Align** button:  
+  ![NGB GUI](images/targets-83.png)
+5. Alignment of the selected protein sequences will appear below:  
+  ![NGB GUI](images/targets-84.png)  
+  Above the alignment, displayed:  
+    - the count of identities between sequences (by symbols) and its percent value
+    - the count of gaps (by symbols) and its percent value  
+  **_Note_**: how to "read" alignments you can see in the corresponding section of the BLAST search manual - [here](blast-search.md#alignments-info).
+
+Additionally, users can view the comparison of aligned protein sequences on the track in the **Browser** panel.
+
+> **_Note_**: it is possible only if the reference of the selected target gene is registered in the current deployment of NGB.  
+
+To view such comparison - click the button **View on track** after performed alignment:  
+  ![NGB GUI](images/targets-85.png)
+
+Opened comparison is shown at a separate track.  
+Please note that comparison visualization does not show exact location of the alignment, it highlights the whole gene feature instead.
 
 ### Structure block
 
