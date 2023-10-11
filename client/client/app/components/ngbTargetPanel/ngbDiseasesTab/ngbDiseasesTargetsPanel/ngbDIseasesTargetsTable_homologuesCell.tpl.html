@@ -1,6 +1,6 @@
 <div class="cell-content">
     <p ng-repeat="element in row.entity[col.field].value | limitTo : row.entity[col.field].limit track by $index">
-        {{element}}
+        {{element.name}}
     </p>
     <p ng-if="row.entity[col.field].value.length > row.entity[col.field].limit">
         and
@@ -12,7 +12,7 @@
       </p>
     <p class="others-button"
           ng-if="row.entity[col.field].limit > row.entity[col.field].value.length &&
-            row.entity[col.field].value.length !== 1"
+            row.entity[col.field].value.length !== 1 && row.entity[col.field].value.length !== 0"
           ng-click="grid.appScope.$ctrl.showLess(row.entity[col.field], $event)">
         less
     </p>

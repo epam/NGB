@@ -87,6 +87,7 @@ export default class ngbDiseasesTabService {
     }
 
     async searchDisease(id) {
+        if (this._diseasesData && id === this._diseasesData.id) return;
         this._loadingData = true;
         await this.getDiseaseData(id)
             .then(() => {

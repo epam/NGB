@@ -146,10 +146,12 @@ export default class ngbDiseasesTargetsPanelController {
             return;
         }
         this.sortInfo = this.defaultSort;
+        await this.ngbDiseasesTargetsPanelService.setDefaultFilter();
         if (this.targetsResults) {
             this.gridOptions.data = this.targetsResults;
         } else {
             await this.loadData();
+            this.ngbDiseasesTargetsPanelService.setFieldList();
         }
         this.gridOptions.columnDefs = this.getTargetsTableGridColumns();
     }
@@ -195,6 +197,7 @@ export default class ngbDiseasesTargetsPanelController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: homologueCell,
+                        enableFiltering: true,
                     };
                     break;
                 default:
