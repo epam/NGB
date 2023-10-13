@@ -23,13 +23,11 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
-import com.epam.catgenome.manager.export.ExportField;
-import com.epam.catgenome.manager.export.ExportUtils;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
-import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -48,8 +46,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
