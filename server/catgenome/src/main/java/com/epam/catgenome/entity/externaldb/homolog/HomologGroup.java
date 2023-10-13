@@ -45,5 +45,6 @@ public class HomologGroup {
     private Long databaseId;
     private String homologDatabase;
     private HomologType type;
+    private String homologyType;
     private List<Gene> homologs;
 }

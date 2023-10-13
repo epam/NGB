@@ -34,7 +34,7 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum PharmGKBDiseaseField implements AssociationExportField<PharmGKBDisease> {
-    GENE_ID("Target ID", PharmGKBDisease::getGeneId, FilterType.TERMS, false),
+    GENE_ID("Target ID", PharmGKBDisease::getGeneId, FilterType.TERM, false),
     TARGET("Target", PharmGKBDisease::getTarget, FilterType.NONE, true),
     DISEASE_NAME("Disease", PharmGKBDisease::getName, FilterType.PHRASE, true),
     DISEASE_ID(false);

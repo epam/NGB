@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.opentargets;
+package com.epam.catgenome.manager.index;
 
-import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 
-import java.util.List;
-
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DiseaseAssociation {
-    private String geneId;
-    private String geneSymbol;
-    private String geneName;
-    private String target;
-    private String diseaseId;
-    private String diseaseName;
-    private AssociationType type;
-    private Float score;
-    private Float overallScore;
-    private Float geneticAssociationScore;
-    private Float somaticMutationScore;
-    private Float knownDrugScore;
-    private Float affectedPathwayScore;
-    private Float literatureScore;
-    private Float rnaExpressionScore;
-    private Float animalModelScore;
-    private List<HomologGroup> homologues;
+public class CaseInsensitiveWhitespaceAnalyzer extends Analyzer {
+    @Override
+    protected TokenStreamComponents createComponents(String fieldName) {
+        final Tokenizer tokenizer = new WhitespaceTokenizer();
+        final TokenStream filter = new LowerCaseFilter(tokenizer);
+        return new TokenStreamComponents(tokenizer, filter);
+    }
 }

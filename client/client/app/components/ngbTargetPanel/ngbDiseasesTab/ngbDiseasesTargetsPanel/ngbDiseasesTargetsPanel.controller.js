@@ -1,4 +1,4 @@
-const COLUMN_LIST = ['target', 'target name', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
+const COLUMN_LIST = ['target', 'target name', 'homologues', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 
 const DEFAULT_SORT = [{
     field: 'overall score',
@@ -40,9 +40,12 @@ export default class ngbDiseasesTargetsPanelController {
         useExternalSorting: true
     }
 
-    getHighlightColor(alpha) {
+    getCellStyle(alpha) {
         return alpha
-            ? {'background-color': `rgb(102, 153, 255, ${alpha})`}
+            ? {
+                'background-color': `rgb(102, 153, 255, ${alpha})`,
+                'height': '100%'
+            }
             : undefined;
     }
 
@@ -143,10 +146,12 @@ export default class ngbDiseasesTargetsPanelController {
             return;
         }
         this.sortInfo = this.defaultSort;
+        await this.ngbDiseasesTargetsPanelService.setDefaultFilter();
         if (this.targetsResults) {
             this.gridOptions.data = this.targetsResults;
         } else {
             await this.loadData();
+            this.ngbDiseasesTargetsPanelService.setFieldList();
         }
         this.gridOptions.columnDefs = this.getTargetsTableGridColumns();
     }
@@ -154,6 +159,7 @@ export default class ngbDiseasesTargetsPanelController {
     getTargetsTableGridColumns() {
         const headerCells = require('./ngbDiseasesTargetsTable_header.tpl.html');
         const colorCell = require('./ngbDiseasesTargetsTable_colorCell.tpl.html');
+        const homologueCell = require('./ngbDIseasesTargetsTable_homologuesCell.tpl.html');
 
         const result = [];
         const columnsList = this.columnList;
@@ -187,6 +193,13 @@ export default class ngbDiseasesTargetsPanelController {
                         minWidth: 200
                     };
                     break;
+                case 'homologues':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: homologueCell,
+                        enableFiltering: true,
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
@@ -199,6 +212,16 @@ export default class ngbDiseasesTargetsPanelController {
             }
         }
         return result;
+    }
+
+    showOthers(cell, event) {
+        event.stopPropagation();
+        cell.limit = 100000;
+    }
+
+    showLess(cell, event) {
+        event.stopPropagation();
+        cell.limit = 2;
     }
 
     async loadData () {

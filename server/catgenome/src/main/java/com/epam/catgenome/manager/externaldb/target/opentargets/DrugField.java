@@ -34,23 +34,23 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum DrugField implements AssociationExportFieldDiseaseView<DrugAssociation> {
-    GENE_ID("Target ID", DrugAssociation::getGeneId, FilterType.TERMS, false, false),
+    GENE_ID("Target ID", DrugAssociation::getGeneId, FilterType.TERM, false, false),
     GENE_SYMBOL("Target", DrugAssociation::getGeneSymbol,  FilterType.PHRASE, false, true),
     GENE_NAME("Target Name", DrugAssociation::getGeneName,  FilterType.PHRASE, false, true),
     TARGET("Target", DrugAssociation::getTarget,  FilterType.NONE, true, false),
     DRUG_ID(false, false),
     DRUG_NAME("Drug", o -> String.valueOf(o.getDrug().getName()), FilterType.PHRASE,
             true, true),
-    DRUG_TYPE("Type", DrugAssociation::getDrugType, FilterType.TERMS, true, true),
-    MECHANISM_OF_ACTION("Mechanism Of Action", DrugAssociation::getMechanismOfAction, FilterType.TERMS,
+    DRUG_TYPE("Type", DrugAssociation::getDrugType, FilterType.OPTIONS, true, true),
+    MECHANISM_OF_ACTION("Mechanism Of Action", DrugAssociation::getMechanismOfAction, FilterType.OPTIONS,
             true, true),
-    ACTION_TYPE("Action Type", DrugAssociation::getActionType, FilterType.TERMS, true, true),
+    ACTION_TYPE("Action Type", DrugAssociation::getActionType, FilterType.OPTIONS, true, true),
     DISEASE_ID(false, false),
     DISEASE_NAME("Disease", o -> String.valueOf(o.getDisease().getName()), FilterType.PHRASE,
             true, false),
-    PHASE("Phase", DrugAssociation::getPhase, FilterType.TERMS, true, true),
-    STATUS("Status", DrugAssociation::getStatus, FilterType.TERMS, true, true),
-    SOURCE("Source", o -> String.valueOf(o.getSource().getName()), FilterType.TERMS,
+    PHASE("Phase", DrugAssociation::getPhase, FilterType.OPTIONS, true, true),
+    STATUS("Status", DrugAssociation::getStatus, FilterType.OPTIONS, true, true),
+    SOURCE("Source", o -> String.valueOf(o.getSource().getName()), FilterType.OPTIONS,
             true, true),
     SOURCE_URL(false, false);
     private String label;

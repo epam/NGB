@@ -29,9 +29,14 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
+import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,6 +77,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,15 +95,18 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     @Value("${targets.opentargets.scoresDir:associationByDatatypeDirect}")
     private String scoresDir;
     private final DiseaseManager diseaseManager;
+    private final OpenTargetsManager openTargetsManager;
     private final TargetDetailsManager targetDetailsManager;
 
     public DiseaseAssociationManager(final @Value("${targets.index.directory}") String indexDirectory,
                                      final @Value("${targets.top.hits:10000}") int targetsTopHits,
                                      final DiseaseManager diseaseManager,
-                                     final TargetDetailsManager targetDetailsManager) {
+                                     final TargetDetailsManager targetDetailsManager,
+                                     final OpenTargetsManager openTargetsManager) {
         super(Paths.get(indexDirectory, "opentargets.disease.association").toString(), targetsTopHits);
         this.diseaseManager = diseaseManager;
         this.targetDetailsManager = targetDetailsManager;
+        this.openTargetsManager = openTargetsManager;
     }
 
 
@@ -132,6 +141,13 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     public long totalCount(final String diseaseId) throws ParseException, IOException {
         final List<DiseaseAssociation> result = search(diseaseId);
         return result.stream().map(DiseaseAssociation::getGeneId).distinct().count();
+    }
+
+    public SearchResult<DiseaseAssociation> search(final SearchRequest request, final String diseaseId)
+            throws ParseException, IOException {
+        final SearchResult<DiseaseAssociation> result = super.search(request, diseaseId);
+        fillHomologues(result);
+        return result;
     }
 
     @Override
@@ -294,13 +310,9 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DiseaseField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DiseaseField.valueOf(fieldName).getType();
     }
 
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
@@ -405,5 +417,15 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     private static float getScore(final Document doc, final DiseaseField field) {
         return  doc.getField(field.name()).numericValue().floatValue();
+    }
+
+    private void fillHomologues(final SearchResult<DiseaseAssociation> result) {
+        final List<String> targetIds = result.getItems().stream()
+                .map(DiseaseAssociation::getGeneId)
+                .collect(Collectors.toList());
+        final Map<String, List<HomologGroup>> homologuesMap = openTargetsManager.getHomologues(targetIds);
+        result.getItems().forEach(i -> {
+            i.setHomologues(homologuesMap.get(i.getGeneId()));
+        });
     }
 }

@@ -23,10 +23,13 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
@@ -144,7 +148,25 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return mainBuilder.build();
     }
 
-    public abstract void addFieldQuery(BooleanQuery.Builder builder, Filter filter);
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) throws ParseException {
+        Query query;
+        switch (getFilterType(filter.getField())) {
+            case PHRASE:
+                query = getByPhraseQuery(filter.getTerms().get(0), filter.getField());
+                break;
+            case TERM:
+                query = getByTermsQuery(filter.getTerms(), filter.getField());
+                break;
+            case OPTIONS:
+                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                break;
+            default:
+                return;
+        }
+        builder.add(query, BooleanClause.Occur.MUST);
+    }
+
+    public abstract FilterType getFilterType(String fieldName);
 
     @Getter
     private enum IndexCommonFields {

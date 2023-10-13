@@ -1,0 +1,19 @@
+<div class="cell-content">
+    <p ng-repeat="element in row.entity[col.field].value | limitTo : row.entity[col.field].limit track by $index">
+        {{element.name}}
+    </p>
+    <p ng-if="row.entity[col.field].value.length > row.entity[col.field].limit">
+        and
+        <span class="others-button"
+              ng-click="grid.appScope.$ctrl.showOthers(row.entity[col.field], $event)">
+            {{row.entity[col.field].value.length - row.entity[col.field].limit}}
+            {{row.entity[col.field].value.length - row.entity[col.field].limit === 1 ? 'other' : 'others'}}
+        </span>
+      </p>
+    <p class="others-button"
+          ng-if="row.entity[col.field].limit > row.entity[col.field].value.length &&
+            row.entity[col.field].value.length !== 1 && row.entity[col.field].value.length !== 0"
+          ng-click="grid.appScope.$ctrl.showLess(row.entity[col.field], $event)">
+        less
+    </p>
+</div>

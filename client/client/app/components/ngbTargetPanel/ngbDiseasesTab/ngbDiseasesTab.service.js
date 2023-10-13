@@ -6,7 +6,7 @@ export default class ngbDiseasesTabService {
     _loadingData = false;
     _failedResult = false;
     _errorMessageList = null;
-    diseasesData = null;
+    _diseasesData = null;
     _openedPanels = {
         drugs: false,
         targets: false,
@@ -38,6 +38,12 @@ export default class ngbDiseasesTabService {
     }
     get openedPanels() {
         return this._openedPanels;
+    }
+    get diseasesData() {
+        return this._diseasesData;
+    }
+    set diseasesData(value) {
+        this._diseasesData = value;
     }
 
     static instance ($timeout, dispatcher, targetDataService) {
@@ -81,6 +87,7 @@ export default class ngbDiseasesTabService {
     }
 
     async searchDisease(id) {
+        if (this._diseasesData && id === this._diseasesData.id) return;
         this._loadingData = true;
         await this.getDiseaseData(id)
             .then(() => {
@@ -94,14 +101,14 @@ export default class ngbDiseasesTabService {
                 .then(data => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this.diseasesData = data;
+                    this._diseasesData = data;
                     this._loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._failedResult = true;
                     this._errorMessageList = [err.message];
-                    this.diseasesData = null;
+                    this._diseasesData = null;
                     this._loadingData = false;
                     resolve(false);
                 });
@@ -127,6 +134,6 @@ export default class ngbDiseasesTabService {
         this._loadingData = false;
         this._failedResult = false;
         this._errorMessageList = null;
-        this.diseasesData = null;
+        this._diseasesData = null;
     }
 }

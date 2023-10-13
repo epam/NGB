@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import lombok.SneakyThrows;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -164,11 +166,11 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
             doc.add(new TextField(DGIDBField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
-            doc.add(new TextField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
+            doc.add(new StringField(DGIDBField.INTERACTION_TYPES.name(), entry.getInteractionTypes(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_TYPES.name(),
                     new BytesRef(entry.getInteractionTypes())));
 
-            doc.add(new TextField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
+            doc.add(new StringField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     entry.getInteractionClaimSource(), Field.Store.YES));
             doc.add(new SortedDocValuesField(DGIDBField.INTERACTION_CLAIM_SOURCE.name(),
                     new BytesRef(entry.getInteractionClaimSource())));
@@ -188,13 +190,9 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                 .build();
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DGIDBField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DGIDBField.valueOf(fieldName).getType();
     }
 
     @Nullable

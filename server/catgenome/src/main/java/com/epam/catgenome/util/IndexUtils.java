@@ -622,6 +622,14 @@ public final class IndexUtils {
         return builder.build();
     }
 
+    public static Query getByOptionsQuery(final List<String> options, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String option : options) {
+            builder.add(buildTermQuery(option, fieldName), BooleanClause.Occur.SHOULD);
+        }
+        return builder.build();
+    }
+
     public static Query buildTermQuery(final String term, final String fieldName) {
         return new TermQuery(new Term(fieldName, term));
     }

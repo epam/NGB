@@ -29,8 +29,13 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,6 +65,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -172,24 +178,24 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new TextField(DrugField.GENE_NAME.name(), geneName, Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.GENE_NAME.name(), new BytesRef(geneName)));
 
-        doc.add(new TextField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
+        doc.add(new StringField(DrugField.DRUG_TYPE.name(), entry.getDrugType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.DRUG_TYPE.name(), new BytesRef(entry.getDrugType())));
 
-        doc.add(new TextField(DrugField.MECHANISM_OF_ACTION.name(),
+        doc.add(new StringField(DrugField.MECHANISM_OF_ACTION.name(),
                 entry.getMechanismOfAction(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.MECHANISM_OF_ACTION.name(),
                 new BytesRef(entry.getMechanismOfAction())));
 
-        doc.add(new TextField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
+        doc.add(new StringField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.ACTION_TYPE.name(), new BytesRef(entry.getActionType())));
 
-        doc.add(new TextField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
+        doc.add(new StringField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.PHASE.name(), new BytesRef(entry.getPhase())));
 
-        doc.add(new TextField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
+        doc.add(new StringField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.STATUS.name(), new BytesRef(entry.getStatus())));
 
-        doc.add(new TextField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
+        doc.add(new StringField(DrugField.SOURCE.name(), entry.getSource().getName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.SOURCE.name(), new BytesRef(entry.getSource().getName())));
 
         doc.add(new StringField(DrugField.SOURCE_URL.name(), entry.getSource().getUrl(), Field.Store.YES));
@@ -251,13 +257,9 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 .build();
     }
 
-    @SneakyThrows
     @Override
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) {
-        final Query query = DrugField.valueOf(filter.getField()).getType().equals(FilterType.PHRASE) ?
-                getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
-                getByTermsQuery(filter.getTerms(), filter.getField());
-        builder.add(query, BooleanClause.Occur.MUST);
+    public FilterType getFilterType(String fieldName) {
+        return DrugField.valueOf(fieldName).getType();
     }
 
     private DrugFieldValues getFieldValues(final Query query) throws IOException, ParseException {

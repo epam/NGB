@@ -29,6 +29,7 @@ ngb-diseases-drugs-panel {
         border: none;
         height: auto;
         border-top: $diseases-drugs-border;
+        min-height: 250px;
 
         .ui-grid-viewport {
             height: 100% !important;

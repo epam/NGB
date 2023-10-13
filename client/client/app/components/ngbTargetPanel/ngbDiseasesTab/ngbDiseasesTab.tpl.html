@@ -24,13 +24,6 @@
             </md-item-template>
             <md-not-found>Not found.</md-not-found>
         </md-autocomplete>
-        <md-button type="button"
-                   class="md-primary md-raised md-accent diseases-search-button"
-                   aria-label="search disease"
-                   ng-click="$ctrl.searchDisease()"
-                   ng-disabled="!$ctrl.diseaseModel">
-            SEARCH
-        </md-button>
     </div>
     <div class="loading-indicator"
          ng-if="$ctrl.loadingData">

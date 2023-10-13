@@ -18,11 +18,11 @@
     <div class="ngb-filter-list-item"
          ng-if="!$ctrl.listElements.isLoading"
          ng-repeat="(index, item) in $ctrl.listElements.preLoadedList track by $index">
-        <md-checkbox aria-label="{{item}} checkbox"
+        <md-checkbox aria-label="{{item.name || item}} checkbox"
                      ng-checked="$ctrl.itemIsSelected(item)"
                      ng-click="$ctrl.didClickOnItem(item)"
                      ng-if="!item.placeholder && !item.divider">
-            {{item}}
+            {{item.name || item}}
         </md-checkbox>
         <span class="ngb-filter-list-item-placeholder"
               ng-if="item.placeholder">
