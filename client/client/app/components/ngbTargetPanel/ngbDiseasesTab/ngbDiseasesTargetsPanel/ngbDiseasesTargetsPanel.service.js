@@ -41,6 +41,7 @@ export default class ngbDiseasesTargetsPanelService {
     _filterInfo = null;
     fieldList = {};
     _targetsResults = null;
+    _speciesFilter = null;
 
     get loadingData() {
         return this._loadingData;
@@ -82,17 +83,29 @@ export default class ngbDiseasesTargetsPanelService {
         return this._targetsResults;
     }
 
-    static instance (dispatcher, ngbDiseasesTabService, targetDataService) {
-        return new ngbDiseasesTargetsPanelService(dispatcher, ngbDiseasesTabService, targetDataService);
+    static instance (dispatcher, ngbDiseasesTabService, targetDataService, utilsDataService) {
+        return new ngbDiseasesTargetsPanelService(dispatcher, ngbDiseasesTabService, targetDataService, utilsDataService);
     }
 
-    constructor(dispatcher, ngbDiseasesTabService, targetDataService) {
-        Object.assign(this, {dispatcher, ngbDiseasesTabService, targetDataService});
+    constructor(dispatcher, ngbDiseasesTabService, targetDataService, utilsDataService) {
+        Object.assign(this, {dispatcher, ngbDiseasesTabService, targetDataService, utilsDataService});
         dispatcher.on('target:diseases:disease:changed', this.resetData.bind(this));
     }
 
     get diseaseId() {
         return (this.ngbDiseasesTabService.diseasesData || {}).id;
+    }
+
+    async getTargetSettings() {
+        const {target_settings: targetSettings} = await this.utilsDataService.getDefaultTrackSettings();
+        if (!targetSettings) return;
+        const {species_filter: speciesFilter} = targetSettings;
+        if (!speciesFilter) return;
+        this.setSpeciesFilter(speciesFilter);
+    }
+
+    setSpeciesFilter(speciesFilter) {
+        this._speciesFilter = Object.entries(speciesFilter).map(([taxId, name]) => ({ name, taxId }));
     }
 
     setFilter(field, value) {
@@ -105,9 +118,29 @@ export default class ngbDiseasesTargetsPanelService {
         this._filterInfo = filter;
     }
 
+    getAllHomologues(homologues) {
+        if (!homologues) return [];
+        let homologuesArray = Array.from(new Set(
+                homologues.map(h => JSON.stringify({
+                    name: h.speciesCommonName,
+                    taxId: h.taxId
+                }))
+            )).map(h => JSON.parse(h));
+        if (this._filterInfo && this._filterInfo.homologues) {
+            const taxIds = this._filterInfo.homologues.map(h => h.taxId);
+            homologuesArray = homologuesArray.filter(h => {
+                return taxIds.includes(`${h.taxId}`);
+            })
+        }
+        return homologuesArray;
+    }
+
     setTargetsResults(results) {
         this._targetsResults = results.map(item => {
             const {
+                geneSymbol,
+                geneName,
+                homologues,
                 overallScore,
                 geneticAssociationScore,
                 somaticMutationScore,
@@ -118,8 +151,12 @@ export default class ngbDiseasesTargetsPanelService {
                 rnaExpressionScore
             } = item;
             return {
-                'target': item.geneSymbol,
-                'target name': item.geneName,
+                'target': geneSymbol,
+                'target name': geneName,
+                'homologues': {
+                    value: this.getAllHomologues(homologues),
+                    limit: 2
+                },
                 'overall score': fixedNumber(overallScore),
                 'genetic association': fixedNumber(geneticAssociationScore),
                 'somatic mutations': fixedNumber(somaticMutationScore),
@@ -145,13 +182,15 @@ export default class ngbDiseasesTargetsPanelService {
         }
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
-                .filter(([key, values]) => values.length)
+                .filter(([key, values]) => values && values.length)
                 .map(([key, values]) => {
+                    if (key === 'homologues') return;
                     return {
                         field: this.fields[key],
                         terms: values.map(v => v)
                     };
-                });
+                })
+                .filter(i => i);
             if (filters && filters.length) {
                 request.filters = filters;
             }
@@ -197,6 +236,22 @@ export default class ngbDiseasesTargetsPanelService {
         });
     }
 
+    async setDefaultFilter() {
+        await this.getTargetSettings();
+        if (!this._speciesFilter && this._speciesFilter.length) return;
+        this.setFilter('homologues', this._speciesFilter);
+    }
+
+    async setFieldList() {
+        if (!this._speciesFilter) {
+            this.fieldList = {};
+            this.dispatcher.emitSimpleEvent('target:diseases:targets:filters:list');
+            return;
+        }
+        this.fieldList.homologues = this._speciesFilter;
+        this.dispatcher.emitSimpleEvent('target:diseases:targets:filters:list')
+    }
+
     resetData() {
         this._loadingData = false;
         this._failedResult = false;
@@ -208,6 +263,7 @@ export default class ngbDiseasesTargetsPanelService {
         this._filterInfo = null;
         this.fieldList = {};
         this._targetsResults = null;
+        this._speciesFilter = null;
     }
 
     exportResults() {

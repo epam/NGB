@@ -242,7 +242,7 @@ export default class ngbDiseasesDrugsPanelService {
         const result = await this.getDrugsFieldValues();
         if (!result) {
             this.fieldList = {};
-            this.dispatcher.emitSimpleEvent('target:diseases:drugs:filters:list');
+            this.dispatcher.emit('target:diseases:drugs:filters:list');
             return;
         }
         const entries = Object.entries(result);
@@ -257,7 +257,7 @@ export default class ngbDiseasesDrugsPanelService {
                 this.fieldList[field] = values;
             }
         }
-        this.dispatcher.emitSimpleEvent('target:diseases:drugs:filters:list');
+        this.dispatcher.emit('target:diseases:drugs:filters:list');
     }
 
     getDrugsFieldValues() {

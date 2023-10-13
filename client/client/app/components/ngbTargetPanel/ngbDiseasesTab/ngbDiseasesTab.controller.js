@@ -89,6 +89,7 @@ export default class ngbDiseasesTabController {
         if (!disease) return;
         this.diseaseModel = disease;
         this.searchText = disease.name;
+        this.searchDisease();
     }
 
     onBlur () {
