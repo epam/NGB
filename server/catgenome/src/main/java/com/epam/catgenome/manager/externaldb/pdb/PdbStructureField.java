@@ -21,33 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.manager.externaldb.pdb;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.manager.export.ExportField;
+import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+import java.util.function.Function;
+
+import static org.apache.commons.lang3.StringUtils.join;
+
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends UrlEntity {
-    public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
-    private String geneId;
-    private String target;
-    private String entrezId;
-    private String interactionTypes;
-    private String interactionClaimSource;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url);
-        this.entrezId = entrezId;
-        this.geneId = geneId;
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
-    }
+@Getter
+public enum PdbStructureField implements ExportField<Structure> {
+    ID("ID", Structure::getId),
+    NAME("Name", Structure::getName),
+    METHOD("Method", Structure::getMethod),
+    SOURCE("Source", Structure::getSource),
+    RESOLUTION("Resolution", o -> String.valueOf(o.getResolution())),
+    CHAINS("Chains", o -> join(o.getProteinChains(), "/"));
+    private String label;
+    private Function<Structure, String> getter;
 }

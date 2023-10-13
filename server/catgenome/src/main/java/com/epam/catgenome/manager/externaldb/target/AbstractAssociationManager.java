@@ -23,13 +23,10 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
-import com.epam.catgenome.manager.export.ExportField;
-import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
-import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -48,7 +45,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
@@ -121,6 +117,10 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return entries;
     }
 
+    public List<T> search(final List<String> geneIds) throws ParseException, IOException {
+        return search(getByGeneIdsQuery(geneIds), getDefaultSort());
+    }
+
     public T entryFromDocDiseaseView(Document doc) {
         return null;
     };
@@ -131,14 +131,6 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
 
     public List<T> searchByGeneIds(final List<String> ids) throws ParseException, IOException {
         return search(ids, IndexCommonFields.GENE_ID.name());
-    }
-
-    public byte[] export(final List<String> geneIds, final FileFormat format, final boolean includeHeader)
-            throws ParseException, IOException {
-        final List<ExportField<T>> exportFields = getExportFields().stream().filter(AssociationExportField::isExport)
-                .collect(Collectors.toList());
-        return ExportUtils.export(search(getByGeneIdsQuery(geneIds), getDefaultSort()),
-                exportFields, format, includeHeader);
     }
 
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {
@@ -153,7 +145,6 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
     }
 
     public abstract void addFieldQuery(BooleanQuery.Builder builder, Filter filter);
-    public abstract List<AssociationExportField<T>> getExportFields();
 
     @Getter
     private enum IndexCommonFields {

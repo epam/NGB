@@ -38,6 +38,7 @@ import lombok.Setter;
 public class PharmGKBDrug extends UrlEntity {
     public static final String URL_PATTERN = "https://www.pharmgkb.org/labelAnnotation/%s";
     private String geneId;
+    private String target;
     private String pharmGKBGeneId;
     private String source;
     @Builder

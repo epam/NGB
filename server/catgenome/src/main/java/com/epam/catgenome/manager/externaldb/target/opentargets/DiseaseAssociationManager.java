@@ -29,14 +29,9 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.index.FilterType;
-import com.epam.catgenome.manager.export.ExportField;
-import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.OrderInfo;
-import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,7 +72,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -309,14 +303,6 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         builder.add(query, BooleanClause.Occur.MUST);
     }
 
-    public byte[] export(final String diseaseId, final FileFormat format, final boolean includeHeader)
-            throws ParseException, IOException {
-        final List<ExportField<DiseaseAssociation>> exportFields = Arrays.stream(DiseaseField.values())
-                .filter(AssociationExportFieldDiseaseView::isExportDiseaseView)
-                .collect(Collectors.toList());
-        return ExportUtils.export(search(diseaseId), exportFields, format, includeHeader);
-    }
-
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
         return DiseaseAssociation.builder()
                 .geneId(jsonNodes.at("/targetId").asText())
@@ -419,10 +405,5 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     private static float getScore(final Document doc, final DiseaseField field) {
         return  doc.getField(field.name()).numericValue().floatValue();
-    }
-
-    @Override
-    public List<AssociationExportField<DiseaseAssociation>> getExportFields() {
-        return Arrays.asList(DiseaseField.values());
     }
 }

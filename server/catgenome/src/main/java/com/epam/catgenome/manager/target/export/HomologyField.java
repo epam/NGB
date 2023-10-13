@@ -21,33 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.manager.target.export;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.manager.export.ExportField;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+import java.util.function.Function;
+
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends UrlEntity {
-    public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
-    private String geneId;
-    private String target;
-    private String entrezId;
-    private String interactionTypes;
-    private String interactionClaimSource;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url);
-        this.entrezId = entrezId;
-        this.geneId = geneId;
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
-    }
+@Getter
+public enum HomologyField implements ExportField<TargetHomology> {
+    TARGET("Target", TargetHomology::getTarget),
+    SPECIES("Species", TargetHomology::getSpecies),
+    HOMOLOGY_TYPE("Homology Type", TargetHomology::getHomologyType),
+    HOMOLOGUE("Homologue", TargetHomology::getHomologue),
+    HOMOLOGY_GROUP("Homology Group", TargetHomology::getHomologyGroup),
+    PROTEIN("Protein", TargetHomology::getProtein),
+    PROTEIN_LENGTH("Aa", o -> String.valueOf(o.getProteinLen()));
+    private String label;
+    private Function<TargetHomology, String> getter;
 }

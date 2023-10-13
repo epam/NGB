@@ -28,7 +28,6 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import lombok.SneakyThrows;
@@ -54,7 +53,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,10 +191,5 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
                 getByPhraseQuery(filter.getTerms().get(0), filter.getField()) :
                 getByTermsQuery(filter.getTerms(), filter.getField());
         builder.add(query, BooleanClause.Occur.MUST);
-    }
-
-    @Override
-    public List<AssociationExportField<PharmGKBDrug>> getExportFields() {
-        return Arrays.asList(PharmGKBDrugField.values());
     }
 }

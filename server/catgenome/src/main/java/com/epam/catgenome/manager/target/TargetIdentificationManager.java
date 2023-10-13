@@ -45,7 +45,7 @@ import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
-import com.epam.catgenome.manager.externaldb.PdbEntriesManager;
+import com.epam.catgenome.manager.externaldb.pdb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;

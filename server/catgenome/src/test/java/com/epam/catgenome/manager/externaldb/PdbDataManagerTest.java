@@ -31,6 +31,7 @@ import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Dataset;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
+import com.epam.catgenome.manager.externaldb.pdb.PdbDataManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Spy;

@@ -44,8 +44,8 @@ import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import com.epam.catgenome.manager.target.AlignmentSecurityService;
-import com.epam.catgenome.manager.target.AssociationExportSecurityService;
-import com.epam.catgenome.manager.target.AssociationTable;
+import com.epam.catgenome.manager.target.export.TargetExportSecurityService;
+import com.epam.catgenome.manager.target.export.TargetExportTable;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
@@ -70,6 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -80,7 +81,7 @@ public class TargetController extends AbstractRESTController {
     private final TargetSecurityService targetSecurityService;
     private final AlignmentSecurityService alignmentSecurityService;
     private final TargetIdentificationSecurityService targetIdentificationSecurityService;
-    private final AssociationExportSecurityService exportSecurityService;
+    private final TargetExportSecurityService exportSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
     @ApiOperation(
@@ -438,13 +439,32 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void export(@RequestParam final List<String> geneIds,
+    public void export(@RequestParam final List<String> genesOfInterest,
+                       @RequestParam final List<String> translationalGenes,
                        @RequestParam final FileFormat format,
-                       @RequestParam final AssociationTable source,
+                       @RequestParam final TargetExportTable source,
                        @RequestParam final boolean includeHeader,
-                       HttpServletResponse response) throws IOException, ParseException {
-        final byte[] bytes = exportSecurityService.export(geneIds, format, source, includeHeader);
+                       HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final byte[] bytes = exportSecurityService.export(genesOfInterest, translationalGenes,
+                format, source, includeHeader);
         response.getOutputStream().write(bytes);
         response.flushBuffer();
+    }
+
+    @GetMapping(value = "/target/report")
+    @ApiOperation(
+            value = "Exports data to Excel file",
+            notes = "Exports data to Excel file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void report(@RequestParam final List<String> genesOfInterest,
+                       @RequestParam final List<String> translationalGenes,
+                       HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
+        writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
     }
 }

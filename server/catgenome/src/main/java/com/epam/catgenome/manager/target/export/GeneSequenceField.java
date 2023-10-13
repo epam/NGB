@@ -21,13 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.manager.target.export;
 
-package com.epam.catgenome.manager.target;
+import com.epam.catgenome.manager.export.ExportField;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public enum AssociationTable {
-    OPEN_TARGETS_DISEASES,
-    OPEN_TARGETS_DRUGS,
-    PHARM_GKB_DISEASES,
-    PHARM_GKB_DRUGS,
-    DGIDB_DRUGS;
+import java.util.function.Function;
+
+@AllArgsConstructor
+@Getter
+public enum GeneSequenceField implements ExportField<GeneSequenceExport> {
+    TARGET("Target", GeneSequenceExport::getTarget),
+    REFERENCE("Reference", GeneSequenceExport::getReference),
+    TRANSCRIPT("Transcript", GeneSequenceExport::getMRNA),
+    TRANSCRIPT_LENGTH("Length (nt)", o -> String.valueOf(o.getMRNALength())),
+    PROTEIN("Protein", GeneSequenceExport::getProtein),
+    PROTEIN_LENGTH("Length (aa)", o -> String.valueOf(o.getProteinLength())),
+    PROTEIN_NAME("Protein name", GeneSequenceExport::getProteinName);
+    private String label;
+    private Function<GeneSequenceExport, String> getter;
 }

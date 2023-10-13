@@ -21,28 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target;
+package com.epam.catgenome.manager.target.export;
 
-import com.epam.catgenome.util.FileFormat;
-import lombok.RequiredArgsConstructor;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.IOException;
-import java.util.List;
-
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
-
-@Service
-@RequiredArgsConstructor
-public class AssociationExportSecurityService {
-
-    private final AssociationExportManager manager;
-
-    @PreAuthorize(ROLE_USER)
-    public byte[] export(List<String> geneIds, FileFormat format, AssociationTable source, boolean includeHeader)
-            throws IOException, ParseException {
-        return manager.export(geneIds, format, source, includeHeader);
-    }
+@Getter
+@Setter
+public class TargetHomology {
+    private String geneId;
+    private String target;
+    private String species;
+    private String homologyType;
+    private String homologue;
+    private String homologyGroup;
+    private String protein;
+    private Long proteinLen;
+    private String domains;
 }
