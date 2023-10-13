@@ -240,7 +240,7 @@ export default class ngbDiseasesDrugsPanelService {
 
     async setFieldList() {
         const result = await this.getDrugsFieldValues();
-        if (!result || JSON.stringify(result) === '{}') {
+        if (!result) {
             this.fieldList = {};
             this.dispatcher.emit('target:diseases:drugs:filters:list');
             return;
