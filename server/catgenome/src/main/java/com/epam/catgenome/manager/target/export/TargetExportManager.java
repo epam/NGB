@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.target.export;
 
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
@@ -228,7 +229,7 @@ public class TargetExportManager {
                         export.setGeneId(homologueEntry.getKey());
                         export.setTarget(genesMap.get(homologueEntry.getKey().toLowerCase()));
                         export.setSpecies(gene.getSpeciesScientificName());
-                        export.setHomologyType("Ortholog");
+                        export.setHomologyType(group.getType().getName());
                         export.setHomologue(gene.getSymbol());
                         export.setHomologyGroup(group.getProteinName());
                         export.setProtein(gene.getTitle());
@@ -249,7 +250,7 @@ public class TargetExportManager {
                         export.setGeneId(homologenesMapEntry.getKey());
                         export.setTarget(genesMap.get(homologenesMapEntry.getKey().toLowerCase()));
                         export.setSpecies(gene.getSpeciesScientificName());
-                        export.setHomologyType("Homologue");
+                        export.setHomologyType(HomologType.HOMOLOGUE.getName());
                         export.setHomologue(gene.getSymbol());
                         export.setHomologyGroup(entry.getCaption());
                         export.setProtein(gene.getTitle());
@@ -280,32 +281,28 @@ public class TargetExportManager {
         return diseaseAssociations;
     }
 
-    private List<DrugAssociation> getDrugAssociations(final List<String> geneIds,
-                                                      final Map<String, String> genesMap)
+    private List<DrugAssociation> getDrugAssociations(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DrugAssociation> drugAssociations = drugAssociationManager.search(geneIds);
         drugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
         return drugAssociations;
     }
 
-    private List<PharmGKBDisease> getPharmGKBDiseases(final List<String> geneIds,
-                                                      final Map<String, String> genesMap)
+    private List<PharmGKBDisease> getPharmGKBDiseases(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<PharmGKBDisease> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.search(geneIds);
         pharmGKBDiseases.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
         return pharmGKBDiseases;
     }
 
-    private List<PharmGKBDrug> getPharmGKBDrugs(final List<String> geneIds,
-                                                      final Map<String, String> genesMap)
+    private List<PharmGKBDrug> getPharmGKBDrugs(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.search(geneIds);
         pharmGKBDrugs.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
         return pharmGKBDrugs;
     }
 
-    private List<DGIDBDrugAssociation> getDGIDBDrugs(final List<String> geneIds,
-                                                      final Map<String, String> genesMap)
+    private List<DGIDBDrugAssociation> getDGIDBDrugs(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DGIDBDrugAssociation> dgidbDrugAssociations = dgidbDrugAssociationManager.search(geneIds);
         dgidbDrugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
@@ -317,8 +314,7 @@ public class TargetExportManager {
         return pdbEntriesManager.getAllStructures(geneNames);
     }
 
-    private List<GeneSequenceExport> getSequenceTable(final List<String> geneIds,
-                                                      final Map<String, String> genesMap)
+    private List<GeneSequenceExport> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(geneIds,
                 false);

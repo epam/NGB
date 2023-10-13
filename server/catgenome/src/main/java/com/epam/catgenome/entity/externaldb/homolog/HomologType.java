@@ -1,6 +1,7 @@
 package com.epam.catgenome.entity.externaldb.homolog;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /*
  * MIT License
@@ -29,9 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @AllArgsConstructor
+@Getter
 public enum HomologType {
     ORTHOLOG(0, "Ortholog"),
-    PARALOG(1, "Paralog");
+    PARALOG(1, "Paralog"),
+    HOMOLOGUE(2, "Homologue");
 
     private final int id;
     private final String name;
@@ -41,15 +44,13 @@ public enum HomologType {
     static {
         ID_MAP.put(0, ORTHOLOG);
         ID_MAP.put(1, PARALOG);
+        ID_MAP.put(2, HOMOLOGUE);
     }
 
     static {
         NAME_MAP.put("Ortholog", ORTHOLOG);
         NAME_MAP.put("Paralog", PARALOG);
-    }
-
-    public int getId() {
-        return id;
+        NAME_MAP.put("Homologue", HOMOLOGUE);
     }
 
     public static HomologType getById(int id) {
