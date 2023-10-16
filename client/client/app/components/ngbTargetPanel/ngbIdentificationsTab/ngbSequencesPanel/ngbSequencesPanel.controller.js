@@ -105,6 +105,15 @@ export default class ngbSequencesPanelController {
         return this.references.length;
     }
 
+    get tableResults() {
+        const results = this.ngbSequencesPanelService.sequencesResults;
+        return results && results.length;
+    }
+
+    get geneChips() {
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+    }
+
     onChangeGene() {
         this.dispatcher.emit('target:identification:sequence:gene:changed');
     }
@@ -279,5 +288,30 @@ export default class ngbSequencesPanelController {
             return Promise.resolve(true);
         }
         return Promise.resolve(false);
+    }
+
+    exportResults() {
+        this.ngbSequencesPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.geneChips.join('_')}-sequences.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                }
+            });
     }
 }
