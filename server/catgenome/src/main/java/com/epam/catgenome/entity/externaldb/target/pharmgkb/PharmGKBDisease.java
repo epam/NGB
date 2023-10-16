@@ -37,6 +37,7 @@ import lombok.Setter;
 public class PharmGKBDisease extends UrlEntity {
     public static final String URL_PATTERN = "https://www.pharmgkb.org/disease/%s";
     private String geneId;
+    private String target;
 
     @Builder
     public PharmGKBDisease(String id, String name, String url, String geneId) {

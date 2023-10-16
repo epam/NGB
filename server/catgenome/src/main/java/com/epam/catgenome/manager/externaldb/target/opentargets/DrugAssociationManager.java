@@ -29,12 +29,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
-import com.epam.catgenome.manager.export.ExportField;
-import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
-import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,7 +56,6 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -118,42 +112,6 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         fillDiseases(entries);
         fillGenes(entries);
         return entries;
-    }
-
-    private void fillGenes(final List<DrugAssociation> entries) throws ParseException, IOException {
-        final List<String> geneIds = entries.stream()
-                .map(DrugAssociation::getGeneId)
-                .distinct()
-                .collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(geneIds)) {
-            final List<TargetDetails> genes = targetDetailsManager.search(geneIds);
-            final Map<String, TargetDetails> genesMap = genes.stream()
-                    .collect(Collectors.toMap(TargetDetails::getId, Function.identity()));
-            for (DrugAssociation r : entries) {
-                if (genesMap.containsKey(r.getGeneId())) {
-                    r.setGeneSymbol(genesMap.get(r.getGeneId()).getSymbol());
-                    r.setGeneName(genesMap.get(r.getGeneId()).getName());
-                }
-            }
-        }
-    }
-
-    private void fillDiseases(final List<DrugAssociation> entries) throws ParseException, IOException {
-        final List<String> diseaseIds = entries.stream()
-                .map(r -> r.getDisease().getId())
-                .distinct()
-                .collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(diseaseIds)) {
-            final List<Disease> diseases = diseaseManager.search(diseaseIds);
-            final Map<String, UrlEntity> diseasesMap = diseases.stream()
-                    .map(t -> new UrlEntity(t.getId(), t.getName(), t.getUrl()))
-                    .collect(Collectors.toMap(UrlEntity::getId, Function.identity()));
-            for (DrugAssociation r : entries) {
-                if (diseasesMap.containsKey(r.getDisease().getId())) {
-                    r.setDisease(diseasesMap.get(r.getDisease().getId()));
-                }
-            }
-        }
     }
 
     @Override
@@ -294,14 +252,6 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         return DrugField.valueOf(fieldName).getType();
     }
 
-    public byte[] export(final String diseaseId, final FileFormat format, final boolean includeHeader)
-            throws ParseException, IOException {
-        final List<ExportField<DrugAssociation>> exportFields = Arrays.stream(DrugField.values())
-                .filter(AssociationExportFieldDiseaseView::isExportDiseaseView)
-                .collect(Collectors.toList());
-        return ExportUtils.export(search(diseaseId), exportFields, format, includeHeader);
-    }
-
     private DrugFieldValues getFieldValues(final Query query) throws IOException, ParseException {
         final List<DrugAssociation> result = search(query, null);
         final List<String> drugTypes = result.stream()
@@ -371,8 +321,39 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
                 .build();
     }
 
-    @Override
-    public List<AssociationExportField<DrugAssociation>> getExportFields() {
-        return Arrays.asList(DrugField.values());
+    private void fillGenes(final List<DrugAssociation> entries) throws ParseException, IOException {
+        final List<String> geneIds = entries.stream()
+                .map(DrugAssociation::getGeneId)
+                .distinct()
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(geneIds)) {
+            final List<TargetDetails> genes = targetDetailsManager.search(geneIds);
+            final Map<String, TargetDetails> genesMap = genes.stream()
+                    .collect(Collectors.toMap(TargetDetails::getId, Function.identity()));
+            for (DrugAssociation r : entries) {
+                if (genesMap.containsKey(r.getGeneId())) {
+                    r.setGeneSymbol(genesMap.get(r.getGeneId()).getSymbol());
+                    r.setGeneName(genesMap.get(r.getGeneId()).getName());
+                }
+            }
+        }
+    }
+
+    private void fillDiseases(final List<DrugAssociation> entries) throws ParseException, IOException {
+        final List<String> diseaseIds = entries.stream()
+                .map(r -> r.getDisease().getId())
+                .distinct()
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(diseaseIds)) {
+            final List<Disease> diseases = diseaseManager.search(diseaseIds);
+            final Map<String, UrlEntity> diseasesMap = diseases.stream()
+                    .map(t -> new UrlEntity(t.getId(), t.getName(), t.getUrl()))
+                    .collect(Collectors.toMap(UrlEntity::getId, Function.identity()));
+            for (DrugAssociation r : entries) {
+                if (diseasesMap.containsKey(r.getDisease().getId())) {
+                    r.setDisease(diseasesMap.get(r.getDisease().getId()));
+                }
+            }
+        }
     }
 }

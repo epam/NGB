@@ -36,6 +36,7 @@ public class DrugAssociation {
     private String geneId;
     private String geneSymbol;
     private String geneName;
+    private String target;
     private UrlEntity disease;
     private String drugType;
     private String mechanismOfAction;

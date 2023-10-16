@@ -29,7 +29,6 @@ import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.util.FileFormat;
 import lombok.SneakyThrows;
 import org.apache.http.util.TextUtils;
@@ -55,7 +54,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,11 +187,6 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
     @Override
     public FilterType getFilterType(String fieldName) {
         return DGIDBField.valueOf(fieldName).getType();
-    }
-
-    @Override
-    public List<AssociationExportField<DGIDBDrugAssociation>> getExportFields() {
-        return Arrays.asList(DGIDBField.values());
     }
 
     @Nullable

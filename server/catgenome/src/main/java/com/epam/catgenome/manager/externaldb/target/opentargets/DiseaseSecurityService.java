@@ -29,6 +29,8 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.target.DiseaseIdentificationResult;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.manager.target.export.TargetExportTable;
+import com.epam.catgenome.manager.target.export.TargetExportManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -48,6 +50,7 @@ public class DiseaseSecurityService {
     private final DiseaseManager diseaseManager;
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
+    private final TargetExportManager exportManager;
 
     @PreAuthorize(ROLE_USER)
     public Map<String, String> search(final String name) throws IOException, ParseException {
@@ -79,14 +82,14 @@ public class DiseaseSecurityService {
     @PreAuthorize(ROLE_USER)
     public byte[] exportDrugs(final String diseaseId, final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
-        return drugAssociationManager.export(diseaseId, format, includeHeader);
+        return exportManager.export(diseaseId, TargetExportTable.OPEN_TARGETS_DRUGS, format, includeHeader);
     }
 
 
     @PreAuthorize(ROLE_USER)
     public byte[] exportTargets(final String diseaseId, final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
-        return diseaseAssociationManager.export(diseaseId, format, includeHeader);
+        return exportManager.export(diseaseId, TargetExportTable.OPEN_TARGETS_DISEASES, format, includeHeader);
     }
 
     @PreAuthorize(ROLE_USER)

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.externaldb;
+package com.epam.catgenome.manager.externaldb.pdb;
 
 import com.epam.catgenome.client.rscb.RCSBApi;
 import com.epam.catgenome.client.rscb.RCSBApiBuilder;

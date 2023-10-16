@@ -37,6 +37,7 @@ import lombok.Setter;
 public class DGIDBDrugAssociation extends UrlEntity {
     public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
     private String geneId;
+    private String target;
     private String entrezId;
     private String interactionTypes;
     private String interactionClaimSource;

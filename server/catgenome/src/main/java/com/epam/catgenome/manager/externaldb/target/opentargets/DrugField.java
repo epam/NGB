@@ -34,9 +34,10 @@ import java.util.function.Function;
 @Getter
 @AllArgsConstructor
 public enum DrugField implements AssociationExportFieldDiseaseView<DrugAssociation> {
-    GENE_ID("Target ID", DrugAssociation::getGeneId, FilterType.TERM, true, false),
+    GENE_ID("Target ID", DrugAssociation::getGeneId, FilterType.TERM, false, false),
     GENE_SYMBOL("Target", DrugAssociation::getGeneSymbol,  FilterType.PHRASE, false, true),
     GENE_NAME("Target Name", DrugAssociation::getGeneName,  FilterType.PHRASE, false, true),
+    TARGET("Target", DrugAssociation::getTarget,  FilterType.NONE, true, false),
     DRUG_ID(false, false),
     DRUG_NAME("Drug", o -> String.valueOf(o.getDrug().getName()), FilterType.PHRASE,
             true, true),

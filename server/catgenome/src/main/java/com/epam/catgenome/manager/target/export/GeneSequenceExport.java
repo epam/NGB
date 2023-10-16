@@ -1,12 +1,7 @@
-package com.epam.catgenome.entity.externaldb.homolog;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,37 +21,20 @@ import lombok.Getter;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import java.util.HashMap;
-import java.util.Map;
+package com.epam.catgenome.manager.target.export;
 
-@AllArgsConstructor
+import lombok.Getter;
+import lombok.Setter;
+
 @Getter
-public enum HomologType {
-    ORTHOLOG(0, "Ortholog"),
-    PARALOG(1, "Paralog"),
-    HOMOLOGUE(2, "Homologue");
-
-    private final int id;
-    private final String name;
-    private static final Map<Integer, HomologType> ID_MAP = new HashMap<>();
-    private static final Map<String, HomologType> NAME_MAP = new HashMap<>();
-
-    static {
-        ID_MAP.put(0, ORTHOLOG);
-        ID_MAP.put(1, PARALOG);
-        ID_MAP.put(2, HOMOLOGUE);
-    }
-
-    static {
-        NAME_MAP.put("Ortholog", ORTHOLOG);
-        NAME_MAP.put("Paralog", PARALOG);
-        NAME_MAP.put("Homologue", HOMOLOGUE);
-    }
-
-    public static HomologType getById(int id) {
-        return ID_MAP.get(id);
-    }
-    public static HomologType getByName(String name) {
-        return NAME_MAP.get(name);
-    }
+@Setter
+public class GeneSequenceExport {
+    private String geneId;
+    private String target;
+    private String reference;
+    private String mRNA;
+    private Integer mRNALength;
+    private String protein;
+    private Integer proteinLength;
+    private String proteinName;
 }

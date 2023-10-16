@@ -159,15 +159,24 @@ public class TargetManager {
         return Collections.emptyList();
     }
 
-    @NotNull
     public List<String> getTargetGeneNames(final List<String> geneIds) {
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
+    }
+
+    public List<Long> getTargetGeneSpecies(final List<String> geneIds) {
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        return targetGenes.stream().map(TargetGene::getTaxId).distinct().collect(Collectors.toList());
+    }
+
+    public List<TargetGene> getTargetGenes(final List<String> geneIds) {
         final List<String> clauses = new ArrayList<>();
         clauses.add(String.format(IN_CLAUSE, "gene_id", geneIds.stream()
                 .map(g -> "'" + g + "'")
                 .collect(Collectors.joining(","))));
-        final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
-        return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
+        return targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
     }
+
 
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {
         final List<String> clauses = new ArrayList<>();

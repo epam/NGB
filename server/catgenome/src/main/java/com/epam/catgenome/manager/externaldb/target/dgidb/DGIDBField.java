@@ -34,7 +34,8 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Getter
 public enum DGIDBField implements AssociationExportField<DGIDBDrugAssociation> {
-    GENE_ID("Target ID", DGIDBDrugAssociation::getGeneId, FilterType.TERM, true),
+    GENE_ID("Target ID", DGIDBDrugAssociation::getGeneId, FilterType.TERM, false),
+    TARGET("Target", DGIDBDrugAssociation::getTarget, FilterType.NONE, true),
     DRUG_NAME("Drug", DGIDBDrugAssociation::getName, FilterType.PHRASE, true),
     INTERACTION_CLAIM_SOURCE("Interaction Claim Source",
             DGIDBDrugAssociation::getInteractionClaimSource, FilterType.OPTIONS, true),
