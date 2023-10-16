@@ -2,6 +2,8 @@ import {calculateColor} from '../../../../shared/utils/calculateColor';
 
 const PAGE_SIZE = 10;
 
+const EXPORT_SOURCE = 'HOMOLOGY';
+
 const capitalize = (string) => {
     if (string) {
         return string.slice(0, 1).toUpperCase().concat(string.slice(1).toLowerCase());
@@ -13,6 +15,9 @@ export default class ngbGenomicsPanelService {
 
     get pageSize() {
         return PAGE_SIZE;
+    }
+    get exportSource() {
+        return EXPORT_SOURCE;
     }
 
     _loadingData = false;
@@ -70,6 +75,9 @@ export default class ngbGenomicsPanelService {
             species: this.translationalSpecies
         };
     }
+    get tableResults() {
+        return this._genomicsResults && this._genomicsResults.length;
+    }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService, genomeDataService) {
         return new ngbGenomicsPanelService(dispatcher, ngbTargetPanelService, targetDataService, genomeDataService);
@@ -95,6 +103,14 @@ export default class ngbGenomicsPanelService {
 
     get interestTaxIds() {
         return this.interestGenes.map(g => g.taxId);
+    }
+
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
     }
 
     getChipByGeneId(id) {
@@ -364,5 +380,15 @@ export default class ngbGenomicsPanelService {
         this._totalPages = 0;
         this._emptyResults = false;
         this._filterInfo = null;
+    }
+
+    exportResults() {
+        const source = this.exportSource;
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }

@@ -25,6 +25,21 @@ ngb-genomics-panel {
         }
     }
 
+    .genomics-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: end;
+
+        .md-button.export-button {
+            min-height: 24px;
+            line-height: 24px;
+            color: $genomics-font-color;
+            font-size: $genomics-font-size;
+            font-weight: normal;
+        }
+    }
+
     .genomics-block {
         padding-top: 5px;
         display: grid;
