@@ -1,49 +1,5 @@
 const PAGE_SIZE = 10;
 
-const ROMAN = {
-    M: '1000',
-    CM: '900',
-    D:  '500',
-    CD: '400',
-    C:  '100',
-    XC:  '90',
-    L:   '50',
-    XL:  '40',
-    X:   '10',
-    IX:   '9',
-    V:    '5',
-    IV:   '4',
-    I:    '1',
-};
-
-function romanize (num) {
-    if (isNaN(num)) return;
-    if (num === '0') return 'Phase I (Early)';
-    const lookup = Object.entries(ROMAN);
-    let roman = '';
-    for (let i = 0; i < lookup.length; i++) {
-        const [letter, number] = lookup[i];
-        while (num >= Number(number)) {
-            roman += letter;
-            num -= Number(number);
-        }
-    }
-    return roman ? `Phase ${roman}` : '';
-}
-
-function unRomanize(phase) {
-    if (!phase) return;
-    if (phase === 'Phase I (Early)') return 0;
-    const roman = phase.replace('Phase ', '').toUpperCase();
-    if (ROMAN[roman]) return Number(ROMAN[roman]);
-    let num = 0;
-    const arr = roman.split('');
-    while (arr.length) {
-        num += +ROMAN[arr.shift()];
-    }
-    return num;
-}
-
 const FIELDS = {
     'target': 'GENE_SYMBOL',
     'drug': 'DRUG_NAME',
@@ -161,7 +117,7 @@ export default class ngbDiseasesDrugsPanelService {
             'mechanism of action': item.mechanismOfAction,
             'action type': item.actionType,
             'target name': item.geneName,
-            phase: romanize(item.phase),
+            phase: item.phase,
             status: item.status,
             source: item.source
         }));
@@ -186,8 +142,7 @@ export default class ngbDiseasesDrugsPanelService {
                         field: this.fields[key],
                         terms: values.map(v => {
                             if (key === 'phase') {
-                                const number = unRomanize(v);
-                                return number ? number : '';
+                                return v || '';
                             }
                             return v;
                         })
@@ -251,11 +206,7 @@ export default class ngbDiseasesDrugsPanelService {
             const key = entries[i][0];
             const values = entries[i][1].filter(v => v);
             const field = list[key]
-            if (field === 'phase') {
-                this.fieldList[field] = values.map(v => romanize(v));
-            } else {
-                this.fieldList[field] = values;
-            }
+            this.fieldList[field] = values;
         }
         this.dispatcher.emit('target:diseases:drugs:filters:list');
     }
