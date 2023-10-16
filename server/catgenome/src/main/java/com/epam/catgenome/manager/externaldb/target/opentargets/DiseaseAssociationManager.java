@@ -33,6 +33,8 @@ import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.OpenTargetsManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
+import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.OrderInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
