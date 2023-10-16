@@ -69,6 +69,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.externaldb.target.opentargets.Phase.getPhase;
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
@@ -219,8 +220,9 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         doc.add(new StringField(DrugField.ACTION_TYPE.name(), entry.getActionType(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.ACTION_TYPE.name(), new BytesRef(entry.getActionType())));
 
-        doc.add(new StringField(DrugField.PHASE.name(), entry.getPhase(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(DrugField.PHASE.name(), new BytesRef(entry.getPhase())));
+        final String phase = getPhase(entry.getPhase());
+        doc.add(new StringField(DrugField.PHASE.name(), phase, Field.Store.YES));
+        doc.add(new SortedDocValuesField(DrugField.PHASE.name(), new BytesRef(phase)));
 
         doc.add(new StringField(DrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
         doc.add(new SortedDocValuesField(DrugField.STATUS.name(), new BytesRef(entry.getStatus())));
