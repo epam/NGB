@@ -69,18 +69,22 @@ class NgbDiseasesPanelService {
         this._chartsLoading = chartsLoading;
     }
 
-    get geneIds() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
     }
 
     exportResults() {
         const source = this.exportSource[this.sourceModel];
-        if (!this.geneIds) {
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(this.geneIds, source);
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }
 

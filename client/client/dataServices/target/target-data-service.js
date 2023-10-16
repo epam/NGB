@@ -360,13 +360,19 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExport(geneIds, source) {
+    getTargetExport(genesOfInterest, translationalGenes, source) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/export${getQueryString({geneIds, format, source, includeHeader})}`,
+                `target/export${getQueryString({
+                    genesOfInterest,
+                    translationalGenes,
+                    format,
+                    source,
+                    includeHeader
+                })}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
