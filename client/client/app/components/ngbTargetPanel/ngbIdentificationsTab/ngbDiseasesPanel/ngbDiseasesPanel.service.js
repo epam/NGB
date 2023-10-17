@@ -40,6 +40,7 @@ class NgbDiseasesPanelService {
         this._sourceModel = SourceOptions.OPEN_TARGETS;
         this._tableLoading = false;
         this._chartsLoading = false;
+        this._exportLoading = false;
     }
 
     get sourceModel() {
@@ -67,6 +68,13 @@ class NgbDiseasesPanelService {
 
     set chartsLoading(chartsLoading) {
         this._chartsLoading = chartsLoading;
+    }
+    get exportLoading() {
+        return this._exportLoading;
+    }
+
+    set exportLoading(value) {
+        this._exportLoading = value;
     }
 
     get geneIdsOfInterest() {

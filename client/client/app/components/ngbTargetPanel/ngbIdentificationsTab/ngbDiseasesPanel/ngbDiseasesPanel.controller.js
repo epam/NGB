@@ -10,8 +10,17 @@ class NgbDiseasesPanelController {
         return 'ngbDiseasesPanelController';
     }
 
-    constructor(dispatcher, ngbDiseasesPanelService, ngbDiseasesTableService, ngbTargetPanelService) {
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbDiseasesPanelService,
+        ngbDiseasesTableService,
+        ngbTargetPanelService
+    ) {
         Object.assign(this, {
+            $scope,
+            $timeout,
             dispatcher,
             ngbDiseasesPanelService,
             ngbDiseasesTableService,
@@ -93,6 +102,14 @@ class NgbDiseasesPanelController {
             ? this.ngbDiseasesPanelService.chartsLoading
             : false;
     }
+    get exportLoading() {
+        return this.ngbDiseasesPanelService
+            ? this.ngbDiseasesPanelService.exportLoading
+            : false;
+    }
+    set exportLoading(value) {
+        this.ngbDiseasesPanelService.exportLoading = value;
+    }
 
     get tableResults() {
         const results = this.ngbDiseasesTableService.diseasesResults;
@@ -112,6 +129,7 @@ class NgbDiseasesPanelController {
     }
 
     exportResults() {
+        this.exportLoading = true;
         this.ngbDiseasesPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -129,10 +147,13 @@ class NgbDiseasesPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.exportLoading = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     console.error(ex);
+                    this.exportLoading = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
     }
 }

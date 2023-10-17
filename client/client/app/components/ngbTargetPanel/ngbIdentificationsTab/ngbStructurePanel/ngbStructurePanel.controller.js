@@ -73,7 +73,7 @@ export default class ngbStructurePanelController {
                     console.error(ex);
                     this.loadingData = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
-        this.$timeout(() => this.$scope.$apply());
     }
 }

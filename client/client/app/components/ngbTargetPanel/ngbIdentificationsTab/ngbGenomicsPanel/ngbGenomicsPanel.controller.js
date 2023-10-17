@@ -468,6 +468,7 @@ export default class ngbGenomicsPanelController {
     }
 
     exportResults() {
+        this.loadingData = true;
         this.ngbGenomicsPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -485,10 +486,13 @@ export default class ngbGenomicsPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.loadingData = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     console.error(ex);
+                    this.loadingData = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
     }
 }

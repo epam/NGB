@@ -295,6 +295,7 @@ export default class ngbDiseasesTargetsPanelController {
     }
 
     exportResults() {
+        this.loadingData = true;
         this.ngbDiseasesTargetsPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -312,10 +313,13 @@ export default class ngbDiseasesTargetsPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.loadingData = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     console.error(ex);
+                    this.loadingData = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
     }
 }

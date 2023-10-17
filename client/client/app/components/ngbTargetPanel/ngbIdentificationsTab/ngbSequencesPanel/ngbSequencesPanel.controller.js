@@ -82,6 +82,9 @@ export default class ngbSequencesPanelController {
     get loadingData() {
         return this.ngbSequencesPanelService.loadingData;
     }
+    set loadingData(value) {
+        this.ngbSequencesPanelService.loadingData = value;
+    }
 
     get sequencesReference() {
         return this.ngbSequencesPanelService.sequencesReference;
@@ -291,6 +294,7 @@ export default class ngbSequencesPanelController {
     }
 
     exportResults() {
+        this.loadingData = true;
         this.ngbSequencesPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -308,10 +312,13 @@ export default class ngbSequencesPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.loadingData = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     console.error(ex);
+                    this.loadingData = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
     }
 }
