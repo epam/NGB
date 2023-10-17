@@ -153,7 +153,8 @@ dependencies {
     // Flyway database migration to update embedded database when application starts
     compile group: "org.flywaydb", name: "flyway-core", version: "3.2.1"
     //Amazon s3
-    compile group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.11.128"
+    compile group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.11.704"
+    compile group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.11.704"
 
     // Azure Storage Blob
     compile group: "com.azure", name: "azure-storage-blob", version: "12.14.0"
