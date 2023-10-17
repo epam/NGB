@@ -32,5 +32,6 @@ public enum FilterType {
     PHRASE,
     TERM,
     OPTIONS,
+    RANGE,
     NONE;
 }

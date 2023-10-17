@@ -630,6 +630,10 @@ public final class IndexUtils {
         return builder.build();
     }
 
+    public static Query getByRangeQuery(final Interval<Float> interval, final String fieldName) {
+        return FloatPoint.newRangeQuery(fieldName, interval.getFrom(), interval.getTo());
+    }
+
     public static Query buildTermQuery(final String term, final String fieldName) {
         return new TermQuery(new Term(fieldName, term));
     }

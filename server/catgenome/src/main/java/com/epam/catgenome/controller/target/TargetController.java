@@ -246,10 +246,9 @@ public class TargetController extends AbstractRESTController {
     @ApiOperation(
             value = "Launches Identification for Open Targets datasource disease associations",
             notes = "Launches Identification for Open Targets datasource disease associations." +
-                    "Available field names for sorting: GENE_ID, DISEASE_NAME, OVERALL_SCORE, " +
+                    "Available field names for sorting and filtering: GENE_ID, DISEASE_NAME, OVERALL_SCORE, " +
                     "GENETIC_ASSOCIATIONS_SCORE, SOMATIC_MUTATIONS_SCORE, DRUGS_SCORE, PATHWAYS_SCORE, " +
-                    "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.\n" +
-                    "Available field names for filtering: GENE_ID, DISEASE_NAME.",
+                    "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
