@@ -167,6 +167,7 @@ export default class ngbGenomicsPanelService {
         if (!data || !data.length) {
             this._genomicsResults = [];
             this.setTotalPages();
+            this.setTotalCount();
             return;
         }
         if (this._filterInfo) {
@@ -187,6 +188,7 @@ export default class ngbGenomicsPanelService {
         }
         this._genomicsResults = data;
         this.setTotalPages();
+        this.setTotalCount();
     }
 
     getGenomicsResults() {
@@ -308,6 +310,11 @@ export default class ngbGenomicsPanelService {
     setTotalPages() {
         this._totalPages = Math.ceil(this._genomicsResults.length / this.pageSize);
         this._emptyResults = !this._genomicsResults.length;
+    }
+
+    setTotalCount() {
+        const totalCount = this._genomicsResults && this._genomicsResults.length;
+        this.dispatcher.emit('target:identification:genomics:total:updated', totalCount);
     }
 
     async getHomologs(ids) {
