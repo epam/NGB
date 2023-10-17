@@ -44,12 +44,12 @@ export default class NgbTargetPanelService {
         return this._descriptions;
     }
 
-    static instance (appLayout, dispatcher, $sce) {
-        return new NgbTargetPanelService(appLayout, dispatcher, $sce);
+    static instance (appLayout, dispatcher, $sce, targetDataService) {
+        return new NgbTargetPanelService(appLayout, dispatcher, $sce, targetDataService);
     }
 
-    constructor(appLayout, dispatcher, $sce) {
-        Object.assign(this, {appLayout, dispatcher, $sce});
+    constructor(appLayout, dispatcher, $sce, targetDataService) {
+        Object.assign(this, {appLayout, dispatcher, $sce, targetDataService});
         dispatcher.on('target:launch:finished', this.setIdentificationData.bind(this));
     }
 
@@ -101,5 +101,14 @@ export default class NgbTargetPanelService {
                     html: this.$sce.trustAsHtml(processLinks(description))
                 }));
         }
+    }
+
+    exportResults() {
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetReport(this.geneIdsOfInterest, this.translationalGeneIds);
     }
 }

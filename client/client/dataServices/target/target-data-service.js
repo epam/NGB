@@ -534,4 +534,23 @@ export class TargetDataService extends DataService {
                 }, reject);
         });
     }
+
+    getTargetReport(genesOfInterest, translationalGenes) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/report${getQueryString({genesOfInterest, translationalGenes})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
 }
