@@ -10,6 +10,10 @@ export default function buildMainInfoBlocks (diseasesData) {
                 {
                     item: 'drug',
                     count: diseasesData.knownDrugsCount || 0
+                },
+                {
+                    item: 'record',
+                    count: diseasesData.knownDrugsRecordsCount || 0
                 }
             ]
         },
