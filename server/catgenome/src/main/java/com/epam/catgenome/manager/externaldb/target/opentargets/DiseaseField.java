@@ -43,22 +43,22 @@ public enum DiseaseField implements AssociationExportFieldDiseaseView<DiseaseAss
     DISEASE_ID(false, false),
     DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, FilterType.PHRASE,
             true, false),
-    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.NONE,
+    OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.RANGE,
             true, true),
     GENETIC_ASSOCIATIONS_SCORE("Genetic associations", o -> String.valueOf(o.getGeneticAssociationScore()),
-            FilterType.NONE, true, true),
+            FilterType.RANGE, true, true),
     SOMATIC_MUTATIONS_SCORE("Somatic mutations", o -> String.valueOf(o.getSomaticMutationScore()),
-            FilterType.NONE, true, true),
-    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), FilterType.NONE,
+            FilterType.RANGE, true, true),
+    DRUGS_SCORE("Drugs", o -> String.valueOf(o.getKnownDrugScore()), FilterType.RANGE,
             true, true),
     PATHWAYS_SCORE("Pathways systems", o -> String.valueOf(o.getAffectedPathwayScore()),
-            FilterType.NONE, true, true),
-    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), FilterType.NONE,
+            FilterType.RANGE, true, true),
+    TEXT_MINING_SCORE("Text mining", o -> String.valueOf(o.getLiteratureScore()), FilterType.RANGE,
             true, true),
     ANIMAL_MODELS_SCORE("Animal models", o -> String.valueOf(o.getAnimalModelScore()),
-            FilterType.NONE, true, true),
+            FilterType.RANGE, true, true),
     RNA_EXPRESSION_SCORE("RNA expression", o -> String.valueOf(o.getRnaExpressionScore()),
-            FilterType.NONE, true, true);
+            FilterType.RANGE, true, true);
     private String label;
     private Function<DiseaseAssociation, String> getter;
     private FilterType type;

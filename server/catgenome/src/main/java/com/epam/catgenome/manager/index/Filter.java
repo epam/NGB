@@ -23,6 +23,8 @@
  */
 package com.epam.catgenome.manager.index;
 
+import com.epam.catgenome.entity.Interval;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,7 +32,9 @@ import java.util.List;
 
 @Getter
 @Setter
+@Builder
 public class Filter {
     private String field;
     private List<String> terms;
+    private Interval<Float> range;
 }
