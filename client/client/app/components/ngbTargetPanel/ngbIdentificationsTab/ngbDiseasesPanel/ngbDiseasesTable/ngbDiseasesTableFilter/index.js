@@ -5,7 +5,10 @@ import './ngbDiseasesTableFilter.scss';
 import component from './ngbDiseasesTableFilter.component';
 import controller from './ngbDiseasesTableFilter.controller';
 
-export default angular.module('ngbDiseasesTableFilter', [])
+import filterInput from './ngbDiseasesFilterInput';
+import filterList from './ngbDiseasesFilterList';
+
+export default angular.module('ngbDiseasesTableFilter', [filterList, filterInput])
     .controller(controller.UID, controller)
     .component('ngbDiseasesTableFilter', component)
     .name;

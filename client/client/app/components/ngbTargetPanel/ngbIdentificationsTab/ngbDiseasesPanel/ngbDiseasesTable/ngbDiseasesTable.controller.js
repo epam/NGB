@@ -222,6 +222,13 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                         minWidth: 200
                     };
                     break;
+                case 'overall score':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: colorCell,
+                        enableFiltering: true,
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,

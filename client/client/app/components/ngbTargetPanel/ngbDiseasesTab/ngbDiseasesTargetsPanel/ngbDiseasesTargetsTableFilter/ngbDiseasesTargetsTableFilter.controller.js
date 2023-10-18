@@ -7,9 +7,7 @@ export default class ngbDiseasesTargetsTableFilterController {
         return 'ngbDiseasesTargetsTableFilterController';
     }
 
-    constructor($scope, $element, dispatcher, ngbDiseasesTargetsPanelService) {
-        Object.assign(this, {$scope, dispatcher, ngbDiseasesTargetsPanelService});
-
+    constructor() {
         switch (this.column.field) {
             case 'homologues': {
                 this.isList = true;
