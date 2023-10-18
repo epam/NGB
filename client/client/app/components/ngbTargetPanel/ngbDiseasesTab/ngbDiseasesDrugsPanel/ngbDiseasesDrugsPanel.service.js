@@ -189,6 +189,9 @@ export default class ngbDiseasesDrugsPanelService {
                                 const number = unRomanize(v);
                                 return number ? number : '';
                             }
+                            if (v === 'Empty value') {
+                                return '';
+                            }
                             return v;
                         })
                     };
@@ -249,8 +252,8 @@ export default class ngbDiseasesDrugsPanelService {
         const list = this.filterFields;
         for (let i = 0; i < entries.length; i++) {
             const key = entries[i][0];
-            const values = entries[i][1].filter(v => v);
-            const field = list[key]
+            const values = entries[i][1].map(v => !v ? 'Empty value' : v);
+            const field = list[key];
             if (field === 'phase') {
                 this.fieldList[field] = values.map(v => romanize(v));
             } else {

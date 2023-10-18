@@ -300,6 +300,9 @@ export default class ngbDrugsTableService {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
                                 return chip ? chip : '';
                             }
+                            if (v === 'Empty value') {
+                                return '';
+                            }
                             return v;
                         })
                     };
@@ -353,8 +356,8 @@ export default class ngbDrugsTableService {
         const list = this.filterFieldsList;
         for (let i = 0; i < entries.length; i++) {
             const key = entries[i][0];
-            const values = entries[i][1].filter(v => v);
-            const field = list[source][key]
+            const values = entries[i][1].map(v => v ? v : 'Empty value');
+            const field = list[source][key];
             if (field === 'phase') {
                 this.fieldList[field] = values.map(v => romanize(v));
             } else {
