@@ -22,16 +22,22 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.util.db;
 
-public enum TargetExportTable {
-    OPEN_TARGETS_DISEASES,
-    OPEN_TARGETS_DRUGS,
-    PHARM_GKB_DISEASES,
-    PHARM_GKB_DRUGS,
-    DGIDB_DRUGS,
-    STRUCTURES,
-    LOCAL_PDBS,
-    SEQUENCES,
-    HOMOLOGY;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public final class DBQueryUtils {
+
+    public static final String IN_CLAUSE = "%s in (%s)";
+    private DBQueryUtils() {
+        // no operations by default
+    }
+
+    public static String getGeneIdsClause(final List<String> geneIds) {
+        return String.format(IN_CLAUSE, "LOWER(gene_id)", geneIds.stream()
+                .map(g -> "'" + g.toLowerCase() + "'")
+                .collect(Collectors.joining(",")));
+    }
 }

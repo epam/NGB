@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.GeneSequence;
 import com.epam.catgenome.entity.target.TargetGene;
@@ -55,6 +56,8 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAsso
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseField;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
+import com.epam.catgenome.manager.pdb.PdbFileField;
+import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.TargetIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
@@ -89,6 +92,7 @@ public class TargetExportManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final PdbEntriesManager pdbEntriesManager;
+    private final PdbFileManager pdbFileManager;
     private final TargetManager targetManager;
     private final TargetIdentificationManager identificationManager;
     private final HomologManager homologManager;
@@ -148,6 +152,10 @@ public class TargetExportManager {
                 result = ExportUtils.export(getStructures(geneIds),
                         Arrays.asList(PdbStructureField.values()), format, includeHeader);
                 break;
+            case LOCAL_PDBS:
+                result = ExportUtils.export(getPdbFiles(geneIds),
+                        Arrays.asList(PdbFileField.values()), format, includeHeader);
+                break;
             case SEQUENCES:
                 result = ExportUtils.export(getSequenceTable(geneIds, genesMap),
                         Arrays.asList(GeneSequenceField.values()), format, includeHeader);
@@ -179,8 +187,10 @@ public class TargetExportManager {
                     getPharmGKBDrugs(geneIds, genesMap), workbook);
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
                     getDGIDBDrugs(geneIds, genesMap), workbook);
-            writeSheet("Structures", Arrays.asList(PdbStructureField.values()),
+            writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
                     getStructures(geneIds), workbook);
+            writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
+                    getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
                     getSequenceTable(geneIds, genesMap), workbook);
             writeSheet("Homology", Arrays.asList(HomologyField.values()),
@@ -312,6 +322,10 @@ public class TargetExportManager {
     private List<Structure> getStructures(final List<String> geneIds) {
         final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
         return pdbEntriesManager.getAllStructures(geneNames);
+    }
+
+    private List<PdbFile> getPdbFiles(final List<String> geneIds) {
+        return pdbFileManager.load(geneIds);
     }
 
     private List<GeneSequenceExport> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)

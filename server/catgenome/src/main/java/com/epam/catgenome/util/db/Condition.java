@@ -21,17 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.util.db;
 
-package com.epam.catgenome.manager.target.export;
+public enum Condition {
+    AND(" and "),
+    OR(" or ");
 
-public enum TargetExportTable {
-    OPEN_TARGETS_DISEASES,
-    OPEN_TARGETS_DRUGS,
-    PHARM_GKB_DISEASES,
-    PHARM_GKB_DRUGS,
-    DGIDB_DRUGS,
-    STRUCTURES,
-    LOCAL_PDBS,
-    SEQUENCES,
-    HOMOLOGY;
+    private final String value;
+    public String getValue() {
+        return value;
+    }
+
+    Condition(String value) {
+        this.value = value;
+    }
 }

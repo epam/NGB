@@ -31,7 +31,7 @@ import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.manager.AuthManager;
-import com.epam.catgenome.util.Condition;
+import com.epam.catgenome.util.db.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
@@ -51,8 +51,8 @@ import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.Utils.EQUAL_CLAUSE;
-import static com.epam.catgenome.util.Utils.IN_CLAUSE;
 import static com.epam.catgenome.util.Utils.LIKE_CLAUSE;
+import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -63,7 +63,6 @@ public class TargetManager {
     private static final String OWNER = "owner";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
-    private static final String GENE_ID = "gene_id";
     private static final String GENE_NAME = "gene_name";
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
@@ -171,9 +170,7 @@ public class TargetManager {
 
     public List<TargetGene> getTargetGenes(final List<String> geneIds) {
         final List<String> clauses = new ArrayList<>();
-        clauses.add(String.format(IN_CLAUSE, "gene_id", geneIds.stream()
-                .map(g -> "'" + g + "'")
-                .collect(Collectors.joining(","))));
+        clauses.add(getGeneIdsClause(geneIds));
         return targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
     }
 
@@ -193,7 +190,7 @@ public class TargetManager {
             clauses.add(getFilterClause(DISEASES, targetQueryParams.getDiseases(), LIKE_CLAUSE));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getGeneIds())) {
-            clauses.add(getFilterClause(GENE_ID, targetQueryParams.getGeneIds(), EQUAL_CLAUSE));
+            clauses.add(getGeneIdsClause(targetQueryParams.getGeneIds()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getGeneNames())) {
             clauses.add(getFilterClause(GENE_NAME, targetQueryParams.getGeneNames(), LIKE_CLAUSE));

@@ -30,7 +30,7 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.pdb.PdbFileQueryParams;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.util.Condition;
+import com.epam.catgenome.util.db.Condition;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -56,11 +56,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
+import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -108,6 +108,14 @@ public class PdbFileManager {
 
     public List<PdbFile> load() {
         return pdbFileDao.load();
+    }
+
+    public List<PdbFile> load(final List<String> geneIds) {
+        final List<SortInfo> sortInfos = Collections.singletonList(SortInfo.builder()
+                        .field(NAME)
+                        .ascending(true)
+                        .build());
+        return pdbFileDao.load(getGeneIdsClause(geneIds), sortInfos);
     }
 
     public Page<PdbFile> load(final PdbFileQueryParams params) {
@@ -198,9 +206,7 @@ public class PdbFileManager {
     private static String getFilterClause(final PdbFileQueryParams params) {
         final List<String> clauses = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(params.getGeneIds())) {
-            clauses.add(String.format(Utils.IN_CLAUSE, "gene_id", params.getGeneIds().stream()
-                    .map(g -> "'" + g + "'")
-                    .collect(Collectors.joining(","))));
+            clauses.add(getGeneIdsClause(params.getGeneIds()));
         }
         if (StringUtils.isNotBlank(params.getOwner())) {
             clauses.add(String.format(Utils.EQUAL_CLAUSE, OWNER, params.getOwner()));
