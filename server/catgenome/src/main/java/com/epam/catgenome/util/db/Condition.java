@@ -21,20 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.index;
+package com.epam.catgenome.util.db;
 
-import com.epam.catgenome.entity.Interval;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+public enum Condition {
+    AND(" and "),
+    OR(" or ");
 
-import java.util.List;
+    private final String value;
+    public String getValue() {
+        return value;
+    }
 
-@Getter
-@Setter
-@Builder
-public class Filter {
-    private String field;
-    private List<String> terms;
-    private Interval<Float> range;
+    Condition(String value) {
+        this.value = value;
+    }
 }

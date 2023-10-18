@@ -144,6 +144,9 @@ export default class ngbDiseasesDrugsPanelService {
                             if (key === 'phase') {
                                 return v || '';
                             }
+                            if (v === 'Empty value') {
+                                return '';
+                            }
                             return v;
                         })
                     };
@@ -204,7 +207,7 @@ export default class ngbDiseasesDrugsPanelService {
         const list = this.filterFields;
         for (let i = 0; i < entries.length; i++) {
             const key = entries[i][0];
-            const values = entries[i][1].filter(v => v);
+            const values = entries[i][1].map(v => !v ? 'Empty value' : v);
             const field = list[key]
             this.fieldList[field] = values;
         }

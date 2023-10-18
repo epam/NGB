@@ -21,20 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.index;
 
-import com.epam.catgenome.entity.Interval;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.util.db;
+
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Getter
-@Setter
-@Builder
-public class Filter {
-    private String field;
-    private List<String> terms;
-    private Interval<Float> range;
+public final class DBQueryUtils {
+
+    public static final String IN_CLAUSE = "%s in (%s)";
+    private DBQueryUtils() {
+        // no operations by default
+    }
+
+    public static String getGeneIdsClause(final List<String> geneIds) {
+        return String.format(IN_CLAUSE, "LOWER(gene_id)", geneIds.stream()
+                .map(g -> "'" + g.toLowerCase() + "'")
+                .collect(Collectors.joining(",")));
+    }
 }
