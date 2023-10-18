@@ -25,16 +25,11 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
-import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
-import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
-import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
-import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
+import com.epam.catgenome.entity.externaldb.target.opentargets.*;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.OpenTargetsManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
-import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.index.OrderInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -128,11 +123,6 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return searchAll(query);
     }
 
-    public long totalCount(final List<String> geneIds) throws ParseException, IOException {
-        final List<DiseaseAssociation> result = search(geneIds, DiseaseField.GENE_ID.name());
-        return result.stream().map(DiseaseAssociation::getDiseaseId).distinct().count();
-    }
-
     public long totalCount(final String diseaseId) throws ParseException, IOException {
         final List<DiseaseAssociation> result = search(diseaseId);
         return result.stream().map(DiseaseAssociation::getGeneId).distinct().count();
@@ -198,10 +188,10 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         doc.add(new TextField(DiseaseField.GENE_NAME.name(), geneName, Field.Store.YES));
         doc.add(new SortedDocValuesField(DiseaseField.GENE_NAME.name(), new BytesRef(geneName)));
 
-        doc.add(new TextField(DiseaseField.DISEASE_ID.name(), entry.getDiseaseId(), Field.Store.YES));
+        doc.add(new TextField(DiseaseField.DISEASE_ID.name(), entry.getId(), Field.Store.YES));
 
-        doc.add(new TextField(DiseaseField.DISEASE_NAME.name(), entry.getDiseaseName(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(DiseaseField.DISEASE_NAME.name(), new BytesRef(entry.getDiseaseName())));
+        doc.add(new TextField(DiseaseField.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(DiseaseField.DISEASE_NAME.name(), new BytesRef(entry.getName())));
 
         addFloatField(entry.getOverallScore(), doc, DiseaseField.OVERALL_SCORE);
         addFloatField(entry.getGeneticAssociationScore(), doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE);
@@ -216,73 +206,38 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     @Override
     public DiseaseAssociation entryFromDoc(final Document doc) {
-        final DiseaseAssociation d = DiseaseAssociation.builder()
+        final String id = doc.getField(DrugField.DISEASE_ID.name()).stringValue();
+        return DiseaseAssociation.builder()
+                .id(id)
+                .name(doc.getField(DiseaseField.DISEASE_NAME.name()).stringValue())
                 .geneId(doc.getField(DiseaseField.GENE_ID.name()).stringValue())
-                .diseaseId(doc.getField(DiseaseField.DISEASE_ID.name()).stringValue())
+                .overallScore(getScore(doc, DiseaseField.OVERALL_SCORE))
+                .geneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE))
+                .somaticMutationScore(getScore(doc, DiseaseField.SOMATIC_MUTATIONS_SCORE))
+                .knownDrugScore(getScore(doc, DiseaseField.DRUGS_SCORE))
+                .affectedPathwayScore(getScore(doc, DiseaseField.PATHWAYS_SCORE))
+                .literatureScore(getScore(doc, DiseaseField.TEXT_MINING_SCORE))
+                .rnaExpressionScore(getScore(doc, DiseaseField.RNA_EXPRESSION_SCORE))
+                .animalModelScore(getScore(doc, DiseaseField.ANIMAL_MODELS_SCORE))
                 .build();
-        if (doc.getField(DiseaseField.DISEASE_NAME.name()) != null) {
-            d.setDiseaseName(doc.getField(DiseaseField.DISEASE_NAME.name()).stringValue());
-        }
-        if (doc.getField(DiseaseField.OVERALL_SCORE.name()) != null) {
-            d.setOverallScore(getScore(doc, DiseaseField.OVERALL_SCORE));
-        }
-        if (doc.getField(DiseaseField.GENETIC_ASSOCIATIONS_SCORE.name()) != null) {
-            d.setGeneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE));
-        }
-        if (doc.getField(DiseaseField.SOMATIC_MUTATIONS_SCORE.name()) != null) {
-            d.setSomaticMutationScore(getScore(doc, DiseaseField.SOMATIC_MUTATIONS_SCORE));
-        }
-        if (doc.getField(DiseaseField.DRUGS_SCORE.name()) != null) {
-            d.setKnownDrugScore(getScore(doc, DiseaseField.DRUGS_SCORE));
-        }
-        if (doc.getField(DiseaseField.PATHWAYS_SCORE.name()) != null) {
-            d.setAffectedPathwayScore(getScore(doc, DiseaseField.PATHWAYS_SCORE));
-        }
-        if (doc.getField(DiseaseField.TEXT_MINING_SCORE.name()) != null) {
-            d.setLiteratureScore(getScore(doc, DiseaseField.TEXT_MINING_SCORE));
-        }
-        if (doc.getField(DiseaseField.RNA_EXPRESSION_SCORE.name()) != null) {
-            d.setRnaExpressionScore(getScore(doc, DiseaseField.RNA_EXPRESSION_SCORE));
-        }
-        if (doc.getField(DiseaseField.ANIMAL_MODELS_SCORE.name()) != null) {
-            d.setAnimalModelScore(getScore(doc, DiseaseField.ANIMAL_MODELS_SCORE));
-        }
-        return d;
     }
 
     @Override
     public DiseaseAssociation entryFromDocDiseaseView(final Document doc) {
-        final DiseaseAssociation d = DiseaseAssociation.builder()
+        return DiseaseAssociation.builder()
+                .id(doc.getField(DiseaseField.DISEASE_ID.name()).stringValue())
                 .geneId(doc.getField(DiseaseField.GENE_ID.name()).stringValue())
                 .geneSymbol(doc.getField(DiseaseField.GENE_SYMBOL.name()).stringValue())
                 .geneName(doc.getField(DiseaseField.GENE_NAME.name()).stringValue())
-                .diseaseId(doc.getField(DiseaseField.DISEASE_ID.name()).stringValue())
+                .overallScore(getScore(doc, DiseaseField.OVERALL_SCORE))
+                .geneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE))
+                .somaticMutationScore(getScore(doc, DiseaseField.SOMATIC_MUTATIONS_SCORE))
+                .knownDrugScore(getScore(doc, DiseaseField.DRUGS_SCORE))
+                .affectedPathwayScore(getScore(doc, DiseaseField.PATHWAYS_SCORE))
+                .literatureScore(getScore(doc, DiseaseField.TEXT_MINING_SCORE))
+                .rnaExpressionScore(getScore(doc, DiseaseField.RNA_EXPRESSION_SCORE))
+                .animalModelScore(getScore(doc, DiseaseField.ANIMAL_MODELS_SCORE))
                 .build();
-        if (doc.getField(DiseaseField.OVERALL_SCORE.name()) != null) {
-            d.setOverallScore(getScore(doc, DiseaseField.OVERALL_SCORE));
-        }
-        if (doc.getField(DiseaseField.GENETIC_ASSOCIATIONS_SCORE.name()) != null) {
-            d.setGeneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE));
-        }
-        if (doc.getField(DiseaseField.SOMATIC_MUTATIONS_SCORE.name()) != null) {
-            d.setSomaticMutationScore(getScore(doc, DiseaseField.SOMATIC_MUTATIONS_SCORE));
-        }
-        if (doc.getField(DiseaseField.DRUGS_SCORE.name()) != null) {
-            d.setKnownDrugScore(getScore(doc, DiseaseField.DRUGS_SCORE));
-        }
-        if (doc.getField(DiseaseField.PATHWAYS_SCORE.name()) != null) {
-            d.setAffectedPathwayScore(getScore(doc, DiseaseField.PATHWAYS_SCORE));
-        }
-        if (doc.getField(DiseaseField.TEXT_MINING_SCORE.name()) != null) {
-            d.setLiteratureScore(getScore(doc, DiseaseField.TEXT_MINING_SCORE));
-        }
-        if (doc.getField(DiseaseField.RNA_EXPRESSION_SCORE.name()) != null) {
-            d.setRnaExpressionScore(getScore(doc, DiseaseField.RNA_EXPRESSION_SCORE));
-        }
-        if (doc.getField(DiseaseField.ANIMAL_MODELS_SCORE.name()) != null) {
-            d.setAnimalModelScore(getScore(doc, DiseaseField.ANIMAL_MODELS_SCORE));
-        }
-        return d;
     }
 
     @Override
@@ -313,7 +268,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     private static DiseaseAssociation entryFromJson(final JsonNode jsonNodes) {
         return DiseaseAssociation.builder()
                 .geneId(jsonNodes.at("/targetId").asText())
-                .diseaseId(jsonNodes.at("/diseaseId").asText())
+                .id(jsonNodes.at("/diseaseId").asText())
                 .type(jsonNodes.has("datatypeId") ?
                         AssociationType.getByName(jsonNodes.at("/datatypeId").asText()) :
                         AssociationType.OVERALL)
@@ -325,12 +280,12 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         final List<DiseaseAssociation> results = new ArrayList<>();
         final Map<AbstractMap.SimpleEntry<String, String>, List<DiseaseAssociation>> grouped = entries.stream()
                 .collect(Collectors.groupingBy(entry ->
-                        new AbstractMap.SimpleEntry<>(entry.getGeneId(), entry.getDiseaseId())));
+                        new AbstractMap.SimpleEntry<>(entry.getGeneId(), entry.getId())));
         for (Map.Entry<AbstractMap.SimpleEntry<String, String>, List<DiseaseAssociation>> group : grouped.entrySet()) {
             DiseaseAssociation result = new DiseaseAssociation();
             AbstractMap.SimpleEntry<String, String> key = group.getKey();
             result.setGeneId(key.getKey());
-            result.setDiseaseId(key.getValue());
+            result.setId(key.getValue());
             List<DiseaseAssociation> values = group.getValue();
             for (DiseaseAssociation value: values) {
                 switch (value.getType()) {
@@ -369,7 +324,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     private void fillDiseases(final List<DiseaseAssociation> entries) throws ParseException, IOException {
         final List<String> diseaseIds = entries.stream()
-                .map(DiseaseAssociation::getDiseaseId)
+                .map(DiseaseAssociation::getId)
                 .distinct()
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(diseaseIds)) {
@@ -377,8 +332,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
             final Map<String, Disease> diseasesMap = diseases.stream()
                     .collect(Collectors.toMap(Disease::getId, Function.identity()));
             for (DiseaseAssociation r : entries) {
-                if (diseasesMap.containsKey(r.getDiseaseId())) {
-                    r.setDiseaseName(diseasesMap.get(r.getDiseaseId()).getName());
+                if (diseasesMap.containsKey(r.getId())) {
+                    r.setName(diseasesMap.get(r.getId()).getName());
                 }
             }
         }
@@ -410,8 +365,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         }
     }
 
-    private static float getScore(final Document doc, final DiseaseField field) {
-        return  doc.getField(field.name()).numericValue().floatValue();
+    private static Float getScore(final Document doc, final DiseaseField field) {
+        return doc.getField(field.name()) != null ? doc.getField(field.name()).numericValue().floatValue() : null;
     }
 
     private void fillHomologues(final SearchResult<DiseaseAssociation> result) {

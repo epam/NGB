@@ -33,10 +33,10 @@ import com.epam.catgenome.manager.target.export.TargetExportTable;
 import com.epam.catgenome.manager.target.export.TargetExportManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.Map;
@@ -97,8 +97,8 @@ public class DiseaseSecurityService {
         final Pair<Long, Long> drugsCount = drugAssociationManager.totalCount(diseaseId);
         return DiseaseIdentificationResult.builder()
                 .targetsCount(diseaseAssociationManager.totalCount(diseaseId))
-                .knownDrugsRecordsCount(drugsCount.first())
-                .knownDrugsCount(drugsCount.second())
+                .knownDrugsRecordsCount(drugsCount.getLeft())
+                .knownDrugsCount(drugsCount.getRight())
                 .build();
     }
 }

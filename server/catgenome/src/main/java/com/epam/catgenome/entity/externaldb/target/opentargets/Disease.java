@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.target.opentargets;
 
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,7 +36,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Disease extends UrlEntity{
+public class Disease extends UrlEntity {
 
     public static final String URL_PATTERN = "https://platform.opentargets.org/disease/%s";
     private List<UrlEntity> therapeuticAreas;

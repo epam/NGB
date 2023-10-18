@@ -25,7 +25,7 @@
 package com.epam.catgenome.manager.externaldb.pdb;
 
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;

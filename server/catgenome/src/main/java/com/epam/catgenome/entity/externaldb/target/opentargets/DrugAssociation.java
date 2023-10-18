@@ -23,20 +23,18 @@
  */
 package com.epam.catgenome.entity.externaldb.target.opentargets;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.epam.catgenome.entity.externaldb.target.Association;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
+import lombok.*;
 
 @Getter
 @Setter
-@Builder
-public class DrugAssociation {
+@NoArgsConstructor
+@AllArgsConstructor
+public class DrugAssociation extends Association {
     public static final String URL_PATTERN = "https://platform.opentargets.org/drug/%s";
-    private UrlEntity drug;
-    private String geneId;
     private String geneSymbol;
     private String geneName;
-    private String target;
     private UrlEntity disease;
     private String drugType;
     private String mechanismOfAction;
@@ -44,4 +42,19 @@ public class DrugAssociation {
     private String phase;
     private String status;
     private UrlEntity source;
+    @Builder
+    public DrugAssociation(String id, String name, String url, String geneId, String target,
+                           String geneSymbol, String geneName, UrlEntity disease, String drugType,
+                           String mechanismOfAction, String actionType, String phase, String status, UrlEntity source) {
+        super(id, name, url, geneId, target);
+        this.geneSymbol = geneSymbol;
+        this.geneName = geneName;
+        this.disease = disease;
+        this.drugType = drugType;
+        this.mechanismOfAction = mechanismOfAction;
+        this.actionType = actionType;
+        this.phase = phase;
+        this.status = status;
+        this.source = source;
+    }
 }

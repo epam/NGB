@@ -68,7 +68,7 @@ public final class ExcelExportUtils {
         }
     }
 
-    private static <T> void fillHeader(final List<? extends ExportField<T>> exportFields,
+    public static <T> void fillHeader(final List<? extends ExportField<T>> exportFields,
                                        final Workbook workbook, final Sheet sheet) {
         final Row header = sheet.createRow(0);
         final CellStyle headerStyle = workbook.createCellStyle();

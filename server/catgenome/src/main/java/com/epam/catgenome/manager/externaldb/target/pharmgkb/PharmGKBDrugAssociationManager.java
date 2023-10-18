@@ -42,17 +42,13 @@ import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.testng.internal.collections.Pair;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,11 +66,6 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
         super(Paths.get(indexDirectory, "pharmgkb.drug.association").toString(), targetsTopHits);
         this.pharmGKBGeneManager = pharmGKBGeneManager;
         this.pharmGKBDrugManager = pharmGKBDrugManager;
-    }
-
-    public Pair<Long, Long> totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<PharmGKBDrug> result = searchByGeneIds(ids);
-        return Pair.of(Long.valueOf(result.size()), result.stream().map(PharmGKBDrug::getId).distinct().count());
     }
 
     public PharmGKBDrugFieldValues getFieldValues(final List<String> geneIds)
@@ -107,7 +98,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
                 drugIds = cells[2].trim().split(";");
                 for (String drugId : drugIds) {
                     PharmGKBDrug entry = PharmGKBDrug.builder()
-                            .pharmGKBGeneId(pharmGKBId)
+                            .geneId(pharmGKBId)
                             .id(drugId)
                             .build();
                     entries.add(entry);
@@ -125,7 +116,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
     @Override
     public List<PharmGKBDrug> processEntries(final List<PharmGKBDrug> entries) throws IOException, ParseException {
         final Set<String> pharmGeneIds = entries.stream()
-                .map(PharmGKBDrug::getPharmGKBGeneId)
+                .map(PharmGKBDrug::getGeneId)
                 .collect(Collectors.toSet());
         final List<PharmGKBGene> pharmGKBGenes = pharmGKBGeneManager.search(new ArrayList<>(pharmGeneIds));
         final Map<String, String> genesMap = pharmGKBGenes.stream()
@@ -141,7 +132,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
             if (drugsMap.containsKey(entry.getId())) {
                 PharmGKBDrug drug = drugsMap.get(entry.getId());
                 entry.setName(drug.getName());
-                entry.setGeneId(genesMap.get(entry.getPharmGKBGeneId()));
+                entry.setGeneId(genesMap.get(entry.getGeneId()));
                 entry.setSource(drug.getSource());
             }
         }

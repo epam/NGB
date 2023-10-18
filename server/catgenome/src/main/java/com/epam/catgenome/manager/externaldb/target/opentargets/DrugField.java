@@ -39,7 +39,7 @@ public enum DrugField implements AssociationExportFieldDiseaseView<DrugAssociati
     GENE_NAME("Target Name", DrugAssociation::getGeneName,  FilterType.PHRASE, false, true),
     TARGET("Target", DrugAssociation::getTarget,  FilterType.NONE, true, false),
     DRUG_ID(false, false),
-    DRUG_NAME("Drug", o -> String.valueOf(o.getDrug().getName()), FilterType.PHRASE,
+    DRUG_NAME("Drug", DrugAssociation::getName, FilterType.PHRASE,
             true, true),
     DRUG_TYPE("Type", DrugAssociation::getDrugType, FilterType.OPTIONS, true, true),
     MECHANISM_OF_ACTION("Mechanism Of Action", DrugAssociation::getMechanismOfAction, FilterType.OPTIONS,
