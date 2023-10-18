@@ -1,0 +1,42 @@
+<div flex>
+    <input class="ui-grid-filter-input ngb-filter-input"
+           style="margin-bottom: 1px"
+           type="text"
+           ng-model="$ctrl.displayText"
+           ng-change="$ctrl.onChange()"
+           ng-mousedown="$ctrl.displayList()"
+           ng-blur="$ctrl.hideListDelayed()"
+           ng-key-bind="{enter: '$ctrl.apply()'}">
+</div>
+<div class="ngb-filter-list-container"
+     md-whiteframe="4"
+     ng-click="$ctrl.displayList()"
+     ng-mousedown="$ctrl.preventListFromClosing()"
+     ng-mouseup="$ctrl.stopPreventListFromClosing()"
+     ng-show="$ctrl.listIsDisplayed"
+     prevent-parent-scroll>
+    <div class="ngb-filter-list-item"
+         ng-if="!$ctrl.listElements.isLoading"
+         ng-repeat="(index, item) in $ctrl.listElements.preLoadedList track by $index">
+        <md-checkbox aria-label="{{item.name || item}} checkbox"
+                     ng-checked="$ctrl.itemIsSelected(item)"
+                     ng-click="$ctrl.didClickOnItem(item)"
+                     ng-if="!item.placeholder && !item.divider">
+            {{item.name || item}}
+        </md-checkbox>
+        <span class="ngb-filter-list-item-placeholder"
+              ng-if="item.placeholder">
+            {{item.message}}
+        </span>
+        <md-divider ng-if="item.divider"></md-divider>
+    </div>
+    <div class="ngb-filter-list-loading"
+         layout="row"
+         layout-align="space-around"
+         layout-sm="column"
+         ng-if="$ctrl.listElements.isLoading">
+        <md-progress-circular md-diameter="20px"
+                              md-mode="indeterminate"
+        ></md-progress-circular>
+    </div>
+</div>
