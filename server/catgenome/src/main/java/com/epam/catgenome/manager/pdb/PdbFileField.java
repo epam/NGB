@@ -21,18 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.util;
+package com.epam.catgenome.manager.pdb;
 
-public enum Condition {
-    AND(" and "),
-    OR(" or ");
+import com.epam.catgenome.entity.pdb.PdbFile;
+import com.epam.catgenome.manager.export.ExportField;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-    private final String value;
-    public String getValue() {
-        return value;
-    }
+import java.util.function.Function;
 
-    Condition(String value) {
-        this.value = value;
-    }
+@AllArgsConstructor
+@Getter
+public enum PdbFileField implements ExportField<PdbFile> {
+    ID("ID", o -> String.valueOf(o.getPdbFileId())),
+    NAME("Name", PdbFile::getName),
+    OWNER("Owner", PdbFile::getOwner);
+    private String label;
+    private Function<PdbFile, String> getter;
 }

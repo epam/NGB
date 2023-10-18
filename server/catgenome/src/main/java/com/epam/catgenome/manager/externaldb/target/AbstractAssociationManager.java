@@ -51,10 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -163,6 +160,9 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
                 break;
             case OPTIONS:
                 query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                break;
+            case RANGE:
+                query = getByRangeQuery(filter.getRange(), filter.getField());
                 break;
             default:
                 return;

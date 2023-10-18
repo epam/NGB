@@ -198,6 +198,8 @@ export default class ngbDiseasesTargetsPanelController {
                         ...columnSettings,
                         cellTemplate: homologueCell,
                         enableFiltering: true,
+                        enableSorting: false,
+                        enableColumnMenu: false,
                     };
                     break;
                 default:

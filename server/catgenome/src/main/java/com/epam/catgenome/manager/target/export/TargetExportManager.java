@@ -27,7 +27,6 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
@@ -35,19 +34,15 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.GeneSequence;
-import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.export.ExcelExportUtils;
-import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.homolog.HomologManager;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbStructureField;
-import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
@@ -64,7 +59,6 @@ import com.epam.catgenome.manager.target.TargetIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -73,8 +67,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,6 +89,7 @@ public class TargetExportManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final PdbEntriesManager pdbEntriesManager;
+    private final PdbFileManager pdbFileManager;
     private final TargetManager targetManager;
     private final TargetIdentificationManager identificationManager;
     private final HomologManager homologManager;
@@ -154,6 +152,10 @@ public class TargetExportManager {
                 result = ExportUtils.export(getStructures(geneIds),
                         Arrays.asList(PdbStructureField.values()), format, includeHeader);
                 break;
+            case LOCAL_PDBS:
+                result = ExportUtils.export(getPdbFiles(geneIds),
+                        Arrays.asList(PdbFileField.values()), format, includeHeader);
+                break;
             case SEQUENCES:
                 result = ExportUtils.export(getSequenceTable(geneIds, genesMap),
                         Arrays.asList(GeneSequenceField.values()), format, includeHeader);
@@ -179,21 +181,23 @@ public class TargetExportManager {
             writeSheet("Summary", Arrays.asList(TargetExportSummaryField.values()),
                     getSummary(genesOfInterest, translationalGenes, genesMap), workbook);
             writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
-                    getDiseaseAssociations(geneIds, targetNames), workbook);
+                    getDiseaseAssociations(geneIds, genesMap), workbook);
             writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
-                    getDrugAssociations(geneIds, targetNames), workbook);
+                    getDrugAssociations(geneIds, genesMap), workbook);
             writeSheet("Associated Diseases(PharmGKB)", getAssociationFields(PharmGKBDiseaseField.values()),
-                    getPharmGKBDiseases(geneIds, targetNames), workbook);
+                    getPharmGKBDiseases(geneIds, genesMap), workbook);
             writeSheet("Known Drugs(PharmGKB)", getAssociationFields(PharmGKBDrugField.values()),
-                    getPharmGKBDrugs(geneIds, targetNames), workbook);
+                    getPharmGKBDrugs(geneIds, genesMap), workbook);
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
-                    getDGIDBDrugs(geneIds, targetNames), workbook);
-            writeSheet("Structures", Arrays.asList(PdbStructureField.values()),
+                    getDGIDBDrugs(geneIds, genesMap), workbook);
+            writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
                     getStructures(geneIds), workbook);
+            writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
+                    getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
-                    getSequenceTable(geneIds, targetNames), workbook);
+                    getSequenceTable(geneIds, genesMap), workbook);
             writeSheet("Homology", Arrays.asList(HomologyField.values()),
-                    getHomologyData(genesOfInterest, translationalGenes, targetNames), workbook);
+                    getHomologyData(genesOfInterest, translationalGenes, genesMap), workbook);
             return ExcelExportUtils.export(workbook);
         }
     }
@@ -339,6 +343,10 @@ public class TargetExportManager {
     private List<Structure> getStructures(final List<String> geneIds) {
         final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
         return pdbEntriesManager.getAllStructures(geneNames);
+    }
+
+    private List<PdbFile> getPdbFiles(final List<String> geneIds) {
+        return pdbFileManager.load(geneIds);
     }
 
     private List<GeneSequenceExport> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)

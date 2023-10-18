@@ -4,50 +4,6 @@ const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', '
 const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
 const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
 
-const ROMAN = {
-    M: '1000',
-    CM: '900',
-    D:  '500',
-    CD: '400',
-    C:  '100',
-    XC:  '90',
-    L:   '50',
-    XL:  '40',
-    X:   '10',
-    IX:   '9',
-    V:    '5',
-    IV:   '4',
-    I:    '1',
-};
-
-function romanize (num) {
-    if (isNaN(num)) return;
-    if (num === '0') return 'Phase I (Early)';
-    const lookup = Object.entries(ROMAN);
-    let roman = '';
-    for (let i = 0; i < lookup.length; i++) {
-        const [letter, number] = lookup[i];
-        while (num >= Number(number)) {
-            roman += letter;
-            num -= Number(number);
-        }
-    }
-    return roman ? `Phase ${roman}` : '';
-}
-
-function unRomanize(phase) {
-    if (!phase) return;
-    if (phase === 'Phase I (Early)') return 0;
-    const roman = phase.replace('Phase ', '').toUpperCase();
-    if (ROMAN[roman]) return Number(ROMAN[roman]);
-    let num = 0;
-    const arr = roman.split('');
-    while (arr.length) {
-        num += +ROMAN[arr.shift()];
-    }
-    return num;
-}
-
 const FIELDS = {
     OPEN_TARGETS: {
         'target': 'GENE_ID',
@@ -229,7 +185,7 @@ export default class ngbDrugsTableService {
                 'mechanism of action': item.mechanismOfAction,
                 'action type': item.actionType,
                 disease: item.disease,
-                phase: romanize(item.phase),
+                phase: item.phase,
                 status: item.status,
                 source: item.source
             }));
@@ -293,12 +249,14 @@ export default class ngbDrugsTableService {
                         field: this.fields[this.sourceModel.name][key],
                         terms: values.map(v => {
                             if (key === 'phase') {
-                                const number = unRomanize(v);
-                                return number ? number : '';
+                                return v || '';
                             }
                             if (key === 'target') {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
                                 return chip ? chip : '';
+                            }
+                            if (v === 'Empty value') {
+                                return '';
                             }
                             return v;
                         })
@@ -353,13 +311,9 @@ export default class ngbDrugsTableService {
         const list = this.filterFieldsList;
         for (let i = 0; i < entries.length; i++) {
             const key = entries[i][0];
-            const values = entries[i][1].filter(v => v);
+            const values = entries[i][1].map(v => v ? v : 'Empty value');
             const field = list[source][key]
-            if (field === 'phase') {
-                this.fieldList[field] = values.map(v => romanize(v));
-            } else {
-                this.fieldList[field] = values;
-            }
+            this.fieldList[field] = values;
         }
         const allGenes = this.ngbTargetPanelService.allGenes;
         this.fieldList.target = [...allGenes.map(i => i.chip)];

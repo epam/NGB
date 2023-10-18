@@ -50,7 +50,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.epam.catgenome.util.Utils.*;
+import static com.epam.catgenome.util.Utils.addClauseToQuery;
+import static com.epam.catgenome.util.Utils.addFiltersToQuery;
+import static com.epam.catgenome.util.Utils.addParametersToQuery;
+import static com.epam.catgenome.util.db.DBQueryUtils.IN_CLAUSE;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Getter
