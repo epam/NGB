@@ -354,6 +354,7 @@ export default class ngbTargetsTabService {
                     this.dispatcher.emit('target:launch:failed');
                 }
             });
+        this.setTableMode();
     }
 
     launchTargetIdentification(request) {
