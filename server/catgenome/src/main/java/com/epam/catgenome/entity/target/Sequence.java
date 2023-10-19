@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Getter;
 import lombok.Setter;

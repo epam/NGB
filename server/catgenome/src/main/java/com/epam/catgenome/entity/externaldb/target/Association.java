@@ -21,10 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.entity.externaldb.target;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,16 +30,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SequencesSummary {
-    private static final String TOTAL_PATTERN = "DNAs: %s, mRNAs: %s, proteins: %s";
-    private Long dNAs;
-    private Long mRNAs;
-    private Long proteins;
+public class Association extends UrlEntity{
+    private String geneId;
+    private String target;
 
-    @Override
-    public String toString() {
-        return String.format(TOTAL_PATTERN, dNAs, mRNAs, proteins);
+    public Association(String geneId) {
+        this.geneId = geneId;
+    }
+
+    public Association(String id, String name, String url, String geneId, String target) {
+        super(id, name, url);
+        this.geneId = geneId;
+        this.target = target;
     }
 }

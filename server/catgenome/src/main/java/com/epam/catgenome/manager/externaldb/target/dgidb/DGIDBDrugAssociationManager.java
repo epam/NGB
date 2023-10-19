@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.testng.internal.collections.Pair;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -72,12 +71,6 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
                                        final NCBIEnsemblIdsManager ncbiEnsemblIdsManager) {
         super(Paths.get(indexDirectory, "dgidb.drug.association").toString(), targetsTopHits);
         this.ncbiEnsemblIdsManager = ncbiEnsemblIdsManager;
-    }
-
-    public Pair<Long, Long> totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<DGIDBDrugAssociation> result = search(ids, DGIDBField.GENE_ID.name());
-        return Pair.of(Long.valueOf(result.size()),
-                result.stream().map(DGIDBDrugAssociation::getName).distinct().count());
     }
 
     public DGIDBDrugFieldValues getFieldValues(final List<String> geneIds)
@@ -110,12 +103,12 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
-                String entrezId = getCellValue(cells, 2);
+                String geneId = getCellValue(cells, 2);
                 String name = getCellValue(cells, 7);
-                if (!TextUtils.isBlank(entrezId) && !TextUtils.isBlank(name)) {
+                if (!TextUtils.isBlank(geneId) && !TextUtils.isBlank(name)) {
                     DGIDBDrugAssociation entry = DGIDBDrugAssociation.builder()
                             .name(name)
-                            .entrezId(entrezId)
+                            .geneId(geneId)
                             .interactionClaimSource(getCellValue(cells, 3))
                             .interactionTypes(getCellValue(cells, 4))
                             .build();
@@ -135,13 +128,13 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
     @Override
     public List<DGIDBDrugAssociation> processEntries(final List<DGIDBDrugAssociation> entries) {
         final Set<String> entrezIds = entries.stream()
-                .map(DGIDBDrugAssociation::getEntrezId)
+                .map(DGIDBDrugAssociation::getGeneId)
                 .collect(Collectors.toSet());
         final List<GeneId> geneIds = ncbiEnsemblIdsManager.searchByEntrezIds(new ArrayList<>(entrezIds));
         final Map<String, GeneId> genesMap = geneIds.stream()
                 .collect(Collectors.toMap(g -> g.getEntrezId().toString(), Function.identity()));
         for (DGIDBDrugAssociation entry: entries) {
-            GeneId geneId = genesMap.getOrDefault(entry.getEntrezId(), null);
+            GeneId geneId = genesMap.getOrDefault(entry.getGeneId(), null);
             if (geneId != null) {
                 entry.setGeneId(geneId.getEnsemblId());
             }
@@ -174,11 +167,12 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
 
     @Override
     public DGIDBDrugAssociation entryFromDoc(final Document doc) {
-        final String drugName = doc.getField(DGIDBField.DRUG_NAME.name()).stringValue();
+        final String name = doc.getField(DGIDBField.DRUG_NAME.name()).stringValue();
         return DGIDBDrugAssociation.builder()
+                .id(name)
+                .name(name)
+                .url(String.format(DGIDBDrugAssociation.URL_PATTERN, name))
                 .geneId(doc.getField(DGIDBField.GENE_ID.name()).stringValue())
-                .name(drugName)
-                .url(String.format(DGIDBDrugAssociation.URL_PATTERN, drugName))
                 .interactionTypes(doc.getField(DGIDBField.INTERACTION_TYPES.name()).stringValue())
                 .interactionClaimSource(doc.getField(DGIDBField.INTERACTION_CLAIM_SOURCE.name()).stringValue())
                 .build();

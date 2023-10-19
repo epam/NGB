@@ -24,7 +24,7 @@
 
 package com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -41,7 +41,7 @@ public enum DiseaseField implements AssociationExportFieldDiseaseView<DiseaseAss
     GENE_NAME("Target Name", DiseaseAssociation::getGeneName,  FilterType.PHRASE,
             false, true),
     DISEASE_ID(false, false),
-    DISEASE_NAME("Disease", DiseaseAssociation::getDiseaseName, FilterType.PHRASE,
+    DISEASE_NAME("Disease", DiseaseAssociation::getName, FilterType.PHRASE,
             true, false),
     OVERALL_SCORE("Overall score", o -> String.valueOf(o.getOverallScore()), FilterType.RANGE,
             true, true),

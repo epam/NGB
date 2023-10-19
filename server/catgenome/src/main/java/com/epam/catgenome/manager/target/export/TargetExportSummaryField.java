@@ -21,27 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.manager.target.export;
 
+import com.epam.catgenome.manager.export.ExportField;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+import java.util.function.Function;
+
 @AllArgsConstructor
-@Builder
-public class SequencesSummary {
-    private static final String TOTAL_PATTERN = "DNAs: %s, mRNAs: %s, proteins: %s";
-    private Long dNAs;
-    private Long mRNAs;
-    private Long proteins;
-
-    @Override
-    public String toString() {
-        return String.format(TOTAL_PATTERN, dNAs, mRNAs, proteins);
-    }
+@Getter
+public enum TargetExportSummaryField implements ExportField<TargetExportSummary> {
+    GENE("Gene", TargetExportSummary::getGene),
+    GENE_ID("Gene ID", TargetExportSummary::getGeneId),
+    SPECIES("Species", TargetExportSummary::getSpecies),
+    TYPE("Type", TargetExportSummary::getType),
+    DESCRIPTION("Description", TargetExportSummary::getDescription),
+    KNOWN_DRUGS("Known Drugs", o -> String.valueOf(o.getKnownDrugs())),
+    KNOWN_DRUG_RECORDS("Known Drug Records", o -> String.valueOf(o.getKnownDrugRecords())),
+    DISEASES("Diseases", o -> String.valueOf(o.getDiseases())),
+    PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications())),
+    SEQUENCES("Sequences", TargetExportSummary::getSequences),
+    STRUCTURES("Structures", o -> String.valueOf(o.getStructures())),
+    HOMOLOGS("Homologs", o -> String.valueOf(o.getHomologs()));
+    private String label;
+    private Function<TargetExportSummary, String> getter;
 }

@@ -33,11 +33,10 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociationAggregated;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.GeneRefSection;
-import com.epam.catgenome.entity.target.GeneSequence;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.TargetIdentificationResult;
@@ -65,13 +64,14 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
+import com.epam.catgenome.manager.pdb.PdbFileManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.apache.commons.collections4.CollectionUtils;
-import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,7 +80,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -109,6 +108,7 @@ public class TargetIdentificationManager {
     private final PubMedService pubMedService;
     private final NCBISequenceManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
+    private final PdbFileManager pdbFileManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -126,13 +126,13 @@ public class TargetIdentificationManager {
         final Pair<Long, Long> drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
-        final SequencesSummary sequencesCount = getSequencesCount(ncbiGeneIds);
+        final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
         final long structuresCount = getStructuresCount(geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
-                .knownDrugsRecordsCount(drugsCount.first())
-                .knownDrugsCount(drugsCount.second())
+                .knownDrugsRecordsCount(drugsCount.getLeft())
+                .knownDrugsCount(drugsCount.getRight())
                 .publicationsCount(publicationsCount)
                 .sequencesCount(sequencesCount)
                 .structuresCount(structuresCount)
@@ -253,42 +253,7 @@ public class TargetIdentificationManager {
         return pdbEntriesManager.getStructures(request, geneNames);
     }
 
-    private SequencesSummary getSequencesCount(final List<GeneId> ncbiGeneIds)
-            throws IOException, ExternalDbUnavailableException {
-        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
-                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        final List<GeneRefSection> refSections = geneSequencesManager.getGeneSequencesTable(entrezMap, false);
-        final List<GeneSequence> sequences = refSections.stream()
-                .map(GeneRefSection::getSequences)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-        final List<String> genomic = sequences.stream()
-                .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
-                .collect(Collectors.toList());
-        final List<String> references = refSections.stream()
-                .map(s -> s.getReference() == null ? null : s.getReference().getId())
-                .collect(Collectors.toList());
-        genomic.addAll(references);
-        final long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
-        final long mRNAs = sequences.stream()
-                .map(s -> s.getMRNA()).filter(Objects::nonNull)
-                .count();
-        final long proteins = sequences.stream()
-                .map(s -> s.getProtein()).filter(Objects::nonNull)
-                .count();
-        return SequencesSummary.builder()
-                .dNAs(dNAs)
-                .mRNAs(mRNAs)
-                .proteins(proteins)
-                .build();
-    }
-
-    private long getStructuresCount(final List<String> geneIds) {
-        final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
-        return pdbEntriesManager.getStructuresCount(geneNames);
-    }
-
-    private Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
+    public Map<String, String> getDescriptions(final List<GeneId> ncbiGeneIds)
             throws ExternalDbUnavailableException, ParseException, IOException {
         final List<String> geneIds = ncbiGeneIds.stream().map(GeneId::getEnsemblId).collect(Collectors.toList());
         final Map<GeneId, String> ncbiSummary = geneManager.fetchGeneSummaryByIds(ncbiGeneIds);
@@ -296,6 +261,13 @@ public class TargetIdentificationManager {
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
         merged.replaceAll((key, value) -> setHyperLinks(value));
         return merged;
+    }
+
+    private long getStructuresCount(final List<String> geneIds) {
+        long localPdbFiles = pdbFileManager.totalCount(geneIds);
+        final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
+        long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
+        return localPdbFiles + structuresCount;
     }
 
     private String setHyperLinks(final String text) {
@@ -314,12 +286,12 @@ public class TargetIdentificationManager {
         return newText;
     }
 
-    private Pair<Long, Long> getDrugsCount(final List<String> ensemblIds) throws IOException, ParseException {
-        final Pair<Long, Long> pharmGKBDrugsCount = pharmGKBDrugAssociationManager.totalCount(ensemblIds);
-        final Pair<Long, Long> dgidbDrugsCount = dgidbDrugAssociationManager.totalCount(ensemblIds);
-        final Pair<Long, Long> openTargetDrugs = drugAssociationManager.totalCount(ensemblIds);
-        return Pair.of(pharmGKBDrugsCount.first() + dgidbDrugsCount.first() + openTargetDrugs.first(),
-                pharmGKBDrugsCount.second() + dgidbDrugsCount.second() + openTargetDrugs.second());
+    private Pair<Long, Long> getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+        final Pair<Long, Long> pharmGKBDrugsCount = pharmGKBDrugAssociationManager.recordsCount(geneIds);
+        final Pair<Long, Long> dgidbDrugsCount = dgidbDrugAssociationManager.recordsCount(geneIds);
+        final Pair<Long, Long> openTargetDrugs = drugAssociationManager.recordsCount(geneIds);
+        return Pair.of(pharmGKBDrugsCount.getLeft() + dgidbDrugsCount.getLeft() + openTargetDrugs.getLeft(),
+                pharmGKBDrugsCount.getRight() + dgidbDrugsCount.getRight() + openTargetDrugs.getRight());
     }
 
     private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
@@ -348,9 +320,9 @@ public class TargetIdentificationManager {
 
     private DiseaseAssociationAggregated aggregate(final DiseaseAssociation association) {
         final Disease disease = Disease.builder()
-                .id(association.getDiseaseId())
-                .name(association.getDiseaseName())
-                .url(String.format(Disease.URL_PATTERN, association.getDiseaseId()))
+                .id(association.getId())
+                .name(association.getName())
+                .url(String.format(Disease.URL_PATTERN, association.getId()))
                 .build();
         final Map<AssociationType, Float> scores = new HashMap<>();
         if (association.getOverallScore() != null) {

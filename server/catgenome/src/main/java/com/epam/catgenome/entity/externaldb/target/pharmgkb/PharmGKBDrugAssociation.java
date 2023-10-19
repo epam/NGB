@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.target.pharmgkb;
 
+import com.epam.catgenome.entity.externaldb.target.Association;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class PharmGKBDrugAssociation {
+public class PharmGKBDrugAssociation extends Association {
     private String pharmGKBGeneId;
     private String drugId;
 }

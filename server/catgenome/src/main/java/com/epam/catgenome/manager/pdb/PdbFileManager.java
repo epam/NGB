@@ -118,6 +118,10 @@ public class PdbFileManager {
         return pdbFileDao.load(getGeneIdsClause(geneIds), sortInfos);
     }
 
+    public long totalCount(final List<String> geneIds) {
+        return pdbFileDao.getTotalCount(getGeneIdsClause(geneIds));
+    }
+
     public Page<PdbFile> load(final PdbFileQueryParams params) {
         final String clause = getFilterClause(params);
         final long totalCount = pdbFileDao.getTotalCount(clause);
