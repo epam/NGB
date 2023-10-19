@@ -164,7 +164,7 @@ export default class ngbDiseasesTargetsPanelService {
                 'pathways systems': fixedNumber(affectedPathwayScore),
                 'text mining': fixedNumber(literatureScore),
                 'animal models': fixedNumber(animalModelScore),
-                'rna expression': fixedNumber(rnaExpressionScore)
+                'RNA expression': fixedNumber(rnaExpressionScore)
             };
         });
     }
