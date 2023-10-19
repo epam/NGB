@@ -172,7 +172,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
 
     public Pair<Long, Long> recordsCount(final List<String> geneIds) throws ParseException, IOException {
         final List<T> result = searchByGeneIds(geneIds);
-        return Pair.of((long) result.size(), result.stream().map(T::getName).distinct().count());
+        return Pair.of((long) result.size(), result.stream().map(T::getId).distinct().count());
     }
 
     public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
@@ -186,7 +186,8 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         final Map<String, Pair<Long, Long>> totalCounts = new HashMap<>();
         final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
         grouped.forEach((k, v) ->
-                totalCounts.put(k, Pair.of((long) v.size(), v.stream().map(T::getName).distinct().count())));
+                totalCounts.put(k.toLowerCase(),
+                        Pair.of((long) v.size(), v.stream().map(T::getId).distinct().count())));
         return totalCounts;
     }
 
@@ -194,7 +195,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         final List<T> result = searchByGeneIds(geneIds);
         final Map<String, Long> totalCounts = new HashMap<>();
         final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
-        grouped.forEach((k, v) -> totalCounts.put(k, (long) v.size()));
+        grouped.forEach((k, v) -> totalCounts.put(k.toLowerCase(), (long) v.size()));
         return totalCounts;
     }
 

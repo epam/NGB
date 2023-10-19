@@ -41,5 +41,6 @@ public class TargetExportSummary {
     private Long diseases;
     private Long publications;
     private String sequences;
-    private String structures;
+    private Long structures;
+    private String homologs;
 }

@@ -39,8 +39,7 @@ public class PharmGKBDrug extends Association {
     public static final String URL_PATTERN = "https://www.pharmgkb.org/labelAnnotation/%s";
     private String source;
     @Builder
-    public PharmGKBDrug(String id, String name, String url, String geneId, String target,
-                        String pharmGKBGeneId, String source) {
+    public PharmGKBDrug(String id, String name, String url, String geneId, String target, String source) {
         super(id, name, url, geneId, target);
         this.source = source;
     }

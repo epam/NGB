@@ -70,6 +70,7 @@ public class DiseaseAssociation extends Association {
         this.affectedPathwayScore = affectedPathwayScore;
         this.literatureScore = literatureScore;
         this.rnaExpressionScore = rnaExpressionScore;
+        this.animalModelScore = animalModelScore;
         this.homologues = homologues;
     }
 }

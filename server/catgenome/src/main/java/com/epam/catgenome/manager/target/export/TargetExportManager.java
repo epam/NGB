@@ -27,22 +27,28 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.GeneSequence;
+import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.export.ExportUtils;
 import com.epam.catgenome.manager.export.ExcelExportUtils;
+import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.homolog.HomologManager;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbStructureField;
+import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportFieldDiseaseView;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
@@ -55,10 +61,13 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAsso
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseField;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
+import com.epam.catgenome.manager.pdb.PdbFileField;
+import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.TargetIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -69,9 +78,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -181,23 +192,23 @@ public class TargetExportManager {
             writeSheet("Summary", Arrays.asList(TargetExportSummaryField.values()),
                     getSummary(genesOfInterest, translationalGenes, genesMap), workbook);
             writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
-                    getDiseaseAssociations(geneIds, genesMap), workbook);
+                    getDiseaseAssociations(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
-                    getDrugAssociations(geneIds, genesMap), workbook);
+                    getDrugAssociations(geneIds, targetNames), workbook);
             writeSheet("Associated Diseases(PharmGKB)", getAssociationFields(PharmGKBDiseaseField.values()),
-                    getPharmGKBDiseases(geneIds, genesMap), workbook);
+                    getPharmGKBDiseases(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(PharmGKB)", getAssociationFields(PharmGKBDrugField.values()),
-                    getPharmGKBDrugs(geneIds, genesMap), workbook);
+                    getPharmGKBDrugs(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
-                    getDGIDBDrugs(geneIds, genesMap), workbook);
+                    getDGIDBDrugs(geneIds, targetNames), workbook);
             writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
                     getStructures(geneIds), workbook);
             writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
                     getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
-                    getSequenceTable(geneIds, genesMap), workbook);
+                    getSequenceTable(geneIds, targetNames), workbook);
             writeSheet("Homology", Arrays.asList(HomologyField.values()),
-                    getHomologyData(genesOfInterest, translationalGenes, genesMap), workbook);
+                    getHomologyData(genesOfInterest, translationalGenes, targetNames), workbook);
             return ExcelExportUtils.export(workbook);
         }
     }
@@ -225,7 +236,7 @@ public class TargetExportManager {
 
     private List<TargetHomology> getHomologyData(final List<String> genesOfInterest,
                                                  final List<String> translationalGenes,
-                                                 final Map<String, String> genesMap)
+                                                 final Map<String, String> geneNames)
             throws IOException, ParseException {
         final List<Long> species = targetManager.getTargetGeneSpecies(translationalGenes);
         final Map<String, List<HomologGroup>> homologueGroups = homologManager.searchHomolog(genesOfInterest);
@@ -240,7 +251,7 @@ public class TargetExportManager {
                     if (!TextUtils.isBlank(gene.getSymbol())) {
                         TargetHomology export = new TargetHomology();
                         export.setGeneId(homologueEntry.getKey());
-                        export.setTarget(genesMap.get(homologueEntry.getKey().toLowerCase()));
+                        export.setTarget(geneNames.get(homologueEntry.getKey().toLowerCase()));
                         export.setSpecies(gene.getSpeciesScientificName());
                         export.setHomologyType(group.getType().getName());
                         export.setHomologue(gene.getSymbol());
@@ -261,7 +272,7 @@ public class TargetExportManager {
                     if (!TextUtils.isBlank(gene.getSymbol())) {
                         TargetHomology export = new TargetHomology();
                         export.setGeneId(homologenesMapEntry.getKey());
-                        export.setTarget(genesMap.get(homologenesMapEntry.getKey().toLowerCase()));
+                        export.setTarget(geneNames.get(homologenesMapEntry.getKey().toLowerCase()));
                         export.setSpecies(gene.getSpeciesScientificName());
                         export.setHomologyType(HomologType.HOMOLOGUE.getName());
                         export.setHomologue(gene.getSymbol());
@@ -271,6 +282,31 @@ public class TargetExportManager {
                         homology.add(export);
                     }
                 }
+            }
+        }
+        return homology;
+    }
+
+    private long getHomologyCount(final List<String> genesOfInterest, final List<String> translationalGenes)
+            throws IOException, ParseException {
+        final List<Long> species = targetManager.getTargetGeneSpecies(translationalGenes);
+        final Map<String, List<HomologGroup>> homologueGroups = homologManager.searchHomolog(genesOfInterest);
+        final Map<String, List<HomologeneEntry>> homologenes = homologeneManager.searchHomologenes(genesOfInterest);
+        long homology = 0;
+        for (Map.Entry<String, List<HomologGroup>> homologueEntry : homologueGroups.entrySet()) {
+            for (HomologGroup group : homologueEntry.getValue()) {
+                List<Gene> genes = group.getHomologs().stream()
+                        .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
+                        .collect(Collectors.toList());
+                homology += genes.size();
+            }
+        }
+        for (Map.Entry<String, List<HomologeneEntry>> homologenesMapEntry : homologenes.entrySet()) {
+            for (HomologeneEntry entry : homologenesMapEntry.getValue()) {
+                List<Gene> genes = entry.getGenes().stream()
+                        .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
+                        .collect(Collectors.toList());
+                homology += genes.size();
             }
         }
         return homology;
@@ -302,7 +338,6 @@ public class TargetExportManager {
         }
         return genesMap;
     }
-
 
     private List<DiseaseAssociation> getDiseaseAssociations(final List<String> geneIds,
                                                             final Map<String, String> genesMap)
@@ -377,7 +412,7 @@ public class TargetExportManager {
         return result;
     }
 
-    public List<TargetExportSummary> getSummary(final List<String> genesOfInterest,
+    private List<TargetExportSummary> getSummary(final List<String> genesOfInterest,
                                                 final List<String> translationalGenes,
                                                 final Map<String, TargetGene> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
@@ -394,34 +429,72 @@ public class TargetExportManager {
 
         final Map<String, Long> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.totalCountMap(geneIds);
         final Map<String, Long> diseases = diseaseAssociationManager.totalCountMap(geneIds);
+
         final Map<String, SequencesSummary> sequencesSummaryMap =
                 geneSequencesManager.getSequencesCountMap(ncbiGeneIds);
 
+        final Map<String, Long> structuresCount = getStructuresCount(genesMap);
+
         final List<TargetExportSummary> summaries = new ArrayList<>();
         for (String geneId : geneIds) {
-            final long publicationsCount = pubMedService.getPublicationsCount(
-                Collections.singletonList(genes.get(geneId).getEntrezId().toString()));
-            final long structuresCount = pdbEntriesManager.getStructuresCount(
-                    Collections.singletonList(genesMap.get(geneId).getGeneName()));
+            boolean isGeneOfInterest = genesOfInterest.stream()
+                    .map(String::toLowerCase)
+                    .anyMatch(g -> g.equals(geneId));
+
+            long publicationsCount = pubMedService.getPublicationsCount(
+                    Collections.singletonList(genes.get(geneId).getEntrezId().toString()));
+
+            String homologs = isGeneOfInterest ?
+                    String.valueOf(getHomologyCount(Collections.singletonList(geneId), translationalGenes)) : "";
+
+            long knownDrugs = (pharmGKBDrugs.containsKey(geneId) ? pharmGKBDrugs.get(geneId).getRight() : 0) +
+                    (dgidbDrugs.containsKey(geneId) ? dgidbDrugs.get(geneId).getRight() : 0) +
+                    (drugs.containsKey(geneId) ? drugs.get(geneId).getRight() : 0);
+
+            long knownDrugRecords = (pharmGKBDrugs.containsKey(geneId) ? pharmGKBDrugs.get(geneId).getLeft() : 0) +
+                    (dgidbDrugs.containsKey(geneId) ? dgidbDrugs.get(geneId).getLeft() : 0) +
+                    (drugs.containsKey(geneId) ? drugs.get(geneId).getLeft() : 0);
+
+            long diseasesCount = (pharmGKBDiseases.containsKey(geneId) ? pharmGKBDiseases.get(geneId) : 0) +
+                    (diseases.containsKey(geneId) ? diseases.get(geneId) : 0);
+
+            String sequences = sequencesSummaryMap.containsKey(geneId) ?
+                    sequencesSummaryMap.get(geneId).toString() : "";
+
+            long localPdbFilesCount = pdbFileManager.totalCount(Collections.singletonList(geneId));
+            String geneName = genesMap.get(geneId).getGeneName();
+            long structures = (structuresCount.containsKey(geneName) ? structuresCount.get(geneName) : 0) +
+                    localPdbFilesCount;
 
             TargetExportSummary summary = TargetExportSummary.builder()
                     .gene(genesMap.get(geneId).getGeneName())
                     .geneId(genesMap.get(geneId).getGeneId())
                     .species(genesMap.get(geneId).getSpeciesName())
-                    .type(genesOfInterest.stream().anyMatch(g -> g.equals(geneId)) ? "Gene of interest" :
-                            "Translational gene")
+                    .type(isGeneOfInterest ? "Gene of interest" : "Translational gene")
                     .description(descriptions.get(geneId))
-                    .knownDrugs(pharmGKBDrugs.get(geneId).getRight() + dgidbDrugs.get(geneId).getRight() +
-                            drugs.get(geneId).getRight())
-                    .knownDrugRecords(pharmGKBDrugs.get(geneId).getLeft() + dgidbDrugs.get(geneId).getLeft() +
-                            drugs.get(geneId).getLeft())
-                    .diseases(pharmGKBDiseases.get(geneId) + diseases.get(geneId))
+                    .knownDrugs(knownDrugs)
+                    .knownDrugRecords(knownDrugRecords)
+                    .diseases(diseasesCount)
                     .publications(publicationsCount)
-                    .sequences(sequencesSummaryMap.get(geneId).toString())
-                    .structures(String.valueOf(structuresCount))
+                    .sequences(sequences)
+                    .structures(structures)
+                    .homologs(homologs)
                     .build();
             summaries.add(summary);
         }
         return summaries;
+    }
+
+    private Map<String, Long> getStructuresCount(final Map<String, TargetGene> genesMap) {
+        final List<String> geneNames = genesMap.values().stream()
+                .map(TargetGene::getGeneName)
+                .distinct()
+                .collect(Collectors.toList());
+        final Map<String, Long> structuresCountMap = new HashMap<>();
+        geneNames.forEach(geneName -> {
+            long structuresCount = pdbEntriesManager.getStructuresCount(Collections.singletonList(geneName));
+            structuresCountMap.put(geneName, structuresCount);
+        });
+        return structuresCountMap;
     }
 }

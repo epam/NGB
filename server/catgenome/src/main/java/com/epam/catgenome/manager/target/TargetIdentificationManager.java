@@ -64,6 +64,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
+import com.epam.catgenome.manager.pdb.PdbFileManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -107,6 +108,7 @@ public class TargetIdentificationManager {
     private final PubMedService pubMedService;
     private final NCBISequenceManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
+    private final PdbFileManager pdbFileManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -262,8 +264,10 @@ public class TargetIdentificationManager {
     }
 
     private long getStructuresCount(final List<String> geneIds) {
+        long localPdbFiles = pdbFileManager.totalCount(geneIds);
         final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
-        return pdbEntriesManager.getStructuresCount(geneNames);
+        long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
+        return localPdbFiles + structuresCount;
     }
 
     private String setHyperLinks(final String text) {

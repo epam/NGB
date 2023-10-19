@@ -41,7 +41,9 @@ public enum TargetExportSummaryField implements ExportField<TargetExportSummary>
     KNOWN_DRUG_RECORDS("Known Drug Records", o -> String.valueOf(o.getKnownDrugRecords())),
     DISEASES("Diseases", o -> String.valueOf(o.getDiseases())),
     PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications())),
-    SEQUENCES("Sequences", TargetExportSummary::getSequences);
+    SEQUENCES("Sequences", TargetExportSummary::getSequences),
+    STRUCTURES("Structures", o -> String.valueOf(o.getStructures())),
+    HOMOLOGS("Homologs", TargetExportSummary::getHomologs);
     private String label;
     private Function<TargetExportSummary, String> getter;
 }

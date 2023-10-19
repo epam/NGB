@@ -30,6 +30,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import junit.framework.TestCase;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -74,9 +74,9 @@ public class PharmGKBDrugAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final Pair<Long, Long> totalCount = pharmGKBDrugAssociationManager.totalCount(GENE_IDS);
-        assertEquals(ENTRIES_COUNT, totalCount.first().intValue());
-        assertEquals(ENTRIES_TOTAL_COUNT, totalCount.second().intValue());
+        final Pair<Long, Long> totalCount = pharmGKBDrugAssociationManager.recordsCount(GENE_IDS);
+        assertEquals(ENTRIES_COUNT, totalCount.getLeft().intValue());
+        assertEquals(ENTRIES_TOTAL_COUNT, totalCount.getRight().intValue());
     }
 
     @Test
