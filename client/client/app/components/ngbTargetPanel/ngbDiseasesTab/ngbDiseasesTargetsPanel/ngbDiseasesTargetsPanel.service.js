@@ -184,20 +184,23 @@ export default class ngbDiseasesTargetsPanelService {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values && values.length)
                 .map(([key, values]) => {
-                    if (key === 'homologues') return;
-                    if (key === 'overall score') {
-                        return {
-                            field: this.fields[key],
-                            range: {
+                    const filter = {
+                        field: this.fields[key],
+                    };
+                    switch (key) {
+                        case 'homologues':
+                            break;
+                        case 'target':
+                        case 'target name':
+                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
+                            return filter;
+                        default:
+                            filter.range = {
                                 from: Number.parseFloat(values).toFixed(2),
                                 to: '1.0'
-                            }
-                        }
+                            };
+                            return filter;
                     }
-                    return {
-                        field: this.fields[key],
-                        terms: Array.isArray(values) ? values.map(v => v) : [values]
-                    };
                 })
                 .filter(i => i);
             if (filters && filters.length) {

@@ -217,7 +217,7 @@ export default class ngbDiseasesTableService {
                             });
                             return filter;
                         case 'disease':
-                            filter.terms = Array.isArray(values) ? values : [values];
+                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
                             return filter;
                         default:
                             filter.range = {
