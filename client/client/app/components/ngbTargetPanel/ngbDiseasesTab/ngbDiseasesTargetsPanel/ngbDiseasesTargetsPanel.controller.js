@@ -160,6 +160,7 @@ export default class ngbDiseasesTargetsPanelController {
         const headerCells = require('./ngbDiseasesTargetsTable_header.tpl.html');
         const colorCell = require('./ngbDiseasesTargetsTable_colorCell.tpl.html');
         const homologueCell = require('./ngbDIseasesTargetsTable_homologuesCell.tpl.html');
+        const targetCell = require('./ngbDiseasesTargetsTable_targetCell.tpl.html');
 
         const result = [];
         const columnsList = this.columnList;
@@ -184,6 +185,7 @@ export default class ngbDiseasesTargetsPanelController {
                     columnSettings = {
                         ...columnSettings,
                         enableFiltering: true,
+                        cellTemplate: targetCell,
                     };
                     break;
                 case 'target name':
