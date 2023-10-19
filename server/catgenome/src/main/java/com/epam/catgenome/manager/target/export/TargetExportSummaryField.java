@@ -43,7 +43,7 @@ public enum TargetExportSummaryField implements ExportField<TargetExportSummary>
     PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications())),
     SEQUENCES("Sequences", TargetExportSummary::getSequences),
     STRUCTURES("Structures", o -> String.valueOf(o.getStructures())),
-    HOMOLOGS("Homologs", TargetExportSummary::getHomologs);
+    HOMOLOGS("Homologs", o -> String.valueOf(o.getHomologs()));
     private String label;
     private Function<TargetExportSummary, String> getter;
 }

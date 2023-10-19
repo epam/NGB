@@ -42,5 +42,5 @@ public class TargetExportSummary {
     private Long publications;
     private String sequences;
     private Long structures;
-    private String homologs;
+    private Long homologs;
 }

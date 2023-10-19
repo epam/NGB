@@ -46,11 +46,11 @@ public enum DrugField implements AssociationExportFieldDiseaseView<DrugAssociati
             true, true),
     ACTION_TYPE("Action Type", DrugAssociation::getActionType, FilterType.OPTIONS, true, true),
     DISEASE_ID(false, false),
-    DISEASE_NAME("Disease", o -> String.valueOf(o.getDisease().getName()), FilterType.PHRASE,
+    DISEASE_NAME("Disease", o -> o.getDisease().getName(), FilterType.PHRASE,
             true, false),
     PHASE("Phase", DrugAssociation::getPhase, FilterType.OPTIONS, true, true),
     STATUS("Status", DrugAssociation::getStatus, FilterType.OPTIONS, true, true),
-    SOURCE("Source", o -> String.valueOf(o.getSource().getName()), FilterType.OPTIONS,
+    SOURCE("Source", o -> o.getSource().getName(), FilterType.OPTIONS,
             true, true),
     SOURCE_URL(false, false);
     private String label;

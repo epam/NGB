@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static com.epam.catgenome.util.Utils.NULL_STR;
+
 public final class ExcelExportUtils {
     private ExcelExportUtils() {
         // no operations by default
@@ -63,7 +65,7 @@ public final class ExcelExportUtils {
             for (int j = 0; j < exportFields.size(); j++) {
                 String value = exportFields.get(j).getGetter().apply(indexEntry);
                 Cell cell = row.createCell(j);
-                cell.setCellValue(value);
+                cell.setCellValue(getString(value));
             }
         }
     }
@@ -82,5 +84,9 @@ public final class ExcelExportUtils {
             headerCell.setCellStyle(headerStyle);
             sheet.autoSizeColumn(i);
         }
+    }
+
+    public static String getString(String value) {
+        return value == null || value.equals(NULL_STR) ? "" : value;
     }
 }

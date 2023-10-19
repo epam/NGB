@@ -444,8 +444,8 @@ public class TargetExportManager {
             long publicationsCount = pubMedService.getPublicationsCount(
                     Collections.singletonList(genes.get(geneId).getEntrezId().toString()));
 
-            String homologs = isGeneOfInterest ?
-                    String.valueOf(getHomologyCount(Collections.singletonList(geneId), translationalGenes)) : "";
+            Long homologs = isGeneOfInterest ?
+                    getHomologyCount(Collections.singletonList(geneId), translationalGenes) : null;
 
             long knownDrugs = (pharmGKBDrugs.containsKey(geneId) ? pharmGKBDrugs.get(geneId).getRight() : 0) +
                     (dgidbDrugs.containsKey(geneId) ? dgidbDrugs.get(geneId).getRight() : 0) +
