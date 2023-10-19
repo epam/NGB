@@ -1,0 +1,28 @@
+ngb-diseases-filter-list {
+    .ngb-filter-list-container {
+        background-color: #ffffff;
+        position: fixed;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: scroll;
+        z-index: 10;
+    
+        .ngb-filter-list-item {
+            min-height: 20px;
+            padding: 3px;
+    
+            .ngb-filter-list-item-placeholder {
+                font-style: italic;
+            }
+        }
+    
+        .ngb-filter-list-loading {
+            padding: 10px;
+        }
+
+        md-checkbox {
+            margin-bottom: 4px;
+        }
+    }
+}
+  

@@ -185,9 +185,18 @@ export default class ngbDiseasesTargetsPanelService {
                 .filter(([key, values]) => values && values.length)
                 .map(([key, values]) => {
                     if (key === 'homologues') return;
+                    if (key === 'overall score') {
+                        return {
+                            field: this.fields[key],
+                            range: {
+                                from: Number.parseFloat(values).toFixed(2),
+                                to: '1.0'
+                            }
+                        }
+                    }
                     return {
                         field: this.fields[key],
-                        terms: values.map(v => v)
+                        terms: Array.isArray(values) ? values.map(v => v) : [values]
                     };
                 })
                 .filter(i => i);

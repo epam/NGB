@@ -206,15 +206,24 @@ export default class ngbDiseasesTableService {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => {
+                    if (key === 'overall score') {
+                        return {
+                            field: this.fields[this.sourceModel][key],
+                            range: {
+                                from: Number.parseFloat(values).toFixed(2),
+                                to: '1.0'
+                            }
+                        }
+                    }
                     return {
                         field: this.fields[this.sourceModel][key],
-                        terms: values.map(v => {
+                        terms: Array.isArray(values) ? (values.map(v => {
                             if (key === 'target') {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
                                 return chip ? chip : '';
                             }
                             return v;
-                        })
+                        })) : [values]
                     };
                 });
             if (filters && filters.length) {

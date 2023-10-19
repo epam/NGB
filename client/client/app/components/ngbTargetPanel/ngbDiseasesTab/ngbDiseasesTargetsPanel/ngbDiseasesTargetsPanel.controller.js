@@ -202,6 +202,13 @@ export default class ngbDiseasesTargetsPanelController {
                         enableColumnMenu: false,
                     };
                     break;
+                case 'overall score':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: colorCell,
+                        enableFiltering: true,
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
