@@ -360,13 +360,19 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExport(geneIds, source) {
+    getTargetExport(genesOfInterest, translationalGenes, source) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/export${getQueryString({geneIds, format, source, includeHeader})}`,
+                `target/export${getQueryString({
+                    genesOfInterest,
+                    translationalGenes,
+                    format,
+                    source,
+                    includeHeader
+                })}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
@@ -526,6 +532,38 @@ export class TargetDataService extends DataService {
                         resolve([]);
                     }
                 }, reject);
+        });
+    }
+
+    getTargetReport(genesOfInterest, translationalGenes) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/report${getQueryString({genesOfInterest, translationalGenes})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
+
+    getDiseaseIdentification(diseaseId) {
+        return new Promise((resolve, reject) => {
+            this.get(`disease/identification/${diseaseId}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting disease total counts';
+                    reject(new Error((error && error.message) || message));
+            });
         });
     }
 }

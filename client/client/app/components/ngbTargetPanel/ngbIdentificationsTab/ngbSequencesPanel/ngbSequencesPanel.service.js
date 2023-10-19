@@ -1,9 +1,15 @@
 const PAGE_SIZE = 10;
 
+const EXPORT_SOURCE = 'SEQUENCES';
+
 export default class ngbSequencesPanelService {
 
     get pageSize() {
         return PAGE_SIZE;
+    }
+
+    get exportSource() {
+        return EXPORT_SOURCE;
     }
 
     _loadingData = false;
@@ -70,6 +76,14 @@ export default class ngbSequencesPanelService {
 
     get genesIds() {
         return this.ngbTargetPanelService.genesIds;
+    }
+
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
     }
 
     async targetChanged() {
@@ -198,5 +212,15 @@ export default class ngbSequencesPanelService {
         this._selectedGeneId = undefined;
         this._allSequences = null;
         this.resetSequenceResults();
+    }
+
+    exportResults() {
+        const source = this.exportSource;
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }

@@ -45,7 +45,31 @@ export default class ngbTargetPanelController {
         }
     }
 
-    storeReport () {}
+    downloadReport () {
+        this.ngbTargetPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/xls'});
+                    const url = window.URL.createObjectURL(blob);
+                    const geneChips = this.ngbTargetPanelService.allGenes.map(i => i.chip);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${geneChips.join('_')}-report.xls`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                }
+            });
+    }
 
     changeState(state) {
         if (this.targetState.hasOwnProperty(state)) {

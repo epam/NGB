@@ -141,6 +141,10 @@ export default class ngbGenomicsPanelController {
         return !this.targetModel.protein || !this.queryModel.protein || !this.isRegistered || !this.alignment;
     }
 
+    get tableResults() {
+        return this.ngbGenomicsPanelService.tableResults;
+    }
+
     $onInit() {
         this.initialize();
     }
@@ -165,6 +169,10 @@ export default class ngbGenomicsPanelController {
 
     get alignment() {
         return this.ngbGenomicsPanelService.alignment;
+    }
+
+    get geneChips() {
+        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
     }
 
     isProteinOptionDisabled(geneId) {
@@ -457,5 +465,34 @@ export default class ngbGenomicsPanelController {
             }, 0);
             
         }
+    }
+
+    exportResults() {
+        this.loadingData = true;
+        this.ngbGenomicsPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.geneChips.join('_')}-homologues.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                    this.loadingData = false;
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                    this.loadingData = false;
+                }
+                this.$timeout(() => this.$scope.$apply());
+            });
     }
 }

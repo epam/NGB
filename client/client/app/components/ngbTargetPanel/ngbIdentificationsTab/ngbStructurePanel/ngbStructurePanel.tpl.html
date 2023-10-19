@@ -1,5 +1,5 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loading || $ctrl.pdbDescriptionLoading">
+     ng-if="$ctrl.loadingData || $ctrl.pdbDescriptionLoading">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div ng-class="{'hidden': !$ctrl.pdbDescriptionFailed || $ctrl.pdbDescriptionLoading}">
@@ -7,21 +7,29 @@
 </div>
 <ngb-structure-viewer></ngb-structure-viewer>
 
-
 <div class="structure-table-header">
-    <div class="structure-source-select">
-        <label>Source:</label>
-        <md-input-container>
-            <md-select ng-model="$ctrl.sourceModel"
-                       aria-label="Source select"
-                       ng-change="$ctrl.onChangeSource()"
-                       md-container-class="structure-source-select-container">
-                <md-option ng-repeat="item in $ctrl.sourceOptions"
-                           ng-value="item">
-                   {{item}}
-               </md-option>
-            </md-select>
-        </md-input-container>
+    <div class="action-container">
+        <md-button type="button"
+                   class="md-raised export-button"
+                   ng-if="$ctrl.tableResults"
+                   aria-label="Export structure results"
+                   ng-click="$ctrl.exportResults()">
+            EXPORT
+        </md-button>
+        <div class="structure-source-select">
+            <label>Source:</label>
+            <md-input-container>
+                <md-select ng-model="$ctrl.sourceModel"
+                           aria-label="Source select"
+                           ng-change="$ctrl.onChangeSource()"
+                           md-container-class="structure-source-select-container">
+                    <md-option ng-repeat="item in $ctrl.sourceOptions"
+                               ng-value="item">
+                       {{item}}
+                   </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
     </div>
 </div>
 <ngb-structure-table></ngb-structure-table>

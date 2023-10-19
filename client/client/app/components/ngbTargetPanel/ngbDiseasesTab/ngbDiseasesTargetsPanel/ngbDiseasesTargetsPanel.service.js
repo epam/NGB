@@ -198,13 +198,6 @@ export default class ngbDiseasesTargetsPanelService {
         return request;
     }
 
-    setDiseasesData(totalTargets) {
-        const data = this.ngbDiseasesTabService.diseasesData;
-        data.targetsCount = totalTargets;
-        this.ngbDiseasesTabService.diseasesData = data;
-        this.dispatcher.emit('target:diseases:targets:count:updated');
-    }
-
     getTargetsResults() {
         const request = this.getRequest();
         if (!this.diseaseId) {
@@ -221,7 +214,6 @@ export default class ngbDiseasesTargetsPanelService {
                     this._totalPages = Math.ceil(totalCount/this.pageSize);
                     this._emptyResults = totalCount === 0;
                     this.setTargetsResults(data);
-                    this.setDiseasesData(totalCount);
                     this.loadingData = false;
                     resolve(true);
                 })

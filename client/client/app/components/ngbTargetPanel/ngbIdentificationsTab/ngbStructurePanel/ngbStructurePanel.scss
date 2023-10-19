@@ -19,6 +19,19 @@ ngb-structure-panel {
         display: flex;
         flex-direction: row;
         align-items: center;
+        justify-content: end;
+
+        .action-container {
+            margin-left: auto;
+        }
+
+        .md-button.export-button {
+            min-height: 24px;
+            line-height: 24px;
+            color: $general-font-color;
+            font-size: $structure-font-size;
+            font-weight: normal;
+        }
 
         .structure-source-select {
             margin-left: auto;

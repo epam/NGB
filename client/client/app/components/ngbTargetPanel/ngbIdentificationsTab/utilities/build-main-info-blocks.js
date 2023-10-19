@@ -55,12 +55,8 @@ export default function buildMainInfoBlocks (identificationData) {
             title: 'Comparative genomics',
             items: [
                 {
-                    item: 'paralog',
-                    count: identificationData.paralogsCount || 0
-                },
-                {
-                    item: 'ortholog',
-                    count: identificationData.orthologsCount || 0
+                    item: 'homolog',
+                    count: identificationData.homologsCount || 0
                 }
             ]
         },

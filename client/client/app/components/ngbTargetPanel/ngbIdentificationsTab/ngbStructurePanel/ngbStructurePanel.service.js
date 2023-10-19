@@ -5,6 +5,8 @@ const SOURCE_OPTIONS = {
     LOCAL_FILES: 'Local Files'
 };
 
+const EXPORT_SOURCE = 'STRUCTURES';
+
 const PAGE_SIZE = 10;
 
 const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'method', 'source', 'resolution', 'chains'];
@@ -57,6 +59,9 @@ export default class ngbStructurePanelService {
 
     get sourceOptions() {
         return SOURCE_OPTIONS;
+    }
+    get exportSource() {
+        return EXPORT_SOURCE;
     }
     get pageSize() {
         return PAGE_SIZE;
@@ -188,6 +193,12 @@ export default class ngbStructurePanelService {
     }
     set descriptionDone(value) {
         this._descriptionDone = value;
+    }
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
     }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService) {
@@ -375,5 +386,15 @@ export default class ngbStructurePanelService {
         this._emptyResults = false;
         this._structureResults = null;
         this._descriptionDone = false;
+    }
+
+    exportResults() {
+        const source = this.exportSource;
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }

@@ -27,6 +27,7 @@ export default class ngbIdentificationsTabController {
         this.dispatcher.on('target:identification:changed', this.identificationChanged.bind(this));
         this.dispatcher.on('target:identification:publications:loading', this.refreshInfoBlocks.bind(this));
         this.dispatcher.on('target:identification:publications:loaded', this.refreshInfoBlocks.bind(this));
+        this.dispatcher.on('target:identification:genomics:total:updated', this.updateGenomicsTotal.bind(this));
         this._identificationTarget = undefined;
         this._interest = [];
         this._translational = [];
@@ -111,6 +112,11 @@ export default class ngbIdentificationsTabController {
             this._interest = [];
             this._translational = [];
         }
+        this.refreshInfoBlocks();
+    }
+
+    updateGenomicsTotal(total) {
+        this.identificationData.homologsCount = total || 0;
         this.refreshInfoBlocks();
     }
 

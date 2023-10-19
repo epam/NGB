@@ -43,13 +43,8 @@ ngb-sequences-panel {
     }
 
     .sequences-gene-select {
-        height: $sequences-select-height;
-        line-height: $sequences-line-height;
         display: inline-flex;
         align-items: center;
-        margin-right: 10px;
-        position: relative;
-        float: right;
 
         md-input-container,
         label {
@@ -91,6 +86,18 @@ ngb-sequences-panel {
                 }
             }
         }
+    }
+
+    .action-container {
+        margin-left: auto;
+    }
+
+    .md-button.export-button {
+        min-height: 24px;
+        line-height: 24px;
+        color: $sequences-font-color;
+        font-size: $sequences-font-size;
+        font-weight: normal;
     }
 
     .empty-container {

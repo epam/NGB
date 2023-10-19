@@ -3,21 +3,30 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="sequences-header">
-    <div class="sequences-gene-select"
-         ng-if="$ctrl.genes.length > 1">
-        <label>Gene:</label>
-        <md-input-container>
-            <md-select ng-model="$ctrl.selectedGeneId"
-                       aria-label="Select gene"
-                       ng-change="$ctrl.onChangeGene()"
-                       ng-disabled="$ctrl.loadingData"
-                       md-container-class="sequences-gene-select-container">
-                <md-option ng-repeat="item in $ctrl.genes"
-                           ng-value="item.geneId">
-                    {{item.chip}}
-                </md-option>
-            </md-select>
-        </md-input-container>
+    <div class="action-container">
+        <md-button type="button"
+                   class="md-raised export-button"
+                   ng-if="$ctrl.tableResults"
+                   aria-label="Export sequences results"
+                   ng-click="$ctrl.exportResults()">
+            EXPORT
+        </md-button>
+        <div class="sequences-gene-select"
+             ng-if="$ctrl.genes.length > 1">
+            <label>Gene:</label>
+            <md-input-container>
+                <md-select ng-model="$ctrl.selectedGeneId"
+                           aria-label="Select gene"
+                           ng-change="$ctrl.onChangeGene()"
+                           ng-disabled="$ctrl.loadingData"
+                           md-container-class="sequences-gene-select-container">
+                    <md-option ng-repeat="item in $ctrl.genes"
+                               ng-value="item.geneId">
+                        {{item.chip}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
     </div>
 </div>
 <div class="sequences-reference"

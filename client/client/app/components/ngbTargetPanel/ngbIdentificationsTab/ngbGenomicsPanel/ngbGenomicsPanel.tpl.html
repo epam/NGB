@@ -5,6 +5,15 @@
 <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
     <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
 </div>
+<div class="genomics-header">
+    <md-button type="button"
+               class="md-raised export-button"
+               ng-if="$ctrl.tableResults"
+               aria-label="Export genomics results"
+               ng-click="$ctrl.exportResults()">
+        EXPORT
+    </md-button>
+</div>
 <ngb-genomics-table></ngb-genomics-table>
 <div class="genomics-button-block">
     <md-button type="button"

@@ -89,10 +89,9 @@ export default class ngbDiseasesTabService {
     async searchDisease(id) {
         if (this._diseasesData && id === this._diseasesData.id) return;
         this._loadingData = true;
-        await this.getDiseaseData(id)
-            .then(() => {
-                this.dispatcher.emit('target:diseases:disease:changed')
-            });
+        await this.getDiseaseData(id);
+        await this.getDiseaseTotalCounts(id);
+        this.$timeout(() => this.dispatcher.emit('target:diseases:disease:changed'));
     }
 
     getDiseaseData(id) {
@@ -113,6 +112,27 @@ export default class ngbDiseasesTabService {
                     resolve(false);
                 });
         });
+    }
+
+    getDiseaseTotalCounts(id) {
+        return new Promise(resolve => {
+            this.targetDataService.getDiseaseIdentification(id)
+                .then(data => {
+                    this.setTotalCounts(data);
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.setTotalCounts(null);
+                    resolve(false);
+                });
+        });
+    }
+
+    setTotalCounts(total) {
+        const {targetsCount, knownDrugsCount, knownDrugsRecordsCount} = total || {};
+        this._diseasesData.targetsCount = targetsCount || 0;
+        this._diseasesData.knownDrugsCount = knownDrugsCount || 0;
+        this._diseasesData.knownDrugsRecordsCount = knownDrugsRecordsCount || 0;
     }
 
     async viewDiseaseFromTable(disease) {
