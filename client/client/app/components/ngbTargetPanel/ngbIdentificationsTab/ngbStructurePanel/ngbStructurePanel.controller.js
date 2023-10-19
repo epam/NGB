@@ -59,7 +59,7 @@ export default class ngbStructurePanelController {
 
                     linkElement.setAttribute('href', url);
                     linkElement.setAttribute('download',
-                        `${this.geneChips.join('_')}-structures.csv`);
+                        `${this.geneChips.join('_')}-${this.sourceModel}-structures.csv`);
 
                     const clickEvent = new MouseEvent('click', {
                         'view': window,

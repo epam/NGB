@@ -5,7 +5,10 @@ const SOURCE_OPTIONS = {
     LOCAL_FILES: 'Local Files'
 };
 
-const EXPORT_SOURCE = 'STRUCTURES';
+const EXPORT_SOURCE = {
+    [SOURCE_OPTIONS.PROTEIN_DATA_BANK]: 'STRUCTURES',
+    [SOURCE_OPTIONS.LOCAL_FILES]: 'LOCAL_PDBS'
+};
 
 const PAGE_SIZE = 10;
 
@@ -386,10 +389,11 @@ export default class ngbStructurePanelService {
         this._emptyResults = false;
         this._structureResults = null;
         this._descriptionDone = false;
+        this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
     }
 
     exportResults() {
-        const source = this.exportSource;
+        const source = this.exportSource[this.sourceModel];
         if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
