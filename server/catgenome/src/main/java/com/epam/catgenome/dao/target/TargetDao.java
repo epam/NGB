@@ -121,6 +121,11 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
     }
 
+    public List<Target> loadTargets(final String clause, final List<SortInfo> sortInfos) {
+        final String query = addSortInfoToQuery(addClauseToQuery(loadTargetsQuery, clause), sortInfos);
+        return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
+    }
+
     public List<Target> loadTargetsForAlignment() {
         return getJdbcTemplate().query(loadTargetsForAlignmentQuery, TargetParameters.getExtendedRowExtractor());
     }

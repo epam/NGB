@@ -209,10 +209,10 @@ public class PdbFileManager {
             clauses.add(getGeneIdsClause(params.getGeneIds()));
         }
         if (StringUtils.isNotBlank(params.getOwner())) {
-            clauses.add(String.format(Utils.EQUAL_CLAUSE, OWNER, params.getOwner()));
+            clauses.add(String.format(Utils.EQUAL_CLAUSE_STRING, OWNER, params.getOwner()));
         }
         if (StringUtils.isNotBlank(params.getName())) {
-            clauses.add(String.format(Utils.EQUAL_CLAUSE, NAME, params.getName()));
+            clauses.add(String.format(Utils.EQUAL_CLAUSE_STRING, NAME, params.getName()));
         }
         if (StringUtils.isNotBlank(params.getPrettyName())) {
             clauses.add(String.format(Utils.LIKE_CLAUSE, PRETTY_NAME, params.getPrettyName()));
