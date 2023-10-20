@@ -51,6 +51,11 @@ public class TargetSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public List<Target> loadTargets(final String geneName, final Long taxId) {
+        return targetManager.load(geneName, taxId);
+    }
+
+    @PreAuthorize(ROLE_USER)
     public Target createTarget(final Target target) {
         return targetManager.create(target);
     }

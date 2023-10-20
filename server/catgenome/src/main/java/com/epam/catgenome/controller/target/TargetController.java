@@ -122,6 +122,19 @@ public class TargetController extends AbstractRESTController {
         return Result.success(targetSecurityService.loadTargets(queryParameters));
     }
 
+    @GetMapping(value = "/target")
+    @ApiOperation(
+            value = "Returns targets with given gene name and taxonomy id",
+            notes = "Returns targets with given gene name and taxonomy id",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<Target>> loadTargets(@RequestParam final String geneName,
+                                            @RequestParam(required = false) final Long taxId) {
+        return Result.success(targetSecurityService.loadTargets(geneName, taxId));
+    }
+
     @PostMapping(value = "/target")
     @ApiOperation(
             value = "Registers new target",

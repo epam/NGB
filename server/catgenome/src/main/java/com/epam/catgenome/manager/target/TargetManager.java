@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.util.Utils.EQUAL_CLAUSE;
-import static com.epam.catgenome.util.Utils.LIKE_CLAUSE;
+import static com.epam.catgenome.util.Utils.*;
 import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -64,6 +63,7 @@ public class TargetManager {
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
     private static final String GENE_NAME = "gene_name";
+    private static final String TAX_ID = "tax_id";
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
@@ -135,6 +135,15 @@ public class TargetManager {
                 .build();
     }
 
+    public List<Target> load(final String geneName, final Long taxId) {
+        final String clause = getFilterClause(geneName, taxId);
+        final SortInfo sortInfo = SortInfo.builder()
+                .field(TARGET_NAME)
+                .ascending(true)
+                .build();
+        return targetDao.loadTargets(clause, Collections.singletonList(sortInfo));
+    }
+
     public List<Target> getTargetsForAlignment() {
         return targetDao.loadTargetsForAlignment();
     }
@@ -174,14 +183,13 @@ public class TargetManager {
         return targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
     }
 
-
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {
         final List<String> clauses = new ArrayList<>();
         if (StringUtils.isNotBlank(targetQueryParams.getTargetName())) {
             clauses.add(String.format(LIKE_CLAUSE, TARGET_NAME, targetQueryParams.getTargetName()));
         }
         if (StringUtils.isNotBlank(targetQueryParams.getOwner())) {
-            clauses.add(String.format(EQUAL_CLAUSE, OWNER, targetQueryParams.getOwner()));
+            clauses.add(String.format(EQUAL_CLAUSE_STRING, OWNER, targetQueryParams.getOwner()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
             clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts(), LIKE_CLAUSE));
@@ -197,6 +205,15 @@ public class TargetManager {
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getSpeciesNames())) {
             clauses.add(getFilterClause(SPECIES_NAME, targetQueryParams.getSpeciesNames(), LIKE_CLAUSE));
+        }
+        return join(clauses, Condition.AND.getValue());
+    }
+
+    private static String getFilterClause(final String geneName, final Long taxId) {
+        final List<String> clauses = new ArrayList<>();
+        clauses.add(String.format(EQUAL_CLAUSE_STRING, GENE_NAME, geneName));
+        if (taxId != null) {
+            clauses.add(String.format(EQUAL_CLAUSE_NUMBER, TAX_ID, taxId));
         }
         return join(clauses, Condition.AND.getValue());
     }
