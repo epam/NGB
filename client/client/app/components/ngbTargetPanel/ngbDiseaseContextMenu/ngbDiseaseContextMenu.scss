@@ -1,6 +1,6 @@
-@import "../../ngbDiseasesPanel.variables.scss";
+@import "../ngbTargetPanel.variables.scss";
 
-.ngb-diseases-table-context-menu {
+.ngb-disease-context-menu {
     background-color: white;
     box-shadow: 0 0 1em #999;
     border: 1px solid #ccc;
@@ -12,7 +12,7 @@
         text-align: left;
         margin: 0;
         border-radius: 0;
-        font-size: $diseases-font-size;
+        font-size: $general-font-size;
         min-height: 36px;
         line-height: 36px;
         text-align: center;

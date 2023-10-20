@@ -163,6 +163,7 @@ export default class ngbDrugsTableController {
         const headerCells = require('./ngbDrugsTable_header.tpl.html');
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
         const targetCell = require('./ngbDrugsTable_targetCell.tpl.html');
+        const diseasesCell = require('./ngbDrugsTable_diseaseCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbDrugsTableService.getColumnList();
@@ -197,7 +198,7 @@ export default class ngbDrugsTableController {
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: linkCell
+                        cellTemplate: diseasesCell
                     };
                     break;
                 case 'source':
