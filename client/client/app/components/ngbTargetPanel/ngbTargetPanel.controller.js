@@ -27,6 +27,7 @@ export default class ngbTargetPanelController {
         dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
+        dispatcher.on('target:diseases:show:targets:tab', this.showTargetsTab.bind(this));
     }
 
     get isTableMode() {
@@ -93,5 +94,10 @@ export default class ngbTargetPanelController {
             this.$scope.$apply();
             this.ngbDiseasesTabService.viewDiseaseFromTable(disease);
         });
+    }
+
+    showTargetsTab() {
+        this.tabSelected = this.targetState.TARGETS;
+        this.$timeout(() => this.$scope.$apply());
     }
 }

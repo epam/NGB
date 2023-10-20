@@ -566,4 +566,21 @@ export class TargetDataService extends DataService {
             });
         });
     }
+
+    searchTarget(geneName) {
+        return new Promise((resolve, reject) => {
+            this.get(`target?geneName=${geneName}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(error => {
+                    const message = `Error getting ${geneName} targets list`;
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

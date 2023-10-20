@@ -27,6 +27,14 @@
             height: 36px;
         }
     }
+
+    .error-list {
+        border: 1px solid #ffc7a1;
+    }
+
+    .error-item {
+        color: darkred;
+    }
 }
 
 .ngb-context-menu-opened {

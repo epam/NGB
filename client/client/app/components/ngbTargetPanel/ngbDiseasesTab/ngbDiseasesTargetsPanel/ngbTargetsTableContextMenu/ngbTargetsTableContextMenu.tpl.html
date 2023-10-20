@@ -1,7 +1,15 @@
 <div class="ngb-targets-table-context-menu">
-    <md-list class="md-dense">
-        <md-list-item>
-            context
+    <md-list class="md-dense"
+             ng-if="!$ctrl.failedSearch && !$ctrl.loading">
+        <md-list-item ng-repeat="item in $ctrl.targetList track by $index"
+                      ng-click="$ctrl.editTarget($event, item)">
+            {{item.targetName}}
+        </md-list-item>
+    </md-list>
+    <md-list class="md-dense error-list"
+             ng-if="$ctrl.failedSearch">
+        <md-list-item class="error-item">
+            {{$ctrl.errorMessageList}}
         </md-list-item>
     </md-list>
 </div>
