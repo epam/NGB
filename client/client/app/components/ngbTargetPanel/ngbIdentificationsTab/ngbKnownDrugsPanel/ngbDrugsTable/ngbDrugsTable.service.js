@@ -180,7 +180,11 @@ export default class ngbDrugsTableService {
                     geneId: item.geneId,
                     value: this.getTarget(item.geneId),
                 },
-                drug: item.drug,
+                drug: {
+                    id: item.id,
+                    name: item.name,
+                    url: item.url
+                },
                 type: item.drugType,
                 'mechanism of action': item.mechanismOfAction,
                 'action type': item.actionType,
@@ -197,6 +201,7 @@ export default class ngbDrugsTableService {
                     value: this.getTarget(item.geneId)
                 },
                 'drug': {
+                    id: item.id,
                     name: item.name,
                     url: item.url
                 },
@@ -210,6 +215,7 @@ export default class ngbDrugsTableService {
                     value: this.getTarget(item.geneId)
                 },
                 'drug': {
+                    id: item.id,
                     name: item.name,
                     url: item.url
                 },
