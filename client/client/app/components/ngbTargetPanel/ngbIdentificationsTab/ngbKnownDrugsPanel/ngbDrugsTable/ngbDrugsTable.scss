@@ -4,6 +4,7 @@ ngb-drugs-table {
     .ui-grid {
         border: none;
         height: auto;
+        min-height: 250px;
 
         .ui-grid-viewport {
             height: 100% !important;
