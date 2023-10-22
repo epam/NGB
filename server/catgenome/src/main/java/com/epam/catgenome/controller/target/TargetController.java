@@ -434,7 +434,7 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/structures")
     @ApiOperation(
             value = "Loads structures entities from RCSB PDB",
-            notes = "Loads structures entities from RCSB PDB",
+            notes = "Loads structures entities from RCSB PDB. Available field names for sorting: ENTRY_ID, RESOLUTION.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
