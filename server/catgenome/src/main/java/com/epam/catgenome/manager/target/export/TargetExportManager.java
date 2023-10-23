@@ -94,6 +94,7 @@ import static com.epam.catgenome.manager.export.ExcelExportUtils.writeSheet;
 public class TargetExportManager {
 
     private static final String TARGET_NAME = "%s (%s)";
+    private static final String GENE_SYMBOL = "id: %s";
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final PharmGKBDiseaseAssociationManager pharmGKBDiseaseAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
@@ -248,18 +249,17 @@ public class TargetExportManager {
                         .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
                         .collect(Collectors.toList());
                 for (Gene gene: genes) {
-                    if (!TextUtils.isBlank(gene.getSymbol())) {
-                        TargetHomology export = new TargetHomology();
-                        export.setGeneId(homologueEntry.getKey());
-                        export.setTarget(geneNames.get(homologueEntry.getKey().toLowerCase()));
-                        export.setSpecies(gene.getSpeciesScientificName());
-                        export.setHomologyType(group.getType().getName());
-                        export.setHomologue(gene.getSymbol());
-                        export.setHomologyGroup(group.getProteinName());
-                        export.setProtein(gene.getTitle());
-                        export.setProteinLen(gene.getProtLen());
-                        homology.add(export);
-                    }
+                    TargetHomology export = new TargetHomology();
+                    export.setGeneId(homologueEntry.getKey());
+                    export.setTarget(geneNames.get(homologueEntry.getKey().toLowerCase()));
+                    export.setSpecies(gene.getSpeciesScientificName());
+                    export.setHomologyType(group.getType().getName());
+                    export.setHomologue(TextUtils.isBlank(gene.getSymbol()) ?
+                            String.format(GENE_SYMBOL, gene.getGeneId()) : gene.getSymbol());
+                    export.setHomologyGroup(group.getProteinName());
+                    export.setProtein(gene.getTitle());
+                    export.setProteinLen(gene.getProtLen());
+                    homology.add(export);
                 }
             }
         }
@@ -269,18 +269,17 @@ public class TargetExportManager {
                         .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
                         .collect(Collectors.toList());
                 for (Gene gene: genes) {
-                    if (!TextUtils.isBlank(gene.getSymbol())) {
-                        TargetHomology export = new TargetHomology();
-                        export.setGeneId(homologenesMapEntry.getKey());
-                        export.setTarget(geneNames.get(homologenesMapEntry.getKey().toLowerCase()));
-                        export.setSpecies(gene.getSpeciesScientificName());
-                        export.setHomologyType(HomologType.HOMOLOGUE.getName());
-                        export.setHomologue(gene.getSymbol());
-                        export.setHomologyGroup(entry.getCaption());
-                        export.setProtein(gene.getTitle());
-                        export.setProteinLen(gene.getProtLen());
-                        homology.add(export);
-                    }
+                    TargetHomology export = new TargetHomology();
+                    export.setGeneId(homologenesMapEntry.getKey());
+                    export.setTarget(geneNames.get(homologenesMapEntry.getKey().toLowerCase()));
+                    export.setSpecies(gene.getSpeciesScientificName());
+                    export.setHomologyType(HomologType.HOMOLOGUE.getName());
+                    export.setHomologue(TextUtils.isBlank(gene.getSymbol()) ?
+                            String.format(GENE_SYMBOL, gene.getGeneId()) : gene.getSymbol());
+                    export.setHomologyGroup(entry.getCaption());
+                    export.setProtein(gene.getTitle());
+                    export.setProteinLen(gene.getProtLen());
+                    homology.add(export);
                 }
             }
         }
