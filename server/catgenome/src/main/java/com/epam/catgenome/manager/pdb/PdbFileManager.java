@@ -118,6 +118,10 @@ public class PdbFileManager {
         return pdbFileDao.load(getGeneIdsClause(geneIds), sortInfos);
     }
 
+    public long totalCount(final List<String> geneIds) {
+        return pdbFileDao.getTotalCount(getGeneIdsClause(geneIds));
+    }
+
     public Page<PdbFile> load(final PdbFileQueryParams params) {
         final String clause = getFilterClause(params);
         final long totalCount = pdbFileDao.getTotalCount(clause);
@@ -209,10 +213,10 @@ public class PdbFileManager {
             clauses.add(getGeneIdsClause(params.getGeneIds()));
         }
         if (StringUtils.isNotBlank(params.getOwner())) {
-            clauses.add(String.format(Utils.EQUAL_CLAUSE, OWNER, params.getOwner()));
+            clauses.add(String.format(Utils.EQUAL_CLAUSE_STRING, OWNER, params.getOwner()));
         }
         if (StringUtils.isNotBlank(params.getName())) {
-            clauses.add(String.format(Utils.EQUAL_CLAUSE, NAME, params.getName()));
+            clauses.add(String.format(Utils.EQUAL_CLAUSE_STRING, NAME, params.getName()));
         }
         if (StringUtils.isNotBlank(params.getPrettyName())) {
             clauses.add(String.format(Utils.LIKE_CLAUSE, PRETTY_NAME, params.getPrettyName()));

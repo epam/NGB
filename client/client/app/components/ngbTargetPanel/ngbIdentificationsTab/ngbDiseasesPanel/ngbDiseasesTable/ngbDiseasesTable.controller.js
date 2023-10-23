@@ -200,7 +200,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: false,
+                enableFiltering: true,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -211,22 +211,13 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                 case 'target':
                     columnSettings = {
                         ...columnSettings,
-                        enableFiltering: true,
                     };
                     break;
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell,
-                        enableFiltering: true,
                         minWidth: 200
-                    };
-                    break;
-                case 'overall score':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: colorCell,
-                        enableFiltering: true,
                     };
                     break;
                 default:
@@ -268,6 +259,23 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         } else {
             this.sortInfo = null;
         }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.currentPage = 1;
         await this.loadData();
     }

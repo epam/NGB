@@ -23,12 +23,14 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
+import com.epam.catgenome.entity.externaldb.target.Association;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -45,12 +47,15 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
+import static java.util.stream.Collectors.groupingBy;
 
-public abstract class AbstractAssociationManager<T> extends AbstractIndexManager<T> {
+public abstract class AbstractAssociationManager<T extends Association> extends AbstractIndexManager<T> {
 
     public AbstractAssociationManager(String indexDirectory, int topHits) {
         super(indexDirectory, topHits);
@@ -163,6 +168,35 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
                 return;
         }
         builder.add(query, BooleanClause.Occur.MUST);
+    }
+
+    public Pair<Long, Long> recordsCount(final List<String> geneIds) throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        return Pair.of((long) result.size(), result.stream().map(T::getId).distinct().count());
+    }
+
+    public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        return (long) result.size();
+    }
+
+    public Map<String, Pair<Long, Long>> recordsCountMap(final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        final Map<String, Pair<Long, Long>> totalCounts = new HashMap<>();
+        final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
+        grouped.forEach((k, v) ->
+                totalCounts.put(k.toLowerCase(),
+                        Pair.of((long) v.size(), v.stream().map(T::getId).distinct().count())));
+        return totalCounts;
+    }
+
+    public Map<String, Long> totalCountMap(final List<String> geneIds) throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        final Map<String, Long> totalCounts = new HashMap<>();
+        final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
+        grouped.forEach((k, v) -> totalCounts.put(k.toLowerCase(), (long) v.size()));
+        return totalCounts;
     }
 
     public abstract FilterType getFilterType(String fieldName);

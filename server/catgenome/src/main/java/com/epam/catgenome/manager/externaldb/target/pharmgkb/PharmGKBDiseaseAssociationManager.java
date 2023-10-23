@@ -46,10 +46,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,11 +64,6 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
                                              final PharmGKBGeneManager pharmGKBGeneManager) {
         super(Paths.get(indexDirectory, "pharmgkb.disease").toString(), targetsTopHits);
         this.pharmGKBGeneManager = pharmGKBGeneManager;
-    }
-
-    public long totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<PharmGKBDisease> result = searchByGeneIds(ids);
-        return result.stream().map(PharmGKBDisease::getId).distinct().count();
     }
 
     @Override
@@ -137,10 +129,10 @@ public class PharmGKBDiseaseAssociationManager extends AbstractAssociationManage
     public PharmGKBDisease entryFromDoc(final Document doc) {
         final String id = doc.getField(PharmGKBDiseaseField.DISEASE_ID.name()).stringValue();
         return PharmGKBDisease.builder()
-                .geneId(doc.getField(PharmGKBDiseaseField.GENE_ID.name()).stringValue())
                 .id(id)
                 .name(doc.getField(PharmGKBDiseaseField.DISEASE_NAME.name()).stringValue())
                 .url(String.format(PharmGKBDisease.URL_PATTERN, id))
+                .geneId(doc.getField(PharmGKBDiseaseField.GENE_ID.name()).stringValue())
                 .build();
     }
 

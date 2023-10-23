@@ -24,6 +24,7 @@
 package com.epam.catgenome.entity.externaldb.target.opentargets;
 
 import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
+import com.epam.catgenome.entity.externaldb.target.Association;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,16 +35,11 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiseaseAssociation {
-    private String geneId;
+public class DiseaseAssociation extends Association {
     private String geneSymbol;
     private String geneName;
-    private String target;
-    private String diseaseId;
-    private String diseaseName;
     private AssociationType type;
     private Float score;
     private Float overallScore;
@@ -55,4 +51,26 @@ public class DiseaseAssociation {
     private Float rnaExpressionScore;
     private Float animalModelScore;
     private List<HomologGroup> homologues;
+    @Builder
+    public DiseaseAssociation(String id, String name, String url, String geneId, String target,
+                              String geneSymbol, String geneName, AssociationType type,
+                              Float score, Float overallScore, Float geneticAssociationScore,
+                              Float somaticMutationScore, Float knownDrugScore, Float affectedPathwayScore,
+                              Float literatureScore, Float rnaExpressionScore, Float animalModelScore,
+                              List<HomologGroup> homologues) {
+        super(id, name, url, geneId, target);
+        this.geneSymbol = geneSymbol;
+        this.geneName = geneName;
+        this.type = type;
+        this.score = score;
+        this.overallScore = overallScore;
+        this.geneticAssociationScore = geneticAssociationScore;
+        this.somaticMutationScore = somaticMutationScore;
+        this.knownDrugScore = knownDrugScore;
+        this.affectedPathwayScore = affectedPathwayScore;
+        this.literatureScore = literatureScore;
+        this.rnaExpressionScore = rnaExpressionScore;
+        this.animalModelScore = animalModelScore;
+        this.homologues = homologues;
+    }
 }

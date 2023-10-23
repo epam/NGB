@@ -123,6 +123,11 @@ public class PdbFileDao extends NamedParameterJdbcDaoSupport {
         return getJdbcTemplate().query(query, PdbFileParameters.getRowMapper());
     }
 
+    public List<PdbFile> load(final String clause) {
+        final String query = addClauseToQuery(loadPdbFilesQuery, clause);
+        return getJdbcTemplate().query(query, PdbFileParameters.getRowMapper());
+    }
+
     public long getTotalCount(final String clause) {
         final String query = addClauseToQuery(totalCountQuery, clause);
         return getJdbcTemplate().queryForObject(query, Long.class);

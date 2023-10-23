@@ -21,28 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.opentargets;
+package com.epam.catgenome.manager.target.export;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class UrlEntity {
-    private String id;
-    private String name;
-    private String url;
-
-    public UrlEntity(String id) {
-        this.id = id;
-    }
-
-    public UrlEntity(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+@Builder
+public class TargetExportSummary {
+    private String gene;
+    private String geneId;
+    private String species;
+    private String type;
+    private String description;
+    private Long knownDrugs;
+    private Long knownDrugRecords;
+    private Long diseases;
+    private Long publications;
+    private String sequences;
+    private Long structures;
+    private Long homologs;
 }

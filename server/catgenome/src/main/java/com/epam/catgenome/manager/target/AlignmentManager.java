@@ -24,7 +24,7 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.Target;

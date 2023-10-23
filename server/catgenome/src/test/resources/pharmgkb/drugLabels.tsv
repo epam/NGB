@@ -8,3 +8,29 @@ PA166123409	Annotation of EMA Label for aliskiren and ABCB1	EMA		Informative PGx
 PA166159586	Annotation of HCSC Label for aliskiren and ABCB1	HCSC		Informative PGx						aliskiren	ABCB1
 PA166269742	Annotation of EMA Label for odevixibat and ABCB11	EMA	On FDA Biomarker List	Actionable PGx						odevixibat	ABCB11
 PA166268902	Annotation of FDA Label for odevixibat and ABCB11	FDA	On FDA Biomarker List	Actionable PGx						odevixibat	ABCB11
+PA166184427	Annotation of Swissmedic Label for ezetimibe / rosuvastatin and ABCG2, SLCO1B1	Swissmedic		Actionable PGx	Prescribing Info				Prescribing	ezetimibe / rosuvastatin	ABCG2; SLCO1B1	rs2231142; rs4149056	2023-02-28
+PA166184499	Annotation of Swissmedic Label for rosuvastatin and ABCG2, SLCO1B1	Swissmedic		Actionable PGx	Prescribing Info				Prescribing	rosuvastatin	ABCG2; SLCO1B1	rs2231142; rs4149056	2023-02-28
+PA166127660	Annotation of HCSC Label for dasatinib and ABI1, BCR	HCSC		Testing required						dasatinib	ABI1; BCR
+PA166127682	Annotation of HCSC Label for imatinib and ABI1, BCR, FIP1L1, KIT, PDGFRA, PDGFRB	HCSC		Testing required						imatinib	ABI1; BCR; FIP1L1; KIT; PDGFRA; PDGFRB
+PA166127693	Annotation of HCSC Label for nilotinib and ABI1, BCR	HCSC		Testing required						nilotinib	ABI1; BCR		2016-03-28
+PA166129527	Annotation of HCSC Label for ponatinib and ABI1, BCR	HCSC		Testing required						ponatinib	ABI1; BCR
+PA166117941	Annotation of EMA Label for bosutinib and ABL1, BCR	EMA		Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	bosutinib	ABL1; BCR		2014-03-31
+PA166104914	Annotation of EMA Label for dasatinib and ABL1, BCR	EMA		Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	dasatinib	ABL1; BCR		2023-02-16
+PA166104926	Annotation of EMA Label for imatinib and ABL1, BCR, FIP1L1, KIT, PDGFRA, PDGFRB	EMA		Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	imatinib	ABL1; BCR; FIP1L1; KIT; PDGFRA; PDGFRB		2023-02-22
+PA166105334	Annotation of EMA Label for nilotinib and ABL1, BCR	EMA		Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	nilotinib	ABL1; BCR		2023-02-22
+PA166122067	Annotation of EMA Label for ponatinib and ABL1, BCR	EMA		Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	ponatinib	ABL1; BCR		2023-02-22
+PA166268861	Annotation of FDA Label for asciminib and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info	Dosing Info		Cancer Genome	Prescribing	asciminib	ABL1; BCR	rs121913459	2022-11-11
+PA166159963	Annotation of FDA Label for blinatumomab and ABL1, BCR, CD19	FDA	On FDA Biomarker List	Informative PGx				Cancer Genome		blinatumomab	ABL1; BCR; CD19		2021-10-08
+PA166114907	Annotation of FDA Label for bosutinib and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	bosutinib	ABL1; BCR		2019-10-21
+PA166104795	Annotation of FDA Label for busulfan and ABL1, BCR	FDA	On FDA Biomarker List	Actionable PGx	Prescribing Info			Cancer Genome	Prescribing	busulfan	ABL1; BCR		2019-05-10
+PA166104781	Annotation of FDA Label for dasatinib and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	dasatinib	ABL1; BCR		2019-10-10
+PA166114930	Annotation of FDA Label for homoharringtonine and ABL1, BCR	FDA	Formerly on FDA Biomarker List	Informative PGx				Cancer Genome		homoharringtonine	ABL1; BCR		2013-12-18
+PA166104790	Annotation of FDA Label for imatinib and ABL1, BCR, FIP1L1, KIT, PDGFRA, PDGFRB	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	imatinib	ABL1; BCR; FIP1L1; KIT; PDGFRA; PDGFRB		2013-10-25
+PA166177512	Annotation of FDA Label for inotuzumab ozogamicin and ABL1, BCR	FDA	On FDA Biomarker List	Informative PGx				Cancer Genome		inotuzumab ozogamicin	ABL1; BCR
+PA166104842	Annotation of FDA Label for nilotinib and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	nilotinib	ABL1; BCR		2016-03-18
+PA166114931	Annotation of FDA Label for ponatinib and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	ponatinib	ABL1; BCR	rs121913459	2019-04-19
+PA166182755	Annotation of FDA Label for vincristine and ABL1, BCR	FDA	On FDA Biomarker List	Testing required	Prescribing Info		Alternate Drug	Cancer Genome	Prescribing	vincristine	ABL1; BCR
+PA166273981	Annotation of HCSC Label for asciminib and ABL1, BCR	HCSC		Testing required				Cancer Genome		asciminib	ABL1; BCR
+PA166127641	Annotation of HCSC Label for bosutinib and ABL1, BCR	HCSC		Testing required						bosutinib	ABL1; BCR
+PA166123537	Annotation of PMDA Label for dasatinib and ABL1, BCR	PMDA		Testing required						dasatinib	ABL1; BCR
+PA166123542	Annotation of PMDA Label for imatinib and ABL1, BCR	PMDA		Testing required						imatinib	ABL1; BCR

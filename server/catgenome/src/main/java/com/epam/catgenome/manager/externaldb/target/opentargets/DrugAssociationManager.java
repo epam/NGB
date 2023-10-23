@@ -27,13 +27,14 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
@@ -46,7 +47,6 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.testng.internal.collections.Pair;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -84,16 +84,9 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         this.targetDetailsManager = targetDetailsManager;
     }
 
-    public Pair<Long, Long>  totalCount(final List<String> ids) throws ParseException, IOException {
-        final List<DrugAssociation> result = searchByGeneIds(ids);
-        return Pair.of(Long.valueOf(result.size()),
-                result.stream().map(r -> r.getDrug().getId()).distinct().count());
-    }
-
-    public Pair<Long, Long>  totalCount(final String diseaseId) throws ParseException, IOException {
+    public Pair<Long, Long> totalCount(final String diseaseId) throws ParseException, IOException {
         final List<DrugAssociation> result = search(diseaseId);
-        return Pair.of(Long.valueOf(result.size()),
-                result.stream().map(r -> r.getDrug().getId()).distinct().count());
+        return Pair.of((long) result.size(), result.stream().map(DrugAssociation::getId).distinct().count());
     }
 
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
@@ -145,10 +138,10 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     @Override
     public void addDoc(final IndexWriter writer, final DrugAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(DrugField.DRUG_ID.name(), entry.getDrug().getId(), Field.Store.YES));
+        doc.add(new StringField(DrugField.DRUG_ID.name(), entry.getId(), Field.Store.YES));
 
-        doc.add(new TextField(DrugField.DRUG_NAME.name(), entry.getDrug().getName(), Field.Store.YES));
-        doc.add(new SortedDocValuesField(DrugField.DRUG_NAME.name(), new BytesRef(entry.getDrug().getName())));
+        doc.add(new TextField(DrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(DrugField.DRUG_NAME.name(), new BytesRef(entry.getName())));
 
         doc.add(new TextField(DrugField.DISEASE_ID.name(), entry.getDisease().getId(), Field.Store.YES));
 
@@ -204,15 +197,13 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         disease.setName(doc.getField(DrugField.DISEASE_NAME.name()).stringValue());
         disease.setUrl(String.format(Disease.URL_PATTERN, diseaseId));
 
-        final String drugId = doc.getField(DrugField.DRUG_ID.name()).stringValue();
-        final UrlEntity drug = new UrlEntity(drugId);
-        drug.setName(doc.getField(DrugField.DRUG_NAME.name()).stringValue());
-        drug.setUrl(String.format(DrugAssociation.URL_PATTERN, drugId));
-
+        final String id = doc.getField(DrugField.DRUG_ID.name()).stringValue();
         return DrugAssociation.builder()
+                .id(id)
+                .name(doc.getField(DrugField.DRUG_NAME.name()).stringValue())
+                .url(String.format(DrugAssociation.URL_PATTERN, id))
                 .geneId(doc.getField(DrugField.GENE_ID.name()).stringValue())
                 .disease(disease)
-                .drug(drug)
                 .drugType(doc.getField(DrugField.DRUG_TYPE.name()).stringValue())
                 .mechanismOfAction(doc.getField(DrugField.MECHANISM_OF_ACTION.name()).stringValue())
                 .actionType(doc.getField(DrugField.ACTION_TYPE.name()).stringValue())
@@ -229,15 +220,13 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
         source.setUrl(doc.getField(DrugField.SOURCE_URL.name()).stringValue());
 
         final String drugId = doc.getField(DrugField.DRUG_ID.name()).stringValue();
-        final UrlEntity drug = new UrlEntity(drugId);
-        drug.setName(doc.getField(DrugField.DRUG_NAME.name()).stringValue());
-        drug.setUrl(String.format(DrugAssociation.URL_PATTERN, drugId));
-
         return DrugAssociation.builder()
+                .id(doc.getField(DrugField.DRUG_ID.name()).stringValue())
+                .name(doc.getField(DrugField.DRUG_NAME.name()).stringValue())
+                .url(String.format(DrugAssociation.URL_PATTERN, drugId))
                 .geneId(doc.getField(DrugField.GENE_ID.name()).stringValue())
                 .geneSymbol(doc.getField(DrugField.GENE_SYMBOL.name()).stringValue())
                 .geneName(doc.getField(DrugField.GENE_NAME.name()).stringValue())
-                .drug(drug)
                 .drugType(doc.getField(DrugField.DRUG_TYPE.name()).stringValue())
                 .mechanismOfAction(doc.getField(DrugField.MECHANISM_OF_ACTION.name()).stringValue())
                 .actionType(doc.getField(DrugField.ACTION_TYPE.name()).stringValue())
@@ -306,12 +295,11 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
             }
         }
         final UrlEntity disease = new UrlEntity(jsonNodes.at("/diseaseId").asText());
-        final UrlEntity drug = new UrlEntity(jsonNodes.at("/drugId").asText());
-        drug.setName(jsonNodes.at("/prefName").asText());
         return DrugAssociation.builder()
+                .id(jsonNodes.at("/drugId").asText())
+                .name(jsonNodes.at("/prefName").asText())
                 .geneId(jsonNodes.at("/targetId").asText())
                 .disease(disease)
-                .drug(drug)
                 .drugType(jsonNodes.at("/drugType").asText())
                 .mechanismOfAction(jsonNodes.at("/mechanismOfAction").asText())
                 .actionType(jsonNodes.at("/mechanismOfAction").asText())

@@ -50,7 +50,7 @@ import java.util.List;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class DiseaseAssociationManagerTest extends TestCase {
 
-    private static final int TOTAL_COUNT = 8;
+    private static final int TOTAL_COUNT = 11;
     private static final List<String> GENE_IDS = Arrays.asList("ENSG00000007171", "ENSG00000006128");
     private static final float FROM = 0.0729517F;
     private static final float TO = 0.5592963F;
