@@ -129,10 +129,12 @@ export default class ngbDiseasesTabService {
     }
 
     setTotalCounts(total) {
-        const {targetsCount, knownDrugsCount, knownDrugsRecordsCount} = total || {};
-        this._diseasesData.targetsCount = targetsCount || 0;
-        this._diseasesData.knownDrugsCount = knownDrugsCount || 0;
-        this._diseasesData.knownDrugsRecordsCount = knownDrugsRecordsCount || 0;
+        if (this._diseasesData) {
+            const {targetsCount, knownDrugsCount, knownDrugsRecordsCount} = total || {};
+            this._diseasesData.targetsCount = targetsCount || 0;
+            this._diseasesData.knownDrugsCount = knownDrugsCount || 0;
+            this._diseasesData.knownDrugsRecordsCount = knownDrugsRecordsCount || 0;
+        }
     }
 
     async viewDiseaseFromTable(disease) {
