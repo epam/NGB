@@ -85,6 +85,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         this.ngbDiseasesTableService = ngbDiseasesTableService;
         this.ngbDiseasesPanelService = ngbDiseasesPanelService;
         this.ngbIdentificationsTabService = ngbIdentificationsTabService;
+        this.sourceOptions = SourceOptions;
     }
 
     get totalPages() {

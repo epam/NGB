@@ -5,7 +5,7 @@ export default class ngbTargetsFilterInputController {
     constructor($scope, dispatcher, ngbDiseasesTargetsPanelService) {
         this.dispatcher = dispatcher;
         this.ngbDiseasesTargetsPanelService = ngbDiseasesTargetsPanelService;
-        this.prevValue = this.value = this.ngbDiseasesTargetsPanelService.filterInfo[this.column.field];
+        this.prevValue = this.value = (this.ngbDiseasesTargetsPanelService.filterInfo || {})[this.column.field];
 
         this.dispatcher.on('target:diseases:targets:filters:reset', this.resetFilters.bind(this));
         $scope.$on('$destroy', () => {

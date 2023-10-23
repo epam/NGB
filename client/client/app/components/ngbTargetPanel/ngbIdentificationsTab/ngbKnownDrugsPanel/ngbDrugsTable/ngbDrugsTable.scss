@@ -98,6 +98,10 @@ ngb-drugs-table {
             color: inherit;
             text-decoration: none;
         }
+
+        &.disease {
+            width: 100%;
+        }
     }
 
     ngb-panel-error-list {

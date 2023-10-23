@@ -1,5 +1,16 @@
-<div data-target="ngbDiseasesTableContextMenu"
+<div class="ui-grid-cell"
+     ng-if="grid.appScope.$ctrl.sourceModel === grid.appScope.$ctrl.sourceOptions.PHARM_GKB"
+     ng-class="{'ui-grid-row-selected': row.isSelected,
+                'ui-grid-tree-header-row': row.treeLevel > -1,
+                'ui-grid-row-header-cell': col.isRowHeader }"
+     ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.uid"
+     ng-style="Viewport.rowStyle(rowRenderIndex)"
+     role="{{col.isRowHeader ? 'rowheader' : 'gridcell' }}"
+     ui-grid-cell>
+</div>
+<div data-target="ngbDiseaseContextMenu"
      locals="row"
+     ng-if="grid.appScope.$ctrl.sourceModel === grid.appScope.$ctrl.sourceOptions.OPEN_TARGETS"
      ngb-context-menu>
     <div class="ui-grid-cell"
          ng-class="{'ui-grid-row-selected': row.isSelected,
