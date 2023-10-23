@@ -1,0 +1,42 @@
+@import "../../ngbDiseasesTab.variables.scss";
+
+.ngb-targets-table-context-menu {
+    background-color: white;
+    box-shadow: 0 0 1em #999;
+    border: 1px solid #ccc;
+    z-index: 100;
+    min-width: 200px;
+
+    .md-button {
+        width: 100%;
+        text-align: left;
+        margin: 0;
+        border-radius: 0;
+        font-size: $diseases-tab-font-size;
+        min-height: 36px;
+        line-height: 36px;
+        text-align: center;
+        font-weight: 400;
+    }
+
+    md-list {
+        padding: 0;
+
+        md-list-item {
+            min-height: 36px;
+            height: 36px;
+        }
+    }
+
+    .error-list {
+        border: 1px solid #ffc7a1;
+    }
+
+    .error-item {
+        color: darkred;
+    }
+}
+
+.ngb-context-menu-opened {
+    background-color: #efefef!important;
+}

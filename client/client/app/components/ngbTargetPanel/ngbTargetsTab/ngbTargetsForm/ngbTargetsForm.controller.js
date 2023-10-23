@@ -48,6 +48,9 @@ export default class ngbTargetsFormController{
     get isAddMode() {
         return this.ngbTargetsTabService.isAddMode;
     }
+    get launchLoading() {
+        return this.ngbTargetsTabService.launchLoading;
+    }
 
     async backToTable() {
         this.ngbTargetsTabService.resetTarget();
@@ -187,5 +190,31 @@ export default class ngbTargetsFormController{
             await this.ngbTargetsTabService.deleteTarget();
             this.$timeout(() => this.$scope.$apply());
         });
+    }
+
+    isIdentifyDisabled() {
+        if (this.loading || this.isAddMode) return true;
+        const {name, genes} = this.targetModel;
+        if (!name || !name.length || !genes || !genes.length) return true;
+        if (this.isGenesEmpty()) return true;
+        return this.ngbTargetsTabService.targetModelChanged();
+    }
+
+    identifyTarget() {
+        const {id, name, genes} = this.targetModel;
+        if (!id || !name || !genes || !genes.length) return;
+        const target = {
+            id,
+            name,
+            species: {
+                value: this.targetModel.genes.map(g => ({
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    speciesName: g.speciesName,
+                    taxId: g.taxId
+                }))
+            }
+        }
+        this.dispatcher.emit('target:launch:identification', target);
     }
 }
