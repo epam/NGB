@@ -206,25 +206,26 @@ export default class ngbDiseasesTableService {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => {
-                    if (key === 'overall score') {
-                        return {
-                            field: this.fields[this.sourceModel][key],
-                            range: {
+                    const filter = {
+                        field: this.fields[this.sourceModel][key]
+                    };
+                    switch (key) {
+                        case 'target':
+                            filter.terms = values.map(v => {
+                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                                return chip ? chip : '';
+                            });
+                            return filter;
+                        case 'disease':
+                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
+                            return filter;
+                        default:
+                            filter.range = {
                                 from: Number.parseFloat(values).toFixed(2),
                                 to: '1.0'
                             }
-                        }
+                            return filter;
                     }
-                    return {
-                        field: this.fields[this.sourceModel][key],
-                        terms: Array.isArray(values) ? (values.map(v => {
-                            if (key === 'target') {
-                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
-                                return chip ? chip : '';
-                            }
-                            return v;
-                        })) : [values]
-                    };
                 });
             if (filters && filters.length) {
                 request.filters = filters;

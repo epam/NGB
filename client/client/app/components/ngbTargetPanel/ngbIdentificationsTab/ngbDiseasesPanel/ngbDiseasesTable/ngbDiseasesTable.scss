@@ -4,6 +4,7 @@ ngb-diseases-table {
     .ui-grid {
         border: none;
         height: auto;
+        min-height: 250px;
 
         .ui-grid-viewport {
             height: 100% !important;
@@ -78,7 +79,7 @@ ngb-diseases-table {
         border-right: 1px solid rgba(0, 0, 0, 0.12);
     }
 
-    .with-pagination .ui-grid-row:last-child .ui-grid-cell {
+    .ui-grid-row:last-child .ui-grid-cell {
         border-bottom-width: 1px !important;
     }
 

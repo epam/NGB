@@ -172,7 +172,7 @@ export default class ngbDiseasesTargetsPanelController {
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: false,
+                enableFiltering: true,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -183,13 +183,11 @@ export default class ngbDiseasesTargetsPanelController {
                 case 'target':
                     columnSettings = {
                         ...columnSettings,
-                        enableFiltering: true,
                     };
                     break;
                 case 'target name':
                     columnSettings = {
                         ...columnSettings,
-                        enableFiltering: true,
                         minWidth: 200
                     };
                     break;
@@ -197,16 +195,8 @@ export default class ngbDiseasesTargetsPanelController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: homologueCell,
-                        enableFiltering: true,
                         enableSorting: false,
                         enableColumnMenu: false,
-                    };
-                    break;
-                case 'overall score':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: colorCell,
-                        enableFiltering: true,
                     };
                     break;
                 default:
