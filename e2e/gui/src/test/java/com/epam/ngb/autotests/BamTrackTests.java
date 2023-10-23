@@ -17,8 +17,8 @@ package com.epam.ngb.autotests;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
-import com.epam.ngb.autotests.pages.BrowserPage;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import static com.epam.ngb.autotests.utils.AppProperties.BAM_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
@@ -47,42 +47,42 @@ public class BamTrackTests  extends AbstractNgbTest {
     @TestCase({"TC-BAM_TRACKS_TEST-01"})
     public void bamTrackCoverageTest() throws IOException {
         String track = bamTrack.substring(0, 20);
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        new DatasetsPanel()
+                .expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        BrowserPanel browserPanel = new BrowserPanel();
+        browserPanel
                 .setChromosome(testChromosome)
                 .setCoordinates(bamTestCoordinate1)
-                .waitTrackDownloaded(browserPage.getTrack(track))
+                .waitTrackDownloaded(track)
                 .clickOnZoomInButtonNumberOfTimes(2)
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC01),
                         track, bamTrackTC01, BAM_DEVIATION)
-                .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo1));
+                .ensure(browserPanel.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo1));
     }
 
     @Test(invocationCount = 1)
     @TestCase({"TC-BAM_TRACKS_TEST-02"})
     public void bamTrackWithExceededCertainThresholdCoverageTest() throws IOException {
         String track = bamTrack.substring(0, 20);
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        DatasetsPanel datasetsPanel = new DatasetsPanel();
+        datasetsPanel.expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        BrowserPanel browserPanel = new BrowserPanel();
+        browserPanel
                 .setChromosome(testChromosome)
                 .setCoordinates(bamTestCoordinate2)
-                .waitTrackDownloaded(browserPage.getTrack(track))
+                .waitTrackDownloaded(track)
                 .clickOnZoomInButtonNumberOfTimes(2)
                 .openTrackMenu(track, GENERAL.value)
                 .selectOptionWithCheckbox("Show alignments", false)
                 .trackImageCompare(getExpectedImage(bamTrackTC02),
                         track, bamTrackTC02, BAM_DEVIATION)
-                .ensure(browserPage.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo2));
+                .ensure(browserPanel.hoverOverTrackByCoordinates(track, 0, 0), text(bamInfo2));
     }
 
 }

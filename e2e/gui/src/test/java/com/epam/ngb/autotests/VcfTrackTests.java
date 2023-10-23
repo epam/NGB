@@ -17,8 +17,8 @@ package com.epam.ngb.autotests;
 
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
 import static com.epam.ngb.autotests.enums.TrackMenus.VARIANTS_VIEW;
-import com.epam.ngb.autotests.pages.BrowserPage;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import static com.epam.ngb.autotests.utils.AppProperties.VCF_DEVIATION;
 import com.epam.ngb.autotests.utils.TestCase;
@@ -43,15 +43,14 @@ public class VcfTrackTests  extends AbstractNgbTest {
     @TestCase({"TC-VCF_TRACKS_TEST-01"})
     public void vcfTrackTest() throws IOException {
         String track = vcfTrack.substring(0, 20);
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        new DatasetsPanel()
+                .expandDataset(TEST_DATASET)
                 .setTrackCheckbox(vcfTrack, true);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .setChromosome(testChromosome)
                 .setCoordinates(vcfTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(track))
+                .waitTrackDownloaded(track)
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_1),
                         track, vcfTrackTC01_1, VCF_DEVIATION)
                 .openTrackMenu(track, GENERAL.value)
@@ -60,7 +59,7 @@ public class VcfTrackTests  extends AbstractNgbTest {
                 .saveIfNeeded()
                 .openTrackMenu(track, VARIANTS_VIEW.value)
                 .selectOptionWithCheckbox("Expanded", true)
-                .waitTrackDownloaded(browserPage.getTrack(track))
+                .waitTrackDownloaded(track)
                 .trackImageCompare(getExpectedImage(vcfTrackTC01_2),
                         track, vcfTrackTC01_2, VCF_DEVIATION);
     }

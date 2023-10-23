@@ -18,8 +18,8 @@ package com.epam.ngb.autotests;
 import static com.codeborne.selenide.Condition.text;
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
 import static com.epam.ngb.autotests.enums.TrackMenus.TRANSCRIPT_VIEW;
-import com.epam.ngb.autotests.pages.BrowserPage;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import static com.epam.ngb.autotests.utils.AppProperties.GENE_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
@@ -44,23 +44,22 @@ public class GeneTrackTests  extends AbstractNgbTest {
     private static final String geneInfo3 = "CG17636-RC";
     private static final String geneInfo4 = "CG17636-RA";
 
-    @Test(invocationCount = 1)
+    @Test
     @TestCase({"TC-GENE_TRACKS_TEST-01"})
     public void geneTrackTest() throws IOException {
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        new DatasetsPanel()
+                .expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(1, SECONDS)
                 .setTrackCheckbox(bamTrack, false);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        BrowserPanel browserPanel = new BrowserPanel();
+        browserPanel
                 .setChromosome(testChromosome)
                 .setCoordinates(geneTestCoordinates)
-                .waitTrackDownloaded(browserPage.getTrack(GENE_TRACK))
+                .waitTrackDownloaded(GENE_TRACK)
                 .trackImageCompare(getExpectedImage(geneTrackTC01_1),
-                        GENE_TRACK, geneTrackTC01_1, GENE_DEVIATION);
-        browserPage
+                        GENE_TRACK, geneTrackTC01_1, GENE_DEVIATION)
                 .openTrackMenu(GENE_TRACK, GENERAL.value)
                 .selectOptionWithAdditionalMenu("Resize")
                 .setTrackHeight("400")
@@ -69,9 +68,13 @@ public class GeneTrackTests  extends AbstractNgbTest {
                 .selectOptionWithCheckbox("Expanded", true)
                 .trackImageCompare(getExpectedImage(geneTrackTC01_2),
                         GENE_TRACK, geneTrackTC01_2, GENE_DEVIATION)
-                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -90), text(geneInfo4))
-                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -120), text(geneInfo3))
-                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -140), text(geneInfo1))
-                .ensure(browserPage.hoverOverTrackByCoordinates(GENE_TRACK, 0, -150), text(geneInfo2));
+                .ensure(browserPanel.hoverOverTrackByCoordinates(GENE_TRACK, 0, -90), text(geneInfo4))
+                .ensure(browserPanel.hoverOverTrackByCoordinates(GENE_TRACK, 0, -120), text(geneInfo3))
+                .ensure(browserPanel.hoverOverTrackByCoordinates(GENE_TRACK, 0, -140), text(geneInfo1))
+                .ensure(browserPanel.hoverOverTrackByCoordinates(GENE_TRACK, 0, -150), text(geneInfo2));
     }
+
+
+//    "At this scale - features density is shown as a histogram."
+//    "Zoom-in to see exact features."
 }

@@ -32,13 +32,13 @@ import static org.testng.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Map;
 
-public class DatasetsPage implements AccessObject<DatasetsPage> {
+public class DatasetsPanel implements AccessObject<DatasetsPanel> {
 
     private final Map<Primitive, SelenideElement> elements = initialiseElements(
             entry(SEARCH, $x("//input[@ng-model='$ctrl.searchPattern']"))
     );
 
-    public DatasetsPage expandDataset(String datasetName) {
+    public DatasetsPanel expandDataset(String datasetName) {
         $x(format("//span[contains(text(),'%s')]/../../span/ng-md-icon/..", datasetName))
                 .shouldBe(enabled)
                 .click();
@@ -49,7 +49,7 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return $x(format(".//span[contains(normalize-space(),'%s')]", trackName));
     }
 
-    public DatasetsPage setTrackCheckbox(String trackName, boolean isChecked) {
+    public DatasetsPanel setTrackCheckbox(String trackName, boolean isChecked) {
         SelenideElement checkbox = getTrack(trackName)
                 .parent().$x(".//input[@type='checkbox']");
         if (checkbox.isSelected() == isChecked) {
@@ -65,7 +65,7 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return new MetadataForm(this);
     }
 
-    public DatasetsPage checkTrackTooltipContains(String trackName, Boolean isContains, String ... tooltips) {
+    public DatasetsPanel checkTrackTooltipContains(String trackName, Boolean isContains, String ... tooltips) {
         SelenideElement track =
                 $x(format(".//div[contains(@class,'ivh-treeview-node-content') and contains(@title, '%s')]", trackName));
         Arrays.stream(tooltips)
@@ -75,16 +75,16 @@ public class DatasetsPage implements AccessObject<DatasetsPage> {
         return this;
     }
 
-    public DatasetsPage inputSearchValue(String searchValue) {
+    public DatasetsPanel inputSearchValue(String searchValue) {
         return setValue(SEARCH, searchValue);
     }
 
-    public DatasetsPage checkTracksNumber(int number) {
+    public DatasetsPanel checkTracksNumber(int number) {
         assertTrue($(className("md-virtual-repeat-offsetter")).$$x("./div").size() == number);
         return this;
     }
 
-    public DatasetsPage checkTrackMetadataAtSearch(String metadata) {
+    public DatasetsPanel checkTrackMetadataAtSearch(String metadata) {
         return ensure(getTrack("CantonS.09-28.trim.dm606.realign.bam").parent()
                 .$x(".//span[@class='metadata-info-row']"), text(metadata));
     }

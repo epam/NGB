@@ -18,8 +18,8 @@ package com.epam.ngb.autotests;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.epam.ngb.autotests.enums.Primitive.TITLE;
-import com.epam.ngb.autotests.pages.BrowserPage;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
 import static java.lang.String.format;
@@ -38,8 +38,7 @@ public class DatasetsTests extends AbstractNgbTest {
     @TestCase({"TC-DATASETS_TEST-01"})
     public void addAttributeToTrack() {
         String attribute = format("%s: %s", attributes[0][0], attributes[0][1]);
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage
+        new DatasetsPanel()
                 .expandDataset(TEST_DATASET)
                 .openMetadataForm(bamTrack)
                 .ensure(TITLE, text(bamTrack))
@@ -50,8 +49,7 @@ public class DatasetsTests extends AbstractNgbTest {
                 .checkTrackTooltipContains(bamTrack, true, attribute)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .checkTrackAttributes(bamTrack, true, attribute);
     }
 
@@ -62,8 +60,7 @@ public class DatasetsTests extends AbstractNgbTest {
                 format("%s: %s", attributes[2][0], attributes[2][1]),
                 format("%s: %s", attributes[1][0], attributes[1][1])
         };
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage
+        new DatasetsPanel()
                 .expandDataset(TEST_DATASET)
                 .openMetadataForm(bamTrack)
                 .updateAttribute(attributes[0][0], attributes[2][0], attributes[2][1])
@@ -73,19 +70,18 @@ public class DatasetsTests extends AbstractNgbTest {
                 .checkTrackTooltipContains(bamTrack, true, attribute)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .checkTrackAttributes(bamTrack, true, attribute);
     }
 
     @Test (dependsOnMethods = "editTrackAttributes")
     @TestCase({"TC-DATASETS_TEST-03"})
     public void searchByTrackAttribute() {
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage
+        DatasetsPanel datasetsPanel = new DatasetsPanel();
+        datasetsPanel
                 .inputSearchValue(attributes[2][1])
                 .checkTracksNumber(2)
-                .ensure(datasetsPage.getTrack(bamTrack), exist)
+                .ensure(datasetsPanel.getTrack(bamTrack), exist)
                 .checkTrackMetadataAtSearch(format("%s:%s", attributes[2][0], attributes[2][1]));
     }
 
@@ -96,8 +92,7 @@ public class DatasetsTests extends AbstractNgbTest {
                 format("%s: %s", attributes[2][0], attributes[2][1]),
                 format("%s: %s", attributes[1][0], attributes[1][1])
         };
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage
+        new DatasetsPanel()
                 .expandDataset(TEST_DATASET)
                 .openMetadataForm(bamTrack)
                 .deleteAttribute(attributes[2][0])
@@ -107,8 +102,7 @@ public class DatasetsTests extends AbstractNgbTest {
                 .checkTrackTooltipContains(bamTrack, false, attribute)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .checkTrackAttributes(bamTrack, false, attribute);
     }
 }

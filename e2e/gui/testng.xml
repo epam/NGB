@@ -26,9 +26,15 @@
         </classes>
     </test>
 
-    <test name="VcfTrackTests">
+    <test name="DatasetsTests">
         <classes>
             <class name="com.epam.ngb.autotests.DatasetsTests"/>
+        </classes>
+    </test>
+
+    <test name="VariantsTests">
+        <classes>
+            <class name="com.epam.ngb.autotests.VariantsTests"/>
         </classes>
     </test>
 </suite>

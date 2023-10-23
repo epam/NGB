@@ -46,7 +46,7 @@ import java.util.NoSuchElementException;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-public class BrowserPage implements AccessObject<BrowserPage> {
+public class BrowserPanel implements AccessObject<BrowserPanel> {
 
     private static final SelenideElement chromosomeBlock = $(className("chromosome-block"));
     private static final SelenideElement chromosomeInputField = chromosomeBlock.$x("./md-input-container//input");
@@ -55,7 +55,7 @@ public class BrowserPage implements AccessObject<BrowserPage> {
 
     // Track Coordinates
 
-    public BrowserPage setChromosome(String chromosome) {
+    public BrowserPanel setChromosome(String chromosome) {
         chromosomeBlock.shouldBe(exist, ofSeconds(DEFAULT_TIMEOUT)).click();
         chromosomeInputField.shouldBe(exist, ofSeconds(DEFAULT_TIMEOUT))
                 .shouldBe(enabled).setValue(chromosome).pressEnter();
@@ -64,14 +64,14 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         return this;
     }
 
-    public BrowserPage setCoordinates(String coordinates) {
+    public BrowserPanel setCoordinates(String coordinates) {
         coordinatesBlock.shouldBe(visible, enabled).click();
         coordinatesInputField.shouldBe(visible, enabled).sendKeys(coordinates);
         coordinatesInputField.shouldBe(visible, enabled).pressEnter();
         return this;
     }
 
-    public BrowserPage checkTrackAttributes(String trackName, Boolean isExist, String ... attributes) {
+    public BrowserPanel checkTrackAttributes(String trackName, Boolean isExist, String ... attributes) {
         SelenideElement track =
                 $x(format(".//div[contains(@class,'summary-item') and contains(., '%s')]", trackName))
                         .shouldBe(exist);
@@ -97,10 +97,10 @@ public class BrowserPage implements AccessObject<BrowserPage> {
                 .$(className("tether-target"));
     }
 
-    public BrowserPage trackImageCompare(BufferedImage expectedImage,
-                                         String trackName,
-                                         String resultImage,
-                                         double deviation) {
+    public BrowserPanel trackImageCompare(BufferedImage expectedImage,
+                                          String trackName,
+                                          String resultImage,
+                                          double deviation) {
         if (!shootElement(getWebDriver(), getTrack(trackName)).equals(expectedImage,deviation)) {
             sleep(2, SECONDS);
         }
@@ -111,11 +111,11 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         return this;
     }
 
-    public BrowserPage waitTrackDownloaded(SelenideElement trackPanel) {
+    public BrowserPanel waitTrackDownloaded(String trackName) {
         int attempt = 0;
         int maxAttempts = 10;
-        BufferedImage screen = trackPanel.screenshotAsImage();
-        while (shootElement(getWebDriver(), trackPanel).equals(screen,0) && attempt < maxAttempts) {
+        BufferedImage screen = getTrack(trackName).screenshotAsImage();
+        while (shootElement(getWebDriver(), getTrack(trackName)).equals(screen,0) && attempt < maxAttempts) {
             sleep(1, SECONDS);
             attempt += 1;
         }
@@ -143,12 +143,12 @@ public class BrowserPage implements AccessObject<BrowserPage> {
                 .getAttribute("aria-owns");
     }
 
-    public BrowserPage waitMenuDisappears(String track, String menu) {
+    public BrowserPanel waitMenuDisappears(String track, String menu) {
         $(byId(getMenuID(track, menu))).should(cssClass("md-leave"));
         return this;
     }
 
-    public BrowserPage clickOnZoomInButtonNumberOfTimes(int numberOfTimes) {
+    public BrowserPanel clickOnZoomInButtonNumberOfTimes(int numberOfTimes) {
         for (int i = 0; i < numberOfTimes; i++) {
             $x("//button[contains(@ng-click,'zoomIn')]")
                     .shouldBe(visible).shouldBe(enabled).click();
@@ -164,7 +164,7 @@ public class BrowserPage implements AccessObject<BrowserPage> {
         return $("table").shouldBe(exist);
     }
 
-    public BrowserPage maximazeBrowser() {
+    public BrowserPanel maximazeBrowser() {
         $$(className("lm_stack")).first()
                 .$(className("lm_maximise")).$(className("ngb-maximize")).shouldBe(exist).click();
         return this;

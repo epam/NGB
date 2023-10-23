@@ -16,8 +16,8 @@
 package com.epam.ngb.autotests;
 
 import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
-import com.epam.ngb.autotests.pages.BrowserPage;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import static com.epam.ngb.autotests.utils.AppProperties.REFERENCE_DEVIATION;
 import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import com.epam.ngb.autotests.utils.TestCase;
@@ -42,20 +42,20 @@ public class ReferenceTrackTests extends AbstractNgbTest {
     @Test
     @TestCase({"TC-REFERENCE_TRACKS_TEST-01"})
     public void referenceTrackTestShowForwardStrand() throws IOException {
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        DatasetsPanel datasetsPanel = new DatasetsPanel();
+        datasetsPanel.expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(1, SECONDS)
                 .setTrackCheckbox(bamTrack, false);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        BrowserPanel browserPanel = new BrowserPanel();
+        browserPanel
                 .setChromosome(testChromosome)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
+                .waitTrackDownloaded(REFERENCE)
                 .trackImageCompare(getExpectedImage(referenceTrackTC01_1),
                         REFERENCE, referenceTrackTC01_1, REFERENCE_DEVIATION)
                 .setCoordinates(referenceTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
+                .waitTrackDownloaded(REFERENCE)
                 .trackImageCompare(getExpectedImage(referenceTrackTC01_2),
                         REFERENCE, referenceTrackTC01_2, REFERENCE_DEVIATION);
     }
@@ -63,17 +63,16 @@ public class ReferenceTrackTests extends AbstractNgbTest {
     @Test
     @TestCase({"TC-REFERENCE_TRACKS_TEST-02"})
     public void referenceTrackTestShowTranslation() throws IOException {
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        new DatasetsPanel()
+                .expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(1, SECONDS)
                 .setTrackCheckbox(bamTrack, false);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .setChromosome(testChromosome)
                 .setCoordinates(referenceTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
+                .waitTrackDownloaded(REFERENCE)
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show translation", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC02),
@@ -83,17 +82,16 @@ public class ReferenceTrackTests extends AbstractNgbTest {
     @Test(invocationCount = 1)
     @TestCase({"TC-REFERENCE_TRACKS_TEST-03"})
     public void referenceTrackTestShowReverseStrand() throws IOException {
-        DatasetsPage datasetsPage = new DatasetsPage();
-        datasetsPage.expandDataset(TEST_DATASET)
+        new DatasetsPanel()
+                .expandDataset(TEST_DATASET)
                 .setTrackCheckbox(bamTrack, true)
                 .sleep(1, SECONDS)
                 .setTrackCheckbox(bamTrack, false);
         sleep(2, SECONDS);
-        BrowserPage browserPage = new BrowserPage();
-        browserPage
+        new BrowserPanel()
                 .setChromosome(testChromosome)
                 .setCoordinates(referenceTestCoordinates1)
-                .waitTrackDownloaded(browserPage.getTrack(REFERENCE))
+                .waitTrackDownloaded(REFERENCE)
                 .openTrackMenu(REFERENCE, GENERAL.value)
                 .selectOptionWithCheckbox("Show reverse strand", true)
                 .trackImageCompare(getExpectedImage(referenceTrackTC03),

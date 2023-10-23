@@ -34,6 +34,7 @@ import org.testng.ITest;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.lang.reflect.Method;
@@ -46,9 +47,11 @@ public class AbstractNgbTest implements ITest {
     public void setUp() {
         Configuration.timeout= AppProperties.DEFAULT_TIMEOUT;
         Configuration.browser= Browsers.CHROME;
-
-        System.setProperty("webdriver.chrome.driver","/usr/local/bin/chromedriver");
+        System.setProperty("webdriver.chrome.driver","C:\\SNF\\NGB\\chromedriver\\chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver","C:\\SNF\\ChromeDr\\chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver","/usr/local/bin/chromedriver");
         ChromeOptions chromeOptions=new ChromeOptions();
+        chromeOptions.setBinary("C:\\SNF\\NGB\\chromedriver\\chrome-win64_116\\chrome-win64\\chrome.exe");
         chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--window-size=1920,1080");
         chromeOptions.addArguments("--remote-allow-origins=*");
@@ -84,7 +87,7 @@ public class AbstractNgbTest implements ITest {
         return this.methodName;
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun=true)
     public static void closeDriverAfterMethod() {
         getWebDriver().close();
     }

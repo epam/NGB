@@ -22,21 +22,21 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.Selenide.actions;
 import com.codeborne.selenide.SelenideElement;
-import com.epam.ngb.autotests.pages.BrowserPage;
+import com.epam.ngb.autotests.pages.BrowserPanel;
 import com.epam.ngb.autotests.pages.PopupForm;
 import static java.lang.Boolean.valueOf;
 
-public class TrackMenuForm extends PopupForm<TrackMenuForm, BrowserPage> {
+public class TrackMenuForm extends PopupForm<TrackMenuForm, BrowserPanel> {
 
     private String menuID = "";
     private SelenideElement trackElement;
 
-    public TrackMenuForm(BrowserPage parentAO, String menuID) {
+    public TrackMenuForm(BrowserPanel parentAO, String menuID) {
         super(parentAO);
         this.menuID = menuID;
     }
 
-    public BrowserPage selectOptionWithCheckbox(String option, boolean isChecked) {
+    public BrowserPanel selectOptionWithCheckbox(String option, boolean isChecked) {
         $(byId(menuID)).should(cssClass("md-clickable"));
         SelenideElement menuOption = $(byId(menuID)).$(byText(option)).parent().parent();
         if(valueOf(menuOption.getAttribute("aria-checked")) != isChecked) {
@@ -47,20 +47,20 @@ public class TrackMenuForm extends PopupForm<TrackMenuForm, BrowserPage> {
         }
         $(byId(menuID)).should(cssClass("md-leave"))
                 .shouldNot(cssClass("md-active"));
-        return new BrowserPage();
+        return new BrowserPanel();
     }
 
     public ResizeForm selectOptionWithAdditionalMenu(String option) {
         $(byId(menuID)).should(cssClass("md-clickable"))
                 .$(byText(option)).parent().parent().click();
         $(byId(menuID)).should(cssClass("md-leave")).shouldNot(cssClass("md-active"));
-        return new ResizeForm(new BrowserPage());
+        return new ResizeForm(new BrowserPanel());
     }
 
-    public class ResizeForm extends PopupForm<ResizeForm, BrowserPage> {
+    public class ResizeForm extends PopupForm<ResizeForm, BrowserPanel> {
 
         SelenideElement dialog = $x("//md-dialog[@aria-label='track resize settings']");
-        public ResizeForm(BrowserPage parentAO) {
+        public ResizeForm(BrowserPanel parentAO) {
             super(parentAO);
         }
 

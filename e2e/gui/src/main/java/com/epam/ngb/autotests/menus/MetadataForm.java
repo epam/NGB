@@ -23,7 +23,7 @@ import com.epam.ngb.autotests.enums.Primitive;
 import static com.epam.ngb.autotests.enums.Primitive.ADD;
 import static com.epam.ngb.autotests.enums.Primitive.SAVE;
 import static com.epam.ngb.autotests.enums.Primitive.TITLE;
-import com.epam.ngb.autotests.pages.DatasetsPage;
+import com.epam.ngb.autotests.pages.DatasetsPanel;
 import com.epam.ngb.autotests.pages.PopupForm;
 import static org.openqa.selenium.By.className;
 import static org.openqa.selenium.By.name;
@@ -31,7 +31,7 @@ import static org.openqa.selenium.By.name;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public class MetadataForm extends PopupForm<MetadataForm, DatasetsPage> {
+public class MetadataForm extends PopupForm<MetadataForm, DatasetsPanel> {
 
     @Override
     public SelenideElement context() {
@@ -43,7 +43,7 @@ public class MetadataForm extends PopupForm<MetadataForm, DatasetsPage> {
             entry(SAVE, context().$(className("save-metadata-btn")))
     );
 
-    public MetadataForm(DatasetsPage parentAO) {
+    public MetadataForm(DatasetsPanel parentAO) {
         super(parentAO);
     }
 
@@ -80,7 +80,7 @@ public class MetadataForm extends PopupForm<MetadataForm, DatasetsPage> {
         return this;
     }
 
-    public DatasetsPage save() {
+    public DatasetsPanel save() {
         return click(SAVE).parent();
     }
 

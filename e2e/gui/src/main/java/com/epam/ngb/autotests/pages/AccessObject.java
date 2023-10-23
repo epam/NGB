@@ -83,6 +83,11 @@ public interface AccessObject <ELEMENT_TYPE extends AccessObject>{
         return (ELEMENT_TYPE) this;
     }
 
+    default ELEMENT_TYPE click(final SelenideElement element) {
+        element.shouldBe(visible, enabled).click();
+        return (ELEMENT_TYPE) this;
+    }
+
     default ELEMENT_TYPE ensure(final By qualifier, final Condition... conditions) {
         context().find(qualifier).should(conditions);
         return (ELEMENT_TYPE) this;
