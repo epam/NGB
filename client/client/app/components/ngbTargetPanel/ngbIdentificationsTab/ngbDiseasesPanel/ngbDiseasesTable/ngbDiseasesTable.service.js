@@ -172,7 +172,7 @@ export default class ngbDiseasesTableService {
                     'pathways systems': fixedNumber(PATHWAYS),
                     'text mining': fixedNumber(TEXT_MINING),
                     'animal models': fixedNumber(ANIMAL_MODELS),
-                    'rna expression': fixedNumber(RNA_EXPRESSION)
+                    'RNA expression': fixedNumber(RNA_EXPRESSION)
                 };
             });
         }

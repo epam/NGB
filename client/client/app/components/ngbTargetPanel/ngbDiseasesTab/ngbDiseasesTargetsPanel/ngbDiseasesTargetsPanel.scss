@@ -66,6 +66,10 @@ ngb-diseases-targets-panel {
             float: none;
             display: table-cell;
         }
+
+        .ui-grid-canvas {
+            height: auto !important;
+        }
     }
 
     .ui-grid-header-cell.ui-grid-clearfix,
