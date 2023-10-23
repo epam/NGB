@@ -69,7 +69,7 @@ public class VariantsTests extends AbstractNgbTest {
     public static Object[][] simpleConditions() {
         return new Object[][] {
                 {"12586950", RED.value, "variantsTC03_1"},
-                {"12586560", YELLOW, "variantsTC03_2"},
+                {"12586560", YELLOW.value, "variantsTC03_2"},
                 {"12586790", GREEN.value, "variantsTC03_3"},
                 {"12585943", LIGHTBLUE.value, "variantsTC03_4"},
                 {"12587867", LIGHTBLUE.value, "variantsTC03_5"},
