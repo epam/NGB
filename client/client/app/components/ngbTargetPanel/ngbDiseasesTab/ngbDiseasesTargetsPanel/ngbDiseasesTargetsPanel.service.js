@@ -242,7 +242,7 @@ export default class ngbDiseasesTargetsPanelService {
 
     async setDefaultFilter() {
         await this.getTargetSettings();
-        if (!this._speciesFilter && this._speciesFilter.length) return;
+        if (!this._speciesFilter || !this._speciesFilter.length) return;
         this.setFilter('homologues', this._speciesFilter);
     }
 
