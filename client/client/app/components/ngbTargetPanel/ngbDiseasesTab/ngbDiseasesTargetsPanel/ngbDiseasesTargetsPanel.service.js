@@ -196,7 +196,7 @@ export default class ngbDiseasesTargetsPanelService {
                             return filter;
                         default:
                             filter.range = {
-                                from: Number.parseFloat(values).toFixed(2),
+                                from: Number(values),
                                 to: '1.0'
                             };
                             return filter;
