@@ -1,24 +1,21 @@
-import {LLM} from '../../shared/components/ngbLLM/models';
 import {getModelDefaultOptions, modelOptionsEquals} from '../../shared/components/ngbLLM/utilities';
-
-const ALL_MODELS = Object.values(LLM);
 
 class NgbTargetLLMService {
     static get UID() {
         return 'targetLLMService';
     }
 
-    static instance(dispatcher) {
-        return new NgbTargetLLMService(dispatcher);
+    static instance(dispatcher, utilsDataService) {
+        return new NgbTargetLLMService(dispatcher, utilsDataService);
     }
 
     _models = [];
     _model = undefined;
 
-    constructor(dispatcher) {
+    constructor(dispatcher, utilsDataService) {
         this.dispatcher = dispatcher;
-        this._models = ALL_MODELS;
-        this._model = getModelDefaultOptions(this._models[0], this._models);
+        this.utilsDataService = utilsDataService;
+        this.setModels();
     }
 
     get models() {
@@ -36,6 +33,26 @@ class NgbTargetLLMService {
             if (modelTypeChanged) {
                 this.dispatcher.emit('target:identification:publications:model:changed', model);
             }
+        }
+    }
+
+    async getLLMSettings() {
+        const {llm_settings: llmSettings} = await this.utilsDataService.getDefaultTrackSettings();
+        if (!llmSettings) {
+            return [];
+        }
+        return llmSettings.llms || [];
+    }
+
+    async setModels() {
+        const llmSettings = await this.getLLMSettings();
+        if (!llmSettings || !llmSettings.length) {
+            this._models = [];
+            this._model = undefined;
+        } else {
+            const providers = llmSettings.map(m => m.provider);
+            this._models = providers;
+            this._model = getModelDefaultOptions(this._models[0], this._models);
         }
     }
 }

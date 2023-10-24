@@ -1,4 +1,4 @@
-import {LLM, LLMName} from './models';
+import {LLMName} from './models';
 import {
     getModelDefaultOptions, mergeUserOptions,
     modelsHasConfigurationProperties
@@ -17,10 +17,12 @@ class NgbLLMController {
         return 'ngbLLMController';
     }
 
-    constructor(dispatcher, $scope) {
+    constructor(dispatcher, $scope, utilsDataService) {
         this.dispatcher = dispatcher;
         this.$scope = $scope;
+        this.utilsDataService = utilsDataService;
         this.uuid = UUIDGenerator();
+        this.setModels();
         this.configureCallback = (payload) => {
             const {
                 uuid,
@@ -49,9 +51,7 @@ class NgbLLMController {
     }
 
     get llmModels() {
-        return this.models && Array.isArray(this.models) && this.models.length > 0
-            ? this.models
-            : Object.values(LLM);
+        return this.models;
     }
 
     get hasConfigurableProperties() {
@@ -84,8 +84,26 @@ class NgbLLMController {
     configure() {
         this.dispatcher.emit('llm:model:configure', {
             options: this.modelOptions,
-            uuid: this.uuid
+            uuid: this.uuid,
+            models: this.models
         });
+    }
+
+    async setModels() {
+        const llmSettings = await this.getLLMSettings();
+        if (!llmSettings || !llmSettings.length) {
+            this.models = [];
+        } else {
+            this.models = llmSettings.map(m => m.provider);
+        }
+    }
+
+    async getLLMSettings() {
+        const {llm_settings: llmSettings} = await this.utilsDataService.getDefaultTrackSettings();
+        if (!llmSettings) {
+            return [];
+        }
+        return llmSettings.llms || [];
     }
 }
 
