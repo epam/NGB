@@ -219,6 +219,7 @@ export default class ngbStructurePanelService {
     }
 
     async targetChanged() {
+        this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
         this.resetStructureData();
     }
 
@@ -389,7 +390,6 @@ export default class ngbStructurePanelService {
         this._emptyResults = false;
         this._structureResults = null;
         this._descriptionDone = false;
-        this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
     }
 
     exportResults() {

@@ -11,6 +11,7 @@ export default class ngbTargetPanelController {
     }
 
     tabSelected = this.targetState.TARGET_STATE;
+    reportLoading = false;
 
     get identificationTabIsShown() {
         const {identificationTarget, identificationData} = this.ngbTargetPanelService;
@@ -47,6 +48,7 @@ export default class ngbTargetPanelController {
     }
 
     downloadReport () {
+        this.reportLoading = true;
         this.ngbTargetPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -65,8 +67,10 @@ export default class ngbTargetPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.reportLoading = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
+                    this.reportLoading = false;
                     console.error(ex);
                 }
             });

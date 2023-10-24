@@ -37,10 +37,14 @@
         CREATE TARGET
     </md-button>
     <md-button type="button"
-               class="md-raised md-accent ngb-target-panel-extra-button"
+               class="md-raised md-accent ngb-target-panel-extra-button download"
                ng-if="$ctrl.isIdentificationsMode"
                aria-label="Download report"
+               ng-disabled="$ctrl.reportLoading"
                ng-click="$ctrl.downloadReport()">
-        DOWNLOAD
+        <span>DOWNLOAD</span>
+        <md-progress-circular ng-if="$ctrl.reportLoading"
+                              md-diameter="12">
+        </md-progress-circular>
     </md-button>
 </div>
