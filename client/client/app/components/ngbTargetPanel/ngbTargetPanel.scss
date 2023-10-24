@@ -16,6 +16,14 @@
       overflow: auto;
     }
   }
+
+  .md-button.download {
+    display: flex;
+  }
+
+  md-progress-circular {
+    margin: 0 10px;
+  }
 }
 
 .target-nav-bar .md-nav-bar {
