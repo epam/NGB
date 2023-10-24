@@ -15,7 +15,7 @@
         <span>No records found.</span>
     </md-content>
 </div>
-<div class="summary-button">
+<div class="summary-button" ng-if="$ctrl.llmModels && $ctrl.llmModels.length">
     <md-button ng-click="$ctrl.generateSummary($event)"
                ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary || $ctrl.publications.length === 0"
                md-no-ink
