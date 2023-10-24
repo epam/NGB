@@ -112,7 +112,11 @@ export default class ngbDiseasesDrugsPanelService {
     setDrugsResult(result) {
         this._drugsResults = result.map(item => ({
             target: item.geneSymbol,
-            drug: item.drug,
+            drug: {
+                id: item.id,
+                name: item.name,
+                url: item.url,
+            },
             type: item.drugType,
             'mechanism of action': item.mechanismOfAction,
             'action type': item.actionType,
