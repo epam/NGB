@@ -220,7 +220,7 @@ public class NCBIGeneManager {
 
     public Map<GeneId, String> fetchGeneSummaryByIds(final List<GeneId> geneIds)
             throws ExternalDbUnavailableException {
-        final Map<GeneId, String> summary = new HashMap<>();
+        final Map<GeneId, String> summaryMap = new HashMap<>();
         final Map<String, GeneId> entrezMap = geneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
@@ -229,9 +229,31 @@ public class NCBIGeneManager {
         for (JsonNode jsonNode : root.path("uids")) {
             String uid = jsonNode.asText();
             node = root.path(uid);
-            summary.put(entrezMap.get(uid), node.path("summary").asText());
+            String summary = TextUtils.isBlank(node.path("summary").asText()) ?
+                    node.path("description").asText() : node.path("summary").asText();
+            summaryMap.put(entrezMap.get(uid), summary);
         }
-        return summary;
+        return summaryMap;
+    }
+
+    public List<GeneId> getGeneIds(final List<GeneId> geneIds, final Map<String, String> geneNames)
+            throws ExternalDbUnavailableException {
+        final List<GeneId> result = new ArrayList<>();
+        final Map<String, GeneId> entrezMap = geneIds.stream()
+                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
+        final JsonNode root = ncbiAuxiliaryManager.summaryEntitiesByIds(NCBIDatabase.GENE.name(),
+                join(entrezMap.keySet(), ","));
+        JsonNode node;
+        for (JsonNode jsonNode : root.path("uids")) {
+            String uid = jsonNode.asText();
+            node = root.path(uid);
+            String ensemblId = entrezMap.get(uid).getEnsemblId();
+            String geneName = geneNames.get(ensemblId);
+            if (node.path("nomenclaturesymbol").asText().equalsIgnoreCase(geneName)) {
+                result.add(entrezMap.get(uid));
+            }
+        }
+        return result;
     }
 
     @NotNull

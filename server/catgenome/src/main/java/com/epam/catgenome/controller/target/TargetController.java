@@ -412,9 +412,10 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<GeneSequences>> getGeneSequences(@RequestParam final List<String> geneIds)
-            throws IOException, ParseException {
-        return Result.success(targetIdentificationSecurityService.getGeneSequences(geneIds));
+    public Result<List<GeneSequences>> getGeneSequences(@RequestParam final Long targetId,
+                                                        @RequestParam final List<String> geneIds)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(targetIdentificationSecurityService.getGeneSequences(targetId, geneIds));
     }
 
     @GetMapping(value = "/target/sequences/table")
@@ -425,10 +426,12 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<GeneRefSection>> getGeneSequencesTable(@RequestParam final List<String> geneIds,
+    public Result<List<GeneRefSection>> getGeneSequencesTable(@RequestParam final Long targetId,
+                                                              @RequestParam final List<String> geneIds,
                                                               @RequestParam final Boolean getComments)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return Result.success(targetIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments));
+        return Result.success(targetIdentificationSecurityService.getGeneSequencesTable(targetId,
+                geneIds, getComments));
     }
 
     @PostMapping(value = "/target/structures")
@@ -451,14 +454,15 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void export(@RequestParam final List<String> genesOfInterest,
+    public void export(@RequestParam final Long targetId,
+                       @RequestParam final List<String> genesOfInterest,
                        @RequestParam final List<String> translationalGenes,
                        @RequestParam final FileFormat format,
                        @RequestParam final TargetExportTable source,
                        @RequestParam final boolean includeHeader,
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final byte[] bytes = exportSecurityService.export(genesOfInterest, translationalGenes,
+        final byte[] bytes = exportSecurityService.export(targetId, genesOfInterest, translationalGenes,
                 format, source, includeHeader);
         response.getOutputStream().write(bytes);
         response.flushBuffer();
@@ -472,11 +476,12 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void report(@RequestParam final List<String> genesOfInterest,
+    public void report(@RequestParam final Long targetId,
+                       @RequestParam final List<String> genesOfInterest,
                        @RequestParam final List<String> translationalGenes,
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
+        final InputStream inputStream = exportSecurityService.report(targetId, genesOfInterest, translationalGenes);
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
     }
 }

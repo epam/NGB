@@ -30,6 +30,7 @@ import java.util.List;
 
 @Data
 public class PublicationSearchRequest {
+    private Long targetId;
     private List<String> geneIds;
     private Integer page;
     private Integer pageSize;

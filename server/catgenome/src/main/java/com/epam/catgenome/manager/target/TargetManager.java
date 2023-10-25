@@ -43,10 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -170,6 +167,12 @@ public class TargetManager {
     public List<String> getTargetGeneNames(final List<String> geneIds) {
         final List<TargetGene> targetGenes = getTargetGenes(geneIds);
         return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
+    }
+
+    public Map<String, String> getTargetGeneNames(final Long targetId) {
+        final Target target = getTarget(targetId);
+        return target.getTargetGenes().stream()
+                .collect(Collectors.toMap(g -> g.getGeneId().toLowerCase(), g -> g.getGeneName().toLowerCase()));
     }
 
     public List<Long> getTargetGeneSpecies(final List<String> geneIds) {

@@ -36,11 +36,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
-import com.epam.catgenome.entity.target.GeneRefSection;
-import com.epam.catgenome.entity.target.GeneSequences;
-import com.epam.catgenome.entity.target.IdentificationRequest;
-import com.epam.catgenome.entity.target.TargetIdentificationResult;
-import com.epam.catgenome.entity.target.SequencesSummary;
+import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
@@ -112,16 +108,17 @@ public class TargetIdentificationManager {
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
-        targetManager.getTarget(request.getTargetId());
         final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getGeneIds(getGeneNames(request.getTargetId()), geneIds);
+
         final List<String> entrezGeneIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
+
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final Pair<Long, Long> drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
@@ -227,8 +224,9 @@ public class TargetIdentificationManager {
         return pubMedService.getArticleAbstracts(request);
     }
 
-    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+    public List<GeneSequences> getGeneSequences(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getGeneIds(getGeneNames(targetId), geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return Collections.emptyList();
         }
@@ -237,9 +235,11 @@ public class TargetIdentificationManager {
         return geneSequencesManager.fetchGeneSequences(entrezMap);
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
+    public List<GeneRefSection> getGeneSequencesTable(final Long targetId,
+                                                      final List<String> geneIds,
+                                                      final Boolean getComments)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getGeneIds(getGeneNames(targetId), geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return Collections.emptyList();
         }
@@ -261,6 +261,10 @@ public class TargetIdentificationManager {
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
         merged.replaceAll((key, value) -> setHyperLinks(value));
         return merged;
+    }
+
+    private Map<String, String> getGeneNames(final Long targetId) {
+        return targetManager.getTargetGeneNames(targetId);
     }
 
     private long getStructuresCount(final List<String> geneIds) {

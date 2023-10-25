@@ -31,6 +31,7 @@ import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
+import com.epam.catgenome.manager.target.TargetManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -71,10 +72,13 @@ public class PubMedService {
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
     private final NCBIDataManager ncbiDataManager;
+    private final TargetManager targetManager;
 
     @SneakyThrows
     public SearchResult<NCBISummaryVO> fetchPubMedArticles(final PublicationSearchRequest request) {
-        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.getNcbiGeneIds(request.getGeneIds());
+        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.getGeneIds(
+                targetManager.getTargetGeneNames(request.getTargetId()), request.getGeneIds());
+
         final List<String> entrezIds = ncbiGenes.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());

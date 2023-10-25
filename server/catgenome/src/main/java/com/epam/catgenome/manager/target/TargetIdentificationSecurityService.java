@@ -152,14 +152,17 @@ public class TargetIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
-        return manager.getGeneSequences(geneIds);
+    public List<GeneSequences> getGeneSequences(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        return manager.getGeneSequences(targetId, geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
+    public List<GeneRefSection> getGeneSequencesTable(final Long targetId,
+                                                      final List<String> geneIds,
+                                                      final Boolean getComments)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        return manager.getGeneSequencesTable(geneIds, getComments);
+        return manager.getGeneSequencesTable(targetId, geneIds, getComments);
     }
 
     @PreAuthorize(ROLE_USER)
