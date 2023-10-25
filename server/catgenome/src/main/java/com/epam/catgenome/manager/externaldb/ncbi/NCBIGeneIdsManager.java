@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.ncbi;
 
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +47,7 @@ public class NCBIGeneIdsManager {
 
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
     private final EnsemblDataManager ensemblDataManager;
+    private final NCBIGeneManager geneManager;
 
     public List<GeneId> getNcbiGeneIds(final List<String> geneIds) throws ParseException, IOException {
         List<GeneId> ncbiGenes = new ArrayList<>();
@@ -79,5 +82,11 @@ public class NCBIGeneIdsManager {
 
     public static List<Long> getEntrezGeneIds(final List<GeneId> ncbiGeneIds) {
         return ncbiGeneIds.stream().map(GeneId::getEntrezId).collect(Collectors.toList());
+    }
+
+    public List<GeneId> getGeneIds(final Map<String, String> geneNames, final List<String> geneIds)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<GeneId> ncbiGeneIds = getNcbiGeneIds(geneIds);
+        return geneManager.getGeneIds(ncbiGeneIds, geneNames);
     }
 }

@@ -129,7 +129,8 @@ public class TargetExportManager {
         return result;
     }
 
-    public byte[] export(final List<String> genesOfInterest,
+    public byte[] export(final Long targetId,
+                         final List<String> genesOfInterest,
                          final List<String> translationalGenes,
                          final FileFormat format,
                          final TargetExportTable source,
@@ -169,7 +170,7 @@ public class TargetExportManager {
                         Arrays.asList(PdbFileField.values()), format, includeHeader);
                 break;
             case SEQUENCES:
-                result = ExportUtils.export(getSequenceTable(geneIds, genesMap),
+                result = ExportUtils.export(getSequenceTable(targetId, geneIds, genesMap),
                         Arrays.asList(GeneSequenceField.values()), format, includeHeader);
                 break;
             case HOMOLOGY:
@@ -182,7 +183,8 @@ public class TargetExportManager {
         return result;
     }
 
-    public InputStream report(final List<String> genesOfInterest,
+    public InputStream report(final Long targetId,
+                              final List<String> genesOfInterest,
                               final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
@@ -191,7 +193,7 @@ public class TargetExportManager {
         final Map<String, String> targetNames = getTargetNames(genesMap);
         try (Workbook workbook = new XSSFWorkbook()) {
             writeSheet("Summary", Arrays.asList(TargetExportSummaryField.values()),
-                    getSummary(genesOfInterest, translationalGenes, genesMap), workbook);
+                    getSummary(targetId, genesOfInterest, translationalGenes, genesMap), workbook);
             writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
                     getDiseaseAssociations(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
@@ -207,7 +209,7 @@ public class TargetExportManager {
             writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
                     getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
-                    getSequenceTable(geneIds, targetNames), workbook);
+                    getSequenceTable(targetId, geneIds, targetNames), workbook);
             writeSheet("Homology", Arrays.asList(HomologyField.values()),
                     getHomologyData(genesOfInterest, translationalGenes, targetNames), workbook);
             return ExcelExportUtils.export(workbook);
@@ -383,10 +385,12 @@ public class TargetExportManager {
         return pdbFileManager.load(geneIds);
     }
 
-    private List<GeneSequenceExport> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)
+    private List<GeneSequenceExport> getSequenceTable(final Long targetId,
+                                                      final List<String> geneIds,
+                                                      final Map<String, String> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(geneIds,
-                false);
+        final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(targetId,
+                geneIds, false);
         final List<GeneSequenceExport> result = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             for (GeneSequence sequence : geneRefSection.getSequences()){
@@ -411,16 +415,19 @@ public class TargetExportManager {
         return result;
     }
 
-    private List<TargetExportSummary> getSummary(final List<String> genesOfInterest,
-                                                final List<String> translationalGenes,
-                                                final Map<String, TargetGene> genesMap)
+    private List<TargetExportSummary> getSummary(final Long targetId,
+                                                 final List<String> genesOfInterest,
+                                                 final List<String> translationalGenes,
+                                                 final Map<String, TargetGene> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
                 .map(String::toLowerCase).distinct().collect(Collectors.toList());
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
-        final Map<String, GeneId> genes = ncbiGeneIds.stream()
+        final List<GeneId> ncbiGenes = ncbiGeneIdsManager.getGeneIds(targetManager.getTargetGeneNames(targetId),
+                geneIds);
+
+        final Map<String, GeneId> ncbiGenesMap = ncbiGenes.stream()
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
-        final Map<String, String> descriptions = identificationManager.getDescriptions(ncbiGeneIds);
+        final Map<String, String> descriptions = identificationManager.getDescriptions(ncbiGenes);
 
         final Map<String, Pair<Long, Long>> pharmGKBDrugs = pharmGKBDrugAssociationManager.recordsCountMap(geneIds);
         final Map<String, Pair<Long, Long>> dgidbDrugs = dgidbDrugAssociationManager.recordsCountMap(geneIds);
@@ -429,8 +436,7 @@ public class TargetExportManager {
         final Map<String, Long> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.totalCountMap(geneIds);
         final Map<String, Long> diseases = diseaseAssociationManager.totalCountMap(geneIds);
 
-        final Map<String, SequencesSummary> sequencesSummaryMap =
-                geneSequencesManager.getSequencesCountMap(ncbiGeneIds);
+        final Map<String, SequencesSummary> sequencesSummaryMap = geneSequencesManager.getSequencesCountMap(ncbiGenes);
 
         final Map<String, Long> structuresCount = getStructuresCount(genesMap);
 
@@ -441,7 +447,7 @@ public class TargetExportManager {
                     .anyMatch(g -> g.equals(geneId));
 
             long publicationsCount = pubMedService.getPublicationsCount(
-                    Collections.singletonList(genes.get(geneId).getEntrezId().toString()));
+                    Collections.singletonList(ncbiGenesMap.get(geneId).getEntrezId().toString()));
 
             Long homologs = isGeneOfInterest ?
                     getHomologyCount(Collections.singletonList(geneId), translationalGenes) : null;

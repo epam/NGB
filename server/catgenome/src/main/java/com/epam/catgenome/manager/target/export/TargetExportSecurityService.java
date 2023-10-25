@@ -43,18 +43,21 @@ public class TargetExportSecurityService {
     private final TargetExportManager manager;
 
     @PreAuthorize(ROLE_USER)
-    public byte[] export(final List<String> genesOfInterest,
+    public byte[] export(final Long targetId,
+                         final List<String> genesOfInterest,
                          final List<String> translationalGenes,
                          final FileFormat format,
                          final TargetExportTable source,
                          boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return manager.export(genesOfInterest, translationalGenes, format, source, includeHeader);
+        return manager.export(targetId, genesOfInterest, translationalGenes, format, source, includeHeader);
     }
 
     @PreAuthorize(ROLE_USER)
-    public InputStream report(final List<String> genesOfInterest, final List<String> translationalGenes)
+    public InputStream report(final Long targetId,
+                              final List<String> genesOfInterest,
+                              final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return manager.report(genesOfInterest, translationalGenes);
+        return manager.report(targetId, genesOfInterest, translationalGenes);
     }
 }
