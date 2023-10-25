@@ -287,9 +287,14 @@ export default class ngbStructurePanelService {
                 geneIds: this.geneIds,
                 page: this.currentPage,
                 pageSize: this.pageSize,
-                orderBy: this.fields.id,
-                reverse: false
             };
+            if (this.sortInfo && this.sortInfo.length) {
+                request.orderBy = this.fields[this.sortInfo[0].field],
+                request.reverse = !this.sortInfo[0].ascending
+            } else {
+                request.orderBy = this.fields.id;
+                request.reverse = false;
+            }
             if (this._filterInfo) {
                 if (this._filterInfo.id) {
                     request.entryIds = [this._filterInfo.id];

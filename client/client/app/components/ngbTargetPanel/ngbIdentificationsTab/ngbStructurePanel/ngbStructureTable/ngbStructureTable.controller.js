@@ -192,6 +192,7 @@ export default class ngbStructureTableController {
                         columnSettings = {
                             ...columnSettings,
                             enableFiltering: true,
+                            enableSorting: true,
                             cellTemplate: linkCell
                         };
                     }
@@ -241,6 +242,12 @@ export default class ngbStructureTableController {
                     columnSettings = {
                         ...columnSettings,
                         width: 80
+                    };
+                    break;
+                case 'resolution':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableSorting: true,
                     };
                     break;
                 default:
