@@ -91,7 +91,7 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
     },
     {
       source: KnownDrugsSource.pharmGKB,
-      data: knownDrugsOpenTargets,
+      data: knownDrugsPharmGKB,
     },
   ],
   publications,
