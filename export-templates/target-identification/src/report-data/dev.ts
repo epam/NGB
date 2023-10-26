@@ -1,5 +1,6 @@
 import type {Gene, KnownDrugsDGIdbItem, KnownDrugsOpenTargetsItem, KnownDrugsPharmGKBItem} from "../model/types";
 import {KnownDrugsSource} from "../model/types";
+import {KnownDrugsCount, SequencesCount, DiseasesCount, StructuresCount, PublicationsCount} from "../model/types/total-counts";
 import {Publication} from "../model/types/bibliography";
 
 const interest: Gene[] = [];
@@ -31,6 +32,14 @@ const statuses = generateData(4, 'Status');
 const sources = generateData(13, 'Source');
 const interactionSources = generateData(13, 'Interaction source');
 const interactionTypes = generateData(13, 'Interaction type');
+const knownDrugsCount: KnownDrugsCount = {
+  drugs: 17,
+  records: 122
+};
+const sequencesCount: SequencesCount[] = [];
+const diseasesCount: DiseasesCount = 0;
+const structuresCount: StructuresCount = 0;
+const publicationsCount: PublicationsCount = 0;
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
@@ -80,6 +89,13 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
   name: 'BRCA Complex',
   interest,
   translational,
+  totalCounts: {
+    knownDrugs: knownDrugsCount,
+    diseases: diseasesCount,
+    sequences: sequencesCount,
+    structures: structuresCount,
+    publications: publicationsCount
+  },
   knownDrugs: [
     {
       source: KnownDrugsSource.openTargets,

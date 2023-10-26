@@ -84,7 +84,7 @@ export default function MainSection() {
               className="block mb-2"
             >
               <span className="font-bold float-left mr-1">
-                {gene.name}:
+                {gene.name} ({gene.species}):
               </span>
               <ExpandableText expanded={expanded} className="text-justify">
                 {gene.description}

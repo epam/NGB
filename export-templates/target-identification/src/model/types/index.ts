@@ -1,8 +1,10 @@
+import type {TotalCount} from './total-counts';
 import type {KnownDrugsData} from './known-drugs';
 import type {Publication} from "./bibliography";
 
 export * from './base';
 export * from './known-drugs';
+export * from './total-counts';
 
 export type Gene = {
   id: string;
@@ -15,6 +17,7 @@ export type GlobalData = {
   name?: string;
   interest?: Gene[];
   translational?: Gene[];
+  totalCounts?: TotalCount[];
   knownDrugs?: KnownDrugsData[];
   publications?: Publication[]
 }

@@ -193,7 +193,7 @@ export default function Table<Item>(props: TableProps<Item>) {
       <div className="static w-full overflow-auto">
         <table className={classNames('min-w-full', 'border-collapse', 'border')}>
           <thead>
-          <tr>
+          <tr className="capitalize">
             {
               columns.map((column, index) => renderTableColumn(
                 column,

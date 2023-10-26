@@ -3,14 +3,15 @@ import Section from '../../common/section';
 import Select from '../../common/select';
 import {
   KnownDrugsSource,
-  KnownDrugsSourceNames
+  KnownDrugsSourceNames,
 } from '../../model/types';
-import {useKnownDrugs} from '../../model/main';
+import {useKnownDrugs, useTotalCountDrugs} from '../../model/main';
 import Table from '../../common/table';
 import {useColumnsForSource} from './columns';
 
 export default function KnownDrugs() {
   const [source, setSource] = useState(KnownDrugsSource.openTargets);
+  const {drugs, records} = useTotalCountDrugs();
   const data = useKnownDrugs(source);
   const columns = useColumnsForSource(source);
   return (
@@ -18,8 +19,8 @@ export default function KnownDrugs() {
       title="Known drugs"
       details={(
         <div className="whitespace-pre">
-          <Section.Details count={12} name="drug" />
-          <Section.Details count={188} name="records" />
+          <Section.Details count={drugs} name="drug" />
+          <Section.Details count={records} name="record" />
         </div>
       )}
     >
