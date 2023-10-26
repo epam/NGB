@@ -37,7 +37,7 @@ const knownDrugsCount: KnownDrugsCount = {
   records: 122
 };
 const sequencesCount: SequencesCount[] = [];
-const diseasesCount: DiseasesCount = 0;
+const diseasesCount: DiseasesCount = 1111;
 const structuresCount: StructuresCount = 0;
 const publicationsCount: PublicationsCount = 0;
 
@@ -110,5 +110,6 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
       data: knownDrugsPharmGKB,
     },
   ],
+  associatedDiseases: [],
   publications,
 };
