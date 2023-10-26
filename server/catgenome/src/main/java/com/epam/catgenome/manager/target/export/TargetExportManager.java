@@ -440,8 +440,8 @@ public class TargetExportManager {
                     .map(String::toLowerCase)
                     .anyMatch(g -> g.equals(geneId));
 
-            long publicationsCount = pubMedService.getPublicationsCount(
-                    Collections.singletonList(genes.get(geneId).getEntrezId().toString()));
+            long publicationsCount = genes.containsKey(geneId) ? pubMedService.getPublicationsCount(
+                    Collections.singletonList(genes.get(geneId).getEntrezId().toString())) : 0;
 
             Long homologs = isGeneOfInterest ?
                     getHomologyCount(Collections.singletonList(geneId), translationalGenes) : null;
