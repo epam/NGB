@@ -420,10 +420,13 @@ export class TargetDataService extends DataService {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject(new Error('Error getting homologene'));
+                        resolve({});
                     }
                 })
-                .catch(reject);
+                .catch(error => {
+                    const message = 'Error getting homologene';
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
@@ -434,10 +437,13 @@ export class TargetDataService extends DataService {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject(new Error('Error getting orthologs or paralogs'));
+                        reject({});
                     }
                 })
-                .catch(reject);
+                .catch(error => {
+                    const message = 'Error getting orthologs or paralogs';
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
