@@ -112,6 +112,7 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                             }
                         });
                     }
+                    document.activeElement.blur();
                 };
 
                 $scope.translationalGenesChanged = (item) => {
@@ -127,6 +128,7 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                             }
                         });
                     }
+                    document.activeElement.blur();
                 };
 
                 function getIdentificationData(scope) {
