@@ -17,7 +17,6 @@ export default function TableColumnFilter<Item>(props: TableFilterProps<Item>) {
     filters,
   } = props;
   const {
-    setNumberFilterTo,
     setNumberFilterFrom,
     setListFilterValues,
   } = filters;
@@ -48,19 +47,7 @@ export default function TableColumnFilter<Item>(props: TableFilterProps<Item>) {
       }
     }
   }, [numberFilter, setNumberFilterFrom]);
-  const onToChange = useCallback((event) => {
-    if (numberFilter) {
-      if (`${event.target.value}` === '') {
-        setNumberFilterTo(numberFilter);
-      } else if (isNumber(event.target.value)) {
-        setNumberFilterTo(numberFilter, Number(event.target.value as string));
-      }
-    }
-  }, [numberFilter, setNumberFilterTo]);
-  const {
-    from,
-    to,
-  } = numberFilter ?? {};
+  const {from} = numberFilter ?? {};
   const {
     values = empty,
     list = empty,
@@ -99,19 +86,14 @@ export default function TableColumnFilter<Item>(props: TableFilterProps<Item>) {
       {
         filter && filter.type === FilterType.number && (
           <div className="w-full flex items-center">
-            <span>From</span>
             <input
               className={inputClassName}
               type="number"
               onChange={onFromChange}
               value={from}
-            />
-            <span>To</span>
-            <input
-              className={inputClassName}
-              type="number"
-              onChange={onToChange}
-              value={to}
+              min={0}
+              max={1}
+              step={0.1}
             />
           </div>
         )

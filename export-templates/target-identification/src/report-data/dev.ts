@@ -1,6 +1,19 @@
-import type {Gene, KnownDrugsDGIdbItem, KnownDrugsOpenTargetsItem, KnownDrugsPharmGKBItem} from "../model/types";
-import {KnownDrugsSource} from "../model/types";
-import {KnownDrugsCount, SequencesCount, DiseasesCount, StructuresCount, PublicationsCount} from "../model/types/total-counts";
+import type {
+  Gene,
+  KnownDrugsDGIdbItem,
+  KnownDrugsOpenTargetsItem,
+  KnownDrugsPharmGKBItem,
+  DiseasesOpenTargetsItem,
+  DiseasesPharmGKBItem
+} from "../model/types";
+import {KnownDrugsSource, DiseasesSource} from "../model/types";
+import type {
+  KnownDrugsCount,
+  SequencesCount,
+  DiseasesCount,
+  StructuresCount,
+  PublicationsCount
+} from "../model/types/total-counts";
 import {Publication} from "../model/types/bibliography";
 
 const interest: Gene[] = [];
@@ -32,14 +45,18 @@ const statuses = generateData(4, 'Status');
 const sources = generateData(13, 'Source');
 const interactionSources = generateData(13, 'Interaction source');
 const interactionTypes = generateData(13, 'Interaction type');
+
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
   records: 122
 };
-const sequencesCount: SequencesCount[] = [];
 const diseasesCount: DiseasesCount = 1111;
+const sequencesCount: SequencesCount[] = [];
 const structuresCount: StructuresCount = 0;
 const publicationsCount: PublicationsCount = 0;
+
+const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
+const diseasesPharmGKB:   DiseasesPharmGKBItem[] = [];
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
@@ -66,6 +83,26 @@ for (let i = 0; i < 10000; i += 1) {
     target: getElement(i, interest).id,
     drug: i % 5 === 0 ? `DRUG${i + 1}` : {value: `DRUG${i + 1}`, link: 'https://platform.opentargets.org/drug/CHEMBL4594350'},
     source: getElement(i, sources),
+  });
+}
+
+for (let i = 0; i < 1000; i += 1) {
+  diseasesOpenTargets.push({
+    target: getElement(i, interest).id,
+    disease: getElement(i, diseases),
+    overallScore: Math.random(),
+    geneticAssociation: Math.random(),
+    somaticMutations: Math.random(),
+    drugs: Math.random(),
+    pathwaysSystems: Math.random(),
+    textMining: Math.random(),
+    animalModels: Math.random(),
+    RNAExpression: Math.random(),
+
+  });
+  diseasesPharmGKB.push({
+    target: getElement(i, interest).id,
+    disease: getElement(i, diseases),
   });
 }
 
@@ -110,6 +147,15 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
       data: knownDrugsPharmGKB,
     },
   ],
-  associatedDiseases: [],
+  associatedDiseases: [
+    {
+      source: DiseasesSource.openTargets,
+      data: diseasesOpenTargets,
+    },
+    {
+      source: DiseasesSource.pharmGKB,
+      data: diseasesPharmGKB,
+    },
+  ],
   publications,
 };

@@ -95,8 +95,8 @@ function buildFilter<Item>(data: Item[], filter: FilterConfig<Item>): Filter<Ite
   switch (type) {
     case FilterType.number:
       const numbers = list.map((n) => Number(n));
-      let min = Infinity;
-      let max = -Infinity;
+      let min = 0;
+      let max = 1;
       for (const n of numbers) {
         if (min > n) {
           min = n;

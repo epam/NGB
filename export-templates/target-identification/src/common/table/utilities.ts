@@ -5,6 +5,7 @@ import type {
   TableColumnSorting,
   TableSorting,
   WithItemValue,
+  TableColumnSimple
 } from './types';
 import type {ItemValue} from '../../model/types';
 import type {FilterConfig} from '../../model/filtered-data';
@@ -14,9 +15,15 @@ import {buildSorter} from '../../model/sorted-data';
 export function getColumnConfig<Item>(
   column: TableColumn<Item>
 ): TableColumnConfiguration<Item> & WithItemValue<Item> {
+  const getValue = (item: ItemValue | Item[TableColumnSimple<Item>]) => {
+    if (typeof item === 'number' && !Number.isInteger(item)) {
+      return Number(item).toFixed(2) as ItemValue;
+    }
+    return item as ItemValue;
+  };
   if (typeof column === 'string') {
     return {
-      value: (item: Item) => item[column] as ItemValue,
+      value: (item: Item) => getValue(item[column]),
       title: column,
       sortable: true,
       filter: column,
@@ -25,7 +32,7 @@ export function getColumnConfig<Item>(
   if (typeof column === 'object') {
     if ('key' in column) {
       return {
-        value: (item: Item) => item[column.key] as ItemValue,
+        value: (item: Item) => getValue(item[column.key]),
         render: column.render,
         title: column.title ?? (column.key as string),
         sortable: column.sortable,
