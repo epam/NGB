@@ -42,7 +42,13 @@
             <md-option ng-repeat="item in $ctrl.targetGeneOptions"
                        ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
                        ng-value="item.geneId">
-                {{item.chip}}
+                <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
+                      data-tooltip="No sequences found">
+                    {{item.chip}}
+                </span>
+                <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
+                    {{item.chip}}
+                </span>
             </md-option>
         </md-select>
     </md-input-container>
@@ -70,7 +76,13 @@
             <md-option ng-repeat="item in $ctrl.queryGeneOptions"
                        ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
                        ng-value="item.geneId">
-                {{item.chip}}
+                <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
+                      data-tooltip="No sequences found">
+                    {{item.chip}}
+                </span>
+                <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
+                    {{item.chip}}
+                </span>
             </md-option>
         </md-select>
     </md-input-container>
