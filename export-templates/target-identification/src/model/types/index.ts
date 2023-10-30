@@ -1,11 +1,13 @@
 import type {TotalCount} from './total-counts';
 import type {KnownDrugsData} from './known-drugs';
 import type {DiseasesData} from './associated-diseases';
+import type {SequencesData} from './sequences';
 import type {Publication} from "./bibliography";
 
 export * from './base';
 export * from './known-drugs';
 export * from './associated-diseases';
+export * from './sequences';
 export * from './total-counts';
 
 export type Gene = {
@@ -15,6 +17,11 @@ export type Gene = {
   description?: string | undefined;
 }
 
+export type GeneAndSpecies = {
+  value: string,
+  key: string,
+}
+
 export type GlobalData = {
   name?: string;
   interest?: Gene[];
@@ -22,6 +29,7 @@ export type GlobalData = {
   totalCounts?: TotalCount;
   knownDrugs?: KnownDrugsData[];
   associatedDiseases?: DiseasesData[];
+  sequences?: SequencesData[];
   publications?: Publication[]
 }
 

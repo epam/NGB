@@ -4,7 +4,9 @@ import type {
   KnownDrugsOpenTargetsItem,
   KnownDrugsPharmGKBItem,
   DiseasesOpenTargetsItem,
-  DiseasesPharmGKBItem
+  DiseasesPharmGKBItem,
+  SequencesItem,
+  SequencesData,
 } from "../model/types";
 import {KnownDrugsSource, DiseasesSource} from "../model/types";
 import type {
@@ -39,27 +41,40 @@ const generateData = (count, name) => (new Array(count)).fill(name).map((o, i) =
 const types = ['Small molecule', 'Large molecule'];
 const mechanisms = generateData(10, 'Mechanism');
 const actions = generateData(10, 'Action');
-const diseases = generateData(15, 'Disease');
 const phases = generateData(7, 'Phase');
 const statuses = generateData(4, 'Status');
 const sources = generateData(13, 'Source');
 const interactionSources = generateData(13, 'Interaction source');
 const interactionTypes = generateData(13, 'Interaction type');
 
+const transcript = generateData(8, 'Transcript');
+const protein = generateData(20, 'Protein');
+const proteinName = generateData(20, 'Protein name');
+
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
   records: 122
 };
 const diseasesCount: DiseasesCount = 1111;
-const sequencesCount: SequencesCount[] = [];
+const sequencesCount: SequencesCount = {
+  dnas: 4,
+  mrnas: 5,
+  proteins: 9,
+};
 const structuresCount: StructuresCount = 0;
 const publicationsCount: PublicationsCount = 0;
 
 const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
-const diseasesPharmGKB:   DiseasesPharmGKBItem[] = [];
+const diseasesPharmGKB: DiseasesPharmGKBItem[] = [];
+
+const sequences1: SequencesItem[] = [];
+const sequences2: SequencesItem[] = [];
+const sequences3: SequencesItem[] = [];
+const sequencesData: SequencesData[] = [];
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
+const getNumber = (max) => Math.random() * (max - 1) + 1;
 
 for (let i = 0; i < 10000; i += 1) {
   knownDrugsOpenTargets.push({
@@ -68,10 +83,10 @@ for (let i = 0; i < 10000; i += 1) {
     type: getElement(i, types),
     mechanism: getElement(i, mechanisms),
     action: getElement(i, actions),
-    disease: getElement(i, diseases),
+    disease: {value: `Disease${i + 1}`, link: 'https://platform.opentargets.org/disease/EFO_0003060'},
     phase: getElement(i, phases),
     status: getElement(i, statuses),
-    source: getElement(i, sources),
+    source: {value: `Source${i + 1}`, link: 'https://clinicaltrials.gov/study/NCT03202940'},
   });
   knownDrugsDGIdb.push({
     target: getElement(i, interest).id,
@@ -89,7 +104,7 @@ for (let i = 0; i < 10000; i += 1) {
 for (let i = 0; i < 1000; i += 1) {
   diseasesOpenTargets.push({
     target: getElement(i, interest).id,
-    disease: getElement(i, diseases),
+    disease: {value: `Disease${i + 1}`, link: 'https://platform.opentargets.org/disease/EFO_0003060'},
     overallScore: Math.random(),
     geneticAssociation: Math.random(),
     somaticMutations: Math.random(),
@@ -102,9 +117,59 @@ for (let i = 0; i < 1000; i += 1) {
   });
   diseasesPharmGKB.push({
     target: getElement(i, interest).id,
-    disease: getElement(i, diseases),
+    disease: {value: `Disease${i + 1}`, link: 'https://platform.opentargets.org/disease/EFO_0003060'},
   });
 }
+
+for (let i = 0; i < 1000; i += 1) {
+  sequences1.push({
+    target: getElement(i, interest).id,
+    transcript: getElement(i, transcript),
+    mrnaLength: getNumber(3000),
+    protein: getElement(i, protein),
+    proteinLength: getNumber(3000),
+    proteinName: getElement(i, proteinName),
+  });
+}
+
+for (let i = 0; i < 200; i += 1) {
+  sequences2.push({
+    target: getElement(i, interest).id,
+    transcript: getElement(i, transcript),
+    mrnaLength: getNumber(3000),
+    protein: getElement(i, protein),
+    proteinLength: getNumber(3000),
+    proteinName: getElement(i, proteinName),
+  });
+}
+
+for (let i = 0; i < 400; i += 1) {
+  sequences3.push({
+    target: getElement(i, interest).id,
+    transcript: getElement(i, transcript),
+    mrnaLength: getNumber(3000),
+    protein: getElement(i, protein),
+    proteinLength: getNumber(3000),
+    proteinName: getElement(i, proteinName),
+  });
+}
+
+const genes = [...interest, ...translational];
+
+sequencesData.push({
+  gene: genes[0],
+  data: sequences1,
+});
+
+sequencesData.push({
+  gene: genes[1],
+  data: sequences2,
+});
+
+sequencesData.push({
+  gene: genes[2],
+  data: sequences3,
+});
 
 const publications: Publication[] = [];
 
@@ -157,5 +222,6 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
       data: diseasesPharmGKB,
     },
   ],
+  sequences: sequencesData,
   publications,
 };

@@ -8,6 +8,9 @@ import {
   KnownDrugsSource,
   DiseasesItem,
   DiseasesSource,
+  SequencesCount,
+  SequencesItem,
+  GeneAndSpecies
 } from "./types";
 import {Publication} from "./types/bibliography";
 
@@ -37,6 +40,10 @@ export function useTotalCountDiseases(): number {
   return useTotalCount()[TotalItem.diseases];
 }
 
+export function useTotalCountSequences(): SequencesCount {
+  return useTotalCount()[TotalItem.sequences];
+}
+
 export function useKnownDrugs(source: KnownDrugsSource): KnownDrugsItem[] {
   const {knownDrugs = empty} =  useInjectedData();
   const sourcedData = knownDrugs.find((o) => o.source === source);
@@ -49,7 +56,26 @@ export function useAssociatedDiseases(source: DiseasesSource): DiseasesItem[] {
   return sourcedData ? sourcedData.data : empty;
 }
 
+export function useSequencesGenes(): Gene[] {
+  const {sequences = empty} =  useInjectedData();
+  const genes = sequences.map(s => s.gene);
+  return genes.length ? genes : empty;
+}
+
+export function useSequencesData(geneId: string): SequencesItem[] {
+  const {sequences = empty} =  useInjectedData();
+  const geneData = sequences.find((o) => o.gene.id === geneId);
+  return geneData ? geneData.data : empty;
+}
+
 export function usePublications(): Publication[] {
   const {publications = empty} = useInjectedData();
   return publications;
+}
+
+export function useGeneAndSpecies(gene: Gene): GeneAndSpecies {
+  return {
+    value: `${gene.name} (${gene.species})`,
+    key: gene.id
+  };
 }

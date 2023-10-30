@@ -15,26 +15,26 @@ export const KnownDrugsSourceNames: Record<KnownDrugsSource, string> = {
 export type KnownDrugsOpenTargetsItem = {
   target: ItemValue;
   drug: ItemValue;
-  type: ItemValue;
-  mechanism: ItemValue;
-  action: ItemValue;
-  disease: ItemValue;
-  phase: ItemValue;
-  status: ItemValue;
-  source: ItemValue;
+  type?: ItemValue;
+  mechanism?: ItemValue;
+  action?: ItemValue;
+  disease?: ItemValue;
+  phase?: ItemValue;
+  status?: ItemValue;
+  source?: ItemValue;
 }
 
 export type KnownDrugsDGIdbItem = {
   target: ItemValue;
   drug: ItemValue;
-  interactionSource: ItemValue;
-  interactionType: ItemValue;
+  interactionSource?: ItemValue;
+  interactionType?: ItemValue;
 }
 
 export type KnownDrugsPharmGKBItem = {
   target: ItemValue;
   drug: ItemValue;
-  source: ItemValue;
+  source?: ItemValue;
 }
 
 export type KnownDrugsOpenTargetsData = {

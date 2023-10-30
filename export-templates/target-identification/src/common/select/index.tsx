@@ -84,7 +84,7 @@ function Option<Item>(props: SelectOptionProps<Item>) {
       onMouseOver={onHover}
       data-index={index}
     >
-      {props.children}
+      <p className="truncate">{props.children}</p>
       {selected && (
         <CheckIcon className="ml-auto w-4 h-4" />
       )}
@@ -257,7 +257,7 @@ function SelectSingleInput<Item>(props: SelectInputProps<Item>) {
           )
         }
       >
-        {displayValue}
+        <p className="truncate">{displayValue}</p>
       </div>
       <div className="flex-1 z-10 basis-1/2">
         <input
