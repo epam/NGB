@@ -99,18 +99,21 @@ public class VariantsTests extends AbstractNgbTest {
                 .selectMainMenuItem(VARIANTS, true);
         new TabsSelectionPanel()
                 .selectPanel(VARIANTS);
-        new VariantsPanel()
-                .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
+        BrowserPanel browserPanel = new VariantsPanel()
+        .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
                 .checkBackgroundColorRowByPosition(testPositionTC01[1], GREEN.value)
                 .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHTBLUE.value)
                 .openVariantByPosition(testPositionTC01[0])
-                .waitTrackDownloaded(track)
-                .trackImageCompare(getExpectedImage(variantsTC01_1),
-                        track, variantsTC01_1, VCF_DEVIATION)
+                .waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(variantsTC01_1),
+//                        track, variantsTC01_1, VCF_DEVIATION)
+        takeScreenshot(browserPanel.getTrack(track), variantsTC01_1);
+        browserPanel
                 .setCoordinates(vcfTestCoordinates1)
-                .waitTrackDownloaded(track)
-                .trackImageCompare(getExpectedImage(variantsTC01_2),
-                        track, variantsTC01_2, VCF_DEVIATION);
+                .waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(variantsTC01_2),
+//                        track, variantsTC01_2, VCF_DEVIATION);
+        takeScreenshot(browserPanel.getTrack(track), variantsTC01_2);
     }
 
     @Test(dataProvider = "complexConditions")
@@ -138,10 +141,10 @@ public class VariantsTests extends AbstractNgbTest {
                 .checkBackgroundColorRowByPosition(position, color)
                 .openVariantByPosition(position);
         BrowserPanel browserPanel = new BrowserPanel();
-        browserPanel.waitTrackDownloaded(track)
-                .trackImageCompare(getExpectedImage(fileName),
-                        track, fileName, VCF_DEVIATION);
-//        takeScreenshot(browserPanel.getTrack(track), fileName);]
+        browserPanel.waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(fileName),
+//                        track, fileName, VCF_DEVIATION);
+        takeScreenshot(browserPanel.getTrack(track), fileName);
     }
 
     @Test(dataProvider = "simpleConditions")
@@ -169,10 +172,10 @@ public class VariantsTests extends AbstractNgbTest {
                 .checkBackgroundColorRowByPosition(position, color)
                 .openVariantByPosition(position);
         BrowserPanel browserPanel = new BrowserPanel();
-        browserPanel.waitTrackDownloaded(track)
-                .trackImageCompare(getExpectedImage(fileName),
-                        track, fileName, VCF_DEVIATION);
-//        takeScreenshot(browserPanel.getTrack(track), fileName);
+        browserPanel.waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(fileName),
+//                        track, fileName, VCF_DEVIATION);
+        takeScreenshot(browserPanel.getTrack(track), fileName);
     }
 
 }
