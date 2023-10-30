@@ -29,7 +29,6 @@ import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import junit.framework.TestCase;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,6 @@ import java.util.List;
 public class DGIDBDrugAssociationManagerTest extends TestCase {
 
     private static final int ENTRIES_COUNT = 2;
-    private static final int ENTRIES_TOTAL_COUNT = 2;
     private static final List<String> GENE_IDS = Arrays.asList("ENSG00000111424", "ENSG00000134058");
 
     @Autowired
@@ -70,9 +68,8 @@ public class DGIDBDrugAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final Pair<Long, Long> totalCount = manager.recordsCount(GENE_IDS);
-        assertEquals(ENTRIES_COUNT, totalCount.getLeft().intValue());
-        assertEquals(ENTRIES_TOTAL_COUNT, totalCount.getRight().intValue());
+        final long totalCount = manager.totalCount(GENE_IDS);
+        assertEquals(ENTRIES_COUNT, totalCount);
     }
 
     @Test

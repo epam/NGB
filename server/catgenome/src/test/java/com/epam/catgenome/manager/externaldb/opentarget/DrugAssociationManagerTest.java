@@ -29,7 +29,6 @@ import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseManager;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationManager;
 import junit.framework.TestCase;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,9 +64,8 @@ public class DrugAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final Pair<Long, Long> totalCount = drugAssociationManager.recordsCount(GENE_IDS);
-        assertEquals(2, totalCount.getLeft().intValue());
-        assertEquals(2, totalCount.getRight().intValue());
+        final long totalCount = drugAssociationManager.totalCount(GENE_IDS);
+        assertEquals(2, totalCount);
     }
 
     @Test
