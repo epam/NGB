@@ -289,9 +289,9 @@ export default class ngbTargetsTabService {
         });
     }
 
-    searchGenes(geneId) {
+    searchGenes(prefix) {
         return new Promise(resolve => {
-            this.targetDataService.searchGenes(geneId)
+            this.targetDataService.searchGenes(prefix)
                 .then(result => {
                     if (result) {
                         resolve(result);
@@ -307,8 +307,8 @@ export default class ngbTargetsTabService {
 
     setGeneModel(index, field, value) {
         const geneFields = {
-            featureId: 'geneId',
-            featureName: 'geneName',
+            ensemblId: 'geneId',
+            symbol: 'geneName',
             priority: 'priority',
             taxId: 'taxId',
             speciesName: 'speciesName'

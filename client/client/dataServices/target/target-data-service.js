@@ -133,12 +133,12 @@ export class TargetDataService extends DataService {
         });
     }
 
-    searchGenes(geneId) {
+    searchGenes(prefix) {
         return new Promise((resolve) => {
-            this.get(`gene/search?geneId=${geneId}`)
+            this.get(`target/genes/${prefix}`)
                 .then(data => {
-                    if (data && data.entries) {
-                        resolve(data.entries);
+                    if (data) {
+                        resolve(data);
                     } else {
                         resolve([]);
                     }
