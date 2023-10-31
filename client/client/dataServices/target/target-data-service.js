@@ -302,10 +302,10 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getSequencesTableResults(geneIds) {
+    getSequencesTableResults(targetId, geneIds) {
         const getComments = false;
         return new Promise((resolve, reject) => {
-            this.get(`target/sequences/table${getQueryString({geneIds, getComments})}`)
+            this.get(`target/sequences/table${getQueryString({targetId, geneIds, getComments})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -360,13 +360,14 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExport(genesOfInterest, translationalGenes, source) {
+    getTargetExport(targetId, genesOfInterest, translationalGenes, source) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
                 `target/export${getQueryString({
+                    targetId,
                     genesOfInterest,
                     translationalGenes,
                     format,
@@ -535,11 +536,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetReport(genesOfInterest, translationalGenes) {
+    getTargetReport(targetId, genesOfInterest, translationalGenes) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/report${getQueryString({genesOfInterest, translationalGenes})}`,
+                `target/report${getQueryString({targetId, genesOfInterest, translationalGenes})}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
