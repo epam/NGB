@@ -81,14 +81,15 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
     }
 
     public List<GeneInfo> searchBySymbol(final String prefix) throws ParseException, IOException {
-        Query query = getByPrefixQuery(prefix.toLowerCase(), IndexFields.SYMBOL.name());
-        if (CollectionUtils.isNotEmpty(filterTaxIds)) {
-            final Query filter = getByOptionsQuery(filterTaxIds, IndexFields.TAX_ID.name());
-            final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-            builder.add(query, BooleanClause.Occur.MUST);
-            builder.add(filter, BooleanClause.Occur.MUST);
+        final Query query = getByPrefixQuery(prefix.toLowerCase(), IndexFields.SYMBOL.name());
+        if (CollectionUtils.isEmpty(filterTaxIds)) {
+            return search(query, Sort.RELEVANCE);
         }
-        return search(query, Sort.RELEVANCE);
+        final Query filter = getByOptionsQuery(filterTaxIds, IndexFields.TAX_ID.name());
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        builder.add(query, BooleanClause.Occur.MUST);
+        builder.add(filter, BooleanClause.Occur.MUST);
+        return search(builder.build(), Sort.RELEVANCE);
     }
 
     @Override
