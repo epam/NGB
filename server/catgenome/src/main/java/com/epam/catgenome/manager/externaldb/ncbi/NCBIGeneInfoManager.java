@@ -29,6 +29,7 @@ import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -36,6 +37,8 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -44,6 +47,7 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -51,25 +55,39 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
 import static com.epam.catgenome.util.IndexUtils.getByPrefixQuery;
 
 @Service
 public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
 
+    private List<String> filterTaxIds;
     private static final int COLUMNS = 16;
     private static final Integer BATCH_SIZE = 100000;
 
     public NCBIGeneInfoManager(final @Value("${ncbi.index.directory}") String indexDirectory,
-                               final @Value("${ncbi.gene.info.top.hits:1000}") int topHits) {
+                               final @Value("${ncbi.gene.info.top.hits:1000}") int topHits,
+                               final @Value("${ncbi.gene.info.tax.ids:}") String taxIds) {
         super(Paths.get(indexDirectory, "gene.info").toString(), topHits);
+        if (StringUtils.hasText(taxIds)) {
+            this.filterTaxIds = Arrays.asList(taxIds.split(","));
+        }
     }
 
     public List<GeneInfo> searchBySymbol(final String prefix) throws ParseException, IOException {
-        final Query query = getByPrefixQuery(prefix.toLowerCase(), IndexFields.SYMBOL.name());
+        Query query = getByPrefixQuery(prefix.toLowerCase(), IndexFields.SYMBOL.name());
+        if (CollectionUtils.isNotEmpty(filterTaxIds)) {
+            final Query filter = getByOptionsQuery(filterTaxIds, IndexFields.TAX_ID.name());
+            final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+            builder.add(query, BooleanClause.Occur.SHOULD);
+            builder.add(filter, BooleanClause.Occur.SHOULD);
+        }
         return search(query, Sort.RELEVANCE);
     }
 
