@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
 import com.epam.catgenome.entity.externaldb.target.DrugsCount;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
@@ -44,6 +45,9 @@ import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneInfoManager;
 import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbEntriesManager;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -74,13 +78,7 @@ import org.springframework.util.Assert;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,6 +107,8 @@ public class TargetIdentificationManager {
     private final NCBISequenceManager geneSequencesManager;
     private final PdbEntriesManager pdbEntriesManager;
     private final PdbFileManager pdbFileManager;
+    private final NCBIGeneInfoManager geneInfoManager;
+    private final TaxonomyManager taxonomyManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -261,6 +261,23 @@ public class TargetIdentificationManager {
         final Map<String, String> merged = mergeDescriptions(ncbiSummary, openTargetDetails);
         merged.replaceAll((key, value) -> setHyperLinks(value));
         return merged;
+    }
+
+    public List<GeneInfo> getGenes(final String prefix) throws ParseException, IOException {
+        final List<GeneInfo> genes = geneInfoManager.searchBySymbol(prefix);
+        final List<Long> taxIds = genes.stream().map(GeneInfo::getTaxId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(taxIds)) {
+            final List<Taxonomy> species = taxonomyManager.searchOrganismsByIds(new HashSet<>(taxIds));
+            final Map<Long, Taxonomy> speciesMap = species.stream()
+                    .collect(Collectors.toMap(Taxonomy::getTaxId, Function.identity()));
+            genes.forEach(g -> {
+                if (speciesMap.containsKey(g.getTaxId())) {
+                    g.setSpeciesScientificName(speciesMap.get(g.getTaxId()).getScientificName());
+                    g.setSpeciesCommonName(speciesMap.get(g.getTaxId()).getCommonName());
+                }
+            });
+        }
+        return genes;
     }
 
     private long getStructuresCount(final List<String> geneIds) {

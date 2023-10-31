@@ -59,8 +59,8 @@ public class NCBIEnsemblIdsManager extends AbstractIndexManager<GeneId> {
     private static final int COLUMNS = 7;
 
     public NCBIEnsemblIdsManager(final @Value("${ncbi.index.directory}") String indexDirectory,
-                                 final @Value("${targets.top.hits:10000}") int targetsTopHits) {
-        super(Paths.get(indexDirectory, "gene.ids").toString(), targetsTopHits);
+                                 final @Value("${ncbi.gene.ids.hits:10000}") int topHits) {
+        super(Paths.get(indexDirectory, "gene.ids").toString(), topHits);
     }
 
     public List<GeneId> searchByEntrezIds(final List<String> ids) throws ParseException, IOException {
