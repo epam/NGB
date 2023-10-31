@@ -31,7 +31,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class GeneInfo {
-    private Long geneId;
+    private Long entrezId;
+    private String ensemblId;
     private Long taxId;
     private String speciesCommonName;
     private String speciesScientificName;

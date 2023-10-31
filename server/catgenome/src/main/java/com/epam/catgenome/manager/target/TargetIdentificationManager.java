@@ -44,6 +44,7 @@ import com.epam.catgenome.entity.target.IdentificationRequest;
 import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.manager.externaldb.PubMedService;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
@@ -109,6 +110,7 @@ public class TargetIdentificationManager {
     private final PdbFileManager pdbFileManager;
     private final NCBIGeneInfoManager geneInfoManager;
     private final TaxonomyManager taxonomyManager;
+    private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -274,6 +276,18 @@ public class TargetIdentificationManager {
                 if (speciesMap.containsKey(g.getTaxId())) {
                     g.setSpeciesScientificName(speciesMap.get(g.getTaxId()).getScientificName());
                     g.setSpeciesCommonName(speciesMap.get(g.getTaxId()).getCommonName());
+                }
+            });
+        }
+
+        final List<String> geneIds = genes.stream().map(g -> g.getEntrezId().toString()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(geneIds)) {
+            final List<GeneId> ensemblIds = ncbiEnsemblIdsManager.searchByEntrezIds(geneIds);
+            final Map<Long, GeneId> ensemblIdsMap = ensemblIds.stream()
+                    .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+            genes.forEach(g -> {
+                if (ensemblIdsMap.containsKey(g.getEntrezId())) {
+                    g.setEnsemblId(ensemblIdsMap.get(g.getEntrezId()).getEnsemblId());
                 }
             });
         }
