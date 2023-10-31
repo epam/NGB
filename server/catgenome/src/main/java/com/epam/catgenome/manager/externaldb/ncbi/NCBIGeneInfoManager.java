@@ -59,7 +59,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
 import static com.epam.catgenome.util.IndexUtils.getByPrefixQuery;
@@ -110,7 +109,7 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 GeneInfo geneInfo = GeneInfo.builder()
                         .taxId(Long.parseLong(cells[0].trim()))
-                        .geneId(Long.parseLong(cells[1].trim()))
+                        .entrezId(Long.parseLong(cells[1].trim()))
                         .symbol(cells[2].trim())
                         .description(cells[8].trim())
                         .build();
@@ -139,7 +138,7 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 GeneInfo geneInfo = GeneInfo.builder()
                         .taxId(Long.parseLong(cells[0].trim()))
-                        .geneId(Long.parseLong(cells[1].trim()))
+                        .entrezId(Long.parseLong(cells[1].trim()))
                         .symbol(cells[2].trim())
                         .description(cells[8].trim())
                         .build();
@@ -161,7 +160,7 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
 
     public void addDoc(final IndexWriter writer, final GeneInfo entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getGeneId().toString(), Field.Store.YES));
+        doc.add(new StringField(IndexFields.GENE_ID.name(), entry.getEntrezId().toString(), Field.Store.YES));
         doc.add(new StringField(IndexFields.TAX_ID.name(), entry.getTaxId().toString(), Field.Store.YES));
         doc.add(new TextField(IndexFields.SYMBOL.name(), entry.getSymbol(), Field.Store.YES));
         doc.add(new StringField(IndexFields.DESCRIPTION.name(), entry.getDescription(), Field.Store.YES));
@@ -170,7 +169,7 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
 
     public GeneInfo entryFromDoc(final Document doc) {
         return GeneInfo.builder()
-                .geneId(Long.parseLong(doc.getField(IndexFields.GENE_ID.name()).stringValue()))
+                .entrezId(Long.parseLong(doc.getField(IndexFields.GENE_ID.name()).stringValue()))
                 .taxId(Long.parseLong(doc.getField(IndexFields.TAX_ID.name()).stringValue()))
                 .symbol(doc.getField(IndexFields.SYMBOL.name()).stringValue())
                 .description(doc.getField(IndexFields.DESCRIPTION.name()).stringValue())
