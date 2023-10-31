@@ -88,6 +88,10 @@ export default class ngbGenomicsPanelService {
         dispatcher.on('target:identification:changed', this.resetData.bind(this));
     }
 
+    get targetId() {
+        return this.ngbTargetPanelService.targetId;
+    }
+
     get translationalSpecies() {
         const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
         return translational.map(s => ({
@@ -391,11 +395,16 @@ export default class ngbGenomicsPanelService {
 
     exportResults() {
         const source = this.exportSource;
-        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.targetId || !this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
+        return this.targetDataService.getTargetExport(
+            this.targetId,
+            this.geneIdsOfInterest,
+            this.translationalGeneIds,
+            source
+        );
     }
 }

@@ -28,6 +28,8 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.entity.externaldb.target.DrugsCount;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
@@ -67,7 +69,6 @@ import com.epam.catgenome.manager.target.TargetIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -422,9 +423,7 @@ public class TargetExportManager {
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
         final Map<String, String> descriptions = identificationManager.getDescriptions(ncbiGeneIds);
 
-        final Map<String, Pair<Long, Long>> pharmGKBDrugs = pharmGKBDrugAssociationManager.recordsCountMap(geneIds);
-        final Map<String, Pair<Long, Long>> dgidbDrugs = dgidbDrugAssociationManager.recordsCountMap(geneIds);
-        final Map<String, Pair<Long, Long>> drugs = drugAssociationManager.recordsCountMap(geneIds);
+        final Map<String, DrugsCount> drugsCountMap = getDrugsCount(geneIds);
 
         final Map<String, Long> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.totalCountMap(geneIds);
         final Map<String, Long> diseases = diseaseAssociationManager.totalCountMap(geneIds);
@@ -446,14 +445,6 @@ public class TargetExportManager {
             Long homologs = isGeneOfInterest ?
                     getHomologyCount(Collections.singletonList(geneId), translationalGenes) : null;
 
-            long knownDrugs = (pharmGKBDrugs.containsKey(geneId) ? pharmGKBDrugs.get(geneId).getRight() : 0) +
-                    (dgidbDrugs.containsKey(geneId) ? dgidbDrugs.get(geneId).getRight() : 0) +
-                    (drugs.containsKey(geneId) ? drugs.get(geneId).getRight() : 0);
-
-            long knownDrugRecords = (pharmGKBDrugs.containsKey(geneId) ? pharmGKBDrugs.get(geneId).getLeft() : 0) +
-                    (dgidbDrugs.containsKey(geneId) ? dgidbDrugs.get(geneId).getLeft() : 0) +
-                    (drugs.containsKey(geneId) ? drugs.get(geneId).getLeft() : 0);
-
             long diseasesCount = (pharmGKBDiseases.containsKey(geneId) ? pharmGKBDiseases.get(geneId) : 0) +
                     (diseases.containsKey(geneId) ? diseases.get(geneId) : 0);
 
@@ -465,14 +456,16 @@ public class TargetExportManager {
             long structures = (structuresCount.containsKey(geneName) ? structuresCount.get(geneName) : 0) +
                     localPdbFilesCount;
 
+            DrugsCount drugsCount = drugsCountMap.get(geneId);
+
             TargetExportSummary summary = TargetExportSummary.builder()
                     .gene(genesMap.get(geneId).getGeneName())
                     .geneId(genesMap.get(geneId).getGeneId())
                     .species(genesMap.get(geneId).getSpeciesName())
                     .type(isGeneOfInterest ? "Gene of interest" : "Translational gene")
                     .description(descriptions.get(geneId))
-                    .knownDrugs(knownDrugs)
-                    .knownDrugRecords(knownDrugRecords)
+                    .knownDrugs(drugsCount.getDistinctCount())
+                    .knownDrugRecords(drugsCount.getTotalCount())
                     .diseases(diseasesCount)
                     .publications(publicationsCount)
                     .sequences(sequences)
@@ -482,6 +475,42 @@ public class TargetExportManager {
             summaries.add(summary);
         }
         return summaries;
+    }
+
+    private Map<String, DrugsCount> getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+        final Map<String, DrugsCount> result = new HashMap<>();
+
+        final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+
+        final Map<String, List<PharmGKBDrug>> pharmGKBDrugsMap = pharmGKBDrugs.stream()
+                .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
+        final Map<String, List<DGIDBDrugAssociation>> dgidbDrugsMap = dgidbDrugs.stream()
+                .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
+        final Map<String, List<DrugAssociation>> drugAssociationsMap = drugAssociations.stream()
+                .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
+
+        for (String geneId : geneIds) {
+            List<String> pharmGKBDrugNames = pharmGKBDrugsMap.getOrDefault(geneId, Collections.emptyList())
+                    .stream().map(UrlEntity::getName).collect(Collectors.toList());
+            List<String> dgidbDrugsNames = dgidbDrugsMap.getOrDefault(geneId, Collections.emptyList())
+                    .stream().map(UrlEntity::getName).collect(Collectors.toList());
+            List<String> drugNames = drugAssociationsMap.getOrDefault(geneId, Collections.emptyList())
+                    .stream().map(UrlEntity::getName).collect(Collectors.toList());
+            drugNames.addAll(pharmGKBDrugNames);
+            drugNames.addAll(dgidbDrugsNames);
+            long distinctCount = drugNames.stream().map(String::toLowerCase).distinct().count();
+            long totalCount = pharmGKBDrugsMap.getOrDefault(geneId, Collections.emptyList()).size() +
+                    dgidbDrugsMap.getOrDefault(geneId, Collections.emptyList()).size() +
+                    drugAssociationsMap.getOrDefault(geneId, Collections.emptyList()).size();
+            DrugsCount drugsCount = DrugsCount.builder()
+                    .distinctCount(distinctCount)
+                    .totalCount(totalCount)
+                    .build();
+            result.put(geneId, drugsCount);
+        }
+        return result;
     }
 
     private Map<String, Long> getStructuresCount(final Map<String, TargetGene> genesMap) {

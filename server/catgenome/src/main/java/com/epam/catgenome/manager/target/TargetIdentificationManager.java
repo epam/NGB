@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
+import com.epam.catgenome.entity.externaldb.target.DrugsCount;
 import com.epam.catgenome.entity.externaldb.target.opentargets.AssociationType;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
@@ -71,7 +72,6 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager
 import com.epam.catgenome.manager.pdb.PdbFileManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -123,7 +123,7 @@ public class TargetIdentificationManager {
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
-        final Pair<Long, Long> drugsCount = getDrugsCount(geneIds);
+        final DrugsCount drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
         final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
@@ -131,8 +131,8 @@ public class TargetIdentificationManager {
         return TargetIdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
-                .knownDrugsRecordsCount(drugsCount.getLeft())
-                .knownDrugsCount(drugsCount.getRight())
+                .knownDrugsRecordsCount(drugsCount.getTotalCount())
+                .knownDrugsCount(drugsCount.getDistinctCount())
                 .publicationsCount(publicationsCount)
                 .sequencesCount(sequencesCount)
                 .structuresCount(structuresCount)
@@ -303,12 +303,27 @@ public class TargetIdentificationManager {
         return newText;
     }
 
-    private Pair<Long, Long> getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
-        final Pair<Long, Long> pharmGKBDrugsCount = pharmGKBDrugAssociationManager.recordsCount(geneIds);
-        final Pair<Long, Long> dgidbDrugsCount = dgidbDrugAssociationManager.recordsCount(geneIds);
-        final Pair<Long, Long> openTargetDrugs = drugAssociationManager.recordsCount(geneIds);
-        return Pair.of(pharmGKBDrugsCount.getLeft() + dgidbDrugsCount.getLeft() + openTargetDrugs.getLeft(),
-                pharmGKBDrugsCount.getRight() + dgidbDrugsCount.getRight() + openTargetDrugs.getRight());
+    private DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+        final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+
+        final List<String> pharmGKBDrugNames = pharmGKBDrugs.stream().map(UrlEntity::getName)
+                .collect(Collectors.toList());
+        final List<String> dgidbDrugsNames = dgidbDrugs.stream().map(UrlEntity::getName).collect(Collectors.toList());
+        final List<String> drugNames = drugAssociations.stream().map(UrlEntity::getName).collect(Collectors.toList());
+        drugNames.addAll(pharmGKBDrugNames);
+        drugNames.addAll(dgidbDrugsNames);
+        final long distinctCount = drugNames.stream().map(String::toLowerCase).distinct().count();
+
+        final long pharmGKBDrugsCount = pharmGKBDrugs.size();
+        final long dgidbDrugsCount = dgidbDrugs.size();
+        final long openTargetDrugs = drugAssociations.size();
+
+        return DrugsCount.builder()
+                .distinctCount(distinctCount)
+                .totalCount(pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs)
+                .build();
     }
 
     private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {

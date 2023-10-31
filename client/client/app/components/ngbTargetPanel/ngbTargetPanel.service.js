@@ -13,6 +13,11 @@ export default class NgbTargetPanelService {
         return this._identificationTarget;
     }
 
+    get targetId() {
+        const {target} = this.identificationTarget || {};
+        return target && target.id;
+    }
+
     get genesIds() {
         const {
             interest = [],
@@ -104,11 +109,11 @@ export default class NgbTargetPanelService {
     }
 
     exportResults() {
-        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.targetId || !this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetReport(this.geneIdsOfInterest, this.translationalGeneIds);
+        return this.targetDataService.getTargetReport(this.targetId, this.geneIdsOfInterest, this.translationalGeneIds);
     }
 }

@@ -30,7 +30,6 @@ import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -170,25 +169,9 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         builder.add(query, BooleanClause.Occur.MUST);
     }
 
-    public Pair<Long, Long> recordsCount(final List<String> geneIds) throws ParseException, IOException {
-        final List<T> result = searchByGeneIds(geneIds);
-        return Pair.of((long) result.size(), result.stream().map(T::getId).distinct().count());
-    }
-
     public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
         final List<T> result = searchByGeneIds(geneIds);
         return (long) result.size();
-    }
-
-    public Map<String, Pair<Long, Long>> recordsCountMap(final List<String> geneIds)
-            throws ParseException, IOException {
-        final List<T> result = searchByGeneIds(geneIds);
-        final Map<String, Pair<Long, Long>> totalCounts = new HashMap<>();
-        final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
-        grouped.forEach((k, v) ->
-                totalCounts.put(k.toLowerCase(),
-                        Pair.of((long) v.size(), v.stream().map(T::getId).distinct().count())));
-        return totalCounts;
     }
 
     public Map<String, Long> totalCountMap(final List<String> geneIds) throws ParseException, IOException {

@@ -214,6 +214,10 @@ export default class ngbStructurePanelService {
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
+    get targetId() {
+        return this.ngbTargetPanelService.targetId;
+    }
+
     get geneIds() {
         return this.ngbTargetPanelService.genesIds;
     }
@@ -287,9 +291,14 @@ export default class ngbStructurePanelService {
                 geneIds: this.geneIds,
                 page: this.currentPage,
                 pageSize: this.pageSize,
-                orderBy: this.fields.id,
-                reverse: false
             };
+            if (this.sortInfo && this.sortInfo.length) {
+                request.orderBy = this.fields[this.sortInfo[0].field],
+                request.reverse = !this.sortInfo[0].ascending
+            } else {
+                request.orderBy = this.fields.id;
+                request.reverse = false;
+            }
             if (this._filterInfo) {
                 if (this._filterInfo.id) {
                     request.entryIds = [this._filterInfo.id];
@@ -394,11 +403,16 @@ export default class ngbStructurePanelService {
 
     exportResults() {
         const source = this.exportSource[this.sourceModel];
-        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.targetId || !this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
+        return this.targetDataService.getTargetExport(
+            this.targetId,
+            this.geneIdsOfInterest,
+            this.translationalGeneIds,
+            source
+        );
     }
 }

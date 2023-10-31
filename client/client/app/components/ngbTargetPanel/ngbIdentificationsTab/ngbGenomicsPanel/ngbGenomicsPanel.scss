@@ -147,4 +147,32 @@ ngb-genomics-panel {
     md-select-menu md-content {
         min-height: calc($genomics-select-height + 2px);
     }
+
+    [data-tooltip] {
+        &::after {
+            content: attr(data-tooltip);
+            z-index: 1;
+            font-size: 10px;
+            display: inline-block;
+            white-space: normal;
+            width: max-content;
+            border-radius: 5px;
+            padding: 4px 8px;
+            background: #666262;
+            color: #fff;
+        }
+
+        &::before, &::after {
+          position: absolute;
+          pointer-events: none;
+          opacity: 0;
+          transition: all 0.5s ease-in-out;
+        }
+
+        &:hover::before, &:hover::after {
+            opacity: 1;
+            margin-left: 10px;
+            pointer-events: all;
+        }
+    }
 }
