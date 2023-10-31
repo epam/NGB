@@ -41,14 +41,14 @@ export default class ngbTargetsFormListController{
     async getList (text) {
         const result = await this.ngbTargetsTabService.searchGenes(text);
         const list = result.map(item => {
-            if (item.chromosome) {
-                const {referenceId} = item.chromosome;
-                const species = this.projectContext.references
-                    .filter(r => r.id === referenceId && r.species)
-                    .map(r => r.species);
-                if (species.length) {
-                    item.speciesName = `(${species[0].name})`;
-                }
+            if (item.speciesScientificName) {
+                item.speciesName = item.speciesScientificName;
+            }
+            if (item.symbol) {
+                item.geneName = item.symbol;
+            }
+            if (item.ensemblId) {
+                item.geneId = item.ensemblId;
             }
             return item;
         });

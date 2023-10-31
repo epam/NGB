@@ -72,15 +72,16 @@
                 <tbody>
                 <tr ng-repeat="gene in $ctrl.targetModel.genes">
                     <td>
-                        <ngb-targets-form-list model="geneId"
-                                               index="$index"
-                                               field="featureId">
-                        </ngb-targets-form-list>
+                        <input class="ngb-targets-form-table-input"
+                               spellcheck="false"
+                               required
+                               name="geneId"
+                               ng-model="$ctrl.targetModel.genes[$index].geneId">
                     </td>
                     <td>
                         <ngb-targets-form-list model="geneName"
                                                index="$index"
-                                               field="featureName">
+                                               field="geneName">
                         </ngb-targets-form-list>
                     </td>
                     <td>
