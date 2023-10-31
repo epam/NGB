@@ -107,10 +107,6 @@ export default class NgbBibliographyPanelService {
         this.updateGenes(ngbTargetPanelService.identificationTarget);
     }
 
-    get targetId() {
-        return this.ngbTargetPanelService.targetId;
-    }
-
     get genes() {
         return this._genes;
     }
@@ -135,7 +131,7 @@ export default class NgbBibliographyPanelService {
     }
 
     getPublicationsResults() {
-        if (!this.targetId || !this.genes.length) {
+        if (!this.genes.length) {
             return new Promise(resolve => {
                 this._loadingPublications = false;
                 this.dispatcher.emit('target:identification:publications:loaded');
@@ -148,7 +144,6 @@ export default class NgbBibliographyPanelService {
         const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getPublications({
-                targetId: this.targetId,
                 geneIds: this.genes,
                 page: this.currentPage,
                 pageSize: this.pageSize
