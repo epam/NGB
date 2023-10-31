@@ -613,6 +613,10 @@ public final class IndexUtils {
         return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
     }
 
+    public static Query getByPrefixQuery(final String prefix, final String fieldName) {
+        return new PrefixQuery(new Term(fieldName, prefix));
+    }
+
     public static Query getByPhraseQuery(final String phrase, final String fieldName) {
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
         for (String term : phrase.split(TERM_SPLIT_TOKEN)) {

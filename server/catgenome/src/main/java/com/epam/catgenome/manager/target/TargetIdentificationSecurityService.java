@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.target.GeneRefSection;
@@ -165,5 +166,10 @@ public class TargetIdentificationSecurityService {
     @PreAuthorize(ROLE_USER)
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
         return manager.getStructures(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<GeneInfo> getGenes(final String prefix) throws ParseException, IOException {
+        return manager.getGenes(prefix);
     }
 }

@@ -28,6 +28,7 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.target.*;
@@ -478,5 +479,18 @@ public class TargetController extends AbstractRESTController {
             throws IOException, ParseException, ExternalDbUnavailableException {
         final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
+    }
+
+    @GetMapping(value = "/target/genes/{prefix}")
+    @ApiOperation(
+            value = "Exports data to Excel file",
+            notes = "Exports data to Excel file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<GeneInfo>> report(@PathVariable final String prefix)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(targetIdentificationSecurityService.getGenes(prefix));
     }
 }

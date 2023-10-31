@@ -34,6 +34,7 @@ import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
 import com.epam.catgenome.manager.externaldb.ncbi.*;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneInfoManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,9 @@ public class ExternalDBController extends AbstractRESTController {
 
     @Autowired
     private NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
+
+    @Autowired
+    private NCBIGeneInfoManager ncbiGeneInfoManager;
 
     @Autowired
     private NCBIShortVarManager ncbiShortVarManager;
@@ -400,6 +404,20 @@ public class ExternalDBController extends AbstractRESTController {
             })
     public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException, ParseException {
         ncbiEnsemblIdsManager.importData(path);
+        return Result.success(null);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/externaldb/ncbi/genes/info/import", method = RequestMethod.PUT)
+    @ApiOperation(
+            value = "Imports genes info data from NCBI",
+            notes = "Imports genes info data from NCBI",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importNCBIGenesInfoData(@RequestParam final String path) throws IOException, ParseException {
+        ncbiGeneInfoManager.importData(path);
         return Result.success(null);
     }
 }
