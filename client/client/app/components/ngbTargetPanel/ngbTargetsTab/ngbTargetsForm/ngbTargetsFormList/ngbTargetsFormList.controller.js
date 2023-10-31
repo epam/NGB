@@ -44,6 +44,12 @@ export default class ngbTargetsFormListController{
             if (item.speciesScientificName) {
                 item.speciesName = item.speciesScientificName;
             }
+            if (item.symbol) {
+                item.geneName = item.symbol;
+            }
+            if (item.ensemblId) {
+                item.geneId = item.ensemblId;
+            }
             return item;
         });
         return list;

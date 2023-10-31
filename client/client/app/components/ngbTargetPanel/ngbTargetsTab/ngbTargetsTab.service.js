@@ -307,8 +307,8 @@ export default class ngbTargetsTabService {
 
     setGeneModel(index, field, value) {
         const geneFields = {
-            ensemblId: 'geneId',
-            symbol: 'geneName',
+            geneId: 'geneId',
+            geneName: 'geneName',
             priority: 'priority',
             taxId: 'taxId',
             speciesName: 'speciesName'
@@ -319,23 +319,8 @@ export default class ngbTargetsTabService {
         this.dispatcher.emit('gene:model:updated');
     }
 
-    setSpeciesInfo(gene) {
-        if (gene.chromosome) {
-            const {referenceId} = gene.chromosome;
-            const species = this.projectContext.references
-                .filter(r => r.id === referenceId && r.species)
-                .map(r => r.species);
-            if (species.length) {
-                gene.taxId = species[0].taxId;
-                gene.speciesName = species[0].name;
-            }
-        }
-        return gene;
-    }
-
     selectedGeneChanged(gene, index) {
         if (gene) {
-            this.setSpeciesInfo(gene);
             for (const [key, value] of Object.entries(gene)) {
                 this.setGeneModel(index, key, value);
             }
