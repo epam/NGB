@@ -12,10 +12,10 @@
                  md-nav-click="$ctrl.onChangeTab(tab)">
         {{$ctrl.getTabName(tab)}}
     </md-nav-item>
-    <div class="action-container">
+    <div class="action-container"
+         ng-if="$ctrl.selectedTab === $ctrl.tableTab && $ctrl.tableResults">
         <md-button type="button"
                    class="md-raised export-button"
-                   ng-if="$ctrl.selectedTab === $ctrl.tableTab && $ctrl.tableResults"
                    aria-label="Export diseases results"
                    ng-click="$ctrl.exportResults()">
             EXPORT
