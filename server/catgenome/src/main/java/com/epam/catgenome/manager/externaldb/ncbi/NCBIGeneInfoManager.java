@@ -85,8 +85,8 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
         if (CollectionUtils.isNotEmpty(filterTaxIds)) {
             final Query filter = getByOptionsQuery(filterTaxIds, IndexFields.TAX_ID.name());
             final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-            builder.add(query, BooleanClause.Occur.SHOULD);
-            builder.add(filter, BooleanClause.Occur.SHOULD);
+            builder.add(query, BooleanClause.Occur.MUST);
+            builder.add(filter, BooleanClause.Occur.MUST);
         }
         return search(query, Sort.RELEVANCE);
     }
