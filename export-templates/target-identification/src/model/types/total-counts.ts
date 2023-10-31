@@ -1,8 +1,8 @@
 export enum TotalItem {
   knownDrugs = 'knownDrugs',
-  sequences = 'sequences',
   diseases = 'diseases',
-  structures = 'structures',
+  sequences = 'sequences',
+  genomics = 'genomics',
   publications = 'publications'
 }
 
@@ -18,13 +18,13 @@ export type SequencesCount = {
 }
 
 export type DiseasesCount = number;
-export type StructuresCount = number;
+export type GenomicsCount = number;
 export type PublicationsCount = number;
 
 export type TotalCount = {
   [TotalItem.knownDrugs]?: KnownDrugsCount,
   [TotalItem.sequences]?: SequencesCount,
   [TotalItem.diseases]?: DiseasesCount,
-  [TotalItem.structures]?: StructuresCount,
+  [TotalItem.genomics]?: GenomicsCount,
   [TotalItem.publications]?: PublicationsCount,
 }

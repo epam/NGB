@@ -42,7 +42,7 @@ export default function Sequences() {
           }
         </Select>
       </div>
-      <Table data={data} columns={columns} className="mt-1" />
+      <Table data={data} columns={columns} className="mt-1" showFilters={false} />
     </Section>
   );
 }

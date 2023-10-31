@@ -44,6 +44,10 @@ export function useTotalCountSequences(): SequencesCount {
   return useTotalCount()[TotalItem.sequences];
 }
 
+export function useTotalCountGenomics(): number {
+  return useTotalCount()[TotalItem.genomics];
+}
+
 export function useKnownDrugs(source: KnownDrugsSource): KnownDrugsItem[] {
   const {knownDrugs = empty} =  useInjectedData();
   const sourcedData = knownDrugs.find((o) => o.source === source);
@@ -66,6 +70,11 @@ export function useSequencesData(geneId: string): SequencesItem[] {
   const {sequences = empty} =  useInjectedData();
   const geneData = sequences.find((o) => o.gene.id === geneId);
   return geneData ? geneData.data : empty;
+}
+
+export function useComparativeDenomics() {
+  const {comparativeGenomics = empty} =  useInjectedData();
+  return comparativeGenomics || empty;
 }
 
 export function usePublications(): Publication[] {

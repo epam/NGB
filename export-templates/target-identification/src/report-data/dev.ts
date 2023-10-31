@@ -7,13 +7,14 @@ import type {
   DiseasesPharmGKBItem,
   SequencesItem,
   SequencesData,
+  GenomicsItem,
 } from "../model/types";
 import {KnownDrugsSource, DiseasesSource} from "../model/types";
 import type {
   KnownDrugsCount,
   SequencesCount,
   DiseasesCount,
-  StructuresCount,
+  GenomicsCount,
   PublicationsCount
 } from "../model/types/total-counts";
 import {Publication} from "../model/types/bibliography";
@@ -51,6 +52,10 @@ const transcript = generateData(8, 'Transcript');
 const protein = generateData(20, 'Protein');
 const proteinName = generateData(20, 'Protein name');
 
+const homologue = generateData(8, 'Homologue');
+const homologyGroup = generateData(8, 'Homology group');
+const domain = generateData(8, 'Domain');
+
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
   records: 122
@@ -61,7 +66,7 @@ const sequencesCount: SequencesCount = {
   mrnas: 5,
   proteins: 9,
 };
-const structuresCount: StructuresCount = 0;
+const genomicsCount: GenomicsCount = 77;
 const publicationsCount: PublicationsCount = 0;
 
 const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
@@ -71,6 +76,8 @@ const sequences1: SequencesItem[] = [];
 const sequences2: SequencesItem[] = [];
 const sequences3: SequencesItem[] = [];
 const sequencesData: SequencesData[] = [];
+
+const genomicsData: GenomicsItem[] = [];
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
@@ -154,6 +161,19 @@ for (let i = 0; i < 400; i += 1) {
   });
 }
 
+for (let i = 0; i < 40; i += 1) {
+  genomicsData.push({
+    target: getElement(i, interest).id,
+    species: 'Homo sapiens',
+    homologyType: 'Homolog',
+    homologue: getElement(i, homologue),
+    homologyGroup: getElement(i, homologyGroup),
+    protein: getElement(i, protein),
+    aa: getNumber(3000),
+    domains: getElement(i, domain),
+  });
+}
+
 const genes = [...interest, ...translational];
 
 sequencesData.push({
@@ -195,7 +215,7 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
     knownDrugs: knownDrugsCount,
     diseases: diseasesCount,
     sequences: sequencesCount,
-    structures: structuresCount,
+    genomics: genomicsCount,
     publications: publicationsCount
   },
   knownDrugs: [
@@ -223,5 +243,6 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
     },
   ],
   sequences: sequencesData,
+  comparativeGenomics: genomicsData,
   publications,
 };

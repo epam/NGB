@@ -2,12 +2,14 @@ import type {TotalCount} from './total-counts';
 import type {KnownDrugsData} from './known-drugs';
 import type {DiseasesData} from './associated-diseases';
 import type {SequencesData} from './sequences';
+import type {GenomicsData} from './comparative-genomics';
 import type {Publication} from "./bibliography";
 
 export * from './base';
 export * from './known-drugs';
 export * from './associated-diseases';
 export * from './sequences';
+export * from './comparative-genomics';
 export * from './total-counts';
 
 export type Gene = {
@@ -30,6 +32,7 @@ export type GlobalData = {
   knownDrugs?: KnownDrugsData[];
   associatedDiseases?: DiseasesData[];
   sequences?: SequencesData[];
+  comparativeGenomics?: GenomicsData[];
   publications?: Publication[]
 }
 
