@@ -483,8 +483,8 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/genes/{prefix}")
     @ApiOperation(
-            value = "Exports data to Excel file",
-            notes = "Exports data to Excel file",
+            value = "Searched genes by specified prefix",
+            notes = "Searched genes by specified prefix",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

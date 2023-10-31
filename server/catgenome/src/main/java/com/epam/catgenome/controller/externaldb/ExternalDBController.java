@@ -33,15 +33,19 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
-import com.epam.catgenome.manager.externaldb.ncbi.*;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIClinVarManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneInfoManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIShortVarManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIStructVarManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.*;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -67,6 +71,12 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * <p>
