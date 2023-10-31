@@ -8,7 +8,7 @@ branches:
 skip_tags: true
 max_jobs: 1
 image: Previous Ubuntu1604
-stack: jdk 8, python 3.9
+stack: jdk 8, python 3.9, node 14
 
 build_script:
   - python3 -m pip install mkdocs mkdocs-material
