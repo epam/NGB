@@ -214,10 +214,6 @@ export default class ngbStructurePanelService {
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
-    get targetId() {
-        return this.ngbTargetPanelService.targetId;
-    }
-
     get geneIds() {
         return this.ngbTargetPanelService.genesIds;
     }
@@ -403,16 +399,11 @@ export default class ngbStructurePanelService {
 
     exportResults() {
         const source = this.exportSource[this.sourceModel];
-        if (!this.targetId || !this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(
-            this.targetId,
-            this.geneIdsOfInterest,
-            this.translationalGeneIds,
-            source
-        );
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }

@@ -74,10 +74,6 @@ export default class ngbSequencesPanelService {
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
-    get targetId() {
-        return this.ngbTargetPanelService.targetId;
-    }
-
     get genesIds() {
         return this.ngbTargetPanelService.genesIds;
     }
@@ -173,14 +169,14 @@ export default class ngbSequencesPanelService {
     }
 
     getSequencesData() {
-        if (!this.targetId || !this.genesIds || !this.genesIds.length) {
+        if (!this.genesIds || !this.genesIds.length) {
             return new Promise(resolve => {
                 this.loadingData = false;
                 resolve(true);
             });
         }
         return new Promise(resolve => {
-            this.targetDataService.getSequencesTableResults(this.targetId, this.genesIds)
+            this.targetDataService.getSequencesTableResults(this.genesIds)
                 .then((data) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
@@ -220,16 +216,11 @@ export default class ngbSequencesPanelService {
 
     exportResults() {
         const source = this.exportSource;
-        if (!this.targetId || !this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(
-            this.targetId,
-            this.geneIdsOfInterest,
-            this.translationalGeneIds,
-            source
-        );
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }
