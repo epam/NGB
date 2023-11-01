@@ -26,23 +26,28 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.util.TextUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
@@ -73,9 +78,21 @@ public class NCBIDataManager extends HttpDataManager {
     protected static final String MAX_RESULTS_PARAM = "retmax";
     protected static final String START_PARAM = "retstart";
     private static final int MAX_RESULTS_PARAM_VALUE = 500;
+    private static final String API_KEY_PARAM = "api_key";
 
     @Value("#{catgenome['externaldb.ncbi.max.results'] ?: 100}")
     protected Integer ncbiMaxResultsParamValue;
+
+    @Value("${ncbi.api.key:}")
+    private String ncbiApiKey;
+
+    @Value("${ncbi.retry.delay:}")
+    private Integer ncbiRetryDelay;
+
+    @Value("${ncbi.max.retries:}")
+    private Integer ncbiMaxRetries;
+
+    private Integer ncbiRetriesCount = 0;
 
     @PostConstruct
     public void init() {
@@ -279,5 +296,66 @@ public class NCBIDataManager extends HttpDataManager {
 
     public void setMapper(final JsonMapper mapper) {
         this.mapper = mapper;
+    }
+
+    @SneakyThrows
+    public String getResultFromURL(String location, ParameterNameValue[] params) {
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            params = ArrayUtils.add(params, new ParameterNameValue(API_KEY_PARAM, ncbiApiKey));
+        }
+        try {
+            final String result = super.getResultFromURL(location, params);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromURL(location, params);
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public String getResultFromHttp(String location, JSONObject object) {
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            location = location + String.format("?%s=%s", API_KEY_PARAM, ncbiApiKey);
+        }
+        try {
+            final String result = super.getResultFromHttp(location, object);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromHttp(location, object);
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public String getResultFromURL(String location) {
+        final Map<String, String> header = new HashMap<>();
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            header.put(API_KEY_PARAM, ncbiApiKey);
+        }
+        try {
+            final String result = super.getResultFromURL(location, header);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromURL(location);
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

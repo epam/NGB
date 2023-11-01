@@ -36,9 +36,12 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,16 +80,15 @@ public class HttpDataManager {
      * Performs HTTP connection to a given URL and delegates processing of input stream to an abstract
      * method processStream()
      *
-     * @param locationStub target URL stub
+     * @param location target URL stub
      * @return String with data
      * @throws ExternalDbUnavailableException
      */
-    public String fetchData(String locationStub, ParameterNameValue[] params)
+    public String fetchData(String location, ParameterNameValue[] params)
             throws ExternalDbUnavailableException {
 
-        final String location = getLocationStub(locationStub, params);
         log.info(location);
-        String resultData = getResultFromURL(location);
+        String resultData = getResultFromURL(location, params);
 
 
         if (StringUtils.isBlank(resultData)) {
@@ -127,13 +129,38 @@ public class HttpDataManager {
     }
 
     public String getResultFromURL(final String location) throws ExternalDbUnavailableException {
+        return getResultFromURL(location, Collections.emptyMap(), new ParameterNameValue[0]);
+    }
+
+    public String getResultFromURL(final String location, final ParameterNameValue[] params)
+            throws ExternalDbUnavailableException {
+        return getResultFromURL(location, Collections.emptyMap(), params);
+    }
+
+    public String getResultFromURL(final String location, final Map<String, String> headers)
+            throws ExternalDbUnavailableException {
+        return getResultFromURL(location, headers, new ParameterNameValue[0]);
+    }
+
+    public String getResultFromURL(final String locationStub, final Map<String, String> headers,
+                                   final ParameterNameValue[] params)
+            throws ExternalDbUnavailableException {
+
+        final String location = getLocationStub(locationStub, params);
 
         HttpURLConnection conn = null;
         try {
             conn = createConnection(location);
             HttpURLConnection.setFollowRedirects(true);
             conn.setDoInput(true);
+
             conn.setRequestProperty(CONTENT_TYPE, APPLICATION_JSON);
+            if (MapUtils.isNotEmpty(headers)) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    conn.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
+
             conn.connect();
 
             int status = conn.getResponseCode();
@@ -230,7 +257,7 @@ public class HttpDataManager {
         return result;
     }
 
-    private String getResultFromHttp(final String location, final JSONObject object)
+    public String getResultFromHttp(final String location, final JSONObject object)
             throws ExternalDbUnavailableException {
         HttpURLConnection conn = null;
         try {
@@ -278,6 +305,5 @@ public class HttpDataManager {
                 conn.disconnect();
             }
         }
-
     }
 }

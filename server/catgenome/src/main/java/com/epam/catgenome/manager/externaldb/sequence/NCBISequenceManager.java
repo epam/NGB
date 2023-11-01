@@ -28,7 +28,6 @@ import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBISequenceDatabase;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,7 +62,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @RequiredArgsConstructor
-public class NCBISequenceManager extends HttpDataManager {
+public class NCBISequenceManager {
 
     private static final String NCBI_GENE_INFO_LINK = "https://api.ncbi.nlm.nih.gov/datasets/v1/gene/id/%s";
     private static final String NCBI_PROTEIN_LINK = "https://www.ncbi.nlm.nih.gov/protein/%s";
@@ -75,14 +74,14 @@ public class NCBISequenceManager extends HttpDataManager {
     @SneakyThrows
     public List<GeneSequences> fetchGeneSequences(final Map<String, GeneId> entrezMap) {
         final String link = String.format(NCBI_GENE_INFO_LINK, join(entrezMap.keySet(), "%2C"));
-        final String json = getResultFromURL(link);
+        final String json = ncbiDataManager.getResultFromURL(link);
         return parseSequences(json, entrezMap);
     }
 
     public List<GeneRefSection> getGeneSequencesTable(final Map<String, GeneId> entrezMap, final Boolean getComments)
             throws ExternalDbUnavailableException, IOException {
         final String link = String.format(NCBI_GENE_INFO_LINK, join(entrezMap.keySet(), "%2C"));
-        final String json = getResultFromURL(link);
+        final String json = ncbiDataManager.getResultFromURL(link);
         final List<GeneRefSection> geneRefSections = parseSequencesAsTable(json, entrezMap);
         if (getComments) {
             final List<String> proteinIds = geneRefSections.stream()
