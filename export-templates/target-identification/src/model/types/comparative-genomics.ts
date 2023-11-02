@@ -8,7 +8,6 @@ export type GenomicsItem = {
   homologyGroup?: ItemValue;
   protein?: ItemValue;
   aa?: ItemValue;
-  domains?: ItemValue;
 }
 
 export type GenomicsData = GenomicsItem[];

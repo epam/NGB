@@ -54,7 +54,6 @@ const proteinName = generateData(20, 'Protein name');
 
 const homologue = generateData(8, 'Homologue');
 const homologyGroup = generateData(8, 'Homology group');
-const domain = generateData(8, 'Domain');
 
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
@@ -166,11 +165,10 @@ for (let i = 0; i < 40; i += 1) {
     target: getElement(i, interest).id,
     species: 'Homo sapiens',
     homologyType: 'Homolog',
-    homologue: getElement(i, homologue),
+    homologue: {value: `Homologue ${i + 1}`, link: 'https://www.ncbi.nlm.nih.gov/gene/403871'},
     homologyGroup: getElement(i, homologyGroup),
     protein: getElement(i, protein),
     aa: getNumber(3000),
-    domains: getElement(i, domain),
   });
 }
 

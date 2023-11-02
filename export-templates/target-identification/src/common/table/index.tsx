@@ -23,6 +23,7 @@ function renderTableColumn<Item>(
   index: number,
   sorting: TableSorting<Item>,
   filters: Filters<Item>,
+  showFilters: boolean,
 ) {
   const {
     sorting: columnSorting,
@@ -39,6 +40,7 @@ function renderTableColumn<Item>(
   const isFiltered = isFilterSpecified(columnFilters[index]);
   const isAscending = columnSorting && columnSorting.column === column && columnSorting.ascending;
   const isDescending = columnSorting && columnSorting.column === column && !columnSorting.ascending;
+  const useFilters = showFilters && columnFilters.some((f) => f.type !== FilterType.unknown);
   return (
     <th
       key={`column-${index}`}
@@ -47,19 +49,21 @@ function renderTableColumn<Item>(
         commonCellClassName,
         'bg-slate-100',
         'select-none',
-        {
-          'hover:underline': sortable,
-          'cursor-pointer': sortable,
-        }
       )}
-      onClick={() => sortable ? toggleSorting(column) : undefined}
       style={{minWidth: 200}}
     >
-      <div className={classNames(
-        'w-full',
-        'flex',
-        'items-center'
-      )}>
+      <div
+        className={classNames(
+          'w-full',
+          'flex',
+          'items-center',
+          {
+            'hover:underline': sortable,
+            'cursor-pointer': sortable,
+          }
+        )}
+        onClick={() => sortable ? toggleSorting(column) : undefined}
+      >
         <span>
           {title}
         </span>
@@ -86,6 +90,14 @@ function renderTableColumn<Item>(
           )
         }
       </div>
+      {
+        useFilters
+          ? (
+            (typeof column === "object" && column.hasOwnProperty('showFilter') && !column.showFilter)
+              ? null
+              : <div>{renderTableColumnFilter(column, index, filters)}</div>
+          ) : null
+      }
     </th>
   );
 }
@@ -97,11 +109,14 @@ function renderTableColumnFilter<Item>(
 ) {
   const filter = filters?.filters[index];
   return (
-    <th
+    <div
       key={`column-filter-${index}`}
       className={classNames(
-        commonCellClassName,
+        'text-left',
+        'px-2',
+        'py-1',
         'bg-slate-100',
+        'w-full',
       )}
     >
       <TableColumnFilter
@@ -114,7 +129,7 @@ function renderTableColumnFilter<Item>(
         filter={filter}
         filters={filters}
       />
-    </th>
+    </div>
   );
 }
 
@@ -187,7 +202,6 @@ export default function Table<Item>(props: TableProps<Item>) {
     pagesCount
   } = pagedData;
   const firstElementIndex = page * pagesCount;
-  const useFilters = showFilters && filters.some((f) => f.type !== FilterType.unknown);
   return (
     <div className={classNames('w-full', 'relative', className)} style={style}>
       <div className="static w-full overflow-auto">
@@ -200,22 +214,10 @@ export default function Table<Item>(props: TableProps<Item>) {
                 index,
                 sortingInfo,
                 filterInfo,
+                showFilters,
               ))
             }
           </tr>
-          {
-            useFilters && (
-              <tr>
-                {
-                  columns.map((column, index) => renderTableColumnFilter(
-                    column,
-                    index,
-                    filterInfo,
-                  ))
-                }
-              </tr>
-            )
-          }
           </thead>
           <tbody>
           {

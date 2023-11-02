@@ -14,6 +14,7 @@ export type TableColumnConfiguration<Item> = {
   sortable?: boolean;
   sorter?: Sorter<Item>;
   filter?: FilterConfig<Item>;
+  showFilter?: boolean;
 }
 
 export type TableColumnConfig<Item> = TableColumnConfiguration<Item> & {
