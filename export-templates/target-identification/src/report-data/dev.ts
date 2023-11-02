@@ -8,13 +8,17 @@ import type {
   SequencesItem,
   SequencesData,
   GenomicsItem,
+  StructuresPDBItem,
+  StructuresLocalFilesItem,
+  StructuresData,
 } from "../model/types";
-import {KnownDrugsSource, DiseasesSource} from "../model/types";
+import {KnownDrugsSource, DiseasesSource, StructuresSource} from "../model/types";
 import type {
   KnownDrugsCount,
   SequencesCount,
   DiseasesCount,
   GenomicsCount,
+  StructuresCount,
   PublicationsCount
 } from "../model/types/total-counts";
 import {Publication} from "../model/types/bibliography";
@@ -52,8 +56,13 @@ const transcript = generateData(8, 'Transcript');
 const protein = generateData(20, 'Protein');
 const proteinName = generateData(20, 'Protein name');
 
-const homologue = generateData(8, 'Homologue');
 const homologyGroup = generateData(8, 'Homology group');
+
+const id = generateData(100, 'id');
+const name = generateData(20, 'Name');
+const method = generateData(4, 'Method');
+const chain = generateData(3, 'Chain');
+const owner = generateData(5, 'Owner');
 
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
@@ -66,6 +75,7 @@ const sequencesCount: SequencesCount = {
   proteins: 9,
 };
 const genomicsCount: GenomicsCount = 77;
+const structuresCount: StructuresCount = 20;
 const publicationsCount: PublicationsCount = 0;
 
 const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
@@ -77,6 +87,9 @@ const sequences3: SequencesItem[] = [];
 const sequencesData: SequencesData[] = [];
 
 const genomicsData: GenomicsItem[] = [];
+
+const structuresPDB: StructuresPDBItem[] = [];
+const structuresLocalFiles: StructuresLocalFilesItem[] = [];
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
@@ -189,6 +202,22 @@ sequencesData.push({
   data: sequences3,
 });
 
+for (let i = 0; i < 600; i += 1) {
+  structuresPDB.push({
+    id: getElement(i, id),
+    name: getElement(i, name),
+    method: getElement(i, method),
+    source: 'PDB',
+    resolution: getNumber(2),
+    chains: getElement(i, chain),
+  });
+  structuresLocalFiles.push({
+    id: getElement(i, id),
+    name: getElement(i, name),
+    owner: getElement(i, owner),
+  });
+}
+
 const publications: Publication[] = [];
 
 const authors = generateData(100, 'Author');
@@ -214,6 +243,7 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
     diseases: diseasesCount,
     sequences: sequencesCount,
     genomics: genomicsCount,
+    structures: structuresCount,
     publications: publicationsCount
   },
   knownDrugs: [
@@ -242,5 +272,15 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
   ],
   sequences: sequencesData,
   comparativeGenomics: genomicsData,
+  structures: [
+    {
+      source: StructuresSource.proteinDataBank,
+      data: structuresPDB,
+    },
+    {
+      source: StructuresSource.localFiles,
+      data: structuresLocalFiles,
+    },
+  ],
   publications,
 };

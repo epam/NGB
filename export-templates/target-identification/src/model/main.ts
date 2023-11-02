@@ -10,7 +10,9 @@ import {
   DiseasesSource,
   SequencesCount,
   SequencesItem,
-  GeneAndSpecies
+  GeneAndSpecies,
+  StructuresSource,
+  StructuresItem,
 } from "./types";
 import {Publication} from "./types/bibliography";
 
@@ -19,7 +21,6 @@ export function useIdentificationName(): string | undefined {
 }
 
 const empty = [];
-const object = {};
 
 export function useGenesOfInterest(): Gene[] {
   return useInjectedData().interest ?? empty;
@@ -42,6 +43,10 @@ export function useTotalCountDiseases(): number {
 
 export function useTotalCountSequences(): SequencesCount {
   return useTotalCount()[TotalItem.sequences];
+}
+
+export function useTotalCountStructures(): number {
+  return useTotalCount()[TotalItem.structures];
 }
 
 export function useTotalCountGenomics(): number {
@@ -75,6 +80,12 @@ export function useSequencesData(geneId: string): SequencesItem[] {
 export function useComparativeDenomics() {
   const {comparativeGenomics = empty} =  useInjectedData();
   return comparativeGenomics || empty;
+}
+
+export function useStructuresData(source: StructuresSource): StructuresItem[] {
+  const {structures = empty} =  useInjectedData();
+  const sourcedData = structures.find((o) => o.source === source);
+  return sourcedData ? sourcedData.data : empty;
 }
 
 export function usePublications(): Publication[] {

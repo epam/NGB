@@ -3,6 +3,7 @@ import type {KnownDrugsData} from './known-drugs';
 import type {DiseasesData} from './associated-diseases';
 import type {SequencesData} from './sequences';
 import type {GenomicsData} from './comparative-genomics';
+import type {StructuresData} from './structures';
 import type {Publication} from "./bibliography";
 
 export * from './base';
@@ -10,6 +11,7 @@ export * from './known-drugs';
 export * from './associated-diseases';
 export * from './sequences';
 export * from './comparative-genomics';
+export * from './structures';
 export * from './total-counts';
 
 export type Gene = {
@@ -33,6 +35,7 @@ export type GlobalData = {
   associatedDiseases?: DiseasesData[];
   sequences?: SequencesData[];
   comparativeGenomics?: GenomicsData[];
+  structures?: StructuresData[];
   publications?: Publication[]
 }
 

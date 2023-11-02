@@ -5,6 +5,7 @@ import KnownDrugs from "./sections/known-drugs";
 import AssociatedDiseases from "./sections/associated-diseases";
 import Sequences from "./sections/sequences";
 import ComparativeGenomics from "./sections/comparative-genomics";
+import Structures from "./sections/structures";
 import Bibliography from "./sections/bibliography";
 export function App() {
 	return (
@@ -14,6 +15,7 @@ export function App() {
       <AssociatedDiseases />
       <Sequences />
       <ComparativeGenomics />
+      <Structures />
       <Bibliography />
 		</div>
 	);
