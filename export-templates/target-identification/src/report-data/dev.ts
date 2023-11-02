@@ -10,7 +10,6 @@ import type {
   GenomicsItem,
   StructuresPDBItem,
   StructuresLocalFilesItem,
-  StructuresData,
 } from "../model/types";
 import {KnownDrugsSource, DiseasesSource, StructuresSource} from "../model/types";
 import type {
@@ -52,7 +51,7 @@ const sources = generateData(13, 'Source');
 const interactionSources = generateData(13, 'Interaction source');
 const interactionTypes = generateData(13, 'Interaction type');
 
-const transcript = generateData(8, 'Transcript');
+const reference = generateData(3, 'Reference');
 const protein = generateData(20, 'Protein');
 const proteinName = generateData(20, 'Protein name');
 
@@ -143,9 +142,9 @@ for (let i = 0; i < 1000; i += 1) {
 for (let i = 0; i < 1000; i += 1) {
   sequences1.push({
     target: getElement(i, interest).id,
-    transcript: getElement(i, transcript),
+    transcript: {value: `Transcript${i + 1}`, link: 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001369787.1'},
     mrnaLength: getNumber(3000),
-    protein: getElement(i, protein),
+    protein: {value: `Protein${i + 1}`, link: ' https://www.ncbi.nlm.nih.gov/protein/XP_047284782.1'},
     proteinLength: getNumber(3000),
     proteinName: getElement(i, proteinName),
   });
@@ -154,9 +153,9 @@ for (let i = 0; i < 1000; i += 1) {
 for (let i = 0; i < 200; i += 1) {
   sequences2.push({
     target: getElement(i, interest).id,
-    transcript: getElement(i, transcript),
+    transcript: {value: `Transcript${i + 1}`, link: 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001369787.1'},
     mrnaLength: getNumber(3000),
-    protein: getElement(i, protein),
+    protein: {value: `Protein${i + 1}`, link: ' https://www.ncbi.nlm.nih.gov/protein/XP_047284782.1'},
     proteinLength: getNumber(3000),
     proteinName: getElement(i, proteinName),
   });
@@ -165,9 +164,9 @@ for (let i = 0; i < 200; i += 1) {
 for (let i = 0; i < 400; i += 1) {
   sequences3.push({
     target: getElement(i, interest).id,
-    transcript: getElement(i, transcript),
+    transcript: {value: `Transcript${i + 1}`, link: 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001369787.1'},
     mrnaLength: getNumber(3000),
-    protein: getElement(i, protein),
+    protein: {value: `Protein${i + 1}`, link: ' https://www.ncbi.nlm.nih.gov/protein/XP_047284782.1'},
     proteinLength: getNumber(3000),
     proteinName: getElement(i, proteinName),
   });
@@ -189,16 +188,28 @@ const genes = [...interest, ...translational];
 
 sequencesData.push({
   gene: genes[0],
+  reference: {
+    value: getElement(1, reference),
+    link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
+  },
   data: sequences1,
 });
 
 sequencesData.push({
   gene: genes[1],
+  reference: {
+    value: getElement(2, reference),
+    link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
+  },
   data: sequences2,
 });
 
 sequencesData.push({
   gene: genes[2],
+  reference: {
+    value: getElement(3, reference),
+    link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
+  },
   data: sequences3,
 });
 

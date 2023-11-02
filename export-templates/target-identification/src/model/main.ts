@@ -10,6 +10,7 @@ import {
   DiseasesSource,
   SequencesCount,
   SequencesItem,
+  SequencesReference,
   GeneAndSpecies,
   StructuresSource,
   StructuresItem,
@@ -75,6 +76,12 @@ export function useSequencesData(geneId: string): SequencesItem[] {
   const {sequences = empty} =  useInjectedData();
   const geneData = sequences.find((o) => o.gene.id === geneId);
   return geneData ? geneData.data : empty;
+}
+
+export function useSequencesReference(geneId: string): SequencesReference {
+  const {sequences = empty} =  useInjectedData();
+  const geneReference = sequences.find((o) => o.gene.id === geneId);
+  return geneReference ? geneReference.reference : empty;
 }
 
 export function useComparativeDenomics() {

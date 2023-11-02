@@ -10,7 +10,13 @@ export type SequencesItem = {
   proteinName?: ItemValue;
 }
 
+export type SequencesReference = {
+  value: string;
+  link?: string;
+}
+
 export type SequencesData = {
   gene: Gene;
+  reference?: SequencesReference;
   data: SequencesItem[];
 };

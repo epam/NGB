@@ -7,6 +7,7 @@ import {
   useTotalCountSequences,
   useSequencesGenes,
   useSequencesData,
+  useSequencesReference,
   useGeneAndSpecies,
 } from '../../model/main';
 import {useSequencesColumns} from './columns';
@@ -18,6 +19,7 @@ export default function Sequences() {
   const genesOptions = genes.map(useGeneAndSpecies);
   const {dnas, mrnas, proteins} = useTotalCountSequences();
   const data = useSequencesData(geneId);
+  const reference = useSequencesReference(geneId);
   const columns = useSequencesColumns();
   return (
     <Section
@@ -41,6 +43,14 @@ export default function Sequences() {
             ))
           }
         </Select>
+      </div>
+      <div>
+        <h4><b>GENOMIC</b></h4>
+        <div>
+          <span>{reference.value}</span>
+          <span> reference </span>
+          {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
+        </div>
       </div>
       <Table data={data} columns={columns} className="mt-1" showFilters={false} />
     </Section>
