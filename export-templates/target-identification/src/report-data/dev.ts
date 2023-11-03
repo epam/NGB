@@ -63,6 +63,8 @@ const method = generateData(4, 'Method');
 const chain = generateData(3, 'Chain');
 const owner = generateData(5, 'Owner');
 
+const authors = generateData(6, 'Author');
+
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
   records: 122
@@ -75,7 +77,7 @@ const sequencesCount: SequencesCount = {
 };
 const genomicsCount: GenomicsCount = 77;
 const structuresCount: StructuresCount = 20;
-const publicationsCount: PublicationsCount = 0;
+const publicationsCount: PublicationsCount = 122;
 
 const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
 const diseasesPharmGKB: DiseasesPharmGKBItem[] = [];
@@ -89,6 +91,8 @@ const genomicsData: GenomicsItem[] = [];
 
 const structuresPDB: StructuresPDBItem[] = [];
 const structuresLocalFiles: StructuresLocalFilesItem[] = [];
+
+const publications: Publication[] = [];
 
 const getElement = (i, array) => array[i % array.length];
 const getRandomElement = (array) => getElement(Math.floor(Math.random() * array.length), array);
@@ -229,17 +233,16 @@ for (let i = 0; i < 600; i += 1) {
   });
 }
 
-const publications: Publication[] = [];
-
-const authors = generateData(100, 'Author');
-
-for (let i = 0; i < 678; i += 1) {
+for (let i = 0; i < 50; i += 1) {
   const auth: string[] = [];
   for (let a = 0; a < 10; a += 1) {
     auth.push(getRandomElement(authors));
   }
   publications.push({
-    title: `Publication title ${i + 1}`,
+    title: {
+      name: `Publication title ${i + 1}`,
+      link: 'https://pubmed.ncbi.nlm.nih.gov/37253296/',
+    },
     authors: auth,
     date: 'October, 2023'
   });

@@ -11,12 +11,24 @@ export default function PublicationCard(props: PublicationProps) {
     style,
     publication,
   } = props;
+  const {title, authors, date} = publication;
+  const authortsString = `${authors.join(', ')}`;
   return (
     <div
       className={className}
       style={style}
     >
-      <div>{publication.title}</div>
+      <div className="my-1"><a href={title.link}>{title.name}</a></div>
+      {
+        authors && authors.length
+          ? <div className="my-1">{authortsString}</div>
+          : null
+      }
+      {
+        date
+          ? <div className="my-1">{date}</div>
+          : null
+      }
     </div>
   );
 }

@@ -54,6 +54,10 @@ export function useTotalCountGenomics(): number {
   return useTotalCount()[TotalItem.genomics];
 }
 
+export function useTotalCountPublications(): number {
+  return useTotalCount()[TotalItem.publications];
+}
+
 export function useKnownDrugs(source: KnownDrugsSource): KnownDrugsItem[] {
   const {knownDrugs = empty} =  useInjectedData();
   const sourcedData = knownDrugs.find((o) => o.source === source);
