@@ -98,7 +98,7 @@ public class TargetExportHTMLManager {
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(genesOfInterest,
                 translationalGenes, geneNamesMap);
 
-        long publicationsCount = publications.size();
+        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final DrugsCount drugsCount = identificationManager.getDrugsCount(geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
         final long homologsCount = comparativeGenomics.size();
