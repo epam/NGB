@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.entity.target.export.html;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -30,17 +30,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class TargetExportSummary {
-    private String gene;
-    private String geneId;
-    private String species;
-    private String type;
-    private String description;
-    private Long knownDrugs;
-    private Long knownDrugRecords;
-    private Long diseases;
-    private Long publications;
-    private String sequences;
-    private Long structures;
-    private Long homologs;
+public class StructureData {
+    private String id;
+    private String name;
+    private String owner;
+    private String method;
+    private String source;
+    private Float resolution;
+    private String chains;
 }

@@ -40,7 +40,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
@@ -51,6 +50,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_NO_RESULT_BY_EXTERNAL_DB;
 
 /**
  * <p>
@@ -208,14 +209,12 @@ public class NCBIDataManager extends HttpDataManager {
         try {
             root = mapper.readTree(json).path("result");
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
         Iterator<JsonNode> uids = root.path("uids").iterator();
 
         if (!uids.hasNext()) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB));
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB));
         }
 
         int uid = uids.next().asInt();
@@ -240,8 +239,7 @@ public class NCBIDataManager extends HttpDataManager {
         try {
             return mapper.readTree(json).path("result");
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -257,8 +255,7 @@ public class NCBIDataManager extends HttpDataManager {
             });
             return mapper.readTree(json);
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -274,8 +271,7 @@ public class NCBIDataManager extends HttpDataManager {
             });
             return mapper.readTree(json);
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -313,7 +309,7 @@ public class NCBIDataManager extends HttpDataManager {
                 ncbiRetriesCount++;
                 return getResultFromURL(location, params);
             } else {
-                throw new RuntimeException(e);
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
             }
         }
     }
@@ -333,7 +329,7 @@ public class NCBIDataManager extends HttpDataManager {
                 ncbiRetriesCount++;
                 return getResultFromHttp(location, object);
             } else {
-                throw new RuntimeException(e);
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
             }
         }
     }
@@ -354,7 +350,7 @@ public class NCBIDataManager extends HttpDataManager {
                 ncbiRetriesCount++;
                 return getResultFromURL(location);
             } else {
-                throw new RuntimeException(e);
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
             }
         }
     }

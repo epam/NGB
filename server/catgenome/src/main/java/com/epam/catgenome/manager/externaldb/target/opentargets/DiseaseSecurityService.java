@@ -30,7 +30,7 @@ import com.epam.catgenome.entity.target.DiseaseIdentificationResult;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.manager.target.export.TargetExportTable;
-import com.epam.catgenome.manager.target.export.TargetExportManager;
+import com.epam.catgenome.manager.target.export.TargetExportCSVManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -50,7 +50,7 @@ public class DiseaseSecurityService {
     private final DiseaseManager diseaseManager;
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
-    private final TargetExportManager exportManager;
+    private final TargetExportCSVManager exportManager;
 
     @PreAuthorize(ROLE_USER)
     public Map<String, String> search(final String name) throws IOException, ParseException {

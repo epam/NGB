@@ -21,20 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.entity.target.export.html;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-public class GeneSequenceExport {
-    private String geneId;
-    private String target;
-    private String reference;
-    private String mRNA;
-    private Integer mRNALength;
-    private String protein;
-    private Integer proteinLength;
-    private String proteinName;
+@Builder
+public class TargetExportHTML {
+    private String name;
+    private List<GeneDetails> interest;
+    private List<GeneDetails> translational;
+    private TotalCounts totalCounts;
+    private List<SourceData<KnownDrugData>> knownDrugs;
+    private List<SourceData<DiseaseData>> associatedDiseases;
+    private List<Sequence> sequences;
+    private List<ComparativeGenomics> comparativeGenomics;
+    private List<SourceData<StructureData>> structures;
+    private List<Publication> publications;
 }

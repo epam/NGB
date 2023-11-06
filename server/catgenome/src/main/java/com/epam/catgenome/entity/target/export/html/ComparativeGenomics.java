@@ -21,24 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.entity.target.export.html;
 
-import com.epam.catgenome.manager.export.ExportField;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-import java.util.function.Function;
-
-@AllArgsConstructor
 @Getter
-public enum HomologyField implements ExportField<TargetHomology> {
-    TARGET("Target", TargetHomology::getTarget),
-    SPECIES("Species", TargetHomology::getSpecies),
-    HOMOLOGY_TYPE("Homology Type", TargetHomology::getHomologyType),
-    HOMOLOGUE("Homologue", TargetHomology::getHomologue),
-    HOMOLOGY_GROUP("Homology Group", TargetHomology::getHomologyGroup),
-    PROTEIN("Protein", TargetHomology::getProtein),
-    PROTEIN_LENGTH("Aa", o -> String.valueOf(o.getProteinLen()));
-    private String label;
-    private Function<TargetHomology, String> getter;
+@Setter
+@Builder
+public class ComparativeGenomics {
+    private String target;
+    private String species;
+    private String homologyType;
+    private LinkEntity homologue;
+    private String homologyGroup;
+    private String protein;
+    private Long aa;
 }

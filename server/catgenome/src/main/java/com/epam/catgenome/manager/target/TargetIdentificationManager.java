@@ -294,7 +294,7 @@ public class TargetIdentificationManager {
         return genes;
     }
 
-    private long getStructuresCount(final List<String> geneIds) {
+    public long getStructuresCount(final List<String> geneIds) {
         long localPdbFiles = pdbFileManager.totalCount(geneIds);
         final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
         long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
@@ -317,7 +317,7 @@ public class TargetIdentificationManager {
         return newText;
     }
 
-    private DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+    public DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);

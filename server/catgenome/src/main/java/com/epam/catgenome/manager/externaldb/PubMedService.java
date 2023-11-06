@@ -92,6 +92,12 @@ public class PubMedService {
     }
 
     @SneakyThrows
+    public List<NCBISummaryVO> fetchPubMedArticles(final List<String> entrezIds) {
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        return ncbiGeneManager.fetchPubmedData(historyQuery, "0", "1000");
+    }
+
+    @SneakyThrows
     public int getPublicationsCount(final List<String> entrezIds) {
         final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
         return ncbiGeneManager.pubmedDataCount(historyQuery);

@@ -21,29 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.entity.target.export.html;
 
-import com.epam.catgenome.manager.export.ExportField;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-import java.util.function.Function;
-
-@AllArgsConstructor
 @Getter
-public enum TargetExportSummaryField implements ExportField<TargetExportSummary> {
-    GENE("Gene", TargetExportSummary::getGene),
-    GENE_ID("Gene ID", TargetExportSummary::getGeneId),
-    SPECIES("Species", TargetExportSummary::getSpecies),
-    TYPE("Type", TargetExportSummary::getType),
-    DESCRIPTION("Description", TargetExportSummary::getDescription),
-    KNOWN_DRUGS("Known Drugs", o -> String.valueOf(o.getKnownDrugs())),
-    KNOWN_DRUG_RECORDS("Known Drug Records", o -> String.valueOf(o.getKnownDrugRecords())),
-    DISEASES("Diseases", o -> String.valueOf(o.getDiseases())),
-    PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications())),
-    SEQUENCES("Sequences", TargetExportSummary::getSequences),
-    STRUCTURES("Structures", o -> String.valueOf(o.getStructures())),
-    HOMOLOGS("Homologs", o -> String.valueOf(o.getHomologs()));
-    private String label;
-    private Function<TargetExportSummary, String> getter;
+@Setter
+@Builder
+public class KnownDrugsCount {
+    private Long drugs;
+    private Long records;
 }

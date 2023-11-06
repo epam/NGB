@@ -50,6 +50,7 @@ import com.epam.catgenome.manager.target.export.TargetExportTable;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
+import com.epam.catgenome.entity.target.export.html.TargetExportHTML;
 import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.util.db.Page;
 import com.wordnik.swagger.annotations.Api;
@@ -479,6 +480,21 @@ public class TargetController extends AbstractRESTController {
             throws IOException, ParseException, ExternalDbUnavailableException {
         final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
+    }
+
+    @GetMapping(value = "/target/html")
+    @ApiOperation(
+            value = "Gets data for html export",
+            notes = "Gets data for html export",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<TargetExportHTML> html(@RequestParam final List<String> genesOfInterest,
+                                         @RequestParam final List<String> translationalGenes,
+                                         @RequestParam final long targetId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(exportSecurityService.html(genesOfInterest, translationalGenes, targetId));
     }
 
     @GetMapping(value = "/target/genes/{prefix}")

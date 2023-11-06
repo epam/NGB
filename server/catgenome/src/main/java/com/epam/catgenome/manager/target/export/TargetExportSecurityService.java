@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.target.export;
 
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.entity.target.export.html.TargetExportHTML;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -40,7 +41,9 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 @RequiredArgsConstructor
 public class TargetExportSecurityService {
 
-    private final TargetExportManager manager;
+    private final TargetExportHTMLManager targetExportHTMLManager;
+    private final TargetExportXLSManager targetExportXLSManager;
+    private final TargetExportCSVManager targetExportCSVManager;
 
     @PreAuthorize(ROLE_USER)
     public byte[] export(final List<String> genesOfInterest,
@@ -49,12 +52,20 @@ public class TargetExportSecurityService {
                          final TargetExportTable source,
                          boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return manager.export(genesOfInterest, translationalGenes, format, source, includeHeader);
+        return targetExportCSVManager.export(genesOfInterest, translationalGenes, format, source, includeHeader);
     }
 
     @PreAuthorize(ROLE_USER)
     public InputStream report(final List<String> genesOfInterest, final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return manager.report(genesOfInterest, translationalGenes);
+        return targetExportXLSManager.report(genesOfInterest, translationalGenes);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public TargetExportHTML html(final List<String> genesOfInterest,
+                                 final List<String> translationalGenes,
+                                 final long targetId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return targetExportHTMLManager.getHTMLSummary(genesOfInterest, translationalGenes, targetId);
     }
 }
