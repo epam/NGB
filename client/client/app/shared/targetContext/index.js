@@ -14,6 +14,7 @@ export default class TargetContext {
 
     _alignments = [];
     _featureCoords;
+    _currentState = {};
 
     get alignments () {
         return this._alignments;
@@ -33,12 +34,6 @@ export default class TargetContext {
     }
     set currentState(value) {
         this._currentState = value;
-        const loadedState = JSON.parse(localStorage.getItem(this.targetStorageName)) || {};
-        localStorage.setItem(this.targetStorageName, JSON.stringify({
-            ...loadedState,
-            ...this._currentState
-        }));
-        this.report();
     }
 
     get routeInfo() {
@@ -55,7 +50,7 @@ export default class TargetContext {
         try {
             if (value) {
                 const state = JSON.parse(value);
-                this.initState(state);
+                this.currentState = state;
                 this.dispatcher.emit('load:target', state);
             }
         } catch (_) {
@@ -72,15 +67,6 @@ export default class TargetContext {
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
-        this.initState({});
-    }
-
-    initState(loadedState) {
-        loadedState = {
-            ...JSON.parse(localStorage.getItem(this.targetStorageName)),
-            ...loadedState
-        };
-        this._currentState = loadedState;
     }
 
     setCurrentIdentification(target, scope) {
@@ -105,10 +91,6 @@ export default class TargetContext {
         state.diseaseId = disease.id;
         state.diseaseName = disease.name;
         this.currentState = state;
-    }
-
-    report() {
-        this.dispatcher.emitGlobalEvent('route:change');
     }
 
     setAlignments (alignments) {

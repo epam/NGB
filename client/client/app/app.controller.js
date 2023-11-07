@@ -374,7 +374,6 @@ export default class ngbAppController extends baseController {
         state.miew = this.miewContext.routeInfo;
         state.heatmap = this.heatmapContext.routeInfo;
         state.pathway = this.ngbPathwaysService.routeInfo;
-        state.target = this.targetContext.routeInfo;
         this.$state.go(this.$state.current.name, state, options);
     }
 
