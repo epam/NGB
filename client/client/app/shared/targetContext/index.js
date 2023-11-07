@@ -100,6 +100,13 @@ export default class TargetContext {
         this.currentState = state;
     }
 
+    setCurrentDisease(disease) {
+        const state = {...this.currentState};
+        state.diseaseId = disease.id;
+        state.diseaseName = disease.name;
+        this.currentState = state;
+    }
+
     report() {
         this.dispatcher.emitGlobalEvent('route:change');
     }

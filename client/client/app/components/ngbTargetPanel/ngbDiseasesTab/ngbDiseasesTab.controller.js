@@ -16,8 +16,20 @@ export default class ngbDiseasesTabController {
         return 'ngbDiseasesTabController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbDiseasesTabService, ngbDiseasesTargetsPanelService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbDiseasesTabService, ngbDiseasesTargetsPanelService});
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbDiseasesTabService,
+        ngbDiseasesTargetsPanelService,
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbDiseasesTabService,
+            ngbDiseasesTargetsPanelService,
+        });
         if (this.diseasesData) {
             this.refreshData();
         }
@@ -108,7 +120,7 @@ export default class ngbDiseasesTabController {
 
     async searchDisease() {
         if (!this.diseaseModel) return;
-        await this.ngbDiseasesTabService.searchDisease(this.diseaseModel.id);
+        await this.ngbDiseasesTabService.searchDisease(this.diseaseModel);
     }
 
     setDiseasesData() {

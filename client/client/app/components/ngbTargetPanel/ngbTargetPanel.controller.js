@@ -102,6 +102,12 @@ export default class ngbTargetPanelController {
     }
 
     async changeState(state) {
+        await this.changeIdentificationState(state);
+        await this.changeDiseaseState(state);
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    async changeIdentificationState(state) {
         const {targetId, targetName, genesOfInterest, translationalGenes} = state || {};
         if (!targetId || !genesOfInterest || !translationalGenes) return;
         const target = {
@@ -119,7 +125,13 @@ export default class ngbTargetPanelController {
             translational: translationalGenes
         };
         await this.ngbTargetsTabService.getIdentificationData(params, info);
-        this.$timeout(() => this.$scope.$apply());
+    }
+
+    async changeDiseaseState(state) {
+        const {diseaseId: id, diseaseName: name} = state || {};
+        if (!id || !name) return;
+        const disease = { id, name };
+        await this.ngbDiseasesTabService.viewDiseaseFromTable(disease);
     }
 
     showIdentificationTab() {
