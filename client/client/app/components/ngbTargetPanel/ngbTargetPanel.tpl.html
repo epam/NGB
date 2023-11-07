@@ -2,31 +2,28 @@
     <md-nav-bar class="target-nav-bar"
                 md-selected-nav-item="$ctrl.tabSelected">
         <md-nav-item name="TARGETS"
-                     md-nav-click="$ctrl.changeState($ctrl.targetState.TARGETS)">
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.TARGETS)">
             TARGETS
         </md-nav-item>
         <md-nav-item name="DISEASES"
-                     md-nav-click="$ctrl.changeState($ctrl.targetState.DISEASES)">
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.DISEASES)">
             DISEASES
         </md-nav-item>
         <md-nav-item name="IDENTIFICATIONS"
-                     md-nav-click="$ctrl.changeState($ctrl.targetState.IDENTIFICATIONS)"
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.IDENTIFICATIONS)"
                      ng-if="$ctrl.identificationTabIsShown">
             IDENTIFICATIONS
         </md-nav-item>
     </md-nav-bar>
     <md-content class="_md target-panel-content">
-        <ngb-targets-tab change-state="$ctrl.changeState(state)"
-                         class="tab"
-                         ng-if="$ctrl.tabSelected === $ctrl.targetState.TARGETS">
+        <ngb-targets-tab class="tab"
+                         ng-if="$ctrl.tabSelected === $ctrl.targetTab.TARGETS">
         </ngb-targets-tab>
-        <ngb-diseases-tab change-state="$ctrl.changeState(state)"
-                          class="tab"
-                          ng-if="$ctrl.tabSelected === $ctrl.targetState.DISEASES">
+        <ngb-diseases-tab class="tab"
+                          ng-if="$ctrl.tabSelected === $ctrl.targetTab.DISEASES">
         </ngb-diseases-tab>
-        <ngb-identifications-tab change-state="$ctrl.changeState(state)"
-                                 class="tab"
-                                 ng-if="$ctrl.tabSelected === $ctrl.targetState.IDENTIFICATIONS">
+        <ngb-identifications-tab class="tab"
+                                 ng-if="$ctrl.tabSelected === $ctrl.targetTab.IDENTIFICATIONS">
         </ngb-identifications-tab>
     </md-content>
     <md-button type="button"

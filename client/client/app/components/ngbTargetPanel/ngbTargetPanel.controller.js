@@ -1,4 +1,4 @@
-const TARGET_STATE = {
+const TARGET_TAB = {
     TARGETS: 'TARGETS',
     IDENTIFICATIONS: 'IDENTIFICATIONS',
     DISEASES: 'DISEASES'
@@ -6,11 +6,11 @@ const TARGET_STATE = {
 
 export default class ngbTargetPanelController {
 
-    get targetState() {
-        return TARGET_STATE;
+    get targetTab() {
+        return TARGET_TAB;
     }
 
-    tabSelected = this.targetState.TARGET_STATE;
+    tabSelected;
     reportLoading = false;
 
     get identificationTabIsShown() {
@@ -22,23 +22,41 @@ export default class ngbTargetPanelController {
         return 'ngbTargetPanelController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetPanelService, ngbTargetsTabService, ngbDiseasesTabService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetPanelService, ngbTargetsTabService, ngbDiseasesTabService});
-        this.tabSelected = this.targetState.TARGETS;
-        dispatcher.on('target:launch:finished', this.showIdentificationTab.bind(this));
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbTargetPanelService,
+        ngbTargetsTabService,
+        ngbDiseasesTabService,
+        targetContext
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbTargetPanelService,
+            ngbTargetsTabService,
+            ngbDiseasesTabService,
+            targetContext
+        });
+        this.tabSelected = this.targetTab.TARGETS;
+        dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
         dispatcher.on('target:diseases:show:targets:tab', this.showTargetsTab.bind(this));
+        dispatcher.on('load:target', this.changeState.bind(this));
+        this.changeState(this.targetContext.currentState);
     }
 
     get isTableMode() {
         return this.ngbTargetsTabService &&
             this.ngbTargetsTabService.isTableMode &&
-            this.tabSelected === this.targetState.TARGETS;
+            this.tabSelected === this.targetTab.TARGETS;
     }
 
     get isIdentificationsMode() {
-        return this.tabSelected === this.targetState.IDENTIFICATIONS;
+        return this.tabSelected === this.targetTab.IDENTIFICATIONS;
     }
 
     addTarget () {
@@ -76,24 +94,45 @@ export default class ngbTargetPanelController {
             });
     }
 
-    changeState(state) {
-        if (this.targetState.hasOwnProperty(state)) {
-            this.tabSelected = this.targetState[state];
+    changeTab(tab) {
+        if (this.targetTab.hasOwnProperty(tab)) {
+            this.tabSelected = this.targetTab[tab];
         }
         this.$timeout(() => this.$scope.$apply());
     }
 
+    async changeState(state) {
+        const {targetId, targetName, genesOfInterest, translationalGenes} = state || {};
+        if (!targetId || !genesOfInterest || !translationalGenes) return;
+        const target = {
+            id: targetId,
+            name: targetName,
+        };
+        const params = {
+            targetId: target.id,
+            genesOfInterest: genesOfInterest.map(s => s.geneId),
+            translationalGenes: translationalGenes.map(s => s.geneId)
+        };
+        const info = {
+            target: target,
+            interest: genesOfInterest,
+            translational: translationalGenes
+        };
+        await this.ngbTargetsTabService.getIdentificationData(params, info);
+        this.$timeout(() => this.$scope.$apply());
+    }
+
     showIdentificationTab() {
-        this.tabSelected = this.targetState.IDENTIFICATIONS;
+        this.tabSelected = this.targetTab.IDENTIFICATIONS;
         this.$timeout(() => this.$scope.$apply());
     }
 
     createTargetFromHomologs() {
-        this.changeState(this.targetState.TARGETS);
+        this.changeTab(this.targetTab.TARGETS);
     }
 
     showDiseasesTab(disease) {
-        this.tabSelected = this.targetState.DISEASES;
+        this.tabSelected = this.targetTab.DISEASES;
         this.$timeout(() => {
             this.$scope.$apply();
             this.ngbDiseasesTabService.viewDiseaseFromTable(disease);
@@ -101,7 +140,7 @@ export default class ngbTargetPanelController {
     }
 
     showTargetsTab() {
-        this.tabSelected = this.targetState.TARGETS;
+        this.tabSelected = this.targetTab.TARGETS;
         this.$timeout(() => this.$scope.$apply());
     }
 }

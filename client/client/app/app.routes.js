@@ -24,6 +24,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 miew: null,
                 heatmap: null,
                 pathway: null,
+                target: null,
                 embedded: null,
                 controls: null,
                 auth: null,
@@ -35,6 +36,6 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
             },
             reloadOnSearch: false,
             template: require('./app.tpl.html'),
-            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway&auth&panels&hideMenu'
+            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders&miew&heatmap&embedded&controls&pathway&target&auth&panels&hideMenu'
         });
 }

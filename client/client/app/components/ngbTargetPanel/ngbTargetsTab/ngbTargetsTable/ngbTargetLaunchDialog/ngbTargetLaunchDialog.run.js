@@ -1,4 +1,11 @@
-export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabService, ngbTargetPanelService) {
+export default function run(
+    $mdDialog,
+    $timeout,
+    dispatcher,
+    ngbTargetsTabService,
+    ngbTargetPanelService,
+    targetContext
+) {
     const displayLaunchDialog = async (target) => {
         const groupedBySpecies = (species) => {
             const groups = species.reduce((acc, curr) => {
@@ -131,18 +138,22 @@ export default function run($mdDialog, $timeout, dispatcher, ngbTargetsTabServic
                     document.activeElement.blur();
                 };
 
-                function getIdentificationData(scope) {
+                async function getIdentificationData(scope) {
                     const params = {
                         targetId: target.id,
-                        genesOfInterest:  scope.genesOfInterest.map(s => s.geneId),
+                        genesOfInterest: scope.genesOfInterest.map(s => s.geneId),
                         translationalGenes: scope.translationalGenes.map(s => s.geneId)
                     };
                     const info = {
                         target: target,
-                        interest:  scope.genesOfInterest,
+                        interest: scope.genesOfInterest,
                         translational: scope.translationalGenes
                     };
-                    ngbTargetsTabService.getIdentificationData(params, info);
+                    const result = await ngbTargetsTabService.getIdentificationData(params, info);
+                    if (result) {
+                        dispatcher.emit('target:show:identification:tab');
+                        targetContext.setCurrentIdentification(target, scope);
+                    }
                 }
 
                 $scope.identify = () => {

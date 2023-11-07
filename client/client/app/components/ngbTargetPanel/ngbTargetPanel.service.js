@@ -30,6 +30,10 @@ export default class NgbTargetPanelService {
         return this.genesIds.map((id) => allGenes.find((o) => o.geneId === id)).filter(Boolean);
     }
 
+    get allChips() {
+        return this.allGenes.map(g => `${g.geneName} (${g.speciesName})`);
+    }
+
     get geneIdsOfInterest() {
         return ((this.identificationTarget || {}).interest || [])
             .map(i => i.geneId);
