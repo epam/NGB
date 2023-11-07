@@ -90,7 +90,6 @@ export default class TargetContext {
                 geneName: g.geneName,
                 taxId: g.taxId,
                 speciesName: g.speciesName,
-                chip: g.chip,
             }));
         };
         const state = {...this.currentState};

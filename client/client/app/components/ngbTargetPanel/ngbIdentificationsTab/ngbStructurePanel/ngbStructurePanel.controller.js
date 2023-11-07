@@ -41,7 +41,7 @@ export default class ngbStructurePanelController {
     }
 
     get geneChips() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+        return [...this.ngbTargetPanelService.allChips];
     }
 
     onChangeSource() {

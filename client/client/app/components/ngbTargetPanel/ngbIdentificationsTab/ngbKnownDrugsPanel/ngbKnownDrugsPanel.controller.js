@@ -48,7 +48,7 @@ export default class ngbKnownDrugsPanelController {
     }
 
     get geneChips() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+        return [...this.ngbTargetPanelService.allChips];
     }
 
     onChangeSource() {

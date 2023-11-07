@@ -73,7 +73,7 @@ export default class ngbTargetPanelController {
                 try {
                     const blob = new Blob([data], {type: 'application/xls'});
                     const url = window.URL.createObjectURL(blob);
-                    const geneChips = this.ngbTargetPanelService.allGenes.map(i => i.chip);
+                    const geneChips = this.ngbTargetPanelService.allChips;
 
                     linkElement.setAttribute('href', url);
                     linkElement.setAttribute('download',

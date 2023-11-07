@@ -117,7 +117,7 @@ class NgbDiseasesPanelController {
     }
 
     get geneChips() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+        return [...this.ngbTargetPanelService.allChips];
     }
 
     getTabName(tab) {
