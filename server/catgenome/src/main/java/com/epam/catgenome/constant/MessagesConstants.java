@@ -314,6 +314,7 @@ public final class MessagesConstants {
 
     //TARGET
     public static final String ERROR_TARGET_NOT_FOUND = "error.target.not.found";
+    public static final String ERROR_TARGET_IDENTIFICATION_NOT_FOUND = "error.target.identification.not.found";
 
     private MessagesConstants() {
         // No-op

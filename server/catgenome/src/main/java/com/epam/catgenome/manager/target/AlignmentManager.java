@@ -76,7 +76,7 @@ public class AlignmentManager {
     private String alignmentDirectory;
 
     private final TargetManager targetManager;
-    private final TargetIdentificationManager targetIdentificationManager;
+    private final LaunchIdentificationManager launchIdentificationManager;
     private final NCBIDataManager ncbiDataManager;
 
     public void generateAlignment() {
@@ -138,7 +138,7 @@ public class AlignmentManager {
         }
         dirFile.mkdirs();
 
-        final List<GeneSequences> sequences = targetIdentificationManager.getGeneSequences(geneIds);
+        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(geneIds);
         final List<String> proteinIds = sequences.stream()
                 .map(geneSequences -> geneSequences.getProteins().stream()
                         .map(UrlEntity::getId)

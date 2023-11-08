@@ -21,36 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.entity.target;
 
-package com.epam.catgenome.util.db;
-
-
-import org.apache.commons.lang3.StringUtils;
+import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.SortInfo;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public final class DBQueryUtils {
-
-    public static final String IN_CLAUSE = "%s in (%s)";
-    public static final String GENE_ID = "gene_id";
-
-    private DBQueryUtils() {
-        // no operations by default
-    }
-
-    public static String getGeneIdsClause(final List<String> geneIds) {
-        return getInClause(GENE_ID, geneIds);
-    }
-
-    public static String getInClause(final String fieldName, final List<String> ids) {
-        return String.format(IN_CLAUSE, String.format("LOWER(%s)", fieldName), ids.stream()
-                .map(g -> "'" + g.toLowerCase() + "'")
-                .collect(Collectors.joining(",")));
-    }
-
-    public static String getInClause(final String fieldName, final Set<Long> ids) {
-        return String.format(IN_CLAUSE, fieldName, StringUtils.join(ids, ","));
-    }
+@Setter
+@Getter
+@Builder
+public class IdentificationQueryParams {
+    private PagingInfo pagingInfo;
+    private SortInfo sortInfo;
+    private String name;
+    private String owner;
+    private Long targetId;
+    private List<String> geneIds;
 }

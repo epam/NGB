@@ -26,10 +26,8 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
-import com.epam.catgenome.entity.target.AlignmentStatus;
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetGene;
-import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.dao.target.TargetIdentificationDao;
+import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.util.db.Condition;
 import com.epam.catgenome.util.db.Page;
@@ -52,6 +50,7 @@ import java.util.stream.Collectors;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.Utils.*;
 import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
+import static com.epam.catgenome.util.db.DBQueryUtils.getInClause;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -67,6 +66,7 @@ public class TargetManager {
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
+    private final TargetIdentificationDao targetIdentificationDao;
     private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -97,6 +97,7 @@ public class TargetManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final long targetId) {
         getTarget(targetId);
+        targetIdentificationDao.deleteTargetIdentifications(targetId);
         targetGeneDao.deleteTargetGenes(targetId);
         targetDao.deleteTarget(targetId);
     }
@@ -108,7 +109,13 @@ public class TargetManager {
     }
 
     public Target load(final long targetId) {
-        return targetDao.loadTarget(targetId);
+        final Target target = targetDao.loadTarget(targetId);
+        if (target != null) {
+            final List<TargetIdentification> identifications =
+                    targetIdentificationDao.loadTargetIdentifications(target.getTargetId());
+            target.setIdentifications(identifications);
+        }
+        return target;
     }
     
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
@@ -124,8 +131,12 @@ public class TargetManager {
                 Collections.singletonList(sortInfo));
         final Set<Long> targetIds = targets.stream().map(Target::getTargetId).collect(Collectors.toSet());
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(targetIds);
+        final List<TargetIdentification> identifications = getIdentifications(targetIds);
         for (Target t: targets) {
             t.setTargetGenes(targetGenes.stream()
+                    .filter(g -> g.getTargetId().equals(t.getTargetId()))
+                    .collect(Collectors.toList()));
+            t.setIdentifications(identifications.stream()
                     .filter(g -> g.getTargetId().equals(t.getTargetId()))
                     .collect(Collectors.toList()));
         }
@@ -223,5 +234,9 @@ public class TargetManager {
         return String.format("(%s)", values.stream()
                 .map(v -> String.format(clause, field, v))
                 .collect(Collectors.joining(Condition.OR.getValue())));
+    }
+
+    private List<TargetIdentification> getIdentifications(final Set<Long> targetIds) {
+        return targetIdentificationDao.load(getInClause("target_id", targetIds));
     }
 }

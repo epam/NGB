@@ -42,6 +42,7 @@ public class Target extends AbstractSecuredEntity {
     private List<String> diseases;
     private List<String> products;
     private List<TargetGene> targetGenes;
+    private List<TargetIdentification> identifications;
 
     @Override
     public AbstractSecuredEntity getParent() {
