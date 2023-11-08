@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import type {Gene} from './types';
 import useInjectedData from './base/use-injected-data';
 import {
@@ -31,7 +32,8 @@ export function useTranslationalGenes(): Gene[] {
 }
 
 function useTotalCount(): TotalCount {
-  return useInjectedData().totalCounts;
+  const total = useInjectedData().totalCounts;
+  return useMemo<TotalCount>(() => total ?? {}, [total]);
 }
 
 export function useTotalCountDrugs(): KnownDrugsCount {
@@ -88,7 +90,7 @@ export function useSequencesReference(geneId: string): SequencesReference {
   return geneReference ? geneReference.reference : empty;
 }
 
-export function useComparativeDenomics() {
+export function useComparativeGenomics() {
   const {comparativeGenomics = empty} =  useInjectedData();
   return comparativeGenomics || empty;
 }

@@ -1,11 +1,11 @@
 import Section from "../../common/section";
 import Table from '../../common/table';
-import {useTotalCountGenomics, useComparativeDenomics} from '../../model/main';
+import {useTotalCountGenomics, useComparativeGenomics} from '../../model/main';
 import {useGenomicsColumns} from './columns';
 
 export default function ComparativeGenomics() {
   const genomics = useTotalCountGenomics();
-  const data = useComparativeDenomics();
+  const data = useComparativeGenomics();
   const columns = useGenomicsColumns();
   return (
     <Section
