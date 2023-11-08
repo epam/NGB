@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.target.TargetIdentificationDao" id="targetIdentificationDao" autowire="byName">
+        <property name="identificationSequenceName" value="catgenome.s_target_identification"/>
+        <property name="insertIdentificationQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.target_identification (
+                        id,
+                        target_id,
+                        name,
+                        owner,
+                        created_date,
+                        genes_of_interest,
+                        translational_genes
+                    ) VALUES (
+                        :ID,
+                        :TARGET_ID,
+                        :NAME,
+                        :OWNER,
+                        :CREATED_DATE,
+                        :GENES_OF_INTEREST,
+                        :TRANSLATIONAL_GENES
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updateIdentificationQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.target_identification SET
+                        name = :NAME,
+                        owner = :OWNER,
+                        genes_of_interest = :GENES_OF_INTEREST,
+                        translational_genes = :TRANSLATIONAL_GENES
+                    WHERE id = :ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteIdentificationQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.target_identification WHERE id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteTargetIdentificationsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.target_identification WHERE target_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadTargetIdentificationsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        target_id,
+                        name,
+                        owner,
+                        created_date,
+                        genes_of_interest,
+                        translational_genes
+                    FROM catgenome.target_identification WHERE target_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadIdentificationsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        target_id,
+                        name,
+                        owner,
+                        created_date,
+                        genes_of_interest,
+                        translational_genes
+                    FROM catgenome.target_identification
+                ]]>
+            </value>
+        </property>
+        <property name="loadIdentificationQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        target_id,
+                        name,
+                        owner,
+                        created_date,
+                        genes_of_interest,
+                        translational_genes
+                    FROM catgenome.target_identification WHERE id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="totalCountQuery">
+            <value>
+                <![CDATA[
+                    SELECT count(*) FROM catgenome.target_identification
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

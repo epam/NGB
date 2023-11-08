@@ -65,7 +65,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
-import com.epam.catgenome.manager.target.TargetIdentificationManager;
+import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
@@ -104,7 +104,7 @@ public class TargetExportManager {
     private final PdbEntriesManager pdbEntriesManager;
     private final PdbFileManager pdbFileManager;
     private final TargetManager targetManager;
-    private final TargetIdentificationManager identificationManager;
+    private final LaunchIdentificationManager identificationManager;
     private final HomologManager homologManager;
     private final HomologeneManager homologeneManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
