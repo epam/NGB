@@ -4,10 +4,17 @@ const TargetGenomicsResultEvents = {
 
 export { TargetGenomicsResultEvents };
 
+const TARGET_STORAGE_NAME = 'targetState';
+
 export default class TargetContext {
+
+    get targetStorageName() {
+        return TARGET_STORAGE_NAME;
+    }
 
     _alignments = [];
     _featureCoords;
+    _currentState = {};
 
     get alignments () {
         return this._alignments;
@@ -22,6 +29,35 @@ export default class TargetContext {
         };
     }
 
+    get currentState() {
+        return this._currentState;
+    }
+    set currentState(value) {
+        this._currentState = value;
+    }
+
+    get routeInfo() {
+        if (this.currentState) {
+            return JSON.stringify(this.currentState);
+        }
+        return null;
+    }
+
+    set routeInfo(value) {
+        const reset = () => {
+            this.currentState = undefined;
+        }
+        try {
+            if (value) {
+                const state = JSON.parse(value);
+                this.currentState = state;
+                this.dispatcher.emit('load:target', state);
+            }
+        } catch (_) {
+            reset();
+        }
+    }
+
     static instance(dispatcher) {
         return new TargetContext(dispatcher);
     }
@@ -31,6 +67,30 @@ export default class TargetContext {
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
+    }
+
+    setCurrentIdentification(target, scope) {
+        const getGeneInfo = (genes) => {
+            return genes.map(g => ({
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
+            }));
+        };
+        const state = {...this.currentState};
+        state.targetId = target.id;
+        state.targetName = target.name;
+        state.genesOfInterest = getGeneInfo(scope.genesOfInterest);
+        state.translationalGenes = getGeneInfo(scope.translationalGenes);
+        this.currentState = state;
+    }
+
+    setCurrentDisease(disease) {
+        const state = {...this.currentState};
+        state.diseaseId = disease.id;
+        state.diseaseName = disease.name;
+        this.currentState = state;
     }
 
     setAlignments (alignments) {

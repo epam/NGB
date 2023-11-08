@@ -321,8 +321,7 @@ export default class ngbDrugsTableService {
             const field = list[source][key]
             this.fieldList[field] = values;
         }
-        const allGenes = this.ngbTargetPanelService.allGenes;
-        this.fieldList.target = [...allGenes.map(i => i.chip)];
+        this.fieldList.target = [...this.ngbTargetPanelService.allChips];
         this.dispatcher.emitSimpleEvent('target:identification:drugs:filters:list');
     }
 

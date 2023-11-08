@@ -30,6 +30,10 @@ export default class NgbTargetPanelService {
         return this.genesIds.map((id) => allGenes.find((o) => o.geneId === id)).filter(Boolean);
     }
 
+    get allChips() {
+        return this.allGenes.map(g => g.chip);
+    }
+
     get geneIdsOfInterest() {
         return ((this.identificationTarget || {}).interest || [])
             .map(i => i.geneId);
@@ -69,9 +73,22 @@ export default class NgbTargetPanelService {
 
     setIdentificationData(data, info) {
         this._identificationData = data;
-        this._identificationTarget = info;
+        this._identificationTarget = this.setChips(info);
         this.setDescriptions();
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
+    }
+
+    setChips(info) {
+        const {interest, translational} = info;
+        const setChip = (genes) => {
+            for (let i = 0; i < genes.length; i++) {
+                const gene = genes[i];
+                gene.chip = gene.chip || `${gene.geneName} (${gene.speciesName})`;
+            }
+        };
+        setChip(interest);
+        setChip(translational);
+        return info;
     }
 
     getChipByGeneId(id) {

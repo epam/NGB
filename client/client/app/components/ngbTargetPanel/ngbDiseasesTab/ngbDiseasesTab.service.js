@@ -46,12 +46,12 @@ export default class ngbDiseasesTabService {
         this._diseasesData = value;
     }
 
-    static instance ($timeout, dispatcher, targetDataService) {
-        return new ngbDiseasesTabService($timeout, dispatcher, targetDataService);
+    static instance ($timeout, dispatcher, targetDataService, targetContext) {
+        return new ngbDiseasesTabService($timeout, dispatcher, targetDataService, targetContext);
     }
 
-    constructor($timeout, dispatcher, targetDataService) {
-        Object.assign(this, {$timeout, dispatcher, targetDataService});
+    constructor($timeout, dispatcher, targetDataService, targetContext) {
+        Object.assign(this, {$timeout, dispatcher, targetDataService, targetContext});
     }
 
     setDiseasesList(list) {
@@ -86,11 +86,13 @@ export default class ngbDiseasesTabService {
         });
     }
 
-    async searchDisease(id) {
+    async searchDisease(disease) {
+        const {id} = disease;
         if (this._diseasesData && id === this._diseasesData.id) return;
         this._loadingData = true;
         await this.getDiseaseData(id);
         await this.getDiseaseTotalCounts(id);
+        this.targetContext.setCurrentDisease(disease);
         this.$timeout(() => this.dispatcher.emit('target:diseases:disease:changed'));
     }
 
@@ -146,7 +148,7 @@ export default class ngbDiseasesTabService {
             id: disease.id,
             name: disease
         };
-        await this.searchDisease(id);
+        await this.searchDisease(disease);
     }
 
     resetData() {

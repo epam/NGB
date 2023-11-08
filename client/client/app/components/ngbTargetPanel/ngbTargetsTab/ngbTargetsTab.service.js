@@ -116,12 +116,36 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance ($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        return new ngbTargetsTabService($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext);
+    static instance (
+        $timeout,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectContext,
+    ) {
+        return new ngbTargetsTabService(
+            $timeout,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectContext,
+        );
     }
 
-    constructor($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext});
+    constructor(
+        $timeout,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectContext,
+    ) {
+        Object.assign(this, {
+            $timeout,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectContext,
+        });
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
@@ -330,7 +354,7 @@ export default class ngbTargetsTabService {
     async getIdentificationData(params, info) {
         this.ngbTargetPanelService.resetIdentificationData();
         this._launchLoading = true;
-        await this.launchTargetIdentification(params)
+        const result = await this.launchTargetIdentification(params)
             .then(result => {
                 this._launchLoading = false;
                 if (result) {
@@ -338,8 +362,10 @@ export default class ngbTargetsTabService {
                 } else {
                     this.dispatcher.emit('target:launch:failed');
                 }
+                return result;
             });
         this.setTableMode();
+        return result;
     }
 
     launchTargetIdentification(request) {
