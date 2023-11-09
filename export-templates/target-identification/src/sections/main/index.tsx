@@ -46,34 +46,44 @@ export default function MainSection() {
             {name}
           </th>
         </tr>
-        <tr className="text-sm">
-          <th className="text-left align-top">
-            <span className="py-1 leading-none">Interest:</span>
-          </th>
-          <td className="align-top">
-            {interest.map((gene) => (
-              <GeneCard
-                key={gene.id}
-                className="mx-1 px-1 py-1"
-                gene={gene}
-              />
-            ))}
-          </td>
-        </tr>
-        <tr className="text-sm">
-          <th className="text-left align-top">
-            <span className="py-1 leading-none">Translational:</span>
-          </th>
-          <td className="align-top">
-            {translational.map((gene) => (
-              <GeneCard
-                key={gene.id}
-                className="mx-1 px-1 py-1"
-                gene={gene}
-              />
-            ))}
-          </td>
-        </tr>
+        {
+          interest.length
+            ? (
+              <tr className="text-sm">
+                <th className="text-left align-top">
+                  <span className="py-1 leading-none">Interest:</span>
+                </th>
+                <td className="align-top">
+                  {interest.map((gene) => (
+                    <GeneCard
+                      key={gene.id}
+                      className="mx-1 px-1 py-1"
+                      gene={gene}
+                    />
+                  ))}
+                </td>
+              </tr>
+            ) : null
+        }
+        {
+          translational.length
+            ? (
+            <tr className="text-sm">
+              <th className="text-left align-top">
+                <span className="py-1 leading-none">Translational:</span>
+              </th>
+              <td className="align-top">
+                {translational.map((gene) => (
+                  <GeneCard
+                    key={gene.id}
+                    className="mx-1 px-1 py-1"
+                    gene={gene}
+                  />
+                ))}
+              </td>
+            </tr>
+          ) : null
+        }
         </tbody>
       </table>
       <Section title="Description">

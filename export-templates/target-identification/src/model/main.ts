@@ -37,27 +37,36 @@ function useTotalCount(): TotalCount {
 }
 
 export function useTotalCountDrugs(): KnownDrugsCount {
-  return useTotalCount()[TotalItem.knownDrugs];
+  const knownDrugs = useTotalCount()[TotalItem.knownDrugs];
+  return useMemo<KnownDrugsCount>(() => knownDrugs ?? {
+    drugs: 0,
+    records: 0
+  }, [knownDrugs]);
 }
 
 export function useTotalCountDiseases(): number {
-  return useTotalCount()[TotalItem.diseases];
+  return useTotalCount()[TotalItem.diseases] || 0;
 }
 
 export function useTotalCountSequences(): SequencesCount {
-  return useTotalCount()[TotalItem.sequences];
+  const sequences = useTotalCount()[TotalItem.sequences];
+  return useMemo<SequencesCount>(() => sequences ?? {
+    dnas: 0,
+    mrnas: 0,
+    proteins: 0,
+  }, [sequences]);
 }
 
 export function useTotalCountStructures(): number {
-  return useTotalCount()[TotalItem.structures];
+  return useTotalCount()[TotalItem.structures] || 0;
 }
 
 export function useTotalCountGenomics(): number {
-  return useTotalCount()[TotalItem.genomics];
+  return useTotalCount()[TotalItem.genomics] || 0;
 }
 
 export function useTotalCountPublications(): number {
-  return useTotalCount()[TotalItem.publications];
+  return useTotalCount()[TotalItem.publications] || 0;
 }
 
 export function useKnownDrugs(source: KnownDrugsSource): KnownDrugsItem[] {
@@ -107,8 +116,16 @@ export function usePublications(): Publication[] {
 }
 
 export function useGeneAndSpecies(gene: Gene): GeneAndSpecies {
-  return {
-    value: `${gene.name} (${gene.species})`,
-    key: gene.id
-  };
+  return useMemo<GeneAndSpecies>(() => {
+    if (!gene || !gene.id || !gene.name || !gene.species) {
+      return {
+        value: undefined,
+        key: undefined,
+      }
+    }
+    return {
+      value: `${gene.name} (${gene.species})`,
+      key: gene.id
+    }
+  }, [gene]);
 }

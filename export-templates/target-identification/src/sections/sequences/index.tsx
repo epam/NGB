@@ -44,14 +44,18 @@ export default function Sequences() {
           }
         </Select>
       </div>
-      <div>
-        <h4><b>GENOMIC</b></h4>
-        <div>
-          <span>{reference.value}</span>
-          <span> reference </span>
-          {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
-        </div>
-      </div>
+      {
+        (reference && reference.value) ? (
+          <div>
+            <h4><b>GENOMIC</b></h4>
+            <div>
+              <span>{reference.value}</span>
+              <span> reference </span>
+              {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
+            </div>
+          </div>
+        ) : null
+      }
       <Table data={data} columns={columns} className="mt-1" showFilters={false} />
     </Section>
   );
