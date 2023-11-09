@@ -122,6 +122,7 @@ module.exports = function (env, argv) {
                 favicon: path.resolve(__dirname, './client/app/assets/icons/ngb-logo.png'),
                 template: path.resolve(__dirname, './client/index.html'),
                 title: 'NGB',
+                base: `${publicUrl}catgenome/`,
             }),
             new webpack.ProvidePlugin({
                 $: 'jquery',
