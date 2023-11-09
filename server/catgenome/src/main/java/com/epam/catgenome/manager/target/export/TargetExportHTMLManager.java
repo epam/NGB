@@ -94,11 +94,11 @@ public class TargetExportHTMLManager {
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
         final List<Sequence> sequences = getSequences(geneIds);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
-        final List<Publication> publications = getPublications(entrezIds);
+        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
+        final List<Publication> publications = getPublications(entrezIds, publicationsCount);
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(genesOfInterest,
                 translationalGenes, geneNamesMap);
 
-        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final DrugsCount drugsCount = identificationManager.getDrugsCount(geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
         final long homologsCount = comparativeGenomics.size();
@@ -192,8 +192,8 @@ public class TargetExportHTMLManager {
                         .transcript(transcript)
                         .mrnaLength(geneSequence.getMRNA() != null ? geneSequence.getMRNA().getLength() : null)
                         .protein(protein)
-                        .proteinName(geneSequence.getMRNA() != null ? geneSequence.getProtein().getName() : null)
-                        .proteinLength(geneSequence.getMRNA() != null ? geneSequence.getProtein().getLength() : null)
+                        .proteinName(geneSequence.getProtein() != null ? geneSequence.getProtein().getName() : null)
+                        .proteinLength(geneSequence.getProtein() != null ? geneSequence.getProtein().getLength() : null)
                         .build();
                 sequencesData.add(sequenceData);
             }
@@ -207,8 +207,8 @@ public class TargetExportHTMLManager {
         return sequences;
     }
 
-    private List<Publication> getPublications(final List<String> entrezIds) {
-        final List<NCBISummaryVO> articles = pubMedService.fetchPubMedArticles(entrezIds);
+    private List<Publication> getPublications(final List<String> entrezIds, final long publicationsCount) {
+        final List<NCBISummaryVO> articles = pubMedService.fetchPubMedArticles(entrezIds, publicationsCount);
         final List<Publication> publications = new ArrayList<>();
         for (NCBISummaryVO article : articles) {
             LinkEntity title = LinkEntity.builder()
@@ -281,8 +281,8 @@ public class TargetExportHTMLManager {
             final List<StructureData> localPdbData = new ArrayList<>();
             for (PdbFile pdbFile : pdbFiles) {
                 StructureData structureData = StructureData.builder()
-                        .id(pdbFile.getId().toString())
-                        .name(pdbFile.getName())
+                        .id(pdbFile.getName())
+                        .name(pdbFile.getPrettyName())
                         .owner(pdbFile.getOwner())
                         .build();
                 localPdbData.add(structureData);

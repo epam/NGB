@@ -68,8 +68,7 @@ public class PubMedService {
     @Value("${pubmed.articles.number.for.abstract:20}")
     private Integer articlesMaxNumber;
 
-    @Value("${pubmed.max.articles.number:500}")
-    private Integer retMax;
+    private static final Integer BATCH_SIZE = 500;
 
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
@@ -95,9 +94,16 @@ public class PubMedService {
     }
 
     @SneakyThrows
-    public List<NCBISummaryVO> fetchPubMedArticles(final List<String> entrezIds) {
+    public List<NCBISummaryVO> fetchPubMedArticles(final List<String> entrezIds, final long publicationsCount) {
         final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
-        return ncbiGeneManager.fetchPubmedData(historyQuery, "0", retMax.toString());
+        final List<NCBISummaryVO> result = new ArrayList<>();
+        final int pages = (int) Math.ceil((double) publicationsCount / BATCH_SIZE);
+        for (int i = 0; i < pages; i++) {
+            List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery,
+                    String.valueOf(i * BATCH_SIZE), BATCH_SIZE.toString());
+            result.addAll(articles);
+        }
+        return result;
     }
 
     @SneakyThrows
