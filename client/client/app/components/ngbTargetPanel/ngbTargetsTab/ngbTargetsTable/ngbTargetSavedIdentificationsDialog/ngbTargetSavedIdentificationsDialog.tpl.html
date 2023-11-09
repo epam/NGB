@@ -1,0 +1,136 @@
+<md-dialog class="saved-dialog"
+           aria-label="Saved identifications">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Saved identifications for '{{name}}'</h2>
+            <span flex></span>
+            <md-button class="md-icon-button"
+                       ng-click="close()"
+                       aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <div class="table-container">
+            <table class="saved-identifications-table">
+                <thead>
+                    <tr>
+                        <th ng-repeat="column in columnList track by $index">
+                            {{column}}
+                        </th>
+                        <th class="button-column"></th>
+                        <th class="button-column"></th>
+                        <th class="button-column"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in identificationsModel track by $index">
+                        <td>
+                            <input class="saved-identifications-table-input"
+                                   spellcheck="false"
+                                   required
+                                   name="name"
+                                   ng-model="item.name">
+                        </td>
+                        <td>
+                            <md-chips ng-model="item.genesOfInterest"
+                                      md-autocomplete-snap
+                                      md-require-match="true"
+                                      md-removable="true"
+                                      md-chips-trim
+                                      flex="30">
+                                <md-autocomplete md-search-text="searchText"
+                                                 md-clear-button="true"
+                                                 md-menu-class="saved-md-autocomplete"
+                                                 md-no-cache="true"
+                                                 md-items="gene in getFilteredGenes(searchText, item)"
+                                                 md-item-text="gene.span"
+                                                 md-delay="100"
+                                                 md-min-length="0"
+                                                 md-selected-item-change="genesOfInterestChanged(gene, item)"
+                                                 md-match-case-insensitive="true">
+                                    <md-item-template>
+                                        <span md-highlight-text="searchText"
+                                              md-highlight-flags="gi"
+                                              ng-class="{'span-padding': gene.item}">
+                                            {{gene.span}}
+                                        </span>
+                                    </md-item-template>
+                                    <md-not-found>
+                                        Not found.
+                                    </md-not-found>
+                                </md-autocomplete>
+                                <md-chip-template>
+                                    <span>{{$chip.chip}}</span>
+                                </md-chip-template>
+                                <ng-md-icon icon="close"
+                                            md-chip-remove=""
+                                            size="12"
+                                ></ng-md-icon>
+                            </md-chips>
+                        </td>
+                        <td>
+                            <md-chips ng-model="item.translationalGenes"
+                                      md-autocomplete-snap
+                                      md-require-match="true"
+                                      md-removable="true"
+                                      md-chips-trim
+                                      flex="30">
+                                <md-autocomplete md-search-text="searchText"
+                                                 md-clear-button="true"
+                                                 md-menu-class="saved-md-autocomplete"
+                                                 md-no-cache="true"
+                                                 md-items="gene in getFilteredGenes(searchText, item)"
+                                                 md-item-text="gene.span"
+                                                 md-delay="100"
+                                                 md-min-length="0"
+                                                 md-selected-item-change="translationalGenesChanged(gene, item)"
+                                                 md-match-case-insensitive="true">
+                                    <md-item-template>
+                                        <span md-highlight-text="searchText"
+                                              md-highlight-flags="gi"
+                                              ng-class="{'span-padding': gene.item}">
+                                            {{gene.span}}
+                                        </span>
+                                    </md-item-template>
+                                    <md-not-found>
+                                        Not found.
+                                    </md-not-found>
+                                </md-autocomplete>
+                                <md-chip-template>
+                                    <span>{{$chip.chip}}</span>
+                                </md-chip-template>
+                                <ng-md-icon icon="close"
+                                            md-chip-remove=""
+                                            size="12"
+                                ></ng-md-icon>
+                            </md-chips>
+                        </td>
+                        <td class="button-column">
+                            <md-button class="md-icon-button"
+                                       ng-click="onClickSave($index)"
+                                       aria-label="Save">
+                                <ng-md-icon icon="save" size="20pt"></ng-md-icon>
+                            </md-button>
+                        </td>
+                        <td class="button-column">
+                            <md-button class="md-icon-button"
+                                       ng-click="onClickLaunch($index)"
+                                       aria-label="Launch">
+                                <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
+                            </md-button>
+                        </td>
+                        <td class="button-column">
+                            <md-button class="md-icon-button delete"
+                                       ng-click="onClickDelete($index)"
+                                       aria-label="Delete">
+                                <ng-md-icon icon="delete_sweep" size="20pt"></ng-md-icon>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </md-dialog-content>
+</md-dialog>

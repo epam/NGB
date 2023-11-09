@@ -121,11 +121,29 @@ export default class NgbTargetPanelService {
     }
 
     exportResults() {
-        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
         return this.targetDataService.getTargetReport(this.geneIdsOfInterest, this.translationalGeneIds);
+    }
+
+    saveIdentification(name) {
+        const {target} = this.identificationTarget || {};
+        const genesOfInterest = this.geneIdsOfInterest;
+        const translationalGenes = this.translationalGeneIds;
+        if (!target || !name || !genesOfInterest.length || !translationalGenes.length) {
+            return new Promise(resolve => {
+                resolve(false);
+            });
+        }
+        const request = {
+            name,
+            targetId: target.id,
+            genesOfInterest,
+            translationalGenes,
+        };
+        return this.targetDataService.postIdentification(request);
     }
 }

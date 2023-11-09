@@ -1,0 +1,25 @@
+<md-dialog aria-label="feature"
+           class="saving-identification-dialog">
+    <md-dialog-content>
+        <div class="input-container">
+            <input class="save-identification-name-input"
+                   ng-auto-focus
+                   required
+                   spellcheck="false"
+                   placeholder="Specify identification name"
+                   ng-model="nameModel" />
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button ng-click="save()"
+                   class="md-primary"
+                   style="margin-right: 20px;"
+                   ng-disabled="!nameModel">
+            Save
+        </md-button>
+        <md-button ng-click="cancel()"
+                   style="margin-right: 20px;">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

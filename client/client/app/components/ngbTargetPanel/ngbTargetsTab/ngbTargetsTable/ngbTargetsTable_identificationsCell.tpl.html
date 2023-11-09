@@ -1,0 +1,9 @@
+<md-button aria-label="identifications" class="md-icon-button"
+           ng-click="grid.appScope.$ctrl.onClickIdentifications($event, row.entity)"
+           ng-if="row.entity[col.field] && row.entity[col.field].length">
+    <ng-md-icon aria-label="saved identifications"
+             class="icon-beenhere"
+             size="14pt"
+             icon="beenhere">
+    </ng-md-icon>
+</md-button>

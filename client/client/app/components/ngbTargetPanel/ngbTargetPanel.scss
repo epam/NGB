@@ -1,3 +1,5 @@
+@import "./ngbTargetPanel.variables";
+
 .target-panel {
   display: flex;
   flex-direction: column;
@@ -17,12 +19,33 @@
     }
   }
 
-  .md-button.download {
+  .md-button.with-circular {
     display: flex;
   }
 
   md-progress-circular {
     margin: 0 10px;
+  }
+
+  ngb-panel-error-list {
+    padding: 0;
+
+    .layout-padding, .layout-padding > * {
+        padding: 0;
+    }
+
+    .ngb-panel-error-list md-content.md-warn {
+        border-top: 0;
+    }
+
+    md-list-item, md-list-item .md-list-item-inner {
+        min-height: 18px;
+        height: 19px;
+        overflow: hidden;
+        font-size: $general-font-size;
+        float: right;
+        padding: 0 50px;
+    }
   }
 }
 
@@ -44,14 +67,48 @@
 }
 
 .ngb-target-panel-extra-button {
-  position: absolute;
-  z-index: 2;
-  right: 15px;
-  top: 6px;
   min-height: 25px;
   height: 25px;
   line-height: 25px;
   min-width: unset;
   width: unset;
-  margin: 0;
+  margin: 0 10px;
+  padding: 0 15px;
+}
+
+.button-container {
+  position: absolute;
+  z-index: 2;
+  right: 15px;
+  top: 6px;
+  display: flex;
+}
+
+.saving-identification-dialog {
+
+  md-dialog-content {
+    width: 100%;
+  }
+
+  .input-container {
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    height: 100px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .save-identification-name-input {
+    width: 80%;
+    margin: 2px 0;
+    border-radius: 0;
+    border: none;
+    background: #fafafa;
+    height: 40px;
+    color: #444444;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #c7c7c7;
+  }
 }
