@@ -33,8 +33,8 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Getter
 public enum PdbFileField implements ExportField<PdbFile> {
-    ID("ID", o -> String.valueOf(o.getPdbFileId())),
-    NAME("Name", PdbFile::getName),
+    ID("ID", PdbFile::getName),
+    NAME("Name", PdbFile::getPrettyName),
     OWNER("Owner", PdbFile::getOwner);
     private String label;
     private Function<PdbFile, String> getter;
