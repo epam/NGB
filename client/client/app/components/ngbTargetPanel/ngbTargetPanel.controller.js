@@ -97,6 +97,7 @@ export default class ngbTargetPanelController {
     changeTab(tab) {
         if (this.targetTab.hasOwnProperty(tab)) {
             this.tabSelected = this.targetTab[tab];
+            this.targetContext.setCurrentTab(this.targetTab[tab]);
         }
         this.$timeout(() => this.$scope.$apply());
     }
@@ -104,7 +105,14 @@ export default class ngbTargetPanelController {
     async changeState(state) {
         await this.changeIdentificationState(state);
         await this.changeDiseaseState(state);
+        this.changeTabState(state);
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    changeTabState(state) {
+        const {tab} = state;
+        if (!tab) return;
+        this.changeTab(tab);
     }
 
     async changeIdentificationState(state) {
@@ -135,8 +143,7 @@ export default class ngbTargetPanelController {
     }
 
     showIdentificationTab() {
-        this.tabSelected = this.targetTab.IDENTIFICATIONS;
-        this.$timeout(() => this.$scope.$apply());
+        this.changeTab(this.targetTab.IDENTIFICATIONS)
     }
 
     createTargetFromHomologs() {
@@ -144,15 +151,13 @@ export default class ngbTargetPanelController {
     }
 
     showDiseasesTab(disease) {
-        this.tabSelected = this.targetTab.DISEASES;
+        this.changeTab(this.targetTab.DISEASES)
         this.$timeout(() => {
-            this.$scope.$apply();
             this.ngbDiseasesTabService.viewDiseaseFromTable(disease);
         });
     }
 
     showTargetsTab() {
-        this.tabSelected = this.targetTab.TARGETS;
-        this.$timeout(() => this.$scope.$apply());
+        this.changeTab(this.targetTab.TARGETS)
     }
 }
