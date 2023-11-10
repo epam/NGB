@@ -36,6 +36,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -80,8 +81,9 @@ public class PubMedService {
                 .collect(Collectors.toList());
         final String retStart = String.valueOf(((request.getPage() - 1) * request.getPageSize()));
         final String retMax = String.valueOf(request.getPageSize());
-
-        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        final String term = TextUtils.isBlank(request.getKeywords()) ? pubMedSearchContext :
+                String.format("%s %s", pubMedSearchContext, request.getKeywords()).trim();
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, term);
         final List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery, retStart, retMax);
         final int totalCount = ncbiGeneManager.pubmedDataCount(historyQuery);
 
