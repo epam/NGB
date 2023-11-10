@@ -1,0 +1,23 @@
+{
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build"
+	},
+	"dependencies": {
+		"@headlessui/react": "^1.7.17",
+		"@headlessui/tailwindcss": "^0.2.0",
+		"@heroicons/react": "^2.0.18",
+		"classnames": "^2.3.2",
+		"preact": "^10.13.1"
+	},
+	"devDependencies": {
+		"@preact/preset-vite": "^2.5.0",
+		"autoprefixer": "^10.4.16",
+		"postcss": "^8.4.31",
+		"tailwindcss": "^3.3.3",
+		"vite": "^4.3.2",
+		"vite-plugin-singlefile": "^0.13.5"
+	}
+}
