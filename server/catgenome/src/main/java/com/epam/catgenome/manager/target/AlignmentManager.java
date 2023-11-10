@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.AlignmentException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import com.google.common.collect.Lists;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,7 @@ public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
     public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";
     public static final String EMPTY_LINE = "\n\n";
+    private static final Integer FETCH_SEQUENCES_BATCH_SIZE = 50;
 
     @Value("${muscle.path}")
     private String musclePath;
@@ -228,7 +230,14 @@ public class AlignmentManager {
     }
 
     private String getProteinsFasta(final List<String> proteinIds) throws ExternalDbUnavailableException {
-        return ncbiDataManager.fetchTextById("protein", join(proteinIds, ","), "fasta");
+        final StringBuilder result = new StringBuilder();
+        final List<List<String>> subSets = Lists.partition(proteinIds, FETCH_SEQUENCES_BATCH_SIZE);
+        String proteins;
+        for (List<String> subIds : subSets) {
+            proteins = ncbiDataManager.fetchTextById("protein", join(subIds, ","), "fasta");
+            result.append(proteins);
+        }
+        return result.toString();
     }
 
     private String extractSequenceId(final String fasta) {
