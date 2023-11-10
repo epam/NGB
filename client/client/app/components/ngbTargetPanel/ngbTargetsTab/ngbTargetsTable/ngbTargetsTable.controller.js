@@ -53,11 +53,13 @@ export default class ngbTargetsTableController {
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
         const refreshTable = this.refreshTable.bind(this);
+        dispatcher.on('target:table:update', filterChanged);
         dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         dispatcher.on('target:launch:failed', refreshTable);
         $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:table:update', filterChanged);
             dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);

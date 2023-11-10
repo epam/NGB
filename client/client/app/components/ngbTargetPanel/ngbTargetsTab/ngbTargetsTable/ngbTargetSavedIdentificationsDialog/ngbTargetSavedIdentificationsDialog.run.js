@@ -9,30 +9,36 @@ export default function run(
     $mdDialog,
     $timeout,
     dispatcher,
+    targetDataService
 ) {
     const displaySavedIdentificationsDialog = async (target) => {
         $mdDialog.show({
             template: require('./ngbTargetSavedIdentificationsDialog.tpl.html'),
             controller: function ($scope) {
                 $scope.columnList = COLUMN_LIST;
+                $scope.actionFailed = false;
+                $scope.errorMessageList = null;
                 $scope.name = target.name;
                 $scope.genes = groupedBySpecies(target.species.value);
                 $scope.searchText = null;
                 
                 $scope.identificationsModel = target.identifications.map(t => {
-                    const {name, genesOfInterest, translationalGenes} = t;
+                    const {id, name, genesOfInterest, translationalGenes} = t;
                     const getGeneById = (id) => {
-                        const genes = $scope.genes.filter(gene => gene.geneId === id);
+                        const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === id);
+                        console.log(id, genes)
                         return genes.length ? genes[0] : undefined;
                     };
                     return {
-                        name: name,
+                        id,
+                        name,
                         genesOfInterest: genesOfInterest
                             .map(geneId => getGeneById(geneId))
                             .filter(i => i),
                         translationalGenes: translationalGenes
                             .map(geneId => getGeneById(geneId))
-                            .filter(i => i)
+                            .filter(i => i),
+                        actionLoading: false,
                     }
                 })
 
@@ -96,7 +102,37 @@ export default function run(
 
                 $scope.onClickSave = (index) => {}
 
-                $scope.onClickDelete = (index) => {}
+                function deleteTarget(id) {
+                    return new Promise((resolve) => {
+                        targetDataService.deleteIdentification(id)
+                            .then(() => {
+                                $scope.errorMessageList = null;
+                                $scope.actionFailed = false;
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                $scope.errorMessageList = [error.message];
+                                $scope.actionFailed = true;
+                                resolve(false);
+                            });
+                    });
+                }
+
+                $scope.onClickDelete = async (index) => {
+                    const id = $scope.identificationsModel[index].id;
+                    if (!id) return;
+                    $scope.identificationsModel[index].actionLoading = true;
+                    const result = await deleteTarget(id);
+                    if (result) {
+                        $scope.identificationsModel = $scope.identificationsModel
+                            .filter((item, i) => i !== index);
+                        if (!$scope.identificationsModel.length) {
+                            $scope.close();
+                            dispatcher.emit('target:table:update');
+                        }
+                        $timeout(() => $scope.$apply());
+                    }
+                }
 
                 $scope.onClickLaunch = (index) => {}
 

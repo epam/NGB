@@ -12,6 +12,9 @@
         </div>
     </md-toolbar>
     <md-dialog-content>
+        <div ng-class="{'hidden': !actionFailed}">
+            <ngb-panel-error-list message-list="errorMessageList"></ngb-panel-error-list>
+        </div>
         <div class="table-container">
             <table class="saved-identifications-table">
                 <thead>
@@ -25,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="item in identificationsModel track by $index">
+                    <tr ng-repeat="item in identificationsModel track by item.id">
                         <td>
                             <input class="saved-identifications-table-input"
                                    spellcheck="false"
@@ -110,6 +113,7 @@
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickSave($index)"
+                                       ng-disabled="item.actionLoading"
                                        aria-label="Save">
                                 <ng-md-icon icon="save" size="20pt"></ng-md-icon>
                             </md-button>
@@ -117,6 +121,7 @@
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
+                                       ng-disabled="item.actionLoading"
                                        aria-label="Launch">
                                 <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
                             </md-button>
@@ -124,8 +129,15 @@
                         <td class="button-column">
                             <md-button class="md-icon-button delete"
                                        ng-click="onClickDelete($index)"
+                                       ng-disabled="item.actionLoading"
                                        aria-label="Delete">
-                                <ng-md-icon icon="delete_sweep" size="20pt"></ng-md-icon>
+                                <ng-md-icon icon="delete_sweep"
+                                            size="20pt"
+                                            ng-if="!item.actionLoading">
+                                </ng-md-icon>
+                                <md-progress-circular ng-if="item.actionLoading"
+                                                      md-diameter="20pt">
+                                </md-progress-circular>
                             </md-button>
                         </td>
                     </tr>

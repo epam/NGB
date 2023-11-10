@@ -180,22 +180,23 @@ export default class ngbTargetPanelController {
         this.$timeout(() => this.$scope.$apply());
     }
 
-    saveIdentification(name) {
+    async saveIdentification(name) {
         this.saveLoading = true;
-        this.ngbTargetPanelService.saveIdentification(name)
+        await this.ngbTargetPanelService.saveIdentification(name)
             .then(data => {
                 if (data) {
                     this.saveStatus = this.statusOptions.SAVED;
                 }
-                this.saveLoading = false;
                 this.saveFailed = false;
                 this.errorMessageList = null;
+                this.saveLoading = false;
             })
             .catch(error => {
-                this.saveLoading = false;
                 this.saveFailed = true;
                 this.errorMessageList = [error.message];
-            })
+                this.saveLoading = false;
+            });
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onClickSave() {

@@ -20,6 +20,12 @@ md-dialog.saved-dialog {
     .md-button {
         &.md-icon-button.delete {
             fill: rgb(183,28,28);
+
+            md-progress-circular {
+                svg path {
+                    stroke: rgb(183,28,28);
+                }
+            }
         }
 
         &:not([disabled]):hover {
@@ -192,6 +198,25 @@ md-dialog.saved-dialog {
     md-chips.md-default-theme .md-chips,
     md-chips .md-chips {
         box-shadow: none;
+    }
+
+    ngb-panel-error-list {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+
+        .ngb-panel-error-list md-content.md-warn {
+            border-top: 0;
+        }
+
+        md-list-item, md-list-item .md-list-item-inner {
+            min-height: 18px;
+            height: 19px;
+            overflow: hidden;
+            font-size: $table-control-font-size;
+        }
     }
 }
 
