@@ -203,10 +203,10 @@ public class TargetManager {
             clauses.add(String.format(EQUAL_CLAUSE_STRING, OWNER, targetQueryParams.getOwner()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
-            clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts(), LIKE_CLAUSE));
+            clauses.add(getListFieldFilterClause(PRODUCTS, targetQueryParams.getProducts()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getDiseases())) {
-            clauses.add(getFilterClause(DISEASES, targetQueryParams.getDiseases(), LIKE_CLAUSE));
+            clauses.add(getListFieldFilterClause(DISEASES, targetQueryParams.getDiseases()));
         }
         if (!CollectionUtils.isEmpty(targetQueryParams.getGeneIds())) {
             clauses.add(getGeneIdsClause(targetQueryParams.getGeneIds()));
@@ -233,6 +233,16 @@ public class TargetManager {
     private static String getFilterClause(final String field, final List<String> values, final String clause) {
         return String.format("(%s)", values.stream()
                 .map(v -> String.format(clause, field, v))
+                .collect(Collectors.joining(Condition.OR.getValue())));
+    }
+
+    private static String getListFieldFilterClause(final String field, final List<String> values) {
+        return String.format("(%s)", values.stream()
+                .map(v -> String.format("(%s OR %s OR %s OR %s)",
+                        String.format("%s = '%s'", field, v),
+                        String.format("%s like '%%,%s,%%'", field, v),
+                        String.format("%s like '%s,%%'", field, v),
+                        String.format("%s like '%%,%s'", field, v)))
                 .collect(Collectors.joining(Condition.OR.getValue())));
     }
 
