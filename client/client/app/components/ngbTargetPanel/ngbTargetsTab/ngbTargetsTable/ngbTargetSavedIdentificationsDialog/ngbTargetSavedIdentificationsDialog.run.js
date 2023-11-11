@@ -9,7 +9,10 @@ export default function run(
     $mdDialog,
     $timeout,
     dispatcher,
-    targetDataService
+    targetDataService,
+    ngbTargetsTabService,
+    ngbTargetPanelService,
+    targetContext,
 ) {
     const displaySavedIdentificationsDialog = async (target) => {
         $mdDialog.show({
@@ -18,6 +21,7 @@ export default function run(
                 $scope.columnList = COLUMN_LIST;
                 $scope.actionFailed = false;
                 $scope.errorMessageList = null;
+                $scope.isChanged = false;
                 $scope.name = target.name;
                 $scope.genes = groupedBySpecies(target.species.value);
                 $scope.searchText = null;
@@ -26,7 +30,6 @@ export default function run(
                     const {id, name, genesOfInterest, translationalGenes} = t;
                     const getGeneById = (id) => {
                         const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === id);
-                        console.log(id, genes)
                         return genes.length ? genes[0] : undefined;
                     };
                     return {
@@ -102,7 +105,7 @@ export default function run(
 
                 $scope.onClickSave = (index) => {}
 
-                function deleteTarget(id) {
+                function deleteIdentification(id) {
                     return new Promise((resolve) => {
                         targetDataService.deleteIdentification(id)
                             .then(() => {
@@ -122,25 +125,94 @@ export default function run(
                     const id = $scope.identificationsModel[index].id;
                     if (!id) return;
                     $scope.identificationsModel[index].actionLoading = true;
-                    const result = await deleteTarget(id);
-                    if (result) {
+                    const isDeleted = await deleteIdentification(id);
+                    if (isDeleted) {
                         $scope.identificationsModel = $scope.identificationsModel
                             .filter((item, i) => i !== index);
                         if (!$scope.identificationsModel.length) {
                             $scope.close();
-                            dispatcher.emit('target:table:update');
                         }
+                        $scope.isChanged = true;
                         $timeout(() => $scope.$apply());
                     }
                 }
 
-                $scope.onClickLaunch = (index) => {}
+                async function launchIdentification(model) {
+                    const params = {
+                        targetId: target.id,
+                        genesOfInterest: model.genesOfInterest.map(s => s.geneId),
+                        translationalGenes: model.translationalGenes.map(s => s.geneId)
+                    };
+                    const info = {
+                        target: target,
+                        interest: model.genesOfInterest,
+                        translational: model.translationalGenes
+                    };
+                    const result = await ngbTargetsTabService.getIdentificationData(params, info);
+                    if (result) {
+                        dispatcher.emit('target:show:identification:tab');
+                        targetContext.setCurrentIdentification(target, model);
+                    }
+                }
+
+                function isIdentificationLaunched(identificationTarget, model) {
+                    if (identificationTarget.target.id !== target.id) return false;
+                        const interest = identificationTarget.interest.map(g => g.geneId).sort();
+                        const translational = identificationTarget.translational.map(g => g.geneId).sort();
+                        const genesOfInterest = model.genesOfInterest.map(g => g.geneId).sort();
+                        const translationalGenes = model.translationalGenes.map(g => g.geneId).sort();
+                        const isEqual = (current, saved) => {
+                            if (current.length !== saved.length) return false;
+                            return saved.every((item, index) => item === current[index]);
+                        }
+                        return isEqual(genesOfInterest, interest)
+                            && isEqual(translationalGenes, translational);
+                }
+
+                function showConfirmDialog(model) {
+                    $mdDialog.show({
+                        template: require('../ngbTargetLaunchDialog/ngbTargetLaunchConfirmDialog.tpl.html'),
+                        controller: function($scope, $mdDialog) {
+                            $scope.launch = function () {
+                                launchIdentification(model);
+                                $mdDialog.hide();
+                                $mdDialog.hide();
+                            };
+                            $scope.cancel = function () {
+                                $mdDialog.hide();
+                            };
+                        },
+                        preserveScope: true,
+                        autoWrap: true,
+                        skipHide: true,
+                    });
+                }
+
+                $scope.onClickLaunch = (index) => {
+                    const {identificationData, identificationTarget} = ngbTargetPanelService;
+                    const model = $scope.identificationsModel[index];
+                    if (identificationData && identificationTarget) {
+                        const isLaunched = isIdentificationLaunched(identificationTarget, model);
+                        if (isLaunched) {
+                            dispatcher.emit('target:show:identification:tab');
+                            $mdDialog.hide();
+                        } else {
+                            showConfirmDialog(model);
+                        }
+                    } else {
+                        launchIdentification(model);
+                        $mdDialog.hide();
+                    }
+                }
 
                 $scope.close = () => {
                     $mdDialog.hide();
+                    if ($scope.isChanged) {
+                        dispatcher.emit('target:table:update');
+                    }
                 };
             },
-            clickOutsideToClose: true
+            clickOutsideToClose: false
         });
     };
     dispatcher.on('target:show:saved:identifications', displaySavedIdentificationsDialog);

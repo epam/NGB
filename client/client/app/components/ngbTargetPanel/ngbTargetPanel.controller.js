@@ -15,7 +15,6 @@ export default class ngbTargetPanelController {
         return TARGET_TAB;
     }
 
-
     get statusOptions() {
         return STATUS_OPTIONS;
     }
@@ -23,7 +22,7 @@ export default class ngbTargetPanelController {
     tabSelected;
     reportLoading = false;
     _nameModel;
-    saveStatus = this.statusOptions.SAVE;
+    _saveStatus;
     saveLoading = false;
     saveFailed = false;
     errorMessageList = null;
@@ -38,6 +37,14 @@ export default class ngbTargetPanelController {
     }
     set nameModel(value) {
         this._nameModel = value;
+    }
+    get saveStatus() {
+        return this.ngbTargetPanelService.isIdentificationSaved
+            ? this.statusOptions.SAVED
+            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+    }
+    set saveStatus(value) {
+        this._saveStatus = value;
     }
 
     static get UID() {

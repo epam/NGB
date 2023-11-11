@@ -48,6 +48,23 @@ export default class NgbTargetPanelService {
         return this._descriptions;
     }
 
+    get isIdentificationSaved() {
+        if (!this.identificationTarget || !this.identificationTarget.target) return false;
+        const {identifications} = this.identificationTarget.target;
+        if (!identifications || !identifications.length) return false;
+        const isSaved = identifications.some(item => {
+            const isEqual = (current, saved) => {
+                if (current.length !== saved.length) return false;
+                const sortedCurrent = [...current].sort();
+                const sortedSaved = [...saved].sort();
+                return sortedSaved.every((item, index) => item === sortedCurrent[index]);
+            }
+            return isEqual(this.geneIdsOfInterest, item.genesOfInterest)
+                && isEqual(this.translationalGeneIds, item.translationalGenes);
+        })
+        return isSaved;
+    }
+
     static instance (appLayout, dispatcher, $sce, targetDataService) {
         return new NgbTargetPanelService(appLayout, dispatcher, $sce, targetDataService);
     }
