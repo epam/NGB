@@ -21,21 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.target.export;
+package com.epam.catgenome.entity.target.export.xls;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TargetHomology {
+@Builder
+public class TargetExportSummary {
+    private String gene;
     private String geneId;
-    private String target;
     private String species;
-    private String homologyType;
-    private String homologue;
-    private String homologyGroup;
-    private String protein;
-    private Long proteinLen;
-    private String domains;
+    private String type;
+    private String description;
+    private Long knownDrugs;
+    private Long knownDrugRecords;
+    private Long diseases;
+    private Long publications;
+    private String sequences;
+    private Long structures;
+    private Long homologs;
 }
