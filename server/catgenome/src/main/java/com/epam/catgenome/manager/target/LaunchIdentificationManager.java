@@ -313,7 +313,7 @@ public class LaunchIdentificationManager {
         return newText;
     }
 
-    private DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+    public DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);

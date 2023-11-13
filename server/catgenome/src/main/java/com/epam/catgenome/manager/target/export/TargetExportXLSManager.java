@@ -54,8 +54,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssocia
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
-import com.epam.catgenome.manager.target.TargetIdentificationManager;
-import com.epam.catgenome.manager.target.TargetManager;
+import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -90,12 +89,11 @@ public class TargetExportXLSManager {
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final PdbEntriesManager pdbEntriesManager;
     private final PdbFileManager pdbFileManager;
-    private final TargetManager targetManager;
-    private final TargetIdentificationManager identificationManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final PubMedService pubMedService;
     private final NCBISequenceManager geneSequencesManager;
     private final TargetExportManager targetExportManager;
+    private final LaunchIdentificationManager launchIdentificationManager;
 
     public InputStream report(final List<String> genesOfInterest,
                               final List<String> translationalGenes)
@@ -148,7 +146,7 @@ public class TargetExportXLSManager {
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final Map<String, GeneId> genes = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
-        final Map<String, String> descriptions = identificationManager.getDescriptions(ncbiGeneIds);
+        final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
 
         final Map<String, DrugsCount> drugsCountMap = getDrugsCount(geneIds);
 

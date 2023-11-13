@@ -44,7 +44,7 @@ import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
-import com.epam.catgenome.manager.target.TargetIdentificationManager;
+import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.entity.target.export.TargetHomologue;
 import com.epam.catgenome.util.NgbFileUtils;
@@ -70,7 +70,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Service
 public class TargetExportHTMLManager {
     private static final String DATA_PLACEHOLDER = "\"TARGET_IDENTIFICATION_DATA\"";
-    private final TargetIdentificationManager identificationManager;
+    private final LaunchIdentificationManager launchIdentificationManager;
     private final TargetExportManager targetExportManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final PubMedService pubMedService;
@@ -78,14 +78,14 @@ public class TargetExportHTMLManager {
     private final TargetManager targetManager;
     private final String templatePath;
 
-    public TargetExportHTMLManager(final TargetIdentificationManager identificationManager,
+    public TargetExportHTMLManager(final LaunchIdentificationManager launchIdentificationManager,
                                    final TargetExportManager targetExportManager,
                                    final NCBIGeneIdsManager ncbiGeneIdsManager,
                                    final PubMedService pubMedService,
                                    final NCBISequenceManager geneSequencesManager,
                                    final TargetManager targetManager,
                                    final @Value("${target.export.html.template:}") String templatePath) {
-        this.identificationManager = identificationManager;
+        this.launchIdentificationManager = launchIdentificationManager;
         this.targetExportManager = targetExportManager;
         this.ncbiGeneIdsManager = ncbiGeneIdsManager;
         this.pubMedService = pubMedService;
@@ -123,7 +123,7 @@ public class TargetExportHTMLManager {
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(genesOfInterest,
                 translationalGenes, geneNamesMap);
 
-        final DrugsCount drugsCount = identificationManager.getDrugsCount(geneIds);
+        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
         final long homologsCount = comparativeGenomics.size();
         final SequencesSummary sequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
@@ -150,7 +150,7 @@ public class TargetExportHTMLManager {
         final List<GeneDetails> interest = new ArrayList<>();
         final List<GeneDetails> translational = new ArrayList<>();
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
-        final Map<String, String> descriptions = identificationManager.getDescriptions(ncbiGeneIds);
+        final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
         for (String geneId : geneIds) {
             TargetGene gene = genesMap.get(geneId);
             boolean isGeneOfInterest = genesOfInterest.stream()
@@ -203,7 +203,7 @@ public class TargetExportHTMLManager {
     private List<Sequence> getSequences(final List<String> geneIds)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
-        final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(geneIds,
+        final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(geneIds,
                 false);
         final List<Sequence> sequences = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {

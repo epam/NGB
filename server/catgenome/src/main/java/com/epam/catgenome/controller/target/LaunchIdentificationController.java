@@ -366,6 +366,23 @@ public class LaunchIdentificationController extends AbstractRESTController {
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
     }
 
+    @GetMapping(value = "/target/html")
+    @ApiOperation(
+            value = "Downloads target identification html export",
+            notes = "Downloads target identification html export",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void html(@RequestParam final List<String> genesOfInterest,
+                     @RequestParam final List<String> translationalGenes,
+                     @RequestParam final long targetId,
+                     HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final InputStream inputStream = exportSecurityService.html(genesOfInterest, translationalGenes, targetId);
+        writeStreamToResponse(response, inputStream, "Target_Identification.html");
+    }
+
     @GetMapping(value = "/target/genes/{prefix}")
     @ApiOperation(
             value = "Searched genes by specified prefix",
