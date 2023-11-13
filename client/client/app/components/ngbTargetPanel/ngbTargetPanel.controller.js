@@ -10,7 +10,6 @@ const STATUS_OPTIONS = {
 };
 
 const DOWNLOAD_OPTIONS = {
-    DOWNLOAD: 'DOWNLOAD',
     EXCEL: 'Excel',
     HTML: 'HTML',
 };
@@ -36,6 +35,7 @@ export default class ngbTargetPanelController {
     saveLoading = false;
     saveFailed = false;
     errorMessageList = null;
+    downloadModel;
 
     get identificationTabIsShown() {
         const {identificationTarget, identificationData} = this.ngbTargetPanelService;
@@ -82,7 +82,7 @@ export default class ngbTargetPanelController {
             $mdDialog,
         });
         this.tabSelected = this.targetTab.TARGETS;
-        this.downloadModel = this.downloadOptions.DOWNLOAD;
+        ;
         dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
@@ -112,14 +112,13 @@ export default class ngbTargetPanelController {
     }
 
     onChangeDownload() {
-        const {DOWNLOAD, EXCEL, HTML} = this.downloadOptions;
-        if (this.downloadModel === DOWNLOAD) return;
+        const {EXCEL, HTML} = this.downloadOptions;
         if (this.downloadModel === EXCEL) {
-            this.downloadModel = DOWNLOAD;
+            this.downloadModel = undefined;
             this.donwloadReport(this.format.XLS);
         }
         if (this.downloadModel === HTML) {
-            this.downloadModel = DOWNLOAD;
+            this.downloadModel = undefined;
             this.donwloadReport(this.format.HTML);
         }
     }
