@@ -27,92 +27,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="model in identificationsModel track by model.id">
+                    <tr ng-repeat="identification in identifications track by identification.id">
                         <td>
-                            <input class="saved-identifications-table-input"
-                                   spellcheck="false"
-                                   required
-                                   name="name"
-                                   ng-model="model.name">
+                            <span class="identification-name">
+                                {{identification.name}}
+                            </span>
                         </td>
                         <td>
-                            <md-chips ng-model="model.genesOfInterest"
-                                      md-autocomplete-snap
-                                      md-require-match="true"
-                                      md-removable="true"
-                                      md-chips-trim
-                                      flex="30">
-                                <md-autocomplete md-search-text="searchText"
-                                                 md-clear-button="true"
-                                                 md-menu-class="saved-md-autocomplete"
-                                                 md-no-cache="true"
-                                                 md-items="gene in getFilteredGenes(searchText, model)"
-                                                 md-item-text="gene.span"
-                                                 md-delay="100"
-                                                 md-min-length="0"
-                                                 md-selected-item-change="genesOfInterestChanged(gene, model)"
-                                                 md-match-case-insensitive="true">
-                                    <md-item-template>
-                                        <span md-highlight-text="searchText"
-                                              md-highlight-flags="gi"
-                                              ng-class="{'span-padding': gene.item}">
-                                            {{gene.span}}
-                                        </span>
-                                    </md-item-template>
-                                    <md-not-found>
-                                        Not found.
-                                    </md-not-found>
-                                </md-autocomplete>
-                                <md-chip-template>
-                                    <span>{{$chip.chip}}</span>
-                                </md-chip-template>
-                                <ng-md-icon icon="close"
-                                            md-chip-remove=""
-                                            size="12"
-                                ></ng-md-icon>
-                            </md-chips>
+                            <div class="identification-genes">
+                                <p ng-repeat="gene in identification.genesOfInterest track by $index">
+                                    {{gene.geneName}} ({{gene.speciesName}})
+                                </p>
+                            </div>
                         </td>
                         <td>
-                            <md-chips ng-model="model.translationalGenes"
-                                      md-autocomplete-snap
-                                      md-require-match="true"
-                                      md-removable="true"
-                                      md-chips-trim
-                                      flex="30">
-                                <md-autocomplete md-search-text="searchText"
-                                                 md-clear-button="true"
-                                                 md-menu-class="saved-md-autocomplete"
-                                                 md-no-cache="true"
-                                                 md-items="gene in getFilteredGenes(searchText, model)"
-                                                 md-item-text="gene.span"
-                                                 md-delay="100"
-                                                 md-min-length="0"
-                                                 md-selected-item-change="translationalGenesChanged(gene, model)"
-                                                 md-match-case-insensitive="true">
-                                    <md-item-template>
-                                        <span md-highlight-text="searchText"
-                                              md-highlight-flags="gi"
-                                              ng-class="{'span-padding': gene.item}">
-                                            {{gene.span}}
-                                        </span>
-                                    </md-item-template>
-                                    <md-not-found>
-                                        Not found.
-                                    </md-not-found>
-                                </md-autocomplete>
-                                <md-chip-template>
-                                    <span>{{$chip.chip}}</span>
-                                </md-chip-template>
-                                <ng-md-icon icon="close"
-                                            md-chip-remove=""
-                                            size="12"
-                                ></ng-md-icon>
-                            </md-chips>
+                            <div class="identification-genes">
+                                <p ng-repeat="gene in identification.translationalGenes track by $index">
+                                    {{gene.geneName}} ({{gene.speciesName}})
+                                </p>
+                            </div>
                         </td>
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
-                                       ng-disabled="model.deleteLoading"
+                                       ng-disabled="identification.deleteLoading"
                                        aria-label="Launch">
                                 <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
                             </md-button>
@@ -120,13 +58,13 @@
                         <td class="button-column">
                             <md-button class="md-icon-button delete"
                                        ng-click="onClickDelete($index)"
-                                       ng-disabled="model.deleteLoading"
+                                       ng-disabled="identification.deleteLoading"
                                        aria-label="Delete">
                                 <ng-md-icon icon="delete_sweep"
                                             size="20pt"
-                                            ng-if="!model.deleteLoading">
+                                            ng-if="!identification.deleteLoading">
                                 </ng-md-icon>
-                                <md-progress-circular ng-if="model.deleteLoading"
+                                <md-progress-circular ng-if="identification.deleteLoading"
                                                       md-diameter="20pt">
                                 </md-progress-circular>
                             </md-button>

@@ -12,8 +12,6 @@ md-dialog.saved-dialog {
     }
 
     md-dialog-content {
-        margin-bottom: 20px;
-        padding: 0 10px;
         overflow: auto;
     }
 
@@ -53,7 +51,7 @@ md-dialog.saved-dialog {
 
             th {
                 padding: $table-header-cell-padding;
-                background: $section-header-background;
+                background: transparent;
                 line-height: $table-header-cell-height;
                 height: $table-header-cell-height;
                 font-size: $table-header-cell-font-size;
@@ -62,11 +60,13 @@ md-dialog.saved-dialog {
             }
             tr td {
                 padding: $table-cell-padding;
-                vertical-align: bottom;
+                vertical-align: top;
+                color: rgba(0,0,0,0.87);
             }
     
             tr th:nth-child(1),
             tr td:nth-child(1) {
+                padding-left: 10px;
                 width: 25%;
             }
     
@@ -81,123 +81,27 @@ md-dialog.saved-dialog {
             tr td.button-column {
                 width: max($table-control-height, 30px);
             }
-        }
-    }
 
-    input.saved-identifications-table-input {
-        width: 100%;
-        flex: 1;
-        margin: 2px 0 0 0;
-        border-radius: $table-control-border-radius;
-        border: none;
-        background: transparent;
-        min-height: $table-control-height;
-        color: $table-control-font-color;
-        padding: $table-control-padding;
-        font-size: $table-control-font-size;
-        box-sizing: border-box;
-        border-bottom: 1px solid darken($table-control-background, 20%);
-    
-        &.error {
-            border-color: red;
-        }
-    
-        &:hover:not(:focus) {
-            background: $table-control-background;
-            border-bottom: 1px solid #aaaaaa;
-        }
-        &:hover,
-        &:active,
-        &:focus {
-            outline: none;
-        }
-    }
-
-    md-chips {
-        .md-chips.md-removable md-chip {
-            padding: 0 $md-chip-remove-width 0 calc($md-chip-remove-width / 2.0);
-        }
-
-        .md-chips md-chip,
-        .md-chips .md-chip-input-container {
-            margin: 2px 3px;
-        }
-
-        md-chip {
-            display: flex;
-            align-items: center;
-            height: $md-chip-size;
-            line-height: $md-chip-size;
-            border-radius: $md-chip-border-radius;
-            padding: 0 $md-chip-border-radius;
-            font-size: $md-chip-font-size;
-
-            .md-chip-content {
-                display: flex;
-                align-items: center;
-                height: $md-chip-size;
-                line-height: $md-chip-size;
-                padding: 0;
-                margin: 0;
-            }
-
-            .md-chip-remove-container {
-                width: $md-chip-remove-width;
-                height: $md-chip-size;
-                line-height: $md-chip-size;
-                right: 2px;
-
-                ng-md-icon {
-                    width: $md-chip-remove-width;
-                    height: $md-chip-size;
-                    text-align: center;
-                    cursor: pointer;
-
-                    svg {
-                        width: calc($md-chip-remove-width / 2.0);
-                        height: calc($md-chip-remove-width / 2.0);
-                        fill: $md-chip-color;
-                    }
-
-                    &:hover svg {
-                        fill: darken($md-chip-color, 50%);
-                    }
-                }
+            tbody tr:nth-child(odd) {
+                background-color: #ececec;
             }
         }
 
-        .md-chips .md-chip-input-container {
-            line-height: $md-chip-size;
-            height: $md-chip-size;
+        .identification-name {
+            font-size: 14px;
+            margin: 10px 4px 10px 4px;
+            display: block;
+        }
 
-            md-autocomplete,
-            md-autocomplete-wrap,
-            input {
-                line-height: $md-chip-size;
-                height: $md-chip-size;
-                font-size: $md-chip-font-size;
+        .identification-genes {
+            font-size: 12px;
+            align-self: center;
+            padding: 5px;
+
+            p {
+                margin: 2px 0;
             }
         }
-    }
-
-    md-chips-wrap {
-        border-bottom: 1px solid #cccccc;
-        border-radius: 0;
-        min-height: calc($md-chip-size + 2px);
-        height: auto;
-        padding: 0;
-
-        &:hover {
-            background: $table-control-background;
-            border-bottom: 1px solid #aaaaaa;
-        }
-    }
-
-    md-chips.md-default-theme .md-chips.md-focused,
-    md-chips .md-chips.md-focused,
-    md-chips.md-default-theme .md-chips,
-    md-chips .md-chips {
-        box-shadow: none;
     }
 
     ngb-panel-error-list {
@@ -218,15 +122,4 @@ md-dialog.saved-dialog {
             font-size: $table-control-font-size;
         }
     }
-}
-
-.saved-md-autocomplete.md-autocomplete-suggestions li {
-    font-size: $md-chip-font-size;
-    padding: 0 5px;
-    line-height: $md-chip-size;
-    height: $md-chip-size;
-}
-
-.saved-md-autocomplete.md-autocomplete-suggestions li .span-padding {
-    padding: 0 20px;
 }

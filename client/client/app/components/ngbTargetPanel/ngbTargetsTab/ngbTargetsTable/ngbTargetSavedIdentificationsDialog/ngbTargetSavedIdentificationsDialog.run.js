@@ -1,8 +1,3 @@
-import {
-    groupedBySpecies,
-    createFilterFor,
-} from '../utilities/autocompleteFunctions';
-
 const COLUMN_LIST = ['name', 'genes of interest', 'translational genes'];
 
 export default function run(
@@ -23,93 +18,35 @@ export default function run(
                 $scope.errorMessageList = null;
                 $scope.isChanged = false;
                 $scope.name = target.name;
-                $scope.genes = groupedBySpecies(target.species.value);
-                $scope.searchText = null;
-                
-                $scope.identificationsModel = target.identifications.map(t => {
+
+                $scope.identifications = target.identifications.map(t => {
                     const {id, name, genesOfInterest, translationalGenes} = t;
-                    const getGeneById = (genes) => {
-                        const arr = genes.reduce((acc, geneId) => {
-                            const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === geneId);
-                            if (!genes.length) return;
-                            if (genes.length === 1) {
-                                acc.push(genes[0]);
-                            } else {
-                                const notIncluded = genes.filter(g => {
-                                    return !acc.filter(a => a.hidden === g.hidden).length;
-                                });
-                                acc.push(notIncluded[0]);
-                            }
-                            return acc;
-                        }, []);
-                        return arr.filter(i => i);
+                    const getGenesById = (ids) => {
+                        return ids
+                            .reduce((acc, id) => {
+                                const genesWithId = target.species.value.filter(s => s.geneId === id);
+                                if (!genesWithId.length) return;
+                                if (genesWithId.length === 1) {
+                                    acc.push(genesWithId[0]);
+                                } else {
+                                    const notIncluded = genesWithId.filter(g => {
+                                        return !acc.filter(a => (a.speciesName === g.speciesName
+                                            && a.geneName === g.geneName)).length;
+                                    });
+                                    acc.push(notIncluded[0]);
+                                }
+                                return acc;
+                            }, [])
+                            .filter(i => i);
                     }
                     return {
                         id,
                         name,
-                        genesOfInterest: getGeneById(genesOfInterest),
-                        translationalGenes: getGeneById(translationalGenes),
+                        genesOfInterest: getGenesById(genesOfInterest),
+                        translationalGenes: getGenesById(translationalGenes),
                         deleteLoading: false,
                     }
                 })
-
-                function getGroupItems(item, model) {
-                    const { genesOfInterest = [], translationalGenes = [] } = model;
-                    return $scope.genes.filter(s => s.item
-                        && s.speciesName === item.speciesName
-                        && !genesOfInterest.includes(s)
-                        && !translationalGenes.includes(s));
-                }
-
-                $scope.getFilteredGenes = (text, model) => {
-                    const filterGroupHead = (model) => {
-                        return (gene) => {
-                            if (gene.group) {
-                                const items = getGroupItems(gene, model);
-                                return items.length;
-                            }
-                            return true;
-                        };
-                    };
-                    const genes = $scope.genes
-                        .filter(s => !model.genesOfInterest.includes(s))
-                        .filter(s => !model.translationalGenes.includes(s))
-                        .filter(filterGroupHead(model));
-                    if (!text) return genes;
-                    return genes.filter(createFilterFor(text));
-                }
-
-                $scope.genesOfInterestChanged = (item, model) => {
-                    if (item && item.group) {
-                        const items = getGroupItems(item, model);
-                        for (let i = 0; i < items.length; i++) {
-                            model.genesOfInterest.push(items[i]);
-                        }
-                        $timeout(() => {
-                            const i = model.genesOfInterest.indexOf(item);
-                            if (i) {
-                                model.genesOfInterest.splice(i, 1);
-                            }
-                        });
-                    }
-                    document.activeElement.blur();
-                };
-
-                $scope.translationalGenesChanged = (item, model) => {
-                    if (item && item.group) {
-                        const items = getGroupItems(item, model);
-                        for (let i = 0; i < items.length; i++) {
-                            model.translationalGenes.push(items[i]);
-                        }
-                        $timeout(() => {
-                            const index = model.translationalGenes.indexOf(item);
-                            if (index) {
-                                model.translationalGenes.splice(index, 1);
-                            }
-                        });
-                    }
-                    document.activeElement.blur();
-                };
 
                 function deleteIdentification(id) {
                     return new Promise((resolve) => {
@@ -128,45 +65,46 @@ export default function run(
                 }
 
                 $scope.onClickDelete = async (index) => {
-                    const id = $scope.identificationsModel[index].id;
+                    const id = $scope.identifications[index].id;
                     if (!id) return;
-                    $scope.identificationsModel[index].deleteLoading = true;
+                    $scope.identifications[index].deleteLoading = true;
                     const isDeleted = await deleteIdentification(id);
                     if (isDeleted) {
-                        $scope.identificationsModel = $scope.identificationsModel
+                        $scope.identifications = $scope.identifications
                             .filter((item, i) => i !== index);
                         $scope.isChanged = true;
-                        if (!$scope.identificationsModel.length) {
+                        if (!$scope.identifications.length) {
                             $scope.close();
                         }
                         $timeout(() => $scope.$apply());
                     }
                 }
 
-                async function launchIdentification(model) {
+                async function launchIdentification(launchIdentification) {
+
                     const params = {
                         targetId: target.id,
-                        genesOfInterest: model.genesOfInterest.map(s => s.geneId),
-                        translationalGenes: model.translationalGenes.map(s => s.geneId)
+                        genesOfInterest: launchIdentification.genesOfInterest.map(s => s.geneId),
+                        translationalGenes: launchIdentification.translationalGenes.map(s => s.geneId)
                     };
                     const info = {
                         target: target,
-                        interest: model.genesOfInterest,
-                        translational: model.translationalGenes
+                        interest: launchIdentification.genesOfInterest,
+                        translational: launchIdentification.translationalGenes
                     };
                     const result = await ngbTargetsTabService.getIdentificationData(params, info);
                     if (result) {
                         dispatcher.emit('target:show:identification:tab');
-                        targetContext.setCurrentIdentification(target, model);
+                        targetContext.setCurrentIdentification(target, launchIdentification);
                     }
                 }
 
-                function isIdentificationLaunched(identificationTarget, model) {
+                function isIdentificationLaunched(identificationTarget, identification) {
                     if (identificationTarget.target.id !== target.id) return false;
                         const interest = identificationTarget.interest.map(g => g.geneId).sort();
                         const translational = identificationTarget.translational.map(g => g.geneId).sort();
-                        const genesOfInterest = model.genesOfInterest.map(g => g.geneId).sort();
-                        const translationalGenes = model.translationalGenes.map(g => g.geneId).sort();
+                        const genesOfInterest = identification.genesOfInterest.map(g => g.geneId).sort();
+                        const translationalGenes = identification.translationalGenes.map(g => g.geneId).sort();
                         const isEqual = (current, saved) => {
                             if (current.length !== saved.length) return false;
                             return saved.every((item, index) => item === current[index]);
@@ -175,12 +113,12 @@ export default function run(
                             && isEqual(translationalGenes, translational);
                 }
 
-                function showConfirmDialog(model) {
+                function showConfirmDialog(identification) {
                     $mdDialog.show({
                         template: require('../ngbTargetLaunchDialog/ngbTargetLaunchConfirmDialog.tpl.html'),
                         controller: function($scope, $mdDialog) {
                             $scope.launch = function () {
-                                launchIdentification(model);
+                                launchIdentification(identification);
                                 $mdDialog.hide();
                                 $mdDialog.hide();
                             };
@@ -196,17 +134,17 @@ export default function run(
 
                 $scope.onClickLaunch = (index) => {
                     const {identificationData, identificationTarget} = ngbTargetPanelService;
-                    const model = $scope.identificationsModel[index];
+                    const identification = $scope.identifications[index];
                     if (identificationData && identificationTarget) {
-                        const isLaunched = isIdentificationLaunched(identificationTarget, model);
+                        const isLaunched = isIdentificationLaunched(identificationTarget, identification);
                         if (isLaunched) {
                             dispatcher.emit('target:show:identification:tab');
                             $mdDialog.hide();
                         } else {
-                            showConfirmDialog(model);
+                            showConfirmDialog(identification);
                         }
                     } else {
-                        launchIdentification(model);
+                        launchIdentification(identification);
                         $mdDialog.hide();
                     }
                 }
