@@ -9,6 +9,12 @@ const STATUS_OPTIONS = {
     SAVED: 'SAVED'
 };
 
+const DOWNLOAD_OPTIONS = {
+    DOWNLOAD: 'DOWNLOAD',
+    EXCEL: 'Excel',
+    HTML: 'HTML',
+};
+
 export default class ngbTargetPanelController {
 
     get targetTab() {
@@ -17,6 +23,10 @@ export default class ngbTargetPanelController {
 
     get statusOptions() {
         return STATUS_OPTIONS;
+    }
+
+    get downloadOptions () {
+        return DOWNLOAD_OPTIONS;
     }
 
     tabSelected;
@@ -72,6 +82,7 @@ export default class ngbTargetPanelController {
             $mdDialog,
         });
         this.tabSelected = this.targetTab.TARGETS;
+        this.downloadModel = this.downloadOptions.DOWNLOAD;
         dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
@@ -90,25 +101,42 @@ export default class ngbTargetPanelController {
         return this.tabSelected === this.targetTab.IDENTIFICATIONS;
     }
 
+    get format() {
+        return this.ngbTargetPanelService.format;
+    }
+
     addTarget () {
         if (this.ngbTargetsTabService) {
             this.ngbTargetsTabService.setAddMode();
         }
     }
 
-    downloadReport () {
+    onChangeDownload() {
+        const {DOWNLOAD, EXCEL, HTML} = this.downloadOptions;
+        if (this.downloadModel === DOWNLOAD) return;
+        if (this.downloadModel === EXCEL) {
+            this.downloadModel = DOWNLOAD;
+            this.donwloadReport(this.format.XLS);
+        }
+        if (this.downloadModel === HTML) {
+            this.downloadModel = DOWNLOAD;
+            this.donwloadReport(this.format.HTML);
+        }
+    }
+
+    donwloadReport(format) {
         this.reportLoading = true;
-        this.ngbTargetPanelService.exportResults()
+        this.ngbTargetPanelService.exportResults(format)
             .then(data => {
                 const linkElement = document.createElement('a');
                 try {
-                    const blob = new Blob([data], {type: 'application/xls'});
+                    const blob = new Blob([data], {type: `application/${format}`});
                     const url = window.URL.createObjectURL(blob);
                     const geneChips = this.ngbTargetPanelService.allChips;
 
                     linkElement.setAttribute('href', url);
                     linkElement.setAttribute('download',
-                        `${geneChips.join('_')}-report.xls`);
+                        `${geneChips.join('_')}-report.${format}`);
 
                     const clickEvent = new MouseEvent('click', {
                         'view': window,
@@ -117,10 +145,12 @@ export default class ngbTargetPanelController {
                     });
                     linkElement.dispatchEvent(clickEvent);
                     this.reportLoading = false;
+                    this.$timeout(() => this.$scope.$apply());
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     this.reportLoading = false;
                     console.error(ex);
+                    this.$timeout(() => this.$scope.$apply());
                 }
             });
     }

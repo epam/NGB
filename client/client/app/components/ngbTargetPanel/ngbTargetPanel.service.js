@@ -1,6 +1,15 @@
 import processLinks from './utilities/process-links';
 
+const FORMAT = {
+    XLS: 'xls',
+    HTML: 'html'
+};
+
 export default class NgbTargetPanelService {
+
+    get format() {
+        return FORMAT;
+    }
 
     _identificationData = null;
     _identificationTarget = null;
@@ -137,13 +146,28 @@ export default class NgbTargetPanelService {
         }
     }
 
-    exportResults() {
-        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
-            return new Promise(resolve => {
-                resolve(true);
-            });
+    exportResults(format) {
+        if (format === this.format.XLS) {
+            return this.exportExcel();
         }
-        return this.targetDataService.getTargetReport(this.geneIdsOfInterest, this.translationalGeneIds);
+        if (format === this.format.HTML) {
+            return this.exportHtml();
+        }
+    }
+
+    exportExcel() {
+        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds);
+    }
+
+    exportHtml() {
+        const {target} = this.identificationTarget || {};
+        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length || !target.id) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetHtmlReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
     }
 
     saveIdentification(name) {

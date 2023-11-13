@@ -48,16 +48,22 @@
                                   md-diameter="12">
             </md-progress-circular>
         </md-button>
-        <md-button type="button"
-                   class="md-raised md-accent ngb-target-panel-extra-button with-circular"
-                   ng-if="$ctrl.isIdentificationsMode"
-                   aria-label="Download report"
-                   ng-disabled="$ctrl.reportLoading"
-                   ng-click="$ctrl.downloadReport()">
-            <span>DOWNLOAD</span>
+        <md-input-container class="md-button md-raised md-accent ngb-target-panel-extra-button with-circular download-selector"
+                            ng-if="$ctrl.isIdentificationsMode"
+                            ng-disabled="$ctrl.reportLoading">
+            <md-select ng-model="$ctrl.downloadModel"
+                       ng-disabled="$ctrl.reportLoading"
+                       aria-label="Download format selector"
+                       ng-change="$ctrl.onChangeDownload($ctrl.downloadModel)"
+                       md-container-class="download-select-container">
+                <md-option ng-repeat="option in $ctrl.downloadOptions track by $index"
+                           ng-value="option">
+                    <span>{{ option }}</span>
+                </md-option>
+            </md-select>
             <md-progress-circular ng-if="$ctrl.reportLoading"
                                   md-diameter="12">
             </md-progress-circular>
-        </md-button>
+        </md-input-container>
     </div>
 </div>

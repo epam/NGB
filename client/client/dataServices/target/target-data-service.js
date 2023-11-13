@@ -541,7 +541,7 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetReport(genesOfInterest, translationalGenes) {
+    getTargetExcelReport(genesOfInterest, translationalGenes) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
@@ -617,6 +617,25 @@ export class TargetDataService extends DataService {
                     const message = 'Error removing identification';
                     reject(new Error((error && error.message) || message));
                 });
+        });
+    }
+
+    getTargetHtmlReport(genesOfInterest, translationalGenes, targetId) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/html${getQueryString({genesOfInterest, translationalGenes, targetId})}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
         });
     }
 }
