@@ -619,21 +619,4 @@ export class TargetDataService extends DataService {
                 });
         });
     }
-
-    updateIdentification(request) {
-        return new Promise((resolve, reject) => {
-            this.put('identification', request)
-                .then(data => {
-                    if (data) {
-                        resolve(data);
-                    } else {
-                        resolve(false);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error updating identification';
-                    reject(new Error((error && error.message) || message));
-                });
-        });
-    }
 }

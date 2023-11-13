@@ -24,7 +24,6 @@
                         </th>
                         <th class="button-column"></th>
                         <th class="button-column"></th>
-                        <th class="button-column"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,22 +111,8 @@
                         </td>
                         <td class="button-column">
                             <md-button class="md-icon-button"
-                                       ng-click="onClickSave($index)"
-                                       ng-disabled="model.saveLoading || model.deleteLoading || isSaveDisabled(model)"
-                                       aria-label="Save">
-                                <ng-md-icon icon="save"
-                                            size="20pt"
-                                            ng-if="!model.saveLoading">
-                                </ng-md-icon>
-                                <md-progress-circular ng-if="model.saveLoading"
-                                                      md-diameter="20pt">
-                                </md-progress-circular>
-                            </md-button>
-                        </td>
-                        <td class="button-column">
-                            <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
-                                       ng-disabled="model.deleteLoading || model.saveLoading || !isSaveDisabled(model)"
+                                       ng-disabled="model.deleteLoading"
                                        aria-label="Launch">
                                 <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
                             </md-button>
@@ -135,7 +120,7 @@
                         <td class="button-column">
                             <md-button class="md-icon-button delete"
                                        ng-click="onClickDelete($index)"
-                                       ng-disabled="model.deleteLoading || model.saveLoading"
+                                       ng-disabled="model.deleteLoading"
                                        aria-label="Delete">
                                 <ng-md-icon icon="delete_sweep"
                                             size="20pt"

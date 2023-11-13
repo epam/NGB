@@ -27,7 +27,7 @@ export default function run(
                 $scope.searchText = null;
                 
                 $scope.identificationsModel = target.identifications.map(t => {
-                    const {id, name, genesOfInterest, translationalGenes, owner} = t;
+                    const {id, name, genesOfInterest, translationalGenes} = t;
                     const getGeneById = (genes) => {
                         const arr = genes.reduce((acc, geneId) => {
                             const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === geneId);
@@ -47,36 +47,11 @@ export default function run(
                     return {
                         id,
                         name,
-                        owner,
                         genesOfInterest: getGeneById(genesOfInterest),
                         translationalGenes: getGeneById(translationalGenes),
                         deleteLoading: false,
-                        saveLoading: false,
                     }
                 })
-
-                $scope.isSaveDisabled = (model) => {
-                    const currentModel = (target.identifications || [])
-                        .filter(item => item.id === model.id)[0];
-                    const currentName = currentModel.name;
-                    const newName = model.name;
-                    if (!newName) return true;
-                    if (newName !== currentName) return false;
-                    const newInterest = model.genesOfInterest.map(g => g.geneId).sort();
-                    const newTranslational = model.translationalGenes.map(g => g.geneId).sort();
-                    if (!newInterest.length || !newTranslational.length) return true;
-                    const currentInterest = currentModel.genesOfInterest.sort();
-                    const currentTranslational = currentModel.translationalGenes.sort();
-                    if ((newInterest.length !== currentInterest.length)
-                        || (newTranslational.length !== currentTranslational.length)) {
-                            return false;
-                    }
-                    const isChanged = (current, newOne) => {
-                        return newOne.some((item, index) => item !== current[index]);
-                    };
-                    return !isChanged(currentInterest, newInterest)
-                        && !isChanged(currentTranslational, newTranslational);
-                }
 
                 function getGroupItems(item, model) {
                     const { genesOfInterest = [], translationalGenes = [] } = model;
@@ -135,48 +110,6 @@ export default function run(
                     }
                     document.activeElement.blur();
                 };
-
-                function saveIdentification(model) {
-                    const request = {
-                        id: model.id,
-                        name: model.name,
-                        targetId: target.id,
-                        owner: model.owner,
-                        genesOfInterest: model.genesOfInterest.map(s => s.geneId),
-                        translationalGenes: model.translationalGenes.map(s => s.geneId),
-                    };
-                    return new Promise((resolve) => {
-                        targetDataService.updateIdentification(request)
-                            .then((result) => {
-                                $scope.errorMessageList = null;
-                                $scope.actionFailed = false;
-                                resolve(result);
-                            })
-                            .catch(error => {
-                                $scope.errorMessageList = [error.message];
-                                $scope.actionFailed = true;
-                                resolve(false);
-                            });
-                    });
-                }
-
-                $scope.onClickSave = async (index) => {
-                    const model = $scope.identificationsModel[index];
-                    model.saveLoading = true;
-                    const saved = await saveIdentification(model);
-                    if (saved) {
-                        $scope.isChanged = true;
-                        const identifications = target.identifications.map(item => {
-                            if (item.id === saved.id) {
-                                item = saved;
-                            }
-                            return item;
-                        });
-                        target.identifications = identifications;
-                    }
-                    model.saveLoading = false;
-                    $timeout(() => $scope.$apply());
-                }
 
                 function deleteIdentification(id) {
                     return new Promise((resolve) => {
