@@ -52,7 +52,7 @@
                                        ng-click="onClickLaunch($index)"
                                        ng-disabled="identification.deleteLoading"
                                        aria-label="Launch">
-                                <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
+                                <ng-md-icon icon="launch" size="14pt"></ng-md-icon>
                             </md-button>
                         </td>
                         <td class="button-column">
@@ -60,8 +60,8 @@
                                        ng-click="onClickDelete($index)"
                                        ng-disabled="identification.deleteLoading"
                                        aria-label="Delete">
-                                <ng-md-icon icon="delete_sweep"
-                                            size="20pt"
+                                <ng-md-icon icon="clear"
+                                            size="14pt"
                                             ng-if="!identification.deleteLoading">
                                 </ng-md-icon>
                                 <md-progress-circular ng-if="identification.deleteLoading"
