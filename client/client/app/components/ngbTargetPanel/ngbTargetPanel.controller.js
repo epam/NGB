@@ -4,18 +4,47 @@ const TARGET_TAB = {
     DISEASES: 'DISEASES'
 };
 
+const STATUS_OPTIONS = {
+    SAVE: 'SAVE',
+    SAVED: 'SAVED'
+};
+
 export default class ngbTargetPanelController {
 
     get targetTab() {
         return TARGET_TAB;
     }
 
+    get statusOptions() {
+        return STATUS_OPTIONS;
+    }
+
     tabSelected;
     reportLoading = false;
+    _nameModel;
+    _saveStatus;
+    saveLoading = false;
+    saveFailed = false;
+    errorMessageList = null;
 
     get identificationTabIsShown() {
         const {identificationTarget, identificationData} = this.ngbTargetPanelService;
         return identificationTarget && identificationData;
+    }
+
+    get nameModel () {
+        return this._nameModel;
+    }
+    set nameModel(value) {
+        this._nameModel = value;
+    }
+    get saveStatus() {
+        return this.ngbTargetPanelService.isIdentificationSaved
+            ? this.statusOptions.SAVED
+            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+    }
+    set saveStatus(value) {
+        this._saveStatus = value;
     }
 
     static get UID() {
@@ -29,7 +58,8 @@ export default class ngbTargetPanelController {
         ngbTargetPanelService,
         ngbTargetsTabService,
         ngbDiseasesTabService,
-        targetContext
+        targetContext,
+        $mdDialog,
     ) {
         Object.assign(this, {
             $scope,
@@ -38,7 +68,8 @@ export default class ngbTargetPanelController {
             ngbTargetPanelService,
             ngbTargetsTabService,
             ngbDiseasesTabService,
-            targetContext
+            targetContext,
+            $mdDialog,
         });
         this.tabSelected = this.targetTab.TARGETS;
         dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
@@ -159,5 +190,45 @@ export default class ngbTargetPanelController {
 
     showTargetsTab() {
         this.changeTab(this.targetTab.TARGETS)
+    }
+
+    async saveIdentification(name) {
+        this.saveLoading = true;
+        await this.ngbTargetPanelService.saveIdentification(name)
+            .then(data => {
+                if (data) {
+                    this.saveStatus = this.statusOptions.SAVED;
+                }
+                this.saveFailed = false;
+                this.errorMessageList = null;
+                this.saveLoading = false;
+            })
+            .catch(error => {
+                this.saveFailed = true;
+                this.errorMessageList = [error.message];
+                this.saveLoading = false;
+            });
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    onClickSave() {
+        const self = this.$scope.$ctrl;
+        this.$mdDialog.show({
+            template: require('./ngbTargetSavingDialog.tpl.html'),
+            controller: function($scope, $mdDialog) {
+                $scope.nameModel;
+                $scope.save = function () {
+                    self.saveIdentification($scope.nameModel);
+                    $mdDialog.hide();
+                    $mdDialog.hide();
+                };
+                $scope.cancel = function () {
+                    $mdDialog.hide();
+                };
+            },
+            preserveScope: true,
+            autoWrap: true,
+            skipHide: true,
+        });
     }
 }

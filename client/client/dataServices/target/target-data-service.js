@@ -589,4 +589,34 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    postIdentification(request) {
+        return new Promise((resolve, reject) => {
+            this.post('identification', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error saving identification';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    deleteIdentification(identificationId) {
+        return new Promise((resolve, reject) => {
+            this.delete(`identification/${identificationId}`)
+                .then(() => {
+                    resolve();
+                })
+                .catch((error) => {
+                    const message = 'Error removing identification';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

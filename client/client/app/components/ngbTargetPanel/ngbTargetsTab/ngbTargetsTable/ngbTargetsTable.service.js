@@ -163,7 +163,8 @@ export default class ngbTargetsTableService {
                     value: item.products,
                     limit: 2
                 },
-                owner: item.owner
+                owner: item.owner,
+                identifications: item.identifications
             }
         ))];
     }

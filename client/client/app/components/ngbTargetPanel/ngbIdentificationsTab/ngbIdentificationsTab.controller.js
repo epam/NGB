@@ -116,6 +116,7 @@ export default class ngbIdentificationsTabController {
     }
 
     updateGenomicsTotal(total) {
+        if (!this.identificationData) return;
         this.identificationData.homologsCount = total || 0;
         this.refreshInfoBlocks();
     }
