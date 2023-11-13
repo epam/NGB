@@ -59,7 +59,6 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -70,6 +69,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 public class TargetExportHTMLManager {
+    private static final String DATA_PLACEHOLDER = "\"TARGET_IDENTIFICATION_DATA\"";
     private final TargetIdentificationManager identificationManager;
     private final TargetExportManager targetExportManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
@@ -186,7 +186,7 @@ public class TargetExportHTMLManager {
 
     private InputStream fillTemplate(final String template,
                                      final TargetExportHTML result) {
-        final String html = template.replace("\"inject your data here\"",
+        final String html = template.replace(DATA_PLACEHOLDER,
                 String.format("JSON.parse('%s')",
                         JsonMapper.convertDataToJsonStringForQuery(result)
                                 .replace("'", "\\'")

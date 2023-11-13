@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.target.export;
 
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.entity.target.export.html.TargetExportHTML;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;

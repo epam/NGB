@@ -50,7 +50,6 @@ import com.epam.catgenome.manager.target.export.TargetExportTable;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
-import com.epam.catgenome.entity.target.export.html.TargetExportHTML;
 import com.epam.catgenome.util.FileFormat;
 import com.epam.catgenome.util.db.Page;
 import com.wordnik.swagger.annotations.Api;
