@@ -21,19 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package com.epam.catgenome.entity.target.export.html;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder
-public class Publication {
-    private Title title;
-    private List<String> authors;
-    private String date;
+public class Title {
+
+    private String name;
+    private String link;
 }

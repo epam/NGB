@@ -62,7 +62,7 @@ public class TargetExportSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public TargetExportHTML html(final List<String> genesOfInterest,
+    public InputStream html(final List<String> genesOfInterest,
                                  final List<String> translationalGenes,
                                  final long targetId)
             throws IOException, ParseException, ExternalDbUnavailableException {

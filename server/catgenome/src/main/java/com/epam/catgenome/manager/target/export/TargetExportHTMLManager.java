@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target.export;
 
+import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.DrugsCount;
@@ -46,13 +47,19 @@ import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.target.TargetIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.entity.target.export.TargetHomologue;
-import lombok.RequiredArgsConstructor;
+import com.epam.catgenome.util.NgbFileUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,7 +69,6 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 
 @Service
-@RequiredArgsConstructor
 public class TargetExportHTMLManager {
     private final TargetIdentificationManager identificationManager;
     private final TargetExportManager targetExportManager;
@@ -70,11 +76,29 @@ public class TargetExportHTMLManager {
     private final PubMedService pubMedService;
     private final NCBISequenceManager geneSequencesManager;
     private final TargetManager targetManager;
+    private final String templatePath;
 
-    public TargetExportHTML getHTMLSummary(final List<String> genesOfInterest,
-                                           final List<String> translationalGenes,
-                                           final long targetId)
+    public TargetExportHTMLManager(final TargetIdentificationManager identificationManager,
+                                   final TargetExportManager targetExportManager,
+                                   final NCBIGeneIdsManager ncbiGeneIdsManager,
+                                   final PubMedService pubMedService,
+                                   final NCBISequenceManager geneSequencesManager,
+                                   final TargetManager targetManager,
+                                   final @Value("${target.export.html.template:}") String templatePath) {
+        this.identificationManager = identificationManager;
+        this.targetExportManager = targetExportManager;
+        this.ncbiGeneIdsManager = ncbiGeneIdsManager;
+        this.pubMedService = pubMedService;
+        this.geneSequencesManager = geneSequencesManager;
+        this.targetManager = targetManager;
+        this.templatePath = templatePath;
+    }
+
+    public InputStream getHTMLSummary(final List<String> genesOfInterest,
+                                      final List<String> translationalGenes,
+                                      final long targetId)
             throws ParseException, IOException, ExternalDbUnavailableException {
+        final String template = getTemplate();
 
         final Target target = targetManager.getTarget(targetId);
 
@@ -145,7 +169,7 @@ public class TargetExportHTMLManager {
             }
         }
 
-        return TargetExportHTML.builder()
+        TargetExportHTML result =  TargetExportHTML.builder()
                 .name(target.getTargetName())
                 .interest(interest)
                 .translational(translational)
@@ -157,6 +181,23 @@ public class TargetExportHTMLManager {
                 .publications(publications)
                 .comparativeGenomics(comparativeGenomics)
                 .build();
+        return fillTemplate(template, result);
+    }
+
+    private InputStream fillTemplate(final String template,
+                                     final TargetExportHTML result) {
+        final String html = template.replace("\"inject your data here\"",
+                String.format("JSON.parse('%s')",
+                        JsonMapper.convertDataToJsonStringForQuery(result)
+                                .replace("'", "\\'")
+                                .replace("\\\"", "\\\\\"")));
+        return IOUtils.toInputStream(html);
+    }
+
+    private String getTemplate() {
+        Assert.isTrue(StringUtils.isNotBlank(templatePath), "HTML report is not configured");
+        return NgbFileUtils.readResource(templatePath);
+
     }
 
     private List<Sequence> getSequences(final List<String> geneIds)
@@ -211,11 +252,11 @@ public class TargetExportHTMLManager {
         final List<NCBISummaryVO> articles = pubMedService.fetchPubMedArticles(entrezIds, publicationsCount);
         final List<Publication> publications = new ArrayList<>();
         for (NCBISummaryVO article : articles) {
-            LinkEntity title = LinkEntity.builder()
-                    .value(article.getTitle())
+            final Title title = Title.builder()
+                    .name(article.getTitle())
                     .link(article.getLink())
                     .build();
-            Publication publication = Publication.builder()
+            final Publication publication = Publication.builder()
                     .title(title)
                     .authors(article.getAuthors().stream()
                             .map(NCBISummaryVO.NCBIAuthor::getName)

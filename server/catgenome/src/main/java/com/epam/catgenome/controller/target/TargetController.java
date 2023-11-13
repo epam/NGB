@@ -484,17 +484,19 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/html")
     @ApiOperation(
-            value = "Gets data for html export",
-            notes = "Gets data for html export",
+            value = "Downloads target identification html export",
+            notes = "Downloads target identification html export",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<TargetExportHTML> html(@RequestParam final List<String> genesOfInterest,
-                                         @RequestParam final List<String> translationalGenes,
-                                         @RequestParam final long targetId)
+    public void html(@RequestParam final List<String> genesOfInterest,
+                     @RequestParam final List<String> translationalGenes,
+                     @RequestParam final long targetId,
+                     HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return Result.success(exportSecurityService.html(genesOfInterest, translationalGenes, targetId));
+        final InputStream inputStream = exportSecurityService.html(genesOfInterest, translationalGenes, targetId);
+        writeStreamToResponse(response, inputStream, "Target_Identification.html");
     }
 
     @GetMapping(value = "/target/genes/{prefix}")
