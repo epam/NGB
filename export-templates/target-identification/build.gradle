@@ -4,8 +4,6 @@ plugins {
     id "com.moowork.node" version "1.1.1"
 }
 
-def desktop = hasProperty("desktop")
-def clientPath = hasProperty("clientPath") ? clientPath : "/catgenome"
 def nodeVersion = "14.17.5"
 
 //to handle Windows issue with CMD output buffer (can be removed
@@ -66,17 +64,9 @@ npmInstall.dependsOn npmPrune
 nodeSetup.dependsOn clean
 npmSetup.dependsOn clean
 
-task buildUI(type: NpmTask) {
+task buildTemplate(type: NpmTask) {
     dependsOn npmInstall
-    environment = ['PUBLIC_URL': clientPath]
-    args = ['run', 'build:prod']
-    if (desktop) {
-        println "Building NGB Desktop UI"
-        args = ['run', 'build:desktop']
-    }
-    doLast {
-        println()
-    }
+    args = ['run', 'build']
 }
 
 private void initNode(nodeVersion) {

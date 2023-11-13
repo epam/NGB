@@ -4,6 +4,8 @@ group "com.epam"
 def uiFilesDestination = "$rootDir/server/catgenome/src/main/resources/static"
 def serverBuilds = "$rootDir/server/catgenome/build/libs"
 def cliBuilds = "$rootDir/server/ngb-cli/build/distributions"
+def templateDestination = "$rootDir/server/catgenome/src/main/resources/export/target"
+def templateBuilds = "$rootDir/export-templates/target-identification/template"
 def distDir = "$rootDir/dist"
 def dockerDir = "$rootDir/docker/core"
 def runTests = !hasProperty("noTest")
@@ -47,6 +49,19 @@ task ui(type: Copy) {
         copy {
             from "$rootDir/server/catgenome/src/main/resources/templates"
             into uiFilesDestination
+        }
+    }
+}
+
+task templates() {
+    dependsOn ':export-templates:target-identification:buildTemplate'
+    doFirst {
+        delete fileTree(templateDestination)
+    }
+    doLast {
+        copy {
+            from templateBuilds
+            into templateDestination
         }
     }
 }
@@ -106,7 +121,7 @@ task buildWar(type: GradleBuild) {
 }
 
 task buildJar(type: GradleBuild) {
-    dependsOn ui, buildDocs
+    dependsOn ui, templates, buildDocs
     if (runTests) {
         tasks = ['clean', 'build']
     } else {

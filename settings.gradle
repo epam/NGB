@@ -1,5 +1,5 @@
 rootProject.name = "ngb"
-include 'client', 'server:catgenome', 'server:ngb-cli', 'desktop'
+include 'client', 'server:catgenome', 'server:ngb-cli', 'desktop', 'export-templates:target-identification'
 
 
 
