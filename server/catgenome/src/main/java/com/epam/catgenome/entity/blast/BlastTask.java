@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import java.util.Map;
 @Setter
 public class BlastTask {
     private Long id;
+    private Long blastTaskId;
     private String title;
     private LocalDateTime createdDate;
     private BlastTaskStatus status;

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -239,6 +239,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
     enum TaskParameters {
         TASK_ID,
+        BLAST_TASK_ID,
         TITLE,
         CREATED_DATE,
         STATUS,
@@ -259,6 +260,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
             params.addValue(TASK_ID.name(), blastTask.getId());
+            params.addValue(BLAST_TASK_ID.name(), blastTask.getBlastTaskId());
             params.addValue(TITLE.name(), blastTask.getTitle());
             params.addValue(CREATED_DATE.name(), blastTask.getCreatedDate() == null ? null
                     : Timestamp.valueOf(blastTask.getCreatedDate()));
@@ -281,6 +283,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 BlastTask blastTask = new BlastTask();
 
                 blastTask.setId(rs.getLong(TASK_ID.name()));
+                blastTask.setBlastTaskId(rs.getLong(BLAST_TASK_ID.name()));
                 blastTask.setTitle(rs.getString(TITLE.name()));
                 blastTask.setCreatedDate(rs.getTimestamp(CREATED_DATE.name()).toLocalDateTime());
                 blastTask.setEndDate(rs.getTimestamp(END_DATE.name()) == null ? null

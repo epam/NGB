@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2016-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,18 +52,18 @@ public class BlastTaskScheduledService {
 
     @Scheduled(fixedRateString = "${blast.update.status.rate:60000}")
     public void updateTaskStatuses() {
-        List<String> statuses = new ArrayList<>();
+        final List<String> statuses = new ArrayList<>();
         statuses.add(String.valueOf(BlastTaskStatus.CREATED.getId()));
         statuses.add(String.valueOf(BlastTaskStatus.SUBMITTED.getId()));
         statuses.add(String.valueOf(BlastTaskStatus.RUNNING.getId()));
 
-        Filter filter = new Filter("status", "in", "(" + join(statuses, ",") + ")");
-        QueryParameters parameters = new QueryParameters();
+        final Filter filter = new Filter("status", "in", "(" + join(statuses, ",") + ")");
+        final QueryParameters parameters = new QueryParameters();
         parameters.setFilters(Collections.singletonList(filter));
-        List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
+        final List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
         tasks.forEach(t -> {
             try {
-                BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getId());
+                BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getBlastTaskId());
                 String status = blastRequestInfo.getStatus();
                 if (!status.equals(t.getStatus().name())) {
                     final BlastTaskStatus newStatus = BlastTaskStatus.valueOf(status);

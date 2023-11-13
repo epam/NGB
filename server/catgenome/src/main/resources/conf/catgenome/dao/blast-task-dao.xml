@@ -8,6 +8,7 @@
                 <![CDATA[
                     INSERT INTO catgenome.task (
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
@@ -21,6 +22,7 @@
                         owner
                     ) VALUES (
                         :TASK_ID,
+                        :BLAST_TASK_ID,
                         :TITLE,
                         :CREATED_DATE,
                         :STATUS,
@@ -60,6 +62,7 @@
                 <![CDATA[
                     SELECT
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
@@ -88,6 +91,7 @@
                 <![CDATA[
                     SELECT
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
