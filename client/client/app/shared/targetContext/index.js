@@ -69,6 +69,12 @@ export default class TargetContext {
         this.dispatcher.on('chromosome:change', () => clear(true));
     }
 
+    setCurrentTab(tab) {
+        const state = {...this.currentState};
+        state.tab = tab;
+        this.currentState = state;
+    }
+
     setCurrentIdentification(target, scope) {
         const getGeneInfo = (genes) => {
             return genes.map(g => ({
