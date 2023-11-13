@@ -27,23 +27,56 @@ export default function run(
                 $scope.searchText = null;
                 
                 $scope.identificationsModel = target.identifications.map(t => {
-                    const {id, name, genesOfInterest, translationalGenes} = t;
-                    const getGeneById = (id) => {
-                        const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === id);
-                        return genes.length ? genes[0] : undefined;
-                    };
+                    const {id, name, genesOfInterest, translationalGenes, owner} = t;
+                    const getGeneById = (genes) => {
+                        const arr = genes.reduce((acc, geneId) => {
+                            const genes = $scope.genes.filter(gene => !gene.group && gene.geneId === geneId);
+                            if (!genes.length) return;
+                            if (genes.length === 1) {
+                                acc.push(genes[0]);
+                            } else {
+                                const notIncluded = genes.filter(g => {
+                                    return !acc.filter(a => a.hidden === g.hidden).length;
+                                });
+                                acc.push(notIncluded[0]);
+                            }
+                            return acc;
+                        }, []);
+                        return arr.filter(i => i);
+                    }
                     return {
                         id,
                         name,
-                        genesOfInterest: genesOfInterest
-                            .map(geneId => getGeneById(geneId))
-                            .filter(i => i),
-                        translationalGenes: translationalGenes
-                            .map(geneId => getGeneById(geneId))
-                            .filter(i => i),
-                        actionLoading: false,
+                        owner,
+                        genesOfInterest: getGeneById(genesOfInterest),
+                        translationalGenes: getGeneById(translationalGenes),
+                        deleteLoading: false,
+                        saveLoading: false,
                     }
                 })
+
+                $scope.isSaveDisabled = (model) => {
+                    const currentModel = (target.identifications || [])
+                        .filter(item => item.id === model.id)[0];
+                    const currentName = currentModel.name;
+                    const newName = model.name;
+                    if (!newName) return true;
+                    if (newName !== currentName) return false;
+                    const newInterest = model.genesOfInterest.map(g => g.geneId).sort();
+                    const newTranslational = model.translationalGenes.map(g => g.geneId).sort();
+                    if (!newInterest.length || !newTranslational.length) return true;
+                    const currentInterest = currentModel.genesOfInterest.sort();
+                    const currentTranslational = currentModel.translationalGenes.sort();
+                    if ((newInterest.length !== currentInterest.length)
+                        || (newTranslational.length !== currentTranslational.length)) {
+                            return false;
+                    }
+                    const isChanged = (current, newOne) => {
+                        return newOne.some((item, index) => item !== current[index]);
+                    };
+                    return !isChanged(currentInterest, newInterest)
+                        && !isChanged(currentTranslational, newTranslational);
+                }
 
                 function getGroupItems(item, model) {
                     const { genesOfInterest = [], translationalGenes = [] } = model;
@@ -103,7 +136,47 @@ export default function run(
                     document.activeElement.blur();
                 };
 
-                $scope.onClickSave = (index) => {}
+                function saveIdentification(model) {
+                    const request = {
+                        id: model.id,
+                        name: model.name,
+                        targetId: target.id,
+                        owner: model.owner,
+                        genesOfInterest: model.genesOfInterest.map(s => s.geneId),
+                        translationalGenes: model.translationalGenes.map(s => s.geneId),
+                    };
+                    return new Promise((resolve) => {
+                        targetDataService.updateIdentification(request)
+                            .then((result) => {
+                                $scope.errorMessageList = null;
+                                $scope.actionFailed = false;
+                                resolve(result);
+                            })
+                            .catch(error => {
+                                $scope.errorMessageList = [error.message];
+                                $scope.actionFailed = true;
+                                resolve(false);
+                            });
+                    });
+                }
+
+                $scope.onClickSave = async (index) => {
+                    const model = $scope.identificationsModel[index];
+                    model.saveLoading = true;
+                    const saved = await saveIdentification(model);
+                    if (saved) {
+                        $scope.isChanged = true;
+                        const identifications = target.identifications.map(item => {
+                            if (item.id === saved.id) {
+                                item = saved;
+                            }
+                            return item;
+                        });
+                        target.identifications = identifications;
+                    }
+                    model.saveLoading = false;
+                    $timeout(() => $scope.$apply());
+                }
 
                 function deleteIdentification(id) {
                     return new Promise((resolve) => {
@@ -124,15 +197,15 @@ export default function run(
                 $scope.onClickDelete = async (index) => {
                     const id = $scope.identificationsModel[index].id;
                     if (!id) return;
-                    $scope.identificationsModel[index].actionLoading = true;
+                    $scope.identificationsModel[index].deleteLoading = true;
                     const isDeleted = await deleteIdentification(id);
                     if (isDeleted) {
                         $scope.identificationsModel = $scope.identificationsModel
                             .filter((item, i) => i !== index);
+                        $scope.isChanged = true;
                         if (!$scope.identificationsModel.length) {
                             $scope.close();
                         }
-                        $scope.isChanged = true;
                         $timeout(() => $scope.$apply());
                     }
                 }

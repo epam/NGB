@@ -28,16 +28,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="item in identificationsModel track by item.id">
+                    <tr ng-repeat="model in identificationsModel track by model.id">
                         <td>
                             <input class="saved-identifications-table-input"
                                    spellcheck="false"
                                    required
                                    name="name"
-                                   ng-model="item.name">
+                                   ng-model="model.name">
                         </td>
                         <td>
-                            <md-chips ng-model="item.genesOfInterest"
+                            <md-chips ng-model="model.genesOfInterest"
                                       md-autocomplete-snap
                                       md-require-match="true"
                                       md-removable="true"
@@ -47,11 +47,11 @@
                                                  md-clear-button="true"
                                                  md-menu-class="saved-md-autocomplete"
                                                  md-no-cache="true"
-                                                 md-items="gene in getFilteredGenes(searchText, item)"
+                                                 md-items="gene in getFilteredGenes(searchText, model)"
                                                  md-item-text="gene.span"
                                                  md-delay="100"
                                                  md-min-length="0"
-                                                 md-selected-item-change="genesOfInterestChanged(gene, item)"
+                                                 md-selected-item-change="genesOfInterestChanged(gene, model)"
                                                  md-match-case-insensitive="true">
                                     <md-item-template>
                                         <span md-highlight-text="searchText"
@@ -74,7 +74,7 @@
                             </md-chips>
                         </td>
                         <td>
-                            <md-chips ng-model="item.translationalGenes"
+                            <md-chips ng-model="model.translationalGenes"
                                       md-autocomplete-snap
                                       md-require-match="true"
                                       md-removable="true"
@@ -84,11 +84,11 @@
                                                  md-clear-button="true"
                                                  md-menu-class="saved-md-autocomplete"
                                                  md-no-cache="true"
-                                                 md-items="gene in getFilteredGenes(searchText, item)"
+                                                 md-items="gene in getFilteredGenes(searchText, model)"
                                                  md-item-text="gene.span"
                                                  md-delay="100"
                                                  md-min-length="0"
-                                                 md-selected-item-change="translationalGenesChanged(gene, item)"
+                                                 md-selected-item-change="translationalGenesChanged(gene, model)"
                                                  md-match-case-insensitive="true">
                                     <md-item-template>
                                         <span md-highlight-text="searchText"
@@ -113,15 +113,21 @@
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickSave($index)"
-                                       ng-disabled="item.actionLoading"
+                                       ng-disabled="model.saveLoading || model.deleteLoading || isSaveDisabled(model)"
                                        aria-label="Save">
-                                <ng-md-icon icon="save" size="20pt"></ng-md-icon>
+                                <ng-md-icon icon="save"
+                                            size="20pt"
+                                            ng-if="!model.saveLoading">
+                                </ng-md-icon>
+                                <md-progress-circular ng-if="model.saveLoading"
+                                                      md-diameter="20pt">
+                                </md-progress-circular>
                             </md-button>
                         </td>
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
-                                       ng-disabled="item.actionLoading"
+                                       ng-disabled="model.deleteLoading || model.saveLoading || !isSaveDisabled(model)"
                                        aria-label="Launch">
                                 <ng-md-icon icon="call_made" size="20pt"></ng-md-icon>
                             </md-button>
@@ -129,13 +135,13 @@
                         <td class="button-column">
                             <md-button class="md-icon-button delete"
                                        ng-click="onClickDelete($index)"
-                                       ng-disabled="item.actionLoading"
+                                       ng-disabled="model.deleteLoading || model.saveLoading"
                                        aria-label="Delete">
                                 <ng-md-icon icon="delete_sweep"
                                             size="20pt"
-                                            ng-if="!item.actionLoading">
+                                            ng-if="!model.deleteLoading">
                                 </ng-md-icon>
-                                <md-progress-circular ng-if="item.actionLoading"
+                                <md-progress-circular ng-if="model.deleteLoading"
                                                       md-diameter="20pt">
                                 </md-progress-circular>
                             </md-button>
