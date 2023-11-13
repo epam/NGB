@@ -1,4 +1,4 @@
-const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'owner', 'launch'];
+const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'owner', 'identifications', 'launch'];
 const RESIZE_DELAY = 300;
 export default class ngbTargetsTableController {
 
@@ -53,11 +53,13 @@ export default class ngbTargetsTableController {
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
         const refreshTable = this.refreshTable.bind(this);
+        dispatcher.on('target:table:update', filterChanged);
         dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         dispatcher.on('target:launch:failed', refreshTable);
         $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:table:update', filterChanged);
             dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
@@ -165,6 +167,7 @@ export default class ngbTargetsTableController {
         const nameCell = require('./ngbTargetsTable_nameCell.tpl.html');
         const geneCell = require('./ngbTargetsTable_geneCell.tpl.html');
         const defaultCell = require('./ngbTargetsTable_defaultCell.tpl.html');
+        const identificationsCell = require('./ngbTargetsTable_identificationsCell.tpl.html');
 
         const result = [];
         const columnsList = this.targetsTableColumns;
@@ -219,6 +222,17 @@ export default class ngbTargetsTableController {
                         enableFiltering: true,
                         headerCellTemplate: headerCells,
                         displayName: column
+                    };
+                    break;
+                case 'identifications':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: false,
+                        headerCellTemplate: headerCells,
+                        minWidth: 40,
+                        maxWidth: 50,
+                        displayName: '',
+                        cellTemplate: identificationsCell
                     };
                     break;
                 default:
@@ -323,5 +337,10 @@ export default class ngbTargetsTableController {
         this.ngbTargetsTableService.currentPage = 1;
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
         await this.loadData(request);
+    }
+
+    onClickIdentifications(event, target) {
+        event.stopPropagation();
+        this.dispatcher.emitSimpleEvent('target:show:saved:identifications', target);
     }
 }

@@ -15,6 +15,9 @@
             IDENTIFICATIONS
         </md-nav-item>
     </md-nav-bar>
+    <div ng-if="$ctrl.saveFailed">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
     <md-content class="_md target-panel-content">
         <ngb-targets-tab class="tab"
                          ng-if="$ctrl.tabSelected === $ctrl.targetTab.TARGETS">
@@ -26,22 +29,35 @@
                                  ng-if="$ctrl.tabSelected === $ctrl.targetTab.IDENTIFICATIONS">
         </ngb-identifications-tab>
     </md-content>
-    <md-button type="button"
-               class="md-raised md-accent ngb-target-panel-extra-button"
-               ng-if="$ctrl.isTableMode"
-               aria-label="Add target"
-               ng-click="$ctrl.addTarget()">
-        CREATE TARGET
-    </md-button>
-    <md-button type="button"
-               class="md-raised md-accent ngb-target-panel-extra-button download"
-               ng-if="$ctrl.isIdentificationsMode"
-               aria-label="Download report"
-               ng-disabled="$ctrl.reportLoading"
-               ng-click="$ctrl.downloadReport()">
-        <span>DOWNLOAD</span>
-        <md-progress-circular ng-if="$ctrl.reportLoading"
-                              md-diameter="12">
-        </md-progress-circular>
-    </md-button>
+    <div class="button-container">
+        <md-button type="button"
+                   class="md-raised md-accent ngb-target-panel-extra-button"
+                   ng-if="$ctrl.isTableMode"
+                   aria-label="Add target"
+                   ng-click="$ctrl.addTarget()">
+            CREATE TARGET
+        </md-button>
+        <md-button type="button"
+                   class="md-raised md-accent ngb-target-panel-extra-button with-circular"
+                   ng-if="$ctrl.isIdentificationsMode"
+                   aria-label="Save identification"
+                   ng-disabled="$ctrl.saveLoading || $ctrl.saveStatus === $ctrl.statusOptions.SAVED"
+                   ng-click="$ctrl.onClickSave()">
+            <span>{{$ctrl.saveStatus}}</span>
+            <md-progress-circular ng-if="$ctrl.saveLoading"
+                                  md-diameter="12">
+            </md-progress-circular>
+        </md-button>
+        <md-button type="button"
+                   class="md-raised md-accent ngb-target-panel-extra-button with-circular"
+                   ng-if="$ctrl.isIdentificationsMode"
+                   aria-label="Download report"
+                   ng-disabled="$ctrl.reportLoading"
+                   ng-click="$ctrl.downloadReport()">
+            <span>DOWNLOAD</span>
+            <md-progress-circular ng-if="$ctrl.reportLoading"
+                                  md-diameter="12">
+            </md-progress-circular>
+        </md-button>
+    </div>
 </div>

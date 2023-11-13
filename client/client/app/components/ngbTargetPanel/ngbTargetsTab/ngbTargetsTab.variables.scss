@@ -13,3 +13,22 @@ $md-label-font-size: $md-chip-font-size + 2px;
 $md-chip-remove-width: $md-chip-size - 4px;
 
 $targets-warning-color: $general-warning-color;
+
+$form-horizontal-offset: 5px;
+$section-header-background: #f3f3f3;
+
+$table-control-height: $general-control-height;
+$table-header-cell-padding: 0 $form-horizontal-offset;
+$table-header-cell-height: calc($table-control-height + 2px);
+$table-header-cell-font-size: $general-font-size;
+$table-header-cell-color: $general-font-color;
+$table-header-cell-font-weight: bold;
+$table-cell-full-width-padding: 3px $form-horizontal-offset;
+$table-cell-padding: 3px 1px 0;
+$table-control-height: $general-control-height;
+$table-control-background: #fafafa;
+$table-control-font-color: #444444;
+$table-control-padding: 0 calc($form-horizontal-offset - 1px);
+$table-control-font-size: $general-font-size;
+$table-control-hover-background: #f0f0f0;
+$table-control-border-radius: 0;
