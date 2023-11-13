@@ -2,6 +2,7 @@ package com.epam.catgenome.util;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,6 +19,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 
@@ -203,6 +205,14 @@ public final class NgbFileUtils {
 
     @SneakyThrows
     public static String readResource(final String path) {
-        return IOUtils.toString(new FileReader(ResourceUtils.getFile(path)));
+        if (path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)) {
+            final ClassPathResource resource = new ClassPathResource(
+                    path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length()));
+            try (InputStream stream = resource.getInputStream()) {
+                return IOUtils.toString(stream);
+            }
+        } else {
+            return IOUtils.toString(new FileReader(ResourceUtils.getFile(path)));
+        }
     }
 }
