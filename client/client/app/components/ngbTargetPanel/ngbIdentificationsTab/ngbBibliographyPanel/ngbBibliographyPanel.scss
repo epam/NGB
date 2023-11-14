@@ -152,6 +152,18 @@ ngb-bibliography-panel {
         left: 0;
         right: 0;
     }
+
+    .search-publications-container {
+        margin: 10px 0;
+
+        .search-publications-input {
+            background: #fafafa;
+        }
+
+        .md-errors-spacer {
+            display: none;
+        }
+    }
 }
 
 .llm-model-select {
