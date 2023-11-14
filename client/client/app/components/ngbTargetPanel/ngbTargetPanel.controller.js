@@ -4,24 +4,14 @@ const TARGET_TAB = {
     DISEASES: 'DISEASES'
 };
 
-const STATUS_OPTIONS = {
-    SAVE: 'SAVE',
-    SAVED: 'SAVED'
-};
-
 const DOWNLOAD_OPTIONS = {
     EXCEL: 'Excel',
     HTML: 'HTML',
 };
-
 export default class ngbTargetPanelController {
 
     get targetTab() {
         return TARGET_TAB;
-    }
-
-    get statusOptions() {
-        return STATUS_OPTIONS;
     }
 
     get downloadOptions () {
@@ -49,12 +39,13 @@ export default class ngbTargetPanelController {
         this._nameModel = value;
     }
     get saveStatus() {
-        return this.ngbTargetPanelService.isIdentificationSaved
-            ? this.statusOptions.SAVED
-            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+        return this.ngbTargetPanelService.saveStatus;
     }
     set saveStatus(value) {
-        this._saveStatus = value;
+        this.ngbTargetPanelService.saveStatus = value;
+    }
+    get statusOptions() {
+        return this.ngbTargetPanelService.statusOptions;
     }
 
     static get UID() {
@@ -82,7 +73,6 @@ export default class ngbTargetPanelController {
             $mdDialog,
         });
         this.tabSelected = this.targetTab.TARGETS;
-        ;
         dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
