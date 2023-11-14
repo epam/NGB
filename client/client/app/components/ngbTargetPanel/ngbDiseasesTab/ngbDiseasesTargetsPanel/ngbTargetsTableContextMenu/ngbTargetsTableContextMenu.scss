@@ -6,6 +6,8 @@
     border: 1px solid #ccc;
     z-index: 100;
     min-width: 200px;
+    max-height: 200px;
+    overflow-y: auto;
 
     .md-button {
         width: 100%;
