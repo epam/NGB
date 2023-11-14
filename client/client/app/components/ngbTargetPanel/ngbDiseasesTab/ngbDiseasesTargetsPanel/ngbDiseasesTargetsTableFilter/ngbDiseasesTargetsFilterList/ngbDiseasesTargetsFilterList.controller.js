@@ -1,6 +1,6 @@
 import ListElements from './ngbFilterList.elements';
 
-export default class ngbTargetsFilterListController {
+export default class ngbDiseasesTargetsFilterListController {
 
     prevValue;
     displayText = '';
@@ -11,7 +11,7 @@ export default class ngbTargetsFilterListController {
     _hideListIsPrevented = false;
 
     static get UID() {
-        return 'ngbTargetsFilterListController';
+        return 'ngbDiseasesTargetsFilterListController';
     }
 
     constructor($scope, $element, dispatcher, ngbDiseasesTargetsPanelService) {
