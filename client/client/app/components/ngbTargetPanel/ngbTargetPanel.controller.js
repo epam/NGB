@@ -115,7 +115,7 @@ export default class ngbTargetPanelController {
         const {EXCEL, HTML} = this.downloadOptions;
         if (this.downloadModel === EXCEL) {
             this.downloadModel = undefined;
-            this.donwloadReport(this.format.XLS);
+            this.donwloadReport(this.format.XLSX);
         }
         if (this.downloadModel === HTML) {
             this.downloadModel = undefined;

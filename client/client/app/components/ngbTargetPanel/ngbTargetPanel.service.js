@@ -1,7 +1,7 @@
 import processLinks from './utilities/process-links';
 
 const FORMAT = {
-    XLS: 'xls',
+    XLSX: 'xlsx',
     HTML: 'html'
 };
 
@@ -147,7 +147,7 @@ export default class NgbTargetPanelService {
     }
 
     exportResults(format) {
-        if (format === this.format.XLS) {
+        if (format === this.format.XLSX) {
             return this.exportExcel();
         }
         if (format === this.format.HTML) {
