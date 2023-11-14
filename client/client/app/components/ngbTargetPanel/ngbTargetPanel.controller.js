@@ -4,19 +4,10 @@ const TARGET_TAB = {
     DISEASES: 'DISEASES'
 };
 
-const STATUS_OPTIONS = {
-    SAVE: 'SAVE',
-    SAVED: 'SAVED'
-};
-
 export default class ngbTargetPanelController {
 
     get targetTab() {
         return TARGET_TAB;
-    }
-
-    get statusOptions() {
-        return STATUS_OPTIONS;
     }
 
     tabSelected;
@@ -39,12 +30,13 @@ export default class ngbTargetPanelController {
         this._nameModel = value;
     }
     get saveStatus() {
-        return this.ngbTargetPanelService.isIdentificationSaved
-            ? this.statusOptions.SAVED
-            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+        return this.ngbTargetPanelService.saveStatus;
     }
     set saveStatus(value) {
-        this._saveStatus = value;
+        this.ngbTargetPanelService.saveStatus = value;
+    }
+    get statusOptions() {
+        return this.ngbTargetPanelService.statusOptions;
     }
 
     static get UID() {

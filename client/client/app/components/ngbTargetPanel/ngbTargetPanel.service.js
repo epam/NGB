@@ -1,6 +1,16 @@
 import processLinks from './utilities/process-links';
 
+const STATUS_OPTIONS = {
+    SAVE: 'SAVE',
+    SAVED: 'SAVED'
+};
+
 export default class NgbTargetPanelService {
+
+
+    get statusOptions() {
+        return STATUS_OPTIONS;
+    }
 
     _identificationData = null;
     _identificationTarget = null;
@@ -48,6 +58,15 @@ export default class NgbTargetPanelService {
         return this._descriptions;
     }
 
+    get saveStatus() {
+        return this.isIdentificationSaved
+            ? this.statusOptions.SAVED
+            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+    }
+    set saveStatus(value) {
+        this._saveStatus = value;
+    }
+
     get isIdentificationSaved() {
         if (!this.identificationTarget || !this.identificationTarget.target) return false;
         const {identifications} = this.identificationTarget.target;
@@ -84,6 +103,7 @@ export default class NgbTargetPanelService {
         this.dispatcher.emit('target:identification:reset');
         this._identificationData = null;
         this._identificationTarget = null;
+        this._saveStatus = undefined;
         this._descriptions = null;
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
     }
