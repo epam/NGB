@@ -164,7 +164,11 @@
   top: calc($button-container-top + $option-height + 31.3px) !important;
   right: calc($button-container-right + 10px);
   left: auto !important;
-  padding-left: 3px;
+
+  md-select-menu {
+    padding-left: 3px;
+    border-radius: 3px;
+  }
 
   md-select-menu.md-default-theme md-content,
   md-select-menu md-content {
@@ -177,7 +181,7 @@
 
     &:hover {
       color: $download-selector-color;
-      background-color: darken($download-selector-bg-color, 10%);
+      background-color: $download-selector-bg-color;
     }
   }
 
@@ -186,7 +190,6 @@
   }
 
   md-option {
-      padding: 0 8px;
       height: $option-height;
       min-height: $option-height;
       height: $option-height;
