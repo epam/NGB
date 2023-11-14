@@ -1,4 +1,7 @@
 export default class ngbBibliographyPanelController {
+
+    searchText = '';
+
     static get UID() {
         return 'ngbBibliographyPanelController';
     }
@@ -61,6 +64,13 @@ export default class ngbBibliographyPanelController {
 
     get publications() {
         return this.ngbBibliographyPanelService.publications;
+    }
+
+    get keyWords() {
+        return this.ngbBibliographyPanelService.keyWords;
+    }
+    set keyWords(value) {
+        this.ngbBibliographyPanelService.keyWords = value;
     }
 
     refresh() {
@@ -127,6 +137,28 @@ export default class ngbBibliographyPanelController {
     onChangeLlmModel() {
         if (this._summaryWasGenerated) {
             (this.generateSummary)();
+        }
+    }
+
+    async searchPublications() {
+        await this.ngbBibliographyPanelService.getDataOnPage(1);
+        this.refresh();
+    }
+
+    onBlur () {
+        if (this.searchText !== this.keyWords) {
+            this.keyWords = this.searchText;
+            this.searchPublications();
+        }
+    }
+
+    onKeyPress (event) {
+        switch ((event.code || '').toLowerCase()) {
+            case 'enter':
+                this.onBlur();
+                break;
+            default:
+                break;
         }
     }
 }

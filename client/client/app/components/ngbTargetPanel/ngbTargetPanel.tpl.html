@@ -16,7 +16,9 @@
         </md-nav-item>
     </md-nav-bar>
     <div ng-if="$ctrl.saveFailed">
-        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"
+                              class="saving-error">
+        </ngb-panel-error-list>
     </div>
     <md-content class="_md target-panel-content">
         <ngb-targets-tab class="tab"

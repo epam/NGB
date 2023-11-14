@@ -23,6 +23,8 @@ export default class NgbBibliographyPanelService {
     _llmSummaryToken = 0;
     _publicationsToken = 0;
 
+    _keyWords = '';
+
     get pageSize() {
         return PAGE_SIZE;
     }
@@ -69,6 +71,13 @@ export default class NgbBibliographyPanelService {
 
     get summaryResult() {
         return this._summaryResult;
+    }
+
+    get keyWords() {
+        return this._keyWords;
+    }
+    set keyWords(value) {
+        this._keyWords = value;
     }
 
     static instance (
@@ -146,7 +155,8 @@ export default class NgbBibliographyPanelService {
             this.targetDataService.getPublications({
                 geneIds: this.genes,
                 page: this.currentPage,
-                pageSize: this.pageSize
+                pageSize: this.pageSize,
+                keywords: this.keyWords
             })
                 .then(([data, totalCount]) => {
                     commit(() => {
@@ -218,6 +228,7 @@ export default class NgbBibliographyPanelService {
         this._failedPublications = false;
         this._publicationsError = null;
         this._totalPages = 0;
+        this._keyWords = '';
         this._emptyPublications = false;
         this._publications = [];
         this._loadingPublications = false;
