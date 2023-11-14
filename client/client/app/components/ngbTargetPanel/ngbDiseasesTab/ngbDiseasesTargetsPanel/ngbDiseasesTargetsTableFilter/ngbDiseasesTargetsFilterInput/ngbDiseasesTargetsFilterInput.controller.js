@@ -1,4 +1,4 @@
-export default class ngbTargetsFilterInputController {
+export default class ngbDiseasesTargetsFilterInputController {
     prevValue;
     value;
 
@@ -14,7 +14,7 @@ export default class ngbTargetsFilterInputController {
     }
 
     static get UID() {
-        return 'ngbTargetsFilterInputController';
+        return 'ngbDiseasesTargetsFilterInputController';
     }
 
     apply() {

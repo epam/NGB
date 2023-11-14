@@ -1,9 +1,9 @@
 import angular from 'angular';
 
-import './ngbTargetsFilterList.scss';
+import './ngbDiseasesTargetsFilterList.scss';
 
-import component from './ngbTargetsFilterList.component';
-import controller from './ngbTargetsFilterList.controller';
+import component from './ngbDiseasesTargetsFilterList.component';
+import controller from './ngbDiseasesTargetsFilterList.controller';
 
 export default angular.module('ngbDiseasesTargetsFilterList', [])
     .controller(controller.UID, controller)
