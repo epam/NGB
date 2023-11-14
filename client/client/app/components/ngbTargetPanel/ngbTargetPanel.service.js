@@ -3,12 +3,21 @@ import processLinks from './utilities/process-links';
 const FORMAT = {
     XLS: 'xls',
     HTML: 'html'
+}
+
+const STATUS_OPTIONS = {
+    SAVE: 'SAVE',
+    SAVED: 'SAVED'
 };
 
 export default class NgbTargetPanelService {
 
     get format() {
         return FORMAT;
+    }
+
+    get statusOptions() {
+        return STATUS_OPTIONS;
     }
 
     _identificationData = null;
@@ -57,6 +66,15 @@ export default class NgbTargetPanelService {
         return this._descriptions;
     }
 
+    get saveStatus() {
+        return this.isIdentificationSaved
+            ? this.statusOptions.SAVED
+            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+    }
+    set saveStatus(value) {
+        this._saveStatus = value;
+    }
+
     get isIdentificationSaved() {
         if (!this.identificationTarget || !this.identificationTarget.target) return false;
         const {identifications} = this.identificationTarget.target;
@@ -81,6 +99,11 @@ export default class NgbTargetPanelService {
     constructor(appLayout, dispatcher, $sce, targetDataService) {
         Object.assign(this, {appLayout, dispatcher, $sce, targetDataService});
         dispatcher.on('target:launch:finished', this.setIdentificationData.bind(this));
+        dispatcher.on('target:identification:status:update', this.resetSaveStatus.bind(this));
+    }
+
+    resetSaveStatus() {
+        this._saveStatus = undefined;
     }
 
     panelAddTargetPanel() {
@@ -93,6 +116,7 @@ export default class NgbTargetPanelService {
         this.dispatcher.emit('target:identification:reset');
         this._identificationData = null;
         this._identificationTarget = null;
+        this.resetSaveStatus();
         this._descriptions = null;
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
     }

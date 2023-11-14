@@ -17,6 +17,7 @@ export default function run(
                 $scope.actionFailed = false;
                 $scope.errorMessageList = null;
                 $scope.isChanged = false;
+                $scope.isLaunched = false;
                 $scope.name = target.name;
 
                 $scope.identifications = target.identifications.map(t => {
@@ -70,9 +71,17 @@ export default function run(
                     $scope.identifications[index].deleteLoading = true;
                     const isDeleted = await deleteIdentification(id);
                     if (isDeleted) {
+                        const deletedIdentification = {
+                            genesOfInterest: [...$scope.identifications[index].genesOfInterest],
+                            translationalGenes: [...$scope.identifications[index].translationalGenes],
+                        };
                         $scope.identifications = $scope.identifications
                             .filter((item, i) => i !== index);
                         $scope.isChanged = true;
+                        const {identificationData, identificationTarget} = ngbTargetPanelService;
+                        if (identificationData && identificationTarget) {
+                            $scope.isLaunched = isIdentificationLaunched(identificationTarget, deletedIdentification);
+                        }
                         if (!$scope.identifications.length) {
                             $scope.close();
                         }
@@ -153,6 +162,9 @@ export default function run(
                     $mdDialog.hide();
                     if ($scope.isChanged) {
                         dispatcher.emit('target:table:update');
+                    }
+                    if ($scope.isLaunched) {
+                        dispatcher.emit('target:identification:status:update');
                     }
                 };
             },
