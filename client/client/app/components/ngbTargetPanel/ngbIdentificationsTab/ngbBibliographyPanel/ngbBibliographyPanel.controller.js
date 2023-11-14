@@ -161,4 +161,9 @@ export default class ngbBibliographyPanelController {
                 break;
         }
     }
+
+    onClickClear() {
+        this.searchText = '';
+        this.onBlur();
+    }
 }
