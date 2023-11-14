@@ -163,7 +163,7 @@ export default class ngbGenomicsPanelService {
     }
 
     setGenomicsResults () {
-        let data = [...this._genomicsData];
+        let data = [...(this._genomicsData || [])];
         if (!data || !data.length) {
             this._genomicsResults = [];
             this.setTotalPages();
@@ -361,7 +361,7 @@ export default class ngbGenomicsPanelService {
         this.fieldList = {
             target: this.interestGenes.map(g => g.chip),
             species: this.translationalSpecies,
-            'homology type': Array.from(new Set(this._genomicsResults.map(g => g['homology type'])))
+            'homology type': Array.from(new Set((this._genomicsResults || []).map(g => g['homology type'])))
         };
         this.dispatcher.emitSimpleEvent('genomics:filters:list');
     }

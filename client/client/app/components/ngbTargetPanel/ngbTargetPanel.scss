@@ -43,6 +43,11 @@
         height: 19px;
         overflow: hidden;
         font-size: $general-font-size;
+    }
+  }
+
+  ngb-panel-error-list.saving-error {
+    md-list-item, md-list-item .md-list-item-inner {
         float: right;
         padding: 0 50px;
     }
