@@ -43,7 +43,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -160,22 +162,19 @@ public class TargetManager {
     }
 
     public List<String> loadFieldValues(final TargetField field) {
-        if (field.equals(TargetField.SPECIES_NAME)) {
-            return targetGeneDao.loadSpeciesNames();
-        }
-        if (field.equals(TargetField.GENE_NAME)) {
-            return targetGeneDao.loadGeneNames();
-        }
-        final List<Target> targets = targetDao.loadAllTargets();
-        if (field.equals(TargetField.PRODUCTS)) {
-            return targets.stream().map(Target::getProducts)
-                    .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
-        }
-        if (field.equals(TargetField.DISEASES)) {
-            return targets.stream().map(Target::getDiseases)
-                    .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
-        }
-        return Collections.emptyList();
+        final List<String> loaded = getFieldValues(field);
+        final Set<String> values = new HashSet<>(loaded.size());
+
+        return loaded.stream().filter(value -> {
+                    final String upperCase = value.toUpperCase(Locale.ROOT);
+                    if (!values.contains(upperCase)) {
+                        values.add(upperCase);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     public List<String> getTargetGeneNames(final List<String> geneIds) {
@@ -248,5 +247,24 @@ public class TargetManager {
 
     private List<TargetIdentification> getIdentifications(final Set<Long> targetIds) {
         return targetIdentificationDao.load(getInClause("target_id", targetIds));
+    }
+
+    private List<String> getFieldValues(TargetField field) {
+        if (field.equals(TargetField.SPECIES_NAME)) {
+            return targetGeneDao.loadSpeciesNames();
+        }
+        if (field.equals(TargetField.GENE_NAME)) {
+            return targetGeneDao.loadGeneNames();
+        }
+        final List<Target> targets = targetDao.loadAllTargets();
+        if (field.equals(TargetField.PRODUCTS)) {
+            return targets.stream().map(Target::getProducts)
+                    .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
+        }
+        if (field.equals(TargetField.DISEASES)) {
+            return targets.stream().map(Target::getDiseases)
+                    .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 }
