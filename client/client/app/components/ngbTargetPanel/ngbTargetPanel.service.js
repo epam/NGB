@@ -99,6 +99,11 @@ export default class NgbTargetPanelService {
     constructor(appLayout, dispatcher, $sce, targetDataService) {
         Object.assign(this, {appLayout, dispatcher, $sce, targetDataService});
         dispatcher.on('target:launch:finished', this.setIdentificationData.bind(this));
+        dispatcher.on('target:identification:status:update', this.resetSaveStatus.bind(this));
+    }
+
+    resetSaveStatus() {
+        this._saveStatus = undefined;
     }
 
     panelAddTargetPanel() {
@@ -111,7 +116,7 @@ export default class NgbTargetPanelService {
         this.dispatcher.emit('target:identification:reset');
         this._identificationData = null;
         this._identificationTarget = null;
-        this._saveStatus = undefined;
+        this.resetSaveStatus();
         this._descriptions = null;
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
     }
