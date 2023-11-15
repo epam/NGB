@@ -116,7 +116,7 @@ public class TargetExportHTMLManager {
         final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
                 geneNamesMap);
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
-        final List<Sequence> sequences = getSequences(geneIds);
+        final List<Sequence> sequences = getSequences(geneIds, geneNamesMap);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
         long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
@@ -200,7 +200,7 @@ public class TargetExportHTMLManager {
 
     }
 
-    private List<Sequence> getSequences(final List<String> geneIds)
+    private List<Sequence> getSequences(final List<String> geneIds, final Map<String, String> geneNamesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
         final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(geneIds,
@@ -230,6 +230,7 @@ public class TargetExportHTMLManager {
                     protein.setLink(geneSequence.getProtein().getUrl());
                 }
                 SequenceData sequenceData = SequenceData.builder()
+                        .target(geneNamesMap.get(geneRefSection.getGeneId().toLowerCase()))
                         .transcript(transcript)
                         .mrnaLength(geneSequence.getMRNA() != null ? geneSequence.getMRNA().getLength() : null)
                         .protein(protein)
