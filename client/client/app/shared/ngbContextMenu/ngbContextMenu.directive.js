@@ -52,15 +52,19 @@ export default function($injector, $window, $timeout) {
 
                 viewport.right = viewport.left + wnd.width();
                 viewport.bottom = viewport.top + wnd.height();
-                const bounds = $element.offset();
-                bounds.right = bounds.left + $element.outerWidth();
-                bounds.bottom = bounds.top + $element.outerHeight();
-                if (viewport.right < bounds.right) {
-                    $element.css('left', pointerPosition.left - $element.outerWidth());
-                }
-                if (viewport.bottom < bounds.bottom) {
-                    $element.css('top', pointerPosition.top - $element.outerHeight() - (targetHeight || 0));
-                }
+
+                $timeout(() => {
+                    const bounds = $element.offset();
+                    bounds.right = bounds.left + $element.outerWidth();
+                    bounds.bottom = bounds.top + $element.outerHeight();
+                    if (viewport.right < bounds.right) {
+                        $element.css('left', pointerPosition.left - $element.outerWidth());
+                    }
+                    if (viewport.bottom < bounds.bottom) {
+                        $element.css('top', pointerPosition.top - $element.outerHeight() - (targetHeight || 0));
+                    }
+                }, 500);
+
             }
 
             function close() {

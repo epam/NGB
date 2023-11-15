@@ -29,6 +29,7 @@ ngb-diseases-targets-panel {
         border: none;
         height: auto;
         border-top: $general-border;
+        min-height: 250px;
 
         .ui-grid-viewport {
             height: 100% !important;
