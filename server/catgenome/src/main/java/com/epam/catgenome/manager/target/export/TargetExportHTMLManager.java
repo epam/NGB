@@ -139,7 +139,7 @@ public class TargetExportHTMLManager {
                 .proteins(sequencesSummary.getProteins())
                 .build();
         final TotalCounts totalCounts = TotalCounts.builder()
-                .knownDrugsCount(knownDrugsCount)
+                .knownDrugs(knownDrugsCount)
                 .sequences(sequencesCount)
                 .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size()))
                 .genomics(homologsCount)
@@ -307,7 +307,9 @@ public class TargetExportHTMLManager {
                 StructureData structureData = StructureData.builder()
                         .id(structure.getId())
                         .name(structure.getName())
+                        .link(structure.getUrl())
                         .method(structure.getMethod())
+                        .source(structure.getSource())
                         .resolution(structure.getResolution())
                         .chains(join(structure.getProteinChains(), "/"))
                         .build();
@@ -324,6 +326,7 @@ public class TargetExportHTMLManager {
                 StructureData structureData = StructureData.builder()
                         .id(pdbFile.getName())
                         .name(pdbFile.getPrettyName())
+                        .link(pdbFile.getPath())
                         .owner(pdbFile.getOwner())
                         .build();
                 localPdbData.add(structureData);

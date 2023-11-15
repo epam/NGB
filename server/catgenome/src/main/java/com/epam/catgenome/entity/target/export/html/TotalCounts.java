@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class TotalCounts {
-    private KnownDrugsCount knownDrugsCount;
+    private KnownDrugsCount knownDrugs;
     private SequencesCount sequences;
     private Long diseases;
     private Long genomics;
