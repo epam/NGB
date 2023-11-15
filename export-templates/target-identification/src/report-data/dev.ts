@@ -218,7 +218,10 @@ sequencesData.push({
 
 for (let i = 0; i < 600; i += 1) {
   structuresPDB.push({
-    id: getElement(i, id),
+    id: {
+      value: getElement(i, id),
+      link: 'https://www.rcsb.org/structure/1A0I',
+    },
     name: getElement(i, name),
     method: getElement(i, method),
     source: 'PDB',
