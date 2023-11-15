@@ -135,7 +135,6 @@ for (let i = 0; i < 1000; i += 1) {
     textMining: Math.random(),
     animalModels: Math.random(),
     RNAExpression: Math.random(),
-
   });
   diseasesPharmGKB.push({
     target: getElement(i, interest).id,

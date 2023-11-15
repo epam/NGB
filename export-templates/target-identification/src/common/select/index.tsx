@@ -142,7 +142,7 @@ function getOptionsItems<Item>(
       Option, {
         ...props,
         selected: options.selected.includes(props.value),
-        hovered: options.hovered === props.value,
+        hovered: props.value && options.hovered === props.value,
         onClick: () => options.onClick(props.value),
         onHover: () => options.onHover(props.value),
         index: items.indexOf(props.value),

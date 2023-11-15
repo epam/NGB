@@ -13,10 +13,10 @@ export const StructuresSourceNames: Record<StructuresSource, string> = {
 export type StructuresPDBItem = {
   id: ItemValue;
   name: ItemValue;
-  method: ItemValue;
-  source: ItemValue;
-  resolution: ItemValue;
-  chains: ItemValue;
+  method?: ItemValue;
+  source?: ItemValue;
+  resolution?: ItemValue;
+  chains?: ItemValue;
 }
 
 export type StructuresLocalFilesItem = {
