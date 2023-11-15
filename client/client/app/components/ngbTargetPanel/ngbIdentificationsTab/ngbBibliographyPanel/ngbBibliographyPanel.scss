@@ -164,6 +164,15 @@ ngb-bibliography-panel {
             display: none;
         }
     }
+
+    .search-input-clear-button {
+        ng-md-icon {
+            position: absolute;
+            top: 9px;
+            right: 8px;
+            fill: rgba(0,0,0,0.54);
+        }
+    }
 }
 
 .llm-model-select {

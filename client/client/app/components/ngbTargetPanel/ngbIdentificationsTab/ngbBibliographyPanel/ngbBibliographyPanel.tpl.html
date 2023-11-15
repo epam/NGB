@@ -36,7 +36,8 @@
          ng-bind-html="$ctrl.summary.html">
     </div>
 </div>
-<md-input-container md-no-float class="md-block search-publications-container">
+<md-input-container md-no-float
+                    class="md-block search-publications-container">
     <input type="text"
            ng-model="$ctrl.searchText"
            placeholder="Search publications"
@@ -44,6 +45,15 @@
            class="search-publications-input"
            ng-blur="$ctrl.onBlur()"
            ng-keydown="$ctrl.onKeyPress($event)">
+        <button type="button"
+                class="search-input-clear-button"
+                ng-click="$ctrl.onClickClear()"
+                ng-if="$ctrl.searchText.length">
+            <ng-md-icon icon="clear"
+                        size="15">
+            </ng-md-icon>
+        </button>
+    </input>
 </md-input-container>
 <div class="ngb-bibliography-section" ng-if="$ctrl.publications && $ctrl.publications.length > 0">
     <div ng-repeat="publication in $ctrl.publications track by publication.uid"
@@ -63,4 +73,4 @@
         </div>
     </div>
 </div>
-<ngb-bibliography-pagination ng-if="$ctrl.totalPages > 1"></ngb-bibliography-pagination>
+<ngb-bibliography-pagination></ngb-bibliography-pagination>

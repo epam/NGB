@@ -17,6 +17,7 @@ export default class NgbBibliographyPanelService {
     _publications = [];
     _totalPages = 0;
     _currentPage = 1;
+    _totalPublications = 0;
 
     _summaryResult = null;
 
@@ -78,6 +79,9 @@ export default class NgbBibliographyPanelService {
     }
     set keyWords(value) {
         this._keyWords = value;
+    }
+    get totalPublications() {
+        return this._totalPublications;
     }
 
     static instance (
@@ -145,6 +149,7 @@ export default class NgbBibliographyPanelService {
                 this._loadingPublications = false;
                 this.dispatcher.emit('target:identification:publications:loaded');
                 this.dispatcher.emit('target:identification:publications:page:changed');
+                this.dispatcher.emit('target:identification:publications:results:updated');
                 resolve(true);
             });
         }
@@ -163,11 +168,13 @@ export default class NgbBibliographyPanelService {
                         this._failedPublications = false;
                         this._publicationsError = null;
                         this._totalPages = Math.ceil(totalCount/this.pageSize);
+                        this._totalPublications = totalCount;
                         this._emptyPublications = totalCount === 0;
                         this._publications = data;
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
                         this.dispatcher.emit('target:identification:publications:page:changed');
+                        this.dispatcher.emit('target:identification:publications:results:updated');
                     });
                     resolve(true);
                 })
@@ -176,10 +183,12 @@ export default class NgbBibliographyPanelService {
                         this._failedPublications = true;
                         this._publicationsError = [err.message];
                         this._totalPages = 0;
+                        this._totalPublications = 0;
                         this._emptyPublications = false;
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
                         this.dispatcher.emit('target:identification:publications:page:changed');
+                        this.dispatcher.emit('target:identification:publications:results:updated');
                     });
                     resolve(false);
                 });
@@ -228,6 +237,7 @@ export default class NgbBibliographyPanelService {
         this._failedPublications = false;
         this._publicationsError = null;
         this._totalPages = 0;
+        this._totalPublications = 0
         this._keyWords = '';
         this._emptyPublications = false;
         this._publications = [];

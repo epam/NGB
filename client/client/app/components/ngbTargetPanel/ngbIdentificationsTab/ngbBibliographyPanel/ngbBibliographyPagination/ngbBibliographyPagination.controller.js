@@ -7,9 +7,26 @@ export default class ngbBibliographyPaginationController {
         return 'ngbBibliographyPaginationController';
     }
 
-    constructor(ngbBibliographyPanelService) {
-        Object.assign(this, {ngbBibliographyPanelService});
+    constructor($scope, $timeout, dispatcher, ngbBibliographyPanelService) {
+        Object.assign(this, {$scope, $timeout, ngbBibliographyPanelService});
         this.pages = this.getPages();
+        dispatcher.on('target:identification:publications:results:updated', this.refresh.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:publications:results:updated', this.refresh.bind(this));
+        });
+    }
+
+    get loadingPublications() {
+        return this.ngbBibliographyPanelService.loadingPublications;
+    }
+
+    get totalPublications() {
+        return this.ngbBibliographyPanelService.totalPublications;
+    }
+
+    refresh() {
+        this.pages = this.getPages();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async setPage(page) {
