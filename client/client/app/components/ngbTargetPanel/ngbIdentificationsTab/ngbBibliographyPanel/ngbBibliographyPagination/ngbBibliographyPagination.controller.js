@@ -33,9 +33,10 @@ export default class ngbBibliographyPaginationController {
         if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
             return;
         }
-        await this.ngbBibliographyPanelService.getDataOnPage(page);
-        this.currentPage = page;
-        this.pages = this.getPages();
+        const success = await this.ngbBibliographyPanelService.getDataOnPage(page);
+        if (success) {
+            this.pages = this.getPages();
+        }
     }
 
     get totalPages() {
@@ -44,9 +45,6 @@ export default class ngbBibliographyPaginationController {
 
     get currentPage() {
         return this.ngbBibliographyPanelService.currentPage;
-    }
-    set currentPage(value) {
-        this.ngbBibliographyPanelService.currentPage = value;
     }
 
     getPages() {

@@ -127,7 +127,7 @@ export default class NgbBibliographyPanelService {
     updateGenes (targetIdentificationData) {
         const {
             interest = [],
-            translational = []
+            translational = [],
         } = targetIdentificationData || {};
         this._genes = [...new Set([
             ...interest.map(g => g.geneId),
@@ -135,22 +135,26 @@ export default class NgbBibliographyPanelService {
         ])];
         this.clearSummary();
         this.clearPublications();
-        (this.getPublicationsResults)();
+        this._totalPublications = (this.ngbTargetPanelService.identificationData || {}).publicationsCount;
+        (this.getPublicationsResults)(1);
     }
 
     async getDataOnPage(page) {
-        this.currentPage = page;
-        this.getPublicationsResults();
+        const success = await this.getPublicationsResults(page);
+        if (success) {
+            this.currentPage = page;
+            return true;
+        }
     }
 
-    getPublicationsResults() {
+    getPublicationsResults(page) {
         if (!this.genes.length) {
             return new Promise(resolve => {
                 this._loadingPublications = false;
                 this.dispatcher.emit('target:identification:publications:loaded');
                 this.dispatcher.emit('target:identification:publications:page:changed');
                 this.dispatcher.emit('target:identification:publications:results:updated');
-                resolve(true);
+                resolve(false);
             });
         }
         this.dispatcher.emit('target:identification:publications:loading');
@@ -159,7 +163,7 @@ export default class NgbBibliographyPanelService {
         return new Promise(resolve => {
             this.targetDataService.getPublications({
                 geneIds: this.genes,
-                page: this.currentPage,
+                page: page,
                 pageSize: this.pageSize,
                 keywords: this.keyWords
             })
@@ -182,8 +186,6 @@ export default class NgbBibliographyPanelService {
                     commit(() => {
                         this._failedPublications = true;
                         this._publicationsError = [err.message];
-                        this._totalPages = 0;
-                        this._totalPublications = 0;
                         this._emptyPublications = false;
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
