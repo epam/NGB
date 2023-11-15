@@ -34,7 +34,6 @@ import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import static com.epam.ngb.autotests.utils.AppProperties.VCF_DEVIATION;
 import com.epam.ngb.autotests.utils.TestCase;
 import static com.epam.ngb.autotests.utils.Utils.getExpectedImage;
-import static com.epam.ngb.autotests.utils.Utils.takeScreenshot;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -99,21 +98,18 @@ public class VariantsTests extends AbstractNgbTest {
                 .selectMainMenuItem(VARIANTS, true);
         new TabsSelectionPanel()
                 .selectPanel(VARIANTS);
-        BrowserPanel browserPanel = new VariantsPanel()
-        .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
+        new VariantsPanel()
+                .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
                 .checkBackgroundColorRowByPosition(testPositionTC01[1], GREEN.value)
                 .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHTBLUE.value)
                 .openVariantByPosition(testPositionTC01[0])
-                .waitTrackDownloaded(track);
-//                .trackImageCompare(getExpectedImage(variantsTC01_1),
-//                        track, variantsTC01_1, VCF_DEVIATION)
-        takeScreenshot(browserPanel.getTrack(track), variantsTC01_1);
-        browserPanel
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage(variantsTC01_1),
+                        track, variantsTC01_1, VCF_DEVIATION)
                 .setCoordinates(vcfTestCoordinates1)
-                .waitTrackDownloaded(track);
-//                .trackImageCompare(getExpectedImage(variantsTC01_2),
-//                        track, variantsTC01_2, VCF_DEVIATION);
-        takeScreenshot(browserPanel.getTrack(track), variantsTC01_2);
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage(variantsTC01_2),
+                        track, variantsTC01_2, VCF_DEVIATION);
     }
 
     @Test(dataProvider = "complexConditions")
@@ -140,11 +136,10 @@ public class VariantsTests extends AbstractNgbTest {
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
                 .openVariantByPosition(position);
-        BrowserPanel browserPanel = new BrowserPanel();
-        browserPanel.waitTrackDownloaded(track);
-//                .trackImageCompare(getExpectedImage(fileName),
-//                        track, fileName, VCF_DEVIATION);
-        takeScreenshot(browserPanel.getTrack(track), fileName);
+        new BrowserPanel()
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage(fileName),
+                        track, fileName, VCF_DEVIATION);
     }
 
     @Test(dataProvider = "simpleConditions")
@@ -171,11 +166,9 @@ public class VariantsTests extends AbstractNgbTest {
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
                 .openVariantByPosition(position);
-        BrowserPanel browserPanel = new BrowserPanel();
-        browserPanel.waitTrackDownloaded(track);
-//                .trackImageCompare(getExpectedImage(fileName),
-//                        track, fileName, VCF_DEVIATION);
-        takeScreenshot(browserPanel.getTrack(track), fileName);
+        new BrowserPanel()
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage(fileName),
+                        track, fileName, VCF_DEVIATION);
     }
-
 }
