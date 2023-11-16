@@ -364,7 +364,7 @@ public class LaunchIdentificationManager {
         final Disease disease = Disease.builder()
                 .id(association.getId())
                 .name(association.getName())
-                .url(String.format(Disease.URL_PATTERN, association.getId()))
+                .url(association.getUrl())
                 .build();
         final Map<AssociationType, Float> scores = new HashMap<>();
         if (association.getOverallScore() != null) {
