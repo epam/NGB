@@ -210,6 +210,7 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
         return DiseaseAssociation.builder()
                 .id(id)
                 .name(doc.getField(DiseaseField.DISEASE_NAME.name()).stringValue())
+                .url(String.format(Disease.URL_PATTERN, id))
                 .geneId(doc.getField(DiseaseField.GENE_ID.name()).stringValue())
                 .overallScore(getScore(doc, DiseaseField.OVERALL_SCORE))
                 .geneticAssociationScore(getScore(doc, DiseaseField.GENETIC_ASSOCIATIONS_SCORE))
@@ -224,9 +225,11 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
 
     @Override
     public DiseaseAssociation entryFromDocDiseaseView(final Document doc) {
+        final String id = doc.getField(DrugField.DISEASE_ID.name()).stringValue();
         return DiseaseAssociation.builder()
-                .id(doc.getField(DiseaseField.DISEASE_ID.name()).stringValue())
+                .id(id)
                 .geneId(doc.getField(DiseaseField.GENE_ID.name()).stringValue())
+                .url(String.format(Disease.URL_PATTERN, id))
                 .geneSymbol(doc.getField(DiseaseField.GENE_SYMBOL.name()).stringValue())
                 .geneName(doc.getField(DiseaseField.GENE_NAME.name()).stringValue())
                 .overallScore(getScore(doc, DiseaseField.OVERALL_SCORE))
