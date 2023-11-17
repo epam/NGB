@@ -25,6 +25,7 @@ export default class NgbBibliographyPanelService {
     _publicationsToken = 0;
 
     _keyWords = '';
+    _selectedGeneIds;
 
     get pageSize() {
         return PAGE_SIZE;
@@ -83,6 +84,12 @@ export default class NgbBibliographyPanelService {
     get totalPublications() {
         return this._totalPublications;
     }
+    get selectedGeneIds() {
+        return this._selectedGeneIds || [];
+    }
+    set selectedGeneIds(value) {
+        this._selectedGeneIds = value || [];
+    }
 
     static instance (
         $sce,
@@ -114,25 +121,18 @@ export default class NgbBibliographyPanelService {
             targetDataService,
             targetLLMService
         });
-        this._genes = [];
+        this.selectedGeneIds = this.genes.map(g => g.geneId);
 
         dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
         this.updateGenes(ngbTargetPanelService.identificationTarget);
     }
 
     get genes() {
-        return this._genes;
+        return this.ngbTargetPanelService.allGenes || [];
     }
 
     updateGenes (targetIdentificationData) {
-        const {
-            interest = [],
-            translational = [],
-        } = targetIdentificationData || {};
-        this._genes = [...new Set([
-            ...interest.map(g => g.geneId),
-            ...translational.map(g => g.geneId),
-        ])];
+        this.selectedGeneIds = this.genes.map(g => g.geneId);
         this.clearSummary();
         this.clearPublications();
         this._totalPublications = (this.ngbTargetPanelService.identificationData || {}).publicationsCount;
@@ -148,7 +148,7 @@ export default class NgbBibliographyPanelService {
     }
 
     getPublicationsResults(page) {
-        if (!this.genes.length) {
+        if (!this.selectedGeneIds.length) {
             return new Promise(resolve => {
                 this._loadingPublications = false;
                 this.dispatcher.emit('target:identification:publications:loaded');
@@ -162,7 +162,7 @@ export default class NgbBibliographyPanelService {
         const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getPublications({
-                geneIds: this.genes,
+                geneIds: this.selectedGeneIds,
                 page: page,
                 pageSize: this.pageSize,
                 keywords: this.keyWords
@@ -175,6 +175,7 @@ export default class NgbBibliographyPanelService {
                         this._totalPublications = totalCount;
                         this._emptyPublications = totalCount === 0;
                         this._publications = data;
+                        this.searchedGeneIds = [...this.selectedGeneIds];
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
                         this.dispatcher.emit('target:identification:publications:page:changed');

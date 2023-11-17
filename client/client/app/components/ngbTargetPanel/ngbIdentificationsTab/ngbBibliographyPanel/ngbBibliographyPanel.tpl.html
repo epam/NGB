@@ -36,25 +36,46 @@
          ng-bind-html="$ctrl.summary.html">
     </div>
 </div>
-<md-input-container md-no-float
-                    class="md-block search-publications-container">
-    <input type="text"
-           ng-model="$ctrl.searchText"
-           placeholder="Search publications"
-           aria-label="Search publications"
-           class="search-publications-input"
-           ng-blur="$ctrl.onBlur()"
-           ng-keydown="$ctrl.onKeyPress($event)">
-        <button type="button"
-                class="search-input-clear-button"
-                ng-click="$ctrl.onClickClear()"
-                ng-if="$ctrl.searchText.length">
-            <ng-md-icon icon="clear"
-                        size="15">
-            </ng-md-icon>
-        </button>
-    </input>
-</md-input-container>
+<div class="header-container">
+    <md-input-container md-no-float
+                        class="md-block search-publications-container">
+        <input type="text"
+               ng-model="$ctrl.searchText"
+               placeholder="Search publications"
+               aria-label="Search publications"
+               class="search-publications-input"
+               ng-blur="$ctrl.onBlur()"
+               ng-keydown="$ctrl.onKeyPress($event)">
+            <button type="button"
+                    class="search-input-clear-button"
+                    ng-click="$ctrl.onClickClear()"
+                    ng-if="$ctrl.searchText.length">
+                <ng-md-icon icon="clear"
+                            size="15">
+                </ng-md-icon>
+            </button>
+        </input>
+    </md-input-container>
+    <div class="bibliography-gene-select"
+         ng-if="$ctrl.genes.length > 1">
+        <md-input-container>
+            <md-select ng-model="$ctrl.selectedGeneIds"
+                       required
+                       md-selected-text="$ctrl.genesDisplay"
+                       aria-label="Select genes"
+                       placeholder="Select genes"
+                       multiple="true"
+                       md-on-close="$ctrl.onCloseSelector()"
+                       ng-disabled="$ctrl.loadingSummary || $ctrl.loadingPublications"
+                       md-container-class="bibliography-gene-select-container">
+                <md-option ng-repeat="item in $ctrl.genes"
+                           ng-value="item.geneId">
+                    {{item.chip}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+</div>
 <div class="ngb-bibliography-section" ng-if="$ctrl.publications && $ctrl.publications.length > 0">
     <div ng-repeat="publication in $ctrl.publications track by publication.uid"
          class="publication-container">
