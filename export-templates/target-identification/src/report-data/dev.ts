@@ -229,7 +229,10 @@ for (let i = 0; i < 600; i += 1) {
     chains: getElement(i, chain),
   });
   structuresLocalFiles.push({
-    id: getElement(i, id),
+    id: {
+      value: getElement(i, id),
+      link: 'https://www.rcsb.org/structure/1A0I',
+    },
     name: getElement(i, name),
     owner: getElement(i, owner),
   });
