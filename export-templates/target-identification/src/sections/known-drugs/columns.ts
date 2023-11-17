@@ -14,8 +14,8 @@ const knownDrugsColumns: TableColumn<KnownDrugsOpenTargetsItem>[] = [
   'target',
   'drug',
   'type',
-  'mechanism',
-  'action',
+  {key: 'mechanism', title: 'mechanism of action'},
+  {key: 'action', title: 'action type'},
   'disease',
   'phase',
   'status',
@@ -25,8 +25,8 @@ const knownDrugsColumns: TableColumn<KnownDrugsOpenTargetsItem>[] = [
 const dgIdbColumns: TableColumn<KnownDrugsDGIdbItem>[] = [
   'target',
   'drug',
-  {key: 'interactionSource', title: 'interaction source'},
-  {key: 'interactionType', title: 'interaction type'},
+  {key: 'interactionSource', title: 'interaction claim source'},
+  {key: 'interactionType', title: 'interaction types'},
 ];
 
 const pharmGKBColumns: TableColumn<KnownDrugsPharmGKBItem>[] = [

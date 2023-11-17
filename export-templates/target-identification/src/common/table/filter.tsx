@@ -43,7 +43,7 @@ export default function TableColumnFilter<Item>(props: TableFilterProps<Item>) {
       if (`${event.target.value}` === '') {
         setNumberFilterFrom(numberFilter);
       } else if (isNumber(event.target.value)) {
-        setNumberFilterFrom(numberFilter, Number(event.target.value as string));
+        setNumberFilterFrom(numberFilter, event.target.value);
       }
     }
   }, [numberFilter, setNumberFilterFrom]);

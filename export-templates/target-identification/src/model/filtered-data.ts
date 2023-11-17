@@ -88,7 +88,7 @@ function buildFilter<Item>(data: Item[], filter: FilterConfig<Item>): Filter<Ite
   let type: FilterType = getFilterSuggestedType(data, filter);
   const valueFn: ItemValueFn<Item> = getFilterValueFn(filter);
   const extractRealValue = (item: Item): ItemSimpleValue => getSimpleValue(valueFn(item));
-  const list: ItemSimpleValue[] = [...new Set(data.map(extractRealValue).filter((value) => !isUndefined(value)))];
+  const list: ItemSimpleValue[] = [...new Set(data.map(extractRealValue))];
   if (list.some((n) => !isNumber(n))) {
     type = FilterType.list;
   }

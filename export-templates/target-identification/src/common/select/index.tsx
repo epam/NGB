@@ -142,7 +142,7 @@ function getOptionsItems<Item>(
       Option, {
         ...props,
         selected: options.selected.includes(props.value),
-        hovered: options.hovered === props.value,
+        hovered: props.value && options.hovered === props.value,
         onClick: () => options.onClick(props.value),
         onHover: () => options.onHover(props.value),
         index: items.indexOf(props.value),
@@ -156,7 +156,7 @@ type SelectInputProps<Item> = CommonParentProps & {
   removable: boolean;
   hovered: Item | undefined;
   onChangeFilter: (filter: string) => void;
-  onFocus?: () => void;
+  onClick?: () => void;
   onBlur?: () => void;
   onRemove: (item: Item) => void;
   onRemoveAll: () => void;
@@ -174,7 +174,7 @@ function SelectSingleInput<Item>(props: SelectInputProps<Item>) {
     values,
     filter,
     open,
-    onFocus,
+    onClick,
     onBlur,
     onRemove,
     onRemoveAll,
@@ -263,7 +263,7 @@ function SelectSingleInput<Item>(props: SelectInputProps<Item>) {
         <input
           className="w-full outline-0 border-0 h-6 px-1 bg-transparent"
           ref={input}
-          onFocus={onFocus}
+          onClick={onClick}
           onBlur={onBlur}
           onKeyDown={onKey}
           value={filter}
@@ -308,7 +308,7 @@ function SelectMultipleInput<Item>(props: SelectInputProps<Item>) {
     values,
     filter,
     open,
-    onFocus,
+    onClick,
     onBlur,
     onRemove,
     onRemoveAll,
@@ -383,7 +383,7 @@ function SelectMultipleInput<Item>(props: SelectInputProps<Item>) {
           <input
             className="w-full outline-0 border-0 h-6 px-1 bg-transparent"
             ref={input}
-            onFocus={onFocus}
+            onClick={onClick}
             onBlur={onBlur}
             onKeyDown={onKey}
             value={filter}
@@ -515,7 +515,7 @@ function Select<Item>(props: SelectProps<Item>) {
   const value = multiple === true ? props.values : props.value;
   const values = useMemo(() => asArray(value), [value]);
   const list = useMemo(() => getItems<Item>(children), [children]);
-  const onInputFocus = useCallback(() => setIsOpen(true), [setIsOpen]);
+  const onInputClick = useCallback(() => setIsOpen(!isOpen), [setIsOpen, isOpen]);
   const onInputBlur = useCallback(() => setIsOpen(false), [setIsOpen]);
   const filterItem = useCallback((item: Item): boolean => {
     if (filter.length === 0) {
@@ -655,7 +655,7 @@ function Select<Item>(props: SelectProps<Item>) {
         open={isOpen}
         hovered={hovered}
         removable={multiple === true || props.allowClear}
-        onFocus={onInputFocus}
+        onClick={onInputClick}
         onBlur={onInputBlur}
         onChangeFilter={onChangeFilter}
         onEnter={onEnter}

@@ -13,14 +13,14 @@ export const DiseasesSourceNames: Record<DiseasesSource, string> = {
 export type DiseasesOpenTargetsItem = {
   target: ItemValue;
   disease: ItemValue;
-  overallScore: ItemValue;
-  geneticAssociation: ItemValue;
-  somaticMutations: ItemValue;
-  drugs: ItemValue;
-  pathwaysSystems: ItemValue;
-  textMining: ItemValue;
-  animalModels: ItemValue;
-  RNAExpression: ItemValue;
+  overallScore?: ItemValue;
+  geneticAssociation?: ItemValue;
+  somaticMutations?: ItemValue;
+  drugs?: ItemValue;
+  pathwaysSystems?: ItemValue;
+  textMining?: ItemValue;
+  animalModels?: ItemValue;
+  RNAExpression?: ItemValue;
 }
 
 export type DiseasesPharmGKBItem = {
