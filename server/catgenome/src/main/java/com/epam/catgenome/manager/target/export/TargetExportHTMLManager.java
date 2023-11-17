@@ -329,7 +329,7 @@ public class TargetExportHTMLManager {
             for (PdbFile pdbFile : pdbFiles) {
                 LinkEntity id = LinkEntity.builder()
                         .value(pdbFile.getName())
-                        .link(pdbFile.getPath())
+//                        .link(pdbFile.getPath())
                         .build();
                 StructureData structureData = StructureData.builder()
                         .id(id)
