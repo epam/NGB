@@ -305,10 +305,13 @@ public class TargetExportHTMLManager {
         if (CollectionUtils.isNotEmpty(pdbStructures)) {
             final List<StructureData> pdbStructuresData = new ArrayList<>();
             for (Structure structure : pdbStructures) {
-                StructureData structureData = StructureData.builder()
-                        .id(structure.getId())
-                        .name(structure.getName())
+                LinkEntity id = LinkEntity.builder()
+                        .value(structure.getId())
                         .link(structure.getUrl())
+                        .build();
+                StructureData structureData = StructureData.builder()
+                        .id(id)
+                        .name(structure.getName())
                         .method(structure.getMethod())
                         .source(structure.getSource())
                         .resolution(structure.getResolution())
@@ -324,10 +327,13 @@ public class TargetExportHTMLManager {
         if (CollectionUtils.isNotEmpty(pdbFiles)) {
             final List<StructureData> localPdbData = new ArrayList<>();
             for (PdbFile pdbFile : pdbFiles) {
-                StructureData structureData = StructureData.builder()
-                        .id(pdbFile.getName())
-                        .name(pdbFile.getPrettyName())
+                LinkEntity id = LinkEntity.builder()
+                        .value(pdbFile.getName())
                         .link(pdbFile.getPath())
+                        .build();
+                StructureData structureData = StructureData.builder()
+                        .id(id)
+                        .name(pdbFile.getPrettyName())
                         .owner(pdbFile.getOwner())
                         .build();
                 localPdbData.add(structureData);
