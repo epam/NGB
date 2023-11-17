@@ -31,9 +31,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class StructureData {
-    private String id;
+    private LinkEntity id;
     private String name;
-    private String link;
     private String owner;
     private String method;
     private String source;
