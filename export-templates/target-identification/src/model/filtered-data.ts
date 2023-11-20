@@ -89,9 +89,6 @@ function buildFilter<Item>(data: Item[], filter: FilterConfig<Item>): Filter<Ite
   const valueFn: ItemValueFn<Item> = getFilterValueFn(filter);
   const extractRealValue = (item: Item): ItemSimpleValue => getSimpleValue(valueFn(item));
   const list: ItemSimpleValue[] = [...new Set(data.map(extractRealValue))];
-  if (list.some((n) => !isNumber(n))) {
-    type = FilterType.list;
-  }
   switch (type) {
     case FilterType.number:
       const numbers = list.map((n) => Number(n));
@@ -186,7 +183,7 @@ function clearFilterValues<Item>(filter: Filter<Item>): Filter<Item> {
 function filterDataItemUsingNumberFilter<Item>(item: Item, filter: NumberFilter<Item>): boolean {
   const valueFn = getFilterValueFn(filter.config);
   const value = valueFn(item);
-  if (typeof value !== 'number') {
+  if (typeof value !== 'number' && typeof value !== 'undefined') {
     return true;
   }
   const {
