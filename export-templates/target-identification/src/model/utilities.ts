@@ -24,6 +24,9 @@ export function getSimpleValue(value: ItemValue): ItemSimpleValue {
   if (isLinkValue(value)) {
     return value.value;
   }
+  if (value === undefined) {
+    return 'Empty value';
+  }
   return value;
 }
 
