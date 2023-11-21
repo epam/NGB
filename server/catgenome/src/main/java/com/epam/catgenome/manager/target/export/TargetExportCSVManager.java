@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,8 +61,8 @@ public class TargetExportCSVManager {
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final TargetExportManager targetExportManager;
 
-    public byte[] export(final String diseaseId, final TargetExportTable source,
-                         final FileFormat format, final boolean includeHeader)
+    public byte[] exportDisease(final String diseaseId, final TargetExportTable source,
+                                final FileFormat format, final boolean includeHeader)
             throws ParseException, IOException {
         byte[] result = null;
         switch (source) {
@@ -78,6 +79,7 @@ public class TargetExportCSVManager {
         }
         return result;
     }
+
     public byte[] export(final List<String> genesOfInterest,
                          final List<String> translationalGenes,
                          final FileFormat format,
@@ -126,6 +128,53 @@ public class TargetExportCSVManager {
                                 translationalGenes, genesMap),
                         Arrays.asList(TargetHomologyField.values()), format, includeHeader);
                 break;
+            default:
+                break;
+        }
+        return result;
+    }
+
+    public byte[] exportGene(final String geneId, final TargetExportTable source,
+                         final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final List<String> geneIds = Collections.singletonList(geneId);
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
+        byte[] result = null;
+        switch (source) {
+            case OPEN_TARGETS_DISEASES:
+                result = ExportUtils.export(targetExportManager.getDiseaseAssociations(geneIds, genesMap),
+                        getAssociationFields(DiseaseField.values()), format, includeHeader);
+                break;
+            case OPEN_TARGETS_DRUGS:
+                result = ExportUtils.export(targetExportManager.getDrugAssociations(geneIds, genesMap),
+                        getAssociationFields(DrugField.values()), format, includeHeader);
+                break;
+            case PHARM_GKB_DISEASES:
+                result = ExportUtils.export(targetExportManager.getPharmGKBDiseases(geneIds, genesMap),
+                        getAssociationFields(PharmGKBDiseaseField.values()), format, includeHeader);
+                break;
+            case PHARM_GKB_DRUGS:
+                result = ExportUtils.export(targetExportManager.getPharmGKBDrugs(geneIds, genesMap),
+                        getAssociationFields(PharmGKBDrugField.values()), format, includeHeader);
+                break;
+            case DGIDB_DRUGS:
+                result = ExportUtils.export(targetExportManager.getDGIDBDrugs(geneIds, genesMap),
+                        getAssociationFields(DGIDBField.values()), format, includeHeader);
+                break;
+            case STRUCTURES:
+                result = ExportUtils.export(targetExportManager.getStructures(geneIds),
+                        Arrays.asList(PdbStructureField.values()), format, includeHeader);
+                break;
+            case LOCAL_PDBS:
+                result = ExportUtils.export(targetExportManager.getPdbFiles(geneIds),
+                        Arrays.asList(PdbFileField.values()), format, includeHeader);
+                break;
+            case SEQUENCES:
+                result = ExportUtils.export(targetExportManager.getSequenceTable(geneIds, genesMap),
+                        Arrays.asList(GeneSequenceField.values()), format, includeHeader);
+                break;
+            case HOMOLOGY:
+                throw new IllegalArgumentException("Homology report not available");
             default:
                 break;
         }

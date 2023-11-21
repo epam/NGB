@@ -59,6 +59,7 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -180,6 +181,62 @@ public class TargetExportHTMLManager {
                 .structures(structures)
                 .publications(publications)
                 .comparativeGenomics(comparativeGenomics)
+                .build();
+        return fillTemplate(template, result);
+    }
+
+    public InputStream getHTMLSummary(final String geneId)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final String template = getTemplate();
+
+        final List<String> geneIds = Collections.singletonList(geneId);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final List<String> entrezIds = ncbiGeneIds.stream()
+                .map(g -> g.getEntrezId().toString())
+                .collect(Collectors.toList());
+
+        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(geneIds, null);
+        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds,
+                null);
+        final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
+                null);
+        final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
+        final List<Sequence> sequences = getSequences(geneIds, null);
+        final List<SourceData<StructureData>> structures = getStructures(geneIds);
+        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
+        final List<Publication> publications = getPublications(entrezIds, publicationsCount);
+
+        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
+        final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
+
+        final SequencesSummary sequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
+        final KnownDrugsCount knownDrugsCount = KnownDrugsCount
+                .builder()
+                .drugs(drugsCount.getDistinctCount())
+                .records(drugsCount.getTotalCount())
+                .build();
+        final SequencesCount sequencesCount = SequencesCount
+                .builder()
+                .dnas(sequencesSummary.getDNAs())
+                .mrnas(sequencesSummary.getMRNAs())
+                .proteins(sequencesSummary.getProteins())
+                .build();
+        final TotalCounts totalCounts = TotalCounts.builder()
+                .knownDrugs(knownDrugsCount)
+                .sequences(sequencesCount)
+                .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size()))
+                .structures(structuresCount)
+                .publications(publicationsCount)
+                .build();
+        final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
+        TargetExportHTML result =  TargetExportHTML.builder()
+                .name(geneNames.get(0))
+                .totalCounts(totalCounts)
+                .knownDrugs(knownDrugs)
+                .associatedDiseases(diseases)
+                .sequences(sequences)
+                .structures(structures)
+                .publications(publications)
                 .build();
         return fillTemplate(template, result);
     }

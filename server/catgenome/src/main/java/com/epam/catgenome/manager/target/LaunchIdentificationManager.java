@@ -68,6 +68,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LaunchIdentificationManager {
 
     private static final String PUBMED_LINK = "PubMed:<a href='https://europepmc.org/article/med/%s'>%s</a>";
@@ -110,7 +112,7 @@ public class LaunchIdentificationManager {
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
-        targetManager.getTarget(request.getTargetId());
+
         final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
@@ -247,7 +249,7 @@ public class LaunchIdentificationManager {
     }
 
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
-        final List<String> geneNames = targetManager.getTargetGeneNames(request.getGeneIds());
+        final List<String> geneNames = getGeneNames(request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
     }
 
@@ -290,9 +292,9 @@ public class LaunchIdentificationManager {
         return genes;
     }
 
-    private long getStructuresCount(final List<String> geneIds) {
+    public long getStructuresCount(final List<String> geneIds) {
         long localPdbFiles = pdbFileManager.totalCount(geneIds);
-        final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
+        final List<String> geneNames = getGeneNames(geneIds);
         long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
         return localPdbFiles + structuresCount;
     }
@@ -336,7 +338,7 @@ public class LaunchIdentificationManager {
                 .build();
     }
 
-    private long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
+    public long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
         final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
         final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
         return openTargetsDiseasesCount + pharmGKBDiseasesCount;
@@ -435,5 +437,25 @@ public class LaunchIdentificationManager {
         final List<Disease> diseases = diseaseManager.search(new ArrayList<>(diseaseIds));
         return CollectionUtils.isEmpty(diseases) ? Collections.emptyMap() : diseases.stream()
                 .collect(Collectors.toMap(Disease::getId, Function.identity()));
+    }
+
+    public List<String> getGeneNames(final List<String> geneIds) {
+        final List<String> geneNames = new ArrayList<>();
+        geneIds.forEach(g -> {
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            if (CollectionUtils.isEmpty(targetGeneNames)) {
+                List<TargetDetails> targetDetails = Collections.emptyList();
+                try {
+                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
+                } catch (ParseException | IOException e) {
+                    log.debug("No gene names found for {}", g);
+                }
+                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
+                geneNames.addAll(targetGeneNames);
+            }
+        });
+        return geneNames;
     }
 }

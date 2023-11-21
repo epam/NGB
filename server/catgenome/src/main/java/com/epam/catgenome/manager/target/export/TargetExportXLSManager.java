@@ -75,7 +75,6 @@ import java.util.stream.Stream;
 
 import static com.epam.catgenome.manager.export.ExcelExportUtils.writeSheet;
 import static com.epam.catgenome.manager.target.export.TargetExportManager.getAssociationFields;
-import static com.epam.catgenome.manager.target.export.TargetExportManager.getAssociationFieldsDiseaseView;
 
 
 @Service
@@ -127,12 +126,30 @@ public class TargetExportXLSManager {
         }
     }
 
-    public InputStream report(final String diseaseId) throws IOException, ParseException {
+    public InputStream report(final String geneId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final List<String> geneIds = Collections.singletonList(geneId);
+        final Map<String, String> targetNames = targetExportManager.getTargetGeneNames(geneId);
         try (Workbook workbook = new XSSFWorkbook()) {
-            writeSheet("Drugs", getAssociationFieldsDiseaseView(DrugField.values()),
-                    drugAssociationManager.search(diseaseId), workbook);
-            writeSheet("Targets", getAssociationFieldsDiseaseView(DiseaseField.values()),
-                    diseaseAssociationManager.search(diseaseId), workbook);
+            writeSheet("Summary", Arrays.stream(TargetExportSummaryField.values())
+                            .filter(TargetExportSummaryField::isGene).collect(Collectors.toList()),
+                    getSummary(geneId), workbook);
+            writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
+                    targetExportManager.getDiseaseAssociations(geneIds, targetNames), workbook);
+            writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
+                    targetExportManager.getDrugAssociations(geneIds, targetNames), workbook);
+            writeSheet("Associated Diseases(PharmGKB)", getAssociationFields(PharmGKBDiseaseField.values()),
+                    targetExportManager.getPharmGKBDiseases(geneIds, targetNames), workbook);
+            writeSheet("Known Drugs(PharmGKB)", getAssociationFields(PharmGKBDrugField.values()),
+                    targetExportManager.getPharmGKBDrugs(geneIds, targetNames), workbook);
+            writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
+                    targetExportManager.getDGIDBDrugs(geneIds, targetNames), workbook);
+            writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
+                    targetExportManager.getStructures(geneIds), workbook);
+            writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
+                    targetExportManager.getPdbFiles(geneIds), workbook);
+            writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
+                    targetExportManager.getSequenceTable(geneIds, targetNames), workbook);
             return ExcelExportUtils.export(workbook);
         }
     }
@@ -200,6 +217,33 @@ public class TargetExportXLSManager {
             summaries.add(summary);
         }
         return summaries;
+    }
+
+    private List<TargetExportSummary> getSummary(final String geneId)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<String> geneIds = Collections.singletonList(geneId);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final Map<String, GeneId> genes = ncbiGeneIds.stream()
+                .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
+        final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
+
+        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
+        long diseasesCount = launchIdentificationManager.getDiseasesCount(geneIds);
+        final long structures = launchIdentificationManager.getStructuresCount(geneIds);
+        long publicationsCount = genes.containsKey(geneId) ? pubMedService.getPublicationsCount(
+                Collections.singletonList(genes.get(geneId).getEntrezId().toString())) : 0;
+        final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
+
+        TargetExportSummary summary = TargetExportSummary.builder()
+                .description(descriptions.get(geneId))
+                .knownDrugs(drugsCount.getDistinctCount())
+                .knownDrugRecords(drugsCount.getTotalCount())
+                .diseases(diseasesCount)
+                .publications(publicationsCount)
+                .sequences(sequencesCount.toString())
+                .structures(structures)
+                .build();
+        return Collections.singletonList(summary);
     }
 
     private Map<String, DrugsCount> getDrugsCount(final List<String> geneIds) throws IOException, ParseException {

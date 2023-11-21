@@ -55,9 +55,22 @@ public class TargetExportSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public byte[] export(final String geneId, final TargetExportTable source,
+                         final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return targetExportCSVManager.exportGene(geneId, source, format, includeHeader);
+    }
+
+    @PreAuthorize(ROLE_USER)
     public InputStream report(final List<String> genesOfInterest, final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return targetExportXLSManager.report(genesOfInterest, translationalGenes);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public InputStream report(final String geneId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return targetExportXLSManager.report(geneId);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -66,5 +79,10 @@ public class TargetExportSecurityService {
                                  final long targetId)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return targetExportHTMLManager.getHTMLSummary(genesOfInterest, translationalGenes, targetId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public InputStream html(final String geneId) throws IOException, ParseException, ExternalDbUnavailableException {
+        return targetExportHTMLManager.getHTMLSummary(geneId);
     }
 }
