@@ -350,6 +350,25 @@ public class LaunchIdentificationController extends AbstractRESTController {
         response.flushBuffer();
     }
 
+    @GetMapping(value = "/target/export/{geneId}")
+    @ApiOperation(
+            value = "Exports data to CSV/TSV file",
+            notes = "Exports data to CSV/TSV file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void export(@PathVariable final String geneId,
+                       @RequestParam final FileFormat format,
+                       @RequestParam final TargetExportTable source,
+                       @RequestParam final boolean includeHeader,
+                       HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final byte[] bytes = exportSecurityService.export(geneId, source, format, includeHeader);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
+    }
+
     @GetMapping(value = "/target/report")
     @ApiOperation(
             value = "Exports data to Excel file",
@@ -363,6 +382,20 @@ public class LaunchIdentificationController extends AbstractRESTController {
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
+        writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
+    }
+
+    @GetMapping(value = "/target/report/{geneId}")
+    @ApiOperation(
+            value = "Exports data to Excel file",
+            notes = "Exports data to Excel file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void report(@PathVariable final String geneId, HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final InputStream inputStream = exportSecurityService.report(geneId);
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
     }
 
@@ -380,6 +413,20 @@ public class LaunchIdentificationController extends AbstractRESTController {
                      HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final InputStream inputStream = exportSecurityService.html(genesOfInterest, translationalGenes, targetId);
+        writeStreamToResponse(response, inputStream, "Target_Identification.html");
+    }
+
+    @GetMapping(value = "/target/html/{geneId}")
+    @ApiOperation(
+            value = "Downloads target identification html export",
+            notes = "Downloads target identification html export",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void html(@PathVariable final String geneId, HttpServletResponse response)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final InputStream inputStream = exportSecurityService.html(geneId);
         writeStreamToResponse(response, inputStream, "Target_Identification.html");
     }
 

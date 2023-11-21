@@ -82,14 +82,14 @@ public class DiseaseSecurityService {
     @PreAuthorize(ROLE_USER)
     public byte[] exportDrugs(final String diseaseId, final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
-        return exportManager.export(diseaseId, TargetExportTable.OPEN_TARGETS_DRUGS, format, includeHeader);
+        return exportManager.exportDisease(diseaseId, TargetExportTable.OPEN_TARGETS_DRUGS, format, includeHeader);
     }
 
 
     @PreAuthorize(ROLE_USER)
     public byte[] exportTargets(final String diseaseId, final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
-        return exportManager.export(diseaseId, TargetExportTable.OPEN_TARGETS_DISEASES, format, includeHeader);
+        return exportManager.exportDisease(diseaseId, TargetExportTable.OPEN_TARGETS_DISEASES, format, includeHeader);
     }
 
     @PreAuthorize(ROLE_USER)
