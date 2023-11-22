@@ -17,9 +17,17 @@
     - [Bibliography block](#bibliography-block)
     - [Chat with AI](#chat-with-ai)
         - [AI model settings](#ai-model-settings)
+    - [Store and share report](#store-and-share-report)
+        - [Saving](#saving)
+        - [Sharing](#sharing)
+    - [Export](#export)
+        - [Export section](#export-section)
+        - [Export report](#export-report)
 - [Diseases search](#diseases-search)
     - [Associated drugs](#associated-drugs)
     - [Associated targets](#associated-targets)
+
+***
 
 Via the **Target Identification** panel users can collect identification information about targets of interest (genes), store this information and use it for their own research purposes.
 
@@ -67,8 +75,8 @@ To clear all filters - use the menu ![NGB GUI](images/targets-09.png) in the rig
 To create a new target, there are following ways:
 
 - Via GUI:
-    - Add a new target manually from the **Targets** sub-tab
-    - Create a target from any found orthogroup (using the **Homologs** panel)
+    - Add a new target manually [from the **Targets** sub-tab](#creation-from-targets-sub-panel)
+    - Create a target [from any found orthogroup](#creation-from-homologs-panel) (using the **Homologs** panel)
 - Via CLI
 
 #### Creation from "Targets" sub-panel
@@ -85,7 +93,8 @@ To create a new target:
     - button to add a gene/transcript to the target
     - button to add an associated disease to the target
     - button to add an associated product to the target
-    - button to save the creating target
+    - button to launch identification - **Identify**
+    - button to save the creating target - **Create**
 3. Specify the new target name.
 4. Click the button "**Add gene**" to add a gene/transcript to the target.  
     A new row with empty fields will appear - for the specifying info for a gene - **Gene ID**, **Gene Name**, **Tax ID** (taxonomy ID of species), **Species Name** and **Priority** (priority of the adding gene in the current target's genes list):  
@@ -110,10 +119,12 @@ To create a new target:
   To add a product, click the corresponding field and specify the product manually. After the input, press _Enter_ key, e.g.:  
   ![NGB GUI](images/targets-18.png)  
   You may add any count of associated products by the described way. To remove a product from the list - use the cross button near the product name.
-10. Once all desired values are added - click the **Create** button.  
-  Target will be saved, the **Remove** button will appear, the **Save** button will become disabled:  
-  ![NGB GUI](images/targets-19.png)  
-  Click the button ![NGB GUI](images/targets-20.png) to return to the **Targets** table. Just created target will appear in the list:  
+10. Once all desired values are added - click the **Create** button. Target will be saved:  
+    - The **Identify** button will become enabled
+    - The **Create** button will disappear, instead the disabled **Save** button will appear
+    - The **Remove** button will appear - to delete the target  
+    ![NGB GUI](images/targets-19.png)  
+11. Click the button ![NGB GUI](images/targets-20.png) to return to the **Targets** table. Just created target will appear in the list:  
   ![NGB GUI](images/targets-21.png)
 
 #### Creation from "Homologs" panel
@@ -147,7 +158,9 @@ Here, you can edit the target (edit target name, add/edit/remove genes from the 
 To launch a new identifying process:
 
 1. Find the target in the **Targets** table and click the button to launch identification process, e.g.:  
-  ![NGB GUI](images/targets-26.png)
+  ![NGB GUI](images/targets-26.png)  
+> Or you can open the target and click the **Identify** button from the target's details block:  
+> ![NGB GUI](images/targets-86.png)  
 2. The pop-up will appear according to the selected target - to define parameters (species of interest and translational species):  
   ![NGB GUI](images/targets-27.png)
 3. Here, the following items shall be specified:
@@ -163,17 +176,18 @@ To launch a new identifying process:
 
 - view summary results of the current/selected identification process
 - view the current/selected identification details
-- go up a level to view a list of previously identifications with the ability to open any of them
+- store target identification to have a quick access to it later
+- download identifications results to the local workstation
 
 Once the new identifying process is finished, the **Identifications** sub-tab will be automatically opened with the identification results (report):  
   ![NGB GUI](images/targets-30.png)
 
 Identification report form contains:
 
-- Button to go up a level to view identification reports' list form
+- Button to save the report. **_Note_**: if this button is not clicked for a report, and any new identification was launched - current report will be removed
+- Button to download identifications results - to load results as separate file(s) to the local workstation
 - Label with the target name
 - List of _species of interest_ and list of _translational species_ used for the identification
-- Button to store the report. **_Note_**: if this button is not clicked for a report - it will be removed once closed
 - Description section with short overview of the main target gene with link(s) to the source(s) from which the description is
 - Set of expandable sections - these sections contain detailed info of the target identification
 
@@ -242,7 +256,8 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
 
-To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.  
+> **_Note_**: only table content from the currently selected source (database) will be exported.
 
 ### Associated diseases block
 
@@ -281,7 +296,7 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering by columns _Target_ and _Disease_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
 
-To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 **Bubbles view**
 
@@ -342,7 +357,7 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
 
-To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 ### Sequences block
 
@@ -378,9 +393,16 @@ Such table includes columns:
 - _Length (aa)_ - protein length (number of amino acid items in the sequence)
 - _Protein name_ - name of the protein
 
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
 ### Comparative genomics block
 
-This block contains:
+This block contains info about homologous genes of the target genes.
+
+When the block is collapsed - its header contains short summary info about the number of found homologs:  
+  ![NGB GUI](images/targets-89.png)
+
+When the block is expanded - it contains:
 
 - list of homologous genes for the target genes:
     - in the _species of interest_
@@ -404,6 +426,8 @@ Table with homologous genes includes columns:
         - one or several color rectangles - each for the specific conserved domain. Different domains are drawn by different colors, the same domains are drawn in the same colors
 
 Table supports filtering by columns _Target_, _Species_ and _Homology Type_. To filter the displayed list - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 #### Alignment panel
 
@@ -465,6 +489,8 @@ Such table includes columns (set of columns may vary due to selected source):
 Table supports filtering by _ID_ and _Name_ columns. To filter by any of these columns - specify the filter text to the field under the header of the column, e.g.:  
   ![NGB GUI](images/targets-72.png)
 
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
 To open the structure model in a viewer - click its row in the table, e.g.:  
   ![NGB GUI](images/targets-73.png)  
 Structure model is being opened in the 3D viewer.  
@@ -504,6 +530,13 @@ You can (re)generate the summary in the described way as many times as you need.
 > **_Note_**: you can change the AI model that will be used for the Bibliography summary generation - select the model from the dropdown list of AI settings - see details in the section [below](#ai-model-settings).  
 > Once the model is changed - the summary will be regenerated with that AI model, e.g.:  
 >   ![NGB GUI](images/targets-55.png)
+
+You can filter displayed bibliography by selecting only specific target gene(s) for which publications shall be shown. To filter the list, click the dropdown list at the right side and select desired gene(s):  
+  ![NGB GUI](images/targets-92.png)  
+In the bibliography list, only publications corresponding to selected genes will be shown.
+
+Additionally, you can search over the publications - using the search bar above the bibliography list. Specify the clarifying request to the search bar and press Enter key. In the bibliography list, only publications corresponding to your request will be shown:  
+  ![NGB GUI](images/targets-93.png)
 
 ### Chat with AI
 
@@ -546,6 +579,86 @@ Also, you can configure each AI model used here:
     - **Max size** - defines the maximum size of tokens that can be used for model responses. Refers to the limit on the number of words, characters, or chunks of text that the language model can handle at once.
 4. Once options are configured - click the **OK** button to save them and apply new config.
 
+### Store and share report
+
+#### Saving
+
+There is the ability to save any target identification - for a quick access to it in the future.
+
+To save target identification, you shall:
+
+1. Click the **Save** button in the top of the **Identifications** sub-tab:  
+  ![NGB GUI](images/targets-97.png)
+2. In the appeared pop-up, specify the name for the saving identification:  
+  ![NGB GUI](images/targets-98.png)
+3. Click the **Save** button to confirm:  
+  ![NGB GUI](images/targets-99.png)
+4. Once the target identification is saved, the **Save** button becomes disabled:  
+  ![NGB GUI](images/targets-100.png)
+5. By the described way, any count of identifications can be saved for the target.
+
+If a target has at least one saved identification - for such target, specific button is shown near the **Launch** button in the **Targets** sub-tab:  
+  ![NGB GUI](images/targets-101.png)
+
+Click this button to browse saved identifications for the target - their list will be opened in the pop-up, e.g.:  
+  ![NGB GUI](images/targets-102.png)
+
+For each record in the list, there are details and controls:
+
+- _Name_ - name of the saved identification
+- _Genes of interest_ - list of genes that were selected as "Genes of interest" before the identification launch
+- _Translational genes_ - list of genes that were selected as "Translational genes" before the identification launch
+- **Launch** button ![NGB GUI](images/targets-103.png) - by click this button, saved identification will be opened in the **Identifications** sub-tab
+- **Delete** button ![NGB GUI](images/targets-104.png) - by click this button, an identification will be removed from the list
+
+#### Sharing
+
+Target identification feature is also included into common link sharing functionality - i.e. users can share the state of the performed target identification using the [URL link](../user-guide/embedding-url.md#url-format) of the NGB page.
+
+The following details are included into link:
+
+- state of the **Target Identification** panel (opened/closed)
+- selected disease in the [**Disease**](#diseases-search) sub-tab
+- launched identification for the selected target and genes ([**Identifications**](#identification-results) sub-tab)
+
+### Export
+
+User has various options to export identification results - as separate section(s) of the report and the whole report can be downloaded.
+
+#### Export section
+
+To export table content of the report's specific section:
+
+- expand the section
+- click the corresponding **Export** button above the table (in the right upper corner of the section)
+
+Export of the table in CSV format to the local workstation will be started automatically.
+
+For example, for the **Known Drugs** block:  
+  ![NGB GUI](images/targets-87.png)  
+
+Exported table:  
+  ![NGB GUI](images/targets-88.png)
+
+> **_Note_**: this option is available for table data from blocks **Known Drugs**, **Associated diseases**, **Sequences**, **Comparative genomics**, **Structure**.
+
+#### Export report
+
+To export the whole identification report:
+
+- click the **Download** button 
+- in the appeared dropdown list, select the format of the report to download:  
+    - _EXCEL_ - overall target identification report will be exported as a multi-sheet Excel file
+    - _HTML_ - overall target identification report will be exported as a static Html page  
+    ![NGB GUI](images/targets-94.png)
+- report in the selected format will be downloaded automatically
+
+Example of the Excel report:  
+  ![NGB GUI](images/targets-95.png)
+
+Example of the Html report:  
+  ![NGB GUI](images/targets-96.png)
+
 ***
 
 ## Diseases search
@@ -558,19 +671,15 @@ Also, you can configure each AI model used here:
     - known drugs associated with this disease
     - targets associated with this disease
 
-By default, **Diseases** sub-tab is empty and contains:
-
-- Search input field - to specify the desired disease name
-- **Search** button - to perform the search
-
-![NGB GUI](images/targets-74.png)
+By default, **Diseases** sub-tab is empty and contains only search input field:  
+  ![NGB GUI](images/targets-74.png)
 
 To start the search, user shall specify disease name or its part to the input field.  
 Search results will be suggested in the Google-like manner - with appearing of suitable values during the disease name input, e.g.:  
   ![NGB GUI](images/targets-75.png)
 
 User can select one of the suggested values by click it or continue to specify the own value.  
-To perform the search, user shall click the corresponding button.  
+To perform the search, user shall press Enter key.
 
 > **_Note_**: additionally, users have the ability to search for disease's associated drugs and targets from the **Target Identification** results - namely from the [**Associated diseases**](#associated-diseases-block) section.  
 > To search for a disease from that section, user shall open the context menu (mouse right-click) for the desired disease in the **Associated diseases** table and select the corresponding item, e.g.:  
@@ -581,7 +690,7 @@ Once the desired disease is found, the following form with results will appear, 
 
 Report form of the found disease contains:
 
-- search input field and the **Search** button - to perform another disease search
+- search input field - to perform another disease search
 - current disease info block:
     - name
     - list of synonyms of the found disease
@@ -594,7 +703,12 @@ Below, there are details by each expandable section.
 
 ### Associated drugs
 
-This section contains:
+This section contains info about investigational or approved drugs indicated for the current disease.
+
+When the section is collapsed - its header contains short info about the count of unique drugs and total count of records:  
+  ![NGB GUI](images/targets-90.png)
+
+When the section is expanded - it contains:
 
 - table for investigational or approved drugs indicated for the current disease
 - button to export table content to the local workstation in CSV format
@@ -621,11 +735,16 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
 
-To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 ### Associated targets
 
-This section contains:
+This section contains info about targets associated with the current disease.
+
+When the section is collapsed - its header contains short info about the total count of associated target records:  
+  ![NGB GUI](images/targets-91.png)
+
+When the section is expanded - it contains:
 
 - table for targets associated with the current disease
 - button to export the table content to the local workstation in CSV format
@@ -637,6 +756,7 @@ Table includes columns:
 
 - _Target_ - symbol of the associated target
 - _Target name_ - name of the associated target
+- _Homologues_ - list of homologues associated with the target
 - _Overall score_ - summary score of all disease-target association scores
 - other columns - specific disease-target association scores. For more details see [Associations info page](https://platform-docs.opentargets.org/associations).
 
@@ -645,6 +765,6 @@ Table itself is colorized as a heatmap - according to the score value in each ce
 By default, table is sorted by the _Overall score_ column.  
 Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
 
-Table supports filtering by columns _Target_ and _Target name_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+Table supports filtering by columns _Target_, _Target name_ and _Homologues_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
 
-To export table content in CSV format - click the corresponding **Export** button above the table. Export to the local workstation will be started automatically.
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
