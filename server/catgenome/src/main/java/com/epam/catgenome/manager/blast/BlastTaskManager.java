@@ -155,6 +155,16 @@ public class BlastTaskManager {
         return taskPage;
     }
 
+    public BlastTask loadTask(final String taskName) {
+        final QueryParameters queryParameters = new QueryParameters();
+        final List<Filter> filters = new ArrayList<>();
+        final Filter filter = new Filter("title", "=", "'" + taskName + "'");
+        filters.add(filter);
+        queryParameters.setFilters(filters);
+        final List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
+        return blastTasks.size() > 0 ? blastTasks.get(0) : new BlastTask();
+    }
+
     public TaskPage loadCurrentUserTasks(final QueryParameters queryParameters) {
         List<Filter> filters = new ArrayList<>();
         Filter currentUserFilter = new Filter("owner", "=",

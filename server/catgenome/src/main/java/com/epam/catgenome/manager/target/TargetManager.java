@@ -77,6 +77,7 @@ public class TargetManager {
             target.setOwner(authManager.getAuthorizedUser());
         }
         target.setAlignmentStatus(AlignmentStatus.NOT_ALIGNED);
+        target.setPatentsSearchStatus(PatentsSearchStatus.NOT_STARTED);
         final Target createdTarget = targetDao.saveTarget(target);
         final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
                 target.getTargetId());
@@ -94,6 +95,11 @@ public class TargetManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void updateAlignmentStatus(final Target target) {
         targetDao.updateAlignment(target);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updatePatentsSearchStatus(final Target target) {
+        targetDao.updatePatentsSearchStatus(target);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -159,6 +165,10 @@ public class TargetManager {
 
     public List<Target> getTargetsForAlignment() {
         return targetDao.loadTargetsForAlignment();
+    }
+
+    public List<Target> getTargetsForPatentsSearch() {
+        return targetDao.getTargetsForPatentsSearch();
     }
 
     public List<String> loadFieldValues(final TargetField field) {

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,7 @@ import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.AlignmentException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
-import com.google.common.collect.Lists;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
@@ -53,14 +52,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static org.apache.commons.lang3.StringUtils.join;
+import static com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager.getFastaMap;
 
 @Service
 @Slf4j
@@ -69,7 +67,6 @@ public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
     public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";
     public static final String EMPTY_LINE = "\n\n";
-    private static final Integer FETCH_SEQUENCES_BATCH_SIZE = 50;
 
     @Value("${muscle.path}")
     private String musclePath;
@@ -79,7 +76,7 @@ public class AlignmentManager {
 
     private final TargetManager targetManager;
     private final LaunchIdentificationManager launchIdentificationManager;
-    private final NCBIDataManager ncbiDataManager;
+    private final NCBISequencesManager sequencesManager;
 
     public void generateAlignment() {
         final List<Target> targets = targetManager.getTargetsForAlignment();
@@ -148,7 +145,7 @@ public class AlignmentManager {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
-        final String fasta = getProteinsFasta(proteinIds);
+        final String fasta = sequencesManager.getProteinsFasta(proteinIds);
         final Map<String, String> proteins = getFastaMap(fasta);
         for (int i = 0; i < sequences.size(); i++) {
             for (int j = i + 1; j < sequences.size(); j++) {
@@ -219,29 +216,6 @@ public class AlignmentManager {
         final Pair<String, String> sequences = getSequencesPair(firstSequenceId, secondSequenceId);
         final String fileName = String.format(ALIGNMENT_FILE_NAME, sequences.getLeft(), sequences.getRight());
         return Paths.get(targetDirectory, fileName).toString();
-    }
-
-    private Map<String, String> getFastaMap(final String fasta) {
-        final Map<String, String> res = new HashMap<>();
-        for (String line : fasta.split(EMPTY_LINE)) {
-            res.put(extractSequenceId(line), line);
-        }
-        return res;
-    }
-
-    private String getProteinsFasta(final List<String> proteinIds) throws ExternalDbUnavailableException {
-        final StringBuilder result = new StringBuilder();
-        final List<List<String>> subSets = Lists.partition(proteinIds, FETCH_SEQUENCES_BATCH_SIZE);
-        String proteins;
-        for (List<String> subIds : subSets) {
-            proteins = ncbiDataManager.fetchTextById("protein", join(subIds, ","), "fasta");
-            result.append(proteins);
-        }
-        return result.toString();
-    }
-
-    private String extractSequenceId(final String fasta) {
-        return fasta.split(" ")[0].replace(">", "").toUpperCase();
     }
 
     private String getTargetDirectory(final Long targetId) {
