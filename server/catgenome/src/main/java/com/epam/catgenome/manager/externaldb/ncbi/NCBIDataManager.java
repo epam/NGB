@@ -65,13 +65,14 @@ public class NCBIDataManager extends HttpDataManager {
 
     private static final String QUERY_KEY = "query_key";
     private static final String WEB_ENV = "WebEnv";
-
     protected static final String NCBI_SERVER = "https://eutils.ncbi.nlm.nih.gov/";
     protected static final String NCBI_SUMMARY = "entrez/eutils/esummary.fcgi?";
     protected static final String NCBI_FETCH = "entrez/eutils/efetch.fcgi?";
     protected static final String NCBI_SEARCH = "entrez/eutils/esearch.fcgi?";
     protected static final String NCBI_LINK = "entrez/eutils/elink.fcgi?";
     protected static final String RETMODE_PARAM = "retmode";
+    protected static final String RET_TYPE_PARAM = "rettype";
+
     protected static final String JSON = "json";
 
     // entrez/eutils/esummary can return maximum 500 results. If we need to fetch more, we'll have to do pagination.
@@ -149,13 +150,36 @@ public class NCBIDataManager extends HttpDataManager {
      * @throws ExternalDbUnavailableException
      */
     public String searchById(final String db, final String term) throws ExternalDbUnavailableException {
+        return searchById(db, term, null, null, null);
+    }
+
+    public String searchById(final String db, final String term,
+                             final Integer retStart, final Integer retMax) throws ExternalDbUnavailableException {
+        return searchById(db, term, null, retStart, retMax);
+    }
+
+    public String searchById(final String db, final String term, final String retType)
+            throws ExternalDbUnavailableException {
+        return searchById(db, term, retType, null, null);
+    }
+
+    public String searchById(final String db, final String term, final String retType,
+                             final Integer retStart, final Integer retMax) throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("db", db));
         parametersList.add(new ParameterNameValue("term", term));
         parametersList.add(new ParameterNameValue(RETMODE_PARAM, JSON));
-
+        if (retType != null) {
+            new ParameterNameValue(RET_TYPE_PARAM, retType);
+        }
+        if (retMax != null) {
+            new ParameterNameValue(MAX_RESULTS_PARAM, retMax.toString());
+        }
+        if (retStart != null) {
+            new ParameterNameValue(START_PARAM, retStart.toString());
+        }
         ParameterNameValue[] parameterNameValues = parametersList.toArray(
                 new ParameterNameValue[parametersList.size()]);
 

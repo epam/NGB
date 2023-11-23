@@ -145,7 +145,12 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      * @throws ExternalDbUnavailableException
      */
     public List<String> searchDbForIds(final String db, final String term) throws ExternalDbUnavailableException {
-        JsonNode idList = getIdsByTerm(db, term);
+        return searchDbForIds(db, term, null, null);
+    }
+
+    public List<String> searchDbForIds(final String db, final String term, final Integer retStart,
+                                       final Integer retMax) throws ExternalDbUnavailableException {
+        JsonNode idList = getIdsByTerm(db, term, retStart, retMax);
         List<String> ids = new ArrayList<>();
         for (JsonNode id : idList) {
             ids.add(id.asText());
@@ -153,19 +158,17 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
         return ids;
     }
 
-    private JsonNode getIdsByTerm(final String db, final String term) throws ExternalDbUnavailableException {
-        String searchResult = searchById(db, term);
-        JsonNode idList;
+    public int getTotalCount(final String db, final String term) throws ExternalDbUnavailableException {
+        String searchResult = searchById(db, term, "count");
         try {
             JsonNode root;
             root = mapper.readTree(searchResult).get("esearchresult");
-            idList = root.get("idlist");
+            return root.get("count").asInt();
 
         } catch (IOException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
-        return idList;
     }
 
     /**
@@ -238,5 +241,25 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
             new ParameterNameValue("query_key", queryKey),
             new ParameterNameValue("WebEnv", webEnv)
         });
+    }
+
+    private JsonNode getIdsByTerm(final String db, final String term) throws ExternalDbUnavailableException {
+        return getIdsByTerm(db, term, null, null);
+    }
+
+    private JsonNode getIdsByTerm(final String db, final String term,
+                                  final Integer retStart, final Integer retMax) throws ExternalDbUnavailableException {
+        String searchResult = searchById(db, term, null, retStart, retMax);
+        JsonNode idList;
+        try {
+            JsonNode root;
+            root = mapper.readTree(searchResult).get("esearchresult");
+            idList = root.get("idlist");
+
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
+                    .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+        return idList;
     }
 }
