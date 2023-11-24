@@ -97,6 +97,7 @@ export default class ngbTargetPanelController {
 
     addTarget () {
         if (this.ngbTargetsTabService) {
+            this.ngbTargetsTabService.setEmptyTargetModel();
             this.ngbTargetsTabService.setAddMode();
         }
     }
