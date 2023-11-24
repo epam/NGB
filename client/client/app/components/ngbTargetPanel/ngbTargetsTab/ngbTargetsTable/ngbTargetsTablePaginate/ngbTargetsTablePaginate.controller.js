@@ -7,7 +7,7 @@ export default class ngbTargetsTablePaginateController {
     }
 
     constructor($scope, $timeout, dispatcher, ngbTargetsTableService) {
-        Object.assign(this, {$timeout, dispatcher, ngbTargetsTableService});
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService});
         this.pages = this.getPages();
         dispatcher.on('target:table:results:updated', this.refresh.bind(this));
         $scope.$on('$destroy', () => {
