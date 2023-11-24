@@ -129,11 +129,11 @@ export default class NgbTargetPanelService {
     }
 
     setChips(info) {
-        const {interest, translational} = info;
+        const {interest = [], translational = []} = info;
         const setChip = (genes) => {
             for (let i = 0; i < genes.length; i++) {
                 const gene = genes[i];
-                gene.chip = gene.chip || `${gene.geneName} (${gene.speciesName})`;
+                gene.chip = gene.chip || `${gene.geneName}${gene.speciesName ? ` (${gene.speciesName})` : ''}`;
             }
         };
         setChip(interest);

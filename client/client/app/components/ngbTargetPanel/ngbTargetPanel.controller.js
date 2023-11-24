@@ -32,6 +32,11 @@ export default class ngbTargetPanelController {
         return identificationTarget && identificationData;
     }
 
+    get isTranslational () {
+        const identificationTarget = this.ngbTargetPanelService.identificationTarget || {};
+        return identificationTarget.translational && identificationTarget.translational.length;
+    }
+
     get nameModel () {
         return this._nameModel;
     }

@@ -9,8 +9,26 @@ export default class ngbTargetsTableContextMenuController {
         return 'ngbTargetsTableContextMenuController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTableContextMenu, ngbTargetsTabService, targetDataService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableContextMenu, ngbTargetsTabService, targetDataService});
+    constructor(
+        $scope,
+        $timeout,
+        dispatcher,
+        ngbTargetsTableContextMenu,
+        ngbDiseasesTabService,
+        ngbTargetsTabService,
+        targetDataService,
+        targetContext
+    ) {
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbTargetsTableContextMenu,
+            ngbDiseasesTabService,
+            ngbTargetsTabService,
+            targetDataService,
+            targetContext
+        });
         this.entity = $scope.row.entity;
         this.searchTarget();
     }
@@ -42,5 +60,27 @@ export default class ngbTargetsTableContextMenuController {
         if (!target.targetId) return;
         await this.ngbTargetsTabService.getTarget(target.targetId);
         this.dispatcher.emit('target:diseases:show:targets:tab');
+    }
+
+    async launchTarget() {
+        const {geneId, target} = this.entity;
+        const params = {
+            targetId: target.id,
+            genesOfInterest: [geneId],
+        };
+        const info = {
+            target: {
+                name: target
+            },
+            interest: [{
+                geneId: geneId,
+                geneName: target,
+            }],
+        };
+        const result = await this.ngbTargetsTabService.getIdentificationData(params, info);
+        if (result) {
+            this.dispatcher.emit('target:show:identification:tab');
+            // this.targetContext.setCurrentIdentification(target, launchIdentification);
+        }
     }
 }
