@@ -1,0 +1,15 @@
+<md-nav-bar class="patents-nav-bar"
+            aria-label="Patents nav bar"
+            md-selected-nav-item="$ctrl.selectedTab">
+    <md-nav-item ng-repeat="tab in $ctrl.tabs track by tab"
+                 name="{{tab}}"
+                 class="patents-tab"
+                 ng-class="{'selected': tab === $ctrl.selectedTab}"
+                 md-nav-click="$ctrl.onChangeTab(tab)">
+        {{$ctrl.getTabName(tab)}}
+    </md-nav-item>
+</md-nav-bar>
+<md-content class="_md patents-content">
+    <div ng-if="$ctrl.selectedTab === $ctrl.patentsTabs.SEQUENCES">sequences</div>
+    <div ng-if="$ctrl.selectedTab === $ctrl.patentsTabs.CHEMICALS">chemicals</div>
+</md-content>
