@@ -17,7 +17,7 @@ export * from './total-counts';
 export type Gene = {
   id: string;
   name: string;
-  species: string;
+  species?: string;
   description?: string | undefined;
 }
 

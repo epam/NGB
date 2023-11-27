@@ -117,14 +117,14 @@ export function usePublications(): Publication[] {
 
 export function useGeneAndSpecies(gene: Gene): GeneAndSpecies {
   return useMemo<GeneAndSpecies>(() => {
-    if (!gene || !gene.id || !gene.name || !gene.species) {
+    if (!gene || !gene.id || !gene.name) {
       return {
         value: undefined,
         key: undefined,
       }
     }
     return {
-      value: `${gene.name} (${gene.species})`,
+      value: `${gene.species ? `${gene.name} (${gene.species})` : `${gene.name}`}`,
       key: gene.id
     }
   }, [gene]);
