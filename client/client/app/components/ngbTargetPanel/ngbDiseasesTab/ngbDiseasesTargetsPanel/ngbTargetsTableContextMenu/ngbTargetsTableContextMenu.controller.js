@@ -65,7 +65,6 @@ export default class ngbTargetsTableContextMenuController {
     async launchTarget() {
         const {geneId, target} = this.entity;
         const params = {
-            targetId: target.id,
             genesOfInterest: [geneId],
         };
         const info = {
@@ -80,7 +79,14 @@ export default class ngbTargetsTableContextMenuController {
         const result = await this.ngbTargetsTabService.getIdentificationData(params, info);
         if (result) {
             this.dispatcher.emit('target:show:identification:tab');
-            // this.targetContext.setCurrentIdentification(target, launchIdentification);
+            this.targetContext.setCurrentIdentification({
+                name: target
+            }, {
+                genesOfInterest: [{
+                    geneId: geneId,
+                    geneName: target,
+                }],
+            });
         }
     }
 }
