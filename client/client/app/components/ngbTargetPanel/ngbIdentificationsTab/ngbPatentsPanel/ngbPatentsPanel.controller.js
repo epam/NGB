@@ -1,12 +1,12 @@
-const PATENTS_TABS = {
-    SEQUENCES: 'SEQUENCES',
-    CHEMICALS: 'CHEMICALS',
+const PATENT_TABS = {
+    sequences: 'sequences',
+    chemicals: 'chemicals',
 };
 
 export default class ngbPatentsPanelController {
 
-    get patentsTabs () {
-        return PATENTS_TABS;
+    get patentTabs () {
+        return PATENT_TABS;
     }
 
     _tabs = [];
@@ -26,13 +26,13 @@ export default class ngbPatentsPanelController {
         return 'ngbPatentsPanelController';
     }
 
-    constructor($scope, $timeout) {
-        Object.assign(this, {$scope, $timeout});
+    constructor($scope, $timeout, dispatcher, ngbSequencesPanelService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbSequencesPanelService});
     }
 
     $onInit() {
-        this._tabs = Object.values(this.patentsTabs);
-        this._selectedTab = this.patentsTabs.SEQUENCES;
+        this._tabs = Object.values(this.patentTabs);
+        this._selectedTab = this.patentTabs.sequences;
     }
 
     onChangeTab(tab) {
@@ -40,6 +40,6 @@ export default class ngbPatentsPanelController {
     }
 
     getTabName(tab) {
-        return this.patentsTabs[tab] || tab;
+        return this.patentTabs[tab] || tab;
     }
 }

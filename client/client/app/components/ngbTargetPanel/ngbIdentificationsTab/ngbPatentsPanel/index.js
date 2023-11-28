@@ -4,11 +4,11 @@ import './ngbPatentsPanel.scss';
 
 import component from './ngbPatentsPanel.component';
 import controller from './ngbPatentsPanel.controller';
-import service from './ngbPatentsPanel.service';
+
+import ngbPatentsSequencesTab from './ngbPatentsSequencesTab';
 
 export default angular
-    .module('ngbPatentsPanel', [])
+    .module('ngbPatentsPanel', [ngbPatentsSequencesTab])
     .controller(controller.UID, controller)
     .component('ngbPatentsPanel', component)
-    .service('ngbPatentsPanelService', service.instance)
     .name;

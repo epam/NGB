@@ -10,8 +10,8 @@ ngb-patents-panel {
         ul,
         .md-nav-bar {
             color: $patents-color;
-            height: $patents-nav-height;
-            line-height: $patents-nav-height;
+            height: $patents-control-height;
+            line-height: $patents-control-height;
         }
 
         .md-nav-bar {
@@ -35,9 +35,9 @@ ngb-patents-panel {
         .patents-tab {
             >button.md-button {
                 border-radius: $patents-nav-border-radius $patents-nav-border-radius 0 0;
-                line-height: $patents-nav-height;
-                height: $patents-nav-height;
-                min-height: $patents-nav-height;
+                line-height: $patents-control-height;
+                height: $patents-control-height;
+                min-height: $patents-control-height;
                 padding: 0 4px;
                 margin: 0 2px;
                 color: $patents-color;
@@ -54,3 +54,4 @@ ngb-patents-panel {
         }
     }
 }
+
