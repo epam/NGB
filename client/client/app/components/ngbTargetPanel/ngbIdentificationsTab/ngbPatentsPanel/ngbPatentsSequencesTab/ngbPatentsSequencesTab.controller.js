@@ -1,24 +1,4 @@
-const SEARCH_BY_OPTIONS = {
-    name: 'name',
-    sequence: 'sequence',
-};
-
-const SEARCH_BY_NAMES = {
-    [SEARCH_BY_OPTIONS.name]: 'protein name',
-    [SEARCH_BY_OPTIONS.sequence]: 'amino acid sequence',
-}
-
 export default class ngbPatentsSequencesTabController {
-
-    get searchByOptions() {
-        return SEARCH_BY_OPTIONS;
-    }
-
-    get searchByNames() {
-        return SEARCH_BY_NAMES;
-    }
-
-    searchBy = this.searchByOptions.name;
 
     static get UID() {
         return 'ngbPatentsSequencesTabController';
@@ -44,6 +24,18 @@ export default class ngbPatentsSequencesTabController {
     }
     set selectedProtein(value) {
         this.ngbPatentsSequencesTabService.selectedProtein = value;
+    }
+    get searchByOptions() {
+        return this.ngbPatentsSequencesTabService.searchByOptions;
+    }
+    get searchByNames() {
+        return this.ngbPatentsSequencesTabService.searchByNames;
+    }
+    get searchBy () {
+        return this.ngbPatentsSequencesTabService.searchBy;
+    }
+    set searchBy (value) {
+        this.ngbPatentsSequencesTabService.searchBy = value;
     }
 
     $onInit() {

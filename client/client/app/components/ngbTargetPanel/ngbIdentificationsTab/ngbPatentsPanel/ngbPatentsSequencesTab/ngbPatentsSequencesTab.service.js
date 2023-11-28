@@ -1,8 +1,26 @@
+const SEARCH_BY_OPTIONS = {
+    name: 'name',
+    sequence: 'sequence',
+};
+
+const SEARCH_BY_NAMES = {
+    [SEARCH_BY_OPTIONS.name]: 'protein name',
+    [SEARCH_BY_OPTIONS.sequence]: 'amino acid sequence',
+};
+
 export default class ngbPatentsSequencesTabService {
+
+    get searchByOptions() {
+        return SEARCH_BY_OPTIONS;
+    }
+    get searchByNames() {
+        return SEARCH_BY_NAMES;
+    }
 
     _loadingProteins = false;
     proteins = [];
     _selectedProtein;
+    _searchBy = this.searchByOptions.name;
 
     get loadingProteins() {
         return this._loadingProteins;
@@ -16,13 +34,19 @@ export default class ngbPatentsSequencesTabService {
     set selectedProtein(value) {
         this._selectedProtein = value;
     }
-
-    static instance (dispatcher, ngbSequencesPanelService) {
-        return new ngbPatentsSequencesTabService(dispatcher, ngbSequencesPanelService);
+    get searchBy() {
+        return this._searchBy;
+    }
+    set searchBy(value) {
+        this._searchBy = value;
     }
 
-    constructor(dispatcher, ngbSequencesPanelService) {
-        Object.assign(this, {dispatcher, ngbSequencesPanelService});
+    static instance (dispatcher) {
+        return new ngbPatentsSequencesTabService(dispatcher);
+    }
+
+    constructor(dispatcher) {
+        Object.assign(this, {dispatcher});
         dispatcher.on('target:identification:sequences:updated', this.setProteins.bind(this));
     }
 

@@ -1,0 +1,37 @@
+<div>
+    <div class="loading-indicator"
+         ng-if="$ctrl.loadingDrugs">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="drug-select"
+         ng-if="$ctrl.drugs.length > 1">
+        <label>Drug:</label>
+        <md-input-container>
+            <md-select ng-model="$ctrl.selectedDrug"
+                       aria-label="Select drug"
+                       ng-disabled="$ctrl.loadingDrugs"
+                       md-container-class="drug-select-container">
+                <md-option ng-repeat="drug in $ctrl.drugs"
+                           ng-value="drug">
+                    {{drug.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <md-button type="button"
+                   aria-label="Search patents"
+                   ng-click="$ctrl.onClickSearch()"
+                   class="md-primary md-raised md-accent patent-button"
+                   ng-disabled="$ctrl.loadingDrugs">
+            Search
+        </md-button>
+    </div>
+    <div class="checkbox-container">
+        <span class="checkbox-label">Search patents by:</span>
+        <md-checkbox ng-repeat="option in $ctrl.searchByOptions track by option"
+                     aria-label="{{$ctrl.searchByNames[option]}} checkbox"
+                     ng-checked="$ctrl.searchBy === $ctrl.searchByOptions[option]"
+                     ng-click="$ctrl.onChangeSearchBy(option)">
+            {{$ctrl.searchByNames[option]}}
+        </md-checkbox>
+    </div>
+</div>
