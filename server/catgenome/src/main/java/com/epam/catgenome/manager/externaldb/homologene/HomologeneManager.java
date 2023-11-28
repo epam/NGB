@@ -100,10 +100,8 @@ public class HomologeneManager {
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
-
     @Value("${homologene.top.hits:10000}")
     private int topHits;
-
     @Autowired
     private TaxonomyManager taxonomyManager;
     @Autowired
