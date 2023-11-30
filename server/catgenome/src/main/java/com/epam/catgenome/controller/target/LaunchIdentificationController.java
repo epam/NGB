@@ -442,4 +442,17 @@ public class LaunchIdentificationController extends AbstractRESTController {
             throws IOException, ParseException, ExternalDbUnavailableException {
         return Result.success(launchIdentificationSecurityService.getGenes(prefix));
     }
+
+    @GetMapping(value = "/target/drugs")
+    @ApiOperation(
+            value = "Returns drugs list for target identification.",
+            notes = "Returns drugs list for target identification.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<String>> getDrugs(@RequestParam final List<String> geneIds)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return Result.success(launchIdentificationSecurityService.getDrugs(geneIds));
+    }
 }
