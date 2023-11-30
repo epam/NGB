@@ -37,6 +37,33 @@ export default class ngbPatentsSequencesTabController {
     set searchBy (value) {
         this.ngbPatentsSequencesTabService.searchBy = value;
     }
+    get searchSequence() {
+        return this.ngbPatentsSequencesTabService.searchSequence;
+    }
+    set searchSequence(value) {
+        this.ngbPatentsSequencesTabService.searchSequence = value;
+    }
+    get searchDisabled() {
+        return this.ngbPatentsSequencesTabService.searchDisabled;
+    }
+    get loadingData() {
+        return this.ngbPatentsSequencesTabService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbPatentsSequencesTabService.loadingData = value;
+    }
+    get failedResult() {
+        return this.ngbPatentsSequencesTabService.failedResult;
+    }
+    set failedResult(value) {
+        this.ngbPatentsSequencesTabService.failedResult = value;
+    }
+    get errorMessageList() {
+        return this.ngbPatentsSequencesTabService.errorMessageList;
+    }
+    set errorMessageList(value) {
+        this.ngbPatentsSequencesTabService.errorMessageList = value;
+    }
 
     $onInit() {
     }
@@ -45,11 +72,21 @@ export default class ngbPatentsSequencesTabController {
         this.$timeout(() => this.$scope.$apply());
     }
 
+    onChangeProtein() {
+        this.selectedProtein;
+    }
+
     onChangeSearchBy(option) {
         this.searchBy = option;
     }
 
-    onClickSearch() {
-        console.log(this.selectedProtein, this.searchBy)
+    async onClickSearch() {
+        this.loadingData = true;
+        this.failedResult = false;
+        this.errorMessageList = null;
+        const result = await this.ngbPatentsSequencesTabService.searchPatents();
+        if (result) {
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 }

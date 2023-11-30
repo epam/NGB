@@ -3,13 +3,13 @@
          ng-if="$ctrl.loadingProteins">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
-    <div class="sequence-protein-select"
-         ng-if="$ctrl.proteins.length > 1">
+    <div class="sequence-protein-select">
         <label>Sequences:</label>
         <md-input-container>
             <md-select ng-model="$ctrl.selectedProtein"
                        aria-label="Select protein"
-                       ng-disabled="$ctrl.loadingProteins"
+                       ng-disabled="$ctrl.loadingProteins || $ctrl.loadingData"
+                       ng-change="$ctrl.onChangeProtein()"
                        md-container-class="sequences-protein-select-container">
                 <md-option ng-repeat="protein in $ctrl.proteins"
                            ng-value="protein">
@@ -21,7 +21,7 @@
                    aria-label="Search patents"
                    ng-click="$ctrl.onClickSearch()"
                    class="md-primary md-raised md-accent patent-button"
-                   ng-disabled="$ctrl.loadingProteins">
+                   ng-disabled="$ctrl.searchDisabled">
             Search
         </md-button>
     </div>
@@ -30,8 +30,29 @@
         <md-checkbox ng-repeat="option in $ctrl.searchByOptions track by option"
                      aria-label="{{$ctrl.searchByNames[option]}} checkbox"
                      ng-checked="$ctrl.searchBy === $ctrl.searchByOptions[option]"
-                     ng-click="$ctrl.onChangeSearchBy(option)">
+                     ng-click="$ctrl.onChangeSearchBy(option)"
+                     ng-disabled="$ctrl.loadingData">
             {{$ctrl.searchByNames[option]}}
         </md-checkbox>
     </div>
+</div>
+<div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.sequence"
+     class="textarea-container">
+    <label>Query:</label>
+    <md-input-container>
+        <textarea ng-model="$ctrl.searchSequence"
+                  aria-label="Search sequence"
+                  ng-disabled="$ctrl.loadingData"
+                  max-rows="10"
+                  md-no-asterisk
+                  required>
+        </textarea>
+    </md-input-container>
+</div>
+<div class="loading-data-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
 </div>
