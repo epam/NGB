@@ -8,6 +8,42 @@ const SEARCH_BY_NAMES = {
     [SEARCH_BY_OPTIONS.sequence]: 'amino acid sequence',
 };
 
+const PAGE_SIZE = 20;
+
+const PROTEIN_COLUMNS = [{
+        name: 'protein',
+        displayName: 'Protein'
+    }, {
+        name: 'length',
+        displayName: 'Length (aa)'
+    }, {
+        name: 'organism',
+        displayName: 'Organism'
+    }, {
+        name: 'name',
+        displayName: 'Protein name'
+}];
+
+const SEQUENCE_COLUMNS = [{
+    name: 'protein',
+    displayName: 'Protein'
+}, {
+    name: 'length',
+    displayName: 'Length (aa)'
+}, {
+    name: 'organism',
+    displayName: 'Organism'
+}, {
+    name: 'name',
+    displayName: 'Protein name'
+}, {
+    name: 'query cover',
+    displayName: 'Query cover'
+}, {
+    name: 'percent identity',
+    displayName: 'Percent identity'
+}];
+
 export default class ngbPatentsSequencesTabService {
 
     get searchByOptions() {
@@ -15,6 +51,15 @@ export default class ngbPatentsSequencesTabService {
     }
     get searchByNames() {
         return SEARCH_BY_NAMES;
+    }
+    get pageSize() {
+        return PAGE_SIZE;
+    }
+    get proteinColumns() {
+        return PROTEIN_COLUMNS;
+    }
+    get sequenceColumns() {
+        return SEQUENCE_COLUMNS;
     }
 
     _loadingProteins = false;
@@ -27,6 +72,12 @@ export default class ngbPatentsSequencesTabService {
     _failedResult = false;
     _errorMessageList = null;
     _loadingData = false;
+    _emptyResults = false;
+
+    _tableResults = null;
+    _totalPages = 0;
+    _currentPage = 1;
+    _sortInfo = null;
 
     get loadingProteins() {
         return this._loadingProteins;
@@ -113,6 +164,27 @@ export default class ngbPatentsSequencesTabService {
     set loadingData(value) {
         this._loadingData = value;
     }
+    get emptyResults() {
+        return this._emptyResults;
+    }
+    get totalPages() {
+        return this._totalPages;
+    }
+    get currentPage() {
+        return this._currentPage;
+    }
+    set currentPage(value) {
+        this._currentPage = value;
+    }
+    get tableResults() {
+        return this._tableResults;
+    }
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
+    }
 
     static instance (dispatcher, targetDataService) {
         return new ngbPatentsSequencesTabService(dispatcher, targetDataService);
@@ -121,6 +193,7 @@ export default class ngbPatentsSequencesTabService {
     constructor(dispatcher, targetDataService) {
         Object.assign(this, {dispatcher, targetDataService});
         dispatcher.on('target:identification:sequences:updated', this.setProteins.bind(this));
+        dispatcher.on('target:identification:reset', this.resetData.bind(this));
     }
 
     setProteins(sequences) {
@@ -141,57 +214,127 @@ export default class ngbPatentsSequencesTabService {
         this.dispatcher.emit('target:identification:patents:sequences:proteins:updated');
     }
 
-    searchPatents() {
-        if (this.isSearchByProteinName) {
-            return this.searchPatentsByProtein();
-        }
-        if (this.isSearchByProteinSequence) {
-            return this.serachPatentsBySequence();
-        }
-    }
-
-    searchPatentsByProtein() {
-        const searchBy = this.searchBy;
-        const proteinId = this.selectedProtein.id;
-        return new Promise(resolve => {
-            this.targetDataService.searchPatentsByProtein()
-                .then(data => {
-                    this._failedResult = false;
-                    this._errorMessageList = null;
-                    this.requestedModel = { searchBy, proteinId }
-                    this._loadingData = false;
-                    resolve(true);
-                })
-                .catch(err => {
-                    this._failedResult = true;
-                    this._errorMessageList = [err.message];
-                    this.requestedModel = null;
-                    this._loadingData = false;
-                    resolve(true);
-                });
-        });
-    }
-
-    serachPatentsBySequence() {
+    async searchPatents() {
         const searchBy = this.searchBy;
         const proteinId = this.selectedProtein.id;
         const sequence = this.searchSequence;
+        const success = await this.getTableResults();
+        if (success) {
+            if (this.isSearchByProteinName) {
+                this.requestedModel = { searchBy, proteinId };
+            }
+            if (this.isSearchByProteinSequence) {
+                this.requestedModel = { searchBy, proteinId, sequence };
+            }
+        } else {
+            this.requestedModel = null;
+        }
+        return;
+    }
+
+    getRequest() {
+        const request = {
+            page: this.currentPage,
+            pageSize: this.pageSize
+        };
+        if (this.isSearchByProteinName) {
+            request.name = this.selectedProtein.name;
+        }
+        return request;
+    }
+
+    getTableResults() {
+        const request = this.getRequest();
+        if (!request) {
+            return new Promise(resolve => {
+                this.loadingData = false;
+                resolve(true);
+            });
+        }
         return new Promise(resolve => {
-            this.targetDataService.serachPatentsBySequence()
+            this.searchPatentResults(request)
                 .then(data => {
                     this._failedResult = false;
                     this._errorMessageList = null;
-                    this.requestedModel = { searchBy, proteinId, sequence }
+                    this._totalPages = Math.ceil(data.totalCount/this.pageSize);
+                    this._emptyResults = data.totalCount === 0;
+                    this.setTableResults(data);
                     this._loadingData = false;
                     resolve(true);
                 })
                 .catch(err => {
                     this._failedResult = true;
                     this._errorMessageList = [err.message];
-                    this.requestedModel = null;
+                    this._totalPages = 0;
+                    this._emptyResults = false;
+                    this._tableResults = null;
                     this._loadingData = false;
-                    resolve(true);
+                    resolve(false);
                 });
         });
+    }
+
+    searchPatentResults(request) {
+        if (this.isSearchByProteinName) {
+            return Promise.resolve(this.targetDataService.searchPatentsByProtein(request));
+        }
+        if (this.isSearchByProteinSequence) {
+            return Promise.resolve(this.targetDataService.searchPatentsBySequence(request));
+        }
+    }
+
+    setTableResults(data) {
+        if (data.items) {
+            if (this.isSearchByProteinName) {
+                this._tableResults = data.items.map(i => {
+                    const protein = { name: i.id };
+                    if (i.url) {
+                        protein.url = i.url;
+                    }
+                    return {
+                        protein,
+                        length: i.length,
+                        organism: i.organism,
+                        name: i.name
+                    };
+                });
+            }
+            if (this.isSearchByProteinSequence) {
+                this._tableResults = [];
+            }
+        } else {
+            this._tableResults = [];
+        }
+    }
+
+    getColumnList() {
+        const {name, sequence} = this.searchByOptions;
+        if (this.searchBy === name) {
+            return this.proteinColumns;
+        }
+        if (this.searchBy === sequence) {
+            return this.sequenceColumns;
+        }
+    }
+
+    resetTableResults() {
+        this._tableResults = null;
+        this._currentPage = 1;
+        this._totalPages = 0;
+        this._sortInfo = null;
+        this._loadingData = false;
+        this._failedResult = false;
+        this._errorMessageList = null;
+        this._emptyResults = false;
+    }
+
+    resetData() {
+        this.resetTableResults();
+        this._loadingProteins = false;
+        this.proteins = [];
+        this._selectedProtein;
+        this._searchBy = this.searchByOptions.name;
+        this._searchSequence;
+        this.requestedModel = null;
     }
 }

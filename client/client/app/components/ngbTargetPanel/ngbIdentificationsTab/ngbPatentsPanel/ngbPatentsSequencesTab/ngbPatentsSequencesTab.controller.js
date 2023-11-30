@@ -64,6 +64,9 @@ export default class ngbPatentsSequencesTabController {
     set errorMessageList(value) {
         this.ngbPatentsSequencesTabService.errorMessageList = value;
     }
+    get tableResults() {
+        return this.ngbPatentsSequencesTabService.tableResults;
+    }
 
     $onInit() {
     }
@@ -84,9 +87,10 @@ export default class ngbPatentsSequencesTabController {
         this.loadingData = true;
         this.failedResult = false;
         this.errorMessageList = null;
-        const result = await this.ngbPatentsSequencesTabService.searchPatents();
-        if (result) {
-            this.$timeout(() => this.$scope.$apply());
-        }
+        await this.ngbPatentsSequencesTabService.searchPatents();
+        this.$timeout(() => {
+            this.dispatcher.emit('target:identification:patents:protein:changed');
+            this.$scope.$apply();
+        });
     }
 }

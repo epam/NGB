@@ -56,3 +56,4 @@
 <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
     <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
 </div>
+<ngb-patents-protein-table ng-if="$ctrl.tableResults"></ngb-patents-protein-table>
