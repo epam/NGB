@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.patents;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
+import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -47,10 +48,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_PARSING;
@@ -68,33 +73,57 @@ import static org.apache.commons.lang3.StringUtils.join;
 @RequiredArgsConstructor
 public class NCBIPatentsManager {
     private static final String PROTEIN_DB = "protein";
-    private static final String TERM = "Patent[Properties] %s";
+    private static final String PUB_CHEM_COMPOUND_DB = "pccompound";
+    private static final String PROTEIN_TERM = "Patent[Properties] %s";
+    private static final String DRUG_TERM = "has_patent[Filter] %s";
+    private static final Pattern DRUG_NAME_PATTERN = Pattern.compile("\\d+\\.\\s");
     private static final String XPATH = "/GBSet/GBSeq";
     private static final String LENGTH = "GBSeq_length";
     private static final String ACCESSION_VERSION = "GBSeq_accession-version";
     private static final String DEFINITION = "GBSeq_definition";
     private static final String ORGANISM = "GBSeq_organism";
+    public static final String EMPTY_LINE = "\n\n";
     private final NCBIAuxiliaryManager ncbiAuxiliaryManager;
     private final NCBIDataManager ncbiDataManager;
 
-    public SearchResult<SequencePatent> getPatents(final PatentsSearchRequest request)
+    public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
         final Integer retStart = ((request.getPage() - 1) * request.getPageSize());
         final Integer retMax = request.getPageSize();
 
         final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PROTEIN_DB,
-                String.format(TERM, request.getName()), retStart, retMax);
+                String.format(PROTEIN_TERM, request.getName()), retStart, retMax);
 
-        final int count = ncbiAuxiliaryManager.getTotalCount(PROTEIN_DB, String.format(TERM, request.getName()));
+        final int count = ncbiAuxiliaryManager.getTotalCount(PROTEIN_DB,
+                String.format(PROTEIN_TERM, request.getName()));
         final SearchResult<SequencePatent> result = new SearchResult<>();
         result.setTotalCount(count);
-        final String xml = ncbiDataManager.fetchXmlById(PROTEIN_DB, join(patentIds, ","), "");
-        final List<SequencePatent> patents = parsePatents(xml);
+        final String xml = ncbiDataManager.fetchXmlById(PROTEIN_DB, join(patentIds, ","), "text");
+        final List<SequencePatent> patents = parseProteinPatents(xml);
         result.setItems(patents);
         return result;
     }
 
-    private List<SequencePatent> parsePatents(final String xml) throws ExternalDbUnavailableException {
+    public SearchResult<DrugPatent> getDrugPatents(final PatentsSearchRequest request)
+            throws ExternalDbUnavailableException, IOException {
+        final Integer retStart = ((request.getPage() - 1) * request.getPageSize());
+        final Integer retMax = request.getPageSize();
+
+        final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PUB_CHEM_COMPOUND_DB,
+                String.format(DRUG_TERM, request.getName()), retStart, retMax);
+
+        final int count = ncbiAuxiliaryManager.getTotalCount(PUB_CHEM_COMPOUND_DB,
+                String.format(DRUG_TERM, request.getName()));
+        final SearchResult<DrugPatent> result = new SearchResult<>();
+        result.setTotalCount(count);
+        final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(patentIds, ","),
+                "text");
+        final List<DrugPatent> patents = parseDrugPatents(text);
+        result.setItems(patents);
+        return result;
+    }
+
+    private List<SequencePatent> parseProteinPatents(final String xml) throws ExternalDbUnavailableException {
         final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         final List<SequencePatent> patents = new ArrayList<>();
         final XPath xPath = XPathFactory.newInstance().newXPath();
@@ -117,6 +146,31 @@ public class NCBIPatentsManager {
         } catch (IOException e) {
             throw new ExternalDbUnavailableException(getMessage(MessagesConstants
                     .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+        return patents;
+    }
+
+    private List<DrugPatent> parseDrugPatents(final String text) throws IOException {
+        final List<DrugPatent> patents = new ArrayList<>();
+        String[] drugs = text.trim().split(EMPTY_LINE);
+        for (String item : drugs) {
+            String line;
+            try (Reader reader = new StringReader(item); BufferedReader bufferedReader = new BufferedReader(reader)) {
+                DrugPatent patent = new DrugPatent();
+                while ((line = bufferedReader.readLine()) != null) {
+                    Matcher m = DRUG_NAME_PATTERN.matcher(line);
+                    if (line.startsWith("CID: ")) {
+                        patent.setId(line.replace("CID: ", "").trim());
+                    } else if (line.startsWith("IUPAC name: ")) {
+                        patent.setIupacName(line.replace("IUPAC name: ", "").trim());
+                    } else if (line.startsWith("MW: ")) {
+                        patent.setMolecularFormula(line.split("MF: ")[1].trim());
+                    } else if (m.find()) {
+                        patent.setName(m.replaceFirst("").trim());
+                    }
+                }
+                patents.add(patent);
+            }
         }
         return patents;
     }

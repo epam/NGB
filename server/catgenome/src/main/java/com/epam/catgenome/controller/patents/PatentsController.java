@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.patents;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
+import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -40,6 +41,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @RestController
 @Api(value = "patents", description = "Patents Management")
@@ -56,8 +59,21 @@ public class PatentsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<SequencePatent>> loadTarget(@RequestBody final PatentsSearchRequest request)
+    public Result<SearchResult<SequencePatent>> getProteinPatents(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
-        return Result.success(ncbiPatentsSecurityService.getPatents(request));
+        return Result.success(ncbiPatentsSecurityService.getProteinPatents(request));
+    }
+
+    @PostMapping(value = "/patents/drugs/ncbi")
+    @ApiOperation(
+            value = "Searches drug patents by name in NCBI database.",
+            notes = "Searches drug patents by name in NCBI database.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<DrugPatent>> getDrugPatents(@RequestBody final PatentsSearchRequest request)
+            throws ExternalDbUnavailableException, IOException {
+        return Result.success(ncbiPatentsSecurityService.getDrugPatents(request));
     }
 }

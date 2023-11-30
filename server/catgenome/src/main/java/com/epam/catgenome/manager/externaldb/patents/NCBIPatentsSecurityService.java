@@ -24,12 +24,15 @@
 package com.epam.catgenome.manager.externaldb.patents;
 
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
+import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
@@ -40,8 +43,14 @@ public class NCBIPatentsSecurityService {
     private final NCBIPatentsManager manager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<SequencePatent> getPatents(final PatentsSearchRequest request)
+    public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
-        return manager.getPatents(request);
+        return manager.getProteinPatents(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<DrugPatent> getDrugPatents(final PatentsSearchRequest request)
+            throws ExternalDbUnavailableException, IOException {
+        return manager.getDrugPatents(request);
     }
 }
