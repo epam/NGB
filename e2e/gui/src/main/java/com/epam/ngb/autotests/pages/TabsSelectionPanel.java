@@ -15,16 +15,28 @@
  */
 package com.epam.ngb.autotests.pages;
 
+import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.$x;
+import com.codeborne.selenide.SelenideElement;
 import com.epam.ngb.autotests.menus.VariantsTableColumnForm;
 import com.epam.ngb.autotests.menus.ViewsMenuForm.ViewsMenuItems;
 import static java.lang.String.format;
+import static org.openqa.selenium.By.className;
 
 public class TabsSelectionPanel implements AccessObject<TabsSelectionPanel> {
 
+    public SelenideElement rightSelectionPanel() {
+        return $$(className("lm_stack")).get(1);
+    }
     public TabsSelectionPanel selectPanel(ViewsMenuItems item) {
-        $x(format("//span[contains(@class,'lm_title') and contains(., '%s')]", item.text))
-                .parent().click();
+        SelenideElement tab = rightSelectionPanel()
+                .$x(format(".//span[contains(@class,'lm_title') and contains(., '%s')]", item.text)).parent();
+        if (tab.isDisplayed()) {
+            tab.click();
+        } else {
+            rightSelectionPanel().$(className("lm_tabdropdown")).click();
+            $x(format("//li[contains(@class,'lm_tab') and contains(., '%s')]", item.text)).click();
+        }
         return this;
     }
 
