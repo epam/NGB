@@ -246,6 +246,7 @@ export default class ngbPatentsSequencesTabService {
         const searchBy = this.searchBy;
         const proteinId = this.selectedProtein.id;
         const sequence = this.searchSequence;
+        this.currentPage = 1;
         const success = await this.getTableResults();
         if (success) {
             if (this.isSearchByProteinName) {
@@ -257,6 +258,7 @@ export default class ngbPatentsSequencesTabService {
         } else {
             this.requestedModel = null;
         }
+        this.dispatcher.emit('target:identification:patents:protein:results:updated');
         return;
     }
 

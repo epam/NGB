@@ -8,6 +8,8 @@ ngb-patents-protein-table {
 
         .ui-grid-viewport {
             height: 100% !important;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .ui-grid-cell-contents {

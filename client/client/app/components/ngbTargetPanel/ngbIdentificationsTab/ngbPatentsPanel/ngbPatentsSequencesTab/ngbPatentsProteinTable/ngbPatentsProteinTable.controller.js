@@ -7,7 +7,7 @@ export default class ngbPatentsProteinTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: true,
+        enableSorting: false,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
@@ -19,14 +19,13 @@ export default class ngbPatentsProteinTableController {
         saveScroll: false,
         saveFocus: false,
         saveVisible: true,
-        saveSort: true,
+        saveSort: false,
         saveFilter: false,
         savePinning: false,
         saveGrouping: false,
         saveGroupingExpandedStates: false,
         saveTreeView: false,
         saveSelection: false,
-        useExternalSorting: true
     };
 
     static get UID() {
@@ -42,6 +41,9 @@ export default class ngbPatentsProteinTableController {
         });
     }
 
+    get totalPages() {
+        return this.ngbPatentsSequencesTabService.totalPages;
+    }
     get pageSize () {
         return this.ngbPatentsSequencesTabService.pageSize;
     }
@@ -104,16 +106,6 @@ export default class ngbPatentsProteinTableController {
         this.$timeout(() => this.$scope.$apply());
     }
 
-    resetSorting() {
-        if (!this.gridApi) {
-            return;
-        }
-        const columns = this.gridApi.grid.columns;
-        for (let i = 0 ; i < columns.length; i++) {
-            columns[i].sort = {};
-        }
-    }
-
     getPatentsTableGridColumns() {
         const headerCells = require('./ngbPatentsProteinTable_header.tpl.html');
         const linkCell = require('./ngbPatentsProteinTable_linkCell.tpl.html');
@@ -127,8 +119,8 @@ export default class ngbPatentsProteinTableController {
                 name: column.name,
                 displayName: column.displayName,
                 enableHiding: false,
-                enableColumnMenu: true,
-                enableSorting: true,
+                enableColumnMenu: false,
+                enableSorting: false,
                 enableFiltering: false,
                 field: column.name,
                 headerTooltip: column.name,
@@ -175,6 +167,14 @@ export default class ngbPatentsProteinTableController {
         this.$timeout(() => this.$scope.$apply());
     }
 
+    async getDataOnPage(page) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.currentPage = page;
+        await this.loadData();
+    }
+
     async sortChanged(grid, sortColumns) {
         if (!this.gridApi) {
             return;
@@ -207,5 +207,15 @@ export default class ngbPatentsProteinTableController {
         });
         this.currentPage = 1;
         await this.loadData();
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
+        }
     }
 }
