@@ -34,10 +34,10 @@ export default class ngbPatentsProteinTableController {
 
     constructor($scope, $timeout, dispatcher, ngbPatentsSequencesTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsSequencesTabService});
-        const refresh = this.refresh.bind(this);
-        dispatcher.on('target:identification:patents:protein:changed', refresh);
+        const searchChanged = this.searchChanged.bind(this);
+        dispatcher.on('target:identification:patents:protein:changed', searchChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:protein:changed', refresh);
+            dispatcher.removeListener('target:identification:patents:protein:changed', searchChanged);
         });
     }
 
@@ -66,13 +66,6 @@ export default class ngbPatentsProteinTableController {
         this.ngbPatentsSequencesTabService.sortInfo = value;
     }
 
-    refresh() {
-        if (this.ngbPatentsSequencesTabService.tableResults) {
-            this.gridOptions.data = this.ngbPatentsSequencesTabService.tableResults;
-        }
-        this.$scope.$apply();
-    }
-
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
@@ -99,9 +92,7 @@ export default class ngbPatentsProteinTableController {
         this.gridOptions.columnDefs = this.getPatentsTableGridColumns();
     }
 
-    async sourceChanged() {
-        this.ngbPatentsSequencesTabService.resetTableResults();
-        this.resetSorting();
+    async searchChanged() {
         await this.initialize();
         this.$timeout(() => this.$scope.$apply());
     }

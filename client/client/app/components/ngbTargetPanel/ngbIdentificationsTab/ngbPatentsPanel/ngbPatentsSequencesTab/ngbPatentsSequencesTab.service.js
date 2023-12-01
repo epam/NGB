@@ -8,6 +8,11 @@ const SEARCH_BY_NAMES = {
     [SEARCH_BY_OPTIONS.sequence]: 'amino acid sequence',
 };
 
+const HEADER_TEXT = {
+    [SEARCH_BY_OPTIONS.name]: 'Patented sequences containing the name of the specified protein - ',
+    [SEARCH_BY_OPTIONS.sequence]: 'Patented sequences identical/similar to the specified query - ',
+};
+
 const PAGE_SIZE = 20;
 
 const PROTEIN_COLUMNS = [{
@@ -66,12 +71,16 @@ export default class ngbPatentsSequencesTabService {
     get sequenceDB() {
         return SEQUENCE_DB;
     }
+    get headerText() {
+        return HEADER_TEXT;
+    }
 
     _loadingProteins = false;
     proteins = [];
     _selectedProtein;
     _searchBy = this.searchByOptions.name;
     _searchSequence = '';
+    _originalSequence = '';
     requestedModel = null;
 
     _failedResult = false;
@@ -111,6 +120,12 @@ export default class ngbPatentsSequencesTabService {
     }
     set searchSequence(value) {
         this._searchSequence = value;
+    }
+    get originalSequence() {
+        return this._originalSequence;
+    }
+    set originalSequence(value) {
+        this._originalSequence = value;
     }
     get isSearchByProteinName() {
         return this.searchBy === this.searchByOptions.name;
@@ -245,15 +260,17 @@ export default class ngbPatentsSequencesTabService {
     async searchPatents() {
         const searchBy = this.searchBy;
         const proteinId = this.selectedProtein.id;
+        const proteinName = this.selectedProtein.name;
         const sequence = this.searchSequence;
+        const originalSequence = this.originalSequence;
         this.currentPage = 1;
         const success = await this.getTableResults();
         if (success) {
             if (this.isSearchByProteinName) {
-                this.requestedModel = { searchBy, proteinId };
+                this.requestedModel = { searchBy, proteinId, proteinName };
             }
             if (this.isSearchByProteinSequence) {
-                this.requestedModel = { searchBy, proteinId, sequence };
+                this.requestedModel = { searchBy, proteinId, proteinName, sequence, originalSequence };
             }
         } else {
             this.requestedModel = null;
