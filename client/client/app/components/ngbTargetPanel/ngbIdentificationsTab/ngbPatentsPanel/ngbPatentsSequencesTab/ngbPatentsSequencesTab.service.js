@@ -44,6 +44,8 @@ const SEQUENCE_COLUMNS = [{
     displayName: 'Percent identity'
 }];
 
+const SEQUENCE_DB = 'PROTEIN';
+
 export default class ngbPatentsSequencesTabService {
 
     get searchByOptions() {
@@ -61,12 +63,15 @@ export default class ngbPatentsSequencesTabService {
     get sequenceColumns() {
         return SEQUENCE_COLUMNS;
     }
+    get sequenceDB() {
+        return SEQUENCE_DB;
+    }
 
     _loadingProteins = false;
     proteins = [];
     _selectedProtein;
     _searchBy = this.searchByOptions.name;
-    _searchSequence = 'ABFKGGBDKFHRHGBG';
+    _searchSequence = '';
     requestedModel = null;
 
     _failedResult = false;
@@ -78,6 +83,10 @@ export default class ngbPatentsSequencesTabService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+
+    _loadingSequence = false;
+    _failedSequence = false;
+    _errorSequence = null;
 
     get loadingProteins() {
         return this._loadingProteins;
@@ -184,6 +193,25 @@ export default class ngbPatentsSequencesTabService {
     }
     set sortInfo(value) {
         this._sortInfo = value;
+    }
+
+    get loadingSequence() {
+        return this._loadingSequence;
+    }
+    set loadingSequence(value) {
+        this._loadingSequence = value;
+    }
+    get failedSequence() {
+        return this._failedSequence;
+    }
+    set failedSequence(value) {
+        this._failedSequence = value;
+    }
+    get errorSequence() {
+        return this._errorSequence;
+    }
+    set errorSequence(value) {
+        this._errorSequence = value;
     }
 
     static instance (dispatcher, targetDataService) {
@@ -317,6 +345,26 @@ export default class ngbPatentsSequencesTabService {
         }
     }
 
+    async getSequence() {
+        const database = this.sequenceDB;
+        const id = this.selectedProtein.id;
+        return new Promise(resolve => {
+            this.targetDataService.getSequence(database, id)
+                .then(data => {
+                    this._failedSequence = false;
+                    this._errorSequence = null;
+                    this._loadingSequence = false;
+                    resolve(data);
+                })
+                .catch(err => {
+                    this._failedSequence = true;
+                    this._errorSequence = [err.message];
+                    this._loadingSequence = false;
+                    resolve(false);
+                });
+        });
+    }
+
     resetTableResults() {
         this._tableResults = null;
         this._currentPage = 1;
@@ -336,5 +384,8 @@ export default class ngbPatentsSequencesTabService {
         this._searchBy = this.searchByOptions.name;
         this._searchSequence;
         this.requestedModel = null;
+        this._loadingSequence = false;
+        this._failedSequence = false;
+        this._errorSequence = null;
     }
 }

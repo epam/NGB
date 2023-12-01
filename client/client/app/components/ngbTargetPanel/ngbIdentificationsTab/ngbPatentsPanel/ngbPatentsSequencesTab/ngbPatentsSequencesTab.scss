@@ -1,6 +1,7 @@
 @import "../ngbPatentsPanel.variables.scss";
 
 ngb-patents-sequences-tab {
+    margin-bottom: 20px;
 
     .loading-indicator {
         position: absolute;
@@ -11,6 +12,16 @@ ngb-patents-sequences-tab {
 
     .loading-data-indicator {
         position: relative;
+    }
+
+    .loading-sequence-indicator {
+        margin-top: 5px;
+        height: 5px;
+        visibility: hidden;
+
+        &.show {
+            visibility: visible;
+        }
     }
 
     label {
@@ -108,7 +119,7 @@ ngb-patents-sequences-tab {
         justify-content: start;
         align-items: start;
         box-sizing: border-box;
-        padding: 10px;
+        padding: 0 10px 10px 10px;
         width: 100%;
 
         label {

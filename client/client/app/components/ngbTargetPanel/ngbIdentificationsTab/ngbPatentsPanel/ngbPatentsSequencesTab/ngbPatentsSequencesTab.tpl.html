@@ -3,6 +3,9 @@
          ng-if="$ctrl.loadingProteins">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
+    <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
     <div class="sequence-protein-select">
         <label>Sequences:</label>
         <md-input-container>
@@ -36,6 +39,10 @@
         </md-checkbox>
     </div>
 </div>
+<div class="loading-sequence-indicator"
+     ng-class="{'show': $ctrl.searchBy === $ctrl.searchByOptions.sequence && $ctrl.loadingSequence}">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
 <div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.sequence"
      class="textarea-container">
     <label>Query:</label>
@@ -48,12 +55,12 @@
                   required>
         </textarea>
     </md-input-container>
+    <div ng-class="{'hidden': !$ctrl.failedSequence}">
+        <ngb-panel-error-list message-list="$ctrl.errorSequence"></ngb-panel-error-list>
+    </div>
 </div>
 <div class="loading-data-indicator"
      ng-if="$ctrl.loadingData">
     <md-progress-linear md-mode="query"></md-progress-linear>
-</div>
-<div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
-    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
 </div>
 <ngb-patents-protein-table ng-if="$ctrl.tableResults"></ngb-patents-protein-table>

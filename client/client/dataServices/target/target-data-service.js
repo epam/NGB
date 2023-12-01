@@ -697,10 +697,10 @@ export class TargetDataService extends DataService {
     searchPatentsBySequence() {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                // const data = ['test'];
-                // resolve(data);
-                const message = `Error getting patents`;
-                reject(new Error(message));
+                const data = {totalCount: 0};
+                resolve(data);
+                // const message = `Error getting patents`;
+                // reject(new Error(message));
             }, 5000)
         });
     }

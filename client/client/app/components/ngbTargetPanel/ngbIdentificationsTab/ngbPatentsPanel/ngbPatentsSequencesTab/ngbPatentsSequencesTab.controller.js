@@ -67,16 +67,54 @@ export default class ngbPatentsSequencesTabController {
     get tableResults() {
         return this.ngbPatentsSequencesTabService.tableResults;
     }
+    get loadingSequence() {
+        return this.ngbPatentsSequencesTabService.loadingSequence;
+    }
+    set loadingSequence(value) {
+        this.ngbPatentsSequencesTabService.loadingSequence = value;
+    }
+    get failedSequence() {
+        return this.ngbPatentsSequencesTabService.failedSequence;
+    }
+    set failedSequence(value) {
+        this.ngbPatentsSequencesTabService.failedSequence = value;
+    }
+    get errorSequence() {
+        return this.ngbPatentsSequencesTabService.errorSequence;
+    }
+    set errorSequence(value) {
+        this.ngbPatentsSequencesTabService.errorSequence = value;
+    }
 
     $onInit() {
     }
 
     refresh() {
         this.$timeout(() => this.$scope.$apply());
+        this.setSequence();
     }
 
     onChangeProtein() {
         this.selectedProtein;
+        this.setSequence();
+    }
+
+    async setSequence() {
+        this.loadingSequence = true;
+        this.failedSequence = false;
+        this.errorSequence = null;
+        const result = await this.ngbPatentsSequencesTabService.getSequence();
+        if (result) {
+            const parts = result.split(']');
+            const sequencePart = (parts.length > 1) ? parts[1] : parts[0];
+            const sequence = sequencePart.replace(/\n/g, '');
+            this.searchSequence = sequence;
+        } else {
+            this.searchSequence = '';
+        }
+        if (this.ngbPatentsSequencesTabService.isSearchByProteinSequence) {
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 
     onChangeSearchBy(option) {
