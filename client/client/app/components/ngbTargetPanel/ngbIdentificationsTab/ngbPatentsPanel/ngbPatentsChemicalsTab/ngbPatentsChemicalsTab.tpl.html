@@ -3,17 +3,20 @@
          ng-if="$ctrl.loadingDrugs">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
-    <div class="drug-select"
-         ng-if="$ctrl.drugs.length > 1">
+    <div ng-class="{'hidden': !$ctrl.failedDrugs || $ctrl.loadingDrugs}">
+        <ngb-panel-error-list message-list="$ctrl.errorDrugsMessage"></ngb-panel-error-list>
+    </div>
+    <div class="drug-select">
         <label>Drug:</label>
         <md-input-container>
             <md-select ng-model="$ctrl.selectedDrug"
                        aria-label="Select drug"
-                       ng-disabled="$ctrl.loadingDrugs"
+                       ng-disabled="$ctrl.loadingDrugs || $ctrl.loadingData"
+                       ng-change="$ctrl.onChangeDrug()"
                        md-container-class="drug-select-container">
                 <md-option ng-repeat="drug in $ctrl.drugs"
                            ng-value="drug">
-                    {{drug.name}}
+                    {{drug}}
                 </md-option>
             </md-select>
         </md-input-container>
@@ -21,7 +24,7 @@
                    aria-label="Search patents"
                    ng-click="$ctrl.onClickSearch()"
                    class="md-primary md-raised md-accent patent-button"
-                   ng-disabled="$ctrl.loadingDrugs">
+                   ng-disabled="$ctrl.searchDisabled">
             Search
         </md-button>
     </div>
@@ -30,7 +33,8 @@
         <md-checkbox ng-repeat="option in $ctrl.searchByOptions track by option"
                      aria-label="{{$ctrl.searchByNames[option]}} checkbox"
                      ng-checked="$ctrl.searchBy === $ctrl.searchByOptions[option]"
-                     ng-click="$ctrl.onChangeSearchBy(option)">
+                     ng-click="$ctrl.onChangeSearchBy(option)"
+                     ng-disabled="$ctrl.loadingData">
             {{$ctrl.searchByNames[option]}}
         </md-checkbox>
     </div>

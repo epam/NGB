@@ -704,4 +704,21 @@ export class TargetDataService extends DataService {
             }, 5000)
         });
     }
+
+    getDrugs(geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/drugs?geneIds=${geneIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting drugs';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

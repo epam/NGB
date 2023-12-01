@@ -4,12 +4,23 @@ export default class ngbPatentsChemicalsTabController {
         return 'ngbPatentsChemicalsTabController';
     }
 
-    constructor($scope, ngbPatentsChemicalsTabService) {
-        Object.assign(this, {$scope, ngbPatentsChemicalsTabService});
+    constructor($scope, $timeout, dispatcher, ngbPatentsChemicalsTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsChemicalsTabService});
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:patents:sequences:drugs:updated', refresh);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:patents:sequences:drugs:updated', refresh);
+        });
     }
 
     get loadingDrugs() {
         return this.ngbPatentsChemicalsTabService.loadingDrugs;
+    }
+    get failedDrugs() {
+        return this.ngbPatentsChemicalsTabService.failedDrugs;
+    }
+    get errorDrugsMessage() {
+        return this.ngbPatentsChemicalsTabService.errorDrugsMessage;
     }
     get drugs() {
         return this.ngbPatentsChemicalsTabService.drugs;
@@ -31,6 +42,10 @@ export default class ngbPatentsChemicalsTabController {
     }
     set searchBy (value) {
         this.ngbPatentsChemicalsTabService.searchBy = value;
+    }
+
+    refresh() {
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onChangeSearchBy(option) {
