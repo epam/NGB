@@ -22,6 +22,7 @@ export default class ngbDiseasesTabController {
         dispatcher,
         ngbDiseasesTabService,
         ngbDiseasesTargetsPanelService,
+        ngbTargetsTabService,
     ) {
         Object.assign(this, {
             $scope,
@@ -29,14 +30,20 @@ export default class ngbDiseasesTabController {
             dispatcher,
             ngbDiseasesTabService,
             ngbDiseasesTargetsPanelService,
+            ngbTargetsTabService,
         });
         if (this.diseasesData) {
             this.refreshData();
         }
         const setDiseasesData = this.setDiseasesData.bind(this);
+        const refreshError = this.refreshError.bind(this);
         dispatcher.on('target:diseases:disease:changed', setDiseasesData);
+        dispatcher.on('target:launch:failed', refreshError);
+        dispatcher.on('target:launch:failed:refresh', refreshError);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:diseases:disease:changed', setDiseasesData);
+            dispatcher.removeListener('target:launch:failed', refreshError);
+            dispatcher.removeListener('target:launch:failed:refresh', refreshError);
         });
     }
 
@@ -63,9 +70,6 @@ export default class ngbDiseasesTabController {
     get loadingData() {
         return this.ngbDiseasesTabService.loadingData;
     }
-    set loadingData(value) {
-        this.ngbDiseasesTabService.loadingData = value;
-    }
     get failedResult () {
         return this.ngbDiseasesTabService.failedResult;
     }
@@ -77,6 +81,15 @@ export default class ngbDiseasesTabController {
     }
     get openedPanels() {
         return this.ngbDiseasesTabService.openedPanels;
+    }
+    get launchLoading() {
+        return this.ngbTargetsTabService.launchLoading;
+    }
+    get launchFailed() {
+        return this.ngbTargetsTabService.launchFailed;
+    }
+    get launchErrorMessageList() {
+        return this.ngbTargetsTabService.launchErrorMessageList;
     }
 
     async getDiseasesList() {
@@ -138,5 +151,9 @@ export default class ngbDiseasesTabController {
 
     toggleDescriptionCollapsed () {
         this.descriptionCollapsed = !this.descriptionCollapsed;
+    }
+
+    refreshError() {
+        this.$timeout(() => this.$scope.$apply());
     }
 }

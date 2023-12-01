@@ -32,18 +32,22 @@ export default function Sequences() {
         </div>
       )}
     >
-      <div class="flex justify-end items-center">
-        <span className="mr-1">Gene:</span>
-        <Select onChange={setGeneId} value={geneId} bordered>
-          {
-            Object.values(genesOptions).map((o) => (
-              <Select.Option key={o.key} value={o.key}>
-                {o.value}
-              </Select.Option>
-            ))
-          }
-        </Select>
-      </div>
+      {
+        genesOptions.length && genesOptions.length > 1 ? (
+          <div class="flex justify-end items-center">
+            <span className="mr-1">Gene:</span>
+            <Select onChange={setGeneId} value={geneId} bordered>
+              {
+                Object.values(genesOptions).map((o) => (
+                  <Select.Option key={o.key} value={o.key}>
+                    {o.value}
+                  </Select.Option>
+                ))
+              }
+            </Select>
+          </div>
+        ) : null
+      }
       {
         (reference && reference.value) ? (
           <div>

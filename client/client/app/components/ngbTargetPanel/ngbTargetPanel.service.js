@@ -129,11 +129,11 @@ export default class NgbTargetPanelService {
     }
 
     setChips(info) {
-        const {interest, translational} = info;
+        const {interest = [], translational = []} = info;
         const setChip = (genes) => {
             for (let i = 0; i < genes.length; i++) {
                 const gene = genes[i];
-                gene.chip = gene.chip || `${gene.geneName} (${gene.speciesName})`;
+                gene.chip = gene.chip || `${gene.geneName}${gene.speciesName ? ` (${gene.speciesName})` : ''}`;
             }
         };
         setChip(interest);
@@ -171,11 +171,21 @@ export default class NgbTargetPanelService {
     }
 
     exportResults(format) {
-        if (format === this.format.XLSX) {
-            return this.exportExcel();
-        }
-        if (format === this.format.HTML) {
-            return this.exportHtml();
+        const isTranslational = this.translationalGeneIds && this.translationalGeneIds.length;
+        if (isTranslational) {
+            if (format === this.format.XLSX) {
+                return this.exportExcel();
+            }
+            if (format === this.format.HTML) {
+                return this.exportHtml();
+            }
+        } else {
+            if (format === this.format.XLSX) {
+                return this.exportExcelGeneId();
+            }
+            if (format === this.format.HTML) {
+                return this.exportHtmlGeneId();
+            }
         }
     }
 
@@ -192,6 +202,20 @@ export default class NgbTargetPanelService {
             return new Promise(resolve => resolve(true));
         }
         return this.targetDataService.getTargetHtmlReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
+    }
+
+    exportExcelGeneId() {
+        if (!this.geneIdsOfInterest.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0]);
+    }
+
+    exportHtmlGeneId() {
+        if (!this.geneIdsOfInterest.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetHtmlReportGeneId(this.geneIdsOfInterest[0]);
     }
 
     saveIdentification(name) {
