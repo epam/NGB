@@ -170,7 +170,7 @@ public class TargetExportHTMLManager {
             }
         }
 
-        TargetExportHTML result =  TargetExportHTML.builder()
+        TargetExportHTML result = TargetExportHTML.builder()
                 .name(target.getTargetName())
                 .interest(interest)
                 .translational(translational)
@@ -190,21 +190,25 @@ public class TargetExportHTMLManager {
         final String template = getTemplate();
 
         final List<String> geneIds = Collections.singletonList(geneId);
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
 
-        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(geneIds, null);
-        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds,
-                null);
+        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(geneIds, genesMap);
+        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds, genesMap);
         final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
-                null);
+                genesMap);
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
-        final List<Sequence> sequences = getSequences(geneIds, null);
+        final List<Sequence> sequences = getSequences(geneIds, genesMap);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
         long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
+        final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(geneIds,
+                Collections.emptyList(), genesMap);
+        final long homologsCount = comparativeGenomics.size();
+
 
         final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
@@ -225,11 +229,12 @@ public class TargetExportHTMLManager {
                 .knownDrugs(knownDrugsCount)
                 .sequences(sequencesCount)
                 .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size()))
+                .genomics(homologsCount)
                 .structures(structuresCount)
                 .publications(publicationsCount)
                 .build();
         final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
-        TargetExportHTML result =  TargetExportHTML.builder()
+        TargetExportHTML result = TargetExportHTML.builder()
                 .name(geneNames.get(0))
                 .totalCounts(totalCounts)
                 .knownDrugs(knownDrugs)
@@ -237,6 +242,7 @@ public class TargetExportHTMLManager {
                 .sequences(sequences)
                 .structures(structures)
                 .publications(publications)
+                .comparativeGenomics(comparativeGenomics)
                 .build();
         return fillTemplate(template, result);
     }
@@ -266,9 +272,11 @@ public class TargetExportHTMLManager {
         for (GeneRefSection geneRefSection : sequencesTable) {
             SequenceGene sequenceGene = SequenceGene.builder()
                     .id(geneRefSection.getGeneId())
-                    .name(genesMap.get(geneRefSection.getGeneId().toLowerCase()).getGeneName())
-                    .species(genesMap.get(geneRefSection.getGeneId().toLowerCase()).getSpeciesName())
+                    .name(geneNamesMap.get(geneRefSection.getGeneId().toLowerCase()))
                     .build();
+            if (genesMap.containsKey(geneRefSection.getGeneId().toLowerCase())) {
+                sequenceGene.setSpecies(genesMap.get(geneRefSection.getGeneId().toLowerCase()).getSpeciesName());
+            }
             LinkEntity reference = new LinkEntity();
             if (geneRefSection.getReference() != null) {
                 reference.setValue(geneRefSection.getReference().getId());
