@@ -26,11 +26,14 @@
         </md-autocomplete>
     </div>
     <div class="loading-indicator"
-         ng-if="$ctrl.loadingData">
+         ng-if="$ctrl.loadingData || $ctrl.launchLoading">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div ng-if="$ctrl.failedResult && !$ctrl.loadingData">
         <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <div ng-class="{'hidden': !$ctrl.launchFailed || $ctrl.launchLoading}">
+        <ngb-panel-error-list message-list="$ctrl.launchErrorMessageList"></ngb-panel-error-list>
     </div>
     <div class="diseases-content"
          ng-if="$ctrl.diseasesData">

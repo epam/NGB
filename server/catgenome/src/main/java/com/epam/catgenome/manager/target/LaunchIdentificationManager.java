@@ -338,6 +338,20 @@ public class LaunchIdentificationManager {
                 .build();
     }
 
+    public List<String> getDrugs(final List<String> geneIds) throws IOException, ParseException {
+        final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
+        final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+
+        final List<String> pharmGKBDrugNames = pharmGKBDrugs.stream().map(UrlEntity::getName)
+                .collect(Collectors.toList());
+        final List<String> dgidbDrugsNames = dgidbDrugs.stream().map(UrlEntity::getName).collect(Collectors.toList());
+        final List<String> drugNames = drugAssociations.stream().map(UrlEntity::getName).collect(Collectors.toList());
+        drugNames.addAll(pharmGKBDrugNames);
+        drugNames.addAll(dgidbDrugsNames);
+        return drugNames.stream().map(String::toLowerCase).distinct().sorted().collect(Collectors.toList());
+    }
+
     public long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
         final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
         final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);

@@ -172,4 +172,9 @@ public class LaunchIdentificationSecurityService {
     public List<GeneInfo> getGenes(final String prefix) throws ParseException, IOException {
         return manager.getGenes(prefix);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public List<String> getDrugs(final List<String> geneIds) throws ParseException, IOException {
+        return manager.getDrugs(geneIds);
+    }
 }

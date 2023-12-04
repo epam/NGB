@@ -638,4 +638,42 @@ export class TargetDataService extends DataService {
                 }, reject);
         });
     }
+
+    getTargetExcelReportGeneId(geneId) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/report/${geneId}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
+
+    getTargetHtmlReportGeneId(geneId) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/html/${geneId}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
 }

@@ -172,13 +172,13 @@ public class NCBIDataManager extends HttpDataManager {
         parametersList.add(new ParameterNameValue("term", term));
         parametersList.add(new ParameterNameValue(RETMODE_PARAM, JSON));
         if (retType != null) {
-            new ParameterNameValue(RET_TYPE_PARAM, retType);
+            parametersList.add(new ParameterNameValue(RET_TYPE_PARAM, retType));
         }
         if (retMax != null) {
-            new ParameterNameValue(MAX_RESULTS_PARAM, retMax.toString());
+            parametersList.add(new ParameterNameValue(MAX_RESULTS_PARAM, retMax.toString()));
         }
         if (retStart != null) {
-            new ParameterNameValue(START_PARAM, retStart.toString());
+            parametersList.add(new ParameterNameValue(START_PARAM, retStart.toString()));
         }
         ParameterNameValue[] parameterNameValues = parametersList.toArray(
                 new ParameterNameValue[parametersList.size()]);
