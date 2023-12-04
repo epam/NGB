@@ -21,20 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.patents;
+package com.epam.catgenome.manager.externaldb.pug;
 
-import com.epam.catgenome.entity.externaldb.target.UrlEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class DrugPatent extends UrlEntity {
-    private String molecularFormula;
-    private String iupacName;
-    private boolean hasPatent;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+
+@Service
+@RequiredArgsConstructor
+public class NCBIPugSecurityService {
+
+    private final NCBIPugManager manager;
+
+    @PreAuthorize(ROLE_USER)
+    public String getSmiles(final String name) throws JsonProcessingException, ExternalDbUnavailableException {
+        return manager.getSmiles(name);
+    }
 }

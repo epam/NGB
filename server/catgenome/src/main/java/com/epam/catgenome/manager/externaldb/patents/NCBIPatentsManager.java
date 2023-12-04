@@ -32,8 +32,10 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import com.epam.catgenome.manager.externaldb.pug.NCBIPugManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -53,7 +55,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,22 +89,24 @@ public class NCBIPatentsManager {
     public static final String EMPTY_LINE = "\n\n";
     private final NCBIAuxiliaryManager ncbiAuxiliaryManager;
     private final NCBIDataManager ncbiDataManager;
+    private final NCBIPugManager ncbiPugManager;
 
     public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
         final Integer retStart = ((request.getPage() - 1) * request.getPageSize());
         final Integer retMax = request.getPageSize();
 
-        final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PROTEIN_DB,
-                String.format(PROTEIN_TERM, request.getName()), retStart, retMax);
-
         final int count = ncbiAuxiliaryManager.getTotalCount(PROTEIN_DB,
                 String.format(PROTEIN_TERM, request.getName()));
         final SearchResult<SequencePatent> result = new SearchResult<>();
         result.setTotalCount(count);
-        final String xml = ncbiDataManager.fetchXmlById(PROTEIN_DB, join(patentIds, ","), "text");
-        final List<SequencePatent> patents = parseProteinPatents(xml);
-        result.setItems(patents);
+        if (count > 0) {
+            final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PROTEIN_DB,
+                    String.format(PROTEIN_TERM, request.getName()), retStart, retMax);
+            final String xml = ncbiDataManager.fetchXmlById(PROTEIN_DB, join(patentIds, ","), "text");
+            final List<SequencePatent> patents = parseProteinPatents(xml);
+            result.setItems(patents);
+        }
         return result;
     }
 
@@ -109,17 +115,38 @@ public class NCBIPatentsManager {
         final Integer retStart = ((request.getPage() - 1) * request.getPageSize());
         final Integer retMax = request.getPageSize();
 
-        final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PUB_CHEM_COMPOUND_DB,
-                String.format(DRUG_TERM, request.getName()), retStart, retMax);
-
         final int count = ncbiAuxiliaryManager.getTotalCount(PUB_CHEM_COMPOUND_DB,
                 String.format(DRUG_TERM, request.getName()));
         final SearchResult<DrugPatent> result = new SearchResult<>();
         result.setTotalCount(count);
-        final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(patentIds, ","),
+        if (count > 0) {
+            final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PUB_CHEM_COMPOUND_DB,
+                    String.format(DRUG_TERM, request.getName()), retStart, retMax);
+            final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(patentIds, ","),
+                    "text");
+            final List<DrugPatent> patents = parseDrugPatents(text);
+            result.setItems(patents);
+        }
+        return result;
+    }
+
+    public List<DrugPatent> getDrugPatents(final String id)
+            throws ExternalDbUnavailableException, IOException {
+        final List<Long> cids = ncbiPugManager.getCID(id);
+        if (CollectionUtils.isEmpty(cids)) {
+            return Collections.emptyList();
+        }
+        final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(cids, ","),
                 "text");
-        final List<DrugPatent> patents = parseDrugPatents(text);
-        result.setItems(patents);
+        final List<DrugPatent> result = parseDrugPatents(text);
+        if (CollectionUtils.isEmpty(result)) {
+            return Collections.emptyList();
+        }
+        final Map<Long, List<String>> pugPatents = ncbiPugManager.getPatents(cids);
+        result.forEach(p -> {
+            List<String> cidPatents = pugPatents.get(Long.parseLong(p.getId()));
+            p.setHasPatent(CollectionUtils.isNotEmpty(cidPatents));
+        });
         return result;
     }
 
@@ -154,22 +181,25 @@ public class NCBIPatentsManager {
         final List<DrugPatent> patents = new ArrayList<>();
         String[] drugs = text.trim().split(EMPTY_LINE);
         for (String item : drugs) {
-            String line;
-            try (Reader reader = new StringReader(item); BufferedReader bufferedReader = new BufferedReader(reader)) {
-                DrugPatent patent = new DrugPatent();
-                while ((line = bufferedReader.readLine()) != null) {
-                    Matcher m = DRUG_NAME_PATTERN.matcher(line);
-                    if (line.startsWith("CID: ")) {
-                        patent.setId(line.replace("CID: ", "").trim());
-                    } else if (line.startsWith("IUPAC name: ")) {
-                        patent.setIupacName(line.replace("IUPAC name: ", "").trim());
-                    } else if (line.startsWith("MW: ")) {
-                        patent.setMolecularFormula(line.split("MF: ")[1].trim());
-                    } else if (m.find()) {
-                        patent.setName(m.replaceFirst("").trim());
+            if (!item.contains("Error occurred")) {
+                String line;
+                try (Reader reader = new StringReader(item);
+                     BufferedReader bufferedReader = new BufferedReader(reader)) {
+                    DrugPatent patent = new DrugPatent();
+                    while ((line = bufferedReader.readLine()) != null) {
+                        Matcher m = DRUG_NAME_PATTERN.matcher(line);
+                        if (line.startsWith("CID: ")) {
+                            patent.setId(line.replace("CID: ", "").trim());
+                        } else if (line.startsWith("IUPAC name: ")) {
+                            patent.setIupacName(line.replace("IUPAC name: ", "").trim());
+                        } else if (line.startsWith("MW: ")) {
+                            patent.setMolecularFormula(line.split("MF: ")[1].trim());
+                        } else if (m.find()) {
+                            patent.setName(m.replaceFirst("").trim());
+                        }
                     }
+                    patents.add(patent);
                 }
-                patents.add(patent);
             }
         }
         return patents;

@@ -33,6 +33,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
@@ -52,5 +53,11 @@ public class NCBIPatentsSecurityService {
     public SearchResult<DrugPatent> getDrugPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException, IOException {
         return manager.getDrugPatents(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public List<DrugPatent> getDrugPatents(final String id)
+            throws ExternalDbUnavailableException, IOException {
+        return manager.getDrugPatents(id);
     }
 }

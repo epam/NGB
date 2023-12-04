@@ -38,11 +38,10 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(value = "patents", description = "Patents Management")
@@ -75,5 +74,18 @@ public class PatentsController extends AbstractRESTController {
     public Result<SearchResult<DrugPatent>> getDrugPatents(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException, IOException {
         return Result.success(ncbiPatentsSecurityService.getDrugPatents(request));
+    }
+
+    @GetMapping(value = "/patents/drugs/ncbi")
+    @ApiOperation(
+            value = "Searches drug patents by id in NCBI database.",
+            notes = "Searches drug patents by id in NCBI database.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<DrugPatent>> getDrugPatents(@RequestParam final String id)
+            throws ExternalDbUnavailableException, IOException {
+        return Result.success(ncbiPatentsSecurityService.getDrugPatents(id));
     }
 }
