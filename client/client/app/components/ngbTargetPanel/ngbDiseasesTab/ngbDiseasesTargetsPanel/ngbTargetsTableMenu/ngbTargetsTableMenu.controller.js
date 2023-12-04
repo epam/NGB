@@ -1,4 +1,4 @@
-export default class ngbTargetsTableContextMenuController {
+export default class ngbTargetsTableMenuController {
 
     targetList = [];
     loading = false;
@@ -6,14 +6,13 @@ export default class ngbTargetsTableContextMenuController {
     errorMessageList = null;
 
     static get UID() {
-        return 'ngbTargetsTableContextMenuController';
+        return 'ngbTargetsTableMenuController';
     }
 
     constructor(
         $scope,
         $timeout,
         dispatcher,
-        ngbTargetsTableContextMenu,
         ngbDiseasesTabService,
         ngbTargetsTabService,
         targetDataService,
@@ -23,19 +22,17 @@ export default class ngbTargetsTableContextMenuController {
             $scope,
             $timeout,
             dispatcher,
-            ngbTargetsTableContextMenu,
             ngbDiseasesTabService,
             ngbTargetsTabService,
             targetDataService,
             targetContext
         });
-        this.entity = $scope.row.entity;
         this.searchTarget();
     }
 
     async searchTarget() {
         this.loading = true;
-        const emptyList = [{ targetName: `No targets found for ${this.entity.target}` }];
+        const emptyList = [];
         try {
             const list = await this.targetDataService.searchTarget(this.entity.target);
             this.targetList = list.length ? list : emptyList;
@@ -54,9 +51,6 @@ export default class ngbTargetsTableContextMenuController {
     async editTarget(event, target) {
         event.preventDefault();
         event.stopPropagation();
-        if (this.ngbTargetsTableContextMenu.visible()) {
-            this.ngbTargetsTableContextMenu.close();
-        }
         if (!target.targetId) return;
         await this.ngbTargetsTabService.getTarget(target.targetId);
         this.dispatcher.emit('target:diseases:show:targets:tab');

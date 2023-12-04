@@ -1,0 +1,27 @@
+<md-menu md-position-mode="target-right target">
+    <span class="target-cell" ng-click="$mdOpenMenu($event)">
+        {{$ctrl.entity.target}}
+    </span>
+    <md-menu-content width="4" class="targets-menu">
+        <md-menu-item ng-click="$ctrl.launchTarget($event)"
+                      class="launch-target-button">
+            Launch identification
+        </md-menu-item>
+        <md-divider ng-if="$ctrl.targetList && $ctrl.targetList.length"></md-divider>
+        <div ng-if="$ctrl.targetList && $ctrl.targetList.length"
+              class="list-title">
+            Registered targets
+        </div>
+        <md-menu-item ng-repeat="item in $ctrl.targetList track by $index"
+                      class="target-button"
+                      ng-click="$ctrl.editTarget($event, item)">
+            {{item.targetName}}
+        </md-menu-item>
+        <md-menu-item ng-if="$ctrl.failedSearch"
+                      class="error-list"
+                      ng-repeat="item in $ctrl.targetList track by $index"
+                      ng-click="$ctrl.editTarget($event, item)">
+            <span class="error-item">{{$ctrl.errorMessageList}}</span>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>
