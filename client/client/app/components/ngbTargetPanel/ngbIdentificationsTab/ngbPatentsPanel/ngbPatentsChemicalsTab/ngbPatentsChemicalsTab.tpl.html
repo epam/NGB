@@ -39,3 +39,18 @@
         </md-checkbox>
     </div>
 </div>
+<div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
+     class="textarea-container">
+    <label>Identifier:</label>
+    <md-input-container>
+        <textarea ng-model="$ctrl.searchStructure"
+                  aria-label="Search identifier"
+                  ng-disabled="$ctrl.loadingData"
+                  md-no-asterisk
+                  required>
+        </textarea>
+    </md-input-container>
+    <div ng-class="{'hidden': !$ctrl.failedStructure}">
+        <ngb-panel-error-list message-list="$ctrl.errorStructure"></ngb-panel-error-list>
+    </div>
+</div>

@@ -43,16 +43,54 @@ export default class ngbPatentsChemicalsTabController {
     set searchBy (value) {
         this.ngbPatentsChemicalsTabService.searchBy = value;
     }
+    get searchStructure() {
+        return this.ngbPatentsChemicalsTabService.searchStructure;
+    }
+    set searchStructure(value) {
+        this.ngbPatentsChemicalsTabService.searchStructure = value;
+    }
+    get loadingData() {
+        return this.ngbPatentsChemicalsTabService.loadingData;
+    }
+    set loadingData(value) {
+        this.ngbPatentsChemicalsTabService.loadingData = value;
+    }
+    get failedResult() {
+        return this.ngbPatentsChemicalsTabService.failedResult;
+    }
+    set failedResult(value) {
+        this.ngbPatentsChemicalsTabService.failedResult = value;
+    }
+    get errorMessageList() {
+        return this.ngbPatentsChemicalsTabService.errorMessageList;
+    }
+    set errorMessageList(value) {
+        this.ngbPatentsChemicalsTabService.errorMessageList = value;
+    }
+
+    get searchDisabled() {
+        return this.ngbPatentsChemicalsTabService.searchDisabled;
+    }
 
     refresh() {
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    onChangeProtein() {
     }
 
     onChangeSearchBy(option) {
         this.searchBy = option;
     }
 
-    onClickSearch() {
-        console.log(this.selectedDrug, this.searchBy)
+    async onClickSearch() {
+        this.loadingData = true;
+        this.failedResult = false;
+        this.errorMessageList = null;
+        await this.ngbPatentsChemicalsTabService.searchPatents();
+        this.$timeout(() => {
+            this.dispatcher.emit('target:identification:patents:drug:changed');
+            this.$scope.$apply();
+        });
     }
 }
