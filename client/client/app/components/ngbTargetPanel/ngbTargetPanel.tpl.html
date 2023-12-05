@@ -1,5 +1,6 @@
 <div class="u-height__full target-panel" style="position: relative">
     <md-nav-bar class="target-nav-bar"
+                aria-label="Target tabs"
                 md-selected-nav-item="$ctrl.tabSelected">
         <md-nav-item name="TARGETS"
                      md-nav-click="$ctrl.changeTab($ctrl.targetTab.TARGETS)">
@@ -41,7 +42,7 @@
         </md-button>
         <md-button type="button"
                    class="md-raised md-accent ngb-target-panel-extra-button with-circular"
-                   ng-if="$ctrl.isIdentificationsMode"
+                   ng-if="$ctrl.isIdentificationsMode && $ctrl.isTranslational"
                    aria-label="Save identification"
                    ng-disabled="$ctrl.saveLoading || $ctrl.saveStatus === $ctrl.statusOptions.SAVED"
                    ng-click="$ctrl.onClickSave()">

@@ -361,6 +361,11 @@ export default class ngbTargetsTabService {
                     this.dispatcher.emit('target:launch:finished', result, info);
                 } else {
                     this.dispatcher.emit('target:launch:failed');
+                    this.$timeout(() => {
+                        this._launchFailed = false;
+                        this._launchErrorMessageList = null;
+                        this.dispatcher.emit('target:launch:failed:refresh');
+                    }, 5000);
                 }
                 return result;
             });

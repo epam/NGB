@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.homologene;
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.homolog.HomologGeneAliasDao;
 import com.epam.catgenome.dao.homolog.HomologGeneDescDao;
 import com.epam.catgenome.dao.homolog.HomologGeneDomainDao;
@@ -83,6 +84,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
@@ -98,10 +100,8 @@ public class HomologeneManager {
 
     @Value("${homologene.index.directory}")
     private String indexDirectory;
-
     @Value("${homologene.top.hits:10000}")
     private int topHits;
-
     @Autowired
     private TaxonomyManager taxonomyManager;
     @Autowired
@@ -423,7 +423,10 @@ public class HomologeneManager {
 
     public static void setEnsemblIds(final List<Gene> genes, final List<GeneId> geneIds) {
         final Map<Long, GeneId> genesMap = geneIds.stream()
-                .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity()));
+                .collect(Collectors.toMap(GeneId::getEntrezId, Function.identity(), (g1, g2) -> {
+                    log.debug(getMessage(MessagesConstants.ERROR_NCBI_DUPLICATE_ENSEMBL_ID, g1.getEnsemblId()));
+                    return g2;
+                }));
         for (Gene gene: genes) {
             if (genesMap.containsKey(gene.getGeneId())) {
                 final String ensemblId = genesMap.get(gene.getGeneId()).getEnsemblId();

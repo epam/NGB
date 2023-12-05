@@ -5,6 +5,10 @@
                       ng-click="$ctrl.editTarget($event, item)">
             {{item.targetName}}
         </md-list-item>
+        <md-list-item ng-click="$ctrl.launchTarget($event)"
+                      class="launch-target-button">
+            Launch target
+        </md-list-item>
     </md-list>
     <md-list class="md-dense error-list"
              ng-if="$ctrl.failedSearch">

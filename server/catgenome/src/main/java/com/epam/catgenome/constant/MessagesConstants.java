@@ -237,6 +237,7 @@ public final class MessagesConstants {
     public static final String ERROR_UNEXPECTED_FORMAT = "error.error.unexpected.format";
     public static final String ERROR_NO_RESULT_BY_EXTERNAL_DB = "error.no.result.by.external.db";
     public static final String ERROR_NCBI_CANT_LOAD_FEATURE_INFO = "error.ncbi.cant.load.feature.info";
+    public static final String ERROR_NCBI_DUPLICATE_ENSEMBL_ID = "error.ncbi.duplicate.ensembl.id";
 
 
     //BED

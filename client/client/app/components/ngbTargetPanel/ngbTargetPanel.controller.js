@@ -32,6 +32,11 @@ export default class ngbTargetPanelController {
         return identificationTarget && identificationData;
     }
 
+    get isTranslational () {
+        const identificationTarget = this.ngbTargetPanelService.identificationTarget || {};
+        return identificationTarget.translational && identificationTarget.translational.length;
+    }
+
     get nameModel () {
         return this._nameModel;
     }
@@ -97,6 +102,7 @@ export default class ngbTargetPanelController {
 
     addTarget () {
         if (this.ngbTargetsTabService) {
+            this.ngbTargetsTabService.setEmptyTargetModel();
             this.ngbTargetsTabService.setAddMode();
         }
     }
@@ -167,7 +173,7 @@ export default class ngbTargetPanelController {
 
     async changeIdentificationState(state) {
         const {targetId, targetName, genesOfInterest, translationalGenes} = state || {};
-        if (!targetId || !genesOfInterest || !translationalGenes) return;
+        if (!genesOfInterest) return;
         const target = {
             id: targetId,
             name: targetName,
@@ -175,12 +181,12 @@ export default class ngbTargetPanelController {
         const params = {
             targetId: target.id,
             genesOfInterest: genesOfInterest.map(s => s.geneId),
-            translationalGenes: translationalGenes.map(s => s.geneId)
+            translationalGenes: (translationalGenes || []).map(s => s.geneId)
         };
         const info = {
             target: target,
             interest: genesOfInterest,
-            translational: translationalGenes
+            translational: (translationalGenes || [])
         };
         await this.ngbTargetsTabService.getIdentificationData(params, info);
     }

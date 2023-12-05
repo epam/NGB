@@ -90,7 +90,6 @@ export default function run(
                 }
 
                 async function launchIdentification(launchIdentification) {
-
                     const params = {
                         targetId: target.id,
                         genesOfInterest: launchIdentification.genesOfInterest.map(s => s.geneId),

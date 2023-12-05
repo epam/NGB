@@ -138,6 +138,7 @@ export default class ngbDiseasesTargetsPanelService {
     setTargetsResults(results) {
         this._targetsResults = results.map(item => {
             const {
+                geneId,
                 geneSymbol,
                 geneName,
                 homologues,
@@ -164,7 +165,8 @@ export default class ngbDiseasesTargetsPanelService {
                 'pathways systems': fixedNumber(affectedPathwayScore),
                 'text mining': fixedNumber(literatureScore),
                 'animal models': fixedNumber(animalModelScore),
-                'RNA expression': fixedNumber(rnaExpressionScore)
+                'RNA expression': fixedNumber(rnaExpressionScore),
+                'geneId': geneId
             };
         });
     }

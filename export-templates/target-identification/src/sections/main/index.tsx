@@ -22,7 +22,7 @@ function GeneCard(props: GeneCardProps) {
       style={style}
     >
       <span>{gene.name}</span>
-      <span>{` (${gene.species})`}</span>
+      {gene.species ? <span>{` (${gene.species})`}</span> : null}
     </div>
   );
 }
@@ -94,7 +94,11 @@ export default function MainSection() {
               className="block mb-2"
             >
               <span className="font-bold float-left mr-1">
-                {gene.name} ({gene.species}):
+                {gene.species ? (
+                  <span>{gene.name} ({gene.species}):</span>
+                ) : (
+                  <span>{gene.name}:</span>
+                )}
               </span>
               <ExpandableText expanded={expanded} className="text-justify">
                 {gene.description}

@@ -32,18 +32,19 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Getter
 public enum TargetExportSummaryField implements ExportField<TargetExportSummary> {
-    GENE("Gene", TargetExportSummary::getGene),
-    GENE_ID("Gene ID", TargetExportSummary::getGeneId),
-    SPECIES("Species", TargetExportSummary::getSpecies),
-    TYPE("Type", TargetExportSummary::getType),
-    DESCRIPTION("Description", TargetExportSummary::getDescription),
-    KNOWN_DRUGS("Known Drugs", o -> String.valueOf(o.getKnownDrugs())),
-    KNOWN_DRUG_RECORDS("Known Drug Records", o -> String.valueOf(o.getKnownDrugRecords())),
-    DISEASES("Diseases", o -> String.valueOf(o.getDiseases())),
-    PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications())),
-    SEQUENCES("Sequences", TargetExportSummary::getSequences),
-    STRUCTURES("Structures", o -> String.valueOf(o.getStructures())),
-    HOMOLOGS("Homologs", o -> String.valueOf(o.getHomologs()));
+    GENE("Gene", TargetExportSummary::getGene, false),
+    GENE_ID("Gene ID", TargetExportSummary::getGeneId, false),
+    SPECIES("Species", TargetExportSummary::getSpecies, false),
+    TYPE("Type", TargetExportSummary::getType, false),
+    DESCRIPTION("Description", TargetExportSummary::getDescription, true),
+    KNOWN_DRUGS("Known Drugs", o -> String.valueOf(o.getKnownDrugs()), true),
+    KNOWN_DRUG_RECORDS("Known Drug Records", o -> String.valueOf(o.getKnownDrugRecords()), true),
+    DISEASES("Diseases", o -> String.valueOf(o.getDiseases()), true),
+    PUBLICATIONS("Publications", o -> String.valueOf(o.getPublications()), true),
+    SEQUENCES("Sequences", TargetExportSummary::getSequences, true),
+    STRUCTURES("Structures", o -> String.valueOf(o.getStructures()), true),
+    HOMOLOGS("Homologs", o -> String.valueOf(o.getHomologs()), false);
     private String label;
     private Function<TargetExportSummary, String> getter;
+    private boolean gene;
 }

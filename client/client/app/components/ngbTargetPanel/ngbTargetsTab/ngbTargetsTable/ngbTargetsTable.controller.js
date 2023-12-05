@@ -58,21 +58,19 @@ export default class ngbTargetsTableController {
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         dispatcher.on('target:launch:failed', refreshTable);
+        dispatcher.on('target:launch:failed:refresh', refreshTable);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:table:update', filterChanged);
             dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
             dispatcher.removeListener('target:launch:failed', refreshTable);
+            dispatcher.removeListener('target:launch:failed:refresh', refreshTable);
         });
     }
 
     refreshTable() {
         this.$timeout(() => this.$scope.$apply());
-        this.$timeout(() => {
-            this.launchFailed = false;
-            this.launchErrorMessageList = null;
-        }, 5000);
     }
 
     $onInit() {
@@ -135,14 +133,8 @@ export default class ngbTargetsTableController {
     get launchFailed() {
         return this.ngbTargetsTabService.launchFailed;
     }
-    set launchFailed(value) {
-        this.ngbTargetsTabService.launchFailed = value;
-    }
     get launchErrorMessageList() {
         return this.ngbTargetsTabService.launchErrorMessageList;
-    }
-    set launchErrorMessageList(value) {
-        this.ngbTargetsTabService.launchErrorMessageList = value;
     }
 
     async initialize() {
@@ -267,6 +259,7 @@ export default class ngbTargetsTableController {
             });
         this.gridOptions.data = results;
         this.loadingData = false;
+        this.dispatcher.emit('target:table:results:updated');
         this.$timeout(() => this.$scope.$apply());
     }
 

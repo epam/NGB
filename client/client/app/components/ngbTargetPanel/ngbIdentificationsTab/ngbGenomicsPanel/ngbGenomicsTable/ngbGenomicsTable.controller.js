@@ -101,6 +101,7 @@ export default class ngbGenomicsTableController {
 
     getGenomicsTableGridColumns() {
         const headerCells = require('./ngbGenomicsTable_header.tpl.html');
+        const translationalSpecies = this.ngbGenomicsPanelService.translationalSpecies;
 
         const result = [];
         const columnsList = this.genomicsTableColumns;
@@ -128,9 +129,10 @@ export default class ngbGenomicsTableController {
                     break;
                 }
                 case 'species': {
+                    const enableFiltering = translationalSpecies && translationalSpecies.length;
                     columnSettings = {
                         ...columnSettings,
-                        enableFiltering: true,
+                        enableFiltering: enableFiltering,
                         cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
                                         {{row.entity[col.field].name}}
                                     </div>`

@@ -53,6 +53,7 @@ import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
@@ -180,6 +181,15 @@ public class TargetExportManager {
         return genesMap;
     }
 
+    public Map<String, String> getTargetGeneNames(final String geneId) {
+        final Map<String, String> genesMap = new HashMap<>();
+        final List<String> geneNames = identificationManager.getGeneNames(Collections.singletonList(geneId));
+        for (String geneName: geneNames) {
+            genesMap.put(geneId, geneName);
+        }
+        return genesMap;
+    }
+
     public Map<String, String> getTargetGeneNames(final Map<String, TargetGene> genes) {
         final Map<String, String> genesMap = new HashMap<>();
         genes.forEach((k, v) -> {
@@ -201,40 +211,50 @@ public class TargetExportManager {
                                                             final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DiseaseAssociation> diseaseAssociations = diseaseAssociationManager.search(geneIds);
-        diseaseAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        if (MapUtils.isNotEmpty(genesMap)) {
+            diseaseAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
         return diseaseAssociations;
     }
 
     public List<DrugAssociation> getDrugAssociations(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DrugAssociation> drugAssociations = drugAssociationManager.search(geneIds);
-        drugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        if (MapUtils.isNotEmpty(genesMap)) {
+            drugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
         return drugAssociations;
     }
 
     public List<PharmGKBDisease> getPharmGKBDiseases(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<PharmGKBDisease> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.search(geneIds);
-        pharmGKBDiseases.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        if (MapUtils.isNotEmpty(genesMap)) {
+            pharmGKBDiseases.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
         return pharmGKBDiseases;
     }
 
     public List<PharmGKBDrug> getPharmGKBDrugs(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.search(geneIds);
-        pharmGKBDrugs.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        if (MapUtils.isNotEmpty(genesMap)) {
+            pharmGKBDrugs.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
         return pharmGKBDrugs;
     }
 
     public List<DGIDBDrugAssociation> getDGIDBDrugs(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DGIDBDrugAssociation> dgidbDrugAssociations = dgidbDrugAssociationManager.search(geneIds);
-        dgidbDrugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        if (MapUtils.isNotEmpty(genesMap)) {
+            dgidbDrugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
         return dgidbDrugAssociations;
     }
 
     public List<Structure> getStructures(final List<String> geneIds) {
-        final List<String> geneNames = targetManager.getTargetGeneNames(geneIds);
+        final List<String> geneNames = identificationManager.getGeneNames(geneIds);
         return pdbEntriesManager.getAllStructures(geneNames);
     }
 
@@ -251,7 +271,9 @@ public class TargetExportManager {
             for (com.epam.catgenome.entity.target.GeneSequence sequence : geneRefSection.getSequences()){
                 GeneSequence sequenceExport = new GeneSequence();
                 sequenceExport.setGeneId(geneRefSection.getGeneId());
-                sequenceExport.setTarget(genesMap.get(geneRefSection.getGeneId().toLowerCase()));
+                if (MapUtils.isNotEmpty(genesMap)) {
+                    sequenceExport.setTarget(genesMap.get(geneRefSection.getGeneId().toLowerCase()));
+                }
                 if (geneRefSection.getReference() != null) {
                     sequenceExport.setReference(geneRefSection.getReference().getId());
                 }

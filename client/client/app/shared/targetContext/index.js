@@ -88,7 +88,7 @@ export default class TargetContext {
         state.targetId = target.id;
         state.targetName = target.name;
         state.genesOfInterest = getGeneInfo(scope.genesOfInterest);
-        state.translationalGenes = getGeneInfo(scope.translationalGenes);
+        state.translationalGenes = getGeneInfo(scope.translationalGenes || []);
         this.currentState = state;
     }
 

@@ -70,10 +70,13 @@ export default class ngbGenomicsPanelService {
         this._filterInfo = value;
     }
     get defaultFilter() {
-        return {
-            target: this.interestGenes.map(g => g.chip),
-            species: this.translationalSpecies
+        const filter = {
+            target: this.interestGenes.map(g => g.chip)
         };
+        if (this.translationalSpecies && this.translationalSpecies.length) {
+            filter.species = this.translationalSpecies;
+        }
+        return filter;
     }
     get tableResults() {
         return this._genomicsResults && this._genomicsResults.length;
