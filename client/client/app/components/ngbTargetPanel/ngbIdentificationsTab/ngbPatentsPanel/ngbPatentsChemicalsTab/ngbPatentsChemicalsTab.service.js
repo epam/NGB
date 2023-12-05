@@ -10,6 +10,9 @@ const SEARCH_BY_NAMES = {
 
 const PAGE_SIZE = 20;
 
+const DRUG_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name'];
+const STRUCTURE_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
+
 export default class ngbPatentsChemicalsTabService {
 
 
@@ -21,6 +24,12 @@ export default class ngbPatentsChemicalsTabService {
     }
     get pageSize() {
         return PAGE_SIZE;
+    }
+    get drugColumns() {
+        return DRUG_COLUMNS;
+    }
+    get structureColumns() {
+        return STRUCTURE_COLUMNS;
     }
 
     _loadingDrugs = false;
@@ -154,7 +163,6 @@ export default class ngbPatentsChemicalsTabService {
     }
 
     get searchDisabled() {
-        console.log(this.isSearchByDrugStructure && this.isStructureEmpty, this.requestModelChanged)
         return this.loadingDrugs || this.loadingData ||
             (this.isSearchByDrugStructure && this.isStructureEmpty)
             || !this.requestModelChanged;
@@ -289,6 +297,17 @@ export default class ngbPatentsChemicalsTabService {
             this._tableResults = [];
         }
     }
+
+    getColumnList() {
+        const {name, structure} = this.searchByOptions;
+        if (this.searchBy === name) {
+            return this.drugColumns;
+        }
+        if (this.searchBy === structure) {
+            return this.structureColumns;
+        }
+    }
+
     resetTableResults() {
         this._tableResults = null;
         this._currentPage = 1;

@@ -67,6 +67,9 @@ export default class ngbPatentsChemicalsTabController {
     set errorMessageList(value) {
         this.ngbPatentsChemicalsTabService.errorMessageList = value;
     }
+    get tableResults() {
+        return this.ngbPatentsChemicalsTabService.tableResults;
+    }
 
     get searchDisabled() {
         return this.ngbPatentsChemicalsTabService.searchDisabled;

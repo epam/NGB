@@ -54,3 +54,8 @@
         <ngb-panel-error-list message-list="$ctrl.errorStructure"></ngb-panel-error-list>
     </div>
 </div>
+<div class="loading-data-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<ngb-patents-chemical-table ng-if="$ctrl.tableResults"></ngb-patents-chemical-table>
