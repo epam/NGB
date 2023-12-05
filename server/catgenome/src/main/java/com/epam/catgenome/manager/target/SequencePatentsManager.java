@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
+import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.PatentsSearchStatus;
@@ -35,16 +37,18 @@ import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.blast.BlastDatabaseManager;
 import com.epam.catgenome.manager.blast.BlastTaskManager;
-import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,8 +58,10 @@ import static com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager.ge
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PatentsSearchManager {
-    public static final String TASK_NAME = "%d_%s";
+public class SequencePatentsManager {
+    private static final String TASK_NAME = "%d_%s";
+    private static final String ALGORITHM = "blastp";
+    private static final String DATABASE = "PatentAA";
     private final TargetManager targetManager;
     private final LaunchIdentificationManager launchIdentificationManager;
     private final NCBISequencesManager sequencesManager;
@@ -63,11 +69,7 @@ public class PatentsSearchManager {
     private final BlastDatabaseManager blastDatabaseManager;
 
     public void searchPatents() {
-        final List<BlastDatabase> databases = blastDatabaseManager.load(null, null);
-        final BlastDatabase database = databases.stream()
-                .filter(d -> d.getName().equals("pataa"))
-                .findFirst().orElse(null);
-        Assert.notNull(database, "Patented protein sequences database not available");
+        final BlastDatabase database = getBlastDatabase();
         final List<Target> targets = targetManager.getTargetsForPatentsSearch();
         for (Target target: targets) {
             target.setPatentsSearchStatus(PatentsSearchStatus.IN_PROGRESS);
@@ -84,10 +86,49 @@ public class PatentsSearchManager {
         }
     }
 
-    public BlastRequestResult getPatents(final Long targetId, final String sequenceId) throws BlastRequestException {
+    public Collection<BlastSequence> getPatents(final Long targetId, final String sequenceId)
+            throws BlastRequestException {
         final BlastTask task = blastTaskManager.loadTask(getTaskName(targetId, sequenceId));
         Assert.notNull(task.getId(), "Blast task not found.");
-        return blastTaskManager.getResult(task.getId());
+        return blastTaskManager.getGroupedResult(task.getId());
+    }
+
+    public Collection<BlastSequence> getPatents(final String sequence)
+            throws BlastRequestException, InterruptedException {
+        final BlastDatabase database = getBlastDatabase();
+        BlastTask task;
+        TaskVO taskVO = TaskVO.builder()
+                .algorithm(ALGORITHM)
+                .query(sequence)
+                .databaseId(database.getId())
+                .build();
+        try {
+            task = blastTaskManager.create(taskVO);
+        } catch (BlastRequestException e) {
+            throw new RuntimeException(e);
+        }
+        int i = 0;
+        while (i < 10) {
+            i++;
+            final BlastTask blastTask = blastTaskManager.getBlastTask(task.getId());
+            if (blastTask.getStatus() == BlastTaskStatus.FAILED || blastTask.getStatus() == BlastTaskStatus.CANCELED) {
+                throw new RuntimeException(blastTask.getStatusReason());
+            } else if (blastTask.getStatus() == BlastTaskStatus.DONE) {
+                return blastTaskManager.getGroupedResult(task.getId());
+            } else {
+                Thread.sleep(1000);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private BlastDatabase getBlastDatabase() {
+        final List<BlastDatabase> databases = blastDatabaseManager.load(null, null);
+        final BlastDatabase database = databases.stream()
+                .filter(d -> d.getName().equals(DATABASE))
+                .findFirst().orElse(null);
+        Assert.notNull(database, "Patented protein sequences database not available");
+        return database;
     }
 
     private void process(final Target target, final long databaseId) throws ParseException, IOException,
@@ -114,7 +155,7 @@ public class PatentsSearchManager {
         proteins.forEach((k, v) -> {
             TaskVO taskVO = TaskVO.builder()
                     .title(getTaskName(target.getTargetId(), k))
-                    .algorithm("blastp")
+                    .algorithm(ALGORITHM)
                     .query(v)
                     .databaseId(databaseId)
                     .build();

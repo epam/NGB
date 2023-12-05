@@ -45,7 +45,7 @@ public class PatentsSearchTest extends TestCase {
     private static final long FELIS_CATUS_TAX_ID = 9685L;
 
     @Autowired
-    private PatentsSearchManager patentsSearchManager;
+    private SequencePatentsManager sequencePatentsManager;
     @Autowired
     private TargetManager targetManager;
 
@@ -54,7 +54,7 @@ public class PatentsSearchTest extends TestCase {
     @Ignore
     public void generateAlignmentTest() {
         final Target target = createTarget();
-        patentsSearchManager.searchPatents();
+        sequencePatentsManager.searchPatents();
         final Target target1 = targetManager.getTarget(target.getTargetId());
         assertNotNull(target1);
         assertEquals(PatentsSearchStatus.COMPLETED, target1.getPatentsSearchStatus());

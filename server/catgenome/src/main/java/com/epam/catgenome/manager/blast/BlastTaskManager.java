@@ -91,11 +91,16 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask loadTask(final long taskId) {
-        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        final BlastTask blastTask = getBlastTask(taskId);
         blastTask.setOrganisms(loadTaskOrganisms(taskId));
         blastTask.setExcludedOrganisms(loadTaskExclOrganisms(taskId));
         blastTask.setParameters(loadTaskParameters(taskId));
+        return blastTask;
+    }
+
+    public BlastTask getBlastTask(long taskId) {
+        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
         return blastTask;
     }
 
@@ -118,8 +123,7 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteTask(final long taskId) {
-        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        final BlastTask blastTask = getBlastTask(taskId);
         Assert.isTrue(!BlastTaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
