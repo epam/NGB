@@ -119,7 +119,7 @@ export default class ngbPatentsChemicalTableController {
                 minWidth: 40,
                 width: '*'
             };
-            switch (column.name) {
+            switch (column) {
                 case 'CID':
                     columnSettings = {
                         ...columnSettings,

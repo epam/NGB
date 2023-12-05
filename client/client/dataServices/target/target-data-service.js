@@ -722,14 +722,20 @@ export class TargetDataService extends DataService {
         });
     }
 
-    searchPatentsByDrug() {
+    searchPatentsByDrug(request) {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const data = {totalCount: 0};
-                resolve(data);
-                // const message = `Error getting patents`;
-                // reject(new Error(message));
-            }, 5000)
+            this.post('patents/drugs/ncbi', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
