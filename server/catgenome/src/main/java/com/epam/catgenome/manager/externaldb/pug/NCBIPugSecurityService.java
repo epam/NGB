@@ -21,43 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.patents;
+package com.epam.catgenome.manager.externaldb.pug;
 
-import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
-import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
-import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 @RequiredArgsConstructor
-public class NCBIPatentsSecurityService {
+public class NCBIPugSecurityService {
 
-    private final NCBIPatentsManager manager;
-
-    @PreAuthorize(ROLE_USER)
-    public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
-            throws ExternalDbUnavailableException {
-        return manager.getProteinPatents(request);
-    }
+    private final NCBIPugManager manager;
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<DrugPatent> getDrugPatents(final PatentsSearchRequest request)
-            throws ExternalDbUnavailableException, IOException {
-        return manager.getDrugPatents(request);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    public List<DrugPatent> getDrugPatents(final String id)
-            throws ExternalDbUnavailableException, IOException {
-        return manager.getDrugPatents(id);
+    public String getSmiles(final String name) throws JsonProcessingException, ExternalDbUnavailableException {
+        return manager.getSmiles(name);
     }
 }
