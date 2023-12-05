@@ -139,7 +139,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     }
 
     public List<Target> getTargetsForPatentsSearch() {
-        return getJdbcTemplate().query(loadTargetsForAlignmentQuery, TargetParameters.getExtendedRowExtractor());
+        return getJdbcTemplate().query(loadTargetsForPatentsSearchQuery, TargetParameters.getExtendedRowExtractor());
     }
 
     public long getTotalCount(final String clause) {

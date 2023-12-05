@@ -27,7 +27,10 @@ package com.epam.catgenome.controller.patents;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.patents.NCBIPatentsSecurityService;
@@ -37,9 +40,8 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.Collection;
 
 @RestController
 @Api(value = "patents", description = "Patents Management")
@@ -56,8 +58,34 @@ public class PatentsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<SequencePatent>> loadTarget(@RequestBody final PatentsSearchRequest request)
+    public Result<SearchResult<SequencePatent>> getPatents(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
         return Result.success(ncbiPatentsSecurityService.getPatents(request));
+    }
+
+    @GetMapping(value = "/patents/proteins/blast")
+    @ApiOperation(
+            value = "Creates BLAST task to search protein patents by sequence.",
+            notes = "Creates BLAST task to search protein patents by sequence.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<BlastTask> getPatents(@RequestParam final String sequence) throws BlastRequestException {
+        return Result.success(ncbiPatentsSecurityService.getPatents(sequence));
+    }
+
+    @GetMapping(value = "/patents/proteins/blast/{targetId}")
+    @ApiOperation(
+            value = "Searches protein patents by sequence.",
+            notes = "Searches protein patents by sequence.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Collection<BlastSequence>> getPatents(@PathVariable final Long targetId,
+                                                        @RequestParam final String sequenceId)
+            throws BlastRequestException {
+        return Result.success(ncbiPatentsSecurityService.getPatents(targetId, sequenceId));
     }
 }

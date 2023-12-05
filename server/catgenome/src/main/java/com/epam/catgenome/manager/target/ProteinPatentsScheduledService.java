@@ -29,9 +29,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SequencePatentsScheduledService {
+public class ProteinPatentsScheduledService {
 
-    private final SequencePatentsManager manager;
+    private final ProteinPatentsManager manager;
 
     @Scheduled(fixedRateString = "${targets.sequence.patents.search.rate:60000}")
     public void searchPatents() {
