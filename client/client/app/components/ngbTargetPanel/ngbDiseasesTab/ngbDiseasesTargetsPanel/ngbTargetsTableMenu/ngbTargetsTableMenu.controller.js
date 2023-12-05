@@ -27,7 +27,6 @@ export default class ngbTargetsTableMenuController {
             targetDataService,
             targetContext
         });
-        this.searchTarget();
     }
 
     async searchTarget() {
@@ -82,5 +81,10 @@ export default class ngbTargetsTableMenuController {
                 }],
             });
         }
+    }
+
+    async openMenu(mdOpenMenu, event) {
+        await this.searchTarget();
+        mdOpenMenu(event)
     }
 }

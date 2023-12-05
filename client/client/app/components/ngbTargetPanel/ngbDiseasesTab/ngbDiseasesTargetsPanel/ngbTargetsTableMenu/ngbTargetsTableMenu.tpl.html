@@ -1,5 +1,5 @@
 <md-menu md-position-mode="target-right target">
-    <span class="target-cell" ng-click="$mdOpenMenu($event)">
+    <span class="target-cell" ng-click="$ctrl.openMenu($mdOpenMenu, $event)">
         {{$ctrl.entity.target}}
     </span>
     <md-menu-content width="4" class="targets-menu">
@@ -9,7 +9,7 @@
         </md-menu-item>
         <md-divider ng-if="$ctrl.targetList && $ctrl.targetList.length"></md-divider>
         <div ng-if="$ctrl.targetList && $ctrl.targetList.length"
-              class="list-title">
+             class="list-title">
             Registered targets
         </div>
         <md-menu-item ng-repeat="item in $ctrl.targetList track by $index"
