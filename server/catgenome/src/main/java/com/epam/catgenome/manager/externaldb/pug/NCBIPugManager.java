@@ -84,9 +84,14 @@ public class NCBIPugManager extends HttpDataManager{
     }
 
     public Map<Long, List<String>> getPatents(final List<Long> cids)
-            throws ExternalDbUnavailableException, JsonProcessingException {
+            throws JsonProcessingException {
         final String location = NCBI_PUG_SERVER + String.format(PATENTS_PATTERN, join(cids, ","));
-        final String result = getResultFromURL(location);
+        final String result;
+        try {
+            result = getResultFromURL(location);
+        } catch (ExternalDbUnavailableException e) {
+            return Collections.emptyMap();
+        }
         return parsePatents(result);
     }
 
@@ -114,7 +119,7 @@ public class NCBIPugManager extends HttpDataManager{
             while (elements.hasNext()) {
                 long cid = elements.next().asLong();
                 if (cid != 0) {
-                    result.add(elements.next().asLong());
+                    result.add(cid);
                 }
             }
         }
