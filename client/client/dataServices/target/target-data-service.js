@@ -387,6 +387,31 @@ export class TargetDataService extends DataService {
         });
     }
 
+    getTargetExportGeneId(geneId, source) {
+        const format = 'CSV';
+        const includeHeader = true;
+        return new Promise((resolve, reject) => {
+            this.downloadFile(
+                'get',
+                `target/export/${geneId}${getQueryString({
+                    format,
+                    source,
+                    includeHeader
+                })}`,
+                undefined,
+                {customResponseType: 'arraybuffer'}
+            )
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                }, reject);
+        });
+    }
+
     getTargetAlignment (targetId, sequenceIds) {
         return new Promise((resolve, reject) => {
             this.get(`target/alignment/${targetId}${getQueryString({...sequenceIds})}`)

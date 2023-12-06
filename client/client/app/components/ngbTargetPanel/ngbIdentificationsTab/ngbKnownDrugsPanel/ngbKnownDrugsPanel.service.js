@@ -64,10 +64,13 @@ export default class ngbKnownDrugsPanelService {
 
     exportResults() {
         const source = this.exportSource[this.sourceModel.name];
-        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
             return new Promise(resolve => {
                 resolve(true);
             });
+        }
+        if (this.translationalGeneIds && !this.translationalGeneIds.length) {
+            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
         }
         return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
