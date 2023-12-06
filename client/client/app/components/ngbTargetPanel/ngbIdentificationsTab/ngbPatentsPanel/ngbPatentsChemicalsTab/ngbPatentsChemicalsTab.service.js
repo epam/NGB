@@ -266,12 +266,16 @@ export default class ngbPatentsChemicalsTabService {
     }
 
     getRequest() {
-        const request = {
-            page: this.currentPage,
-            pageSize: this.pageSize
-        };
+        let request;
         if (this.isSearchByDrugName) {
-            request.name = this.selectedDrug;
+            request = {
+                page: this.currentPage,
+                pageSize: this.pageSize,
+                name: this.selectedDrug,
+            };
+        }
+        if (this.isSearchByDrugStructure) {
+            request = this.searchStructure;
         }
         return request;
     }
