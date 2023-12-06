@@ -15,11 +15,15 @@
  */
 package com.epam.ngb.autotests;
 
+import static com.epam.ngb.autotests.enums.Colors.AZURE;
 import static com.epam.ngb.autotests.enums.Colors.BLUE;
 import static com.epam.ngb.autotests.enums.Colors.BROWN;
+import static com.epam.ngb.autotests.enums.Colors.DARK_SATURATED_RED;
 import static com.epam.ngb.autotests.enums.Colors.GREEN;
-import static com.epam.ngb.autotests.enums.Colors.LIGHTBLUE;
-import static com.epam.ngb.autotests.enums.Colors.LIGHTPINK;
+import static com.epam.ngb.autotests.enums.Colors.LIGHT_BLUE;
+import static com.epam.ngb.autotests.enums.Colors.LIGHT_GREEN;
+import static com.epam.ngb.autotests.enums.Colors.LIGHT_PINK;
+import static com.epam.ngb.autotests.enums.Colors.ORANGE;
 import static com.epam.ngb.autotests.enums.Colors.PINK;
 import static com.epam.ngb.autotests.enums.Colors.RED;
 import static com.epam.ngb.autotests.enums.Colors.YELLOW;
@@ -55,10 +59,10 @@ public class VariantsTests extends AbstractNgbTest {
     @DataProvider(name = "complexConditions")
     public static Object[][] complexConditions() {
         return new Object[][] {
-                {"12584271", BLUE.value, "variantsTC02_1"},
-                {"12591627", "rgb(20, 145, 80)", "variantsTC02_2"},
+                {"12584271", AZURE.value, "variantsTC02_1"},
+                {"12591627", LIGHT_GREEN.value, "variantsTC02_2"},
                 {"12591629", PINK.value, "variantsTC02_3"},
-                {"12587867", "rgb(249, 41, 0)", "variantsTC02_4"},
+                {"12587867", DARK_SATURATED_RED.value, "variantsTC02_4"},
                 {"12586790", BROWN.value, "variantsTC02_5"},
                 {"12590931", BROWN.value, "variantsTC02_6"}
         };
@@ -70,13 +74,13 @@ public class VariantsTests extends AbstractNgbTest {
                 {"12586950", RED.value, "variantsTC03_1"},
                 {"12586560", YELLOW.value, "variantsTC03_2"},
                 {"12586790", GREEN.value, "variantsTC03_3"},
-                {"12585943", LIGHTBLUE.value, "variantsTC03_4"},
-                {"12587867", LIGHTBLUE.value, "variantsTC03_5"},
-                {"12589324", "rgb(0, 0, 255)", "variantsTC03_6"},
-                {"12589261", LIGHTPINK.value, "variantsTC03_7"},
-                {"12591635", LIGHTPINK.value, "variantsTC03_8"},
-                {"12589600", "rgb(255, 165, 0)", "variantsTC03_9"},
-                {"12590846", "rgb(255, 165, 0)", "variantsTC03_10"}
+                {"12585943", LIGHT_BLUE.value, "variantsTC03_4"},
+                {"12587867", LIGHT_BLUE.value, "variantsTC03_5"},
+                {"12589324", BLUE.value, "variantsTC03_6"},
+                {"12589261", LIGHT_PINK.value, "variantsTC03_7"},
+                {"12591635", LIGHT_PINK.value, "variantsTC03_8"},
+                {"12589600", ORANGE.value, "variantsTC03_9"},
+                {"12590846", ORANGE.value, "variantsTC03_10"}
         };
     }
 
@@ -101,7 +105,7 @@ public class VariantsTests extends AbstractNgbTest {
         new VariantsPanel()
                 .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
                 .checkBackgroundColorRowByPosition(testPositionTC01[1], GREEN.value)
-                .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHTBLUE.value)
+                .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHT_BLUE.value)
                 .openVariantByPosition(testPositionTC01[0])
                 .waitTrackDownloaded(track)
                 .trackImageCompare(getExpectedImage(variantsTC01_1),
