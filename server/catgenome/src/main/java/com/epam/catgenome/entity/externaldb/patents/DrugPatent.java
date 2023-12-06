@@ -36,5 +36,5 @@ import lombok.Setter;
 public class DrugPatent extends UrlEntity {
     private String molecularFormula;
     private String iupacName;
-    private boolean hasPatent;
+    private Boolean hasPatent;
 }
