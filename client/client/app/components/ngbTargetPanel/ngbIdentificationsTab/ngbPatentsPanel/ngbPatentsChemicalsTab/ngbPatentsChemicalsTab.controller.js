@@ -1,4 +1,10 @@
+const CUSTOM_NAME = 'custom';
+
 export default class ngbPatentsChemicalsTabController {
+
+    get customName() {
+        return CUSTOM_NAME;
+    }
 
     static get UID() {
         return 'ngbPatentsChemicalsTabController';
@@ -99,6 +105,21 @@ export default class ngbPatentsChemicalsTabController {
     }
     set originalStructure(value) {
         this.ngbPatentsChemicalsTabService.originalStructure = value;
+    }
+    get requestedModel() {
+        return this.ngbPatentsChemicalsTabService.requestedModel;
+    }
+
+    get headerText() {
+        return this.ngbPatentsChemicalsTabService.headerText[this.requestedModel.searchBy];
+    }
+    get headerDetails() {
+        const { searchBy, drugName, structure, originalStructure } = this.requestedModel;
+        if (searchBy === this.searchByOptions.name) {
+            return drugName;
+        } else {
+            return originalStructure === structure ? drugName : this.customName;
+        }
     }
 
     refresh() {

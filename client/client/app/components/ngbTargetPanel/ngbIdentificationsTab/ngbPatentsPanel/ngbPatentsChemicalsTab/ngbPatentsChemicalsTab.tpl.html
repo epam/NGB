@@ -66,4 +66,8 @@
      ng-if="$ctrl.loadingData">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
+<div ng-if="$ctrl.tableResults"
+     class="results-header">
+    <span>{{$ctrl.headerText}}</span><span style="font-style: italic;">{{$ctrl.headerDetails}}</span>
+</div>
 <ngb-patents-chemical-table ng-if="$ctrl.tableResults"></ngb-patents-chemical-table>

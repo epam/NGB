@@ -1,4 +1,5 @@
 const CUSTOM_NAME = 'custom';
+
 export default class ngbPatentsSequencesTabController {
 
     get customName() {

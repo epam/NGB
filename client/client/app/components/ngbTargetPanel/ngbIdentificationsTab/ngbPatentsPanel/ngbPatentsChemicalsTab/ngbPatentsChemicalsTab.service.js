@@ -13,6 +13,11 @@ const PAGE_SIZE = 20;
 const DRUG_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
 const STRUCTURE_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
 
+const HEADER_TEXT = {
+    [SEARCH_BY_OPTIONS.name]: 'Patented chemicals containing the name of the specified drug - ',
+    [SEARCH_BY_OPTIONS.structure]: 'Patented chemicals identical/similar to the specified identifier - ',
+};
+
 export default class ngbPatentsChemicalsTabService {
 
 
@@ -30,6 +35,9 @@ export default class ngbPatentsChemicalsTabService {
     }
     get structureColumns() {
         return STRUCTURE_COLUMNS;
+    }
+    get headerText() {
+        return HEADER_TEXT;
     }
 
     _loadingDrugs = false;

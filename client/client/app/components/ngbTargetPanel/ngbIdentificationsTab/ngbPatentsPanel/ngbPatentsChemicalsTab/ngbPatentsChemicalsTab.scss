@@ -55,7 +55,7 @@ ngb-patents-chemicals-tab {
 
         md-input-container {
             width: auto;
-            min-width: 70%;
+            min-width: 50%;
             margin: 0;
             padding: 0;
             line-height: $patents-control-height;
@@ -192,6 +192,14 @@ ngb-patents-chemicals-tab {
             height: 24px;
             font-size: 14px;
         }
+    }
+
+    .results-header {
+        margin: 10px;
+        padding: 10px;
+        border: 1px solid #d4d4d4;
+        border-radius: 5px;
+        background-color: #fafafa;
     }
 }
 
