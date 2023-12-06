@@ -179,7 +179,6 @@ public class TargetExportManager {
         return homology;
     }
 
-
     public Map<String, String> getTargetGeneNames(final List<String> geneIds) {
         final Map<String, String> genesMap = new HashMap<>();
         final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
@@ -217,7 +216,7 @@ public class TargetExportManager {
     }
 
     public List<DiseaseAssociation> getDiseaseAssociations(final List<String> geneIds,
-                                                            final Map<String, String> genesMap)
+                                                           final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DiseaseAssociation> diseaseAssociations = diseaseAssociationManager.search(geneIds);
         if (MapUtils.isNotEmpty(genesMap)) {

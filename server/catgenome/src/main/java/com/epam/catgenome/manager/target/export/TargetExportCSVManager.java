@@ -89,6 +89,23 @@ public class TargetExportCSVManager {
         final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
                 .distinct().collect(Collectors.toList());
         final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneIds);
+        return export(genesOfInterest, translationalGenes, format, source, includeHeader, genesMap);
+    }
+
+    public byte[] exportGene(final String geneId, final TargetExportTable source,
+                             final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
+        return export(Collections.singletonList(geneId), Collections.emptyList(),
+                format, source, includeHeader, genesMap);
+    }
+
+    private byte[] export(final List<String> genesOfInterest, final List<String> translationalGenes,
+                          final FileFormat format, final TargetExportTable source, final boolean includeHeader,
+                          final Map<String, String> genesMap)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
+                .distinct().collect(Collectors.toList());
         byte[] result = null;
         switch (source) {
             case OPEN_TARGETS_DISEASES:
@@ -132,11 +149,5 @@ public class TargetExportCSVManager {
                 break;
         }
         return result;
-    }
-
-    public byte[] exportGene(final String geneId, final TargetExportTable source,
-                             final FileFormat format, final boolean includeHeader)
-            throws IOException, ParseException, ExternalDbUnavailableException {
-        return export(Collections.singletonList(geneId), Collections.emptyList(), format, source, includeHeader);
     }
 }

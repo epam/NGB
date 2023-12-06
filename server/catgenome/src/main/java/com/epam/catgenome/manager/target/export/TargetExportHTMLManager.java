@@ -119,7 +119,7 @@ public class TargetExportHTMLManager {
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
         final List<Sequence> sequences = getSequences(geneIds, geneNamesMap);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
-        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
+        final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(genesOfInterest,
                 translationalGenes, geneNamesMap);
@@ -170,7 +170,7 @@ public class TargetExportHTMLManager {
             }
         }
 
-        TargetExportHTML result = TargetExportHTML.builder()
+        final TargetExportHTML result = TargetExportHTML.builder()
                 .name(target.getTargetName())
                 .interest(interest)
                 .translational(translational)
@@ -203,7 +203,7 @@ public class TargetExportHTMLManager {
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
         final List<Sequence> sequences = getSequences(geneIds, genesMap);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
-        long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
+        final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(geneIds,
                 Collections.emptyList(), genesMap);
@@ -234,7 +234,7 @@ public class TargetExportHTMLManager {
                 .publications(publicationsCount)
                 .build();
         final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
-        TargetExportHTML result = TargetExportHTML.builder()
+        final TargetExportHTML result = TargetExportHTML.builder()
                 .name(geneNames.get(0))
                 .totalCounts(totalCounts)
                 .knownDrugs(knownDrugs)

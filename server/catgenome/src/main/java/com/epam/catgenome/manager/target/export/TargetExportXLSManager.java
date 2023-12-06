@@ -232,14 +232,14 @@ public class TargetExportXLSManager {
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
 
         final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
-        long diseasesCount = launchIdentificationManager.getDiseasesCount(geneIds);
+        final long diseasesCount = launchIdentificationManager.getDiseasesCount(geneIds);
         final long structures = launchIdentificationManager.getStructuresCount(geneIds);
-        long publicationsCount = genes.containsKey(geneId) ? pubMedService.getPublicationsCount(
-                Collections.singletonList(genes.get(geneId).getEntrezId().toString())) : 0;
+        final long publicationsCount = genes.containsKey(geneId.toLowerCase()) ? pubMedService.getPublicationsCount(
+                Collections.singletonList(genes.get(geneId.toLowerCase()).getEntrezId().toString())) : 0;
         final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
 
-        TargetExportSummary summary = TargetExportSummary.builder()
-                .description(descriptions.get(geneId))
+        final TargetExportSummary summary = TargetExportSummary.builder()
+                .description(descriptions.get(geneId.toLowerCase()))
                 .knownDrugs(drugsCount.getDistinctCount())
                 .knownDrugRecords(drugsCount.getTotalCount())
                 .diseases(diseasesCount)
