@@ -38,7 +38,7 @@ export default class ngbPatentsChemicalsTabService {
     drugs = [];
     _selectedDrug;
     _searchBy = this.searchByOptions.name;
-    _searchStructure = 'test';
+    _searchStructure = '';
     _originalStructure = '';
     requestedModel = null;
 
@@ -51,6 +51,10 @@ export default class ngbPatentsChemicalsTabService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+
+    _loadingIdentifier = false;
+    _failedIdentifier = false;
+    _errorIdentifier = null;
 
     get loadingDrugs() {
         return this._loadingDrugs;
@@ -165,7 +169,26 @@ export default class ngbPatentsChemicalsTabService {
     get searchDisabled() {
         return this.loadingDrugs || this.loadingData ||
             (this.isSearchByDrugStructure && this.isStructureEmpty)
-            || !this.requestModelChanged;
+            || !this.selectedDrug || !this.requestModelChanged;
+    }
+
+    get loadingIdentifier() {
+        return this._loadingIdentifier;
+    }
+    set loadingIdentifier(value) {
+        this._loadingIdentifier = value;
+    }
+    get failedIdentifier() {
+        return this._failedIdentifier;
+    }
+    set failedIdentifier(value) {
+        this._failedIdentifier = value;
+    }
+    get errorIdentifier() {
+        return this._errorIdentifier;
+    }
+    set errorIdentifier(value) {
+        this._errorIdentifier = value;
     }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService) {
@@ -320,6 +343,30 @@ export default class ngbPatentsChemicalsTabService {
         }
     }
 
+    async getIdentifier() {
+        if (!this.selectedDrug) {
+            return new Promise(resolve => {
+                this._loadingIdentifier = false;
+                resolve(false);
+            });
+        }
+        return new Promise(resolve => {
+            this.targetDataService.getCompound(this.selectedDrug)
+                .then(data => {
+                    this._failedIdentifier = false;
+                    this._errorIdentifier = null;
+                    this._loadingIdentifier = false;
+                    resolve(data);
+                })
+                .catch(err => {
+                    this._failedIdentifier = true;
+                    this._errorIdentifier = [err.message];
+                    this._loadingIdentifier = false;
+                    resolve(false);
+                });
+        });
+    }
+
     resetTableResults() {
         this._tableResults = null;
         this._currentPage = 1;
@@ -339,5 +386,8 @@ export default class ngbPatentsChemicalsTabService {
         this._searchBy = this.searchByOptions.name;
         this._searchStructure;
         this.requestedModel = null;
+        this._failedIdentifier = false;
+        this._errorIdentifier = null;
+        this._loadingIdentifier = false;
     }
 }

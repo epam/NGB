@@ -12,6 +12,16 @@ ngb-patents-chemicals-tab {
         position: relative;
     }
 
+    .loading-identifier-indicator {
+        margin-top: 5px;
+        height: 5px;
+        visibility: hidden;
+
+        &.show {
+            visibility: visible;
+        }
+    }
+
     ngb-panel-error-list {
         .layout-padding,
         .layout-padding > * {

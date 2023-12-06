@@ -749,4 +749,21 @@ export class TargetDataService extends DataService {
             }, 5000)
         });
     }
+
+    getCompound(name) {
+        return new Promise((resolve, reject) => {
+            this.get(`compound/smiles/${name}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting identifier';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

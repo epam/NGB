@@ -254,7 +254,7 @@ export default class ngbPatentsSequencesTabService {
         }, []);
         this.selectedProtein = this.proteins[0];
         this.loadingProteins = false;
-        this.dispatcher.emit('target:identification:patents:sequences:proteins:updated');
+        this.dispatcher.emit('target:identification:patents:proteins:updated');
     }
 
     async searchPatents() {

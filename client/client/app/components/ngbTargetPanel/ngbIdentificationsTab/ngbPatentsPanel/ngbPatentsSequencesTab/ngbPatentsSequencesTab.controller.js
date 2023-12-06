@@ -12,9 +12,9 @@ export default class ngbPatentsSequencesTabController {
     constructor($scope, $timeout, dispatcher, ngbPatentsSequencesTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsSequencesTabService});
         const refresh = this.refresh.bind(this);
-        dispatcher.on('target:identification:patents:sequences:proteins:updated', refresh);
+        dispatcher.on('target:identification:patents:proteins:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:sequences:proteins:updated', refresh);
+            dispatcher.removeListener('target:identification:patents:proteins:updated', refresh);
         });
     }
 

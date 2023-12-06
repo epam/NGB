@@ -6,6 +6,13 @@
     <div ng-class="{'hidden': !$ctrl.failedDrugs || $ctrl.loadingDrugs}">
         <ngb-panel-error-list message-list="$ctrl.errorDrugsMessage"></ngb-panel-error-list>
     </div>
+    <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
+         ng-class="{'hidden': !$ctrl.failedIdentifier || $ctrl.loadingIdentifier}">
+        <ngb-panel-error-list message-list="$ctrl.errorIdentifier"></ngb-panel-error-list>
+    </div>
     <div class="drug-select">
         <label>Drug:</label>
         <md-input-container>
@@ -39,6 +46,10 @@
         </md-checkbox>
     </div>
 </div>
+<div class="loading-identifier-indicator"
+     ng-class="{'show': $ctrl.searchBy === $ctrl.searchByOptions.structure && $ctrl.loadingIdentifier}">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
 <div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
      class="textarea-container">
     <label>Identifier:</label>
@@ -50,9 +61,6 @@
                   required>
         </textarea>
     </md-input-container>
-    <div ng-class="{'hidden': !$ctrl.failedStructure}">
-        <ngb-panel-error-list message-list="$ctrl.errorStructure"></ngb-panel-error-list>
-    </div>
 </div>
 <div class="loading-data-indicator"
      ng-if="$ctrl.loadingData">

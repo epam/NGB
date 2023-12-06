@@ -43,12 +43,6 @@ export default class ngbPatentsChemicalsTabController {
     set searchBy (value) {
         this.ngbPatentsChemicalsTabService.searchBy = value;
     }
-    get searchStructure() {
-        return this.ngbPatentsChemicalsTabService.searchStructure;
-    }
-    set searchStructure(value) {
-        this.ngbPatentsChemicalsTabService.searchStructure = value;
-    }
     get loadingData() {
         return this.ngbPatentsChemicalsTabService.loadingData;
     }
@@ -75,11 +69,61 @@ export default class ngbPatentsChemicalsTabController {
         return this.ngbPatentsChemicalsTabService.searchDisabled;
     }
 
+    get loadingIdentifier() {
+        return this.ngbPatentsChemicalsTabService.loadingIdentifier;
+    }
+    set loadingIdentifier(value) {
+        this.ngbPatentsChemicalsTabService.loadingIdentifier = value;
+    }
+    get failedIdentifier() {
+        return this.ngbPatentsChemicalsTabService.failedIdentifier;
+    }
+    set failedIdentifier(value) {
+        this.ngbPatentsChemicalsTabService.failedIdentifier = value;
+    }
+    get errorIdentifier() {
+        return this.ngbPatentsChemicalsTabService.errorIdentifier;
+    }
+    set errorIdentifier(value) {
+        this.ngbPatentsChemicalsTabService.errorIdentifier = value;
+    }
+
+    get searchStructure() {
+        return this.ngbPatentsChemicalsTabService.searchStructure;
+    }
+    set searchStructure(value) {
+        this.ngbPatentsChemicalsTabService.searchStructure = value;
+    }
+    get originalStructure() {
+        return this.ngbPatentsChemicalsTabService.originalStructure;
+    }
+    set originalStructure(value) {
+        this.ngbPatentsChemicalsTabService.originalStructure = value;
+    }
+
     refresh() {
+        this.setIdentifier();
         this.$timeout(() => this.$scope.$apply());
     }
 
-    onChangeProtein() {
+    onChangeDrug() {
+        this.setIdentifier();
+    }
+
+    async setIdentifier() {
+        this.loadingIdentifier = true;
+        this.failedIdentifier = false;
+        this.errorIdentifier = null;
+        const result = await this.ngbPatentsChemicalsTabService.getIdentifier();
+        if (result) {
+            this.originalStructure = result;
+            this.searchStructure = result;
+        } else {
+            this.searchStructure = '';
+        }
+        if (this.ngbPatentsChemicalsTabService.isSearchByDrugStructure) {
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 
     onChangeSearchBy(option) {
