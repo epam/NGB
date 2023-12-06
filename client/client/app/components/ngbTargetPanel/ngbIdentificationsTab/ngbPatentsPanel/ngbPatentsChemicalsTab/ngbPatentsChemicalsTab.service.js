@@ -337,7 +337,19 @@ export default class ngbPatentsChemicalsTabService {
                 });
             }
             if (this.isSearchByDrugStructure) {
-                this._tableResults = [];
+                this._tableResults = data.items.map(item => {
+                    const cid = { name: item.id };
+                    if (item.url) {
+                        cid.url = item.url;
+                    }
+                    return {
+                        'CID': cid,
+                        'Name': item.name,
+                        'Molecular formula': item.molecularFormula,
+                        'IUPAC name': item.iupacName,
+                        'Patent': item.hasPatent
+                    };
+                });
             }
         } else {
             this._tableResults = [];
