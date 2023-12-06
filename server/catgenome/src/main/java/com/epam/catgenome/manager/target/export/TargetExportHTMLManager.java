@@ -208,8 +208,6 @@ public class TargetExportHTMLManager {
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(geneIds,
                 Collections.emptyList(), genesMap);
         final long homologsCount = comparativeGenomics.size();
-
-
         final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
 
@@ -234,8 +232,15 @@ public class TargetExportHTMLManager {
                 .publications(publicationsCount)
                 .build();
         final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
+        final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
+        GeneDetails details = GeneDetails.builder()
+                .id(geneId)
+                .name(geneNames.get(0))
+                .description(descriptions.get(geneId.toLowerCase()))
+                .build();
         final TargetExportHTML result = TargetExportHTML.builder()
                 .name(geneNames.get(0))
+                .interest(Collections.singletonList(details))
                 .totalCounts(totalCounts)
                 .knownDrugs(knownDrugs)
                 .associatedDiseases(diseases)
