@@ -10,7 +10,7 @@ const SEARCH_BY_NAMES = {
 
 const PAGE_SIZE = 20;
 
-const DRUG_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
+const DRUG_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name'];
 const STRUCTURE_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
 
 const HEADER_TEXT = {
@@ -333,7 +333,6 @@ export default class ngbPatentsChemicalsTabService {
                         'Name': item.name,
                         'Molecular formula': item.molecularFormula,
                         'IUPAC name': item.iupacName,
-                        'Patent': item.hasPatent
                     };
                 });
             }
