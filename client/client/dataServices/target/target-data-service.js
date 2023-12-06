@@ -741,19 +741,27 @@ export class TargetDataService extends DataService {
 
     searchPatentsByStructure(id) {
         return new Promise((resolve, reject) => {
-            this.get(`patents/drugs/ncbi?id=${id}`)
-                .then(data => {
-                    if (data) {
-                        resolve(data);
-                    } else {
-                        resolve(false);
-                    }
-                })
-                .catch(error => {
-                    const message = 'Error getting patents';
-                    reject(new Error((error && error.message) || message));
-                });
+            setTimeout(() => {
+                const data = {totalCount: 0};
+                resolve(data);
+                // const message = `Error getting patents`;
+                // reject(new Error(message));
+            }, 5000)
         });
+        // return new Promise((resolve, reject) => {
+            // this.get(`patents/drugs/ncbi?id=${id}`)
+            //     .then(data => {
+            //         if (data) {
+            //             resolve(data);
+            //         } else {
+            //             resolve(false);
+            //         }
+            //     })
+            //     .catch(error => {
+            //         const message = 'Error getting patents';
+            //         reject(new Error((error && error.message) || message));
+            //     });
+        // });
     }
 
     getCompound(name) {
