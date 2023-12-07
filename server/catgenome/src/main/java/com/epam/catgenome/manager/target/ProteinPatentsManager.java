@@ -85,11 +85,10 @@ public class ProteinPatentsManager {
         }
     }
 
-    public Collection<BlastSequence> getPatents(final Long targetId, final String sequenceId)
-            throws BlastRequestException {
+    public BlastTask getPatents(final Long targetId, final String sequenceId) {
         final BlastTask task = blastTaskManager.loadTask(getTaskName(targetId, sequenceId));
         Assert.notNull(task.getId(), "Blast task not found.");
-        return blastTaskManager.getGroupedResult(task.getId());
+        return task;
     }
 
     public BlastTask getPatents(final String sequence) throws BlastRequestException {

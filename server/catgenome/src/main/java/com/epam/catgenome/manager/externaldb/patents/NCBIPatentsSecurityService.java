@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.externaldb.patents;
 
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
@@ -34,8 +33,6 @@ import com.epam.catgenome.manager.target.ProteinPatentsManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import java.util.Collection;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
@@ -58,8 +55,7 @@ public class NCBIPatentsSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Collection<BlastSequence> getPatents(final Long targetId, final String sequenceId)
-            throws BlastRequestException {
+    public BlastTask getPatents(final Long targetId, final String sequenceId) {
         return proteinPatentsManager.getPatents(targetId, sequenceId);
     }
 }
