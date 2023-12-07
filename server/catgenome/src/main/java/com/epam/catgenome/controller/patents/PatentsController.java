@@ -27,7 +27,10 @@ package com.epam.catgenome.controller.patents;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.patents.NCBIPatentsSecurityService;
@@ -37,9 +40,10 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(value = "patents", description = "Patents Management")
@@ -87,7 +91,7 @@ public class PatentsController extends AbstractRESTController {
         return Result.success(ncbiPatentsSecurityService.getDrugPatents(id));
     }
 
-    @GetMapping(value = "/patents/proteins/blast")
+    @GetMapping(value = "/patents/proteins")
     @ApiOperation(
             value = "Creates BLAST task to search protein patents by sequence.",
             notes = "Creates BLAST task to search protein patents by sequence.",
@@ -99,7 +103,7 @@ public class PatentsController extends AbstractRESTController {
         return Result.success(ncbiPatentsSecurityService.getPatents(sequence));
     }
 
-    @GetMapping(value = "/patents/proteins/blast/{targetId}")
+    @GetMapping(value = "/patents/proteins/{targetId}")
     @ApiOperation(
             value = "Searches protein patents by sequence.",
             notes = "Searches protein patents by sequence.",
