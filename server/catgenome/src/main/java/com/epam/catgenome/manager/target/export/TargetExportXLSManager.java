@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.export.GeneSequenceField;
+import com.epam.catgenome.entity.target.export.TargetHomologue;
 import com.epam.catgenome.entity.target.export.TargetHomologyField;
 import com.epam.catgenome.entity.target.export.xls.TargetExportSummary;
 import com.epam.catgenome.entity.target.export.xls.TargetExportSummaryField;
@@ -130,10 +131,12 @@ public class TargetExportXLSManager {
             throws IOException, ParseException, ExternalDbUnavailableException {
         final List<String> geneIds = Collections.singletonList(geneId);
         final Map<String, String> targetNames = targetExportManager.getTargetGeneNames(geneId);
+        final List<TargetHomologue> homologyData = targetExportManager.getHomologyData(geneIds,
+                Collections.emptyList(), targetNames);
         try (Workbook workbook = new XSSFWorkbook()) {
             writeSheet("Summary", Arrays.stream(TargetExportSummaryField.values())
                             .filter(TargetExportSummaryField::isGene).collect(Collectors.toList()),
-                    getSummary(geneId), workbook);
+                    getSummary(geneId, homologyData.size()), workbook);
             writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
                     targetExportManager.getDiseaseAssociations(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
@@ -150,6 +153,7 @@ public class TargetExportXLSManager {
                     targetExportManager.getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
                     targetExportManager.getSequenceTable(geneIds, targetNames), workbook);
+            writeSheet("Homology", Arrays.asList(TargetHomologyField.values()), homologyData, workbook);
             return ExcelExportUtils.export(workbook);
         }
     }
@@ -219,7 +223,7 @@ public class TargetExportXLSManager {
         return summaries;
     }
 
-    private List<TargetExportSummary> getSummary(final String geneId)
+    private List<TargetExportSummary> getSummary(final String geneId, final long homologsCount)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<String> geneIds = Collections.singletonList(geneId);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
@@ -228,20 +232,21 @@ public class TargetExportXLSManager {
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
 
         final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
-        long diseasesCount = launchIdentificationManager.getDiseasesCount(geneIds);
+        final long diseasesCount = launchIdentificationManager.getDiseasesCount(geneIds);
         final long structures = launchIdentificationManager.getStructuresCount(geneIds);
-        long publicationsCount = genes.containsKey(geneId) ? pubMedService.getPublicationsCount(
-                Collections.singletonList(genes.get(geneId).getEntrezId().toString())) : 0;
+        final long publicationsCount = genes.containsKey(geneId.toLowerCase()) ? pubMedService.getPublicationsCount(
+                Collections.singletonList(genes.get(geneId.toLowerCase()).getEntrezId().toString())) : 0;
         final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
 
-        TargetExportSummary summary = TargetExportSummary.builder()
-                .description(descriptions.get(geneId))
+        final TargetExportSummary summary = TargetExportSummary.builder()
+                .description(descriptions.get(geneId.toLowerCase()))
                 .knownDrugs(drugsCount.getDistinctCount())
                 .knownDrugRecords(drugsCount.getTotalCount())
                 .diseases(diseasesCount)
                 .publications(publicationsCount)
                 .sequences(sequencesCount.toString())
                 .structures(structures)
+                .homologs(homologsCount)
                 .build();
         return Collections.singletonList(summary);
     }

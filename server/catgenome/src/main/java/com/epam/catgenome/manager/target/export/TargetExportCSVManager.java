@@ -89,6 +89,23 @@ public class TargetExportCSVManager {
         final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
                 .distinct().collect(Collectors.toList());
         final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneIds);
+        return export(genesOfInterest, translationalGenes, format, source, includeHeader, genesMap);
+    }
+
+    public byte[] exportGene(final String geneId, final TargetExportTable source,
+                             final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
+        return export(Collections.singletonList(geneId), Collections.emptyList(),
+                format, source, includeHeader, genesMap);
+    }
+
+    private byte[] export(final List<String> genesOfInterest, final List<String> translationalGenes,
+                          final FileFormat format, final TargetExportTable source, final boolean includeHeader,
+                          final Map<String, String> genesMap)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
+                .distinct().collect(Collectors.toList());
         byte[] result = null;
         switch (source) {
             case OPEN_TARGETS_DISEASES:
@@ -128,53 +145,6 @@ public class TargetExportCSVManager {
                                 translationalGenes, genesMap),
                         Arrays.asList(TargetHomologyField.values()), format, includeHeader);
                 break;
-            default:
-                break;
-        }
-        return result;
-    }
-
-    public byte[] exportGene(final String geneId, final TargetExportTable source,
-                         final FileFormat format, final boolean includeHeader)
-            throws IOException, ParseException, ExternalDbUnavailableException {
-        final List<String> geneIds = Collections.singletonList(geneId);
-        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
-        byte[] result = null;
-        switch (source) {
-            case OPEN_TARGETS_DISEASES:
-                result = ExportUtils.export(targetExportManager.getDiseaseAssociations(geneIds, genesMap),
-                        getAssociationFields(DiseaseField.values()), format, includeHeader);
-                break;
-            case OPEN_TARGETS_DRUGS:
-                result = ExportUtils.export(targetExportManager.getDrugAssociations(geneIds, genesMap),
-                        getAssociationFields(DrugField.values()), format, includeHeader);
-                break;
-            case PHARM_GKB_DISEASES:
-                result = ExportUtils.export(targetExportManager.getPharmGKBDiseases(geneIds, genesMap),
-                        getAssociationFields(PharmGKBDiseaseField.values()), format, includeHeader);
-                break;
-            case PHARM_GKB_DRUGS:
-                result = ExportUtils.export(targetExportManager.getPharmGKBDrugs(geneIds, genesMap),
-                        getAssociationFields(PharmGKBDrugField.values()), format, includeHeader);
-                break;
-            case DGIDB_DRUGS:
-                result = ExportUtils.export(targetExportManager.getDGIDBDrugs(geneIds, genesMap),
-                        getAssociationFields(DGIDBField.values()), format, includeHeader);
-                break;
-            case STRUCTURES:
-                result = ExportUtils.export(targetExportManager.getStructures(geneIds),
-                        Arrays.asList(PdbStructureField.values()), format, includeHeader);
-                break;
-            case LOCAL_PDBS:
-                result = ExportUtils.export(targetExportManager.getPdbFiles(geneIds),
-                        Arrays.asList(PdbFileField.values()), format, includeHeader);
-                break;
-            case SEQUENCES:
-                result = ExportUtils.export(targetExportManager.getSequenceTable(geneIds, genesMap),
-                        Arrays.asList(GeneSequenceField.values()), format, includeHeader);
-                break;
-            case HOMOLOGY:
-                throw new IllegalArgumentException("Homology report not available");
             default:
                 break;
         }

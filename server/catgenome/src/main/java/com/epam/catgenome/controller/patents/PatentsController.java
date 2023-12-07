@@ -27,9 +27,7 @@ package com.epam.catgenome.controller.patents;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
-import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
-import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.patents.NCBIPatentsSecurityService;
@@ -39,11 +37,8 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -61,9 +56,35 @@ public class PatentsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<SequencePatent>> getPatents(@RequestBody final PatentsSearchRequest request)
+    public Result<SearchResult<SequencePatent>> loadTarget(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
-        return Result.success(ncbiPatentsSecurityService.getPatents(request));
+        return Result.success(ncbiPatentsSecurityService.getProteinPatents(request));
+    }
+
+    @PostMapping(value = "/patents/drugs/ncbi")
+    @ApiOperation(
+            value = "Searches drug patents by name in NCBI database.",
+            notes = "Searches drug patents by name in NCBI database.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<DrugPatent>> getDrugPatents(@RequestBody final PatentsSearchRequest request)
+            throws ExternalDbUnavailableException, IOException {
+        return Result.success(ncbiPatentsSecurityService.getDrugPatents(request));
+    }
+
+    @GetMapping(value = "/patents/drugs/ncbi")
+    @ApiOperation(
+            value = "Searches drug patents by id in NCBI database.",
+            notes = "Searches drug patents by id in NCBI database.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<DrugPatent>> getDrugPatents(@RequestParam final String id)
+            throws ExternalDbUnavailableException, IOException {
+        return Result.success(ncbiPatentsSecurityService.getDrugPatents(id));
     }
 
     @GetMapping(value = "/patents/proteins/blast")

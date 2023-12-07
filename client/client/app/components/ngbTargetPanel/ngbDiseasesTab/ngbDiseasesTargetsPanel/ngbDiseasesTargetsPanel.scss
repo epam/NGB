@@ -183,4 +183,12 @@ ngb-diseases-targets-panel {
     .others-button:hover {
         text-decoration: none;
     }
+
+    .target-cell {
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
 }

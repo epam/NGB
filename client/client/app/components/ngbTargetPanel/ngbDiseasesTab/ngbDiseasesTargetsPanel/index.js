@@ -8,13 +8,13 @@ import service from './ngbDiseasesTargetsPanel.service';
 
 import ngbTargetsTablePagination from './ngbTargetsTablePagination';
 import ngbDiseasesTargetsTableFilter from './ngbDiseasesTargetsTableFilter';
-import ngbTargetsTableContextMenu from './ngbTargetsTableContextMenu';
+import ngbTargetsTableMenu from './ngbTargetsTableMenu';
 
 export default angular
     .module('ngbDiseasesTargetsPanel', [
         ngbTargetsTablePagination,
         ngbDiseasesTargetsTableFilter,
-        ngbTargetsTableContextMenu
+        ngbTargetsTableMenu,
     ])
     .controller(controller.UID, controller)
     .component('ngbDiseasesTargetsPanel', component)

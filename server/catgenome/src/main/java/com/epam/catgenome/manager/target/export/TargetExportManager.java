@@ -53,6 +53,7 @@ import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -96,15 +97,20 @@ public class TargetExportManager {
                                                  final List<String> translationalGenes,
                                                  final Map<String, String> geneNames)
             throws IOException, ParseException {
-        final List<Long> species = targetManager.getTargetGeneSpecies(translationalGenes);
+        final List<Long> species = CollectionUtils.isEmpty(translationalGenes) ?
+                Collections.emptyList() :
+                targetManager.getTargetGeneSpecies(translationalGenes);
         final Map<String, List<HomologGroup>> homologueGroups = homologManager.searchHomolog(genesOfInterest);
         final Map<String, List<HomologeneEntry>> homologenes = homologeneManager.searchHomologenes(genesOfInterest);
         final List<TargetHomologue> homology = new ArrayList<>();
         for (Map.Entry<String, List<HomologGroup>> homologueEntry : homologueGroups.entrySet()) {
             for (HomologGroup group : homologueEntry.getValue()) {
-                List<Gene> genes = group.getHomologs().stream()
-                        .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
-                        .collect(Collectors.toList());
+                List<Gene> genes = group.getHomologs();
+                if (CollectionUtils.isNotEmpty(species)) {
+                    genes = genes.stream()
+                            .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
+                            .collect(Collectors.toList());
+                }
                 for (Gene gene: genes) {
                     TargetHomologue export = new TargetHomologue();
                     export.setGeneId(homologueEntry.getKey());
@@ -123,9 +129,12 @@ public class TargetExportManager {
         }
         for (Map.Entry<String, List<HomologeneEntry>> homologenesMapEntry : homologenes.entrySet()) {
             for (HomologeneEntry entry : homologenesMapEntry.getValue()) {
-                List<Gene> genes = entry.getGenes().stream()
-                        .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
-                        .collect(Collectors.toList());
+                List<Gene> genes = entry.getGenes();
+                if (CollectionUtils.isNotEmpty(species)) {
+                    genes = genes.stream()
+                            .filter(g -> species.stream().anyMatch(s -> s.equals(g.getTaxId())))
+                            .collect(Collectors.toList());
+                }
                 for (Gene gene: genes) {
                     TargetHomologue export = new TargetHomologue();
                     export.setGeneId(homologenesMapEntry.getKey());
@@ -170,7 +179,6 @@ public class TargetExportManager {
         return homology;
     }
 
-
     public Map<String, String> getTargetGeneNames(final List<String> geneIds) {
         final Map<String, String> genesMap = new HashMap<>();
         final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
@@ -185,7 +193,7 @@ public class TargetExportManager {
         final Map<String, String> genesMap = new HashMap<>();
         final List<String> geneNames = identificationManager.getGeneNames(Collections.singletonList(geneId));
         for (String geneName: geneNames) {
-            genesMap.put(geneId, geneName);
+            genesMap.put(geneId.toLowerCase(), geneName);
         }
         return genesMap;
     }
@@ -208,7 +216,7 @@ public class TargetExportManager {
     }
 
     public List<DiseaseAssociation> getDiseaseAssociations(final List<String> geneIds,
-                                                            final Map<String, String> genesMap)
+                                                           final Map<String, String> genesMap)
             throws ParseException, IOException {
         final List<DiseaseAssociation> diseaseAssociations = diseaseAssociationManager.search(geneIds);
         if (MapUtils.isNotEmpty(genesMap)) {
