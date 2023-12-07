@@ -35,7 +35,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DGIDBDrugAssociation extends Association {
-    public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
+    public static final String URL_PATTERN = "https://old.dgidb.org/drugs/%s#_summary";
     private String interactionTypes;
     private String interactionClaimSource;
     @Builder
