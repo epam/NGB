@@ -1,4 +1,11 @@
-<div>
+<div class="pagination-info">
+    <span ng-if="$ctrl.totalPages > 0">
+        Page {{$ctrl.currentPage}} of {{$ctrl.totalPages}}
+    </span><span>
+         ({{$ctrl.totalPublications}} publication{{$ctrl.totalPublications === 1 ? '' : 's'}})
+    </span>
+</div>
+<div ng-if="$ctrl.totalPages > 1">
     <md-button class="pagination-item"
                 md-no-ink
                 ng-repeat="page in $ctrl.pages track by $index"

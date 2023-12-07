@@ -26,9 +26,14 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
+import com.epam.catgenome.entity.target.DiseaseIdentificationResult;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.manager.target.export.TargetExportTable;
+import com.epam.catgenome.manager.target.export.TargetExportCSVManager;
+import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -45,6 +50,7 @@ public class DiseaseSecurityService {
     private final DiseaseManager diseaseManager;
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
+    private final TargetExportCSVManager exportManager;
 
     @PreAuthorize(ROLE_USER)
     public Map<String, String> search(final String name) throws IOException, ParseException {
@@ -66,5 +72,33 @@ public class DiseaseSecurityService {
     public SearchResult<DiseaseAssociation> searchTargets(final SearchRequest request, final String diseaseId)
             throws IOException, ParseException {
         return diseaseAssociationManager.search(request, diseaseId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public DrugFieldValues getDrugFieldValues(final String diseaseId) throws IOException, ParseException {
+        return drugAssociationManager.getFieldValues(diseaseId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportDrugs(final String diseaseId, final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException {
+        return exportManager.exportDisease(diseaseId, TargetExportTable.OPEN_TARGETS_DRUGS, format, includeHeader);
+    }
+
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportTargets(final String diseaseId, final FileFormat format, final boolean includeHeader)
+            throws IOException, ParseException {
+        return exportManager.exportDisease(diseaseId, TargetExportTable.OPEN_TARGETS_DISEASES, format, includeHeader);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public DiseaseIdentificationResult launchIdentification(final String diseaseId) throws ParseException, IOException {
+        final Pair<Long, Long> drugsCount = drugAssociationManager.totalCount(diseaseId);
+        return DiseaseIdentificationResult.builder()
+                .targetsCount(diseaseAssociationManager.totalCount(diseaseId))
+                .knownDrugsRecordsCount(drugsCount.getLeft())
+                .knownDrugsCount(drugsCount.getRight())
+                .build();
     }
 }

@@ -1,0 +1,125 @@
+@import "../../ngbTargetsTab.variables.scss";
+
+md-dialog.saved-dialog {
+    max-width: 50%;
+    max-height: 80%;
+
+    md-toolbar {
+        background-color: rgb(102,153,255);
+        height: 50px;
+        max-height: 50px;
+        min-height: 50px;
+    }
+
+    md-dialog-content {
+        overflow: auto;
+    }
+
+    .md-button {
+        &.md-icon-button.delete {
+            fill: rgb(183,28,28);
+
+            md-progress-circular {
+                svg path {
+                    stroke: rgb(183,28,28);
+                }
+            }
+        }
+
+        &:not([disabled]):hover {
+            background-color: rgba(158, 158, 158, 0.2);
+            border-radius: $md-chip-border-radius;
+        }
+
+        &.md-icon-button {
+            fill: rgb(102, 153, 255);
+            min-height: $table-control-height;
+            min-width: $table-control-height;
+            width: $table-control-height;
+            height: $table-control-height;
+            line-height: $table-control-height;
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    .table-container {
+        width: 100%;
+    
+        table.saved-identifications-table {
+            width: 100%;
+
+            th {
+                padding: $table-header-cell-padding;
+                background: transparent;
+                line-height: $table-header-cell-height;
+                height: $table-header-cell-height;
+                font-size: $table-header-cell-font-size;
+                color: $table-header-cell-color;
+                text-transform: capitalize;
+            }
+            tr td {
+                padding: $table-cell-padding;
+                vertical-align: top;
+                color: rgba(0,0,0,0.87);
+            }
+    
+            tr th:nth-child(1),
+            tr td:nth-child(1) {
+                padding-left: 10px;
+                width: 25%;
+            }
+    
+            tr th:nth-child(2),
+            tr th:nth-child(3),
+            tr td:nth-child(2),
+            tr td:nth-child(3) {
+                width: 30%;
+            }
+
+            tr th.button-column,
+            tr td.button-column {
+                width: max($table-control-height, 30px);
+            }
+
+            tbody tr:nth-child(odd) {
+                background-color: #ececec;
+            }
+        }
+
+        .identification-name {
+            font-size: 14px;
+            margin: 10px 4px 10px 4px;
+            display: block;
+        }
+
+        .identification-genes {
+            font-size: 12px;
+            align-self: center;
+            padding: 5px;
+
+            p {
+                margin: 2px 0;
+            }
+        }
+    }
+
+    ngb-panel-error-list {
+        padding: 0;
+
+        .layout-padding, .layout-padding > * {
+            padding: 0;
+        }
+
+        .ngb-panel-error-list md-content.md-warn {
+            border-top: 0;
+        }
+
+        md-list-item, md-list-item .md-list-item-inner {
+            min-height: 18px;
+            height: 19px;
+            overflow: hidden;
+            font-size: $table-control-font-size;
+        }
+    }
+}

@@ -17,11 +17,15 @@ export default class NgbBibliographyPanelService {
     _publications = [];
     _totalPages = 0;
     _currentPage = 1;
+    _totalPublications = 0;
 
     _summaryResult = null;
 
     _llmSummaryToken = 0;
     _publicationsToken = 0;
+
+    _keyWords = '';
+    _selectedGeneIds;
 
     get pageSize() {
         return PAGE_SIZE;
@@ -71,6 +75,22 @@ export default class NgbBibliographyPanelService {
         return this._summaryResult;
     }
 
+    get keyWords() {
+        return this._keyWords;
+    }
+    set keyWords(value) {
+        this._keyWords = value;
+    }
+    get totalPublications() {
+        return this._totalPublications;
+    }
+    get selectedGeneIds() {
+        return this._selectedGeneIds || [];
+    }
+    set selectedGeneIds(value) {
+        this._selectedGeneIds = value || [];
+    }
+
     static instance (
         $sce,
         dispatcher,
@@ -101,42 +121,40 @@ export default class NgbBibliographyPanelService {
             targetDataService,
             targetLLMService
         });
-        this._genes = [];
+        this.selectedGeneIds = this.genes.map(g => g.geneId);
 
         dispatcher.on('target:identification:changed', this.updateGenes.bind(this));
         this.updateGenes(ngbTargetPanelService.identificationTarget);
     }
 
     get genes() {
-        return this._genes;
+        return this.ngbTargetPanelService.allGenes || [];
     }
 
     updateGenes (targetIdentificationData) {
-        const {
-            interest = [],
-            translational = []
-        } = targetIdentificationData || {};
-        this._genes = [...new Set([
-            ...interest.map(g => g.geneId),
-            ...translational.map(g => g.geneId),
-        ])];
+        this.selectedGeneIds = this.genes.map(g => g.geneId);
         this.clearSummary();
         this.clearPublications();
-        (this.getPublicationsResults)();
+        this._totalPublications = (this.ngbTargetPanelService.identificationData || {}).publicationsCount;
+        (this.getPublicationsResults)(1);
     }
 
     async getDataOnPage(page) {
-        this.currentPage = page;
-        this.getPublicationsResults();
+        const success = await this.getPublicationsResults(page);
+        if (success) {
+            this.currentPage = page;
+            return true;
+        }
     }
 
-    getPublicationsResults() {
-        if (!this.genes.length) {
+    getPublicationsResults(page) {
+        if (!this.selectedGeneIds.length) {
             return new Promise(resolve => {
                 this._loadingPublications = false;
                 this.dispatcher.emit('target:identification:publications:loaded');
                 this.dispatcher.emit('target:identification:publications:page:changed');
-                resolve(true);
+                this.dispatcher.emit('target:identification:publications:results:updated');
+                resolve(false);
             });
         }
         this.dispatcher.emit('target:identification:publications:loading');
@@ -144,20 +162,24 @@ export default class NgbBibliographyPanelService {
         const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getPublications({
-                geneIds: this.genes,
-                page: this.currentPage,
-                pageSize: this.pageSize
+                geneIds: this.selectedGeneIds,
+                page: page,
+                pageSize: this.pageSize,
+                keywords: this.keyWords
             })
                 .then(([data, totalCount]) => {
                     commit(() => {
                         this._failedPublications = false;
                         this._publicationsError = null;
                         this._totalPages = Math.ceil(totalCount/this.pageSize);
+                        this._totalPublications = totalCount;
                         this._emptyPublications = totalCount === 0;
                         this._publications = data;
+                        this.searchedGeneIds = [...this.selectedGeneIds];
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
                         this.dispatcher.emit('target:identification:publications:page:changed');
+                        this.dispatcher.emit('target:identification:publications:results:updated');
                     });
                     resolve(true);
                 })
@@ -165,11 +187,11 @@ export default class NgbBibliographyPanelService {
                     commit(() => {
                         this._failedPublications = true;
                         this._publicationsError = [err.message];
-                        this._totalPages = 0;
                         this._emptyPublications = false;
                         this._loadingPublications = false;
                         this.dispatcher.emit('target:identification:publications:loaded');
                         this.dispatcher.emit('target:identification:publications:page:changed');
+                        this.dispatcher.emit('target:identification:publications:results:updated');
                     });
                     resolve(false);
                 });
@@ -218,6 +240,8 @@ export default class NgbBibliographyPanelService {
         this._failedPublications = false;
         this._publicationsError = null;
         this._totalPages = 0;
+        this._totalPublications = 0
+        this._keyWords = '';
         this._emptyPublications = false;
         this._publications = [];
         this._loadingPublications = false;

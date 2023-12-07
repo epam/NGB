@@ -95,7 +95,7 @@ import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
-import com.epam.catgenome.manager.externaldb.PdbDataManager;
+import com.epam.catgenome.manager.externaldb.pdb.PdbDataManager;
 import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;

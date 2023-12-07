@@ -201,12 +201,12 @@ export default class ngbSequencesTableController {
             this.loadingData = false;
         } else {
             this.gridOptions.data = await this.ngbSequencesPanelService.getSequencesData()
-            .then(success => {
-                if (success) {
-                    return this.ngbSequencesTableService.getSequencesResults();
-                }
-                return [];
-            });
+                .then(success => {
+                    if (success) {
+                        return this.ngbSequencesTableService.getSequencesResults();
+                    }
+                    return [];
+                });
         }
         this.dispatcher.emit('target:identification:sequences:results:updated');
         this.$timeout(() => this.$scope.$apply());

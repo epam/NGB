@@ -1,0 +1,115 @@
+import com.moowork.gradle.node.npm.NpmInstallTask
+
+plugins {
+    id "com.moowork.node" version "1.1.1"
+}
+
+def nodeVersion = "14.17.5"
+
+//to handle Windows issue with CMD output buffer (can be removed
+//after moving to Gradle 3.4
+tasks.withType(NodeTask) {
+    doLast {
+        println()
+    }
+}
+tasks.withType(NpmInstallTask) {
+    doLast {
+        println()
+    }
+}
+
+checkInstalledNodeVersion(nodeVersion)
+
+def checkInstalledNodeVersion(nodeVersion) {
+    def stdout = new ByteArrayOutputStream()
+    try {
+        def result = exec {
+            standardOutput = stdout
+            ignoreExitValue = true
+            commandLine "node", "-v"
+        }
+        if (result.exitValue != 0) {
+            throw new GradleException()
+        }
+        if (!isSupportedNodeVersion(stdout.toString(), nodeVersion)) {
+            initNode(nodeVersion)
+        } else {
+            //all checks passed and we don't need to download node.js
+            node {
+                download = false
+            }
+        }
+    } catch (GradleException e) {
+        initNode(nodeVersion)
+    } finally {
+        stdout.close()
+    }
+}
+
+task npmPrune(type: NpmTask) {
+    args = ['prune']
+}
+
+task clean(type: Delete) {
+    doFirst {
+        if (node.download) {
+            println "Node v$nodeVersion is required. It will be downloaded."
+        }
+    }
+    delete(project.buildDir)
+}
+
+npmInstall.dependsOn npmPrune
+nodeSetup.dependsOn clean
+npmSetup.dependsOn clean
+
+task buildTemplate(type: NpmTask) {
+    dependsOn npmInstall
+    args = ['run', 'build']
+}
+
+private void initNode(nodeVersion) {
+    node {
+        version = nodeVersion
+        download = true
+        workDir = file("${project.buildDir}/nodejs")
+        npmWorkDir = file("${project.buildDir}/npm")
+        distBaseUrl = 'https://direct.nodejs.org/dist/'
+    }
+}
+
+private static boolean isSupportedNodeVersion(installed, required) {
+
+    def (instMajor, instMinor, instBuild) = installed.substring(1).tokenize(".")
+    def (reqMajor, reqMinor, reqBuild) = required.tokenize(".")
+
+    //check Major version
+    if (isLessVersion(instMajor as Integer, reqMajor as Integer)) {
+        return false
+    } else if (isGreaterVersion(instMajor as Integer, reqMajor as Integer)) {
+        return true
+    }
+
+    //check Minor version
+    if (isLessVersion(instMinor as Integer, reqMinor as Integer)) {
+        return false
+    } else if (isGreaterVersion(instMinor as Integer, reqMinor as Integer)) {
+        return true
+    }
+
+    // Build number
+    if (isLessVersion(instBuild as Integer, reqBuild as Integer)) {
+        return false
+    }
+
+    return true
+}
+
+private static isLessVersion(Integer installed, Integer required) {
+    return installed < required
+}
+
+private static isGreaterVersion(Integer installed, Integer required) {
+    return installed > required
+}

@@ -8,9 +8,10 @@ import service from './ngbDrugsTable.service';
 
 import ngbDrugsTablePagination from './ngbDrugsTablePagination';
 import ngbDrugsTableFilter from './ngbDrugsTableFilter';
+import ngbDiseaseContextMenu from '../../../ngbDiseaseContextMenu';
 
 export default angular
-    .module('ngbDrugsTable', [ngbDrugsTablePagination, ngbDrugsTableFilter])
+    .module('ngbDrugsTable', [ngbDrugsTablePagination, ngbDrugsTableFilter, ngbDiseaseContextMenu])
     .controller(controller.UID, controller)
     .component('ngbDrugsTable', component)
     .service('ngbDrugsTableService', service.instance)

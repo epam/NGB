@@ -1,6 +1,6 @@
 <form class="add-target-form" name="target">
     <div class="loading-indicator"
-        ng-if="$ctrl.loading">
+        ng-if="$ctrl.loading || $ctrl.launchLoading">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div ng-class="{'hidden': !$ctrl.failed || $ctrl.loading}">
@@ -21,6 +21,13 @@
                placeholder="Target name"
                ng-model="$ctrl.targetModel.name"
         />
+        <md-button type="button"
+                   class="md-primary md-raised md-accent target-button"
+                   aria-label="Identify target"
+                   ng-click="$ctrl.identifyTarget()"
+                   ng-disabled="$ctrl.isIdentifyDisabled()">
+            IDENTIFY
+        </md-button>
         <md-button type="button"
                    class="md-primary md-raised md-accent target-button"
                    aria-label="Save target"
@@ -65,15 +72,16 @@
                 <tbody>
                 <tr ng-repeat="gene in $ctrl.targetModel.genes">
                     <td>
-                        <ngb-targets-form-list model="geneId"
-                                               index="$index"
-                                               field="featureId">
-                        </ngb-targets-form-list>
+                        <input class="ngb-targets-form-table-input"
+                               spellcheck="false"
+                               required
+                               name="geneId"
+                               ng-model="$ctrl.targetModel.genes[$index].geneId">
                     </td>
                     <td>
                         <ngb-targets-form-list model="geneName"
                                                index="$index"
-                                               field="featureName">
+                                               field="geneName">
                         </ngb-targets-form-list>
                     </td>
                     <td>

@@ -38,13 +38,17 @@ export default class ngbKnownDrugsPanelController {
             : false;
     }
 
+    set loading(value) {
+        this.ngbKnownDrugsPanelService.loading = value;
+    }
+
     get tableResults() {
         const results = this.ngbDrugsTableService.drugsResults;
         return results && results.length;
     }
 
     get geneChips() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.chip)];
+        return [...this.ngbTargetPanelService.allChips];
     }
 
     onChangeSource() {
@@ -52,6 +56,7 @@ export default class ngbKnownDrugsPanelController {
     }
 
     exportResults() {
+        this.loading = true;
         this.ngbKnownDrugsPanelService.exportResults()
             .then(data => {
                 const linkElement = document.createElement('a');
@@ -69,10 +74,13 @@ export default class ngbKnownDrugsPanelController {
                         'cancelable': false
                     });
                     linkElement.dispatchEvent(clickEvent);
+                    this.loading = false;
                 } catch (ex) {
                     // eslint-disable-next-line no-console
                     console.error(ex);
+                    this.loading = false;
                 }
+                this.$timeout(() => this.$scope.$apply());
             });
     }
 }

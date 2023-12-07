@@ -9,9 +9,10 @@ import llmService from './ngbTargetLLM.service';
 
 import ngbTargetsTab from './ngbTargetsTab';
 import ngbIdentificationsTab from './ngbIdentificationsTab';
+import ngbDiseasesTab from './ngbDiseasesTab';
 
 export default angular
-    .module('ngbTargetPanel', [ngbTargetsTab, ngbIdentificationsTab])
+    .module('ngbTargetPanel', [ngbTargetsTab, ngbIdentificationsTab, ngbDiseasesTab])
     .controller(controller.UID, controller)
     .component('ngbTargetPanel', component)
     .service('ngbTargetPanelService', service.instance)

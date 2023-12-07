@@ -37,6 +37,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.SortField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -92,7 +93,7 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
     }
 
     @Override
-    public String getDefaultSortField() {
+    public SortField getDefaultSortField() {
         return null;
     }
 

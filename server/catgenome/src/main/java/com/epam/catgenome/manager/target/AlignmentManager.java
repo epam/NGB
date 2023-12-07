@@ -24,7 +24,7 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.Target;
@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.exception.AlignmentException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import com.google.common.collect.Lists;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,7 @@ public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
     public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";
     public static final String EMPTY_LINE = "\n\n";
+    private static final Integer FETCH_SEQUENCES_BATCH_SIZE = 50;
 
     @Value("${muscle.path}")
     private String musclePath;
@@ -76,7 +78,7 @@ public class AlignmentManager {
     private String alignmentDirectory;
 
     private final TargetManager targetManager;
-    private final TargetIdentificationManager targetIdentificationManager;
+    private final LaunchIdentificationManager launchIdentificationManager;
     private final NCBIDataManager ncbiDataManager;
 
     public void generateAlignment() {
@@ -138,7 +140,7 @@ public class AlignmentManager {
         }
         dirFile.mkdirs();
 
-        final List<GeneSequences> sequences = targetIdentificationManager.getGeneSequences(geneIds);
+        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(geneIds);
         final List<String> proteinIds = sequences.stream()
                 .map(geneSequences -> geneSequences.getProteins().stream()
                         .map(UrlEntity::getId)
@@ -228,7 +230,14 @@ public class AlignmentManager {
     }
 
     private String getProteinsFasta(final List<String> proteinIds) throws ExternalDbUnavailableException {
-        return ncbiDataManager.fetchTextById("protein", join(proteinIds, ","), "fasta");
+        final StringBuilder result = new StringBuilder();
+        final List<List<String>> subSets = Lists.partition(proteinIds, FETCH_SEQUENCES_BATCH_SIZE);
+        String proteins;
+        for (List<String> subIds : subSets) {
+            proteins = ncbiDataManager.fetchTextById("protein", join(subIds, ","), "fasta");
+            result.append(proteins);
+        }
+        return result.toString();
     }
 
     private String extractSequenceId(final String fasta) {

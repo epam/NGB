@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.target.pharmgkb;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.Association;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,16 +35,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PharmGKBDrug extends UrlEntity {
+public class PharmGKBDrug extends Association {
     public static final String URL_PATTERN = "https://www.pharmgkb.org/labelAnnotation/%s";
-    private String geneId;
-    private String pharmGKBGeneId;
     private String source;
     @Builder
-    public PharmGKBDrug(String id, String name, String url, String geneId, String pharmGKBGeneId, String source) {
-        super(id, name, url);
-        this.geneId = geneId;
-        this.pharmGKBGeneId = pharmGKBGeneId;
+    public PharmGKBDrug(String id, String name, String url, String geneId, String target, String source) {
+        super(id, name, url, geneId, target);
         this.source = source;
     }
 }

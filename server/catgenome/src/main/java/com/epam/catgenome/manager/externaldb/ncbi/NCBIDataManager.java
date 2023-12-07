@@ -26,26 +26,32 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.util.TextUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_NO_RESULT_BY_EXTERNAL_DB;
 
 /**
  * <p>
@@ -59,13 +65,14 @@ public class NCBIDataManager extends HttpDataManager {
 
     private static final String QUERY_KEY = "query_key";
     private static final String WEB_ENV = "WebEnv";
-
     protected static final String NCBI_SERVER = "https://eutils.ncbi.nlm.nih.gov/";
     protected static final String NCBI_SUMMARY = "entrez/eutils/esummary.fcgi?";
     protected static final String NCBI_FETCH = "entrez/eutils/efetch.fcgi?";
     protected static final String NCBI_SEARCH = "entrez/eutils/esearch.fcgi?";
     protected static final String NCBI_LINK = "entrez/eutils/elink.fcgi?";
     protected static final String RETMODE_PARAM = "retmode";
+    protected static final String RET_TYPE_PARAM = "rettype";
+
     protected static final String JSON = "json";
 
     // entrez/eutils/esummary can return maximum 500 results. If we need to fetch more, we'll have to do pagination.
@@ -73,9 +80,21 @@ public class NCBIDataManager extends HttpDataManager {
     protected static final String MAX_RESULTS_PARAM = "retmax";
     protected static final String START_PARAM = "retstart";
     private static final int MAX_RESULTS_PARAM_VALUE = 500;
+    private static final String API_KEY_PARAM = "api_key";
 
     @Value("#{catgenome['externaldb.ncbi.max.results'] ?: 100}")
     protected Integer ncbiMaxResultsParamValue;
+
+    @Value("${ncbi.api.key:}")
+    private String ncbiApiKey;
+
+    @Value("${ncbi.retry.delay:}")
+    private Integer ncbiRetryDelay;
+
+    @Value("${ncbi.max.retries:}")
+    private Integer ncbiMaxRetries;
+
+    private Integer ncbiRetriesCount = 0;
 
     @PostConstruct
     public void init() {
@@ -131,13 +150,36 @@ public class NCBIDataManager extends HttpDataManager {
      * @throws ExternalDbUnavailableException
      */
     public String searchById(final String db, final String term) throws ExternalDbUnavailableException {
+        return searchById(db, term, null, null, null);
+    }
+
+    public String searchById(final String db, final String term,
+                             final Integer retStart, final Integer retMax) throws ExternalDbUnavailableException {
+        return searchById(db, term, null, retStart, retMax);
+    }
+
+    public String searchById(final String db, final String term, final String retType)
+            throws ExternalDbUnavailableException {
+        return searchById(db, term, retType, null, null);
+    }
+
+    public String searchById(final String db, final String term, final String retType,
+                             final Integer retStart, final Integer retMax) throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("db", db));
         parametersList.add(new ParameterNameValue("term", term));
         parametersList.add(new ParameterNameValue(RETMODE_PARAM, JSON));
-
+        if (retType != null) {
+            parametersList.add(new ParameterNameValue(RET_TYPE_PARAM, retType));
+        }
+        if (retMax != null) {
+            parametersList.add(new ParameterNameValue(MAX_RESULTS_PARAM, retMax.toString()));
+        }
+        if (retStart != null) {
+            parametersList.add(new ParameterNameValue(START_PARAM, retStart.toString()));
+        }
         ParameterNameValue[] parameterNameValues = parametersList.toArray(
                 new ParameterNameValue[parametersList.size()]);
 
@@ -191,14 +233,12 @@ public class NCBIDataManager extends HttpDataManager {
         try {
             root = mapper.readTree(json).path("result");
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
         Iterator<JsonNode> uids = root.path("uids").iterator();
 
         if (!uids.hasNext()) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB));
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB));
         }
 
         int uid = uids.next().asInt();
@@ -223,8 +263,7 @@ public class NCBIDataManager extends HttpDataManager {
         try {
             return mapper.readTree(json).path("result");
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -240,8 +279,7 @@ public class NCBIDataManager extends HttpDataManager {
             });
             return mapper.readTree(json);
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -257,8 +295,7 @@ public class NCBIDataManager extends HttpDataManager {
             });
             return mapper.readTree(json);
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
-                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
 
@@ -279,5 +316,66 @@ public class NCBIDataManager extends HttpDataManager {
 
     public void setMapper(final JsonMapper mapper) {
         this.mapper = mapper;
+    }
+
+    @SneakyThrows
+    public String getResultFromURL(String location, ParameterNameValue[] params) {
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            params = ArrayUtils.add(params, new ParameterNameValue(API_KEY_PARAM, ncbiApiKey));
+        }
+        try {
+            final String result = super.getResultFromURL(location, params);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromURL(location, params);
+            } else {
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public String getResultFromHttp(String location, JSONObject object) {
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            location = location + String.format("?%s=%s", API_KEY_PARAM, ncbiApiKey);
+        }
+        try {
+            final String result = super.getResultFromHttp(location, object);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromHttp(location, object);
+            } else {
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public String getResultFromURL(String location) {
+        final Map<String, String> header = new HashMap<>();
+        if (!TextUtils.isBlank(ncbiApiKey) && ncbiRetriesCount == 0) {
+            header.put(API_KEY_PARAM, ncbiApiKey);
+        }
+        try {
+            final String result = super.getResultFromURL(location, header);
+            ncbiRetriesCount = 0;
+            return result;
+        } catch (ExternalDbUnavailableException e) {
+            if (ncbiRetryDelay != null && ncbiMaxRetries != null && ncbiRetriesCount < ncbiMaxRetries) {
+                Thread.sleep(ncbiRetryDelay);
+                ncbiRetriesCount++;
+                return getResultFromURL(location);
+            } else {
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            }
+        }
     }
 }

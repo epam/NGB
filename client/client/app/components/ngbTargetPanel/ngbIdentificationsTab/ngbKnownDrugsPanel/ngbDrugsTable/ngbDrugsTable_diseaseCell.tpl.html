@@ -1,0 +1,10 @@
+<span class="link-cell disease"
+      ng-click="grid.appScope.$ctrl.onClickLink(row.entity, $event)"
+      ng-if="row.entity"
+      data-target="ngbDiseaseContextMenu"
+      locals="row"
+      ngb-context-menu>
+    <a ng-href="{{row.entity[col.field].url}}" target="_blank">
+        {{row.entity[col.field].name}}
+    </a>
+</span>

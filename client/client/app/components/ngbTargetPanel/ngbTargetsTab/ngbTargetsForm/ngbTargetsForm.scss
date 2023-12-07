@@ -7,7 +7,7 @@
     overflow-x: hidden;
 
     .loading-indicator {
-        padding: 5px $form-horizontal-offset;
+        padding: 0;
         height: 6px;
     }
 
@@ -97,7 +97,7 @@
 
 .name-input-placeholder {
     font-style: italic;
-    color: #999999;
+    color: $form-warning-color;
 }
 
 .table-container {
@@ -307,7 +307,7 @@ ngb-tags.ngb-target-products {
 }
 
 .no-genes-info {
-    color: #999999;
+    color: $form-warning-color;
 }
 
 .add-gene-link {

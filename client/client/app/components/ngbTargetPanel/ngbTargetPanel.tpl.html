@@ -1,38 +1,73 @@
 <div class="u-height__full target-panel" style="position: relative">
     <md-nav-bar class="target-nav-bar"
+                aria-label="Target tabs"
                 md-selected-nav-item="$ctrl.tabSelected">
         <md-nav-item name="TARGETS"
-                     md-nav-click="$ctrl.changeState($ctrl.targetState.TARGETS)">
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.TARGETS)">
             TARGETS
         </md-nav-item>
+        <md-nav-item name="DISEASES"
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.DISEASES)">
+            DISEASES
+        </md-nav-item>
         <md-nav-item name="IDENTIFICATIONS"
-                     md-nav-click="$ctrl.changeState($ctrl.targetState.IDENTIFICATIONS)"
+                     md-nav-click="$ctrl.changeTab($ctrl.targetTab.IDENTIFICATIONS)"
                      ng-if="$ctrl.identificationTabIsShown">
             IDENTIFICATIONS
         </md-nav-item>
     </md-nav-bar>
+    <div ng-if="$ctrl.saveFailed">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"
+                              class="saving-error">
+        </ngb-panel-error-list>
+    </div>
     <md-content class="_md target-panel-content">
-        <ngb-targets-tab change-state="$ctrl.changeState(state)"
-                         class="tab"
-                         ng-if="$ctrl.tabSelected === $ctrl.targetState.TARGETS">
+        <ngb-targets-tab class="tab"
+                         ng-if="$ctrl.tabSelected === $ctrl.targetTab.TARGETS">
         </ngb-targets-tab>
-        <ngb-identifications-tab change-state="$ctrl.changeState(state)"
-                                 class="tab"
-                                 ng-if="$ctrl.tabSelected === $ctrl.targetState.IDENTIFICATIONS">
+        <ngb-diseases-tab class="tab"
+                          ng-if="$ctrl.tabSelected === $ctrl.targetTab.DISEASES">
+        </ngb-diseases-tab>
+        <ngb-identifications-tab class="tab"
+                                 ng-if="$ctrl.tabSelected === $ctrl.targetTab.IDENTIFICATIONS">
         </ngb-identifications-tab>
     </md-content>
-    <md-button type="button"
-               class="md-raised md-accent ngb-target-panel-extra-button"
-               ng-if="$ctrl.isTableMode"
-               aria-label="Add target"
-               ng-click="$ctrl.addTarget()">
-        CREATE TARGET
-    </md-button>
-    <md-button type="button"
-               class="md-raised md-accent ngb-target-panel-extra-button"
-               ng-if="$ctrl.isIdentificationsMode"
-               aria-label="Store report"
-               ng-click="$ctrl.storeReport()">
-        STORE REPORT
-    </md-button>
+    <div class="button-container">
+        <md-button type="button"
+                   class="md-raised md-accent ngb-target-panel-extra-button"
+                   ng-if="$ctrl.isTableMode"
+                   aria-label="Add target"
+                   ng-click="$ctrl.addTarget()">
+            CREATE TARGET
+        </md-button>
+        <md-button type="button"
+                   class="md-raised md-accent ngb-target-panel-extra-button with-circular"
+                   ng-if="$ctrl.isIdentificationsMode && $ctrl.isTranslational"
+                   aria-label="Save identification"
+                   ng-disabled="$ctrl.saveLoading || $ctrl.saveStatus === $ctrl.statusOptions.SAVED"
+                   ng-click="$ctrl.onClickSave()">
+            <span>{{$ctrl.saveStatus}}</span>
+            <md-progress-circular ng-if="$ctrl.saveLoading"
+                                  md-diameter="12">
+            </md-progress-circular>
+        </md-button>
+        <md-input-container class="md-button md-raised md-accent ngb-target-panel-extra-button with-circular download-selector"
+                            ng-if="$ctrl.isIdentificationsMode"
+                            ng-disabled="$ctrl.reportLoading">
+            <md-select ng-model="$ctrl.downloadModel"
+                       ng-disabled="$ctrl.reportLoading"
+                       placeholder="DOWNLOAD"
+                       aria-label="Download format selector"
+                       ng-change="$ctrl.onChangeDownload($ctrl.downloadModel)"
+                       md-container-class="download-select-container">
+                <md-option ng-repeat="option in $ctrl.downloadOptions track by $index"
+                           ng-value="option">
+                    <span>{{ option }}</span>
+                </md-option>
+            </md-select>
+            <md-progress-circular ng-if="$ctrl.reportLoading"
+                                  md-diameter="12">
+            </md-progress-circular>
+        </md-input-container>
+    </div>
 </div>

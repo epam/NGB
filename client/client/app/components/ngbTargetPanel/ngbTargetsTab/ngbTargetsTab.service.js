@@ -116,12 +116,36 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
-    static instance ($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        return new ngbTargetsTabService($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext);
+    static instance (
+        $timeout,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectContext,
+    ) {
+        return new ngbTargetsTabService(
+            $timeout,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectContext,
+        );
     }
 
-    constructor($timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext) {
-        Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService, projectContext});
+    constructor(
+        $timeout,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectContext,
+    ) {
+        Object.assign(this, {
+            $timeout,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectContext,
+        });
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
@@ -289,9 +313,9 @@ export default class ngbTargetsTabService {
         });
     }
 
-    searchGenes(geneId) {
+    searchGenes(prefix) {
         return new Promise(resolve => {
-            this.targetDataService.searchGenes(geneId)
+            this.targetDataService.searchGenes(prefix)
                 .then(result => {
                     if (result) {
                         resolve(result);
@@ -307,8 +331,8 @@ export default class ngbTargetsTabService {
 
     setGeneModel(index, field, value) {
         const geneFields = {
-            featureId: 'geneId',
-            featureName: 'geneName',
+            geneId: 'geneId',
+            geneName: 'geneName',
             priority: 'priority',
             taxId: 'taxId',
             speciesName: 'speciesName'
@@ -319,23 +343,8 @@ export default class ngbTargetsTabService {
         this.dispatcher.emit('gene:model:updated');
     }
 
-    setSpeciesInfo(gene) {
-        if (gene.chromosome) {
-            const {referenceId} = gene.chromosome;
-            const species = this.projectContext.references
-                .filter(r => r.id === referenceId && r.species)
-                .map(r => r.species);
-            if (species.length) {
-                gene.taxId = species[0].taxId;
-                gene.speciesName = species[0].name;
-            }
-        }
-        return gene;
-    }
-
     selectedGeneChanged(gene, index) {
         if (gene) {
-            this.setSpeciesInfo(gene);
             for (const [key, value] of Object.entries(gene)) {
                 this.setGeneModel(index, key, value);
             }
@@ -345,15 +354,23 @@ export default class ngbTargetsTabService {
     async getIdentificationData(params, info) {
         this.ngbTargetPanelService.resetIdentificationData();
         this._launchLoading = true;
-        await this.launchTargetIdentification(params)
+        const result = await this.launchTargetIdentification(params)
             .then(result => {
                 this._launchLoading = false;
                 if (result) {
                     this.dispatcher.emit('target:launch:finished', result, info);
                 } else {
                     this.dispatcher.emit('target:launch:failed');
+                    this.$timeout(() => {
+                        this._launchFailed = false;
+                        this._launchErrorMessageList = null;
+                        this.dispatcher.emit('target:launch:failed:refresh');
+                    }, 5000);
                 }
+                return result;
             });
+        this.setTableMode();
+        return result;
     }
 
     launchTargetIdentification(request) {

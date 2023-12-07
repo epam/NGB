@@ -192,6 +192,7 @@ export default class ngbStructureTableController {
                         columnSettings = {
                             ...columnSettings,
                             enableFiltering: true,
+                            enableSorting: true,
                             cellTemplate: linkCell
                         };
                     }
@@ -243,6 +244,12 @@ export default class ngbStructureTableController {
                         width: 80
                     };
                     break;
+                case 'resolution':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableSorting: true,
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
@@ -269,6 +276,23 @@ export default class ngbStructureTableController {
         } else {
             this.sortInfo = null;
         }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.currentPage = 1;
         await this.loadData();
     }

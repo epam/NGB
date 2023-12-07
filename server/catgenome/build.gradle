@@ -135,7 +135,7 @@ dependencies {
     // Apache Commons
     compile group: "commons-io", name: "commons-io", version: "2.4"
     compile group: "org.apache.commons", name: "commons-lang3", version: "3.0"
-    compile group: "org.apache.commons", name: "commons-collections4", version: "4.0"
+    compile group: "org.apache.commons", name: "commons-collections4", version: "4.1"
     compile group: "commons-validator", name: "commons-validator", version: "1.5.0"
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging
@@ -156,7 +156,8 @@ dependencies {
     // Flyway database migration to update embedded database when application starts
     compile group: "org.flywaydb", name: "flyway-core", version: "3.2.1"
     //Amazon s3
-    compile group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.11.128"
+    compile group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.11.704"
+    compile group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.11.704"
 
     // Azure Storage Blob
     compile group: "com.azure", name: "azure-storage-blob", version: "12.14.0"
@@ -210,6 +211,10 @@ dependencies {
     compile group: "com.azure", name: "azure-ai-openai", version: "1.0.0-beta.2"
     compile group: "com.google.cloud", name: "google-cloud-aiplatform", version: "3.22.0"
     compile group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
+
+    //Excel
+    compile group: "org.apache.poi", name: "poi", version: "3.16"
+    compile group: "org.apache.poi", name: "poi-ooxml", version: "3.16"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")

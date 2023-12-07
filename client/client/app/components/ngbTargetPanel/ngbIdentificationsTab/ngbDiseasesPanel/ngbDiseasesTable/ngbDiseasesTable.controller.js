@@ -85,6 +85,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         this.ngbDiseasesTableService = ngbDiseasesTableService;
         this.ngbDiseasesPanelService = ngbDiseasesPanelService;
         this.ngbIdentificationsTabService = ngbIdentificationsTabService;
+        this.sourceOptions = SourceOptions;
     }
 
     get totalPages() {
@@ -139,6 +140,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbDiseasesTable_row.tpl.html'),
             columnDefs: this.getDiseasesTableGridColumns(),
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
@@ -199,7 +201,7 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
-                enableFiltering: false,
+                enableFiltering: true,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
@@ -210,14 +212,12 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                 case 'target':
                     columnSettings = {
                         ...columnSettings,
-                        enableFiltering: true,
                     };
                     break;
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell,
-                        enableFiltering: true,
                         minWidth: 200
                     };
                     break;
@@ -260,6 +260,23 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         } else {
             this.sortInfo = null;
         }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.currentPage = 1;
         await this.loadData();
     }

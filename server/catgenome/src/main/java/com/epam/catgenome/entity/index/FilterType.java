@@ -30,6 +30,8 @@ import lombok.Getter;
 @Getter
 public enum FilterType {
     PHRASE,
-    TERMS,
+    TERM,
+    OPTIONS,
+    RANGE,
     NONE;
 }

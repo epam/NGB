@@ -26,7 +26,7 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +46,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
@@ -64,7 +63,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -123,14 +121,11 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
 
     public Map<String, String> search(final String name) throws IOException, ParseException {
         final Map<String, String> entries = new LinkedHashMap<>();
-        final List<SortField> sortFields = Collections.singletonList(new SortField(IndexFields.NAME.name(),
-                SortField.Type.STRING, false));
-        final Sort sort = new Sort(sortFields.toArray(new SortField[1]));
         final Query query = getByPhraseQuery(name, IndexFields.NAME.name());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, topHits, sort);
+            TopDocs topDocs = searcher.search(query, topHits, getDefaultSort());
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
@@ -166,8 +161,8 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
     }
 
     @Override
-    public String getDefaultSortField() {
-        return null;
+    public SortField getDefaultSortField() {
+        return new SortField(IndexFields.NAME.name(), SortField.Type.STRING, false);
     }
 
     @Override

@@ -59,7 +59,7 @@ import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.activity.ActivityService;
-import com.epam.catgenome.manager.externaldb.PdbDataManager;
+import com.epam.catgenome.manager.externaldb.pdb.PdbDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Alignment;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;

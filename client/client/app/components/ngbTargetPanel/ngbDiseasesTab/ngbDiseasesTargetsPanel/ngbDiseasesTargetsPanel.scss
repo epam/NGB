@@ -1,0 +1,194 @@
+@import "../ngbDiseasesTab.variables.scss";
+
+ngb-diseases-targets-panel {
+    display: block;
+    padding: 5px 0 0 0;
+    position: relative;
+
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    .action-container {
+        display: flex;
+        justify-content: end;
+
+        .md-button.export-button {
+            min-height: 24px;
+            line-height: 24px;
+            color: $general-font-color;
+            font-size: $diseases-tab-font-size;
+            font-weight: normal;
+        }
+    }
+
+    .ui-grid {
+        border: none;
+        height: auto;
+        border-top: $general-border;
+        min-height: 250px;
+
+        .ui-grid-viewport {
+            height: 100% !important;
+            width: 100% !important;
+        }
+
+        .ui-grid-cell-contents {
+            white-space: nowrap;
+            height: 100%;
+            padding: 10px;
+        }
+
+        .ui-grid-column-menu-button {
+            width: 12px;
+
+            .ui-grid-icon-angle-down {
+                width: 10px;
+            }
+
+            [class^="ui-grid-icon"]:before,
+            [class*=" ui-grid-icon"]:before {
+                width: 0.7em;
+                margin-right: 0.3em;
+                margin-left: 0;
+            }
+        }
+    }
+
+    .ui-grid-container {
+
+        .ui-grid-row {
+            display: table-row;
+        }
+
+        .ui-grid-row .ui-grid-cell {
+            float: none;
+            display: table-cell;
+        }
+
+        .ui-grid-canvas {
+            height: auto !important;
+        }
+    }
+
+    .ui-grid-header-cell.ui-grid-clearfix,
+    .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
+        height: 100%;
+
+        .layout-column {
+            height: 100%;
+
+            div.flex {
+                height: 100%;
+            }
+        }
+    }
+
+    .ui-grid-container .ui-grid-cell-contents.md-button {
+        min-height: unset;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(50, 1fr);
+    }
+
+    .ui-grid-header-cell-label-container {
+        display: flex;
+        justify-content: center;
+        min-width: 0;
+        grid-column: 1 / 49;
+        grid-row: 1;
+    }
+
+    .ui-grid-header-cell-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sort-icon {
+        grid-column: 50 / 50;
+        grid-row: 1;
+
+        ng-md-icon {
+            margin-right: 3px;
+        }
+    }
+
+    .ui-grid-container .ui-grid-cell,
+    .ui-grid-cell:last-child {
+        border-right: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .ui-grid-row:last-child .ui-grid-cell {
+        border-bottom-width: 1px !important;
+    }
+
+    .color-cell {
+        width: 100%;
+        font-size: 12px;
+        align-self: center;
+        padding: 10px;
+        box-sizing: border-box;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        min-height: 200px;
+
+        .no-records-warning {
+            color: $general-warning-color;
+        }
+    }
+
+    .cell-content {
+        font-size: $tab-font-size;
+        align-self: center;
+        padding: 5px;
+    }
+
+    .cell-content p {
+        margin: 2px 0;
+    }
+
+    .others-button {
+        text-decoration: underline;
+        font-style: italic;
+        white-space: nowrap;
+    }
+
+    .others-button:hover {
+        text-decoration: none;
+    }
+
+    .target-cell {
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}

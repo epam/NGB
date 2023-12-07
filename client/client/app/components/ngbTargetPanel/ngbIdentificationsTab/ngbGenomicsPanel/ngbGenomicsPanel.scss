@@ -1,6 +1,4 @@
-$genomics-select-height: 28px;
-$genomics-color: #333333;
-$genomics-font-size: 13px;
+@import "./ngbGenomicsPanel.variables.scss";
 
 ngb-genomics-panel {
     padding: 5px 0 0;
@@ -27,12 +25,27 @@ ngb-genomics-panel {
         }
     }
 
+    .genomics-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: end;
+
+        .md-button.export-button {
+            min-height: 24px;
+            line-height: 24px;
+            color: $genomics-font-color;
+            font-size: $genomics-font-size;
+            font-weight: normal;
+        }
+    }
+
     .genomics-block {
         padding-top: 5px;
         display: grid;
         grid-template-columns: repeat(20, 1fr);
         align-items: center;
-        color: $genomics-color;
+        color: $genomics-font-color;
         height: $genomics-select-height;
         line-height: $genomics-select-height;
 
@@ -41,18 +54,17 @@ ngb-genomics-panel {
             grid-row: 1;
             display: flex;
             justify-content: right;
-            font-size: 13px;
-            color: $genomics-color;
+            font-size: $genomics-font-size;
+            color: $genomics-font-color;
             margin-right: 10px;
         }
 
         md-input-container {
             margin: 0;
             padding: 0;
-            color: $genomics-color;
+            color: $genomics-font-color;
             line-height: $genomics-select-height;
             height: $genomics-select-height;
-            color: $genomics-color;
             font-size: $genomics-font-size;
         }
 
@@ -89,7 +101,7 @@ ngb-genomics-panel {
         padding-top: 5px;
         display: flex;
         justify-content: end;
-        color: $genomics-color;
+        color: $genomics-font-color;
         height: $genomics-select-height;
         line-height: $genomics-select-height;
         margin-right: 30px;
@@ -104,7 +116,7 @@ ngb-genomics-panel {
         margin: 0 10px;
         grid-row: 1;
         font-weight: 400;
-        font-size: 13px;
+        font-size: $genomics-font-size;
     }
 
     .genomics-button.align {
@@ -127,12 +139,40 @@ ngb-genomics-panel {
 
         &[selected],
         &:not([disabled]):focus {
-            color: $genomics-color;
+            color: $genomics-font-color;
         }
     }
 
     md-select-menu,
     md-select-menu md-content {
         min-height: calc($genomics-select-height + 2px);
+    }
+
+    [data-tooltip] {
+        &::after {
+            content: attr(data-tooltip);
+            z-index: 1;
+            font-size: 10px;
+            display: inline-block;
+            white-space: normal;
+            width: max-content;
+            border-radius: 5px;
+            padding: 4px 8px;
+            background: #666262;
+            color: #fff;
+        }
+
+        &::before, &::after {
+          position: absolute;
+          pointer-events: none;
+          opacity: 0;
+          transition: all 0.5s ease-in-out;
+        }
+
+        &:hover::before, &:hover::after {
+            opacity: 1;
+            margin-left: 10px;
+            pointer-events: all;
+        }
     }
 }

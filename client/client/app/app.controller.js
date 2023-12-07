@@ -11,6 +11,7 @@ export default class ngbAppController extends baseController {
     projectContext;
     miewContext;
     heatmapContext;
+    targetContext;
     isAuthenticationInProgress;
 
     /* @ngInject */
@@ -20,6 +21,7 @@ export default class ngbAppController extends baseController {
         miewContext,
         heatmapContext,
         ngbPathwaysService,
+        targetContext,
         eventHotkey,
         $stateParams,
         $rootScope,
@@ -46,6 +48,7 @@ export default class ngbAppController extends baseController {
             miewContext,
             heatmapContext,
             ngbPathwaysService,
+            targetContext,
             projectDataService,
             utilsDataService,
             apiService,
@@ -222,7 +225,8 @@ export default class ngbAppController extends baseController {
             collapsedTrackHeaders,
             miew,
             heatmap,
-            pathway
+            pathway,
+            target,
         } = params;
         const position = start
             ? {end, start}
@@ -236,6 +240,7 @@ export default class ngbAppController extends baseController {
         this.miewContext.routeInfo = miew;
         this.heatmapContext.routeInfo = heatmap;
         this.ngbPathwaysService.routeInfo = pathway;
+        this.targetContext.routeInfo = target;
         const tracksState = tracks
             ? this.projectContext
                 .convertTracksStateFromJson(tracks)
@@ -265,6 +270,11 @@ export default class ngbAppController extends baseController {
         }
         if (pathway) {
             const layoutChange = this.appLayout.Panels.pathways;
+            layoutChange.displayed = true;
+            this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
+        }
+        if (target) {
+            const layoutChange = this.appLayout.Panels.target;
             layoutChange.displayed = true;
             this.dispatcher.emitSimpleEvent('layout:item:change', {layoutChange});
         }

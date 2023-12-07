@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.SortField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -45,21 +47,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 @Service
+@Slf4j
 public class NCBIEnsemblIdsManager extends AbstractIndexManager<GeneId> {
 
     private static final int COLUMNS = 7;
 
     public NCBIEnsemblIdsManager(final @Value("${ncbi.index.directory}") String indexDirectory,
-                                 final @Value("${targets.top.hits:10000}") int targetsTopHits) {
-        super(Paths.get(indexDirectory, "gene.ids").toString(), targetsTopHits);
+                                 final @Value("${ncbi.gene.ids.hits:10000}") int topHits) {
+        super(Paths.get(indexDirectory, "gene.ids").toString(), topHits);
     }
 
     public List<GeneId> searchByEntrezIds(final List<String> ids) throws ParseException, IOException {
@@ -77,7 +78,7 @@ public class NCBIEnsemblIdsManager extends AbstractIndexManager<GeneId> {
     }
 
     public List<GeneId> readEntries(final String path) throws IOException {
-        final Set<GeneId> entries = new HashSet<>();
+        final Map<String, GeneId> entries = new HashMap<>();
         String line;
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
@@ -85,18 +86,22 @@ public class NCBIEnsemblIdsManager extends AbstractIndexManager<GeneId> {
             Assert.isTrue(cells.length == COLUMNS, MessagesConstants.ERROR_INCORRECT_FILE_FORMAT);
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
+                String ensemblId = cells[2].trim();
                 GeneId geneId = GeneId.builder()
                         .entrezId(Long.parseLong(cells[1].trim()))
-                        .ensemblId(cells[2].trim())
+                        .ensemblId(ensemblId)
                         .build();
-                entries.add(geneId);
+                if (entries.containsKey(ensemblId) && !entries.get(ensemblId).equals(geneId)) {
+                    log.debug(getMessage(MessagesConstants.ERROR_NCBI_DUPLICATE_ENSEMBL_ID, ensemblId));
+                }
+                entries.put(ensemblId, geneId);
             }
         }
-        return new ArrayList<>(entries);
+        return new ArrayList<>(entries.values());
     }
 
     @Override
-    public String getDefaultSortField() {
+    public SortField getDefaultSortField() {
         return null;
     }
 

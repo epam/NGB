@@ -1,7 +1,4 @@
-$font-size: 12px;
-
-$summary-section-title-height: 24px;
-$summary-option-size: 30px;
+@import "./ngbBibliographyPanel.variables.scss";
 
 ngb-bibliography-panel {
     position: relative;
@@ -39,7 +36,7 @@ ngb-bibliography-panel {
         padding-bottom: 10px;
 
         .no-records-warning {
-            color: #999;
+            color: $bibliography-warning-color;
         }
     }
 
@@ -155,6 +152,42 @@ ngb-bibliography-panel {
         left: 0;
         right: 0;
     }
+
+    .header-container {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .search-publications-container {
+        margin: 10px 0;
+        width: 100%;
+
+        .search-publications-input {
+            background: #fafafa;
+        }
+
+        .md-errors-spacer {
+            display: none;
+        }
+    }
+
+    .search-input-clear-button {
+        ng-md-icon {
+            position: absolute;
+            top: 9px;
+            right: 8px;
+            fill: rgba(0,0,0,0.54);
+        }
+    }
+
+    .bibliography-gene-select {
+        display: flex;
+
+        md-input-container {
+            margin: 10px 0;
+        }
+    }
 }
 
 .llm-model-select {
@@ -166,5 +199,45 @@ ngb-bibliography-panel {
             min-height: $summary-option-size;
             line-height: $summary-option-size;
         }
+    }
+}
+
+.bibliography-gene-select-container {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-select-menu[multiple] md-option.md-checkbox-enabled {
+        padding-left: 30px;
+        padding-right: 4px;
+    }
+
+    md-select-menu[multiple] md-option.md-checkbox-enabled .md-container {
+        width: 14px;
+        height: 14px;
+    }
+
+    md-select-menu[multiple] md-option.md-checkbox-enabled .md-icon {
+        width: 14px;
+        height: 14px;
+        border-width: 1px;
+    }
+
+    md-select-menu[multiple] md-option.md-checkbox-enabled[selected] .md-icon:after {
+        left: 3.66667px;
+        top: 0.22222px;
+        width: 5.66667px;
+        height: 10.33333px;
+        border-width: 2px;
+    }
+
+    md-select-menu.md-default-theme md-content md-option[selected],
+    md-select-menu md-content md-option[selected] {
+        color: rgba(33,33,33,0.87);
+    }
+
+    md-option {
+        padding: 0 14px 0 0;
+        height: $summary-option-size;
     }
 }

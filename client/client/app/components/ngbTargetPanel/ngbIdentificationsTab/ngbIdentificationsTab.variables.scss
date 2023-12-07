@@ -1,7 +1,6 @@
-$general-font-size: 12px;
-$general-font-color: #333333;
+@import "../ngbTargetPanel.variables.scss";
 
-$title-font-size: calc($general-font-size * 1.5);
+$title-font-size: calc($tab-font-size * 1.5);
 
-$main-info-row-height: calc(2.0 * $general-font-size);
+$main-info-row-height: calc(2.0 * $tab-font-size);
 $main-info-description-max-lines: 3;

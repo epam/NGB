@@ -1,4 +1,4 @@
-import {LLM, LLMName, LLMProperties} from './models';
+import {LLMName, LLMProperties} from './models';
 
 export default function run($mdDialog, $timeout, dispatcher) {
     const displayLLMConfigurationDialog = async (request) => {
@@ -11,9 +11,7 @@ export default function run($mdDialog, $timeout, dispatcher) {
             const {
                 type: model
             } = options || {};
-            const llmModels = models && models.length > 0
-                ? models
-                : Object.values(LLM);
+            const llmModels = models;
             $mdDialog.show({
                 template: require('./ngbLLM.dialog.tpl.html'),
                 controller: function ($scope) {

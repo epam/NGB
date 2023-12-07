@@ -18,5 +18,6 @@ public enum AclClass {
     LINEAGE,
     PATHWAY,
     TARGET,
+    TARGET_IDENTIFICATION,
     PDB_FILE
 }

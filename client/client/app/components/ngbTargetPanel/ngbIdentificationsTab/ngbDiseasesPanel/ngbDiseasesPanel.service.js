@@ -40,6 +40,7 @@ class NgbDiseasesPanelService {
         this._sourceModel = SourceOptions.OPEN_TARGETS;
         this._tableLoading = false;
         this._chartsLoading = false;
+        this._exportLoading = false;
     }
 
     get sourceModel() {
@@ -68,19 +69,30 @@ class NgbDiseasesPanelService {
     set chartsLoading(chartsLoading) {
         this._chartsLoading = chartsLoading;
     }
+    get exportLoading() {
+        return this._exportLoading;
+    }
 
-    get geneIds() {
-        return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
+    set exportLoading(value) {
+        this._exportLoading = value;
+    }
+
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
     }
 
     exportResults() {
         const source = this.exportSource[this.sourceModel];
-        if (!this.geneIds) {
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
             return new Promise(resolve => {
                 resolve(true);
             });
         }
-        return this.targetDataService.getTargetExport(this.geneIds, source);
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }
 

@@ -7,18 +7,36 @@ export default class ngbBibliographyPaginationController {
         return 'ngbBibliographyPaginationController';
     }
 
-    constructor(ngbBibliographyPanelService) {
-        Object.assign(this, {ngbBibliographyPanelService});
+    constructor($scope, $timeout, dispatcher, ngbBibliographyPanelService) {
+        Object.assign(this, {$scope, $timeout, ngbBibliographyPanelService});
         this.pages = this.getPages();
+        dispatcher.on('target:identification:publications:results:updated', this.refresh.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:identification:publications:results:updated', this.refresh.bind(this));
+        });
+    }
+
+    get loadingPublications() {
+        return this.ngbBibliographyPanelService.loadingPublications;
+    }
+
+    get totalPublications() {
+        return this.ngbBibliographyPanelService.totalPublications;
+    }
+
+    refresh() {
+        this.pages = this.getPages();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     async setPage(page) {
         if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
             return;
         }
-        await this.ngbBibliographyPanelService.getDataOnPage(page);
-        this.currentPage = page;
-        this.pages = this.getPages();
+        const success = await this.ngbBibliographyPanelService.getDataOnPage(page);
+        if (success) {
+            this.pages = this.getPages();
+        }
     }
 
     get totalPages() {
@@ -27,9 +45,6 @@ export default class ngbBibliographyPaginationController {
 
     get currentPage() {
         return this.ngbBibliographyPanelService.currentPage;
-    }
-    set currentPage(value) {
-        this.ngbBibliographyPanelService.currentPage = value;
     }
 
     getPages() {

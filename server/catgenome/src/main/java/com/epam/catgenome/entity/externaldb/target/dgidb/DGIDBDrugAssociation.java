@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.entity.externaldb.target.dgidb;
 
-import com.epam.catgenome.entity.externaldb.target.opentargets.UrlEntity;
+import com.epam.catgenome.entity.externaldb.target.Association;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,20 +34,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends UrlEntity {
+public class DGIDBDrugAssociation extends Association {
     public static final String URL_PATTERN = "https://www.dgidb.org/drugs/%s#_summary";
-    private String geneId;
-    private String entrezId;
-    private String claimName;
     private String interactionTypes;
     private String interactionClaimSource;
     @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String entrezId, String geneId,
-                                String claimName, String interactionTypes, String interactionClaimSource) {
-        super(id, name, url);
-        this.entrezId = entrezId;
-        this.geneId = geneId;
-        this.claimName = claimName;
+    public DGIDBDrugAssociation(String id, String name, String url, String geneId,
+                                String target, String interactionTypes, String interactionClaimSource) {
+        super(id, name, url, geneId, target);
         this.interactionTypes = interactionTypes;
         this.interactionClaimSource = interactionClaimSource;
     }

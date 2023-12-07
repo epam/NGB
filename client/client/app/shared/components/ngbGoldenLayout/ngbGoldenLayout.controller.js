@@ -276,7 +276,9 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         } else {
             this.panelRemove(event.layoutChange);
-            if (event.layoutChange.panel === 'ngbMotifsPanel') {
+            const [ngbMotifsPanel] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
+                obj.config.componentState && obj.config.componentState.panel === 'ngbMotifsPanel');
+            if (event.layoutChange.panel === 'ngbMotifsPanel' && ngbMotifsPanel) {
                 const [dataSetsPanel] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
                     obj.config.componentState && obj.config.componentState.panel === 'ngbDataSets');
                 if (dataSetsPanel) {

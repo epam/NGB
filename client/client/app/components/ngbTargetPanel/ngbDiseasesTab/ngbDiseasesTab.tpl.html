@@ -1,0 +1,98 @@
+<md-content flex class="diseases">
+    <div class="diseases-header">
+        <md-autocomplete class="autocomplete"
+                         placeholder="Disease name"
+                         md-autofocus
+                         md-search-text="$ctrl.searchText"
+                         md-clear-button="true"
+                         md-menu-class="diseases-md-autocomplete"
+                         md-no-cache="true"
+                         md-items="disease in $ctrl.getDiseasesList()"
+                         md-item-text="disease.name"
+                         md-delay="100"
+                         md-min-length="2"
+                         md-select-on-match="true"
+                         md-selected-item-change="$ctrl.diseaseChanged(disease)"
+                         ng-blur="$ctrl.onBlur($event)"
+                         ng-keydown="$ctrl.onKeyPress($event)"
+                         md-match-case-insensitive="true">
+            <md-item-template>
+                <span md-highlight-text="$ctrl.searchText"
+                      md-highlight-flags="gi">
+                    {{disease.name}}
+                </span>
+            </md-item-template>
+            <md-not-found>Not found.</md-not-found>
+        </md-autocomplete>
+    </div>
+    <div class="loading-indicator"
+         ng-if="$ctrl.loadingData || $ctrl.launchLoading">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div ng-if="$ctrl.failedResult && !$ctrl.loadingData">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <div ng-class="{'hidden': !$ctrl.launchFailed || $ctrl.launchLoading}">
+        <ngb-panel-error-list message-list="$ctrl.launchErrorMessageList"></ngb-panel-error-list>
+    </div>
+    <div class="diseases-content"
+         ng-if="$ctrl.diseasesData">
+         <div class="content-header">
+            <div ng-if="$ctrl.title">
+                <span class="content-title">{{$ctrl.title}}</span>
+             </div>
+            <div class="main-info-row" ng-if="$ctrl.synonyms && $ctrl.synonyms.length">
+                <span class="main-info-title">
+                    Synonyms:
+                </span>
+                <ngb-tags class="main-info" tags="$ctrl.synonyms"></ngb-tags>
+            </div>
+            <div class="main-info-row" ng-if="$ctrl.description">
+                <span class="main-info-title">
+                    Description:
+                </span>
+                <div class="main-info">
+                    <div class="description"
+                         ng-class="{'collapsed': $ctrl.descriptionCollapsed}">
+                        <span class="description-text">
+                            {{$ctrl.description}}
+                        </span>
+                    </div>
+                    <div ng-if="$ctrl.description.length > 300">
+                        <a ng-click="$ctrl.toggleDescriptionCollapsed()">
+                            {{$ctrl.descriptionCollapsed ? 'Show more' : 'Show less'}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+         </div>
+        <collapsible>
+            <collapsible-panel ng-repeat="mainInfoBlock in $ctrl.mainInfo track by $index"
+                               is-open="$ctrl.openedPanels[mainInfoBlock.key]"
+                               ng-class="{'open-panel': $ctrl.openedPanels[mainInfoBlock.key]}">
+                <collapsible-panel-title class="section">
+                    <span class="section-title">{{mainInfoBlock.title}}</span>
+                    <md-progress-circular ng-if="mainInfoBlock.loading"
+                                          md-mode="indeterminate"
+                                          style="margin-left: auto"
+                                          md-diameter="12">
+                    </md-progress-circular>
+                    <span class="section-title-part"
+                          ng-repeat="part in mainInfoBlock.items track by $index"
+                          ng-if="part.count > 0 && !mainInfoBlock.loading">
+                        <span class="section-title-part-count">{{part.count}}</span>
+                        <ngb-plural-text text="part.item"
+                                         count="part.single ? 1 : part.count"
+                                         class="section-title-part-item"/>
+                    </span>
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <ngb-diseases-drugs-panel ng-if="mainInfoBlock.key === 'drugs'">
+                    </ngb-diseases-drugs-panel>
+                    <ngb-diseases-targets-panel ng-if="mainInfoBlock.key === 'targets'">
+                    </ngb-diseases-targets-panel>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+    </div>
+</md-content>

@@ -85,6 +85,7 @@ private void initNode(nodeVersion) {
         download = true
         workDir = file("${project.buildDir}/nodejs")
         npmWorkDir = file("${project.buildDir}/npm")
+        distBaseUrl = 'https://direct.nodejs.org/dist/'
     }
 }
 

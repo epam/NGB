@@ -129,9 +129,9 @@ export default class ngbDrugsTableController {
             this.gridOptions.data = this.ngbDrugsTableService.drugsResults;
         } else {
             await this.loadData();
+            this.ngbDrugsTableService.setFieldList();
         }
         this.gridOptions.columnDefs = this.getDrugsTableGridColumns();
-        await this.ngbDrugsTableService.setFieldList();
     }
 
     async sourceChanged() {
@@ -163,6 +163,7 @@ export default class ngbDrugsTableController {
         const headerCells = require('./ngbDrugsTable_header.tpl.html');
         const linkCell = require('./ngbDrugsTable_linkCell.tpl.html');
         const targetCell = require('./ngbDrugsTable_targetCell.tpl.html');
+        const diseasesCell = require('./ngbDrugsTable_diseaseCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbDrugsTableService.getColumnList();
@@ -197,7 +198,7 @@ export default class ngbDrugsTableController {
                 case 'disease':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: linkCell
+                        cellTemplate: diseasesCell
                     };
                     break;
                 case 'source':
@@ -251,6 +252,23 @@ export default class ngbDrugsTableController {
         } else {
             this.sortInfo = null;
         }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.currentPage = 1;
         await this.loadData();
     }

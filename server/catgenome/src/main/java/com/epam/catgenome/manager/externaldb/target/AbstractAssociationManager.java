@@ -23,13 +23,12 @@
  */
 package com.epam.catgenome.manager.externaldb.target;
 
-import com.epam.catgenome.manager.export.ExportField;
-import com.epam.catgenome.manager.export.ExportUtils;
+import com.epam.catgenome.entity.externaldb.target.Association;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
-import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -47,14 +46,15 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
+import static java.util.stream.Collectors.groupingBy;
 
-public abstract class AbstractAssociationManager<T> extends AbstractIndexManager<T> {
+public abstract class AbstractAssociationManager<T extends Association> extends AbstractIndexManager<T> {
 
     public AbstractAssociationManager(String indexDirectory, int topHits) {
         super(indexDirectory, topHits);
@@ -102,6 +102,29 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return searchResult;
     }
 
+    public List<T> search(final String diseaseId)
+            throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name()), BooleanClause.Occur.MUST);
+        final List<T> entries = new ArrayList<>();
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexReader indexReader = DirectoryReader.open(index)) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(mainBuilder.build(), topHits, getDefaultSort());
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                T entry = entryFromDocDiseaseView(doc);
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
+    public List<T> search(final List<String> geneIds) throws ParseException, IOException {
+        return search(getByGeneIdsQuery(geneIds), getDefaultSort());
+    }
+
     public T entryFromDocDiseaseView(Document doc) {
         return null;
     };
@@ -112,13 +135,6 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
 
     public List<T> searchByGeneIds(final List<String> ids) throws ParseException, IOException {
         return search(ids, IndexCommonFields.GENE_ID.name());
-    }
-
-    public byte[] export(final List<String> geneIds, final FileFormat format, final boolean includeHeader)
-            throws ParseException, IOException {
-        final List<ExportField<T>> exportFields = getExportFields().stream().filter(AssociationExportField::isExport)
-                .collect(Collectors.toList());
-        return ExportUtils.export(searchByGeneIds(geneIds), exportFields, format, includeHeader);
     }
 
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {
@@ -132,8 +148,41 @@ public abstract class AbstractAssociationManager<T> extends AbstractIndexManager
         return mainBuilder.build();
     }
 
-    public abstract void addFieldQuery(BooleanQuery.Builder builder, Filter filter);
-    public abstract List<AssociationExportField<T>> getExportFields();
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) throws ParseException {
+        Query query;
+        switch (getFilterType(filter.getField())) {
+            case PHRASE:
+                query = getByPhraseQuery(filter.getTerms().get(0), filter.getField());
+                break;
+            case TERM:
+                query = getByTermsQuery(filter.getTerms(), filter.getField());
+                break;
+            case OPTIONS:
+                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                break;
+            case RANGE:
+                query = getByRangeQuery(filter.getRange(), filter.getField());
+                break;
+            default:
+                return;
+        }
+        builder.add(query, BooleanClause.Occur.MUST);
+    }
+
+    public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        return (long) result.size();
+    }
+
+    public Map<String, Long> totalCountMap(final List<String> geneIds) throws ParseException, IOException {
+        final List<T> result = searchByGeneIds(geneIds);
+        final Map<String, Long> totalCounts = new HashMap<>();
+        final Map<String, List<T>> grouped = result.stream().collect(groupingBy(T::getGeneId));
+        grouped.forEach((k, v) -> totalCounts.put(k.toLowerCase(), (long) v.size()));
+        return totalCounts;
+    }
+
+    public abstract FilterType getFilterType(String fieldName);
 
     @Getter
     private enum IndexCommonFields {

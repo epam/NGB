@@ -6,9 +6,18 @@ export default class ngbTargetsTablePaginateController {
         return 'ngbTargetsTablePaginateController';
     }
 
-    constructor(dispatcher, ngbTargetsTableService) {
-        Object.assign(this, {dispatcher, ngbTargetsTableService});
+    constructor($scope, $timeout, dispatcher, ngbTargetsTableService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService});
         this.pages = this.getPages();
+        dispatcher.on('target:table:results:updated', this.refresh.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:table:results:updated', this.refresh.bind(this));
+        });
+    }
+
+    refresh() {
+        this.pages = this.getPages();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     get totalPages () {

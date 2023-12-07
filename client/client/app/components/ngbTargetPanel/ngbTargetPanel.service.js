@@ -1,6 +1,24 @@
 import processLinks from './utilities/process-links';
 
+const FORMAT = {
+    XLSX: 'xlsx',
+    HTML: 'html'
+}
+
+const STATUS_OPTIONS = {
+    SAVE: 'SAVE',
+    SAVED: 'SAVED'
+};
+
 export default class NgbTargetPanelService {
+
+    get format() {
+        return FORMAT;
+    }
+
+    get statusOptions() {
+        return STATUS_OPTIONS;
+    }
 
     _identificationData = null;
     _identificationTarget = null;
@@ -30,17 +48,62 @@ export default class NgbTargetPanelService {
         return this.genesIds.map((id) => allGenes.find((o) => o.geneId === id)).filter(Boolean);
     }
 
+    get allChips() {
+        return this.allGenes.map(g => g.chip);
+    }
+
+    get geneIdsOfInterest() {
+        return ((this.identificationTarget || {}).interest || [])
+            .map(i => i.geneId);
+    }
+
+    get translationalGeneIds() {
+        return ((this.identificationTarget || {}).translational || [])
+            .map(i => i.geneId);
+    }
+
     get descriptions() {
         return this._descriptions;
     }
 
-    static instance (appLayout, dispatcher, $sce) {
-        return new NgbTargetPanelService(appLayout, dispatcher, $sce);
+    get saveStatus() {
+        return this.isIdentificationSaved
+            ? this.statusOptions.SAVED
+            : (this._saveStatus ? this._saveStatus : this.statusOptions.SAVE);
+    }
+    set saveStatus(value) {
+        this._saveStatus = value;
     }
 
-    constructor(appLayout, dispatcher, $sce) {
-        Object.assign(this, {appLayout, dispatcher, $sce});
+    get isIdentificationSaved() {
+        if (!this.identificationTarget || !this.identificationTarget.target) return false;
+        const {identifications} = this.identificationTarget.target;
+        if (!identifications || !identifications.length) return false;
+        const isSaved = identifications.some(item => {
+            const isEqual = (current, saved) => {
+                if (current.length !== saved.length) return false;
+                const sortedCurrent = [...current].sort();
+                const sortedSaved = [...saved].sort();
+                return sortedSaved.every((item, index) => item === sortedCurrent[index]);
+            }
+            return isEqual(this.geneIdsOfInterest, item.genesOfInterest)
+                && isEqual(this.translationalGeneIds, item.translationalGenes);
+        })
+        return isSaved;
+    }
+
+    static instance (appLayout, dispatcher, $sce, targetDataService) {
+        return new NgbTargetPanelService(appLayout, dispatcher, $sce, targetDataService);
+    }
+
+    constructor(appLayout, dispatcher, $sce, targetDataService) {
+        Object.assign(this, {appLayout, dispatcher, $sce, targetDataService});
         dispatcher.on('target:launch:finished', this.setIdentificationData.bind(this));
+        dispatcher.on('target:identification:status:update', this.resetSaveStatus.bind(this));
+    }
+
+    resetSaveStatus() {
+        this._saveStatus = undefined;
     }
 
     panelAddTargetPanel() {
@@ -53,15 +116,29 @@ export default class NgbTargetPanelService {
         this.dispatcher.emit('target:identification:reset');
         this._identificationData = null;
         this._identificationTarget = null;
+        this.resetSaveStatus();
         this._descriptions = null;
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
     }
 
     setIdentificationData(data, info) {
         this._identificationData = data;
-        this._identificationTarget = info;
+        this._identificationTarget = this.setChips(info);
         this.setDescriptions();
         this.dispatcher.emit('target:identification:changed', this.identificationTarget);
+    }
+
+    setChips(info) {
+        const {interest = [], translational = []} = info;
+        const setChip = (genes) => {
+            for (let i = 0; i < genes.length; i++) {
+                const gene = genes[i];
+                gene.chip = gene.chip || `${gene.geneName}${gene.speciesName ? ` (${gene.speciesName})` : ''}`;
+            }
+        };
+        setChip(interest);
+        setChip(translational);
+        return info;
     }
 
     getChipByGeneId(id) {
@@ -91,5 +168,71 @@ export default class NgbTargetPanelService {
                     html: this.$sce.trustAsHtml(processLinks(description))
                 }));
         }
+    }
+
+    exportResults(format) {
+        const isTranslational = this.translationalGeneIds && this.translationalGeneIds.length;
+        if (isTranslational) {
+            if (format === this.format.XLSX) {
+                return this.exportExcel();
+            }
+            if (format === this.format.HTML) {
+                return this.exportHtml();
+            }
+        } else {
+            if (format === this.format.XLSX) {
+                return this.exportExcelGeneId();
+            }
+            if (format === this.format.HTML) {
+                return this.exportHtmlGeneId();
+            }
+        }
+    }
+
+    exportExcel() {
+        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds);
+    }
+
+    exportHtml() {
+        const {target} = this.identificationTarget || {};
+        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length || !target.id) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetHtmlReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
+    }
+
+    exportExcelGeneId() {
+        if (!this.geneIdsOfInterest.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0]);
+    }
+
+    exportHtmlGeneId() {
+        if (!this.geneIdsOfInterest.length) {
+            return new Promise(resolve => resolve(true));
+        }
+        return this.targetDataService.getTargetHtmlReportGeneId(this.geneIdsOfInterest[0]);
+    }
+
+    saveIdentification(name) {
+        const {target} = this.identificationTarget || {};
+        const genesOfInterest = this.geneIdsOfInterest;
+        const translationalGenes = this.translationalGeneIds;
+        if (!target || !name || !genesOfInterest.length || !translationalGenes.length) {
+            return new Promise(resolve => {
+                resolve(false);
+            });
+        }
+        const request = {
+            name,
+            targetId: target.id,
+            genesOfInterest,
+            translationalGenes,
+        };
+        return this.targetDataService.postIdentification(request);
     }
 }

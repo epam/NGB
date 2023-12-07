@@ -1,9 +1,11 @@
+@import "../../ngbTargetPanel.variables.scss";
+
 $main-action-button-height: 25px;
 
-$common-font-size: 13px;
+$common-font-size: $general-font-size;
 $form-horizontal-offset: 5px;
 
-$common-accent-font-color: #333333;
+$common-accent-font-color: $general-font-color;
 $common-font-color: #444444;
 
 $main-section-title-width: 60px;
@@ -12,7 +14,7 @@ $section-header-color: $common-accent-font-color;
 $section-header-background: #f3f3f3;
 $section-header-font-size: $common-font-size;
 
-$table-control-height: 28px;
+$table-control-height: $general-control-height;
 $table-control-border: none;
 $table-control-border-radius: 0;
 $table-control-font-size: $common-font-size;
@@ -34,3 +36,5 @@ $table-header-cell-font-size: $common-font-size;
 $table-header-cell-height: calc($table-control-height + 2px);
 $table-cell-padding: 3px 1px 0;
 $table-cell-full-width-padding: 3px $form-horizontal-offset;
+
+$form-warning-color: $general-warning-color;

@@ -1,0 +1,77 @@
+<md-dialog class="saved-dialog"
+           aria-label="Saved identifications">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Saved identifications for '{{name}}'</h2>
+            <span flex></span>
+            <md-button class="md-icon-button"
+                       ng-click="close()"
+                       aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <div ng-class="{'hidden': !actionFailed}">
+            <ngb-panel-error-list message-list="errorMessageList"></ngb-panel-error-list>
+        </div>
+        <div class="table-container">
+            <table class="saved-identifications-table">
+                <thead>
+                    <tr>
+                        <th ng-repeat="column in columnList track by $index">
+                            {{column}}
+                        </th>
+                        <th class="button-column"></th>
+                        <th class="button-column"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="identification in identifications track by identification.id">
+                        <td>
+                            <span class="identification-name">
+                                {{identification.name}}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="identification-genes">
+                                <p ng-repeat="gene in identification.genesOfInterest track by $index">
+                                    {{gene.geneName}} ({{gene.speciesName}})
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="identification-genes">
+                                <p ng-repeat="gene in identification.translationalGenes track by $index">
+                                    {{gene.geneName}} ({{gene.speciesName}})
+                                </p>
+                            </div>
+                        </td>
+                        <td class="button-column">
+                            <md-button class="md-icon-button"
+                                       ng-click="onClickLaunch($index)"
+                                       ng-disabled="identification.deleteLoading"
+                                       aria-label="Launch">
+                                <ng-md-icon icon="launch" size="14pt"></ng-md-icon>
+                            </md-button>
+                        </td>
+                        <td class="button-column">
+                            <md-button class="md-icon-button delete"
+                                       ng-click="onClickDelete($index)"
+                                       ng-disabled="identification.deleteLoading"
+                                       aria-label="Delete">
+                                <ng-md-icon icon="clear"
+                                            size="14pt"
+                                            ng-if="!identification.deleteLoading">
+                                </ng-md-icon>
+                                <md-progress-circular ng-if="identification.deleteLoading"
+                                                      md-diameter="20pt">
+                                </md-progress-circular>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </md-dialog-content>
+</md-dialog>

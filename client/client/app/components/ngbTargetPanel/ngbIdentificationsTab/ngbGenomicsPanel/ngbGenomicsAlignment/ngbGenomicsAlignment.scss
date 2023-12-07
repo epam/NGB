@@ -1,5 +1,4 @@
-$genomics-border: 1px solid #dddddd;
-$genomics-border-radius: 5px;
+@import "../ngbGenomicsPanel.variables.scss";
 
 ngb-genomics-alignment {
     .genomics-alignment {
@@ -20,13 +19,13 @@ ngb-genomics-alignment {
         font-weight: bold;
         display: inline-block;
         line-height: 20px;
-        font-size: 12px;
+        font-size: $genomics-alignment-field-font-size;
     }
 
     .alignment-field-value {
         display: inline-block;
         line-height: 20px;
-        font-size: 12px;
+        font-size: $genomics-alignment-field-font-size;
         margin-left: 5px;
     }
 
@@ -34,8 +33,8 @@ ngb-genomics-alignment {
         display: flex;
         margin: 10px 20px;
         padding: 10px;
-        border: $genomics-border;
-        border-radius: $genomics-border-radius;
+        border: $genomics-alignment-border;
+        border-radius: $genomics-alignment-border-radius;
 
         div {
             display: flex;
@@ -52,7 +51,7 @@ ngb-genomics-alignment {
     
         div.mono > span {
             font-family: monospace;
-            font-size: 12px;
+            font-size: $genomics-alignment-field-font-size;
             margin: 0 10px 0 0;
             white-space: pre;
 
@@ -140,7 +139,7 @@ ngb-genomics-alignment {
         min-height: 30px;
 
         .no-records-warning {
-            color: #999;
+            color: $genomics-warning-color;
         }
     }
 }

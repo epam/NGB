@@ -26,12 +26,10 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
-import com.epam.catgenome.entity.target.AlignmentStatus;
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetGene;
-import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.dao.target.TargetIdentificationDao;
+import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.manager.AuthManager;
-import com.epam.catgenome.util.Condition;
+import com.epam.catgenome.util.db.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
@@ -45,14 +43,16 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.util.Utils.EQUAL_CLAUSE;
-import static com.epam.catgenome.util.Utils.IN_CLAUSE;
-import static com.epam.catgenome.util.Utils.LIKE_CLAUSE;
+import static com.epam.catgenome.util.Utils.*;
+import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
+import static com.epam.catgenome.util.db.DBQueryUtils.getInClause;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -63,11 +63,12 @@ public class TargetManager {
     private static final String OWNER = "owner";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
-    private static final String GENE_ID = "gene_id";
     private static final String GENE_NAME = "gene_name";
+    private static final String TAX_ID = "tax_id";
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
+    private final TargetIdentificationDao targetIdentificationDao;
     private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -98,6 +99,7 @@ public class TargetManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void delete(final long targetId) {
         getTarget(targetId);
+        targetIdentificationDao.deleteTargetIdentifications(targetId);
         targetGeneDao.deleteTargetGenes(targetId);
         targetDao.deleteTarget(targetId);
     }
@@ -109,7 +111,13 @@ public class TargetManager {
     }
 
     public Target load(final long targetId) {
-        return targetDao.loadTarget(targetId);
+        final Target target = targetDao.loadTarget(targetId);
+        if (target != null) {
+            final List<TargetIdentification> identifications =
+                    targetIdentificationDao.loadTargetIdentifications(target.getTargetId());
+            target.setIdentifications(identifications);
+        }
+        return target;
     }
     
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
@@ -125,8 +133,12 @@ public class TargetManager {
                 Collections.singletonList(sortInfo));
         final Set<Long> targetIds = targets.stream().map(Target::getTargetId).collect(Collectors.toSet());
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(targetIds);
+        final List<TargetIdentification> identifications = getIdentifications(targetIds);
         for (Target t: targets) {
             t.setTargetGenes(targetGenes.stream()
+                    .filter(g -> g.getTargetId().equals(t.getTargetId()))
+                    .collect(Collectors.toList()));
+            t.setIdentifications(identifications.stream()
                     .filter(g -> g.getTargetId().equals(t.getTargetId()))
                     .collect(Collectors.toList()));
         }
@@ -136,11 +148,108 @@ public class TargetManager {
                 .build();
     }
 
+    public List<Target> load(final String geneName, final Long taxId) {
+        final String clause = getFilterClause(geneName, taxId);
+        final SortInfo sortInfo = SortInfo.builder()
+                .field(TARGET_NAME)
+                .ascending(true)
+                .build();
+        return targetDao.loadTargets(clause, Collections.singletonList(sortInfo));
+    }
+
     public List<Target> getTargetsForAlignment() {
         return targetDao.loadTargetsForAlignment();
     }
 
     public List<String> loadFieldValues(final TargetField field) {
+        final List<String> loaded = getFieldValues(field);
+        final Set<String> values = new HashSet<>(loaded.size());
+
+        return loaded.stream().filter(value -> {
+                    final String upperCase = value.toUpperCase(Locale.ROOT);
+                    if (!values.contains(upperCase)) {
+                        values.add(upperCase);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getTargetGeneNames(final List<String> geneIds) {
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
+    }
+
+    public List<Long> getTargetGeneSpecies(final List<String> geneIds) {
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        return targetGenes.stream().map(TargetGene::getTaxId).distinct().collect(Collectors.toList());
+    }
+
+    public List<TargetGene> getTargetGenes(final List<String> geneIds) {
+        final List<String> clauses = new ArrayList<>();
+        clauses.add(getGeneIdsClause(geneIds));
+        return targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
+    }
+
+    private static String getFilterClause(final TargetQueryParams targetQueryParams) {
+        final List<String> clauses = new ArrayList<>();
+        if (StringUtils.isNotBlank(targetQueryParams.getTargetName())) {
+            clauses.add(String.format(LIKE_CLAUSE, TARGET_NAME, targetQueryParams.getTargetName()));
+        }
+        if (StringUtils.isNotBlank(targetQueryParams.getOwner())) {
+            clauses.add(String.format(EQUAL_CLAUSE_STRING, OWNER, targetQueryParams.getOwner()));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
+            clauses.add(getListFieldFilterClause(PRODUCTS, targetQueryParams.getProducts()));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getDiseases())) {
+            clauses.add(getListFieldFilterClause(DISEASES, targetQueryParams.getDiseases()));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneIds())) {
+            clauses.add(getGeneIdsClause(targetQueryParams.getGeneIds()));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneNames())) {
+            clauses.add(getFilterClause(GENE_NAME, targetQueryParams.getGeneNames(), LIKE_CLAUSE));
+        }
+        if (!CollectionUtils.isEmpty(targetQueryParams.getSpeciesNames())) {
+            clauses.add(getFilterClause(SPECIES_NAME, targetQueryParams.getSpeciesNames(), LIKE_CLAUSE));
+        }
+        return join(clauses, Condition.AND.getValue());
+    }
+
+    private static String getFilterClause(final String geneName, final Long taxId) {
+        final List<String> clauses = new ArrayList<>();
+        clauses.add(String.format(EQUAL_CLAUSE_STRING, GENE_NAME, geneName));
+        if (taxId != null) {
+            clauses.add(String.format(EQUAL_CLAUSE_NUMBER, TAX_ID, taxId));
+        }
+        return join(clauses, Condition.AND.getValue());
+    }
+
+    @NotNull
+    private static String getFilterClause(final String field, final List<String> values, final String clause) {
+        return String.format("(%s)", values.stream()
+                .map(v -> String.format(clause, field, v))
+                .collect(Collectors.joining(Condition.OR.getValue())));
+    }
+
+    private static String getListFieldFilterClause(final String field, final List<String> values) {
+        return String.format("(%s)", values.stream()
+                .map(v -> String.format("(%s OR %s OR %s OR %s)",
+                        String.format("%s = '%s'", field, v),
+                        String.format("%s like '%%,%s,%%'", field, v),
+                        String.format("%s like '%s,%%'", field, v),
+                        String.format("%s like '%%,%s'", field, v)))
+                .collect(Collectors.joining(Condition.OR.getValue())));
+    }
+
+    private List<TargetIdentification> getIdentifications(final Set<Long> targetIds) {
+        return targetIdentificationDao.load(getInClause("target_id", targetIds));
+    }
+
+    private List<String> getFieldValues(TargetField field) {
         if (field.equals(TargetField.SPECIES_NAME)) {
             return targetGeneDao.loadSpeciesNames();
         }
@@ -157,48 +266,5 @@ public class TargetManager {
                     .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
         }
         return Collections.emptyList();
-    }
-
-    @NotNull
-    public List<String> getTargetGeneNames(final List<String> geneIds) {
-        final List<String> clauses = new ArrayList<>();
-        clauses.add(String.format(IN_CLAUSE, "gene_id", geneIds.stream()
-                .map(g -> "'" + g + "'")
-                .collect(Collectors.joining(","))));
-        final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
-        return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
-    }
-
-    private static String getFilterClause(final TargetQueryParams targetQueryParams) {
-        final List<String> clauses = new ArrayList<>();
-        if (StringUtils.isNotBlank(targetQueryParams.getTargetName())) {
-            clauses.add(String.format(LIKE_CLAUSE, TARGET_NAME, targetQueryParams.getTargetName()));
-        }
-        if (StringUtils.isNotBlank(targetQueryParams.getOwner())) {
-            clauses.add(String.format(EQUAL_CLAUSE, OWNER, targetQueryParams.getOwner()));
-        }
-        if (!CollectionUtils.isEmpty(targetQueryParams.getProducts())) {
-            clauses.add(getFilterClause(PRODUCTS, targetQueryParams.getProducts(), LIKE_CLAUSE));
-        }
-        if (!CollectionUtils.isEmpty(targetQueryParams.getDiseases())) {
-            clauses.add(getFilterClause(DISEASES, targetQueryParams.getDiseases(), LIKE_CLAUSE));
-        }
-        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneIds())) {
-            clauses.add(getFilterClause(GENE_ID, targetQueryParams.getGeneIds(), EQUAL_CLAUSE));
-        }
-        if (!CollectionUtils.isEmpty(targetQueryParams.getGeneNames())) {
-            clauses.add(getFilterClause(GENE_NAME, targetQueryParams.getGeneNames(), LIKE_CLAUSE));
-        }
-        if (!CollectionUtils.isEmpty(targetQueryParams.getSpeciesNames())) {
-            clauses.add(getFilterClause(SPECIES_NAME, targetQueryParams.getSpeciesNames(), LIKE_CLAUSE));
-        }
-        return join(clauses, Condition.AND.getValue());
-    }
-
-    @NotNull
-    private static String getFilterClause(final String field, final List<String> values, final String clause) {
-        return String.format("(%s)", values.stream()
-                .map(v -> String.format(clause, field, v))
-                .collect(Collectors.joining(Condition.OR.getValue())));
     }
 }

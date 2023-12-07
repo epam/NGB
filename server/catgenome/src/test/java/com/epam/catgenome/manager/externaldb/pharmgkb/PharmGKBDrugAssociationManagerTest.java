@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.testng.internal.collections.Pair;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,7 +49,6 @@ public class PharmGKBDrugAssociationManagerTest extends TestCase {
 
     private static final List<String> GENE_IDS = Arrays.asList("ENSG00000085563", "ENSG00000073734");
     private static final int ENTRIES_COUNT = 4;
-    private static final int ENTRIES_TOTAL_COUNT = 4;
 
     @Autowired
     private PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
@@ -74,9 +72,8 @@ public class PharmGKBDrugAssociationManagerTest extends TestCase {
 
     @Test
     public void totalCountTest() throws IOException, ParseException {
-        final Pair<Long, Long> totalCount = pharmGKBDrugAssociationManager.totalCount(GENE_IDS);
-        assertEquals(ENTRIES_COUNT, totalCount.first().intValue());
-        assertEquals(ENTRIES_TOTAL_COUNT, totalCount.second().intValue());
+        final long totalCount = pharmGKBDrugAssociationManager.totalCount(GENE_IDS);
+        assertEquals(ENTRIES_COUNT, totalCount);
     }
 
     @Test

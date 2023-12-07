@@ -1,11 +1,4 @@
-$diseases-nav-height: 28px;
-$diseases-nav-color: #333333;
-$diseases-nav-background: #fafafa;
-$diseases-nab-border: 1px solid #f0f0f0;
-$diseases-nav-selected-background: #dddddd;
-$diseases-nab-selected-border: 1px solid #dddddd;
-$diseases-nav-border-radius: 3px;
-$diseases-font-size: 13px;
+@import "./ngbDiseasesPanel.variables.scss";
 
 ngb-diseases-panel {
   display: block;
@@ -122,8 +115,8 @@ ngb-diseases-panel {
   .md-button.export-button {
     min-height: 24px;
     line-height: 24px;
-    color: #333333;
-    font-size: 13px;
+    color: $diseases-nav-color;
+    font-size: $diseases-font-size;
     font-weight: normal;
   }
 }

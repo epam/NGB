@@ -1,3 +1,5 @@
+@import "../ngbStructurePanel.variables.scss";
+
 ngb-structure-table {
     .ui-grid {
         border: none;
@@ -120,7 +122,7 @@ ngb-structure-table {
         min-height: 200px;
 
         .no-records-warning {
-            color: #999;
+            color: $structure-warning-color;
         }
     }
 }

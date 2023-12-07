@@ -36,6 +36,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -68,6 +69,8 @@ public class PubMedService {
     @Value("${pubmed.articles.number.for.abstract:20}")
     private Integer articlesMaxNumber;
 
+    private static final Integer BATCH_SIZE = 500;
+
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
     private final NCBIDataManager ncbiDataManager;
@@ -80,14 +83,28 @@ public class PubMedService {
                 .collect(Collectors.toList());
         final String retStart = String.valueOf(((request.getPage() - 1) * request.getPageSize()));
         final String retMax = String.valueOf(request.getPageSize());
-
-        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        final String term = TextUtils.isBlank(request.getKeywords()) ? pubMedSearchContext :
+                String.format("%s %s", pubMedSearchContext, request.getKeywords()).trim();
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, term);
         final List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery, retStart, retMax);
         final int totalCount = ncbiGeneManager.pubmedDataCount(historyQuery);
 
         final SearchResult<NCBISummaryVO> result = new SearchResult<>();
         result.setItems(articles);
         result.setTotalCount(totalCount);
+        return result;
+    }
+
+    @SneakyThrows
+    public List<NCBISummaryVO> fetchPubMedArticles(final List<String> entrezIds, final long publicationsCount) {
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        final List<NCBISummaryVO> result = new ArrayList<>();
+        final int pages = (int) Math.ceil((double) publicationsCount / BATCH_SIZE);
+        for (int i = 0; i < pages; i++) {
+            List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery,
+                    String.valueOf(i * BATCH_SIZE), BATCH_SIZE.toString());
+            result.addAll(articles);
+        }
         return result;
     }
 

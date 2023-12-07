@@ -41,7 +41,7 @@ public final class ExportUtils {
         // no operations by default
     }
 
-    public static <T> byte[] export(final List<T> result, final List<ExportField<T>> exportFields,
+    public static <T> byte[] export(final List<T> result, final List<? extends ExportField<T>> exportFields,
                                     final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -53,21 +53,21 @@ public final class ExportUtils {
     }
 
     private static <T> void write(final FileFormat format,
-                       final List<ExportField<T>> exportFields,
+                       final List<? extends ExportField<T>> exportFields,
                        final List<T> entries,
                        final ByteArrayOutputStream outputStream) throws IOException {
         for (T indexEntry : entries) {
             List<String> fieldValues = new ArrayList<>();
             for (ExportField<T> exportField: exportFields) {
                 String value = exportField.getGetter().apply(indexEntry);
-                fieldValues.add(value == null || value.equals(NULL_STR) ? DOT : value);
+                fieldValues.add(value == null || value.equals(NULL_STR) ? DOT : '"' + value + '"');
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
             outputStream.write(line.getBytes());
         }
     }
 
-    private static <T> String getFileHeader(final List<ExportField<T>> exportFields, final String separator) {
+    private static <T> String getFileHeader(final List<? extends ExportField<T>> exportFields, final String separator) {
         final List<String> fieldNames = exportFields.stream().map(ExportField::getLabel).collect(Collectors.toList());
         return String.join(separator, fieldNames) + NEW_LINE;
     }

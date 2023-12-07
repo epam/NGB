@@ -1,4 +1,4 @@
-const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'owner', 'launch'];
+const TARGETS_TABLE_COLUMNS = ['name', 'genes', 'species', 'diseases', 'products', 'owner', 'identifications', 'launch'];
 const RESIZE_DELAY = 300;
 export default class ngbTargetsTableController {
 
@@ -53,24 +53,24 @@ export default class ngbTargetsTableController {
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
         const refreshTable = this.refreshTable.bind(this);
+        dispatcher.on('target:table:update', filterChanged);
         dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         dispatcher.on('target:launch:failed', refreshTable);
+        dispatcher.on('target:launch:failed:refresh', refreshTable);
         $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:table:update', filterChanged);
             dispatcher.removeListener('targets:filters:changed', filterChanged);
             dispatcher.removeListener('targets:pagination:changed', getDataOnPage);
             dispatcher.removeListener('show:targets:table', showTargetsTable);
             dispatcher.removeListener('target:launch:failed', refreshTable);
+            dispatcher.removeListener('target:launch:failed:refresh', refreshTable);
         });
     }
 
     refreshTable() {
         this.$timeout(() => this.$scope.$apply());
-        this.$timeout(() => {
-            this.launchFailed = false;
-            this.launchErrorMessageList = null;
-        }, 5000);
     }
 
     $onInit() {
@@ -133,14 +133,8 @@ export default class ngbTargetsTableController {
     get launchFailed() {
         return this.ngbTargetsTabService.launchFailed;
     }
-    set launchFailed(value) {
-        this.ngbTargetsTabService.launchFailed = value;
-    }
     get launchErrorMessageList() {
         return this.ngbTargetsTabService.launchErrorMessageList;
-    }
-    set launchErrorMessageList(value) {
-        this.ngbTargetsTabService.launchErrorMessageList = value;
     }
 
     async initialize() {
@@ -165,6 +159,7 @@ export default class ngbTargetsTableController {
         const nameCell = require('./ngbTargetsTable_nameCell.tpl.html');
         const geneCell = require('./ngbTargetsTable_geneCell.tpl.html');
         const defaultCell = require('./ngbTargetsTable_defaultCell.tpl.html');
+        const identificationsCell = require('./ngbTargetsTable_identificationsCell.tpl.html');
 
         const result = [];
         const columnsList = this.targetsTableColumns;
@@ -221,6 +216,17 @@ export default class ngbTargetsTableController {
                         displayName: column
                     };
                     break;
+                case 'identifications':
+                    columnSettings = {
+                        ...columnSettings,
+                        enableFiltering: false,
+                        headerCellTemplate: headerCells,
+                        minWidth: 40,
+                        maxWidth: 50,
+                        displayName: '',
+                        cellTemplate: identificationsCell
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
@@ -253,6 +259,7 @@ export default class ngbTargetsTableController {
             });
         this.gridOptions.data = results;
         this.loadingData = false;
+        this.dispatcher.emit('target:table:results:updated');
         this.$timeout(() => this.$scope.$apply());
     }
 
@@ -323,5 +330,10 @@ export default class ngbTargetsTableController {
         this.ngbTargetsTableService.currentPage = 1;
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
         await this.loadData(request);
+    }
+
+    onClickIdentifications(event, target) {
+        event.stopPropagation();
+        this.dispatcher.emitSimpleEvent('target:show:saved:identifications', target);
     }
 }

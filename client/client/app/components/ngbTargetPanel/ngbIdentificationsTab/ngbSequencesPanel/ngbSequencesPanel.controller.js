@@ -82,6 +82,9 @@ export default class ngbSequencesPanelController {
     get loadingData() {
         return this.ngbSequencesPanelService.loadingData;
     }
+    set loadingData(value) {
+        this.ngbSequencesPanelService.loadingData = value;
+    }
 
     get sequencesReference() {
         return this.ngbSequencesPanelService.sequencesReference;
@@ -103,6 +106,15 @@ export default class ngbSequencesPanelController {
 
     get isRegistered() {
         return this.references.length;
+    }
+
+    get tableResults() {
+        const results = this.ngbSequencesPanelService.sequencesResults;
+        return results && results.length;
+    }
+
+    get geneChips() {
+        return [...this.ngbTargetPanelService.allChips];
     }
 
     onChangeGene() {
@@ -279,5 +291,34 @@ export default class ngbSequencesPanelController {
             return Promise.resolve(true);
         }
         return Promise.resolve(false);
+    }
+
+    exportResults() {
+        this.loadingData = true;
+        this.ngbSequencesPanelService.exportResults()
+            .then(data => {
+                const linkElement = document.createElement('a');
+                try {
+                    const blob = new Blob([data], {type: 'application/csv'});
+                    const url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute('download',
+                        `${this.geneChips.join('_')}-sequences.csv`);
+
+                    const clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                    this.loadingData = false;
+                } catch (ex) {
+                    // eslint-disable-next-line no-console
+                    console.error(ex);
+                    this.loadingData = false;
+                }
+                this.$timeout(() => this.$scope.$apply());
+            });
     }
 }

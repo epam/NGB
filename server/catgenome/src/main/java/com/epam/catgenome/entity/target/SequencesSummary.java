@@ -35,7 +35,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class SequencesSummary {
+    private static final String TOTAL_PATTERN = "DNAs: %s, mRNAs: %s, proteins: %s";
     private Long dNAs;
     private Long mRNAs;
     private Long proteins;
+
+    @Override
+    public String toString() {
+        return String.format(TOTAL_PATTERN, dNAs, mRNAs, proteins);
+    }
 }

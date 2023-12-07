@@ -1,0 +1,151 @@
+@import "../ngbDiseasesTab.variables.scss";
+
+ngb-diseases-drugs-panel {
+    display: block;
+    padding: 5px 0 0;
+    position: relative;
+
+    .loading-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+    }
+
+    .action-container {
+        display: flex;
+        justify-content: end;
+
+        .md-button.export-button {
+            min-height: 24px;
+            line-height: 24px;
+            color: $general-font-color;
+            font-size: $diseases-tab-font-size;
+            font-weight: normal;
+        }
+    }
+
+    .ui-grid {
+        border: none;
+        height: auto;
+        border-top: $diseases-drugs-border;
+        min-height: 250px;
+
+        .ui-grid-viewport {
+            height: 100% !important;
+        }
+
+        .ui-grid-cell-contents {
+            white-space: nowrap;
+        }
+
+        .ui-grid-column-menu-button {
+            width: 12px;
+
+            .ui-grid-icon-angle-down {
+                width: 10px;
+            }
+
+            [class^="ui-grid-icon"]:before,
+            [class*=" ui-grid-icon"]:before {
+                width: 0.7em;
+                margin-right: 0.3em;
+                margin-left: 0;
+            }
+        }
+    }
+
+    .ui-grid-header-cell.ui-grid-clearfix,
+    .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
+        height: 100%;
+
+        .layout-column {
+            height: 100%;
+
+            div.flex {
+                height: 100%;
+            }
+        }
+    }
+
+    .ui-grid-container .ui-grid-cell-contents.md-button {
+        min-height: unset;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(50, 1fr);
+    }
+
+    .ui-grid-header-cell-label-container {
+        display: flex;
+        justify-content: center;
+        min-width: 0;
+        grid-column: 1 / 49;
+        grid-row: 1;
+    }
+
+    .ui-grid-header-cell-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .empty-container {
+        font-size: 12pt;
+        width: 100%;
+        text-align: center;
+        z-index: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        min-height: 200px;
+
+        .no-records-warning {
+            color: $diseases-drugs-warning-color;
+        }
+    }
+
+    .sort-icon {
+        grid-column: 50 / 50;
+        grid-row: 1;
+
+        ng-md-icon {
+            margin-right: 3px;
+        }
+    }
+
+    .with-pagination .ui-grid-row:last-child .ui-grid-cell {
+        border-bottom-width: 1px !important;
+    }
+
+    .link-cell {
+        font-size: 12px;
+        align-self: center;
+        height: auto;
+        white-space: nowrap;
+        padding: 5px;
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+        text-decoration: none;
+        overflow: hidden;
+        color: rgb(102, 153, 255);
+        cursor: pointer;
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+    }
+
+    ngb-panel-error-list {
+        .layout-padding,
+        .layout-padding > * {
+            padding: 0 !important;
+        }
+
+        md-list-item,
+        md-list-item .md-list-item-inner {
+            min-height: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+    }
+}

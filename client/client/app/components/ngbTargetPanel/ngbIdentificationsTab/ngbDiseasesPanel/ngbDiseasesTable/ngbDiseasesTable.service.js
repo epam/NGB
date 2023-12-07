@@ -172,7 +172,7 @@ export default class ngbDiseasesTableService {
                     'pathways systems': fixedNumber(PATHWAYS),
                     'text mining': fixedNumber(TEXT_MINING),
                     'animal models': fixedNumber(ANIMAL_MODELS),
-                    'rna expression': fixedNumber(RNA_EXPRESSION)
+                    'RNA expression': fixedNumber(RNA_EXPRESSION)
                 };
             });
         }
@@ -206,16 +206,26 @@ export default class ngbDiseasesTableService {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => {
-                    return {
-                        field: this.fields[this.sourceModel][key],
-                        terms: values.map(v => {
-                            if (key === 'target') {
+                    const filter = {
+                        field: this.fields[this.sourceModel][key]
+                    };
+                    switch (key) {
+                        case 'target':
+                            filter.terms = values.map(v => {
                                 const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
                                 return chip ? chip : '';
+                            });
+                            return filter;
+                        case 'disease':
+                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
+                            return filter;
+                        default:
+                            filter.range = {
+                                from: Number(values),
+                                to: '1.0'
                             }
-                            return v;
-                        })
-                    };
+                            return filter;
+                    }
                 });
             if (filters && filters.length) {
                 request.filters = filters;
@@ -255,9 +265,8 @@ export default class ngbDiseasesTableService {
     }
 
     setFieldList() {
-        const allGenes = this.ngbTargetPanelService.allGenes;
         this.fieldList = {
-            target: [...allGenes.map(i => i.chip)],
+            target: [...this.ngbTargetPanelService.allChips],
             disease: []
         };
         this.dispatcher.emitSimpleEvent('diseases:filters:list');

@@ -1,4 +1,13 @@
 export default class ngbBibliographyPanelController {
+
+    searchText = '';
+
+    get genesDisplay() {
+        const selected = this.selectedGeneIds.length;
+        const all = this.genes.length;
+        return `${selected} gene${selected === 1 ? '' : 's'} selected of ${all}`;
+    }
+
     static get UID() {
         return 'ngbBibliographyPanelController';
     }
@@ -8,13 +17,15 @@ export default class ngbBibliographyPanelController {
         $timeout,
         dispatcher,
         ngbBibliographyPanelService,
-        targetLLMService
+        targetLLMService,
+        ngbTargetPanelService
     ) {
         Object.assign(this, {
             $scope,
             $timeout,
             ngbBibliographyPanelService,
-            targetLLMService
+            targetLLMService,
+            ngbTargetPanelService
         });
         this._summaryWasGenerated = false;
         const refresh = this.refresh.bind(this);
@@ -63,6 +74,13 @@ export default class ngbBibliographyPanelController {
         return this.ngbBibliographyPanelService.publications;
     }
 
+    get keyWords() {
+        return this.ngbBibliographyPanelService.keyWords;
+    }
+    set keyWords(value) {
+        this.ngbBibliographyPanelService.keyWords = value;
+    }
+
     refresh() {
         this.$timeout(() => this.$scope.$apply());
     }
@@ -103,6 +121,19 @@ export default class ngbBibliographyPanelController {
         this.ngbBibliographyPanelService.currentPage = value;
     }
 
+    get genes() {
+        return this.ngbTargetPanelService.allGenes || [];
+    }
+    get selectedGeneIds() {
+        return this.ngbBibliographyPanelService.selectedGeneIds;
+    }
+    set selectedGeneIds(value) {
+        this.ngbBibliographyPanelService.selectedGeneIds = value;
+    }
+    get searchedGeneIds() {
+        return this.ngbBibliographyPanelService.searchedGeneIds;
+    }
+
     $onInit() {
         (this.refresh)();
     }
@@ -127,6 +158,47 @@ export default class ngbBibliographyPanelController {
     onChangeLlmModel() {
         if (this._summaryWasGenerated) {
             (this.generateSummary)();
+        }
+    }
+
+    async searchPublications() {
+        await this.ngbBibliographyPanelService.getDataOnPage(1);
+        this.refresh();
+    }
+
+    onBlur () {
+        if (this.searchText !== this.keyWords) {
+            this.keyWords = this.searchText;
+            this.searchPublications();
+        }
+    }
+
+    onKeyPress (event) {
+        switch ((event.code || '').toLowerCase()) {
+            case 'enter':
+                this.onBlur();
+                break;
+            default:
+                break;
+        }
+    }
+
+    onClickClear() {
+        this.searchText = '';
+        this.onBlur();
+    }
+
+    onCloseSelector() {
+        if (this.selectedGeneIds.length) {
+            const genesChanged = (selected, searched) => {
+                if (selected.length !== searched.length) return true;
+                selected = [...selected].sort();
+                searched = [...searched].sort();
+                return selected.some((id, index) => id !== searched[index]);
+            }
+            if (genesChanged(this.selectedGeneIds, this.searchedGeneIds)) {
+                this.searchPublications();
+            }
         }
     }
 }

@@ -613,6 +613,10 @@ public final class IndexUtils {
         return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
     }
 
+    public static Query getByPrefixQuery(final String prefix, final String fieldName) {
+        return new PrefixQuery(new Term(fieldName, prefix));
+    }
+
     public static Query getByPhraseQuery(final String phrase, final String fieldName) {
         final BooleanQuery.Builder builder = new BooleanQuery.Builder();
         for (String term : phrase.split(TERM_SPLIT_TOKEN)) {
@@ -620,6 +624,18 @@ public final class IndexUtils {
                     BooleanClause.Occur.MUST);
         }
         return builder.build();
+    }
+
+    public static Query getByOptionsQuery(final List<String> options, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String option : options) {
+            builder.add(buildTermQuery(option, fieldName), BooleanClause.Occur.SHOULD);
+        }
+        return builder.build();
+    }
+
+    public static Query getByRangeQuery(final Interval<Float> interval, final String fieldName) {
+        return FloatPoint.newRangeQuery(fieldName, interval.getFrom(), interval.getTo());
     }
 
     public static Query buildTermQuery(final String term, final String fieldName) {

@@ -1,6 +1,8 @@
 package com.epam.catgenome.util;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,12 +12,16 @@ import java.util.Set;
 
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.Assert;
+import org.springframework.util.ResourceUtils;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
@@ -195,5 +201,18 @@ public final class NgbFileUtils {
 
     public static String getBioDataItemName(final String name, final String filePath) {
         return TextUtils.isBlank(name) ? FilenameUtils.getBaseName(filePath) : name;
+    }
+
+    @SneakyThrows
+    public static String readResource(final String path) {
+        if (path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)) {
+            final ClassPathResource resource = new ClassPathResource(
+                    path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length()));
+            try (InputStream stream = resource.getInputStream()) {
+                return IOUtils.toString(stream);
+            }
+        } else {
+            return IOUtils.toString(new FileReader(ResourceUtils.getFile(path)));
+        }
     }
 }

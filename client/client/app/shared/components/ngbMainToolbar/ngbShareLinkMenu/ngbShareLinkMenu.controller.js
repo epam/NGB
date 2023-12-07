@@ -17,7 +17,15 @@ export default class ngbShareLinkMenuController extends baseController {
     projectContext;
     utilsDataService;
 
-    constructor($scope, dispatcher, projectContext, localDataService, stateParamsService, utilsDataService) {
+    constructor(
+        $scope,
+        dispatcher,
+        projectContext,
+        localDataService,
+        stateParamsService,
+        utilsDataService,
+        targetContext
+    ) {
         super(dispatcher);
 
         Object.assign(this, {
@@ -25,7 +33,8 @@ export default class ngbShareLinkMenuController extends baseController {
             localDataService,
             projectContext,
             stateParamsService,
-            utilsDataService
+            utilsDataService,
+            targetContext,
         });
 
         this.state = localDataService.getDictionary().State;
@@ -67,6 +76,10 @@ export default class ngbShareLinkMenuController extends baseController {
         }
         if (this.trackState === true) {
             stateParams.tracks = JSON.stringify(tracksState);
+        }
+        const targetState = this.targetContext.currentState;
+        if (targetState) {
+            stateParams.target = JSON.stringify(targetState);
         }
         const fullUrl = this.stateParamsService.createUrl(stateParams);
         this.url = await this.utilsDataService.generateShortUrl(fullUrl, this.alias);

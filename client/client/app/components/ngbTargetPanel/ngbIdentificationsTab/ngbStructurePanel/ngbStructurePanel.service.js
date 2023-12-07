@@ -5,6 +5,11 @@ const SOURCE_OPTIONS = {
     LOCAL_FILES: 'Local Files'
 };
 
+const EXPORT_SOURCE = {
+    [SOURCE_OPTIONS.PROTEIN_DATA_BANK]: 'STRUCTURES',
+    [SOURCE_OPTIONS.LOCAL_FILES]: 'LOCAL_PDBS'
+};
+
 const PAGE_SIZE = 10;
 
 const PROTEIN_DATA_BANK_COLUMNS = ['id', 'name', 'method', 'source', 'resolution', 'chains'];
@@ -57,6 +62,9 @@ export default class ngbStructurePanelService {
 
     get sourceOptions() {
         return SOURCE_OPTIONS;
+    }
+    get exportSource() {
+        return EXPORT_SOURCE;
     }
     get pageSize() {
         return PAGE_SIZE;
@@ -189,6 +197,12 @@ export default class ngbStructurePanelService {
     set descriptionDone(value) {
         this._descriptionDone = value;
     }
+    get geneIdsOfInterest() {
+        return this.ngbTargetPanelService.geneIdsOfInterest;
+    }
+    get translationalGeneIds() {
+        return this.ngbTargetPanelService.translationalGeneIds;
+    }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService) {
         return new ngbStructurePanelService(dispatcher, ngbTargetPanelService, targetDataService);
@@ -205,6 +219,7 @@ export default class ngbStructurePanelService {
     }
 
     async targetChanged() {
+        this._sourceModel = this.sourceOptions.PROTEIN_DATA_BANK;
         this.resetStructureData();
     }
 
@@ -272,9 +287,14 @@ export default class ngbStructurePanelService {
                 geneIds: this.geneIds,
                 page: this.currentPage,
                 pageSize: this.pageSize,
-                orderBy: this.fields.id,
-                reverse: false
             };
+            if (this.sortInfo && this.sortInfo.length) {
+                request.orderBy = this.fields[this.sortInfo[0].field],
+                request.reverse = !this.sortInfo[0].ascending
+            } else {
+                request.orderBy = this.fields.id;
+                request.reverse = false;
+            }
             if (this._filterInfo) {
                 if (this._filterInfo.id) {
                     request.entryIds = [this._filterInfo.id];
@@ -375,5 +395,15 @@ export default class ngbStructurePanelService {
         this._emptyResults = false;
         this._structureResults = null;
         this._descriptionDone = false;
+    }
+
+    exportResults() {
+        const source = this.exportSource[this.sourceModel];
+        if (!this.geneIdsOfInterest || !this.translationalGeneIds) {
+            return new Promise(resolve => {
+                resolve(true);
+            });
+        }
+        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
     }
 }

@@ -1,7 +1,10 @@
+@import "../ngbKnownDrugsPanel.variables.scss";
+
 ngb-drugs-table {
     .ui-grid {
         border: none;
         height: auto;
+        min-height: 250px;
 
         .ui-grid-viewport {
             height: 100% !important;
@@ -95,6 +98,10 @@ ngb-drugs-table {
             color: inherit;
             text-decoration: none;
         }
+
+        &.disease {
+            width: 100%;
+        }
     }
 
     ngb-panel-error-list {
@@ -121,7 +128,7 @@ ngb-drugs-table {
         min-height: 200px;
 
         .no-records-warning {
-            color: #999;
+            color: $known-drugs-warning-color;
         }
     }
 
