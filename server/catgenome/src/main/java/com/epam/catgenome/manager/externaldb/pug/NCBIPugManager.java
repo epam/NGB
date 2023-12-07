@@ -29,6 +29,7 @@ import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.util.URLEncoder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ import static org.apache.commons.lang3.StringUtils.join;
  * </p>
  */
 @Service
+@Slf4j
 public class NCBIPugManager extends HttpDataManager{
 
     private static final String NCBI_PUG_SERVER = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/";
@@ -61,13 +63,19 @@ public class NCBIPugManager extends HttpDataManager{
     private static final String PATENTS_PATTERN = "compound/cid/%s/xrefs/PatentID/JSON";
 
 
-    public String getSmiles(final String name) throws ExternalDbUnavailableException, JsonProcessingException {
+    public String getSmiles(final String name) throws JsonProcessingException {
         final String location = NCBI_PUG_SERVER + String.format(SMILES_BY_NAME_PATTERN, replaceHttpSymbols(name));
-        final String result = getResultFromURL(location);
+        final String result;
+        try {
+            result = getResultFromURL(location);
+        } catch (ExternalDbUnavailableException e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
         return parseSmiles(result);
     }
 
-    public List<Long> getCID(final String id) throws ExternalDbUnavailableException, JsonProcessingException {
+    public List<Long> getCID(final String id) throws JsonProcessingException {
         String pattern;
         if (StringUtils.isNumeric(id)) {
             return Collections.singletonList(Long.parseLong(id));
@@ -79,7 +87,13 @@ public class NCBIPugManager extends HttpDataManager{
             return Collections.emptyList();
         }
         final String location = NCBI_PUG_SERVER + String.format(pattern, replaceHttpSymbols(id));
-        final String result = getResultFromURL(location);
+        final String result;
+        try {
+            result = getResultFromURL(location);
+        } catch (ExternalDbUnavailableException e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptyList();
+        }
         return parseCIDs(result);
     }
 
@@ -90,6 +104,7 @@ public class NCBIPugManager extends HttpDataManager{
         try {
             result = getResultFromURL(location);
         } catch (ExternalDbUnavailableException e) {
+            log.error(e.getMessage(), e);
             return Collections.emptyMap();
         }
         return parsePatents(result);
