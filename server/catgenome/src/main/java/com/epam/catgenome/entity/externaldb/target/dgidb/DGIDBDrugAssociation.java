@@ -38,11 +38,13 @@ public class DGIDBDrugAssociation extends Association {
     public static final String URL_PATTERN = "https://old.dgidb.org/drugs/%s#_summary";
     private String interactionTypes;
     private String interactionClaimSource;
+    private String claimName;
     @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String geneId,
-                                String target, String interactionTypes, String interactionClaimSource) {
+    public DGIDBDrugAssociation(String id, String name, String url, String geneId, String target, String claimName,
+                                String interactionTypes, String interactionClaimSource) {
         super(id, name, url, geneId, target);
         this.interactionTypes = interactionTypes;
         this.interactionClaimSource = interactionClaimSource;
+        this.claimName = claimName;
     }
 }

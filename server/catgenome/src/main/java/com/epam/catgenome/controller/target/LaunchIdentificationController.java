@@ -87,8 +87,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiOperation(
             value = "Launches Identification for dgidb datasource drug associations",
             notes = "Launches Identification for dgidb datasource drug associations." +
-                    "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, INTERACTION_TYPES, " +
-                    "INTERACTION_CLAIM_SOURCE.",
+                    "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, DRUG_CLAIM_NAME, " +
+                    "INTERACTION_TYPES, INTERACTION_CLAIM_SOURCE.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
