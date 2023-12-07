@@ -36,6 +36,7 @@ import com.epam.catgenome.manager.externaldb.pug.NCBIPugManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.http.util.TextUtils;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -81,6 +82,8 @@ public class NCBIPatentsManager {
     private static final String PROTEIN_TERM = "Patent[Properties] %s";
     private static final String DRUG_TERM = "has_patent[Filter] %s";
     private static final Pattern DRUG_NAME_PATTERN = Pattern.compile("\\d+\\.\\s");
+    private static final String DRUG_LINK = "https://pubchem.ncbi.nlm.nih.gov/compound/%s";
+    private static final String PROTEIN_LINK = "https://www.ncbi.nlm.nih.gov/protein/%s";
     private static final String XPATH = "/GBSet/GBSeq";
     private static final String LENGTH = "GBSeq_length";
     private static final String ACCESSION_VERSION = "GBSeq_accession-version";
@@ -163,7 +166,9 @@ public class NCBIPatentsManager {
                 Node item = sequences.item(i);
                 SequencePatent patent = new SequencePatent();
                 patent.setLength(Integer.valueOf(xPath.compile(LENGTH).evaluate(item)));
-                patent.setId(xPath.compile(ACCESSION_VERSION).evaluate(item));
+                String id = xPath.compile(ACCESSION_VERSION).evaluate(item);
+                patent.setId(id);
+                patent.setUrl(String.format(PROTEIN_LINK, id));
                 patent.setName(xPath.compile(DEFINITION).evaluate(item));
                 patent.setOrganism(xPath.compile(ORGANISM).evaluate(item));
                 patents.add(patent);
@@ -179,17 +184,19 @@ public class NCBIPatentsManager {
 
     private List<DrugPatent> parseDrugPatents(final String text) throws IOException {
         final List<DrugPatent> patents = new ArrayList<>();
-        String[] drugs = text.trim().split(EMPTY_LINE);
+        final String[] drugs = text.trim().split(EMPTY_LINE);
         for (String item : drugs) {
             if (!item.contains("Error occurred")) {
                 String line;
                 try (Reader reader = new StringReader(item);
                      BufferedReader bufferedReader = new BufferedReader(reader)) {
                     DrugPatent patent = new DrugPatent();
+                    String id = "";
                     while ((line = bufferedReader.readLine()) != null) {
                         Matcher m = DRUG_NAME_PATTERN.matcher(line);
                         if (line.startsWith("CID: ")) {
-                            patent.setId(line.replace("CID: ", "").trim());
+                            id = line.replace("CID: ", "").trim();
+                            patent.setId(id);
                         } else if (line.startsWith("IUPAC name: ")) {
                             patent.setIupacName(line.replace("IUPAC name: ", "").trim());
                         } else if (line.startsWith("MW: ")) {
@@ -197,6 +204,9 @@ public class NCBIPatentsManager {
                         } else if (m.find()) {
                             patent.setName(m.replaceFirst("").trim());
                         }
+                    }
+                    if (!TextUtils.isBlank(id)) {
+                        patent.setUrl(String.format(DRUG_LINK, id));
                     }
                     patents.add(patent);
                 }
