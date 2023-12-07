@@ -91,11 +91,16 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask loadTask(final long taskId) {
-        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        final BlastTask blastTask = getBlastTask(taskId);
         blastTask.setOrganisms(loadTaskOrganisms(taskId));
         blastTask.setExcludedOrganisms(loadTaskExclOrganisms(taskId));
         blastTask.setParameters(loadTaskParameters(taskId));
+        return blastTask;
+    }
+
+    public BlastTask getBlastTask(long taskId) {
+        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
         return blastTask;
     }
 
@@ -118,8 +123,7 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteTask(final long taskId) {
-        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        final BlastTask blastTask = getBlastTask(taskId);
         Assert.isTrue(!BlastTaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
@@ -153,6 +157,16 @@ public class BlastTaskManager {
         taskPage.setTotalCount(totalCount);
         taskPage.setBlastTasks(blastTasks);
         return taskPage;
+    }
+
+    public BlastTask loadTask(final String taskName) {
+        final QueryParameters queryParameters = new QueryParameters();
+        final List<Filter> filters = new ArrayList<>();
+        final Filter filter = new Filter("title", "=", "'" + taskName + "'");
+        filters.add(filter);
+        queryParameters.setFilters(filters);
+        final List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
+        return blastTasks.size() > 0 ? blastTasks.get(0) : new BlastTask();
     }
 
     public TaskPage loadCurrentUserTasks(final QueryParameters queryParameters) {
