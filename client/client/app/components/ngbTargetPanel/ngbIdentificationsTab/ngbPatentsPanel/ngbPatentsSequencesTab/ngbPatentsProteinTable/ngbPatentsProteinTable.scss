@@ -5,6 +5,15 @@ ngb-patents-protein-table {
         border: none;
         height: auto;
         min-height: 50px;
+        margin-bottom: 24px;
+
+        .ui-grid-header {
+            border-bottom: 0;
+        }
+
+        .ui-grid-canvas {
+            padding-top: 0;
+        }
 
         .ui-grid-viewport {
             height: 100% !important;
@@ -58,6 +67,11 @@ ngb-patents-protein-table {
 
     .ui-grid-header-cell {
         border-top: 1px solid #d4d4d4;
+        border-bottom: 1px solid #d4d4d4;
+    }
+
+    .ui-grid-container .ui-grid-row .ui-grid-cell:last-child {
+        border-right: 1px solid #d4d4d4;
     }
 
     .ui-grid-header-cell-label-container {
@@ -82,8 +96,8 @@ ngb-patents-protein-table {
         }
     }
 
-    .with-pagination .ui-grid-row:last-child .ui-grid-cell {
-        border-bottom-width: 1px !important;
+    .ui-grid-row:last-child .ui-grid-cell {
+        border-bottom: 1px solid #d4d4d4 !important;
     }
 
     .link-cell {
