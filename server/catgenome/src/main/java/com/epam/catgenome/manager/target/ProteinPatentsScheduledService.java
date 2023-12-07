@@ -21,30 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.externaldb.target.Association;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class DGIDBDrugAssociation extends Association {
-    public static final String URL_PATTERN = "https://old.dgidb.org/drugs/%s#_summary";
-    private String interactionTypes;
-    private String interactionClaimSource;
-    private String claimName;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String geneId, String target, String claimName,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url, geneId, target);
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
-        this.claimName = claimName;
+@Service
+@RequiredArgsConstructor
+public class ProteinPatentsScheduledService {
+
+    private final ProteinPatentsManager manager;
+
+    @Scheduled(fixedRateString = "${targets.sequence.patents.search.rate:60000}")
+    public void searchPatents() {
+        manager.searchPatents();
     }
 }

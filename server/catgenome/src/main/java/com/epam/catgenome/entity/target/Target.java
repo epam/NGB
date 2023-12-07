@@ -39,6 +39,7 @@ public class Target extends AbstractSecuredEntity {
     private String targetName;
     private String owner;
     private AlignmentStatus alignmentStatus;
+    private PatentsSearchStatus patentsSearchStatus;
     private List<String> diseases;
     private List<String> products;
     private List<TargetGene> targetGenes;

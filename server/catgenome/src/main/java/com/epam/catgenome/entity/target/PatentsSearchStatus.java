@@ -21,30 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.externaldb.target.dgidb;
+package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.externaldb.target.Association;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+import java.util.HashMap;
+import java.util.Map;
+
 @AllArgsConstructor
-public class DGIDBDrugAssociation extends Association {
-    public static final String URL_PATTERN = "https://old.dgidb.org/drugs/%s#_summary";
-    private String interactionTypes;
-    private String interactionClaimSource;
-    private String claimName;
-    @Builder
-    public DGIDBDrugAssociation(String id, String name, String url, String geneId, String target, String claimName,
-                                String interactionTypes, String interactionClaimSource) {
-        super(id, name, url, geneId, target);
-        this.interactionTypes = interactionTypes;
-        this.interactionClaimSource = interactionClaimSource;
-        this.claimName = claimName;
+@Getter
+public enum PatentsSearchStatus {
+    NOT_STARTED(0),
+    IN_PROGRESS(1),
+    COMPLETED(2),
+    ERROR(3);
+
+    private final int value;
+    private static final Map<Integer, PatentsSearchStatus> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, NOT_STARTED);
+        VALUES_MAP.put(1, IN_PROGRESS);
+        VALUES_MAP.put(2, COMPLETED);
+        VALUES_MAP.put(3, ERROR);
+    }
+
+    public static PatentsSearchStatus getByValue(int id) {
+        return VALUES_MAP.get(id);
     }
 }
