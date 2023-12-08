@@ -51,6 +51,15 @@ const SEQUENCE_COLUMNS = [{
 
 const SEQUENCE_DB = 'PROTEIN';
 
+const REFRESH_INTERVAL_SEC = 5;
+
+const BLAST_SEARCH_STATE = {
+    DONE: 'DONE',
+    FAILURE: 'FAILURE',
+    SEARCHING: 'SEARCHING',
+    CANCELED: 'CANCELED'
+};
+
 export default class ngbPatentsSequencesTabService {
 
     get searchByOptions() {
@@ -74,6 +83,12 @@ export default class ngbPatentsSequencesTabService {
     get headerText() {
         return HEADER_TEXT;
     }
+    get refreshInterval() {
+        return REFRESH_INTERVAL_SEC * 1000;
+    }
+    get blastSearchState() {
+        return BLAST_SEARCH_STATE;
+    }
 
     _loadingProteins = false;
     proteins = [];
@@ -92,6 +107,7 @@ export default class ngbPatentsSequencesTabService {
     _totalPages = 0;
     _currentPage = 1;
     _sortInfo = null;
+    _allResults = null;
 
     _loadingSequence = false;
     _failedSequence = false;
@@ -148,8 +164,11 @@ export default class ngbPatentsSequencesTabService {
     get sequenceModelChanged() {
         if (this.isSearchByProteinSequence && !this.isSequenceEmpty) {
             const {searchBy, proteinId, sequence} = this.requestedModel;
-            if (searchBy === this.searchByOptions.sequence && proteinId && sequence) {
+            if (searchBy === this.searchByOptions.sequence && (proteinId && this.selectedProtein) && sequence) {
                 return proteinId !== this.selectedProtein.id || this.searchSequence !== sequence;
+            }
+            if (searchBy === this.searchByOptions.sequence && sequence) {
+                return this.searchSequence !== sequence;
             }
             return true;
         }
@@ -166,8 +185,9 @@ export default class ngbPatentsSequencesTabService {
 
     get searchDisabled() {
         return this.loadingProteins || this.loadingData ||
-            (this.isSearchByProteinSequence && this.isSequenceEmpty)
-            || !this.requestModelChanged;
+            (this.isSearchByProteinSequence && this.isSequenceEmpty) ||
+            (this.isSearchByProteinName && !this.selectedProtein) ||
+            !this.requestModelChanged;
     }
 
     get failedResult() {
@@ -229,12 +249,12 @@ export default class ngbPatentsSequencesTabService {
         this._errorSequence = value;
     }
 
-    static instance (dispatcher, targetDataService) {
-        return new ngbPatentsSequencesTabService(dispatcher, targetDataService);
+    static instance ($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService) {
+        return new ngbPatentsSequencesTabService($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService);
     }
 
-    constructor(dispatcher, targetDataService) {
-        Object.assign(this, {dispatcher, targetDataService});
+    constructor($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService) {
+        Object.assign(this, {$interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService});
         dispatcher.on('target:identification:sequences:updated', this.setProteins.bind(this));
         dispatcher.on('target:identification:reset', this.resetData.bind(this));
     }
@@ -257,49 +277,50 @@ export default class ngbPatentsSequencesTabService {
         this.dispatcher.emit('target:identification:patents:proteins:updated');
     }
 
-    async searchPatents() {
-        const searchBy = this.searchBy;
-        const proteinId = this.selectedProtein.id;
-        const proteinName = this.selectedProtein.name;
-        const sequence = this.searchSequence;
-        const originalSequence = this.originalSequence;
+    async getTableResults() {
+        const { searchBy } = this.requestedModel;
+        if (searchBy === this.searchByOptions.name) {
+            return await this.getPatentsByProteinName();
+        }
+        if (searchBy === this.searchByOptions.sequence) {
+            this._failedResult = false;
+            this._errorMessageList = null;
+            this._loadingData = false;
+            this.setTableResults(this.setTableResultsOnPage());
+            return Promise.resolve(true);
+        }
+    }
+
+    async searchPatentsByProteinName() {
+        this.requestedModel = {
+            searchBy: this.searchBy,
+            proteinId: this.selectedProtein.id,
+            proteinName: this.selectedProtein.name
+        };
         this.currentPage = 1;
-        const success = await this.getTableResults();
-        if (success) {
-            if (this.isSearchByProteinName) {
-                this.requestedModel = { searchBy, proteinId, proteinName };
-            }
-            if (this.isSearchByProteinSequence) {
-                this.requestedModel = { searchBy, proteinId, proteinName, sequence, originalSequence };
-            }
-        } else {
+        const success = await this.getPatentsByProteinName();
+        if (!success) {
             this.requestedModel = null;
         }
-        this.dispatcher.emit('target:identification:patents:protein:results:updated');
+        this.dispatcher.emit('target:identification:patents:protein:pagination:updated');
         return;
     }
 
-    getRequest() {
+    getPatentsByProteinName() {
+        const { proteinName } = this.requestedModel;
         const request = {
+            name: proteinName,
             page: this.currentPage,
             pageSize: this.pageSize
         };
-        if (this.isSearchByProteinName) {
-            request.name = this.selectedProtein.name;
-        }
-        return request;
-    }
-
-    getTableResults() {
-        const request = this.getRequest();
-        if (!request) {
+        if (!proteinName) {
             return new Promise(resolve => {
                 this.loadingData = false;
                 resolve(true);
             });
         }
         return new Promise(resolve => {
-            this.searchPatentResults(request)
+            this.targetDataService.getPatentsByProteinName(request)
                 .then(data => {
                     this._failedResult = false;
                     this._errorMessageList = null;
@@ -321,18 +342,125 @@ export default class ngbPatentsSequencesTabService {
         });
     }
 
-    searchPatentResults(request) {
-        if (this.isSearchByProteinName) {
-            return Promise.resolve(this.targetDataService.searchPatentsByProtein(request));
+    async searchPatentsByProteinSequence() {
+        this.currentPage = 1;
+        if (!this.searchSequence) {
+            this.loadingData = false;
         }
-        if (this.isSearchByProteinSequence) {
-            return Promise.resolve(this.targetDataService.searchPatentsBySequence(request));
+        this.requestedModel = {
+            searchBy: this.searchBy,
+            sequence: this.searchSequence,
+            originalSequence: this.originalSequence,
+        };
+        if (this.selectedProtein) {
+            this.requestedModel.proteinId = this.selectedProtein.id;
+            this.requestedModel.proteinName = this.selectedProtein.name;
+        }
+        try {
+            const {target} = this.ngbTargetPanelService.identificationTarget || {};
+            const protein = this.selectedProtein;
+            if (target && target.id && protein && protein.id) {
+                const task = await this.targetDataService.getPatentsByProteinId(target.id, protein.id)
+                if (task && task.id) {
+                    this.taskId = task.id;
+                    const {DONE, FAILURE, CANCELED} = this.blastSearchState;
+                    if (task.status === DONE || task.status === FAILURE || task.status === CANCELED) {
+                        this.blastStatus = task.status;
+                        this.getBlastResultLoad();
+                    } else {
+                        this.updateInterval = this.$interval(this.getBlastSearch.bind(this), this.refreshInterval);
+                    }
+                }
+            } else {
+                const task = await this.targetDataService.getBlastTaskBySequence(this.searchSequence);
+                if (task && task.id) {
+                    this.taskId = task.id;
+                    this.updateInterval = this.$interval(this.getBlastSearch.bind(this), this.refreshInterval);
+                }
+            }
+        } catch(err) {
+            this._failedResult = true;
+            this._errorMessageList = [err.message];
+            this._totalPages = 0;
+            this._emptyResults = false;
+            this._tableResults = null;
+            this._loadingData = false;
+            this.requestedModel = null;
         }
     }
 
+    async getBlastSearch() {
+        const blast = await this.projectDataService.getBlastSearch(this.taskId);
+        const {DONE, FAILURE, CANCELED} = this.blastSearchState;
+        if (blast.status === DONE || blast.status === FAILURE || blast.status === CANCELED) {
+            this.blastStatus = blast.status;
+            this.$interval.cancel(this.updateInterval);
+            this.getBlastResultLoad();
+        }
+    }
+
+    async getBlastResultLoad() {
+        const { DONE } = this.blastSearchState;
+        if (this.blastStatus === DONE) {
+            const result = await this.projectDataService.getBlastResultLoad(this.taskId);
+            if (result) {
+                this._failedResult = false;
+                this._errorMessageList = null;
+                this._totalPages = Math.ceil(result.length/this.pageSize);
+                this._emptyResults = result.length === 0;
+                this.setAllResultsBySequence(result);
+                this.setTableResults(this.setTableResultsOnPage());
+            }
+        } else {
+            this._failedResult = true;
+            this._errorMessageList = ['Error getting results'];
+            this._totalPages = 0;
+            this._emptyResults = false;
+            this._tableResults = [];
+        }
+        this.blastStatus = undefined;
+        this.taskId = undefined;
+        this._loadingData = false;
+        this.dispatcher.emit('target:identification:patents:protein:search:changed');
+        this.dispatcher.emit('target:identification:patents:protein:pagination:updated');
+    }
+
+    setAllResultsBySequence(result) {
+        const getNcbiUrl = (item) => {
+            if (item) {
+                const id = item.sequenceAccessionVersion || item.sequenceId;
+                return `https://www.ncbi.nlm.nih.gov/protein/${id}`;
+            }
+            return undefined;
+        };
+        this._allResults = result.map(i => {
+            return {
+                'protein': {
+                    name: i.sequenceAccessionVersion,
+                    url: getNcbiUrl(i)
+                },
+                'length': i.alignments[0].length,
+                'organism': i.organism,
+                'name': i.sequenceId,
+                'query cover': `${i.queryCoverage}%`,
+                'percent identity': `${i.percentIdentity}%`
+            };
+        });
+    }
+
+    setTableResultsOnPage() {
+        const allResults = this._allResults;
+        if (!allResults || !allResults.length) return [];
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        const results = allResults.slice(start, end);
+        return results;
+    }
+
     setTableResults(data) {
-        if (data.items) {
-            if (this.isSearchByProteinName) {
+        const { searchBy } = this.requestedModel;
+        if (searchBy === this.searchByOptions.name) {
+            if (data.items) {
                 this._tableResults = data.items.map(i => {
                     const protein = { name: i.id };
                     if (i.url) {
@@ -345,12 +473,12 @@ export default class ngbPatentsSequencesTabService {
                         name: i.name
                     };
                 });
-            }
-            if (this.isSearchByProteinSequence) {
+            } else {
                 this._tableResults = [];
             }
-        } else {
-            this._tableResults = [];
+        }
+        if (searchBy === this.searchByOptions.sequence) {
+            this._tableResults = data;
         }
     }
 
@@ -393,6 +521,7 @@ export default class ngbPatentsSequencesTabService {
         this._failedResult = false;
         this._errorMessageList = null;
         this._emptyResults = false;
+        this._allResults = null;
     }
 
     resetData() {

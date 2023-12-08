@@ -85,14 +85,8 @@ export default class ngbPatentsSequencesTabController {
     get failedResult() {
         return this.ngbPatentsSequencesTabService.failedResult;
     }
-    set failedResult(value) {
-        this.ngbPatentsSequencesTabService.failedResult = value;
-    }
     get errorMessageList() {
         return this.ngbPatentsSequencesTabService.errorMessageList;
-    }
-    set errorMessageList(value) {
-        this.ngbPatentsSequencesTabService.errorMessageList = value;
     }
     get tableResults() {
         return this.ngbPatentsSequencesTabService.tableResults;
@@ -122,7 +116,6 @@ export default class ngbPatentsSequencesTabController {
     }
 
     onChangeProtein() {
-        this.selectedProtein;
         this.setSequence();
     }
 
@@ -140,7 +133,7 @@ export default class ngbPatentsSequencesTabController {
         } else {
             this.searchSequence = '';
         }
-        if (this.ngbPatentsSequencesTabService.isSearchByProteinSequence) {
+        if (this.searchBy === this.searchByOptions.sequence) {
             this.$timeout(() => this.$scope.$apply());
         }
     }
@@ -149,14 +142,30 @@ export default class ngbPatentsSequencesTabController {
         this.searchBy = option;
     }
 
-    async onClickSearch() {
+    onChangeSequence() {
+        this.selectedProtein = undefined;
+    }
+
+    onClickSearch() {
+        this.ngbPatentsSequencesTabService.resetTableResults();
         this.loadingData = true;
-        this.failedResult = false;
-        this.errorMessageList = null;
-        await this.ngbPatentsSequencesTabService.searchPatents();
+        if (this.searchBy === this.searchByOptions.name) {
+            this.searchByProteinName();
+        }
+        if (this.searchBy === this.searchByOptions.sequence) {
+            this.searchByProteinSequence();
+        }
+    }
+
+    async searchByProteinName() {
+        await this.ngbPatentsSequencesTabService.searchPatentsByProteinName();
         this.$timeout(() => {
-            this.dispatcher.emit('target:identification:patents:protein:changed');
+            this.dispatcher.emit('target:identification:patents:protein:search:changed');
             this.$scope.$apply();
         });
+    }
+
+    searchByProteinSequence() {
+        this.ngbPatentsSequencesTabService.searchPatentsByProteinSequence();
     }
 }

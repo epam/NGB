@@ -35,9 +35,9 @@ export default class ngbPatentsProteinTableController {
     constructor($scope, $timeout, dispatcher, ngbPatentsSequencesTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsSequencesTabService});
         const searchChanged = this.searchChanged.bind(this);
-        dispatcher.on('target:identification:patents:protein:changed', searchChanged);
+        dispatcher.on('target:identification:patents:protein:search:changed', searchChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:protein:changed', searchChanged);
+            dispatcher.removeListener('target:identification:patents:protein:search:changed', searchChanged);
         });
     }
 
@@ -154,7 +154,6 @@ export default class ngbPatentsProteinTableController {
                 }
                 return [];
             });
-        this.dispatcher.emit('target:identification:patents:protein:results:updated');
         this.$timeout(() => this.$scope.$apply());
     }
 

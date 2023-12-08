@@ -677,7 +677,7 @@ export class TargetDataService extends DataService {
         });
     }
 
-    searchPatentsByProtein(request) {
+    getPatentsByProteinName(request) {
         return new Promise((resolve, reject) => {
             this.post('patents/proteins/ncbi', request)
                 .then(data => {
@@ -694,14 +694,37 @@ export class TargetDataService extends DataService {
         });
     }
 
-    searchPatentsBySequence() {
+    getPatentsByProteinId(targetId, sequenceId) {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const data = {totalCount: 0};
-                resolve(data);
-                // const message = `Error getting patents`;
-                // reject(new Error(message));
-            }, 5000)
+            this.get(`patents/proteins/${targetId}?sequenceId=${sequenceId}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getBlastTaskBySequence(sequence) {
+        return new Promise((resolve, reject) => {
+            const message = 'Error getting blast task';
+            this.get(`patents/proteins?sequence=${sequence}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error(message));
+                    }
+                })
+                .catch(error => {
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
