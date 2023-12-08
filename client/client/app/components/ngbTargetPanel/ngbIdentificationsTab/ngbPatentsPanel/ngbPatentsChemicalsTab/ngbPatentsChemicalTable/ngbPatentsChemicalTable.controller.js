@@ -35,9 +35,9 @@ export default class ngbPatentsChemicalTableController {
     constructor($scope, $timeout, dispatcher, ngbPatentsChemicalsTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsChemicalsTabService});
         const searchChanged = this.searchChanged.bind(this);
-        dispatcher.on('target:identification:patents:drug:changed', searchChanged);
+        dispatcher.on('target:identification:patents:drug:search:changed', searchChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:drug:changed', searchChanged);
+            dispatcher.removeListener('target:identification:patents:drug:search:changed', searchChanged);
         });
     }
 
@@ -148,7 +148,7 @@ export default class ngbPatentsChemicalTableController {
                 }
                 return [];
             });
-        this.dispatcher.emit('target:identification:patents:drug:results:updated');
+        this.dispatcher.emit('target:identification:patents:drug:pagination:updated');
         this.$timeout(() => this.$scope.$apply());
     }
 

@@ -158,8 +158,11 @@ export default class ngbPatentsChemicalsTabService {
     get structureModelChanged() {
         if (this.isSearchByDrugStructure && !this.isStructureEmpty) {
             const {searchBy, drugName, structure} = this.requestedModel;
-            if (searchBy === this.searchByOptions.structure && drugName && structure) {
+            if (searchBy === this.searchByOptions.structure && (drugName && this.selectedDrug) && structure) {
                 return drugName !== this.selectedDrug || this.searchStructure !== structure;
+            }
+            if (searchBy === this.searchByOptions.structure && structure) {
+                return this.searchStructure !== structure;
             }
             return true;
         }
@@ -176,8 +179,9 @@ export default class ngbPatentsChemicalsTabService {
 
     get searchDisabled() {
         return this.loadingDrugs || this.loadingData ||
-            (this.isSearchByDrugStructure && this.isStructureEmpty)
-            || !this.selectedDrug || !this.requestModelChanged;
+            (this.isSearchByDrugStructure && this.isStructureEmpty) ||
+            (this.isSearchByDrugName && !this.selectedDrug) ||
+            !this.requestModelChanged;
     }
 
     get loadingIdentifier() {
@@ -245,36 +249,37 @@ export default class ngbPatentsChemicalsTabService {
     }
 
     async searchPatents() {
-        const searchBy = this.searchBy;
+        this.requestedModel = { searchBy: this.searchBy };
+        this.currentPage = 1;
         const drugName = this.selectedDrug;
+        if (drugName) {
+            this.requestedModel.drugName = drugName;
+        }
         const structure = this.searchStructure;
-        const originalStructure = this.originalStructure;
+        if (this.searchBy === this.searchByOptions.structure && structure) {
+            this.requestedModel.structure = structure;
+            this.requestedModel.originalStructure = this.originalStructure;
+        }
         this.currentPage = 1;
         const success = await this.getTableResults();
-        if (success) {
-            if (this.isSearchByDrugName) {
-                this.requestedModel = { searchBy, drugName };
-            }
-            if (this.isSearchByDrugStructure) {
-                this.requestedModel = { searchBy, drugName, structure, originalStructure };
-            }
-        } else {
+        if (!success) {
             this.requestedModel = null;
         }
-        this.dispatcher.emit('target:identification:patents:drug:results:updated');
+        this.dispatcher.emit('target:identification:patents:drug:pagination:updated');
         return;
     }
 
     getRequest() {
         let request;
-        if (this.isSearchByDrugName) {
+        const {searchBy} = this.requestedModel;
+        if (searchBy === this.searchByOptions.name) {
             request = {
                 page: this.currentPage,
                 pageSize: this.pageSize,
                 name: this.selectedDrug,
             };
         }
-        if (this.isSearchByDrugStructure) {
+        if (searchBy === this.searchByOptions.structure) {
             request = this.searchStructure;
         }
         return request;
@@ -312,17 +317,19 @@ export default class ngbPatentsChemicalsTabService {
     }
 
     searchPatentResults(request) {
-        if (this.isSearchByDrugName) {
+        const {searchBy} = this.requestedModel;
+        if (searchBy === this.searchByOptions.name) {
             return Promise.resolve(this.targetDataService.searchPatentsByDrug(request));
         }
-        if (this.isSearchByDrugStructure) {
+        if (searchBy === this.searchByOptions.structure) {
             return Promise.resolve(this.targetDataService.searchPatentsByStructure(request));
         }
     }
 
     setTableResults(data) {
         if (data.items) {
-            if (this.isSearchByDrugName) {
+            const {searchBy} = this.requestedModel;
+            if (searchBy === this.searchByOptions.name) {
                 this._tableResults = data.items.map(item => {
                     const cid = { name: item.id };
                     if (item.url) {
@@ -336,7 +343,7 @@ export default class ngbPatentsChemicalsTabService {
                     };
                 });
             }
-            if (this.isSearchByDrugStructure) {
+            if (searchBy === this.searchByOptions.structure) {
                 this._tableResults = data.items.map(item => {
                     const cid = { name: item.id };
                     if (item.url) {

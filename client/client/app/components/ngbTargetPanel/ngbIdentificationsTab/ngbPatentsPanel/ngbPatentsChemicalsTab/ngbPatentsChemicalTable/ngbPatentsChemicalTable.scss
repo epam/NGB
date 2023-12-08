@@ -1,11 +1,19 @@
 @import "../../ngbPatentsPanel.variables.scss";
 
 ngb-patents-chemical-table {
+
+    .ui-grid-container.with-pagination {
+        margin-bottom: 0;
+    }
+
+    .ui-grid-container {
+        margin-bottom: 24px;
+    }
+
     .ui-grid {
         border: none;
         height: auto;
         min-height: 50px;
-        margin-bottom: 24px;
 
         .ui-grid-header {
             border-bottom: 0;

@@ -58,14 +58,8 @@ export default class ngbPatentsChemicalsTabController {
     get failedResult() {
         return this.ngbPatentsChemicalsTabService.failedResult;
     }
-    set failedResult(value) {
-        this.ngbPatentsChemicalsTabService.failedResult = value;
-    }
     get errorMessageList() {
         return this.ngbPatentsChemicalsTabService.errorMessageList;
-    }
-    set errorMessageList(value) {
-        this.ngbPatentsChemicalsTabService.errorMessageList = value;
     }
     get tableResults() {
         return this.ngbPatentsChemicalsTabService.tableResults;
@@ -151,13 +145,16 @@ export default class ngbPatentsChemicalsTabController {
         this.searchBy = option;
     }
 
+    onChangeStructure() {
+        this.selectedDrug = undefined;
+    }
+
     async onClickSearch() {
+        this.ngbPatentsChemicalsTabService.resetTableResults();
         this.loadingData = true;
-        this.failedResult = false;
-        this.errorMessageList = null;
         await this.ngbPatentsChemicalsTabService.searchPatents();
         this.$timeout(() => {
-            this.dispatcher.emit('target:identification:patents:drug:changed');
+            this.dispatcher.emit('target:identification:patents:drug:search:changed');
             this.$scope.$apply();
         });
     }

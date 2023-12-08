@@ -1,4 +1,5 @@
-<div class="ui-grid-container">
+<div class="ui-grid-container"
+     ng-class="{'with-pagination': $ctrl.totalPages > 1}">
     <div ui-grid="$ctrl.gridOptions"
          disable-wheel-handler
          ui-grid-resize-columns
