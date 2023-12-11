@@ -17,6 +17,7 @@ plugins {
     id 'org.springframework.boot' version '1.5.2.RELEASE'
     id "de.undercouch.download" version "3.1.2"
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
+    id "com.avast.gradle.docker-compose" version "0.9.5"
 }
 
 group "com.epam"
@@ -44,6 +45,9 @@ def loadConfiguration() {
         war {
             archiveName "catgenome.war"
         }
+    }
+    if (database == "postgres") {
+        dockerCompose.isRequiredBy(test)
     }
 }
 
@@ -419,4 +423,10 @@ jacocoTestReport {
         xml.enabled true
         html.enabled false
     }
+}
+
+dockerCompose {
+    useComposeFiles = ["../../docker/postgres_test/docker-compose.yml"]
+    startedServices = ['postgres']
+    projectName = 'NGB'
 }
