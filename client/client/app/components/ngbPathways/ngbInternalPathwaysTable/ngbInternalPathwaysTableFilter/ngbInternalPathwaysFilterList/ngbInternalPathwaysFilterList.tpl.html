@@ -15,8 +15,9 @@
      prevent-parent-scroll>
     <div class="ngb-filter-list-item"
          ng-if="!$ctrl.listElements.isLoading" ng-repeat="(index, item) in $ctrl.listElements.preLoadedList.model track by $index">
-        <md-checkbox aria-label="{{item}} checkbox" ng-checked="$ctrl.itemIsSelected(item)"
-                     ng-click="$ctrl.didClickOnItem(item)"
+        <md-checkbox aria-label="{{item.taxId}} checkbox"
+                     ng-checked="$ctrl.itemIsSelected($ctrl.listElements.preLoadedList.view[index])"
+                     ng-click="$ctrl.didClickOnItem($ctrl.listElements.preLoadedList.view[index])"
                      ng-if="!item.placeholder && !item.divider && $ctrl.field.field === 'organisms'">
             <span class="context-menu-item">{{$ctrl.listElements.preLoadedList.view[index].taxId}}</span>
             <span class="context-menu-item-subtitle">{{$ctrl.listElements.preLoadedList.view[index].speciesName.toUpperCase()}}</span>
