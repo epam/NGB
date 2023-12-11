@@ -1,0 +1,28 @@
+<div class="buttons-container">
+    <div>
+        <md-button ng-if="$ctrl.editMode"
+                   class="general-information-button add-button"
+                   ng-click="$ctrl.onClickAddBtn()"
+                   ng-disabled="$ctrl.disableAddButton">
+            Add
+        </md-button>
+    </div>
+    <div>
+        <md-button ng-if="!$ctrl.editMode"
+                   class="general-information-button"
+                   ng-click="$ctrl.onClickEditBtn()">
+            Edit
+        </md-button>
+        <md-button ng-if="$ctrl.editMode"
+                   class="general-information-button cancel-button"
+                   ng-click="$ctrl.onClickCancelBtn()">
+            Cancel
+        </md-button>
+        <md-button ng-if="$ctrl.editMode"
+                   class="general-information-button"
+                   ng-click="$ctrl.onClickSaveBtn()"
+                   ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
+            Save
+        </md-button>
+    </div>
+</div>

@@ -1,27 +1,11 @@
 <div layout="column">
     <collapsible>
-        <collapsible-panel is-open="$ctrl.isGeneralInfoOpen" disabled="$ctrl.editMode">
+        <collapsible-panel
+            is-open="$ctrl.isGeneralInfoOpen"
+            disabled="$ctrl.editMode"
+            ng-disabled="$ctrl.editMode">
             <collapsible-panel-title>
                 General information
-                <md-button
-                    class="general-information-buttons"
-                    ng-if="$ctrl.uuid && !$ctrl.editMode && $ctrl.isGeneralInfoOpen"
-                    ng-click="$ctrl.onClickEditBtn($event)">
-                    Edit
-                </md-button>
-                <md-button
-                    class="general-information-buttons cancel-button"
-                    ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickCancelBtn($event)">
-                    Cancel
-                </md-button>
-                <md-button
-                    class="general-information-buttons"
-                    ng-if="$ctrl.editMode"
-                    ng-click="$ctrl.onClickSaveBtn($event)"
-                    ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
-                    Save
-                </md-button>
             </collapsible-panel-title>
             <collapsible-panel-content>
                 <div ng-if="$ctrl.saveInProgress">
@@ -31,7 +15,8 @@
                     <md-progress-linear md-mode="query"></md-progress-linear>
                 </div>
                 <div ng-if="$ctrl.saveError" class="md-padding">
-                    <ngb-panel-error-list message-list="$ctrl.saveError"></ngb-panel-error-list>
+                    <ngb-panel-error-list message-list="$ctrl.saveError">
+                    </ngb-panel-error-list>
                 </div>
                 <ngb-info-rows properties="$ctrl.properties" editmode="$ctrl.editMode"></ngb-info-rows>
                 <div ng-hide="$ctrl.isReadLoadingis" >
@@ -58,7 +43,7 @@
 
     <collapsible ng-show="$ctrl.read === undefined">
         <collapsible-panel is-open="true">
-            <collapsible-panel-title>
+            <collapsible-panel-title id="sequencePanel">
                 Sequence
             </collapsible-panel-title>
             <collapsible-panel-content>
