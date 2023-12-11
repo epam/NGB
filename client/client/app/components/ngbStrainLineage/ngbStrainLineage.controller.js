@@ -47,6 +47,9 @@ export default class ngbStrainLineageController extends baseController {
 
         this.initialize();
         this.initEvents();
+        $scope.$on('$destroy', () => {
+            this.ngbStrainLineageService.selectedElementId = null;
+        });
     }
 
     static get UID() {
@@ -72,6 +75,10 @@ export default class ngbStrainLineageController extends baseController {
                 this.error = error;
             }
             this.lineageTreeList = this.constructTreeList(referenceData, allData);
+            if (this.error && !this.selectedTreeId) {
+                this.selectedTreeId = this.lineageTreeList[0].id;
+                await this.onTreeSelect();
+            }
             this.loading = false;
         } else {
             const {allData, referenceData} = await this.ngbStrainLineageService.loadStrainLineages(null);
