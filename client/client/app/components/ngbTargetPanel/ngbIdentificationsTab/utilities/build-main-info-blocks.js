@@ -79,6 +79,10 @@ export default function buildMainInfoBlocks (identificationData) {
                     count: identificationData.publicationsCount || 0
                 }
             ]
+        },
+        {
+            key: 'patents',
+            title: 'Patents',
         }
     ]
 }

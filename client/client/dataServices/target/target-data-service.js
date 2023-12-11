@@ -701,4 +701,128 @@ export class TargetDataService extends DataService {
                 }, reject);
         });
     }
+
+    getPatentsByProteinName(request) {
+        return new Promise((resolve, reject) => {
+            this.post('patents/proteins/ncbi', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getPatentsByProteinId(targetId, sequenceId) {
+        return new Promise((resolve, reject) => {
+            this.get(`patents/proteins/${targetId}?sequenceId=${sequenceId}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getBlastTaskBySequence(sequence) {
+        return new Promise((resolve, reject) => {
+            const message = 'Error getting blast task';
+            this.get(`patents/proteins?sequence=${sequence}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error(message));
+                    }
+                })
+                .catch(error => {
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getDrugs(geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/drugs?geneIds=${geneIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting drugs';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    searchPatentsByDrug(request) {
+        return new Promise((resolve, reject) => {
+            this.post('patents/drugs/ncbi', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    searchPatentsByStructure(id) {
+        return new Promise((resolve, reject) => {
+            this.get(`patents/drugs/ncbi?id=${id}`)
+                .then(data => {
+                    if (data) {
+                        const result = {
+                            items: data,
+                            totalCount: data.length
+                        };
+                        resolve(result);
+                    } else {
+                        const result = { totalCount: 0 };
+                        resolve(result);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getCompound(name) {
+        return new Promise((resolve, reject) => {
+            this.get(`compound/smiles/${name}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting identifier';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

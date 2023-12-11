@@ -1,0 +1,57 @@
+@import "./ngbPatentsPanel.variables.scss";
+
+ngb-patents-panel {
+    display: block;
+    padding: 5px 0 0 0;
+    position: relative;
+
+    md-nav-bar.patents-nav-bar {
+        nav,
+        ul,
+        .md-nav-bar {
+            color: $patents-color;
+            height: $patents-control-height;
+            line-height: $patents-control-height;
+        }
+
+        .md-nav-bar {
+            border-bottom: $patents-nav-border;
+        }
+
+        ul {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        md-nav-ink-bar {
+            display: none;
+        }
+    
+        .md-nav-item:first-of-type {
+            margin-left: 2px;
+        }
+    
+        .patents-tab {
+            >button.md-button {
+                border-radius: $patents-nav-border-radius $patents-nav-border-radius 0 0;
+                line-height: $patents-control-height;
+                height: $patents-control-height;
+                min-height: $patents-control-height;
+                padding: 0 4px;
+                margin: 0 2px;
+                color: $patents-color;
+                font-size: $patents-font-size;
+                font-weight: normal;
+                background: $patents-nav-background;
+                border: $patents-nav-border;
+            }
+    
+            &.selected > button.md-button {
+                background: $patents-nav-selected-background;
+                border: $patents-nav-selected-border;
+            }
+        }
+    }
+}
+

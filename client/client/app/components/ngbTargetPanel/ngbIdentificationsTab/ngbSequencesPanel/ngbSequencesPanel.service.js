@@ -154,6 +154,7 @@ export default class ngbSequencesPanelService {
             };
             return acc;
         }, {});
+        this.dispatcher.emit('target:identification:sequences:updated', result);
         this.setSequenceData();
     }
 
