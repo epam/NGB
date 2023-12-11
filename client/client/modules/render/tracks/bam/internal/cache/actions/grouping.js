@@ -85,6 +85,19 @@ function getGroupNamesForGroupByReadStrandMode(read) {
     };
 }
 
+function getGroupNamesForGroupByReadGroupMode(read) {
+    let groupDisplayName = GROUP_DISPLAY_NAME_NOT_AVAILABLE;
+    let groupName = GROUP_NAME_DEFAULT;
+    if (read.readGroup) {
+        groupName = read.readGroup.toLowerCase();
+        groupDisplayName = groupName;
+    }
+    return {
+        groupDisplayName,
+        groupName
+    };
+}
+
 export function getGroupNamesFn(mode): Function {
     switch (mode) {
         default:
@@ -98,6 +111,8 @@ export function getGroupNamesFn(mode): Function {
             return getGroupNamesForGroupByPairOrientationMode;
         case groupModes.groupByReadStrandMode:
             return getGroupNamesForGroupByReadStrandMode;
+        case groupModes.groupByReadGroupMode:
+            return getGroupNamesForGroupByReadGroupMode;
     }
 }
 
