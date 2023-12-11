@@ -1,0 +1,5 @@
+#!/bin/bash
+rm /usr/bin/ngb
+kill `sudo jps -v | grep NGB | awk '{print $1}'` || echo "no NGB instance launched"
+
+
