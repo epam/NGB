@@ -26,13 +26,14 @@ export default class ngbPatentsPanelController {
         return 'ngbPatentsPanelController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbSequencesPanelService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbSequencesPanelService});
+    constructor($scope, $timeout, dispatcher, ngbSequencesPanelService, ngbPatentsSequencesTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbSequencesPanelService, ngbPatentsSequencesTabService});
     }
 
     $onInit() {
         this._tabs = Object.values(this.patentTabs);
         this._selectedTab = this.patentTabs.sequences;
+        this.ngbPatentsSequencesTabService.getDefaultSettings();
     }
 
     onChangeTab(tab) {

@@ -3,6 +3,10 @@ const SEARCH_BY_OPTIONS = {
     sequence: 'sequence',
 };
 
+const SEARCH_BY_NAME = {
+    name: 'name'
+};
+
 const SEARCH_BY_NAMES = {
     [SEARCH_BY_OPTIONS.name]: 'protein name',
     [SEARCH_BY_OPTIONS.sequence]: 'amino acid sequence',
@@ -19,14 +23,20 @@ const PROTEIN_COLUMNS = [{
         name: 'protein',
         displayName: 'Protein'
     }, {
+        name: 'title',
+        displayName: 'Title'
+    }, {
+        name: 'journal',
+        displayName: 'Journal'
+    }, {
+        name: 'name',
+        displayName: 'Protein name'
+    }, {
         name: 'length',
         displayName: 'Length (aa)'
     }, {
         name: 'organism',
         displayName: 'Organism'
-    }, {
-        name: 'name',
-        displayName: 'Protein name'
 }];
 
 const SEQUENCE_COLUMNS = [{
@@ -63,7 +73,7 @@ const BLAST_SEARCH_STATE = {
 export default class ngbPatentsSequencesTabService {
 
     get searchByOptions() {
-        return SEARCH_BY_OPTIONS;
+        return this._disableProteinBlast ? SEARCH_BY_NAME : SEARCH_BY_OPTIONS;
     }
     get searchByNames() {
         return SEARCH_BY_NAMES;
@@ -90,6 +100,7 @@ export default class ngbPatentsSequencesTabService {
         return BLAST_SEARCH_STATE;
     }
 
+    _disableProteinBlast;
     _loadingProteins = false;
     proteins = [];
     _selectedProtein;
@@ -249,14 +260,22 @@ export default class ngbPatentsSequencesTabService {
         this._errorSequence = value;
     }
 
-    static instance ($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService) {
-        return new ngbPatentsSequencesTabService($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService);
+    static instance ($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService) {
+        return new ngbPatentsSequencesTabService($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService);
     }
 
-    constructor($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService) {
-        Object.assign(this, {$interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService});
+    constructor($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService) {
+        Object.assign(this, {$interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService});
         dispatcher.on('target:identification:sequences:updated', this.setProteins.bind(this));
         dispatcher.on('target:identification:reset', this.resetData.bind(this));
+    }
+
+    async getDefaultSettings() {
+        const {target_settings: targetSettings} = await this.utilsDataService.getDefaultTrackSettings();
+        if (!targetSettings) return;
+        const {disable_protein_blast: disableProteinBlast} = targetSettings;
+        if (!disableProteinBlast) return;
+        this._disableProteinBlast = disableProteinBlast;
     }
 
     setProteins(sequences) {
@@ -468,6 +487,8 @@ export default class ngbPatentsSequencesTabService {
                     }
                     return {
                         protein,
+                        title: i.title,
+                        journal: i.journal,
                         length: i.length,
                         organism: i.organism,
                         name: i.name
