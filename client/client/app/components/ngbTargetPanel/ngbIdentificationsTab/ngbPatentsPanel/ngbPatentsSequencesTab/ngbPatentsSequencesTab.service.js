@@ -23,14 +23,20 @@ const PROTEIN_COLUMNS = [{
         name: 'protein',
         displayName: 'Protein'
     }, {
+        name: 'title',
+        displayName: 'Title'
+    }, {
+        name: 'journal',
+        displayName: 'Journal'
+    }, {
+        name: 'name',
+        displayName: 'Protein name'
+    }, {
         name: 'length',
         displayName: 'Length (aa)'
     }, {
         name: 'organism',
         displayName: 'Organism'
-    }, {
-        name: 'name',
-        displayName: 'Protein name'
 }];
 
 const SEQUENCE_COLUMNS = [{
@@ -481,6 +487,8 @@ export default class ngbPatentsSequencesTabService {
                     }
                     return {
                         protein,
+                        title: i.title,
+                        journal: i.journal,
                         length: i.length,
                         organism: i.organism,
                         name: i.name
