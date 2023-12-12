@@ -209,7 +209,12 @@ export default class ngbPatentsChemicalsTabService {
 
     constructor(dispatcher, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
-        dispatcher.on('target:identification:reset', this.resetData.bind(this));
+        dispatcher.on('target:identification:reset', this.targetChanged.bind(this));
+        this.setDrugs();
+    }
+
+    targetChanged() {
+        this.resetData();
         this.setDrugs();
     }
 
