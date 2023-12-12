@@ -89,6 +89,8 @@ public class NCBIPatentsManager {
     private static final String ACCESSION_VERSION = "GBSeq_accession-version";
     private static final String DEFINITION = "GBSeq_definition";
     private static final String ORGANISM = "GBSeq_organism";
+    private static final String TITLE = "GBSeq_references/GBReference/GBReference_title";
+    private static final String JOURNAL = "GBSeq_references/GBReference/GBReference_journal";
     public static final String EMPTY_LINE = "\n\n";
     private final NCBIAuxiliaryManager ncbiAuxiliaryManager;
     private final NCBIDataManager ncbiDataManager;
@@ -171,6 +173,8 @@ public class NCBIPatentsManager {
                 patent.setUrl(String.format(PROTEIN_LINK, id));
                 patent.setName(xPath.compile(DEFINITION).evaluate(item));
                 patent.setOrganism(xPath.compile(ORGANISM).evaluate(item));
+                patent.setTitle(xPath.compile(TITLE).evaluate(item));
+                patent.setJournal(xPath.compile(JOURNAL).evaluate(item));
                 patents.add(patent);
             }
         } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {

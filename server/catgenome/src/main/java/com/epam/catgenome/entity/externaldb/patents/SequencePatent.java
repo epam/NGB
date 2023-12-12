@@ -35,4 +35,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SequencePatent extends Sequence {
     private String organism;
+    private String title;
+    private String journal;
 }
