@@ -26,7 +26,6 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.PatentsSearchStatus;
@@ -40,12 +39,12 @@ import com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,7 +57,6 @@ import static com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager.ge
 public class ProteinPatentsManager {
     private static final String TASK_NAME_PATTERN = "%d_%s";
     private static final String BLASTP = "blastp";
-    private static final String DATABASE = "PatentAA";
     private static final String OPTIONS = "-max_target_seqs 100 -evalue 0.05 -num_threads 2";
     public static final String TASK_NAME = "Protein patents search";
     private final TargetManager targetManager;
@@ -66,6 +64,9 @@ public class ProteinPatentsManager {
     private final NCBISequencesManager sequencesManager;
     private final BlastTaskManager blastTaskManager;
     private final BlastDatabaseManager blastDatabaseManager;
+
+    @Value("${targets.patent.protein.blast.db:PatentAA}")
+    private String patentDatabaseName;
 
     public void searchPatents() {
         final BlastDatabase database = getBlastDatabase();
@@ -140,7 +141,7 @@ public class ProteinPatentsManager {
     private BlastDatabase getBlastDatabase() {
         final List<BlastDatabase> databases = blastDatabaseManager.load(null, null);
         final BlastDatabase database = databases.stream()
-                .filter(d -> d.getName().equals(DATABASE))
+                .filter(d -> d.getName().equals(patentDatabaseName))
                 .findFirst().orElse(null);
         Assert.notNull(database, "Patented protein sequences database not available");
         return database;
