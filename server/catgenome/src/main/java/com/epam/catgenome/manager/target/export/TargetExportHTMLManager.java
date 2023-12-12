@@ -234,7 +234,7 @@ public class TargetExportHTMLManager {
         final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
         GeneDetails details = GeneDetails.builder()
-                .id(geneId)
+                .id(geneId.toLowerCase())
                 .name(geneNames.get(0))
                 .description(descriptions.get(geneId.toLowerCase()))
                 .build();
@@ -276,7 +276,7 @@ public class TargetExportHTMLManager {
         final List<Sequence> sequences = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             SequenceGene sequenceGene = SequenceGene.builder()
-                    .id(geneRefSection.getGeneId())
+                    .id(geneRefSection.getGeneId().toLowerCase())
                     .name(geneNamesMap.get(geneRefSection.getGeneId().toLowerCase()))
                     .build();
             if (genesMap.containsKey(geneRefSection.getGeneId().toLowerCase())) {
