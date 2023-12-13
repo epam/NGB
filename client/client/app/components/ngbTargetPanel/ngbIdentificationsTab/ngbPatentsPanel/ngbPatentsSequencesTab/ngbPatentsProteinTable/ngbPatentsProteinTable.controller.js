@@ -132,6 +132,33 @@ export default class ngbPatentsProteinTableController {
                         minWidth: 20,
                     };
                     break;
+                case 'title':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                        {{row.entity[col.field]}}
+                                    </div>`
+                    };
+                    break;
+                case 'journal':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                        {{row.entity[col.field]}}
+                                    </div>`
+                    };
+                    break;
+                case 'name':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
+                                        {{row.entity[col.field]}}
+                                    </div>`
+                    };
+                    break;
                 default:
                     columnSettings = {
                         ...columnSettings,
