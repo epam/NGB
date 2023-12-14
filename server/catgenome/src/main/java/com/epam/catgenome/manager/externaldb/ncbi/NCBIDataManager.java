@@ -196,6 +196,11 @@ public class NCBIDataManager extends HttpDataManager {
         return fetchById(NCBI_FETCH, db, id, rettype, "text");
     }
 
+    public String fetchJsonById(final String db, final String id,
+                                final String rettype) throws ExternalDbUnavailableException {
+        return fetchById(NCBI_FETCH, db, id, rettype, "json");
+    }
+
     private String fetchById(final String op, final String db, final String id, final String rettype,
                              final String retmode) throws ExternalDbUnavailableException {
         log.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));

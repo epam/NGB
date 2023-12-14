@@ -28,11 +28,17 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
 import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.entity.externaldb.target.UrlEntity;
+import com.epam.catgenome.entity.target.GeneRefSection;
+import com.epam.catgenome.entity.target.GeneSequence;
+import com.epam.catgenome.entity.target.Sequence;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.pug.NCBIPugManager;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,15 +61,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_PARSING;
+import static com.epam.catgenome.entity.target.Sequence.parseStrand;
 import static org.apache.commons.lang3.StringUtils.join;
 
 /**
@@ -127,9 +131,9 @@ public class NCBIPatentsManager {
         if (count > 0) {
             final List<String> patentIds = ncbiAuxiliaryManager.searchDbForIds(PUB_CHEM_COMPOUND_DB,
                     String.format(DRUG_TERM, request.getName()), retStart, retMax);
-            final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(patentIds, ","),
-                    "text");
-            final List<DrugPatent> patents = parseDrugPatents(text);
+            final String json = ncbiDataManager.fetchJsonById(PUB_CHEM_COMPOUND_DB, join(patentIds, ","),
+                    "docsum");
+            final List<DrugPatent> patents = parseDrugPatents(json, patentIds);
             result.setItems(patents);
         }
         return result;
@@ -137,19 +141,19 @@ public class NCBIPatentsManager {
 
     public List<DrugPatent> getDrugPatents(final String id)
             throws ExternalDbUnavailableException, IOException {
-        final List<Long> cids = ncbiPugManager.getCID(id);
+        final List<String> cids = ncbiPugManager.getCID(id);
         if (CollectionUtils.isEmpty(cids)) {
             return Collections.emptyList();
         }
-        final String text = ncbiDataManager.fetchTextById(PUB_CHEM_COMPOUND_DB, join(cids, ","),
-                "text");
-        final List<DrugPatent> result = parseDrugPatents(text);
+        final String text = ncbiDataManager.fetchJsonById(PUB_CHEM_COMPOUND_DB, join(cids, ","),
+                "docsum");
+        final List<DrugPatent> result = parseDrugPatents(text, cids);
         if (CollectionUtils.isEmpty(result)) {
             return Collections.emptyList();
         }
-        final Map<Long, List<String>> pugPatents = ncbiPugManager.getPatents(cids);
+        final Map<String, List<String>> pugPatents = ncbiPugManager.getPatents(cids);
         result.forEach(p -> {
-            List<String> cidPatents = pugPatents.get(Long.parseLong(p.getId()));
+            List<String> cidPatents = pugPatents.get(p.getId());
             p.setHasPatent(CollectionUtils.isNotEmpty(cidPatents));
         });
         return result;
@@ -186,36 +190,31 @@ public class NCBIPatentsManager {
         return patents;
     }
 
-    private List<DrugPatent> parseDrugPatents(final String text) throws IOException {
+    private List<DrugPatent> parseDrugPatents(final String json, final List<String> cids) throws IOException {
         final List<DrugPatent> patents = new ArrayList<>();
-        final String[] drugs = text.trim().split(EMPTY_LINE);
-        for (String item : drugs) {
-            if (!item.contains("Error occurred")) {
-                String line;
-                try (Reader reader = new StringReader(item);
-                     BufferedReader bufferedReader = new BufferedReader(reader)) {
-                    DrugPatent patent = new DrugPatent();
-                    String id = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        Matcher m = DRUG_NAME_PATTERN.matcher(line);
-                        if (line.startsWith("CID: ")) {
-                            id = line.replace("CID: ", "").trim();
-                            patent.setId(id);
-                        } else if (line.startsWith("IUPAC name: ")) {
-                            patent.setIupacName(line.replace("IUPAC name: ", "").trim());
-                        } else if (line.startsWith("MW: ")) {
-                            patent.setMolecularFormula(line.split("MF: ")[1].trim());
-                        } else if (m.find()) {
-                            patent.setName(m.replaceFirst("").trim());
-                        }
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode jsonNodes = objectMapper.readTree(json);
+        final JsonNode cidsNodes = jsonNodes.at("/result");
+        cids.forEach(cid -> {
+            final JsonNode cidNode = cidsNodes.at("/" + cid);
+            if (cidNode != null) {
+                DrugPatent patent = new DrugPatent();
+                patent.setId(cid);
+                final JsonNode synonymsNode = cidNode.at("/synonymlist");
+                if (synonymsNode.isArray()) {
+                    List<String> synonyms = new ArrayList<>();
+                    final Iterator<JsonNode> synonymsNodeElements = synonymsNode.elements();
+                    while (synonymsNodeElements.hasNext()) {
+                        synonyms.add(synonymsNodeElements.next().asText());
                     }
-                    if (!TextUtils.isBlank(id)) {
-                        patent.setUrl(String.format(DRUG_LINK, id));
-                    }
-                    patents.add(patent);
+                    patent.setName(join(synonyms, ";"));
                 }
+                patent.setMolecularFormula(cidNode.at("/molecularformula").asText());
+                patent.setIupacName(cidNode.at("/iupacname").asText());
+                patent.setUrl(String.format(DRUG_LINK, cid));
+                patents.add(patent);
             }
-        }
+        });
         return patents;
     }
 }
