@@ -43,12 +43,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -109,8 +104,9 @@ public class NCBISequenceManager {
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         final List<GeneRefSection> refSections = getGeneSequencesTable(entrezMap, false);
+
         final List<GeneSequence> sequences = refSections.stream()
-                .map(GeneRefSection::getSequences)
+                .map(sec -> Optional.ofNullable(sec.getSequences()).orElse(Collections.emptyList()))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         final List<String> genomic = sequences.stream()
@@ -321,12 +317,10 @@ public class NCBISequenceManager {
                         geneRefSection.setReference(reference);
                     }
                 }
-
+                final List<GeneSequence> geneSequences = new ArrayList<>();
                 final JsonNode transcriptsNodes = node.at("/gene/transcripts");
                 if (transcriptsNodes.isArray()) {
                     final Iterator<JsonNode> transcriptsElements = transcriptsNodes.elements();
-                    final List<GeneSequence> geneSequences = new ArrayList<>();
-
                     while (transcriptsElements.hasNext()) {
                         JsonNode transcriptsNode = transcriptsElements.next();
                         GeneSequence geneSequence = new GeneSequence();
@@ -360,6 +354,26 @@ public class NCBISequenceManager {
                             protein.setId(proteinId);
                             protein.setLength(transcriptsNode.at("/protein/length").asInt());
                             protein.setName(proteinName + " " + isoformName);
+                            protein.setUrl(String.format(NCBI_PROTEIN_LINK, proteinId));
+                            geneSequence.setProtein(protein);
+                        }
+                        geneSequences.add(geneSequence);
+                    }
+                    geneRefSection.setSequences(geneSequences);
+                }
+                final JsonNode proteinNodes = node.at("/gene/proteins");
+                if (proteinNodes.isArray()) {
+                    final Iterator<JsonNode> proteinElements = proteinNodes.elements();
+                    while (proteinElements.hasNext()) {
+                        JsonNode proteinNode = proteinElements.next();
+                        GeneSequence geneSequence = new GeneSequence();
+                        String proteinId = proteinNode.at("/accession_version").asText();
+                        if (!TextUtils.isBlank(proteinId)) {
+                            String proteinName= proteinNode.at("/name").asText();
+                            Sequence protein = new Sequence();
+                            protein.setId(proteinId);
+                            protein.setLength(proteinNode.at("/length").asInt());
+                            protein.setName(proteinName);
                             protein.setUrl(String.format(NCBI_PROTEIN_LINK, proteinId));
                             geneSequence.setProtein(protein);
                         }
