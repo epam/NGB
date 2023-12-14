@@ -99,7 +99,8 @@ export default class ngbPatentsChemicalTableController {
 
     getPatentsTableGridColumns() {
         const headerCells = require('./ngbPatentsChemicalTable_header.tpl.html');
-        const linkCell = require('./ngbPatentsChemicalTable_linkCell.tpl.html');
+        const linkCell = require('../../ngbPatentsTable_cells/ngbPatentsTable_linkCell.tpl.html');
+        const tooltipCell = require('../../ngbPatentsTable_cells/ngbPatentsTable_tooltipCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbPatentsChemicalsTabService.getColumnList();
@@ -129,19 +130,13 @@ export default class ngbPatentsChemicalTableController {
                 case 'Name':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                                        {{row.entity[col.field]}}
-                                    </div>`
+                        cellTemplate: tooltipCell
                     };
                     break;
                 case 'IUPAC name':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                                        {{row.entity[col.field]}}
-                                    </div>`
+                        cellTemplate: tooltipCell
                     };
                     break;
                 default:
