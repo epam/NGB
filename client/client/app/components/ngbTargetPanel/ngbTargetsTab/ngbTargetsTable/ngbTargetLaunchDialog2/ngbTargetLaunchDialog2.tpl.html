@@ -15,11 +15,15 @@
             <div class="content">
                 <ngb-launch-menu-input label="Genes of interest:"
                                        ng-model="interestModel"
-                                       get-genes-list="getFilteredGenes">
+                                       get-genes-list="getFilteredGenes"
+                                       selected-genes="genesOfInterest"
+                                       on-change-gene="genesOfInterestChanged">
                 </ngb-launch-menu-input>
                 <ngb-launch-menu-input label="Translational genes:"
                                        ng-model="translationalModel"
-                                       get-genes-list="getFilteredGenes">
+                                       get-genes-list="getFilteredGenes"
+                                       selected-genes="translationalGenes"
+                                       on-change-gene="translationalGenesChanged">
                 </ngb-launch-menu-input>
             </div>
         </md-dialog-content>

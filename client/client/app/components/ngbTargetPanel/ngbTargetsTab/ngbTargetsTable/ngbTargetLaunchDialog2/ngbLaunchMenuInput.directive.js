@@ -10,10 +10,12 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
         scope: {
           label: '@',
           ngModel: '=',
+          selectedGenes: '=',
           getGenesList: '=',
+          onChangeGene: '=',
         },
         template: require('./ngbLaunchMenuInput.tpl.html'),
-        controller: function($scope, $element) {
+        controller: function($scope, $element, $timeout) {
             $scope.listIsDisplayed = false;
             $scope.hideListTimeout = null;
             $scope._hideListIsPrevented = false;
@@ -21,11 +23,18 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
 
             $scope.preventListFromClosing = () => {
                 $scope._hideListIsPrevented = true;
-                $scope.input.focus();
             }
 
             $scope.stopPreventListFromClosing = () => {
                 $scope._hideListIsPrevented = false;
+            }
+
+            $scope.mousedown = () => {
+                $scope.preventListFromClosing()
+            }
+
+            $scope.mouseup = () => {
+                $scope.stopPreventListFromClosing()
             }
 
             $scope.hideListDelayed = () => {
@@ -51,18 +60,13 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 $scope.$apply();
             }
 
-            $scope.displayList = () => {
+            $scope.openMenu = (mdOpenMenu, event) => {
+                mdOpenMenu(event);
                 if ($scope.hideListTimeout) {
                     clearTimeout($scope.hideListTimeout);
                     $scope.hideListTimeout = null;
                 }
                 $scope.listElements = $scope.getGenesList();
-                const input = $scope.input[0];
-                const top = input.offsetTop + input.clientHeight - 8;
-                $scope.listPosition = {
-                    top: `${top}px`,
-                    left: `${170}px`
-                }
                 $scope.listIsDisplayed = true;
             }
 
@@ -72,6 +76,11 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
 
             $scope.apply = () => {
                 $scope.ngModel = '';
+            }
+
+            $scope.onClickItem = (gene) => {
+                $timeout(() => $scope.hideList());
+                $scope.onChangeGene(gene);
             }
         }
     };

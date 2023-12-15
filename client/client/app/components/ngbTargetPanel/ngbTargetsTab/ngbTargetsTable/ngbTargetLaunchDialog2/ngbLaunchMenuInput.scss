@@ -19,7 +19,10 @@ ngb-launch-menu-input {
             min-width: 150px;
         }
 
-        .launch-input {
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
             border: none;
             border-bottom: 1px solid #cccccc;
             border-radius: 0;
@@ -29,39 +32,58 @@ ngb-launch-menu-input {
             width: 100%;
             font-size: $md-label-font-size;
             color: $md-chip-color;
+        }
+
+        input.launch-input {
+            border: none;
+            border-radius: 0;
+            height: calc($md-chip-size + 2px);
     
             &:hover,
+            &:focus,
             &:focus-visible {
-                background: #fafafa;
-                border-bottom: 1px solid #aaaaaa;
+                background: #ffffff;
+                border: none;
             }
         }
+
+        input[type="text"]:focus {
+            border: none !important;
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none;
+            outline: none;
+        }
+    }
+}
+
+md-menu-content.launch-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+
+    md-menu-item {
+        line-height: $md-chip-option-size;
+        height: $md-chip-option-size;
+        min-height: $md-chip-option-size;
     }
 
-    .list-container {
-        position: absolute;
-        background-color: #ffffff;
-        z-index: 100;
-        width: 200px;
-        max-height: 200px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-    }
+    .list-item {
+        font-size: $md-chip-font-size;
+        padding: 0 5px;
+        margin: 0;
+        line-height: $md-chip-option-size;
+        height: $md-chip-option-size;
 
-    .launch-list {
-        display: flex;
-        flex-direction: column;
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(235, 223, 223, 0.25);
+        }
 
-        .list-item {
-            font-size: $md-chip-font-size;
-            padding: 0 5px;
-            line-height: $md-chip-option-size;
-            height: $md-chip-option-size;
-
-            &.span-padding {
-                padding: 0 20px;
-            }
+        &.span-padding {
+            padding: 0 20px;
         }
     }
 }

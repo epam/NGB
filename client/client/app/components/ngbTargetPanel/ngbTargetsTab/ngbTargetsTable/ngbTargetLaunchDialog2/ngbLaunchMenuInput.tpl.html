@@ -1,26 +1,34 @@
 <div class="input-container">
     <label class="input-label">{{label}}</label>
-    <input type="text"
-           class="launch-input"
-           ng-model="ngModel"
-           ng-change="onChange(ngModel)"
-           ng-blur="hideListDelayed()"
-           ng-key-bind="{enter: 'hideListDelayed()'}"
-           ng-mousedown="displayList()">
-</div>
-<div class="list-container"
-     ng-style="listPosition">
-    <div class="launch-list"
-         md-whiteframe="4"
-         ng-click="displayList()"
-         ng-mousedown="preventListFromClosing()"
-         ng-mouseup="stopPreventListFromClosing()"
-         ng-show="listIsDisplayed"
-         prevent-parent-scroll>
-        <span class="list-item"
-              ng-class="{'span-padding': gene.item}"
-              ng-repeat="(index, gene) in listElements track by $index">
-              {{gene.span}}
-        </span>
+    <div class="input-box">
+        <md-menu md-position-mode="target-left target"
+                 md-offset="0 30">
+            <div ng-click="openMenu($mdOpenMenu, $event)">
+                <input type="text"
+                       class="launch-input"
+                       ng-model="ngModel"
+                       ng-change="onChange(ngModel)"
+                       ng-blur="hideListDelayed()"
+                       ng-key-bind="{enter: 'hideListDelayed()'}"
+                       ng-mousedown="openMenu($mdOpenMenu, $event)">
+            </div>
+            <md-menu-content width="4" class="launch-list">
+                <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
+                              ng-click="onClickItem(gene)">
+                    <span class="list-item"
+                          ng-class="{'span-padding': gene.item}">
+                        {{gene.span}}
+                    </span>
+                </md-menu-item>
+                <md-menu-item ng-if="!listElements.length">
+                    <span class="list-item"
+                        ng-click="hideListDelayed()"
+                        ng-if="!listElements.length">
+                        Not found
+                    </span>
+                </md-menu-item>
+
+            </md-menu-content>
+        </md-menu>
     </div>
 </div>

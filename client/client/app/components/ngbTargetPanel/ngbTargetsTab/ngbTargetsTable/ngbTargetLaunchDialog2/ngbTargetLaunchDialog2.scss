@@ -5,7 +5,8 @@ md-dialog.launch-dialog {
     max-width: 80%;
 
     md-dialog-content {
-        width: 100%;
+        min-width: 80%;
+        max-width: 100%;
         height: auto;
         overflow-x: visible;
     }
