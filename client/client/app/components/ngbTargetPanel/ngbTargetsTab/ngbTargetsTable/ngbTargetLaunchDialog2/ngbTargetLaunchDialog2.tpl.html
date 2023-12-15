@@ -1,0 +1,31 @@
+<md-dialog aria-label="Target launch identification" class="launch-dialog">
+    <form>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Target identification for '{{name}}'</h2>
+                <span flex></span>
+                <md-button class="md-icon-button"
+                        ng-click="close()"
+                        aria-label="Close">
+                    <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="content">
+                <ngb-launch-menu-input label="Genes of interest:">
+                </ngb-launch-menu-input>
+                <ngb-launch-menu-input label="Translational genes:">
+                </ngb-launch-menu-input>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button aria-label="Identify target"
+                       ng-click="identify()"
+                       class="md-primary"
+                       ng-disabled="identifyDisabled()">
+                Identify
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

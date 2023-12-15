@@ -1,0 +1,21 @@
+@import "../../ngbTargetsTab.variables.scss";
+
+md-dialog.launch-dialog {
+    min-width: 50%;
+    max-width: 80%;
+
+    md-dialog-content {
+        width: 100%;
+    }
+
+    md-toolbar {
+        background-color: rgb(102,153,255);
+    }
+
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+}

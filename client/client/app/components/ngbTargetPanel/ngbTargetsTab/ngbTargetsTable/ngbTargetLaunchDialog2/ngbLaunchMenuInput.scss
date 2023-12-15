@@ -1,0 +1,37 @@
+@import "../../ngbTargetsTab.variables.scss";
+
+ngb-launch-menu-input {
+    display: flex;
+    width: 100%;
+
+    .input-container {
+        display: flex;
+        width: 100%;
+        margin: 20px 10px 10px 20px;
+        flex-direction: row;
+        align-items: flex-start;
+
+        .input-label {
+            line-height: calc($md-chip-size + 2px);
+            height: calc($md-chip-size + 2px);
+            font-size: $md-label-font-size;
+            min-width: 150px;
+        }
+
+        .launch-input {
+            border: none;
+            border-bottom: 1px solid #cccccc;
+            border-radius: 0;
+            min-height: calc($md-chip-size + 2px);
+            height: auto;
+            padding: 0;
+            width: 100%;
+    
+            &:hover,
+            &:focus-visible {
+                background: #fafafa;
+                border-bottom: 1px solid #aaaaaa;
+            }
+        }
+    }
+}
