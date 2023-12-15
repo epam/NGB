@@ -21,7 +21,10 @@ ngb-launch-menu-input {
 
         .input-box {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+
             width: 100%;
             border: none;
             border-bottom: 1px solid #cccccc;
@@ -38,6 +41,7 @@ ngb-launch-menu-input {
             border: none;
             border-radius: 0;
             height: calc($md-chip-size + 2px);
+            width: 100%;
     
             &:hover,
             &:focus,
@@ -54,6 +58,44 @@ ngb-launch-menu-input {
             box-shadow: none;
             outline: none;
         }
+    }
+
+    .gene-chip {
+        height: $table-control-height;
+        line-height: $table-control-height;
+        font-size: $md-chip-font-size;
+        background: #eeeeee;
+        border: none;
+        border-radius: 5px;
+        color: #444444;
+        padding: 0 5px;
+        margin-right: 10px;
+        margin-bottom: 5px;
+        box-sizing: content-box;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        span {
+            margin: 0 auto;
+        }
+
+        .md-button {
+            cursor: pointer;
+            height: $table-control-height;
+            min-height: $table-control-height;
+            line-height: $table-control-height;
+            min-width: 10px;
+            padding: 0;
+
+            &:hover {
+                background-color: inherit;
+            }
+        }
+    }
+
+    .md-menu.dropdown-menu {
+        width: 100%;
     }
 }
 

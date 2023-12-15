@@ -82,6 +82,13 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 $timeout(() => $scope.hideList());
                 $scope.onChangeGene(gene);
             }
+
+            $scope.onRemoveClicked = (gene) => {
+                const index = $scope.selectedGenes.indexOf(gene);
+                if (index !== -1) {
+                    $scope.selectedGenes.splice(index, 1);
+                }
+            }
         }
     };
 });

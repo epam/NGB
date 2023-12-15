@@ -1,16 +1,29 @@
 <div class="input-container">
     <label class="input-label">{{label}}</label>
     <div class="input-box">
+        <span class="gene-chip"
+              ng-repeat="gene in selectedGenes track by $index">
+            <span>{{gene.chip}}</span>
+            <md-button class="remove-tag"
+                       md-no-ink
+                       aria-label="Remove"
+                       title="Remove"
+                       ng-click="onRemoveClicked(gene)">
+                <ng-md-icon icon="clear"
+                            size="12" />
+            </md-button>
+        </span>
         <md-menu md-position-mode="target-left target"
-                 md-offset="0 30">
+                 class="dropdown-menu"
+                 style="width: 100%"
+                 md-offset="0 32">
             <div ng-click="openMenu($mdOpenMenu, $event)">
                 <input type="text"
                        class="launch-input"
                        ng-model="ngModel"
                        ng-change="onChange(ngModel)"
                        ng-blur="hideListDelayed()"
-                       ng-key-bind="{enter: 'hideListDelayed()'}"
-                       ng-mousedown="openMenu($mdOpenMenu, $event)">
+                       ng-key-bind="{enter: 'hideListDelayed()'}">
             </div>
             <md-menu-content width="4" class="launch-list">
                 <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
@@ -27,7 +40,6 @@
                         Not found
                     </span>
                 </md-menu-item>
-
             </md-menu-content>
         </md-menu>
     </div>
