@@ -1,0 +1,18 @@
+<md-dialog aria-label="feature" class="delete-gene-dialog">
+    <md-dialog-content>
+        <div class="row">
+            <h4>
+                <p>{{geneName}} gene is used in saved identifications.</p>
+                <p>Do you want to delete {{geneName}} gene with these identifications?</p>
+            </h2>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button ng-click="delete()" class="md-primary" style="margin-right:20px;">
+            Ok
+        </md-button>
+        <md-button ng-click="cancel()" style="margin-right:20px;">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

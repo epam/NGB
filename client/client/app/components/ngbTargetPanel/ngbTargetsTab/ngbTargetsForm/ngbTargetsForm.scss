@@ -268,6 +268,20 @@ input.ngb-targets-form-table-input {
     }
 }
 
+.delete-gene-dialog {
+    width: 400px;
+    min-width: 400px;
+
+    md-dialog-content {
+        min-width: 400px;
+        width: 400px;
+    }
+
+    h4 {
+        margin: 15px;
+    }
+}
+
 ngb-tags.ngb-target-diseases,
 ngb-tags.ngb-target-products {
     margin-top: 5px;
