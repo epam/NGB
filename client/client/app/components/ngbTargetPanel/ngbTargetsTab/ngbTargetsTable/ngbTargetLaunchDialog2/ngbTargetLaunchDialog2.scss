@@ -22,3 +22,17 @@ md-dialog.launch-dialog {
         justify-content: flex-start;
     }
 }
+
+.confirm-launch-identification-dlg {
+    width: 400px;
+    min-width: 400px;
+
+    md-dialog-content {
+        min-width: 400px;
+        width: 400px;
+    }
+
+    h4 {
+        margin: 15px;
+    }
+}

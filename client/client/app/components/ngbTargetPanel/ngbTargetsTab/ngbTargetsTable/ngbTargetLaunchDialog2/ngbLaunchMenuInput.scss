@@ -1,5 +1,7 @@
 @import "../../ngbTargetsTab.variables.scss";
 
+$label-width: 150px;
+
 ngb-launch-menu-input {
     display: flex;
     width: 100%;
@@ -7,16 +9,17 @@ ngb-launch-menu-input {
 
     .input-container {
         display: flex;
-        width: 90%;
-        margin: 20px 20px 10px 20px;
+        width: 100%;
+        padding: 20px 20px 10px 20px;
         flex-direction: row;
         align-items: flex-start;
+        box-sizing: border-box;
 
         .input-label {
             line-height: calc($md-chip-size + 2px);
             height: calc($md-chip-size + 2px);
             font-size: $md-label-font-size;
-            min-width: 150px;
+            width: $label-width;
         }
 
         .input-box {
@@ -25,14 +28,13 @@ ngb-launch-menu-input {
             align-items: center;
             flex-wrap: wrap;
 
-            width: 100%;
+            width: calc(100% - $label-width);
             border: none;
             border-bottom: 1px solid #cccccc;
             border-radius: 0;
             min-height: calc($md-chip-size + 2px);
             height: auto;
             padding: 0;
-            width: 100%;
             font-size: $md-label-font-size;
             color: $md-chip-color;
         }
@@ -41,7 +43,7 @@ ngb-launch-menu-input {
             border: none;
             border-radius: 0;
             height: calc($md-chip-size + 2px);
-            width: 100%;
+            max-width: calc(100% - $label-width);
     
             &:hover,
             &:focus,
@@ -61,8 +63,8 @@ ngb-launch-menu-input {
     }
 
     .gene-chip {
-        height: $table-control-height;
-        line-height: $table-control-height;
+        height: 20px;
+        line-height: $md-chip-font-size;
         font-size: $md-chip-font-size;
         background: #eeeeee;
         border: none;
@@ -75,6 +77,7 @@ ngb-launch-menu-input {
         display: flex;
         flex-direction: row;
         align-items: center;
+        max-width: 100%;
 
         &.removed-chip {
             background: #adacac;
@@ -82,6 +85,9 @@ ngb-launch-menu-input {
 
         span {
             margin: 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .md-button {
