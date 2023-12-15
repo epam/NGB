@@ -9,84 +9,66 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
         restrict: 'E',
         scope: {
           label: '@',
-          ngModel: '=',
           selectedGenes: '=',
           getGenesList: '=',
           onChangeGene: '=',
         },
         template: require('./ngbLaunchMenuInput.tpl.html'),
-        controller: function($scope, $element, $timeout) {
-            $scope.listIsDisplayed = false;
-            $scope.hideListTimeout = null;
-            $scope._hideListIsPrevented = false;
-            $scope.input = $element;
+        controller: function($scope, $element, $timeout, $mdMenu) {
+            $scope.input = $element[0].getElementsByClassName('launch-input')[0];
+            $scope.inputModel = '';
 
-            $scope.preventListFromClosing = () => {
-                $scope._hideListIsPrevented = true;
+            $scope.onChange = (text) => {
+                $scope.inputModel = text;
+                $scope.listElements = $scope.getGenesList(text);
             }
 
-            $scope.stopPreventListFromClosing = () => {
-                $scope._hideListIsPrevented = false;
-            }
-
-            $scope.mousedown = () => {
-                $scope.preventListFromClosing()
-            }
-
-            $scope.mouseup = () => {
-                $scope.stopPreventListFromClosing()
-            }
-
-            $scope.hideListDelayed = () => {
-                if ($scope.hideListTimeout) {
-                    clearTimeout($scope.hideListTimeout);
-                    $scope.hideListTimeout = null;
-                }
-                $scope.hideListTimeout = setTimeout(() => {
-                    $scope.hideList();
-                }, 100);
-            }
-
-            $scope.hideList = () => {
-                if ($scope.hideListTimeout) {
-                    clearTimeout($scope.hideListTimeout);
-                    $scope.hideListTimeout = null;
-                }
-                if ($scope._hideListIsPrevented) {
-                    return;
-                }
-                $scope.listIsDisplayed = false;
-                $scope.apply();
-                $scope.$apply();
+            $scope.onClickItem = (gene) => {
+                $scope.onChangeGene(gene);
+                $scope.inputModel = '';
+                $scope.input.value = '';
+                $timeout(() => $scope.$apply());
             }
 
             $scope.openMenu = (mdOpenMenu, event) => {
                 mdOpenMenu(event);
-                if ($scope.hideListTimeout) {
-                    clearTimeout($scope.hideListTimeout);
-                    $scope.hideListTimeout = null;
-                }
-                $scope.listElements = $scope.getGenesList();
-                $scope.listIsDisplayed = true;
-            }
-
-            $scope.onChange = (text) => {
-                $scope.listElements = $scope.getGenesList(text);
-            }
-
-            $scope.apply = () => {
-                $scope.ngModel = '';
-            }
-
-            $scope.onClickItem = (gene) => {
-                $timeout(() => $scope.hideList());
-                $scope.onChangeGene(gene);
+                $scope.listElements = $scope.getGenesList($scope.inputModel);
             }
 
             $scope.onRemoveClicked = (gene) => {
                 const index = $scope.selectedGenes.indexOf(gene);
                 if (index !== -1) {
                     $scope.selectedGenes.splice(index, 1);
+                }
+            }
+
+            $scope.onBackspace = () => {
+                if ($scope.inputModel.length) return;
+                $mdMenu.cancel()
+                if (!$scope.selectedGenes.length) return;
+                if ($scope.removedGeneIndex === undefined) {
+                    $scope.removedGeneIndex = $scope.selectedGenes.length - 1;
+                } else {
+                    $scope.onRemoveClicked($scope.selectedGenes[$scope.removedGeneIndex])
+                    $scope.removedGeneIndex = undefined;
+                }
+            }
+
+            $scope.onBlur = () => {
+                $scope.removedGeneIndex = undefined;
+            }
+
+            $scope.onKeyPress = (event) => {
+                switch ((event.code || '').toLowerCase()) {
+                    case 'enter':
+                        $scope.removedGeneIndex = undefined;
+                        break;
+                    case 'backspace':
+                        $scope.onBackspace();
+                        break;
+                    default:
+                        $scope.removedGeneIndex = undefined;
+                        break;
                 }
             }
         }

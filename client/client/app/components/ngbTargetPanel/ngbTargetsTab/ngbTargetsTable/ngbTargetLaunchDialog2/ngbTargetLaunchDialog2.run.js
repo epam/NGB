@@ -13,9 +13,6 @@ export default function run(
             template: require('./ngbTargetLaunchDialog2.tpl.html'),
             controller: function ($scope) {
                 $scope.name = target.name;
-                $scope.searchText = '';
-                $scope.interestModel = '';
-                $scope.translationalModel = '';
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
 
@@ -77,7 +74,7 @@ export default function run(
                             }
                             $timeout(() => {
                                 const index = $scope.translationalGenes.indexOf(item);
-                                if (index) {
+                                if (index !== -1) {
                                     $scope.translationalGenes.splice(index, 1);
                                 }
                             });

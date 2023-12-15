@@ -76,6 +76,10 @@ ngb-launch-menu-input {
         flex-direction: row;
         align-items: center;
 
+        &.removed-chip {
+            background: #adacac;
+        }
+
         span {
             margin: 0 auto;
         }
@@ -96,6 +100,17 @@ ngb-launch-menu-input {
 
     .md-menu.dropdown-menu {
         width: 100%;
+    }
+
+    .list-container {
+        position: absolute;
+        background-color: #ffffff;
+        z-index: 100;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
     }
 }
 
