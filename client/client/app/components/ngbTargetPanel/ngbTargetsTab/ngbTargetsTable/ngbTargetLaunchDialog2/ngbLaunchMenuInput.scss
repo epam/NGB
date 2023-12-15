@@ -3,11 +3,12 @@
 ngb-launch-menu-input {
     display: flex;
     width: 100%;
+    flex-direction: column;
 
     .input-container {
         display: flex;
-        width: 100%;
-        margin: 20px 10px 10px 20px;
+        width: 90%;
+        margin: 20px 20px 10px 20px;
         flex-direction: row;
         align-items: flex-start;
 
@@ -26,11 +27,40 @@ ngb-launch-menu-input {
             height: auto;
             padding: 0;
             width: 100%;
+            font-size: $md-label-font-size;
+            color: $md-chip-color;
     
             &:hover,
             &:focus-visible {
                 background: #fafafa;
                 border-bottom: 1px solid #aaaaaa;
+            }
+        }
+    }
+
+    .list-container {
+        position: absolute;
+        background-color: #ffffff;
+        z-index: 100;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    }
+
+    .launch-list {
+        display: flex;
+        flex-direction: column;
+
+        .list-item {
+            font-size: $md-chip-font-size;
+            padding: 0 5px;
+            line-height: $md-chip-option-size;
+            height: $md-chip-option-size;
+
+            &.span-padding {
+                padding: 0 20px;
             }
         }
     }

@@ -13,9 +13,13 @@
         </md-toolbar>
         <md-dialog-content>
             <div class="content">
-                <ngb-launch-menu-input label="Genes of interest:">
+                <ngb-launch-menu-input label="Genes of interest:"
+                                       ng-model="interestModel"
+                                       get-genes-list="getFilteredGenes">
                 </ngb-launch-menu-input>
-                <ngb-launch-menu-input label="Translational genes:">
+                <ngb-launch-menu-input label="Translational genes:"
+                                       ng-model="translationalModel"
+                                       get-genes-list="getFilteredGenes">
                 </ngb-launch-menu-input>
             </div>
         </md-dialog-content>

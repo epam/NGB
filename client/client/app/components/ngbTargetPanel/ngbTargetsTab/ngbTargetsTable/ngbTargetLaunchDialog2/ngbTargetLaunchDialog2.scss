@@ -6,6 +6,8 @@ md-dialog.launch-dialog {
 
     md-dialog-content {
         width: 100%;
+        height: auto;
+        overflow-x: visible;
     }
 
     md-toolbar {

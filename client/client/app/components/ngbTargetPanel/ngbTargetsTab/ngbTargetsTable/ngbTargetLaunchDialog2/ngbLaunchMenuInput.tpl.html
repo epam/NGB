@@ -1,5 +1,26 @@
 <div class="input-container">
     <label class="input-label">{{label}}</label>
     <input type="text"
-           class="launch-input">
+           class="launch-input"
+           ng-model="ngModel"
+           ng-change="onChange(ngModel)"
+           ng-blur="hideListDelayed()"
+           ng-key-bind="{enter: 'hideListDelayed()'}"
+           ng-mousedown="displayList()">
+</div>
+<div class="list-container"
+     ng-style="listPosition">
+    <div class="launch-list"
+         md-whiteframe="4"
+         ng-click="displayList()"
+         ng-mousedown="preventListFromClosing()"
+         ng-mouseup="stopPreventListFromClosing()"
+         ng-show="listIsDisplayed"
+         prevent-parent-scroll>
+        <span class="list-item"
+              ng-class="{'span-padding': gene.item}"
+              ng-repeat="(index, gene) in listElements track by $index">
+              {{gene.span}}
+        </span>
+    </div>
 </div>
