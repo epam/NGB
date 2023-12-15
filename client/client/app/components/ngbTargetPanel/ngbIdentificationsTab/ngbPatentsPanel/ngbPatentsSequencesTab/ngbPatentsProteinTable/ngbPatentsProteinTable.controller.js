@@ -99,7 +99,8 @@ export default class ngbPatentsProteinTableController {
 
     getPatentsTableGridColumns() {
         const headerCells = require('./ngbPatentsProteinTable_header.tpl.html');
-        const linkCell = require('./ngbPatentsProteinTable_linkCell.tpl.html');
+        const linkCell = require('../../ngbPatentsTable_cells/ngbPatentsTable_linkCell.tpl.html');
+        const tooltipCell = require('../../ngbPatentsTable_cells/ngbPatentsTable_tooltipCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbPatentsSequencesTabService.getColumnList();
@@ -135,28 +136,19 @@ export default class ngbPatentsProteinTableController {
                 case 'title':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                                        {{row.entity[col.field]}}
-                                    </div>`
+                        cellTemplate: tooltipCell
                     };
                     break;
                 case 'journal':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                                        {{row.entity[col.field]}}
-                                    </div>`
+                        cellTemplate: tooltipCell
                     };
                     break;
                 case 'name':
                     columnSettings = {
                         ...columnSettings,
-                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <md-tooltip>{{row.entity[col.field]}}</md-tooltip>
-                                        {{row.entity[col.field]}}
-                                    </div>`
+                        cellTemplate: tooltipCell
                     };
                     break;
                 default:

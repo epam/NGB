@@ -55,3 +55,17 @@ ngb-patents-panel {
     }
 }
 
+md-tooltip.patent-cell-tooltip {
+    max-width: 50%;
+    font-size: 13px;
+
+    .md-content {
+        height: auto;
+        line-break: auto;
+        text-wrap: wrap;
+        line-height: 16px;
+        padding: 10px;
+        margin: 0;
+    }
+}
+
